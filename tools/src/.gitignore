@@ -1,0 +1,12 @@
+.idea/
+
+.tags*
+polaris-extra
+polaris-gen
+polaris-plot
+polaris-remote
+polaris-run
+polaris-test
+
+Makefile
+Makefile.in

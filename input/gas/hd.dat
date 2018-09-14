@@ -1,0 +1,15 @@
+!MOLECULE
+HD
+!MOLECULAR WEIGHT
+3
+!NUMBER OF ENERGY LEVELS
+3
+!LEVEL + ENERGIES[cm^-1] + WEIGHT + QNUM
+    1      0.00000000      3.0      0          
+    2     89.22790000      3.0      1          
+    3    267.06917201      5.0      2          
+!NUMBER OF RADIATIVE TRANSITIONS
+2
+!TRANS + UP + LOW + EINSTEINA[s^-1] + FREQ[GHz] + E_u[K]
+    1    2    1   5.444e-08     2674.9860940    128.38
+    2    3    2   5.183e-07     5331.5472070    255.87

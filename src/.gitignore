@@ -1,0 +1,9 @@
+*.o
+
+.deps
+.tags*
+
+polaris
+Makefile
+Makefile.in
+typedefs.h.bak

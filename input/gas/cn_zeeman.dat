@@ -1,0 +1,184 @@
+!Molecule name
+CN
+!Molecule radius for collision calculations
+1.47e-10
+!Number of transitions with Zeeman effect
+7
+!Transition index in Leiden database
+11
+!Lande factor of upper level
+0.2222222222222222
+!Lande factor of lower level
+0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+2.0
+!Number of Zeeman sublevels in the lower level
+4.0
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.5
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.5
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.125
+!Line strength of sigma_+ transition (M'=0.5 -> M''=1.5)
+0.375
+!Line strength of sigma_- transition (M'=-0.5 -> M''=-1.5)
+0.375
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.125
+!Transition index in Leiden database
+12
+!Lande factor of upper level
+-0.2222222222222222
+!Lande factor of lower level
+-0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+4.0
+!Number of Zeeman sublevels in the lower level
+2.0
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.5
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.5
+!Line strength of sigma_+ transition (M'=-1.5 -> M''=-0.5)
+0.375
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.125
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.125
+!Line strength of sigma_- transition (M'=1.5 -> M''=0.5)
+0.375
+!Transition index in Leiden database
+13
+!Lande factor of upper level
+-0.2222222222222222
+!Lande factor of lower level
+0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+4.0
+!Number of Zeeman sublevels in the lower level
+4.0
+!Line strength of pi transition (M'=-1.5 -> M''=-1.5)
+0.9
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.1
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.1
+!Line strength of pi transition (M'=1.5 -> M''=1.5)
+0.9
+!Line strength of sigma_+ transition (M'=-1.5 -> M''=-0.5)
+0.15
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.2
+!Line strength of sigma_+ transition (M'=0.5 -> M''=1.5)
+0.15
+!Line strength of sigma_- transition (M'=-0.5 -> M''=-1.5)
+0.15
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.2
+!Line strength of sigma_- transition (M'=1.5 -> M''=0.5)
+0.15
+!Transition index in Leiden database
+14
+!Lande factor of upper level
+0.4888888888888889
+!Lande factor of lower level
+-0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+4.0
+!Number of Zeeman sublevels in the lower level
+2.0
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.5
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.5
+!Line strength of sigma_+ transition (M'=-1.5 -> M''=-0.5)
+0.375
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.125
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.125
+!Line strength of sigma_- transition (M'=1.5 -> M''=0.5)
+0.375
+!Transition index in Leiden database
+15
+!Lande factor of upper level
+0.4
+!Lande factor of lower level
+0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+6.0
+!Number of Zeeman sublevels in the lower level
+4.0
+!Line strength of pi transition (M'=-1.5 -> M''=-1.5)
+0.2
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.3
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.3
+!Line strength of pi transition (M'=1.5 -> M''=1.5)
+0.2
+!Line strength of sigma_+ transition (M'=-2.5 -> M''=-1.5)
+0.25
+!Line strength of sigma_+ transition (M'=-1.5 -> M''=-0.5)
+0.15
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.075
+!Line strength of sigma_+ transition (M'=0.5 -> M''=1.5)
+0.025
+!Line strength of sigma_- transition (M'=-0.5 -> M''=-1.5)
+0.025
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.075
+!Line strength of sigma_- transition (M'=1.5 -> M''=0.5)
+0.15
+!Line strength of sigma_- transition (M'=2.5 -> M''=1.5)
+0.25
+!Transition index in Leiden database
+16
+!Lande factor of upper level
+1.111111111111111
+!Lande factor of lower level
+-0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+2.0
+!Number of Zeeman sublevels in the lower level
+2.0
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+1.0
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+1.0
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.5
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.5
+!Transition index in Leiden database
+17
+!Lande factor of upper level
+0.4888888888888889
+!Lande factor of lower level
+0.6666666666666666
+!Number of Zeeman sublevels in the upper level
+4.0
+!Number of Zeeman sublevels in the lower level
+4.0
+!Line strength of pi transition (M'=-1.5 -> M''=-1.5)
+0.9
+!Line strength of pi transition (M'=-0.5 -> M''=-0.5)
+0.1
+!Line strength of pi transition (M'=0.5 -> M''=0.5)
+0.1
+!Line strength of pi transition (M'=1.5 -> M''=1.5)
+0.9
+!Line strength of sigma_+ transition (M'=-1.5 -> M''=-0.5)
+0.15
+!Line strength of sigma_+ transition (M'=-0.5 -> M''=0.5)
+0.2
+!Line strength of sigma_+ transition (M'=0.5 -> M''=1.5)
+0.15
+!Line strength of sigma_- transition (M'=-0.5 -> M''=-1.5)
+0.15
+!Line strength of sigma_- transition (M'=0.5 -> M''=-0.5)
+0.2
+!Line strength of sigma_- transition (M'=1.5 -> M''=0.5)
+0.15

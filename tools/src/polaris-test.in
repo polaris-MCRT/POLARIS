@@ -1,0 +1,414 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""This is a test suite for POLARIS. It is designed to cover most usages
+of the simulation capabilities of POLARIS.
+
+Examples:
+    For usage information please execute:
+        $ ./polaris-test --help
+"""
+
+import os
+import numpy as np
+from argparse import RawTextHelpFormatter, ArgumentParser
+
+__author__ = "Robert Brauer"
+__license__ = "GPL"
+__version__ = "3.0"
+__maintainer__ = "Robert Brauer"
+__email__ = "robert.brauer@cea.fr"
+__status__ = "Production"
+
+
+'''
+The ArgumentParser is used to obtain the non-optional and optional user input.
+
+Notes:
+    Default values of the ArgumentParser are set with None. Unless an option is set/chosen,
+    the polaris-test classes use their default values.
+'''
+
+parser = ArgumentParser(
+    description='PolarisTools_test, an user interface to check '
+                'if POLARIS is working properly:',
+    formatter_class=RawTextHelpFormatter)
+
+req_args = parser.add_argument_group('required arguments')
+req_args.add_argument('test_id', metavar='test_id', type=str,
+                      help='define the executes POLARIS test (test index, \'all\' or \'info\')')
+
+parser_options = parser.parse_args()
+
+class TestRoutines:
+    """Manages the preparation and execution of example POLARIS simulations and
+    test the results of correctness.
+    """
+
+    def __init__(self, parse_args, test_index, quiet=False):
+        """Initialise all necessary modules which are required by polaris-test
+
+        Args:
+            parse_args: Provides all parameters chosen
+                by user when executing PolarisTools.
+            test_index (int): index of test simulation
+            quiet (bool): If true, no message from POLARIS shown.
+        """
+        self.parse_args = parse_args
+        self.test_index = test_index
+        self.quiet = quiet
+
+        ''' #################################
+        ######  Get required modules!  ######
+        ################################# '''
+
+        # Get model module
+        parse_args.model_name = None
+        from modules.model import ModelChooser
+        model_chooser = ModelChooser(parse_args)
+        self.model = model_chooser.get_module()
+
+        # Get server/cluster module
+        from modules.server import ServerChooser
+        server_chooser = ServerChooser(parse_args, 'test')
+        self.server = server_chooser.get_module()
+
+        # Get file input/output module
+        from modules.file import FileIO
+        self.file_io = FileIO(self.model, self.server, parse_args, '@POLARIS@', 'test')
+
+        # Get fits modules to read fits files
+        from astropy.io import fits
+        self.fits = fits
+
+        # Check if the testing directory is existing
+        if not os.path.isdir(self.file_io.path['testing']):
+            raise IOError('Testing directory is missing (ask the developer for it).')
+
+        #: dict: Collection of maximum allowed differences to the correct result
+        self.limit_dict = {
+            'temperature': 1,
+            'a_align': 2,
+            'emission_map': 1,
+            'emission_sed': 1,
+            'healpix_map': 1,
+            'healpix_vel_map': 1,
+            'vel_map': 1,
+            'int_map': 1,
+        }
+
+        #: dict: results file to the quantities
+        self.results_files = {
+            'temperature': ['output_midplane.fits'],
+            'a_align': ['output_midplane.fits'],
+            'emission_map': ['polaris_detector_nr0001.fits'],
+            'emission_sed': ['polaris_detector_nr0001_sed.fits'],
+            'healpix_map': ['polaris_detector_nr0001.fits'],
+            'healpix_vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
+                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
+            'vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
+                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
+        }
+
+    def check(self, diff, max_diff):
+        if diff < max_diff:
+            print('--- Test case (' + str(self.test_index) + '): Allowed difference = ' +
+                  str(max_diff) + ' % [' + color_green + 'ok' + color_std + ']')
+        else:
+            print('--- Test case (' + str(self.test_index) + '): Allowed difference = ' +
+                  str(max_diff) + ' % [' + color_red + 'failed' + color_std + ']')
+
+    def template_to_cmd_file(self):
+        os.system('sed -e \'s/@POLARIS_DIR@/' + self.file_io.path['polaris'].replace('/', '\/') + '/g\' ' +
+            '-e \'s/@TEST_ID@/test_' + str(self.test_index) + '/g\' ' +
+            self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/template.cmd > ' +
+            self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/POLARIS.cmd')
+
+    def get_result(self, quantity, comparison_mode='avg_rel_diff'):
+        """Perform a simulation with POLARIS and compare it with the
+        comparison_mode to preexisting results of a certain quantity.
+
+        Args:
+            quantity (str): Name of the Quantity which will be tested.
+            comparison_mode (str): Define how to compare the results.
+                (avg_rel_diff, )
+        """
+        if os.path.exists(self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/results/'):
+            os.system('rm -r ' + self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/results')
+        if self.quiet:
+            os.system(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['testing'] +
+                'test_' + str(self.test_index) + '/POLARIS.cmd > /dev/null 2>&1')
+        else:
+            os.system(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['testing'] +
+                'test_' + str(self.test_index) + '/POLARIS.cmd')
+        result = 0
+        for filename in self.results_files[quantity]:
+            hdul_correct = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
+                '/results_correct/' + filename)
+            hdul = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
+                '/results/data/' + filename)
+            if 'healpix' in quantity:
+                data_correct = hdul_correct[1].data.tolist()
+                data = hdul[1].data.tolist()
+            else:
+                data_correct = hdul_correct[0].data
+                data = hdul[0].data
+            if comparison_mode == 'avg_rel_diff':
+                diff = abs(np.subtract(data_correct, data))
+                add = abs(np.add(data_correct, data))
+                mask = np.abs(add) > 1e-200
+                result += 100. * np.divide(diff[mask], add[mask]).mean()
+            elif comparison_mode == 'max_rel_diff':
+                diff = abs(np.subtract(data_correct, data))
+                add = np.add(data_correct, data)
+                mask = np.abs(add) > 1e-200
+                result += 100. * np.divide(diff[mask], add[mask]).max()
+            elif comparison_mode == 'sum_rel_diff':
+                diff = abs(np.subtract(data_correct, data))
+                add = abs(np.add(data_correct, data))
+                mask = np.abs(add) > 1e-200
+                result += 100. * np.divide(diff[mask].sum(), add[mask].sum())
+            elif comparison_mode == 'avg_rel_diff_no_abs':
+                diff = np.subtract(data_correct, data)
+                add = abs(np.add(data_correct, data))
+                mask = np.abs(add) > 1e-200
+                result += abs(100. * np.divide(diff[mask], add[mask]).mean())
+            elif comparison_mode == 'avg_diff':
+                result += np.subtract(data_correct, data).mean()
+            elif comparison_mode == 'abs_avg_diff':
+                result += abs(np.subtract(data_correct, data)).mean()
+        result /= len(self.results_files[quantity])
+        print('--- Test case (' + str(self.test_index) + '): Average difference = ' + str(result) + ' %')
+        self.check(result, self.limit_dict[quantity])
+
+    # ------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------
+    # In the following section are testing simulation related to different models / grids.
+    # Index numbering is coded as follows: test_XYYYZZZ
+    # -----------------------------------------------------
+    # X -> 1: standard test
+    # Y -> Index of model
+    # Z -> Index of individual testing simulation
+    # e.g.  def test_1001001(self):
+    #           self.get_result(quantity, comparison_mode)
+    # -----------------------------------------------------
+    # 1001XXX: Model of a circumstellar disk
+    # 1002XXX: Model of a Bok globule (spherical)
+    # 1003XXX: Model of a constant sphere with mutliple dust species
+    # 1004XXX: Model with electron densities
+    # 1005XXX: Model of a BokGlobule (octree)
+    # ------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------
+
+
+    def test_1001001(self):
+        """Perform test simulation to check temperature distribution.
+        """
+        self.get_result('temperature')
+
+    def test_1001002(self):
+        """Perform test simulation to check full raytracing (incl. scattering).
+        """
+        self.get_result('emission_map')
+
+    def test_1001003(self):
+        """Perform test simulation to check continuum radiative transfer.
+        """
+        self.get_result('emission_map')
+
+    def test_1001004(self):
+        """Perform test simulation to check the line radiative transfer (LTE).
+        """
+        self.get_result('vel_map')
+
+    def test_1001005(self):
+        """Perform test simulation to check the line radiative transfer (FEP).
+        """
+        self.get_result('vel_map')
+
+    def test_1001006(self):
+        """Perform test simulation to check the line radiative transfer (LVG).
+        """
+        self.get_result('vel_map')
+
+    def test_1001007(self):
+        """Perform test simulation to check the line radiative transfer
+        with Zeeman splitting.
+        """
+        self.get_result('vel_map')
+
+    def test_1001008(self):
+        """Perform test simulation to check the dust radiative transfer
+        with healpix and polarized background source.
+        """
+        self.get_result('healpix_map')
+
+    def test_1001009(self):
+        """Perform test simulation to check the line radiative transfer
+        with healpix and polarized background source.
+        """
+        self.get_result('healpix_vel_map')
+
+    def test_1001010(self):
+        """Perform test simulation to check slice raytracing grid.
+        """
+        self.get_result('emission_map')
+
+    def test_1001011(self):
+        """Perform test simulation to check raytracing with single grain size.
+        """
+        self.get_result('emission_map', comparison_mode='avg_rel_diff_no_abs')
+
+    def test_1002001(self):
+        """Perform test simulation to check temp_rat calculation.
+        """
+        self.get_result('a_align')
+
+    def test_1002002(self):
+        """Perform test simulation to check aligned dust grain emission.
+        """
+        self.get_result('emission_map')
+
+    def test_1002003(self):
+        """Perform test simulation to check rat calculation.
+        """
+        self.get_result('a_align')
+
+    def test_1002004(self):
+        """Perform test simulation to check heating via ISRF.
+        """
+        self.get_result('temperature')
+
+    def test_1002005(self):
+        """Perform test simulation to check heating via ISRF (radiation field approach).
+        """
+        self.get_result('temperature')
+
+    def test_1002006(self):
+        """Perform test simulation to check polarized background source in raytracing.
+        """
+        self.get_result('emission_map')
+
+    def test_1003001(self):
+        """Perform test simulation to check temperature distribution.
+        Multiple dust compositions inside the grid.
+        """
+        self.get_result('temperature')
+
+    def test_1003002(self):
+        """Perform test simulation to check temperature distribution.
+        Calculate temperature distribution by considering each dust grain size individually.
+        """
+        self.get_result('temperature')
+
+    def test_1003003(self):
+        """Perform test simulation to check the thermal emission of the dust grains.
+        Calculate emission based on the temperature of each dust grain size individually.
+        """
+        self.get_result('emission_sed')
+
+    def test_1003004(self):
+        """Perform test simulation to check temperature distribution.
+        Calculate temperature distribution by considering stochastic heating.
+        """
+        self.get_result('temperature')
+
+    def test_1003005(self):
+        """Perform test simulation to check the thermal emission of the dust grains.
+        Calculate emission based on stochastically heated grains.
+        """
+        self.get_result('emission_sed')
+
+    def test_1004001(self):
+        """Perform test simulation to check the synchotron radiative transfer.
+        """
+        self.get_result('emission_map')
+
+    def test_1004002(self):
+        """Perform test simulation to check the synchotron radiative transfer with healpix.
+        """
+        self.get_result('healpix_map')
+
+    def test_1005001(self):
+        """Perform test simulation to check the if the temperature is correct if the star is not in the center.
+        """
+        self.get_result('temperature')
+
+    def test_1005002(self):
+        """Perform test simulation to check Monte-Carlo radiative transfer
+        (with peel-off technique).
+        """
+        self.get_result('emission_map', comparison_mode='avg_rel_diff_no_abs')
+
+    def test_1006001(self):
+        """Perform test simulation to check temperature distribution.
+        Multiple dust density distributions inside the grid (no overlap, similar to test_1003001).
+        """
+        self.get_result('temperature')
+
+    def test_1006002(self):
+        """Perform test simulation to check temperature distribution.
+        Variation of the grain size limits in the grid (similar to test_1003001).
+        """
+        self.get_result('temperature')
+
+    def test_1006003(self):
+        """Perform test simulation to check temperature distribution.
+        Multiple dust density distributions inside the grid (with overlap).
+        """
+        self.get_result('temperature')
+
+    def test_1006004(self):
+        """Perform test simulation to check thermal emission from overlapped multiple density distributions.
+        """
+        self.get_result('emission_map')
+
+    def test_1007001(self):
+        """Perform test simulation to check temperature distribution (cylindrical grid).
+        """
+        self.get_result('temperature')
+
+    def test_1007002(self):
+        """Perform test simulation to check continuum radiative transfer (cylindrical grid).
+        """
+        self.get_result('emission_map')
+
+
+if __name__ == '__main__':
+    # Define some colors to show error and ok more clearly
+    color_red = '\033[0;31m'
+    color_green = '\033[0;32m'
+    color_std = '\033[0m'
+
+    #: List: List of test simulations that are too long for "all"
+    ignore__if_all = [
+        'test_1001011',
+    ]
+
+    print('---------------------- PolarisToolsTest ----------------------')
+    if parser_options.test_id is not None:
+        print('--- Perform POLARIS test simulations...')
+        if parser_options.test_id == 'info':
+            for i_test in TestRoutines.__dict__.keys():
+                test_routines = TestRoutines(parser_options, i_test)
+                if 'test_' in i_test:
+                    print('ID = ' + i_test.replace('test_','') + ', description:',
+                        TestRoutines.__dict__[i_test].__doc__)
+        elif parser_options.test_id == 'all':
+            for test_str in TestRoutines.__dict__.keys():                
+                if 'test_' in test_str and test_str not in ignore__if_all:
+                    i_test = int(test_str.replace('test_', ''))
+                    test_routines = TestRoutines(parser_options, i_test, quiet=True)
+                    test_routines.template_to_cmd_file()
+                    print('--- Test case (' + str(i_test) + '): ...')
+                    TestRoutines.__dict__['test_' + str(i_test)](test_routines)
+        else:
+            i_test = int(parser_options.test_id)
+            # Instance of PlotRoutines which can manage POLARIS plot creation
+            test_routines = TestRoutines(parser_options, i_test)
+            test_routines.template_to_cmd_file()
+            print('--- Test case (' + str(i_test) + '): ...')
+            TestRoutines.__dict__['test_' + str(i_test)](test_routines)
+        print('--- POLARIS test simulations finished!    ')
+    else:
+        raise ValueError('No valid execution of polaris-extra found (Try --help for usage)!')
