@@ -175,9 +175,9 @@ class TestModel(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100.0 * self.math.const['au']
         self.parameter['grid_type'] = 'spherical'
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 91
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 91
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         #self.parameter['gas_mass'] = [[1.22138e-07 * self.math.const['M_sun']],
         #                              [8.77862e-07 * self.math.const['M_sun']]]
@@ -312,9 +312,9 @@ class MhdFlock(Model):
         self.parameter['inner_radius'] = 20.0 * self.math.const['au']
         self.parameter['outer_radius'] = 100.0 * self.math.const['au']
         self.parameter['grid_type'] = 'spherical'
-        self.spherical_parameter['n_radius'] = 256
-        self.spherical_parameter['n_theta'] = 562
-        self.spherical_parameter['n_phi'] = 512
+        self.spherical_parameter['n_r'] = 256
+        self.spherical_parameter['n_th'] = 562
+        self.spherical_parameter['n_ph'] = 512
         self.spherical_parameter['sf_r'] = 1.0063066707156978
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
         self.parameter['external_input_name'] = 350
@@ -353,8 +353,8 @@ class GGTauDisk(Model):
         # Parameter for the spherical grid
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
         self.parameter['outer_radius'] = 300. * self.math.const['au']
-        self.spherical_parameter['n_theta'] = 91
-        self.spherical_parameter['n_phi'] = 720
+        self.spherical_parameter['n_th'] = 91
+        self.spherical_parameter['n_ph'] = 720
         self.spherical_parameter['sf_th'] = 1
         # --- own radial spacing of cells
         self.spherical_parameter['sf_r'] = 0
@@ -452,10 +452,10 @@ class GGTauCSDisk(Model):
         self.parameter['inner_radius'] = 0.07 * self.math.const['au']
         self.parameter['outer_radius'] = 2. * self.math.const['au']  # 2 AU / 7 AU
         self.parameter['grid_type'] = 'spherical'
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 91
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 91
         self.spherical_parameter['sf_th'] = 1
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         # GG Tau Aa M_disk = 0.01
         # GG Tau Ab1 and Ab2 M_disk = 0.0015 each
@@ -497,15 +497,15 @@ class HD97048(Model):
         self.parameter['outer_radius'] = 400.0 * self.math.const['au']
         self.parameter['grid_type'] = 'cylindrical'
         # In the case of a spherical grid
-        self.spherical_parameter['n_radius'] = 300
-        self.spherical_parameter['n_theta'] = 141
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 300
+        self.spherical_parameter['n_th'] = 141
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.04
         self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
-        self.cylindrical_parameter['n_rho'] = 300
+        self.cylindrical_parameter['n_r'] = 300
         self.cylindrical_parameter['n_z'] = 142
-        self.cylindrical_parameter['n_phi'] = 1
+        self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.04
         self.cylindrical_parameter['sf_z'] = -1
         # Define the used sources, dust composition and gas species
@@ -593,8 +593,11 @@ class HD97048(Model):
                     [0, 0, 0, 0, pah_cont],]
         return [[inner_disk, ring_1, ring_2, ring_3], [0, ring_1, ring_2, ring_3]]
 
-    def get_dz(self, radius):
+    def scale_height(self, radius):
         """Calculates the scale height at a certain position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
 
         Returns:
             float: Scale height.
@@ -609,7 +612,7 @@ class HD97048(Model):
             ref_radius = 100. * self.math.const['au']
             ref_scale_height = 12. * self.math.const['au']
             scale_height = ref_scale_height * (radius / ref_radius) ** beta
-        return 5. * scale_height / self.cylindrical_parameter['n_z']
+        return scale_height
 
 
 class ProtoplanetaryDisk(Model):
@@ -647,9 +650,9 @@ class ProtoplanetaryDisk(Model):
         self.parameter['inner_radius'] = 1.0 * self.math.const['au']
         self.parameter['outer_radius'] = 300.0 * self.math.const['au']
         self.parameter['grid_type'] = 'spherical'
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 182
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 182
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.058
         # self.spherical_parameter['sf_th'] = 1.0
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
@@ -694,16 +697,16 @@ class MultiDisk(Model):
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
         # In the case of a spherical grid
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 181
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         # sf_th = -1 is linear; sf_th = 1 is sinus; rest is exp with step width sf_th
         self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
-        self.cylindrical_parameter['n_rho'] = 100
+        self.cylindrical_parameter['n_r'] = 100
         self.cylindrical_parameter['n_z'] = 181
-        self.cylindrical_parameter['n_phi'] = 1
+        self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.03
         # sf_z = -1 is linear; sf_z = 1 is sinus; rest is exp with step width sf_z
         self.cylindrical_parameter['sf_z'] = 1.0

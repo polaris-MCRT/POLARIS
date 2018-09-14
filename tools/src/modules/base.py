@@ -554,11 +554,11 @@ class Model:
         self.spherical_parameter = {
             'inner_radius': None,
             'outer_radius': None,
-            'n_radius': 100,
-            'n_theta': 101,
-            'n_phi': 1,
+            'n_r': 100,
+            'n_th': 101,
+            'n_ph': 1,
             'sf_r': 1.03,
-            'sf_phi': 1.0,
+            'sf_ph': 1.0,
             'sf_th': -1.0,
             # These list are used as cell borders if sf_r or sf_th is zero
             'radius_list':[],
@@ -571,11 +571,11 @@ class Model:
             'inner_radius': None,
             'outer_radius': None,
             'z_max': None,
-            'n_rho': 100,
-            'n_phi': 101,
+            'n_r': 100,
+            'n_ph': 101,
             'n_z': 5,
             'sf_r': 1.03,
-            'sf_phi': 1.0,
+            'sf_ph': 1.0,
             'sf_z': -1.0,
             # This list is used as cell borders if sf_r or sf_z is zero
             'rho_list': [],
@@ -684,6 +684,17 @@ class Model:
             float: minimum grain size
         """
         return self.dust_max_size()
+        
+    def get_dz(self, radius):
+        """Calculates the width of each vertical cell border depending on the radial position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Width between two cell borders.
+        """
+        return 5. * self.scale_height(radius) / self.cylindrical_parameter['n_z']
 
     def adjust_extent(self, sidelength_x, sidelength_y):
         """Adjust the extent of the model.
@@ -841,14 +852,14 @@ class Model:
         dust_max_size = 0
         return dust_max_size
 
-    def get_dz(self, rho):
-        """Calculates the width of each vertical cell border depending on the radial position.
+    def scale_height(self, radius):
+        """Calculates the scale height at a certain position.
 
         Args:
-            rho (float) : Cylindrical radius of current position
+            radius (float) : Cylindrical radius of current position
 
         Returns:
-            float: Width between two cell borders.
+            float: Scale height.
         """
         return 0
 

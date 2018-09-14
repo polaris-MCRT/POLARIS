@@ -273,7 +273,9 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
                 if(dth == 0)
                 {
-                    cout << "ERROR: No step size in theta-direction of spherical grid!" << endl;
+                    cout << "ERROR: No step size in theta-direction of spherical grid!" << endl
+                        << "HINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
+                        << "      Please look in the manual or use \"polaris-gen ... --update\"" << endl;
                     return false;
                 }
 

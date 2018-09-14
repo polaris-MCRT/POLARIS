@@ -54,19 +54,19 @@ grid_args.add_argument('--outer_radius', dest='outer_radius', type=str, default=
                        help='outer radius of spherical or cylindrical grid (overwrites model value).')
 grid_args.add_argument('--z_max', dest='z_max', type=str, default=None,
                        help='maximum vertical extent of cylindrical grid (overwrites model value).')
-grid_args.add_argument('--n_radius', dest='n_radius', type=int, default=None,
+grid_args.add_argument('--n_r', dest='n_r', type=int, default=None,
                        help='number of radial cells of spherical grid (overwrites model value).')
-grid_args.add_argument('--n_phi', dest='n_phi', type=int, default=None,
+grid_args.add_argument('--n_ph', dest='n_ph', type=int, default=None,
                        help='number of azimuthal cells of spherical or cylindrical grid (overwrites model value).')
-grid_args.add_argument('--n_theta', dest='n_theta', type=int, default=None,
+grid_args.add_argument('--n_th', dest='n_th', type=int, default=None,
                        help='number of theta cells of spherical grid (overwrites model value).')
-grid_args.add_argument('--n_rho', dest='n_rho', type=int, default=None,
-                       help='number of radial cells of cylindrical grid (overwrites model value).')
 grid_args.add_argument('--n_z', dest='n_z', type=int, default=None,
                        help='number of vertical cells of cylindrical grid (overwrites model value).')
 grid_args.add_argument('--sf_r', dest='sf_r', type=float, default=None,
                        help='step width factor in radial direction of spherical or cylindrical grid '
                        '(overwrites model value).')
+grid_args.add_argument('--sf_ph', dest='sf_ph', type=float, default=None,
+                       help='step width factor in phi direction of spherical grid (overwrites model value).')
 grid_args.add_argument('--sf_th', dest='sf_th', type=float, default=None,
                        help='step width factor in theta direction of spherical grid (overwrites model value).')
 grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,

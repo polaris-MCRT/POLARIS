@@ -347,10 +347,10 @@ class Grid:
         elif struct.unpack('H', grid_id)[0] == 30:
             tmp_file.write(grid_file.read(8))
             tmp_file.write(grid_file.read(8))
-            n_radius = grid_file.read(2)
-            tmp_file.write(n_radius)
-            n_phi = grid_file.read(2)
-            tmp_file.write(n_phi)
+            n_r = grid_file.read(2)
+            tmp_file.write(n_r)
+            n_ph = grid_file.read(2)
+            tmp_file.write(n_ph)
             n_th = grid_file.read(2)
             tmp_file.write(n_th)
             sf_r = grid_file.read(8)
@@ -365,10 +365,10 @@ class Grid:
             tmp_file.write(grid_file.read(8))
             tmp_file.write(grid_file.read(8))
             tmp_file.write(grid_file.read(8))
-            n_radius = grid_file.read(2)
-            tmp_file.write(n_radius)
-            n_phi = grid_file.read(2)
-            tmp_file.write(n_phi)
+            n_r = grid_file.read(2)
+            tmp_file.write(n_r)
+            n_ph = grid_file.read(2)
+            tmp_file.write(n_ph)
             n_z = grid_file.read(2)
             tmp_file.write(n_z)
             sf_r = grid_file.read(8)
@@ -764,78 +764,78 @@ class Spherical(Grid):
             if sp_param['radius_list'][0] != sp_param['inner_radius'] or \
                     sp_param['radius_list'][-1] != sp_param['outer_radius']:
                 raise ValueError('radius_list does not agree with the inner and outer grid borders!')
-            radius = sp_param['radius_list']
-            sp_param['n_radius'] = len(radius) - 1
+            radius_list = sp_param['radius_list']
+            sp_param['n_r'] = len(radius_list) - 1
         elif sp_param['sf_r'] == 1:
-            radius = self.math.sin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_radius'])
+            radius_list = self.math.sin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
         elif sp_param['sf_r'] > 1:
-            radius = self.math.exp_list(sp_param['inner_radius'],
-                sp_param['outer_radius'], sp_param['n_radius'], sp_param['sf_r'])
+            radius_list = self.math.exp_list(sp_param['inner_radius'],
+                sp_param['outer_radius'], sp_param['n_r'], sp_param['sf_r'])
         else:
-            radius = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_radius'])
+            radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
         #: Array of phi values
-        if sp_param['sf_phi'] == 0:
-            phi = sp_param['phi_list']
-            sp_param['n_phi'] = len(phi) - 1
+        if sp_param['sf_ph'] == 0:
+            phi_list = sp_param['phi_list']
+            sp_param['n_ph'] = len(phi_list) - 1
         else:
-            phi = self.math.lin_list(0., 2. * np.pi, sp_param['n_phi'])
+            phi_list = self.math.lin_list(0., 2. * np.pi, sp_param['n_ph'])
 
         #: Array of theta values
         if sp_param['sf_th'] == 0:
-            theta = sp_param['theta_list']
-            sp_param['n_theta'] = len(theta) - 1
+            theta_list = sp_param['theta_list']
+            sp_param['n_th'] = len(theta_list) - 1
         elif sp_param['sf_th'] == 1:
-            theta = self.math.sin_list(-np.pi / 2., np.pi / 2., sp_param['n_theta'])
+            theta_list = self.math.sin_list(-np.pi / 2., np.pi / 2., sp_param['n_th'])
         elif sp_param['sf_th'] > 1:
-            theta = self.math.exp_list_sym(-np.pi / 2., np.pi / 2., sp_param['n_theta'], sp_param['sf_th'])
+            theta_list = self.math.exp_list_sym(-np.pi / 2., np.pi / 2., sp_param['n_th'], sp_param['sf_th'])
         else:
-            theta = self.math.lin_list(-np.pi / 2., np.pi / 2., sp_param['n_theta'])
+            theta_list = self.math.lin_list(-np.pi / 2., np.pi / 2., sp_param['n_th'])
 
         grid_file.write(struct.pack('d', sp_param['inner_radius']))
         grid_file.write(struct.pack('d', sp_param['outer_radius']))
-        grid_file.write(struct.pack('H', sp_param['n_radius']))
-        grid_file.write(struct.pack('H', sp_param['n_phi']))
-        grid_file.write(struct.pack('H', sp_param['n_theta']))
+        grid_file.write(struct.pack('H', sp_param['n_r']))
+        grid_file.write(struct.pack('H', sp_param['n_ph']))
+        grid_file.write(struct.pack('H', sp_param['n_th']))
         # f_radius
         grid_file.write(struct.pack('d', sp_param['sf_r']))
         # f_phi
-        grid_file.write(struct.pack('d', sp_param['sf_phi']))
+        grid_file.write(struct.pack('d', sp_param['sf_ph']))
         # f_theta
         grid_file.write(struct.pack('d', sp_param['sf_th']))
         # Write radius list if custom
         if sp_param['sf_r'] == 0:
-            for tmp_rad in radius[1:-1]:
+            for tmp_rad in radius_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_rad))
         # Write phi list if custom
-        if sp_param['sf_phi'] == 0:
-            for tmp_phi in phi[1:-1]:
+        if sp_param['sf_ph'] == 0:
+            for tmp_phi in phi_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_phi))
         # Write theta list if custom
         if sp_param['sf_th'] == 0:
-            for tmp_theta in theta[1:-1]:
+            for tmp_theta in theta_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_theta))
 
         i_node = 0
-        for i_r in range(sp_param['n_radius']):
-            for i_p in range(sp_param['n_phi']):
-                for i_t in range(sp_param['n_theta']):
+        for i_r in range(sp_param['n_r']):
+            for i_p in range(sp_param['n_ph']):
+                for i_t in range(sp_param['n_th']):
                     stdout.write('--- Generate spherical grid: ' + str(round(100.0 * i_node / (
-                            sp_param['n_radius'] * sp_param['n_theta'] *
-                            sp_param['n_phi']), 3)) + ' %           \r')
+                            sp_param['n_r'] * sp_param['n_th'] *
+                            sp_param['n_ph']), 3)) + ' %           \r')
                     stdout.flush()
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)
-                    spherical_coord[0] = (radius[i_r] + radius[i_r + 1]) / 2.
-                    spherical_coord[1] = (theta[i_t] + theta[i_t + 1]) / 2.
-                    spherical_coord[2] = (phi[i_p] + phi[i_p + 1]) / 2.
+                    spherical_coord[0] = (radius_list[i_r] + radius_list[i_r + 1]) / 2.
+                    spherical_coord[1] = (theta_list[i_t] + theta_list[i_t + 1]) / 2.
+                    spherical_coord[2] = (phi_list[i_p] + phi_list[i_p + 1]) / 2.
                     # Convert the spherical coordinate into carthesian node position
                     position = self.math.spherical_to_carthesian(spherical_coord)
                     node = Node('spherical')
                     node.parameter['position'] = position
-                    node.parameter['extent'] = [radius[i_r], radius[i_r + 1],
-                                                theta[i_t], theta[i_t + 1],
-                                                phi[i_p], phi[i_p + 1]]
+                    node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
+                                                theta_list[i_t], theta_list[i_t + 1],
+                                                phi_list[i_p], phi_list[i_p + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
                     self.write_node_data(grid_file=grid_file, node=node, data_type='d',
                         cell_IDs=[i_r, i_t, i_p])
@@ -844,7 +844,7 @@ class Spherical(Grid):
                     i_node += 1
         node = Node('spherical')
         node.parameter['position'] = [0., 0., 0.]
-        node.parameter['extent'] = [0., radius[0],
+        node.parameter['extent'] = [0., radius_list[0],
                                     -np.pi / 2., np.pi / 2.,
                                     0, 2. * np.pi]
         node.parameter['volume'] = self.get_volume(node=node)
@@ -879,9 +879,9 @@ class Spherical(Grid):
         sp_param = self.model.spherical_parameter
 
         self.read_write_header(tmp_file=tmp_file, grid_file=grid_file)
-        for i_r in range(sp_param['n_radius']):
-            for i_t in range(sp_param['n_theta']):
-                for i_p in range(sp_param['n_phi']):
+        for i_r in range(sp_param['n_r']):
+            for i_t in range(sp_param['n_th']):
+                for i_p in range(sp_param['n_ph']):
                     self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
         self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
 
@@ -899,24 +899,30 @@ class Spherical(Grid):
         grid_file.write(tmp_file.read(8))
         grid_file.write(tmp_file.read(8))
         # Get number of radial cells
-        n_radius = tmp_file.read(2)
-        grid_file.write(n_radius)
+        n_r = tmp_file.read(2)
+        grid_file.write(n_r)
         # Get number of phi cells
-        grid_file.write(tmp_file.read(2))
+        n_ph = tmp_file.read(2)
+        grid_file.write(n_ph)
         # Get number of theta cells
-        n_theta = tmp_file.read(2)
-        grid_file.write(n_theta)
+        n_th = tmp_file.read(2)
+        grid_file.write(n_th)
         # Get step width factors (zero for custom)
         sf_r = tmp_file.read(8)
         grid_file.write(sf_r)
+        sf_ph = tmp_file.read(8)
+        grid_file.write(sf_ph)
         sf_th = tmp_file.read(8)
         grid_file.write(sf_th)
         # Write the custom cell distribution if chosen
         if struct.unpack('d', sf_r)[0] == 0:
-            for i_r in range(struct.unpack('H', n_radius)[0] - 1):
+            for i_r in range(struct.unpack('H', n_r)[0] - 1):
+                grid_file.write(tmp_file.read(8))
+        if struct.unpack('d', sf_ph)[0] == 0:
+            for i_ph in range(struct.unpack('H', n_ph)[0]):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_th)[0] == 0:
-            for i_th in range(struct.unpack('H', n_theta)[0]):
+            for i_th in range(struct.unpack('H', n_th)[0]):
                 grid_file.write(tmp_file.read(8))
 
     def write_other_grid(self, tmp_file, code_name):
@@ -931,20 +937,20 @@ class Spherical(Grid):
         from astropy.io import fits
 
         if code_name == 'mcfost':
-            if sp_param['n_phi'] == 1:
-                tbldata = np.zeros((int(sp_param['n_theta'] / 2), sp_param['n_radius']))
+            if sp_param['n_ph'] == 1:
+                tbldata = np.zeros((int(sp_param['n_th'] / 2), sp_param['n_r']))
             else:
-                tbldata = np.zeros((sp_param['n_phi'], int(sp_param['n_theta'] / 2), sp_param['n_radius']))
+                tbldata = np.zeros((sp_param['n_ph'], int(sp_param['n_th'] / 2), sp_param['n_r']))
             tmp_file.read(2 + 2 + 2 * self.data_length + 8 + 8 + 2 + 2 + 2 + 8 + 8)
-            for i_r in range(sp_param['n_radius']):
-                for i_p in range(sp_param['n_phi']):
-                    for i_t in range(sp_param['n_theta']):
+            for i_r in range(sp_param['n_r']):
+                for i_p in range(sp_param['n_ph']):
+                    for i_t in range(sp_param['n_th']):
                         density = tmp_file.read(8)
-                        if np.sum(self.total_gas_mass) > 0. and i_t >= int(sp_param['n_theta'] / 2.0):
-                            i_t_tmp = i_t - int(sp_param['n_theta'] / 2.0)
+                        if np.sum(self.total_gas_mass) > 0. and i_t >= int(sp_param['n_th'] / 2.0):
+                            i_t_tmp = i_t - int(sp_param['n_th'] / 2.0)
                             data = struct.unpack('d', density)[0] * \
                                 (self.model.parameter['gas_mass'] / np.sum(self.total_gas_mass))
-                            if sp_param['n_phi'] == 1:
+                            if sp_param['n_ph'] == 1:
                                 tbldata[i_t_tmp, i_r] = data
                             else:
                                 tbldata[i_p, i_t_tmp, i_r] = data
@@ -1008,22 +1014,22 @@ class Cylindrical(Grid):
             if cy_param['rho_list'][0] != cy_param['inner_radius'] or \
                     cy_param['rho_list'][-1] != cy_param['outer_radius']:
                 raise ValueError('rho_list does not agree with the inner and outer grid borders!')
-            rho = cy_param['rho_list']
-            cy_param['n_rho'] = len(rho) - 1
+            rho_list = cy_param['rho_list']
+            cy_param['n_r'] = len(rho_list) - 1
         elif cy_param['sf_r'] == 1:
-            rho = self.math.sin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_rho'])
+            rho_list = self.math.sin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
         elif cy_param['sf_r'] > 1:
-            rho = self.math.exp_list(cy_param['inner_radius'],
-                cy_param['outer_radius'], cy_param['n_rho'], cy_param['sf_r'])
+            rho_list = self.math.exp_list(cy_param['inner_radius'],
+                cy_param['outer_radius'], cy_param['n_r'], cy_param['sf_r'])
         else:
-            rho = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_rho'])
+            rho_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
         #: Array of phi values
-        if cy_param['sf_phi'] == 0:
-            phi = cy_param['phi_list']
-            cy_param['n_phi'] = len(phi) - 1
+        if cy_param['sf_ph'] == 0:
+            phi_list = cy_param['phi_list']
+            cy_param['n_ph'] = len(phi_list) - 1
         else:
-            phi = self.math.lin_list(0., 2. * np.pi, cy_param['n_phi'])
+            phi_list = self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'])
 
         #: Array of z values
         if cy_param['sf_z'] == 0:
@@ -1031,71 +1037,71 @@ class Cylindrical(Grid):
                 if cy_param['z_list'][0] != -cy_param['z_max'] or \
                         cy_param['z_list'][-1] != cy_param['z_max']:
                     raise ValueError('z_list does not agree with the inner and outer grid borders!')
-                z = np.array([cy_param['z_list'] for i_r in range(cy_param['n_rho'])])
-                cy_param['n_z'] = len(z) - 1
+                z_list = np.array([cy_param['z_list'] for i_r in range(cy_param['n_r'])])
+                cy_param['n_z'] = len(z_list) - 1
             else:
                 raise ValueError('Cell distriution in z-direction not understood!')
         elif  cy_param['sf_z'] == -1:
-            z_max_tmp = [self.model.get_dz(rho[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_rho'])]
-            z = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
+            z_max_tmp = [self.model.get_dz(rho_list[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_r'])]
+            z_list = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
         elif cy_param['sf_z'] == 1.0:
-            z = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
-                for i_r in range(cy_param['n_rho'])])
+            z_list = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
+                for i_r in range(cy_param['n_r'])])
         elif cy_param['sf_z'] > 1.0:
-            z = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'], cy_param['sf_z'])
-                for i_r in range(cy_param['n_rho'])])
+            z_list = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'], cy_param['sf_z'])
+                for i_r in range(cy_param['n_r'])])
         else:
-            z = np.array([self.math.lin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
-                for i_r in range(cy_param['n_rho'])])
+            z_list = np.array([self.math.lin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
+                for i_r in range(cy_param['n_r'])])
 
         grid_file.write(struct.pack('d', cy_param['inner_radius']))
         grid_file.write(struct.pack('d', cy_param['outer_radius']))
         grid_file.write(struct.pack('d', cy_param['z_max']))
-        grid_file.write(struct.pack('H', cy_param['n_rho']))
-        grid_file.write(struct.pack('H', cy_param['n_phi']))
+        grid_file.write(struct.pack('H', cy_param['n_r']))
+        grid_file.write(struct.pack('H', cy_param['n_ph']))
         grid_file.write(struct.pack('H', cy_param['n_z']))
         # f_rho
         grid_file.write(struct.pack('d', cy_param['sf_r']))
         # f_phi
-        grid_file.write(struct.pack('d', cy_param['sf_phi']))
+        grid_file.write(struct.pack('d', cy_param['sf_ph']))
         # f_z
         grid_file.write(struct.pack('d', cy_param['sf_z']))
         # Write radius list if custom
         if cy_param['sf_r'] == 0:
-            for tmp_rho in rho[1:-1]:
+            for tmp_rho in rho_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_rho))
         # Write phi list if custom
-        if cy_param['sf_phi'] == 0:
-            for tmp_phi in phi[1:-1]:
+        if cy_param['sf_ph'] == 0:
+            for tmp_phi in phi_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_phi))
         # Write dz or z, if chosen
         if cy_param['sf_z'] == 0:
-            for tmp_z in z[1:-1]:
+            for tmp_z in z_list[0][1:-1]:
                 grid_file.write(struct.pack('d', tmp_z))
-        if cy_param['sf_z'] == -1:
-            for rho_tmp in rho:
+        elif cy_param['sf_z'] == -1:
+            for rho_tmp in rho_list[:-1]:
                 grid_file.write(struct.pack('d', self.model.get_dz(rho_tmp)))
 
         i_node = 0
-        for i_r in range(cy_param['n_rho']):
-            for i_p in range(cy_param['n_phi']):
+        for i_r in range(cy_param['n_r']):
+            for i_p in range(cy_param['n_ph']):
                 for i_z in range(cy_param['n_z']):
                     stdout.write('--- Generate cylindrical grid: ' +
-                        str(round(100.0 * i_node /(cy_param['n_rho'] *
-                        cy_param['n_phi'] * cy_param['n_z']), 3)) + ' %      \r')
+                        str(round(100.0 * i_node /(cy_param['n_r'] *
+                        cy_param['n_ph'] * cy_param['n_z']), 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in cylindrical coordinates
                     cylindrical_coord = np.zeros(3)
-                    cylindrical_coord[0] = (rho[i_r] + rho[i_r + 1]) / 2.
-                    cylindrical_coord[1] = (phi[i_p] + phi[i_p + 1]) / 2.
-                    cylindrical_coord[2] = (z[i_r][i_z] + z[i_r][i_z + 1]) / 2.
+                    cylindrical_coord[0] = (rho_list[i_r] + rho_list[i_r + 1]) / 2.
+                    cylindrical_coord[1] = (phi_list[i_p] + phi_list[i_p + 1]) / 2.
+                    cylindrical_coord[2] = (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     # Convert the cylindrical coordinate into carthesian node position
                     position = self.math.cylindrical_to_carthesian(cylindrical_coord)
                     node = Node('cylindrical')
                     node.parameter['position'] = position
-                    node.parameter['extent'] = [rho[i_r], rho[i_r + 1],
-                                                phi[i_p], phi[i_p + 1],
-                                                z[i_r][i_z], z[i_r][i_z + 1]]
+                    node.parameter['extent'] = [rho_list[i_r], rho_list[i_r + 1],
+                                                phi_list[i_p], phi_list[i_p + 1],
+                                                z_list[i_r][i_z], z_list[i_r][i_z + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
                     self.write_node_data(grid_file=grid_file, node=node, data_type='d',
                         cell_IDs=[i_r, i_p, i_z])
@@ -1105,9 +1111,9 @@ class Cylindrical(Grid):
 
         for i_z in range(cy_param['n_z']):
             node = Node('cylindrical')
-            node.parameter['position'] = [0., 0., (z[i_r][i_z] + z[i_r][i_z + 1]) / 2.]
-            node.parameter['extent'] = [0., rho[0],
-                phi[0], phi[cy_param['n_phi']], z[i_r][i_z], z[i_r][i_z + 1]]
+            node.parameter['position'] = [0., 0., (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.]
+            node.parameter['extent'] = [0., rho_list[0],
+                phi_list[0], phi_list[cy_param['n_ph']], z_list[i_r][i_z], z_list[i_r][i_z + 1]]
             node.parameter['volume'] = self.get_volume(node=node)
             self.write_node_data(grid_file=grid_file, node=node, data_type='d', cell_IDs=[-1, -1, i_z])
             self.update_mass_measurement(node=node)
@@ -1140,8 +1146,8 @@ class Cylindrical(Grid):
         cy_param = self.model.cylindrical_parameter
 
         self.read_write_header(tmp_file=tmp_file, grid_file=grid_file)
-        for i_r in range(cy_param['n_rho']):
-            for i_t in range(cy_param['n_phi']):
+        for i_r in range(cy_param['n_r']):
+            for i_t in range(cy_param['n_ph']):
                 for i_p in range(cy_param['n_z']):
                     self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
         for i_p in range(cy_param['n_z']):
@@ -1161,17 +1167,34 @@ class Cylindrical(Grid):
         grid_file.write(tmp_file.read(8))
         grid_file.write(tmp_file.read(8))
         grid_file.write(tmp_file.read(8))
-        n_radius = tmp_file.read(2)
-        grid_file.write(n_radius)
-        grid_file.write(tmp_file.read(2))
-        grid_file.write(tmp_file.read(2))
+        # Get number of radial cells
+        n_r = tmp_file.read(2)
+        grid_file.write(n_r)
+        # Get number of phi cells
+        n_ph = tmp_file.read(2)
+        grid_file.write(n_ph)
+        # Get number of theta cells
+        n_z = tmp_file.read(2)
+        grid_file.write(n_z)
+        # Get step width factors (zero for custom)
         sf_r = tmp_file.read(8)
         grid_file.write(sf_r)
-        grid_file.write(tmp_file.read(8))
+        sf_ph = tmp_file.read(8)
+        grid_file.write(sf_ph)
+        sf_z = tmp_file.read(8)
+        grid_file.write(sf_z)
         if struct.unpack('d', sf_r)[0] == 0:
-            for i_r in range(struct.unpack('H', n_radius)[0] - 1):
+            for i_r in range(struct.unpack('H', n_r)[0] - 1):
                 grid_file.write(tmp_file.read(8))
-
+        if struct.unpack('d', sf_ph)[0] == 0:
+            for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
+                grid_file.write(tmp_file.read(8))
+        if struct.unpack('d', sf_z)[0] == 0:
+            for i_z in range(struct.unpack('H', n_z)[0] - 1):
+                grid_file.write(tmp_file.read(8))
+        elif struct.unpack('d', sf_z)[0] == -1:
+            for i_r in range(struct.unpack('H', n_r)[0]):
+                grid_file.write(tmp_file.read(8))
 
 class Node:
     """The Node class includes the information of one node in the grid.

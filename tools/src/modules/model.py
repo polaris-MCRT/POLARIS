@@ -69,20 +69,22 @@ class ModelChooser:
                 model.parameter['outer_radius'] = self.math.parse(self.parse_args.outer_radius, 'length')
             if self.parse_args.z_max is not None:
                 model.cylindrical_parameter['z_max'] = self.math.parse(self.parse_args.z_max, 'length')
-            if self.parse_args.n_radius is not None:
-                model.spherical_parameter['n_radius'] = self.parse_args.n_radius
-            if self.parse_args.n_phi is not None:
-                model.spherical_parameter['n_phi'] = self.parse_args.n_phi
-                model.cylindrical_parameter['n_phi'] = self.parse_args.n_phi
-            if self.parse_args.n_theta is not None:
-                model.spherical_parameter['n_theta'] = self.parse_args.n_theta
-            if self.parse_args.n_rho is not None:
-                model.cylindrical_parameter['n_rho'] = self.parse_args.n_rho
+            if self.parse_args.n_r is not None:
+                model.spherical_parameter['n_r'] = self.parse_args.n_r
+                model.cylindrical_parameter['n_r'] = self.parse_args.n_r
+            if self.parse_args.n_ph is not None:
+                model.spherical_parameter['n_ph'] = self.parse_args.n_ph
+                model.cylindrical_parameter['n_ph'] = self.parse_args.n_ph
+            if self.parse_args.n_th is not None:
+                model.spherical_parameter['n_th'] = self.parse_args.n_th
             if self.parse_args.n_z is not None:
                 model.cylindrical_parameter['n_z'] = self.parse_args.n_z
             if self.parse_args.sf_r is not None:
                 model.spherical_parameter['sf_r'] = self.parse_args.sf_r
                 model.cylindrical_parameter['sf_r'] = self.parse_args.sf_r
+            if self.parse_args.sf_ph is not None:
+                model.spherical_parameter['sf_ph'] = self.parse_args.sf_th
+                model.cylindrical_parameter['sf_ph'] = self.parse_args.sf_th
             if self.parse_args.sf_th is not None:
                 model.spherical_parameter['sf_th'] = self.parse_args.sf_th
             if self.parse_args.sf_z is not None:
@@ -145,7 +147,7 @@ class Disk(Model):
         #: Set parameters of the disk model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
-        self.parameter['grid_type'] = 'spherical'
+        self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
         # Define the used sources, dust composition and gas species
@@ -154,19 +156,20 @@ class Disk(Model):
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
         # In the case of a spherical grid
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 181
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
-        # sf_th = -1 is linear; sf_th = 1 is sinus; rest is exp with step width sf_th
+        # sf_th = 1 is sinus; sf_th > 1 is exp with step width sf_th; rest is linear
         self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
-        self.cylindrical_parameter['n_rho'] = 100
+        self.cylindrical_parameter['n_r'] = 100
         self.cylindrical_parameter['n_z'] = 181
-        self.cylindrical_parameter['n_phi'] = 1
+        self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.03
-        # sf_z = -1 is linear; sf_z = 1 is sinus; rest is exp with step width sf_z
-        self.cylindrical_parameter['sf_z'] = 1.0
+        # sf_z = -1 is using scale height; sf_z = 1 is sinus;
+        # sf_z > 1 is exp with step width sf_z and rest is linear
+        self.cylindrical_parameter['sf_z'] = -1
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10.  * self.math.const['au']
@@ -193,9 +196,26 @@ class Disk(Model):
         gas_density = self.math.default_disk_density(self.position,
                 inner_radius=self.parameter['inner_radius'],
                 outer_radius=self.parameter['outer_radius'],
-                ref_radius=self.parameter['ref_radius'], ref_scale_height=self.parameter['ref_scale_height'],
+                ref_radius=self.parameter['ref_radius'], 
+                ref_scale_height=self.parameter['ref_scale_height'],
                 alpha=self.parameter['alpha'], beta=self.parameter['beta'])
         return gas_density
+
+    def scale_height(self, radius):
+        """Calculates the scale height at a certain position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Scale height.
+        """
+        scale_height = self.math.default_disk_scale_height(radius,
+            ref_radius=self.parameter['ref_radius'], 
+            ref_scale_height=self.parameter['ref_scale_height'],
+            beta=self.parameter['beta'])
+        return scale_height
+        
 
     def gas_temperature(self):
         """Calculates the gas temperature at a given position.
@@ -248,9 +268,9 @@ class Sphere(Model):
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
-        self.spherical_parameter['n_radius'] = 100
-        self.spherical_parameter['n_theta'] = 181
-        self.spherical_parameter['n_phi'] = 1
+        self.spherical_parameter['n_r'] = 100
+        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
         self.parameter['stellar_source'] = 't_tauri'
@@ -316,7 +336,7 @@ class BokGlobule(Model):
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1.0 * self.math.const['au']
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
-        self.spherical_parameter['n_phi'] = 1#01
+        self.spherical_parameter['n_ph'] = 1#01
         self.octree_parameter['sidelength'] = 3e4 * self.math.const['au']
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'

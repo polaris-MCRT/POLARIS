@@ -1992,9 +1992,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
             updateMidplaneString(str_1, str_2, counter);
             char str_3[1024];
 #ifdef WINDOWS
-                    sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+            sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-                    sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+            sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
             pFits->pHDU().addKey(str_1, string(str_3), str_2);
         }

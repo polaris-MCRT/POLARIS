@@ -76,8 +76,8 @@ class CustomPlots:
         N_size = 10
         size_list = np.linspace(5e-9, 0.25e-6, N_size)
 
-        N_theta = 181
-        theta_list = np.linspace(0, 180, N_theta)
+        n_th = 181
+        theta_list = np.linspace(0, 180, n_th)
 
         nk_data = np.genfromtxt('/home/rbrauer/astrophysics/mc3d/input/dust/tables_nk/olivine1.nk')
 
@@ -272,26 +272,26 @@ class CustomPlots:
         # Set vector size to match with 64 x 64 pixel sized image
         self.file_io.vec_field_size = 8
         # Number of angles
-        n_phi = 181
+        n_ph = 181
         # Degree of polarization
         i_quantity = 7
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # list of tbldata
-        tbldata_list = np.zeros((n_phi, header['nr_pixel_x'], header['nr_pixel_y']))
+        tbldata_list = np.zeros((n_ph, header['nr_pixel_x'], header['nr_pixel_y']))
         artist_list = []
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, zoom_factor=1.0, ax_unit='pc', image_type='animation')
-        for i_phi in range(n_phi):
+        for i_phi in range(n_ph):
             # Print progress
-            print('Create animation image number:', i_phi + 1, '/', n_phi)
+            print('Create animation image number:', i_phi + 1, '/', n_ph)
             # Read raytrace results from file
             raytrace_data, header = self.file_io.read_emission_map('polaris_detector_nr' + str(i_phi + 1).zfill(4))
             # Take data for current quantity
             tbldata_list[i_phi, :, :] = raytrace_data[i_quantity, :, :]
             vmin = 0.
             vmax = 45.
-            if i_phi < n_phi - 1:
+            if i_phi < n_ph - 1:
                 # Plot quantity to velocity map
                 plot.plot_imshow(tbldata=tbldata_list[i_phi, :, :],
                                  vmin=vmin, vmax=vmax, extend='neither')

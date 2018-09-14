@@ -1196,6 +1196,23 @@ class Math:
         return density
 
     @staticmethod
+    def default_disk_scale_height(radius, beta=1.125,
+            ref_scale_height=10. * 149597870700.0, ref_radius=100. * 149597870700.0):
+        """Shakura and Sunyaev disk density profile.
+
+        Args:
+            radius (float): Distance from the center in the midplane.
+            ref_scale_height (float): Reference scale height.
+            ref_radius (float): Reference radius.
+            beta (float): Exponent for disk flaring.
+
+        Returns:
+            Float: Scale Height at the given position.
+        """
+        scale_height = ref_scale_height * (radius / ref_radius) ** beta
+        return scale_height
+
+    @staticmethod
     def sphere_density(position, outer_radius, inner_radius=None):
         """Density profile with a sphere of constant density.
 

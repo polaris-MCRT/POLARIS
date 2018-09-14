@@ -188,28 +188,25 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         {
             // Init 2D cell borders in z-direction
             listZ[i_r] = new double[N_z + 1];
+
+            // The global borders are already in the grid
+            listZ[i_r][0] = -Zmax;
+            listZ[i_r][N_z] = Zmax;
             
             // Read distance between two borders in z-direction for the current radius cell
             double dz = 0;
             bin_reader.read((char*) &dz, 8);
 
             // Calculate the maximum height up to which information is in the grid
-            double tmp_zmax = N_z * dz * conv_length_in_SI / 2.;
+            double local_zmax = (N_z - 2) / 2. * dz * conv_length_in_SI;
 
             // Set the second and second last border from dz
-            listZ[i_r][1] = -tmp_zmax;
-            listZ[i_r][N_z - 1] = tmp_zmax;
+            listZ[i_r][1] = -local_zmax;
+            listZ[i_r][N_z - 1] = local_zmax;
 
             // Set the cell borders
             for(uint i_z = 2; i_z <= N_z - 2; i_z++)
-                listZ[i_r][i_z] = -tmp_zmax + i_z * dz;                
-        }
-
-        // The global borders are already in the grid
-        for(uint i_r = 0; i_r < N_r; i_r++)
-        {
-            listZ[i_r][0] = -Zmax;
-            listZ[i_r][N_z] = Zmax;
+                listZ[i_r][i_z] = -local_zmax + (i_z - 1) * dz;         
         }
     }
     else if(log_factorZ == 1.0)
@@ -335,7 +332,9 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
                 if(dz == 0)
                 {
-                    cout << "ERROR: No step size in z-direction of cylindrical grid!" << endl;
+                    cout << "ERROR: No step size in z-direction of cylindrical grid!" << endl
+                        << "HINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
+                        << "      Please look in the manual or use \"polaris-gen ... --update\"" << endl;
                     return false;
                 }
 
@@ -415,13 +414,13 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
             tmp_cell = grid_cells[r_counter][ph_counter][z_counter];
         }
 
-        for(uint i = 0; i < data_offset; i++)
-        {
-            double tmp_data1 = 0;
-            if(log_factorZ != -1 || (z_counter < N_z - 1 && z_counter > 0))
+        if(log_factorZ != -1 || (z_counter < N_z - 1 && z_counter > 0))
+            for(uint i = 0; i < data_offset; i++)
+            {
+                double tmp_data1 = 0;
                 bin_reader.read((char*) &tmp_data1, 8); 
-            tmp_cell->setData(i, tmp_data1);
-        }
+                tmp_cell->setData(i, tmp_data1);
+            }
 
         updateVelocity(tmp_cell, param);
 
@@ -1080,7 +1079,14 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     bin_writer.write((char*) &Zmax, 8);
     bin_writer.write((char*) &N_r, 2);
     bin_writer.write((char*) &N_ph, 2);
-    bin_writer.write((char*) &N_z, 2);
+    if(log_factorZ == -1)
+    {
+        // Write N_z - 2 to take empty cells out
+        uint tmp_N_z = N_z - 2;
+        bin_writer.write((char*) &tmp_N_z, 2);
+    }
+    else
+        bin_writer.write((char*) &N_z, 2);
     bin_writer.write((char*) &log_factorR, 8);
     bin_writer.write((char*) &log_factorPh, 8);
     bin_writer.write((char*) &log_factorZ, 8);
@@ -1096,7 +1102,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     else if(log_factorZ == -1)
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            double dz = listZ[i_r][1] - listZ[i_r][0];
+            double dz = listZ[i_r][2] - listZ[i_r][1];
             bin_writer.write((char*) &dz, 8);
         }
 
@@ -1109,9 +1115,9 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
         {
             for(uint i_z = 0; i_z < N_z; i_z++)
             {
-                for(uint i = 0; i < data_offset; i++)
+                if(log_factorZ != -1 || (i_z < N_z - 1 && i_z > 0))
                 {
-                    if(log_factorZ != -1 || (i_z < N_z - 1 && i_z > 0))
+                    for(uint i = 0; i < data_offset; i++)
                     {
                         double tmp_data = grid_cells[i_r][i_ph][i_z]->getData(i);
                         bin_writer.write((char*) &tmp_data, 8);
@@ -1123,10 +1129,13 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 
     for(uint i_z = 0; i_z < N_z; i_z++)
     {
-        for(uint i = 0; i < data_offset; i++)
+        if(log_factorZ != -1 || (i_z < N_z - 1 && i_z > 0))
         {
-            double tmp_data = center_cells[i_z]->getData(i);
-            bin_writer.write((char*) &tmp_data, 8);
+            for(uint i = 0; i < data_offset; i++)
+            {
+                double tmp_data = center_cells[i_z]->getData(i);
+                bin_writer.write((char*) &tmp_data, 8);
+            }
         }
     }
 
