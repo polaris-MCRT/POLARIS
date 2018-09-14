@@ -1308,10 +1308,10 @@ private:
 
         double r1 = listR[cell->getRID()];
         double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPhi[cell->getPhID()];
-        double ph2 = listPhi[cell->getPhID() + 1];
-        double th1 = listTheta[cell->getThID()];
-        double th2 = listTheta[cell->getThID() + 1];
+        double ph1 = listPh[cell->getPhID()];
+        double ph2 = listPh[cell->getPhID() + 1];
+        double th1 = listTh[cell->getThID()];
+        double th2 = listTh[cell->getThID() + 1];
 
         Vector3D tmp_pos = pos.getSphericalCoord();
 

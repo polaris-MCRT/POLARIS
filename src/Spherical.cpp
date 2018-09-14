@@ -75,6 +75,113 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
     bin_reader.read((char*) &log_factorPh, 8);
     bin_reader.read((char*) &log_factorTh, 8);
 
+    // Convert borders with conversion factors
+    min_len = Rmin;  
+    Rmin *= conv_length_in_SI;
+    Rmax *= conv_length_in_SI;
+
+    total_volume = PIx4 * Rmax * Rmax * Rmax / 3.0;
+
+    listR = new double[N_r + 1];
+    listPh = new double[N_ph + 1];
+    listTh = new double[N_th + 1];
+
+    // --------------------------------------
+    // ---------- Radial-direction ----------
+    // -------------------------------------- 
+
+    // Init radial cell border
+    listR = new double[N_r + 1];
+    if(log_factorR == 0)
+    {
+        // Allow user defined radius list, if log_factorR is zero
+
+        // The global borders are already in the grid
+        listR[0] = Rmin;
+        listR[N_r] = Rmax;
+
+        // Set the cell borders
+        for(uint i_r = 1; i_r < N_r; i_r++)
+        {
+            // Read radial cell border position
+            bin_reader.read((char*) &listR[i_r], 8);
+
+            // Update radial position with conversion factors
+            listR[i_r] *= conv_length_in_SI;
+        }
+    }
+    else if(log_factorR == 1.0)
+    {
+        // Sinus shaped list, which emphasizes the middle rings
+        CMathFunctions::SinList(Rmin, Rmax, listR, N_r + 1, log_factorR);
+    }
+    else if(log_factorR > 1.0)
+    {
+        // Exponentially increasing width of the cells in radial direction
+        CMathFunctions::ExpList(Rmin, Rmax, listR, N_r + 1, log_factorR);
+    }
+    else
+    {
+        // Linear width of the cells in radial direction
+        CMathFunctions::LinearList(Rmin, Rmax, listR, N_r + 1);
+    }
+
+     // -----------------------------------
+    // ---------- Phi-direction ----------
+    // -----------------------------------
+
+    // Init phi cell border
+    listPh = new double[N_ph + 1];
+    if(log_factorPh == 0)
+    {
+        // Allow user defined phi list, if log_factorPh is zero
+
+        // The global borders are already in the grid
+        listPh[0] = 0;
+        listPh[N_ph] = PIx2;
+
+        // Set the cell borders
+        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
+            bin_reader.read((char*) &listPh[i_ph], 8);
+    }
+    else
+    {
+        // Linear width of the cells in phi direction
+        CMathFunctions::LinearList(0, PIx2, listPh, N_ph + 1);
+    }     
+
+    // -------------------------------------
+    // ---------- Theta-direction ----------
+    // -------------------------------------
+    if(log_factorTh == 0)
+    {
+        // The global borders are already in the grid
+        listTh[0] = 0;
+        listTh[N_th] = PI;
+
+         // Read cell border in theta direction
+        for(uint i_th = 1; i_th < N_th; i_th++)
+            bin_reader.read((char*) &listTh[i_th], 8);
+    }
+    else if(log_factorTh == 1.0)
+    {
+        // Sinus shaped list, which emphasizes the midplane
+        CMathFunctions::SinList(0, PI, listTh, N_th + 1, log_factorTh);
+    }
+    else if(log_factorTh > 1.0)
+    {
+        // Exponentially increasing width of the cells in z-direction (symmetrically)
+        CMathFunctions::ExpListSym(0, PI, listTh, N_th + 1, log_factorTh);   
+    }
+    else
+    {
+        // Linear width of the cells in theta direction
+        CMathFunctions::LinearList(0, PI, listTh, N_th + 1);   
+    }
+
+    // -----------------------------------------
+    // ---------- Check of the limits ----------
+    // -----------------------------------------
     if(Rmin <= 0)
     {
         cout << "ERROR: Inner radius (Rmin = " << Rmin << ") must be larger than zero!" << endl;
@@ -93,20 +200,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         return false;
     }
 
-    /*if(N_r < 1)
-    {
-        cout << "ERROR: Nr.of cells in R direction has to be larger than 2!" << endl;
-        return false;
-    }
-
-    if(N_th < 2)
-    {
-        cout << "ERROR: Nr.of cells in theta direction has to be larger than 3!" << endl;
-        return false;
-    }*/
-
-    min_len = Rmin;
-
+    // Init grid cells
     grid_cells = new cell_sp***[N_r];
 
     for(uint i_r = 0; i_r < N_r; i_r++)
@@ -127,53 +221,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         }
     }
 
+    // Clear user output
     cout << CLR_LINE;
-    Rmin *= conv_length_in_SI;
-    Rmax *= conv_length_in_SI;
-
-    total_volume = PIx4 * Rmax * Rmax * Rmax / 3.0;
-
-    listR = new double[N_r + 1];
-    listPhi = new double[N_ph + 1];
-    listTheta = new double[N_th + 1];
-
-    if(log_factorR == 0)
-    {
-        // Custom radial cell list consists of all cell borders,
-        // but the inner and outer radial ring!
-        listR[0] = Rmin;
-        listR[N_r] = Rmax;
-        for(uint i_r = 1; i_r < N_r; i_r++)
-        {
-            bin_reader.read((char*) &listR[i_r], 8);
-            listR[i_r] *= conv_length_in_SI;
-        }
-    }
-    else if(log_factorR == 1.0)
-        CMathFunctions::SinList(Rmin, Rmax, listR, N_r + 1, log_factorR);
-    else
-        CMathFunctions::ExpList(Rmin, Rmax, listR, N_r + 1, log_factorR);
-
-    if(log_factorPh == 0)
-    {
-        listPhi[0] = 0;
-        listPhi[N_ph] = PIx2;
-        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
-            bin_reader.read((char*) &listPhi[i_ph], 8);
-    }
-    else
-        CMathFunctions::LinearList(0, PIx2, listPhi, N_ph + 1);
-
-    if(log_factorTh == 0)
-    {
-        // Custom theta cell list consists of all cell borders
-        for(uint i_th = 0; i_th <= N_th; i_th++)
-            bin_reader.read((char*) &listTheta[i_th], 8);
-    }
-    else if(log_factorTh == 1.0)
-        CMathFunctions::SinList(0, PI, listTheta, N_th + 1, log_factorTh);
-    else
-        CMathFunctions::ExpListSym(0, PI, listTheta, N_th + 1, log_factorTh);
 
     max_cells = N_r * N_ph * N_th + 1;
     line_counter = -1;
@@ -202,7 +251,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
             if(ph_counter < N_ph)
             {
-                double dph = listPhi[ph_counter + 1] - listPhi[ph_counter];
+                double dph = listPh[ph_counter + 1] - listPh[ph_counter];
 
                 if(dph == 0)
                 {
@@ -220,7 +269,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
             if(th_counter < N_th)
             {
-                double dth = listTheta[th_counter + 1] - listTheta[th_counter];
+                double dth = listTh[th_counter + 1] - listTh[th_counter];
 
                 if(dth == 0)
                 {
@@ -535,7 +584,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
     //Grid boundaries
     for(uint i_th = 0; i_th < N_th; i_th++)
     {
-        double th = listTheta[i_th];
+        double th = listTh[i_th];
         double Nstep = 45.0;
 
         for(uint i_ph = 0; i_ph < Nstep; i_ph++)
@@ -570,7 +619,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
 
     for(uint i_ph = 0; i_ph < N_ph; i_ph++)
     {
-        double ph = listPhi[i_ph];
+        double ph = listPh[i_ph];
         double Nstep = 25.0;
 
         for(uint i_th = 0; i_th < Nstep; i_th++)
@@ -842,8 +891,8 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
                 double scale = 0;
 
                 double dr = listR[i_r + 1] - listR[i_r];
-                double dph = listPhi[i_ph + 1] - listPhi[i_ph];
-                double dth = listTheta[i_th + 1] - listTheta[i_th];
+                double dph = listPh[i_ph + 1] - listPh[i_ph];
+                double dth = listTh[i_th + 1] - listTh[i_th];
 
                 if(line_counter % nrOfGnuPoints == 0)
                 {
@@ -942,7 +991,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
 
     for(uint i_th = 0; i_th <= N_th; i_th++)
     {
-        double th = listTheta[i_th];
+        double th = listTh[i_th];
 
         for(uint i_r = 0; i_r <= N_r; i_r++)
         {
@@ -972,7 +1021,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
 
     for(uint i_ph = 0; i_ph <= N_ph; i_ph++)
     {
-        double ph = listPhi[i_ph];
+        double ph = listPh[i_ph];
 
         for(uint i_r = 0; i_r <= N_r; i_r++)
         {
@@ -1002,11 +1051,11 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
 
     for(uint i_ph = 0; i_ph <= N_ph; i_ph++)
     {
-        double ph = listPhi[i_ph];
+        double ph = listPh[i_ph];
 
         for(uint i_th = 0; i_th <= N_th; i_th++)
         {
-            double th = listTheta[i_th];
+            double th = listTh[i_th];
             Vector3D p1(Rmin, ph, th);
             Vector3D p2(Rmax, ph, th);
 
@@ -1076,13 +1125,17 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
     bin_writer.write((char*) &N_ph, 2);
     bin_writer.write((char*) &N_th, 2);
     bin_writer.write((char*) &log_factorR, 8);
+    bin_writer.write((char*) &log_factorPh, 8);
     bin_writer.write((char*) &log_factorTh, 8);
     if(log_factorR == 0)
         for(uint i_r = 1; i_r < N_r; i_r++)
             bin_writer.write((char*) &listR[i_r], 8);
+    if(log_factorPh == 0)
+        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
+            bin_writer.write((char*) &listPh[i_ph], 8);
     if(log_factorTh == 0)
-        for(uint i_th = 0; i_th <= N_th; i_th++)
-            bin_writer.write((char*) &listTheta[i_th], 8);
+        for(uint i_th = 1; i_th < N_th; i_th++)
+            bin_writer.write((char*) &listTh[i_th], 8);
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
@@ -1148,6 +1201,7 @@ bool CGridSpherical::createArtificialGrid(string path)
     N_ph = 4;
     N_th = 4;
     log_factorR = 0;
+    log_factorPh = 0;
     log_factorTh = 0;
 
     ofstream bin_writer(filename.c_str(), ios::out | ios::binary);
@@ -1197,6 +1251,7 @@ bool CGridSpherical::createArtificialGrid(string path)
     bin_writer.write((char*) &N_ph, 2);
     bin_writer.write((char*) &N_th, 2);
     bin_writer.write((char*) &log_factorR, 8);
+    bin_writer.write((char*) &log_factorPh, 8);
     bin_writer.write((char*) &log_factorTh, 8);
 
     for(uint i_r = 0; i_r < N_r; i_r++)
@@ -1290,16 +1345,16 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
 
     Vector3D sp_pos = ca_pos.getSphericalCoord();
 
-    uint i_R = 0, i_Phi = 0, i_Theta = 0;
+    uint i_r = 0, i_ph = 0, i_th = 0;
 
-    i_R = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
+    i_r = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
 
     if(N_ph > 1)
-        i_Phi = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPhi, N_ph + 1);
+        i_ph = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPh, N_ph + 1);
 
-    i_Theta = CMathFunctions::biListIndexSearch(sp_pos.Theta(), listTheta, N_th + 1);
+    i_th = CMathFunctions::biListIndexSearch(sp_pos.Theta(), listTh, N_th + 1);
 
-    cell_sp * tmp_cell = grid_cells[i_R][i_Phi][i_Theta];
+    cell_sp * tmp_cell = grid_cells[i_r][i_ph][i_th];
 
     pp->setPositionCell(tmp_cell);
 
@@ -1345,10 +1400,10 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     {
         double r1 = listR[tmp_cell_pos->getRID()];
         double r2 = listR[tmp_cell_pos->getRID() + 1];
-        double ph1 = listPhi[tmp_cell_pos->getPhID()];
-        double ph2 = listPhi[tmp_cell_pos->getPhID() + 1];
-        double th1 = listTheta[tmp_cell_pos->getThID()];
-        double th2 = listTheta[tmp_cell_pos->getThID() + 1];
+        double ph1 = listPh[tmp_cell_pos->getPhID()];
+        double ph2 = listPh[tmp_cell_pos->getPhID() + 1];
+        double th1 = listTh[tmp_cell_pos->getThID()];
+        double th2 = listTh[tmp_cell_pos->getThID() + 1];
 
         double sin_ph1 = sin(ph1);
         double sin_ph2 = sin(ph2);

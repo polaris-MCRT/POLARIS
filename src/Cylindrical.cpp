@@ -9,7 +9,6 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
     bool b_center = false;
-    bool additional_cells = false;
 
     uint r_counter = 0;
     uint ph_counter = 0;
@@ -80,103 +79,133 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
     bin_reader.read((char*) &log_factorPh, 8);
     bin_reader.read((char*) &log_factorZ, 8);
 
-    grid_cells = new cell_cyl***[N_r];
-    center_cells = new cell_cyl*[N_z];
-
-    for(uint i_r = 0; i_r < N_r; i_r++)
-    {
-        grid_cells[i_r] = new cell_cyl**[N_ph];
-
-        cout << "Allocating memory for cylindrical grid cells : " <<
-                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
-
-        for(uint i_ph = 0; i_ph < N_ph; i_ph++)
-        {
-            grid_cells[i_r][i_ph] = new cell_cyl*[N_z];
-
-            for(uint i_z = 0; i_z < N_z; i_z++)
-            {
-                grid_cells[i_r][i_ph][i_z] = 0;
-                center_cells[i_z] = 0;
-            }
-        }
-    }
-
-    cout << CLR_LINE;
+    // Convert limits with conversion factor
     Rmin *= conv_length_in_SI;
     Rmax *= conv_length_in_SI;
     Zmax *= conv_length_in_SI;
 
-    listR = new double[N_r + 1];
-    listPhi = new double[N_ph + 1];
-    listZ = new double*[N_r];
+    // --------------------------------------
+    // ---------- Radial-direction ----------
+    // -------------------------------------- 
 
+    // Init radial cell border
+    listR = new double[N_r + 1];
     if(log_factorR == 0)
     {
+        // Allow user defined radius list, if log_factorR is zero
+
+        // The global borders are already in the grid
         listR[0] = Rmin;
         listR[N_r] = Rmax;
+
+        // Set the cell borders
         for(uint i_r = 1; i_r < N_r; i_r++)
         {
+            // Read radial cell border position
             bin_reader.read((char*) &listR[i_r], 8);
+
+            // Update radial position with conversion factors
             listR[i_r] *= conv_length_in_SI;
         }
     }
     else if(log_factorR == 1.0)
-        CMathFunctions::SinList(Rmin, Rmax, listR, N_r + 1, log_factorR);
-    else
-        CMathFunctions::ExpList(Rmin, Rmax, listR, N_r + 1, log_factorR);
-
-    if(log_factorPh == 0)
     {
-        listPhi[0] = 0;
-        listPhi[N_ph] = PIx2;
-        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
-            bin_reader.read((char*) &listPhi[i_ph], 8);
+        // Sinus shaped list, which emphasizes the middle rings
+        CMathFunctions::SinList(Rmin, Rmax, listR, N_r + 1, log_factorR);
+    }
+    else if(log_factorR > 1.0)
+    {
+        // Exponentially increasing width of the cells in radial direction
+        CMathFunctions::ExpList(Rmin, Rmax, listR, N_r + 1, log_factorR);
     }
     else
-        CMathFunctions::LinearList(0, PIx2, listPhi, N_ph + 1);
+    {
+        // Linear width of the cells in radial direction
+        CMathFunctions::LinearList(Rmin, Rmax, listR, N_r + 1);
+    }
 
+    // -----------------------------------
+    // ---------- Phi-direction ----------
+    // -----------------------------------
+
+    // Init phi cell border
+    listPh = new double[N_ph + 1];
+    if(log_factorPh == 0)
+    {
+        // Allow user defined phi list, if log_factorPh is zero
+
+        // The global borders are already in the grid
+        listPh[0] = 0;
+        listPh[N_ph] = PIx2;
+
+        // Set the cell borders
+        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
+            bin_reader.read((char*) &listPh[i_ph], 8);
+    }
+    else
+    {
+        // Linear width of the cells in phi direction
+        CMathFunctions::LinearList(0, PIx2, listPh, N_ph + 1);
+    }        
+
+    // ---------------------------------
+    // ---------- Z-direction ----------
+    // ---------------------------------
+
+    // Init z cell border
+    listZ = new double*[N_r];
     if(log_factorZ == 0)
     {
-        // Custom radial cell list consists of all cell borders,
-        // but the inner and outer radial ring!
+        // Allow user defined z list, if log_factorZ is zero
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
+            // Init 2D cell borders in z-direction
             listZ[i_r] = new double[N_z + 1];
+
+            // The global borders are already in the grid
             listZ[i_r][0] = -Zmax;
             listZ[i_r][N_z] = Zmax;
         }
+
         for(uint i_z = 1; i_z < N_z; i_z++)
         {
+            // Read cell border in z-direction
             double z;
             bin_reader.read((char*) &z, 8);
+
+            // Set the cell borders
             for(uint i_r = 0; i_r < N_r; i_r++)
                 listZ[i_r][i_z] = z * conv_length_in_SI;
         }
     }
     else if(log_factorZ == -1.0)
     {
-        // Save that additional empty cells are required
-        additional_cells = true;
-
         // Add an empty cell at both ends
         N_z += 2;
 
-        // Variable width of each cylindrical ring in z-direction
+         // Allow user defined z list based on a variable dz, if log_factorZ is -1
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
+            // Init 2D cell borders in z-direction
             listZ[i_r] = new double[N_z + 1];
             
+            // Read distance between two borders in z-direction for the current radius cell
             double dz = 0;
             bin_reader.read((char*) &dz, 8);
+
+            // Calculate the maximum height up to which information is in the grid
             double tmp_zmax = N_z * dz * conv_length_in_SI / 2.;
 
+            // Set the second and second last border from dz
             listZ[i_r][1] = -tmp_zmax;
             listZ[i_r][N_z - 1] = tmp_zmax;
 
+            // Set the cell borders
             for(uint i_z = 2; i_z <= N_z - 2; i_z++)
                 listZ[i_r][i_z] = -tmp_zmax + i_z * dz;                
         }
+
+        // The global borders are already in the grid
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             listZ[i_r][0] = -Zmax;
@@ -184,24 +213,36 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         }
     }
     else if(log_factorZ == 1.0)
+    {
+        // Sinus shaped list, which emphasizes the midplane
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             listZ[i_r] = new double[N_z + 1];
             CMathFunctions::SinList(-Zmax, Zmax, listZ[i_r], N_z + 1, log_factorZ);
         }
+    }
     else if(log_factorZ > 1.0)
+    {
+        // Exponentially increasing width of the cells in z-direction (symmetrically)
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             listZ[i_r] = new double[N_z + 1];
             CMathFunctions::ExpListSym(-Zmax, Zmax, listZ[i_r], N_z + 1, log_factorZ);
         }
+    }
     else
+    {
+        // Linear width of the cells in z-direction
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             listZ[i_r] = new double[N_z + 1];
             CMathFunctions::LinearList(-Zmax, Zmax, listZ[i_r], N_z + 1);
-        } 
+        }
+    } 
 
+    // -----------------------------------------
+    // ---------- Check of the limits ----------
+    // -----------------------------------------
     if(Rmin <= 0)
     {
         cout << "ERROR: Inner radius (Rmin = " << Rmin << " must be larger than zero!" << endl;
@@ -231,6 +272,34 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         cout << "ERROR: Nr.of cells in R direction has to be larger than 2!" << endl;
         return false;
     }
+
+    // Init grid cells
+    grid_cells = new cell_cyl***[N_r];
+
+    // Init center cells
+    center_cells = new cell_cyl*[N_z];
+
+    for(uint i_r = 0; i_r < N_r; i_r++)
+    {
+        grid_cells[i_r] = new cell_cyl**[N_ph];
+
+        cout << "Allocating memory for cylindrical grid cells : " <<
+                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+
+        for(uint i_ph = 0; i_ph < N_ph; i_ph++)
+        {
+            grid_cells[i_r][i_ph] = new cell_cyl*[N_z];
+
+            for(uint i_z = 0; i_z < N_z; i_z++)
+            {
+                grid_cells[i_r][i_ph][i_z] = 0;
+                center_cells[i_z] = 0;
+            }
+        }
+    }
+
+    // Clear user output
+    cout << CLR_LINE;
 
     max_cells = N_r * N_ph * N_z + N_z;
     line_counter = -1;
@@ -276,7 +345,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
             if(ph_counter < N_ph)
             {
-                double dph = listPhi[ph_counter + 1] - listPhi[ph_counter];
+                double dph = listPh[ph_counter + 1] - listPh[ph_counter];
 
                 if(dph == 0)
                 {
@@ -349,7 +418,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         for(uint i = 0; i < data_offset; i++)
         {
             double tmp_data1 = 0;
-            if(additional_cells == false || (z_counter < N_z - 1 && z_counter > 0))
+            if(log_factorZ != -1 || (z_counter < N_z - 1 && z_counter > 0))
                 bin_reader.read((char*) &tmp_data1, 8); 
             tmp_cell->setData(i, tmp_data1);
         }
@@ -389,7 +458,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
     /*for(uint i_ph = 0; i_ph < N_ph; i_ph++)
     {
-    cout << i_ph << "\t" << listPhi[i_ph] << "\t" << listPhi[i_ph + 1] << "\t" << grid_cells[4][i_ph][2]->getData(2) << endl;
+    cout << i_ph << "\t" << listPh[i_ph] << "\t" << listPh[i_ph + 1] << "\t" << grid_cells[4][i_ph][2]->getData(2) << endl;
     }
 
     photon_package pp;
@@ -1013,10 +1082,23 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     bin_writer.write((char*) &N_ph, 2);
     bin_writer.write((char*) &N_z, 2);
     bin_writer.write((char*) &log_factorR, 8);
+    bin_writer.write((char*) &log_factorPh, 8);
     bin_writer.write((char*) &log_factorZ, 8);
     if(log_factorR == 0)
         for(uint i_r = 1; i_r < N_r; i_r++)
             bin_writer.write((char*) &listR[i_r], 8);
+    if(log_factorPh == 0)
+        for(uint i_ph = 1; i_ph < N_ph; i_ph++)
+            bin_writer.write((char*) &listPh[i_ph], 8);
+    if(log_factorZ == 0)
+        for(uint i_th = 1; i_th < N_z; i_th++)
+            bin_writer.write((char*) &listZ[0][i_th], 8);
+    else if(log_factorZ == -1)
+        for(uint i_r = 0; i_r < N_r; i_r++)
+        {
+            double dz = listZ[i_r][1] - listZ[i_r][0];
+            bin_writer.write((char*) &dz, 8);
+        }
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
@@ -1029,8 +1111,11 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
             {
                 for(uint i = 0; i < data_offset; i++)
                 {
-                    double tmp_data = grid_cells[i_r][i_ph][i_z]->getData(i);
-                    bin_writer.write((char*) &tmp_data, 8);
+                    if(log_factorZ != -1 || (i_z < N_z - 1 && i_z > 0))
+                    {
+                        double tmp_data = grid_cells[i_r][i_ph][i_z]->getData(i);
+                        bin_writer.write((char*) &tmp_data, 8);
+                    }
                 }
             }
         }
@@ -1229,20 +1314,20 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
 
     if(ca_pos.X() * ca_pos.X() + ca_pos.Y() * ca_pos.Y() < Rmin * Rmin)
     {
-        uint i_Z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[0], N_z + 1);
-        cell_cyl * tmp_cell = center_cells[i_Z];
+        uint i_z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[0], N_z + 1);
+        cell_cyl * tmp_cell = center_cells[i_z];
         pp->setPositionCell(tmp_cell);
         return true;
     }
 
-    uint i_R = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
-    uint i_Phi = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPhi, N_ph + 1);
-    uint i_Z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[i_R], N_z + 1);
+    uint i_r = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
+    uint i_ph = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPh, N_ph + 1);
+    uint i_z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[i_r], N_z + 1);
 
-    if(i_Z == MAX_UINT)
+    if(i_r == MAX_UINT || i_ph == MAX_UINT || i_z == MAX_UINT)
         return false;
 
-    tmp_cell = grid_cells[i_R][i_Phi][i_Z];
+    tmp_cell = grid_cells[i_r][i_ph][i_z];
 
     pp->setPositionCell(tmp_cell);
 
@@ -1344,8 +1429,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
     {
         double r1 = listR[tmp_cell_pos->getRID()];
         double r2 = listR[tmp_cell_pos->getRID() + 1];
-        double ph1 = listPhi[tmp_cell_pos->getPhID()];
-        double ph2 = listPhi[tmp_cell_pos->getPhID() + 1];
+        double ph1 = listPh[tmp_cell_pos->getPhID()];
+        double ph2 = listPh[tmp_cell_pos->getPhID() + 1];
         double z1 = listZ[tmp_cell_pos->getRID()][tmp_cell_pos->getZID()];
         double z2 = listZ[tmp_cell_pos->getRID()][tmp_cell_pos->getZID() + 1];
 

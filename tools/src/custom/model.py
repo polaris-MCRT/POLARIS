@@ -507,8 +507,7 @@ class HD97048(Model):
         self.cylindrical_parameter['n_z'] = 142
         self.cylindrical_parameter['n_phi'] = 1
         self.cylindrical_parameter['sf_r'] = 1.04
-        self.cylindrical_parameter['sf_z'] = 0
-        self.cylindrical_parameter['z_max'] = 0.
+        self.cylindrical_parameter['sf_z'] = -1
         # Define the used sources, dust composition and gas species
         self.parameter['detector'] = 'hd97048'
         self.parameter['stellar_source'] = 'hd97048'

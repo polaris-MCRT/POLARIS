@@ -143,6 +143,7 @@ public:
         N_ph = 4;
         N_th = 3;
         log_factorR = 0;
+        log_factorPh = 0;
         log_factorTh = 0;
 
         grid_cells = 0;
@@ -151,8 +152,8 @@ public:
         cell_list = 0;
 
         listR = 0;
-        listPhi = 0;
-        listTheta = 0;
+        listPh = 0;
+        listTh = 0;
 
         line_counter = 0;
         char_counter = 0;
@@ -178,16 +179,16 @@ public:
             listR = 0;
         }
 
-        if(listPhi != 0)
+        if(listPh != 0)
         {
-            delete[] listPhi;
-            listPhi = 0;
+            delete[] listPh;
+            listPh = 0;
         }
 
-        if(listTheta != 0)
+        if(listTh != 0)
         {
-            delete[] listTheta;
-            listTheta = 0;
+            delete[] listTh;
+            listTh = 0;
         }
 
         if(center_cell != 0)
@@ -240,10 +241,10 @@ public:
 
         double r = listR[tmp_cell->getRID()];
         double dr = listR[tmp_cell->getRID() + 1] - r;
-        double ph = listPhi[tmp_cell->getPhID()];
-        double dph = listPhi[tmp_cell->getPhID() + 1] - ph;
-        double th = listTheta[tmp_cell->getThID()];
-        double dth = listTheta[tmp_cell->getThID() + 1] - th;
+        double ph = listPh[tmp_cell->getPhID()];
+        double dph = listPh[tmp_cell->getPhID() + 1] - ph;
+        double th = listTh[tmp_cell->getThID()];
+        double dth = listTh[tmp_cell->getThID() + 1] - th;
 
         double sin_th = sin(th + 0.5 * dth);
         double cos_th = cos(th + 0.5 * dth);
@@ -269,19 +270,19 @@ public:
         {
             r1 = 0;
             r2 = listR[0];
-            ph1 = listPhi[0];
-            ph2 = listPhi[N_ph];
-            th1 = listTheta[0];
-            th2 = listTheta[N_th];
+            ph1 = listPh[0];
+            ph2 = listPh[N_ph];
+            th1 = listTh[0];
+            th2 = listTh[N_th];
         }
         else
         {
             r1 = listR[tmp_cell->getRID()];
             r2 = listR[tmp_cell->getRID() + 1];
-            ph1 = listPhi[tmp_cell->getPhID()];
-            ph2 = listPhi[tmp_cell->getPhID() + 1];
-            th1 = listTheta[tmp_cell->getThID()];
-            th2 = listTheta[tmp_cell->getThID() + 1];
+            ph1 = listPh[tmp_cell->getPhID()];
+            ph2 = listPh[tmp_cell->getPhID() + 1];
+            th1 = listTh[tmp_cell->getThID()];
+            th2 = listTh[tmp_cell->getThID() + 1];
         }
 
         double cos_th = cos(th2) + rnd_th * (cos(th1) - cos(th2));
@@ -384,10 +385,10 @@ public:
 
         double r1 = listR[cell_pos->getRID()];
         double r2 = listR[cell_pos->getRID() + 1];
-        double ph1 = listPhi[cell_pos->getPhID()];
-        double ph2 = listPhi[cell_pos->getPhID() + 1];
-        double th1 = listTheta[cell_pos->getThID()];
-        double th2 = listTheta[cell_pos->getThID() + 1];
+        double ph1 = listPh[cell_pos->getPhID()];
+        double ph2 = listPh[cell_pos->getPhID() + 1];
+        double th1 = listTh[cell_pos->getThID()];
+        double th2 = listTh[cell_pos->getThID() + 1];
 
         double volume = (ph1 - ph2)*(r1 * r1 * r1 - r2 * r2 * r2)*(cos(th1) - cos(th2)) / 3.0;
 
@@ -413,8 +414,8 @@ public:
         double theta_center = PI2, phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
         {
-            theta_center = 0.5 * (listTheta[cell_pos->getThID()] + listTheta[cell_pos->getThID() + 1]);
-            phi_center = 0.5 * (listPhi[cell_pos->getPhID()] + listPhi[cell_pos->getPhID() + 1]);
+            theta_center = 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
+            phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
         }
 
         double dth = theta_center - theta;
@@ -523,8 +524,8 @@ private:
     double log_factorR, log_factorPh, log_factorTh;
 
     double * listR;
-    double * listPhi;
-    double * listTheta;
+    double * listPh;
+    double * listTh;
 
     cell_sp **** grid_cells;
     cell_sp * center_cell;
@@ -541,10 +542,10 @@ private:
 
         double r1 = listR[cell->getRID()];
         double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPhi[cell->getPhID()];
-        double ph2 = listPhi[cell->getPhID() + 1];
-        double th1 = listTheta[cell->getThID()];
-        double th2 = listTheta[cell->getThID() + 1];
+        double ph1 = listPh[cell->getPhID()];
+        double ph2 = listPh[cell->getPhID() + 1];
+        double th1 = listTh[cell->getThID()];
+        double th2 = listTh[cell->getThID() + 1];
 
         Vector3D tmp_pos = pos.getSphericalCoord();
 

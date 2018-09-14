@@ -142,6 +142,7 @@ public:
         N_ph = 4;
         N_z = 4;
         log_factorR = 0;
+        log_factorPh = 0;
         log_factorZ = 0;
 
         grid_cells = 0;
@@ -150,7 +151,7 @@ public:
         cell_list = 0;
 
         listR = 0;
-        listPhi = 0;
+        listPh = 0;
         listZ = 0;
 
         line_counter = 0;
@@ -176,10 +177,10 @@ public:
             listR = 0;
         }
 
-        if(listPhi != 0)
+        if(listPh != 0)
         {
-            delete[] listPhi;
-            listPhi = 0;
+            delete[] listPh;
+            listPh = 0;
         }
 
         if(listZ != 0)
@@ -247,8 +248,8 @@ public:
         double dz = listZ[tmp_cell->getRID()][tmp_cell->getZID() + 1] - z;
         double r = listR[tmp_cell->getRID()];
         double dr = listR[tmp_cell->getRID() + 1] - r;
-        double ph = listPhi[tmp_cell->getPhID()];
-        double dph = listPhi[tmp_cell->getPhID() + 1] - ph;
+        double ph = listPh[tmp_cell->getPhID()];
+        double dph = listPh[tmp_cell->getPhID() + 1] - ph;
 
         double sin_ph = sin(ph + 0.5 * dph);
         double cos_ph = cos(ph + 0.5 * dph);
@@ -366,8 +367,8 @@ public:
             double z2 = listZ[cell_pos->getRID()][cell_pos->getZID() + 1];
             double r1 = listR[cell_pos->getRID()];
             double r2 = listR[cell_pos->getRID() + 1];
-            double ph1 = listPhi[cell_pos->getPhID()];
-            double ph2 = listPhi[cell_pos->getPhID() + 1];
+            double ph1 = listPh[cell_pos->getPhID()];
+            double ph2 = listPh[cell_pos->getPhID() + 1];
 
             volume = 0.5 * (ph2 - ph1)* (r2 * r2 - r1 * r1)* (z2 - z1);
         }
@@ -388,7 +389,7 @@ public:
 
         double phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPhi[cell_pos->getPhID() + 1] + listPhi[cell_pos->getPhID()]);
+            phi_center = 0.5 * (listPh[cell_pos->getPhID() + 1] + listPh[cell_pos->getPhID()]);
 
         double dph = phi_center - phi;
         if(inv)
@@ -489,7 +490,7 @@ private:
     double log_factorR, log_factorPh, log_factorZ;
 
     double * listR;
-    double * listPhi;
+    double * listPh;
     double ** listZ;
 
     cell_cyl **** grid_cells;
@@ -518,8 +519,8 @@ private:
         double z2 = listZ[cell->getRID()][cell->getZID() + 1];
         double r1 = listR[cell->getRID()];
         double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPhi[cell->getPhID()];
-        double ph2 = listPhi[cell->getPhID() + 1];
+        double ph1 = listPh[cell->getPhID()];
+        double ph2 = listPh[cell->getPhID() + 1];
 
         if(tmp_pos.R() < r1)
             return false;
@@ -578,8 +579,8 @@ private:
         {
             r1 = 0;
             r2 = listR[0];
-            ph1 = listPhi[0];
-            ph2 = listPhi[N_ph];
+            ph1 = listPh[0];
+            ph2 = listPh[N_ph];
             z1 = listZ[0][0];
             z2 = listZ[0][N_z];
         }
@@ -587,8 +588,8 @@ private:
         {
             r1 = listR[tmp_cell->getRID()];
             r2 = listR[tmp_cell->getRID() + 1];
-            ph1 = listPhi[tmp_cell->getPhID()];
-            ph2 = listPhi[tmp_cell->getPhID() + 1];
+            ph1 = listPh[tmp_cell->getPhID()];
+            ph2 = listPh[tmp_cell->getPhID() + 1];
             z1 = listZ[tmp_cell->getRID()][tmp_cell->getZID()];
             z2 = listZ[tmp_cell->getRID()][tmp_cell->getZID() + 1];
         }

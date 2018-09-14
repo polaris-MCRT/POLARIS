@@ -1083,11 +1083,7 @@ void CGridVoronoi::printParameter()
         cout << CLR_LINE;
         cout << SEP_LINE;
         cout << "Voronoi grid parameter (ID: " << getDataID()
-                << ", data len: " << getDataOffset()
-                //<< ", Nr: " << N_r
-                //<< ", Nph: " << N_ph
-                //<< ", Nth: " << N_th
-                << ")         \n";
+                << ", data len: " << getDataOffset() << ")         \n";
         cout << SEP_LINE;
 
         cout << "- Nr. of voronoi cells          : " << max_cells << " \n";

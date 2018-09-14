@@ -775,7 +775,11 @@ class Spherical(Grid):
             radius = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_radius'])
 
         #: Array of phi values
-        phi = self.math.lin_list(0., 2. * np.pi, sp_param['n_phi'])
+        if sp_param['sf_phi'] == 0:
+            phi = sp_param['phi_list']
+            sp_param['n_phi'] = len(phi) - 1
+        else:
+            phi = self.math.lin_list(0., 2. * np.pi, sp_param['n_phi'])
 
         #: Array of theta values
         if sp_param['sf_th'] == 0:
@@ -795,15 +799,21 @@ class Spherical(Grid):
         grid_file.write(struct.pack('H', sp_param['n_theta']))
         # f_radius
         grid_file.write(struct.pack('d', sp_param['sf_r']))
+        # f_phi
+        grid_file.write(struct.pack('d', sp_param['sf_phi']))
         # f_theta
         grid_file.write(struct.pack('d', sp_param['sf_th']))
         # Write radius list if custom
         if sp_param['sf_r'] == 0:
             for tmp_rad in radius[1:-1]:
                 grid_file.write(struct.pack('d', tmp_rad))
-        # Write radius list if custom
+        # Write phi list if custom
+        if sp_param['sf_phi'] == 0:
+            for tmp_phi in phi[1:-1]:
+                grid_file.write(struct.pack('d', tmp_phi))
+        # Write theta list if custom
         if sp_param['sf_th'] == 0:
-            for tmp_theta in sp_param['theta_list']:
+            for tmp_theta in theta[1:-1]:
                 grid_file.write(struct.pack('d', tmp_theta))
 
         i_node = 0
@@ -1009,14 +1019,15 @@ class Cylindrical(Grid):
             rho = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_rho'])
 
         #: Array of phi values
-        phi = self.math.lin_list(0., 2. * np.pi, cy_param['n_phi'])
+        if cy_param['sf_phi'] == 0:
+            phi = cy_param['phi_list']
+            cy_param['n_phi'] = len(phi) - 1
+        else:
+            phi = self.math.lin_list(0., 2. * np.pi, cy_param['n_phi'])
 
         #: Array of z values
         if cy_param['sf_z'] == 0:
-            if cy_param['z_max'] == 0.:
-                z_max_tmp = [self.model.get_dz(rho[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_rho'])]
-                z = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
-            elif len(cy_param['z_list']) > 0:
+            if len(cy_param['z_list']) > 0:
                 if cy_param['z_list'][0] != -cy_param['z_max'] or \
                         cy_param['z_list'][-1] != cy_param['z_max']:
                     raise ValueError('z_list does not agree with the inner and outer grid borders!')
@@ -1024,6 +1035,9 @@ class Cylindrical(Grid):
                 cy_param['n_z'] = len(z) - 1
             else:
                 raise ValueError('Cell distriution in z-direction not understood!')
+        elif  cy_param['sf_z'] == -1:
+            z_max_tmp = [self.model.get_dz(rho[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_rho'])]
+            z = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
         elif cy_param['sf_z'] == 1.0:
             z = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
                 for i_r in range(cy_param['n_rho'])])
@@ -1042,15 +1056,23 @@ class Cylindrical(Grid):
         grid_file.write(struct.pack('H', cy_param['n_z']))
         # f_rho
         grid_file.write(struct.pack('d', cy_param['sf_r']))
+        # f_phi
+        grid_file.write(struct.pack('d', cy_param['sf_phi']))
         # f_z
         grid_file.write(struct.pack('d', cy_param['sf_z']))
         # Write radius list if custom
         if cy_param['sf_r'] == 0:
             for tmp_rho in rho[1:-1]:
                 grid_file.write(struct.pack('d', tmp_rho))
-        
-        # Write dz if chosen
-        if cy_param['sf_z'] == 0 and cy_param['z_max'] == 0.:
+        # Write phi list if custom
+        if cy_param['sf_phi'] == 0:
+            for tmp_phi in phi[1:-1]:
+                grid_file.write(struct.pack('d', tmp_phi))
+        # Write dz or z, if chosen
+        if cy_param['sf_z'] == 0:
+            for tmp_z in z[1:-1]:
+                grid_file.write(struct.pack('d', tmp_z))
+        if cy_param['sf_z'] == -1:
             for rho_tmp in rho:
                 grid_file.write(struct.pack('d', self.model.get_dz(rho_tmp)))
 

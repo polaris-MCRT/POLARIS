@@ -558,9 +558,11 @@ class Model:
             'n_theta': 101,
             'n_phi': 1,
             'sf_r': 1.03,
+            'sf_phi': 1.0,
             'sf_th': -1.0,
             # These list are used as cell borders if sf_r or sf_th is zero
             'radius_list':[],
+            'phi_list': [],
             'theta_list': [],
         }
 
@@ -573,9 +575,11 @@ class Model:
             'n_phi': 101,
             'n_z': 5,
             'sf_r': 1.03,
+            'sf_phi': 1.0,
             'sf_z': -1.0,
             # This list is used as cell borders if sf_r or sf_z is zero
             'rho_list': [],
+            'phi_list': [],
             'z_list': [],
         }
 
