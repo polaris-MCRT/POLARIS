@@ -738,7 +738,7 @@ public:
         Vector3D tmp_dir;
         cell_basic * cell = pp->getPositionCell();
 
-        // Get wavelength indizes from radiation field calculation
+        // Get wavelength indices from radiation field calculation
         uint wID1 = CMathFunctions::biListIndexSearch(wavelength, wl_list);
         uint wID2 = wID1 + 1;
 

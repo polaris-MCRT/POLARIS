@@ -344,7 +344,8 @@ class CmdPolaris:
         cmd_file.write('\n')
 
     def write_dust_part(self, cmd_file, grid_filename='grid.dat', max_subpixel_lvl=1, temp_a_max=None,
-                       f_c=0., f_highj=0.25, conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
+                       f_c=0., f_highj=0.25, no_rt_scattering=False,
+                       conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
         """Writes commands for raytrace simulations to the command file.
 
         Args:
@@ -358,6 +359,7 @@ class CmdPolaris:
                 and which are therefore perfectly aligned (Only for rat alignment).
             temp_a_max (float): Calculate stochastic heating in addition to
                 equilibrium temperature up to a=temp_a_max.
+            no_rt_scattering (bool): disable consideration of scattered light in raytracing simulations.
             conv_dens (float): Conversion factor for densities.
             conv_len (float): Conversion factor for spacial extents.
             conv_mag (float): Conversion factor for the magnetic field strengths.
@@ -371,6 +373,8 @@ class CmdPolaris:
             f_highj = self.parse_args.f_highj
         if self.parse_args.temp_a_max is not None:
             temp_a_max = self.parse_args.temp_a_max
+        if self.parse_args.no_rt_scattering:
+            no_rt_scattering = True
         if self.parse_args.conv_dens is not None:
             conv_dens = self.parse_args.conv_dens
         elif self.parse_args.grid_filename is not None and \
@@ -426,6 +430,9 @@ class CmdPolaris:
         cmd_file.write('\t<f_highJ>\t\t' + str(f_highj) + '\n')
         cmd_file.write('\t<f_c>\t\t\t' + str(f_c) + '\n')
         cmd_file.write('\n')
+        if no_rt_scattering:
+            cmd_file.write('\t<rt_scattering>\t0\n')
+            cmd_file.write('\n')
         if temp_a_max is not None:
             cmd_file.write('\t<stochastic_heating>\t' + str(temp_a_max) + '\n')
             cmd_file.write('\n')

@@ -118,7 +118,10 @@ class Grid:
         try:
             if self.nr_gas_densities == 1:
                 if not isinstance(self.data.get_gas_density_distribution(), float):
-                    raise ValueError("get_gas_density_distribution provides not float!")
+                    if len(self.data.get_gas_density_distribution()[0]) != \
+                            len(self.model.parameter['gas_mass'][0]):
+                        raise ValueError("gas_density_distribution does not provied the same array than "
+                            "defined in self.parameter['gas_mass']")
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
@@ -1011,18 +1014,18 @@ class Cylindrical(Grid):
 
         #: Array of radius values
         if cy_param['sf_r'] == 0:
-            if cy_param['rho_list'][0] != cy_param['inner_radius'] or \
-                    cy_param['rho_list'][-1] != cy_param['outer_radius']:
-                raise ValueError('rho_list does not agree with the inner and outer grid borders!')
-            rho_list = cy_param['rho_list']
-            cy_param['n_r'] = len(rho_list) - 1
+            if cy_param['radius_list'][0] != cy_param['inner_radius'] or \
+                    cy_param['radius_list'][-1] != cy_param['outer_radius']:
+                raise ValueError('radius_list does not agree with the inner and outer grid borders!')
+            radius_list = cy_param['radius_list']
+            cy_param['n_r'] = len(radius_list) - 1
         elif cy_param['sf_r'] == 1:
-            rho_list = self.math.sin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
+            radius_list = self.math.sin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
         elif cy_param['sf_r'] > 1:
-            rho_list = self.math.exp_list(cy_param['inner_radius'],
+            radius_list = self.math.exp_list(cy_param['inner_radius'],
                 cy_param['outer_radius'], cy_param['n_r'], cy_param['sf_r'])
         else:
-            rho_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
+            radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
         #: Array of phi values
         if cy_param['sf_ph'] == 0:
@@ -1042,7 +1045,7 @@ class Cylindrical(Grid):
             else:
                 raise ValueError('Cell distriution in z-direction not understood!')
         elif  cy_param['sf_z'] == -1:
-            z_max_tmp = [self.model.get_dz(rho_list[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_r'])]
+            z_max_tmp = [self.model.get_dz(radius_list[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_r'])]
             z_list = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
         elif cy_param['sf_z'] == 1.0:
             z_list = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
@@ -1068,7 +1071,7 @@ class Cylindrical(Grid):
         grid_file.write(struct.pack('d', cy_param['sf_z']))
         # Write radius list if custom
         if cy_param['sf_r'] == 0:
-            for tmp_rho in rho_list[1:-1]:
+            for tmp_rho in radius_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_rho))
         # Write phi list if custom
         if cy_param['sf_ph'] == 0:
@@ -1079,7 +1082,7 @@ class Cylindrical(Grid):
             for tmp_z in z_list[0][1:-1]:
                 grid_file.write(struct.pack('d', tmp_z))
         elif cy_param['sf_z'] == -1:
-            for rho_tmp in rho_list[:-1]:
+            for rho_tmp in radius_list[:-1]:
                 grid_file.write(struct.pack('d', self.model.get_dz(rho_tmp)))
 
         i_node = 0
@@ -1092,14 +1095,14 @@ class Cylindrical(Grid):
                     stdout.flush()
                     # Calculate the cell midpoint in cylindrical coordinates
                     cylindrical_coord = np.zeros(3)
-                    cylindrical_coord[0] = (rho_list[i_r] + rho_list[i_r + 1]) / 2.
+                    cylindrical_coord[0] = (radius_list[i_r] + radius_list[i_r + 1]) / 2.
                     cylindrical_coord[1] = (phi_list[i_p] + phi_list[i_p + 1]) / 2.
                     cylindrical_coord[2] = (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     # Convert the cylindrical coordinate into carthesian node position
                     position = self.math.cylindrical_to_carthesian(cylindrical_coord)
                     node = Node('cylindrical')
                     node.parameter['position'] = position
-                    node.parameter['extent'] = [rho_list[i_r], rho_list[i_r + 1],
+                    node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
                                                 phi_list[i_p], phi_list[i_p + 1],
                                                 z_list[i_r][i_z], z_list[i_r][i_z + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
@@ -1112,7 +1115,7 @@ class Cylindrical(Grid):
         for i_z in range(cy_param['n_z']):
             node = Node('cylindrical')
             node.parameter['position'] = [0., 0., (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.]
-            node.parameter['extent'] = [0., rho_list[0],
+            node.parameter['extent'] = [0., radius_list[0],
                 phi_list[0], phi_list[cy_param['n_ph']], z_list[i_r][i_z], z_list[i_r][i_z + 1]]
             node.parameter['volume'] = self.get_volume(node=node)
             self.write_node_data(grid_file=grid_file, node=node, data_type='d', cell_IDs=[-1, -1, i_z])

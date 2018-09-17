@@ -139,7 +139,7 @@ class GGTauStars(StellarSource):
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
             'temperature': [3870., 3550., 3410., 839.9],
             'luminosity': np.multiply([0.84, 0.40, 0.31, 1e-1 * (1.4e-5 + 1.863234318727217e-3)],
-                                      self.mathm.const['L_sun']),
+                                      self.math.const['L_sun']),
             'position_star': [[0., a_Aab * self.math.const['au'] * np.sin(angle_Aa), 0.],
                               [a_Aab * self.math.const['au'] * np.cos(angle_Ab) + a_Ab12 * self.math.const['au'],
                                a_Aab * self.math.const['au'] * np.sin(angle_Ab), 0.],

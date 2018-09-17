@@ -342,56 +342,41 @@ class GGTauDisk(Model):
         """
         Model.__init__(self)
 
-        #: Set parameters of the disk model
+        # Set parameters of the disk model
         self.parameter['distance'] = 140. * self.math.const['pc']
-        self.parameter['grid_type'] = 'spherical'
-        self.parameter['gas_mass'] = 0.0013 * self.math.const['M_sun'] / self.parameter['mass_fraction']
+        self.parameter['grid_type'] = 'cylindrical'
+        self.parameter['gas_mass'] = np.array([[1e-2, 1.5e-3, 1.5e-3, 1.29e-1]]) * self.math.const['M_sun']
         self.parameter['stellar_source'] = 'gg_tau_stars'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'gg_tau'
-
         # Parameter for the spherical grid
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
         self.parameter['outer_radius'] = 300. * self.math.const['au']
-        self.spherical_parameter['n_th'] = 91
-        self.spherical_parameter['n_ph'] = 720
-        self.spherical_parameter['sf_th'] = 1
-        # --- own radial spacing of cells
-        self.spherical_parameter['sf_r'] = 0
-        list_cs_disks = np.linspace(10., 30., 200)
-        list_cb_disk = self.math.exp_list(180., 300., 100, 1.03)
+        # self.cylindrical_parameter['n_r'] = 100  # Not used. See below!
+        self.cylindrical_parameter['n_z'] = 128
+        self.cylindrical_parameter['n_ph'] = 128
+        self.cylindrical_parameter['sf_r'] = 1.03
+        self.cylindrical_parameter['sf_r'] = 0
+        self.cylindrical_parameter['sf_z'] = -1
+        # Own radial spacing of cells
+        list_cs_disks = np.linspace(10., 30., 100)
+        list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((list_cs_disks, 140, list_cb_disk)).ravel()
-        self.spherical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
-
+        self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
         # Parameter for the density distribution
         self.beta = 1.05
-        surf_dens_exp = -1.7
-        self.alpha = -surf_dens_exp + self.beta
-        self.cut_off = 2. * self.math.const['au']  # 2 AU
+        self.surf_dens_exp = -1.7
+        self.cut_off = 2. * self.math.const['au']
         # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab12 = self.angle_Aa + np.pi
         # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.a_Aab = 36. / 2. * self.math.const['au']
         self.a_Ab12 = 4.5 / 2. * self.math.const['au']
-        self.a_planet = 260. * self.math.const['au']
         # Extend of the circumstellar disks around the stars
-        self.inner_radius = 0.15 * self.math.const['au']
+        self.inner_radius_Aab12 = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
-        self.outer_radius_Ab1 = 2. * self.math.const['au']
-        self.outer_radius_Ab2 = 2. * self.math.const['au']
-        # Density factors of the circumstellar disk around Aa, Ab1 and Ab2
-        # self.factor = 0.9818414311641336
-        self.factor = 1.082494125545485 * 1.0079425074596415
-        # self.factor_Aa = 24.94246485180343
-        self.factor_Aa = 2.494246485180343 * 0.5061500961721862
-        # self.factor_Ab = 25.762784158640205
-        self.factor_Ab = 0.25762784158640205 * 0.32974081598463123
-        # Init
-        self.disk_density = 0
-        self.disk_density_Aa = 0
-        self.disk_density_Ab1 = 0
-        self.disk_density_Ab2 = 0
+        self.outer_radius_Ab12 = 2. * self.math.const['au']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -400,37 +385,62 @@ class GGTauDisk(Model):
             float: Gas density at a given position.
         """
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
-        radius_cy_disk_Aa = np.sqrt((self.position[0]) ** 2 +
-                                    (self.position[1] - self.a_Aab * np.sin(self.angle_Aa)) ** 2)
-        radius_cy_disk_Ab1 = np.sqrt((self.position[0] + self.a_Ab12) ** 2 +
-                                     (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)) ** 2)
-        radius_cy_disk_Ab2 = np.sqrt((self.position[0] - self.a_Ab12) ** 2 +
-                                     (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)) ** 2)
-        planet_tunnel = np.sqrt((radius_cy - self.a_planet) ** 2 + self.position[2] ** 2)
-        # Init density values with zero
-        pos_Aa = self.math.rotate_coord_system([radius_cy_disk_Aa, 0, self.position[2]],
-            rotation_axis=[0, 1, 0], rotation_angle=(20. / 180. * np.pi))
-        disk_density_Aa = self.factor_Aa * self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
-            inner_radius=self.inner_radius, ref_scale_height = 20. * self.math.const['au'])
-        pos_Ab1 = self.math.rotate_coord_system([radius_cy_disk_Ab1, 0, self.position[2]],
-            rotation_axis=[0, 1, 0], rotation_angle=(20. / 180. * np.pi))
-        disk_density_Ab1 = self.factor_Ab * self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab1,
-            inner_radius=self.inner_radius, ref_scale_height = 20. * self.math.const['au'])
-        pos_Ab2 = self.math.rotate_coord_system([radius_cy_disk_Ab2, 0, self.position[2]],
-            rotation_axis=[0, 1, 0], rotation_angle=-(20. / 180. * np.pi))
-        disk_density_Ab2 = self.factor_Ab * self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab2,
-            inner_radius=self.inner_radius, ref_scale_height = 20. * self.math.const['au'])
-        disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
-            inner_radius=180. * self.math.const['au'], ref_scale_height=32. * self.math.const['au'],
-            ref_radius=180. * self.math.const['au'], alpha=self.alpha, beta=self.beta)
-        if radius_cy < 190. * self.math.const['au']:
-            disk_density *= np.exp(-0.5 * ((190. * self.math.const['au'] - radius_cy)
-                                           / self.cut_off) ** 2)
-        #if planet_tunnel < 35. * self.math.const['au']:
-        #    disk_density /= 100.
 
-        return (self.factor * disk_density) + disk_density_Aa + \
-            disk_density_Ab1 + disk_density_Ab2
+        if self.a_Aab - self.outer_radius_Aa <= radius_cy <=  self.a_Aab + self.outer_radius_Aa:
+            radius_cy_disk_Aa = np.sqrt((self.position[0]) ** 2 +
+                (self.position[1] - self.a_Aab * np.sin(self.angle_Aa)) ** 2)
+            pos_Aa = self.math.rotate_coord_system([radius_cy_disk_Aa, 0, self.position[2]],
+                rotation_axis=[0, 1, 0], rotation_angle=(0. / 180. * np.pi))
+            disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
+                inner_radius=self.inner_radius_Aab12)
+        else:
+            disk_density_Aa = 0
+
+        if self.a_Aab - self.a_Ab12 - self.outer_radius_Ab12 <= radius_cy <=  self.a_Aab + self.a_Ab12 + self.outer_radius_Ab12:
+            radius_cy_disk_Ab1 = np.sqrt((self.position[0] + self.a_Ab12) ** 2 +
+                (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)) ** 2)
+            pos_Ab1 = self.math.rotate_coord_system([radius_cy_disk_Ab1, 0, self.position[2]],
+                rotation_axis=[0, 1, 0], rotation_angle=(0. / 180. * np.pi))
+            disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
+                inner_radius=self.inner_radius_Aab12)
+
+            radius_cy_disk_Ab2 = np.sqrt((self.position[0] - self.a_Ab12) ** 2 +
+                (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)) ** 2)
+            pos_Ab2 = self.math.rotate_coord_system([radius_cy_disk_Ab2, 0, self.position[2]],
+                rotation_axis=[0, 1, 0], rotation_angle=-(0. / 180. * np.pi))
+            disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
+                inner_radius=self.inner_radius_Aab12)
+        else:
+            disk_density_Ab1 = 0
+            disk_density_Ab2 = 0               
+
+        if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
+            disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
+                inner_radius=180. * self.math.const['au'], ref_scale_height=32. * self.math.const['au'],
+                ref_radius=180. * self.math.const['au'], surface_dens_exp=self.surf_dens_exp, beta=self.beta)
+            if radius_cy < 190. * self.math.const['au']:
+                disk_density *= np.exp(-0.5 * ((190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
+        else:
+            disk_density = 0
+        
+        return [[disk_density_Aa, disk_density_Ab1, disk_density_Ab2, disk_density]]
+
+    def scale_height(self, radius):
+        """Calculates the scale height at a certain position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Scale height.
+        """
+        if(radius <= self.a_Aab + self.outer_radius_Aa):
+            scale_height = 0.5 * self.math.const['au']
+        else:
+            scale_height = self.math.default_disk_scale_height(radius,
+                ref_radius=180. * self.math.const['au'], 
+                ref_scale_height=32. * self.math.const['au'], beta=self.beta)
+        return scale_height
 
 
 class GGTauCSDisk(Model):
@@ -603,15 +613,13 @@ class HD97048(Model):
             float: Scale height.
         """
         if(0.3 * self.math.const['au'] <= radius <= 2.6 * self.math.const['au']):
-            beta = 1.
-            ref_scale_height=5. * self.math.const['au'] 
-            ref_radius=100. * self.math.const['au']
-            scale_height = ref_scale_height * (radius / ref_radius) ** beta
+            scale_height = self.math.default_disk_scale_height(radius,
+                ref_radius=100. * self.math.const['au'], 
+                ref_scale_height=5. * self.math.const['au'], beta=1.)
         else:
-            beta = 1.26
-            ref_radius = 100. * self.math.const['au']
-            ref_scale_height = 12. * self.math.const['au']
-            scale_height = ref_scale_height * (radius / ref_radius) ** beta
+            scale_height = self.math.default_disk_scale_height(radius,
+                ref_radius=100. * self.math.const['au'], 
+                ref_scale_height=12. * self.math.const['au'], beta=1.26)
         return scale_height
 
 

@@ -152,6 +152,8 @@ dust_args.add_argument('--full_dust_temp', dest='full_dust_temp', default=False,
 dust_args.add_argument('--stochastic_heating', dest='temp_a_max', default=None, type=float,
                        help='calculate the stochastic heating (up to TEMP_A_MAX, requires \n'
                        '--dust_temp_multi and --radiation_field options')
+dust_args.add_argument('--no_rt_scattering', dest='no_rt_scattering', default=False, action='store_true',
+                       help='disable the consideration of scatered light in raytracng simulations.')
 dust_args.add_argument('--dust_offset', dest='dust_offset', default=False, action='store_true',
                        help='consider preexisting dust temperature in temp calculation.')
 dust_args.add_argument('--fhj', dest='f_highj', default=None, type=float,

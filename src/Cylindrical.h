@@ -389,14 +389,15 @@ public:
 
         double phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPh[cell_pos->getPhID() + 1] + listPh[cell_pos->getPhID()]);
+            phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
 
         double dph = phi_center - phi;
         if(inv)
             dph *= -1;
 
-        Vector3D ez(0, 0, 1);
-        dir.rot(ez, dph);
+        dir.cart2cyl();
+        dir.setPhi(dir.Phi() + dph);
+        dir.cyl2cart();
         return dir;
     }
 
