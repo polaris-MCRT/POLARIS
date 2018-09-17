@@ -1198,8 +1198,6 @@ public:
         npix_r = 0;
         npix_total = 0;
 
-        listR = 0;
-
         tmpStokes = 0;
 
         grid = _grid;
@@ -1207,8 +1205,8 @@ public:
 
     ~CRaytracingPolar(void)
     {
-        if(listR != 0)
-            delete[] listR;
+        if(npix_ph != 0)
+            delete[] npix_ph;
 
         if(tmpStokes != 0)
         {
@@ -1689,7 +1687,7 @@ private:
         return PI * (r2 * r2 - r1 * r1) / npix_ph[rID];
     }    
 
-    double * listR;
+    dlist listR;
     uint * npix_ph;
     uint npix_r, npix_total;
     StokesVector ***tmpStokes;

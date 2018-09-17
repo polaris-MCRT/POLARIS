@@ -345,7 +345,7 @@ class GGTauDisk(Model):
         # Set parameters of the disk model
         self.parameter['distance'] = 140. * self.math.const['pc']
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['gas_mass'] = np.array([[1e-2, 1.5e-3, 1.5e-3, 1.29e-1]]) * self.math.const['M_sun']
+        self.parameter['gas_mass'] = np.array([[1.e-3, 1.e-4, 1.e-4, 1.29e-1]]) * self.math.const['M_sun']
         self.parameter['stellar_source'] = 'gg_tau_stars'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'gg_tau'
@@ -354,15 +354,17 @@ class GGTauDisk(Model):
         self.parameter['outer_radius'] = 300. * self.math.const['au']
         # self.cylindrical_parameter['n_r'] = 100  # Not used. See below!
         self.cylindrical_parameter['n_z'] = 128
-        self.cylindrical_parameter['n_ph'] = 128
-        self.cylindrical_parameter['sf_r'] = 1.03
         self.cylindrical_parameter['sf_r'] = 0
+        self.cylindrical_parameter['sf_ph'] = 0
         self.cylindrical_parameter['sf_z'] = -1
         # Own radial spacing of cells
-        list_cs_disks = np.linspace(10., 30., 100)
-        list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
-        full_r_list = np.hstack((list_cs_disks, 140, list_cb_disk)).ravel()
+        r_list_cs_disks = np.linspace(10., 30., 100)
+        r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
+        full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
+        ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
+        ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
+        self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
         # Parameter for the density distribution
         self.beta = 1.05
         self.surf_dens_exp = -1.7
@@ -392,7 +394,7 @@ class GGTauDisk(Model):
             pos_Aa = self.math.rotate_coord_system([radius_cy_disk_Aa, 0, self.position[2]],
                 rotation_axis=[0, 1, 0], rotation_angle=(0. / 180. * np.pi))
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
-                inner_radius=self.inner_radius_Aab12)
+                inner_radius=self.inner_radius_Aab12, real_zero=True)
         else:
             disk_density_Aa = 0
 
@@ -402,14 +404,14 @@ class GGTauDisk(Model):
             pos_Ab1 = self.math.rotate_coord_system([radius_cy_disk_Ab1, 0, self.position[2]],
                 rotation_axis=[0, 1, 0], rotation_angle=(0. / 180. * np.pi))
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius_Aab12)
+                inner_radius=self.inner_radius_Aab12, real_zero=True)
 
             radius_cy_disk_Ab2 = np.sqrt((self.position[0] - self.a_Ab12) ** 2 +
                 (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)) ** 2)
             pos_Ab2 = self.math.rotate_coord_system([radius_cy_disk_Ab2, 0, self.position[2]],
                 rotation_axis=[0, 1, 0], rotation_angle=-(0. / 180. * np.pi))
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius_Aab12)
+                inner_radius=self.inner_radius_Aab12, real_zero=True)
         else:
             disk_density_Ab1 = 0
             disk_density_Ab2 = 0               
@@ -435,7 +437,7 @@ class GGTauDisk(Model):
             float: Scale height.
         """
         if(radius <= self.a_Aab + self.outer_radius_Aa):
-            scale_height = 0.5 * self.math.const['au']
+            scale_height = 0.3 * self.math.const['au']
         else:
             scale_height = self.math.default_disk_scale_height(radius,
                 ref_radius=180. * self.math.const['au'], 
@@ -504,19 +506,13 @@ class HD97048(Model):
         #: Set parameters of the disk model
         self.parameter['distance'] = 185.0 * self.math.const['pc']
         self.parameter['inner_radius'] = 0.3 * self.math.const['au']
-        self.parameter['outer_radius'] = 400.0 * self.math.const['au']
+        self.parameter['outer_radius'] = 400. * self.math.const['au']
         self.parameter['grid_type'] = 'cylindrical'
-        # In the case of a spherical grid
-        self.spherical_parameter['n_r'] = 300
-        self.spherical_parameter['n_th'] = 141
-        self.spherical_parameter['n_ph'] = 1
-        self.spherical_parameter['sf_r'] = 1.04
-        self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 300
         self.cylindrical_parameter['n_z'] = 142
         self.cylindrical_parameter['n_ph'] = 1
-        self.cylindrical_parameter['sf_r'] = 1.04
+        self.cylindrical_parameter['sf_r'] = 1.03
         self.cylindrical_parameter['sf_z'] = -1
         # Define the used sources, dust composition and gas species
         self.parameter['detector'] = 'hd97048'
@@ -524,8 +520,10 @@ class HD97048(Model):
         self.parameter['dust_composition'] = 'olivine_pah'
         # Use multiple dust compositionas depending on the region in the grid
         self.parameter['variable_dust'] = True
-    
-    def use_extra_parameter(self, extra_parameter):
+        self.use_extra_parameter() 
+
+        
+    def use_extra_parameter(self, extra_parameter=[]):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use the continuum or ring version of the model and set PAH to silicate ration
@@ -538,6 +536,10 @@ class HD97048(Model):
         else:
             self.use_cont = False
             self.mf_pah = 1e-3
+            
+        # Radial cell border list
+        list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']), 
+            np.log10(2.6 * self.math.const['au']), 50)
 
         # Set the gas density
         if self.use_cont:

@@ -439,48 +439,56 @@ public:
 
     void printParameter();
 
-    bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl,
-        double * &_listR, uint &N_polar_r, uint * &N_polar_ph)
-    {
-        uint rID = CMathFunctions::biListIndexSearch(max_len, listR, N_r - 1);
+    bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
+            dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
+    {     
         uint subpixel_multiplier = pow(2, max_subpixel_lvl);
-        if(rID == MAX_UINT)
-            subpixel_multiplier = max(uint(1),
-                min(subpixel_multiplier, uint((listR[N_r] - listR[N_r - 1]) / pixel_width)));
-        else
-            subpixel_multiplier = max(uint(1),
-                min(subpixel_multiplier, uint((listR[rID + 1] - listR[rID]) / pixel_width)));
 
-        int N_r_add = subpixel_multiplier * max(1, int(listR[0] / (listR[1] - listR[0])));
-        N_polar_r = subpixel_multiplier * N_r + N_r_add;
+        // Calculate additional rings for the center
+        uint N_r_add = uint(ceil(listR[0] / (listR[1] - listR[0])));
 
-        _listR = new double[N_polar_r + 1];
-        for(int i_r = 0; i_r <= N_polar_r; i_r++)
+        for(uint i_r = 0; i_r <= N_r_add; i_r++)
+            _listR.push_back(listR[0] * (i_r / double(N_r_add)));
+
+        for(uint i_r = 1; i_r <= N_r; i_r++)
         {
-            if(i_r < N_r_add)
-                _listR[i_r] = listR[0] * (i_r / double(N_r_add));
-            else if (i_r == N_polar_r)
-                _listR[i_r] = listR[N_r];
+            double r1 = _listR.back();
+            double r2 = listR[i_r];
+            if((r2 - r1) <= (listR[1] - listR[0]))
+                _listR.push_back(r2);
             else
             {
-                uint i_r_eff = (i_r - N_r_add);
-                double r1 = listR[uint(i_r_eff / subpixel_multiplier)];
-                double r2 = listR[uint(i_r_eff / subpixel_multiplier) + 1];
-                _listR[i_r] = r1 + (r2 - r1) * (i_r_eff % subpixel_multiplier) / double(subpixel_multiplier);
+                uint N_r_sub = max(uint(ceil((r2 - r1) / pixel_width)),
+                    min(subpixel_multiplier, uint(ceil((r2 - r1) / (listR[1] - listR[0])))));
+                for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
+                    _listR.push_back(r1 + (r2 - r1) * (i_r_sub / double(N_r_sub)));
             }
+
             // break if sidelength is smaller than full grid
-            if(_listR[i_r] > max_len)
+            if(_listR.back() > max_len)
             {
-                N_polar_r = i_r;
-                _listR[i_r] = max_len;
+                _listR.pop_back();
+                _listR.push_back(max_len);
                 break;
             }
         }
+
+        if(_listR.back() <= max_len)
+        {
+            // Calculate additional rings for the outer rings
+            uint N_r_add_back = uint(ceil((max_len - listR[N_r]) / (listR[N_r] - listR[N_r - 1])));
+
+            for(uint i_r = 1; i_r <= N_r_add_back; i_r++)
+                _listR.push_back(listR[N_r] + (max_len - listR[N_r]) * (i_r / double(N_r_add_back)));
+        }
+
+        // Set total size of the radial cells
+        N_polar_r = _listR.size() - 1;
+
         // Calc the number of phi background grid pixel
         N_polar_ph = new uint[N_polar_r];
-        for(int i_r = 0; i_r < N_polar_r; i_r++)
-            N_polar_ph[i_r] = max(subpixel_multiplier, uint(PIx2 * _listR[i_r + 1] / 
-                max(pixel_width / subpixel_multiplier, _listR[i_r + 1] - _listR[i_r])));
+        for(uint i_r = 0; i_r < N_polar_r; i_r++)
+            N_polar_ph[i_r] = uint(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]));
 
         return true;
     }

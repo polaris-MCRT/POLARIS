@@ -504,8 +504,8 @@ public:
         return max_len;
     }
 
-    virtual bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl,
-        double * &_listR, uint &N_polar_r, uint * &N_polar_ph)
+    virtual bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
+            dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
     {
         return false;
     }
