@@ -114,7 +114,7 @@ class GGTauStars(StellarSource):
         self.a_planet = 260. + 20.
 
         self.angle_Aa = 3. / 2. * np.pi
-        self.angle_Ab = angle_Aa + np.pi
+        self.angle_Ab = self.angle_Aa + np.pi
         self.angle_planet = np.pi * (360. - 127.) / 180.
 
         # Add planet to sources?
