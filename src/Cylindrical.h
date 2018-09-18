@@ -459,8 +459,8 @@ public:
                 uint N_r_sub = uint(ceil((r2 - r1) / (5.0 * (r1 - r0))));
                 for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
                     for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
-                        _listR.push_back(r1 + (r2 - r1) * i_r_sub / double(N_r_sub) * 
-                            i_subpixel / double(subpixel_multiplier));
+                        _listR.push_back(r1 + (r2 - r1) * (i_r + i_subpixel / double(subpixel_multiplier)) / 
+                            double(N_r_sub));
             }
 
             // break if sidelength is smaller than full grid
@@ -472,15 +472,15 @@ public:
             }
         }
 
-        if(_listR.back() <= max_len)
+        if(_listR.back() < max_len)
         {
             // Calculate additional rings for the outer rings
             uint N_r_outer = uint(ceil((max_len - listR[N_r]) / (listR[N_r] - listR[N_r - 1])));
 
             for(uint i_r = 1; i_r <= N_r_outer; i_r++)
                 for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
-                    _listR.push_back(listR[N_r] + (max_len - listR[N_r]) * i_r / double(N_r_outer) *
-                         i_subpixel / double(subpixel_multiplier));
+                    _listR.push_back(listR[N_r] + (max_len - listR[N_r]) * 
+                        (i_r + i_subpixel / double(subpixel_multiplier)) / double(N_r_outer));
         }
 
         // Set total size of the radial cells
@@ -491,7 +491,7 @@ public:
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
             N_polar_ph[i_r] = uint(ceil(PIx2 * _listR[i_r + 1] / 
                 min(pixel_width, (_listR[i_r + 1] - _listR[i_r]))));
-
+        
         return true;
     }
 

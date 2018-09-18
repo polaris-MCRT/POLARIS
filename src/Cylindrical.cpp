@@ -168,10 +168,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
          // Allow user defined z list based on a variable dz, if log_factorZ is -1
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            // Read distance between two borders in z-direction for the current radius cell
-            double dph = 0;
-            bin_reader.read((char*) &dph, 8);
-            N_ph[i_r] = uint(ceil(PIx2 / dph));
+            // Read number of phi cells in the current ring
+            bin_reader.read((char*) &N_ph[i_r], 8);
 
             // Init 2D cell borders in z-direction
             listPh[i_r] = new double[N_ph[i_r] + 1];
@@ -365,6 +363,22 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
             if(dr < min_len)
                 min_len = dr;
+
+            if(ph_counter < N_ph[r_counter])
+            {
+                double dph = listPh[r_counter][ph_counter + 1] - listPh[r_counter][ph_counter];
+
+                if(dph == 0)
+                {
+                    cout << "ERROR: No step size in phi-direction of cylindrical grid!" << endl;
+                    return false;
+                }
+
+                double d = 2 * Rmin * dph / PIx2;
+
+                if(d < min_len)
+                    min_len = d;
+            }
         }
 
         if(r_counter == 0)
@@ -384,34 +398,6 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
                 if(dz < min_len)
                     min_len = dz;
             }
-
-            if(ph_counter < N_ph[0])
-            {
-                double dph = listPh[ph_counter + 1] - listPh[ph_counter];
-
-                if(dph == 0)
-                {
-                    cout << "ERROR: No step size in phi-direction of cylindrical grid!" << endl;
-                    return false;
-                }
-
-                double d = 2 * Rmin * dph / PIx2;
-
-                if(d < min_len)
-                    min_len = d;
-            }
-        }
-
-        // Calculate percentage of total progress per source
-        uint percentage = uint(100.0 * double(line_counter) / double(max_cells));
-
-        // Show only new percentage number if it changed
-        if((percentage - last_percentage) > PERCENTAGE_STEP)
-        {
-            char_counter++;
-            cout << "-> Loading cylindrical grid file : "
-                    << percentage << " [%]      \r" << flush;
-            last_percentage = percentage;
         }
 
         if(z_counter == N_z && b_center == false)
@@ -434,6 +420,18 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
         if(z_counter == N_z && b_center == true)
             break;
+            
+         // Calculate percentage of total progress per source
+        uint percentage = uint(100.0 * double(line_counter) / double(max_cells));
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+            char_counter++;
+            cout << "-> Loading cylindrical grid file : "
+                    << percentage << " [%]      \r" << flush;
+            last_percentage = percentage;
+        }
 
         cell_cyl * tmp_cell = 0;
 
@@ -491,6 +489,12 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         cout << "ERROR: Nr. of read in cells do not match the maximal number of expected cells!" << endl;
         cout << "       Expected " << max_cells << " cells, but found " << uint(line_counter) 
             << " cells in grid!" << endl;
+        return false;
+    }
+
+    if(min_len < 0)
+    {
+        cout << "ERROR: Minimum length is smaller than zero!" << endl;
         return false;
     }
 
@@ -972,7 +976,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameter & param)
 
     buffer.str("");
 
-    for(uint i_r = 0; i_r <= N_r; i_r++)
+    for(uint i_r = 0; i_r < N_r; i_r++)
     {
         double dPh = PIx2 / double(N_ph[i_r]);
         for(uint i_ph = 0; i_ph <= N_ph[i_r]; i_ph++)
@@ -1105,10 +1109,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
             bin_writer.write((char*) &listPh[0][i_ph], 8);
     else if(log_factorPh == -1)
         for(uint i_r = 0; i_r < N_r; i_r++)
-        {
-            double dph = listPh[i_r][2] - listPh[i_r][1];
-            bin_writer.write((char*) &dph, 8);
-        }
+            bin_writer.write((char*) &N_ph[i_r], 8);
     if(log_factorZ == 0)
         for(uint i_th = 1; i_th < N_z; i_th++)
             bin_writer.write((char*) &listZ[0][i_th], 8);

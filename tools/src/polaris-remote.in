@@ -46,6 +46,8 @@ push_args.add_argument('--push_polaris_input', dest='push_polaris_input', defaul
                        help='push POLARIS input files to server (to update POLARIS gas dust files).')
 push_args.add_argument('--push_polaris_tests', dest='push_polaris_tests', default=False, action='store_true',
                        help='push POLARIS test simulations to server.')
+push_args.add_argument('--pull_polaris_tests', dest='pull_polaris_tests', default=False, action='store_true',
+                       help='pull POLARIS test simulations from server.')
 push_args.add_argument('--push_polaris', dest='push_polaris', default=False, action='store_true',
                        help='push POLARIS sources to server (to update an existing POLARIS installation).')
 push_args.add_argument('--push_file', dest='path_to_file', default=None,
@@ -137,7 +139,7 @@ class RemoteRoutines:
             self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
 
     def push_polaris_tests(self):
-        """Push POLARIS sources to server.
+        """Push POLARIS test files to server.
         """
         print('--- Push POLARIS test files to ' + self.file_io.path['server'] + ' ...')
         os.system(
@@ -145,6 +147,16 @@ class RemoteRoutines:
             '--include=testing/*/results_correct/ --include=*.dat --include=template.cmd '
             '--include=*.fits --exclude=* ' +
             self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
+
+    def pull_polaris_tests(self):
+        """Pull POLARIS test files to server.
+        """
+        print('--- Pull POLARIS test files from ' + self.file_io.path['server'] + ' ...')
+        os.system(
+            self.rsync_cmd + '--include=testing/ --include=testing/*/ ' +
+            '--include=testing/*/results_correct/ --include=*.dat --include=template.cmd '
+            '--include=*.fits --exclude=* ' +
+            self.file_io.path['server_polaris'] + ' ' + self.file_io.path['polaris'])
 
     def push_polaris(self):
         """Push POLARIS sources to server.
@@ -223,7 +235,10 @@ if __name__ == '__main__':
             remote_routines.push_polaris_input()
         elif parser_options.push_polaris_tests:
             # Push POLARIS input files to server
-            remote_routines.push_polaris_tests()            
+            remote_routines.push_polaris_tests()           
+        elif parser_options.pull_polaris_tests:
+            # Pull POLARIS input files from server
+            remote_routines.pull_polaris_tests()   
         elif parser_options.path_to_file is not None:
             # Push file to PolarisTools on server
             remote_routines.push_file(parser_options.path_to_file)

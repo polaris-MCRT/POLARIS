@@ -1029,10 +1029,26 @@ class Cylindrical(Grid):
 
         #: Array of phi values
         if cy_param['sf_ph'] == 0:
-            phi_list = cy_param['phi_list']
-            cy_param['n_ph'] = len(phi_list) - 1
+            if len(cy_param['phi_list']) > 0:
+                if cy_param['phi_list'][0] != 0 or \
+                        cy_param['phi_list'][-1] != 2. * np.pi:
+                    raise ValueError('phi_list does not fullfil a full cicle!')
+                phi_list = np.array([cy_param['phi_list'] for i_r in range(cy_param['n_ph'])])
+                cy_param['n_ph'] = len(phi_list) - 1
+            else:
+                raise ValueError('Cell distriution in phi-direction not understood!')
+        elif cy_param['sf_ph'] == -1:
+            if isinstance(cy_param['n_ph'], int):
+                raise ValueError('For sf_ph = -1, n_ph has to have a length equal to n_r!')
+            phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph)
+                for n_ph in cy_param['n_ph']]
         else:
-            phi_list = self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'])
+            phi_list = np.array([self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'])
+                for i_r in range(cy_param['n_r'])])
+        
+        # Prepare n_ph for grid creation
+        if isinstance(cy_param['n_ph'], int):
+            cy_param['n_ph'] = [cy_param['n_ph']] * cy_param['n_r']
 
         #: Array of z values
         if cy_param['sf_z'] == 0:
@@ -1051,8 +1067,8 @@ class Cylindrical(Grid):
             z_list = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
                 for i_r in range(cy_param['n_r'])])
         elif cy_param['sf_z'] > 1.0:
-            z_list = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'], cy_param['sf_z'])
-                for i_r in range(cy_param['n_r'])])
+            z_list = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'], 
+                cy_param['n_z'], cy_param['sf_z']) for i_r in range(cy_param['n_r'])])
         else:
             z_list = np.array([self.math.lin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
                 for i_r in range(cy_param['n_r'])])
@@ -1061,7 +1077,7 @@ class Cylindrical(Grid):
         grid_file.write(struct.pack('d', cy_param['outer_radius']))
         grid_file.write(struct.pack('d', cy_param['z_max']))
         grid_file.write(struct.pack('H', cy_param['n_r']))
-        grid_file.write(struct.pack('H', cy_param['n_ph']))
+        grid_file.write(struct.pack('H', cy_param['n_ph'][0]))
         grid_file.write(struct.pack('H', cy_param['n_z']))
         # f_rho
         grid_file.write(struct.pack('d', cy_param['sf_r']))
@@ -1075,8 +1091,11 @@ class Cylindrical(Grid):
                 grid_file.write(struct.pack('d', tmp_rho))
         # Write phi list if custom
         if cy_param['sf_ph'] == 0:
-            for tmp_phi in phi_list[1:-1]:
+            for tmp_phi in phi_list[0][1:-1]:
                 grid_file.write(struct.pack('d', tmp_phi))
+        elif cy_param['sf_ph'] == -1:
+            for i_r in range(cy_param['n_r']):
+                grid_file.write(struct.pack('d', cy_param['n_ph'][i_r]))
         # Write dz or z, if chosen
         if cy_param['sf_z'] == 0:
             for tmp_z in z_list[0][1:-1]:
@@ -1085,25 +1104,29 @@ class Cylindrical(Grid):
             for rho_tmp in radius_list[:-1]:
                 grid_file.write(struct.pack('d', self.model.get_dz(rho_tmp)))
 
+        # Calculate the total number of cells
+        nr_cells = 0
+        for i_r in range(cy_param['n_r']):
+            nr_cells += cy_param['n_ph'][i_r] * cy_param['n_z']
+
         i_node = 0
         for i_r in range(cy_param['n_r']):
-            for i_p in range(cy_param['n_ph']):
+            for i_p in range(cy_param['n_ph'][i_r]):
                 for i_z in range(cy_param['n_z']):
                     stdout.write('--- Generate cylindrical grid: ' +
-                        str(round(100.0 * i_node /(cy_param['n_r'] *
-                        cy_param['n_ph'] * cy_param['n_z']), 3)) + ' %      \r')
+                        str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in cylindrical coordinates
                     cylindrical_coord = np.zeros(3)
                     cylindrical_coord[0] = (radius_list[i_r] + radius_list[i_r + 1]) / 2.
-                    cylindrical_coord[1] = (phi_list[i_p] + phi_list[i_p + 1]) / 2.
+                    cylindrical_coord[1] = (phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.
                     cylindrical_coord[2] = (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     # Convert the cylindrical coordinate into carthesian node position
                     position = self.math.cylindrical_to_carthesian(cylindrical_coord)
                     node = Node('cylindrical')
                     node.parameter['position'] = position
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
-                                                phi_list[i_p], phi_list[i_p + 1],
+                                                phi_list[i_r][i_p], phi_list[i_r][i_p + 1],
                                                 z_list[i_r][i_z], z_list[i_r][i_z + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
                     self.write_node_data(grid_file=grid_file, node=node, data_type='d',
@@ -1114,9 +1137,9 @@ class Cylindrical(Grid):
 
         for i_z in range(cy_param['n_z']):
             node = Node('cylindrical')
-            node.parameter['position'] = [0., 0., (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.]
+            node.parameter['position'] = [0., 0., (z_list[0][i_z] + z_list[0][i_z + 1]) / 2.]
             node.parameter['extent'] = [0., radius_list[0],
-                phi_list[0], phi_list[cy_param['n_ph']], z_list[i_r][i_z], z_list[i_r][i_z + 1]]
+                phi_list[0][0], phi_list[0][cy_param['n_ph'][0]], z_list[0][i_z], z_list[0][i_z + 1]]
             node.parameter['volume'] = self.get_volume(node=node)
             self.write_node_data(grid_file=grid_file, node=node, data_type='d', cell_IDs=[-1, -1, i_z])
             self.update_mass_measurement(node=node)
@@ -1150,10 +1173,10 @@ class Cylindrical(Grid):
 
         self.read_write_header(tmp_file=tmp_file, grid_file=grid_file)
         for i_r in range(cy_param['n_r']):
-            for i_t in range(cy_param['n_ph']):
-                for i_p in range(cy_param['n_z']):
+            for i_p in range(cy_param['n_ph'][i_r]):
+                for i_z in range(cy_param['n_z']):
                     self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
-        for i_p in range(cy_param['n_z']):
+        for i_z in range(cy_param['n_z']):
             self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
 
     def read_write_header(self, tmp_file, grid_file):
@@ -1191,6 +1214,9 @@ class Cylindrical(Grid):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_ph)[0] == 0:
             for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
+                grid_file.write(tmp_file.read(8))
+        elif struct.unpack('d', sf_ph)[0] == -1:
+            for i_r in range(struct.unpack('H', n_r)[0]):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_z)[0] == 0:
             for i_z in range(struct.unpack('H', n_z)[0] - 1):

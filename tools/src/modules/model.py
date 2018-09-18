@@ -83,8 +83,8 @@ class ModelChooser:
                 model.spherical_parameter['sf_r'] = self.parse_args.sf_r
                 model.cylindrical_parameter['sf_r'] = self.parse_args.sf_r
             if self.parse_args.sf_ph is not None:
-                model.spherical_parameter['sf_ph'] = self.parse_args.sf_th
-                model.cylindrical_parameter['sf_ph'] = self.parse_args.sf_th
+                model.spherical_parameter['sf_ph'] = self.parse_args.sf_ph
+                model.cylindrical_parameter['sf_ph'] = self.parse_args.sf_ph
             if self.parse_args.sf_th is not None:
                 model.spherical_parameter['sf_th'] = self.parse_args.sf_th
             if self.parse_args.sf_z is not None:

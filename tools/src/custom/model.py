@@ -355,16 +355,19 @@ class GGTauDisk(Model):
         # self.cylindrical_parameter['n_r'] = 100  # Not used. See below!
         self.cylindrical_parameter['n_z'] = 128
         self.cylindrical_parameter['sf_r'] = 0
-        self.cylindrical_parameter['sf_ph'] = 0
+        self.cylindrical_parameter['sf_ph'] = -1
         self.cylindrical_parameter['sf_z'] = -1
         # Own radial spacing of cells
         r_list_cs_disks = np.linspace(10., 30., 100)
         r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
-        ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
-        ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
-        self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
+        #ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
+        #ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
+        #self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
+        n_ph_list_1 = [100] * 100
+        n_ph_list_2 = [1] * 51
+        self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
         # Parameter for the density distribution
         self.beta = 1.05
         self.surf_dens_exp = -1.7
