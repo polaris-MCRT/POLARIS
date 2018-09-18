@@ -292,14 +292,6 @@ public:
         return max_len;
     }
 
-    void getAmountOfCells(uint & N_x, uint & N_y, uint & N_z)
-    {
-        uint nr_pixel = uint(pow(max_cells, 1.0 / 3.0));
-        N_x = nr_pixel;
-        N_y = nr_pixel;
-        N_z = nr_pixel;
-    }
-
     bool createArtificialGrid(string path);
 
     bool saveBinaryGridFile(string filename)

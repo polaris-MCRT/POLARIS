@@ -336,14 +336,6 @@ public:
         return cell_oc_pos;
     }
 
-    void getAmountOfCells(uint & N_x, uint & N_y, uint & N_z)
-    {
-        uint nr_pixel = uint(pow(2, max_level));
-        N_x = nr_pixel;
-        N_y = nr_pixel;
-        N_z = nr_pixel;
-    }
-
     double getMaxLength()
     {
         return cell_oc_root->getLength();

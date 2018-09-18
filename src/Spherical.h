@@ -473,27 +473,30 @@ public:
 
     bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
             dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
-    {     
-         uint subpixel_multiplier = pow(2, max_subpixel_lvl);
+    {
+        uint subpixel_multiplier = pow(2, max_subpixel_lvl);
 
         // Calculate additional rings for the center
-        uint N_r_add = uint(ceil(listR[0] / (listR[1] - listR[0])));
+        uint N_r_center = uint(ceil(listR[0] / (listR[1] - listR[0])));
 
-        for(uint i_r = 0; i_r <= N_r_add; i_r++)
-            _listR.push_back(listR[0] * (i_r / double(N_r_add)));
+        for(uint i_r = 0; i_r <= N_r_center; i_r++)
+            _listR.push_back(listR[0] * (i_r / double(N_r_center)));
 
         for(uint i_r = 1; i_r <= N_r; i_r++)
         {
-            double r1 = _listR.back();
+            double r0 = _listR[_listR.size() - 2];
+            double r1 = _listR[_listR.size() - 1];
             double r2 = listR[i_r];
-            if((r2 - r1) <= (listR[1] - listR[0]))
-                _listR.push_back(r2);
+            if((r2 - r1) < 5.0 * (r1 - r0))
+                for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
+                    _listR.push_back(r1 + (r2 - r1) * i_subpixel / double(subpixel_multiplier));
             else
             {
-                uint N_r_sub = max(uint(ceil((r2 - r1) / pixel_width)),
-                    min(subpixel_multiplier, uint(ceil((r2 - r1) / (listR[1] - listR[0])))));
+                uint N_r_sub = uint(ceil((r2 - r1) / (5.0 * (r1 - r0))));
                 for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
-                    _listR.push_back(r1 + (r2 - r1) * (i_r_sub / double(N_r_sub)));
+                    for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
+                        _listR.push_back(r1 + (r2 - r1) * i_r_sub / double(N_r_sub) * 
+                            i_subpixel / double(subpixel_multiplier));
             }
 
             // break if sidelength is smaller than full grid
@@ -511,7 +514,8 @@ public:
         // Calc the number of phi background grid pixel
         N_polar_ph = new uint[N_polar_r];
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
-            N_polar_ph[i_r] = uint(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]));
+            N_polar_ph[i_r] = uint(ceil(PIx2 * _listR[i_r + 1] / 
+                min(pixel_width, (_listR[i_r + 1] - _listR[i_r]))));
 
         return true;
     }

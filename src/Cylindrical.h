@@ -138,9 +138,9 @@ public:
         Rmin = 0;
         Rmax = 1;
         Zmax = 1;
-        N_r = 4;
-        N_ph = 4;
-        N_z = 4;
+        N_r = 0;
+        N_ph = 0;
+        N_z = 0;
         log_factorR = 0;
         log_factorPh = 0;
         log_factorZ = 0;
@@ -179,6 +179,8 @@ public:
 
         if(listPh != 0)
         {
+            for(uint i_r = 0; i_r < N_r; i_r++)
+                delete[] listPh[i_r];
             delete[] listPh;
             listPh = 0;
         }
@@ -198,7 +200,7 @@ public:
                 cout << "Cleaning memory for cylindrical grid file : " <<
                         float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
-                for(uint i_ph = 0; i_ph < N_ph; i_ph++)
+                for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
                 {
                     for(uint i_z = 0; i_z < N_z; i_z++)
                     {
@@ -244,12 +246,12 @@ public:
             return Vector3D(0, 0, z + 0.5 * dz);
         }
 
-        double z = listZ[tmp_cell->getRID()][tmp_cell->getZID()];
-        double dz = listZ[tmp_cell->getRID()][tmp_cell->getZID() + 1] - z;
         double r = listR[tmp_cell->getRID()];
         double dr = listR[tmp_cell->getRID() + 1] - r;
-        double ph = listPh[tmp_cell->getPhID()];
-        double dph = listPh[tmp_cell->getPhID() + 1] - ph;
+        double ph = listPh[tmp_cell->getRID()][tmp_cell->getPhID()];
+        double dph = listPh[tmp_cell->getRID()][tmp_cell->getPhID() + 1] - ph;
+        double z = listZ[tmp_cell->getRID()][tmp_cell->getZID()];
+        double dz = listZ[tmp_cell->getRID()][tmp_cell->getZID() + 1] - z;
 
         double sin_ph = sin(ph + 0.5 * dph);
         double cos_ph = cos(ph + 0.5 * dph);
@@ -258,13 +260,6 @@ public:
         center.setZ(z + 0.5 * dz);
 
         return center;
-    }
-
-    void getAmountOfCells(uint & N_x, uint & N_y, uint & N_z)
-    {
-        N_x = N_r;
-        N_y = N_ph;
-        N_z = N_z;
     }
 
     double maxLength()
@@ -328,7 +323,7 @@ public:
                     << 100.0 * float(i_r) / float(N_r)
                     << " %        \r" << flush;
 
-            for(uint i_ph = 0; i_ph < N_ph; i_ph++)
+            for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
             {
                 for(uint i_z = 0; i_z < N_z; i_z++)
                 {
@@ -363,12 +358,12 @@ public:
         }
         else
         {
-            double z1 = listZ[cell_pos->getRID()][cell_pos->getZID()];
-            double z2 = listZ[cell_pos->getRID()][cell_pos->getZID() + 1];
             double r1 = listR[cell_pos->getRID()];
             double r2 = listR[cell_pos->getRID() + 1];
-            double ph1 = listPh[cell_pos->getPhID()];
-            double ph2 = listPh[cell_pos->getPhID() + 1];
+            double ph1 = listPh[cell_pos->getRID()][cell_pos->getPhID()];
+            double ph2 = listPh[cell_pos->getRID()][cell_pos->getPhID() + 1];
+            double z1 = listZ[cell_pos->getRID()][cell_pos->getZID()];
+            double z2 = listZ[cell_pos->getRID()][cell_pos->getZID() + 1];
 
             volume = 0.5 * (ph2 - ph1)* (r2 * r2 - r1 * r1)* (z2 - z1);
         }
@@ -389,7 +384,8 @@ public:
 
         double phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
+            phi_center = 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
+                listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
 
         double dph = phi_center - phi;
         if(inv)
@@ -441,27 +437,30 @@ public:
 
     bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
             dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
-    {     
+    {
         uint subpixel_multiplier = pow(2, max_subpixel_lvl);
 
         // Calculate additional rings for the center
-        uint N_r_add = uint(ceil(listR[0] / (listR[1] - listR[0])));
+        uint N_r_center = uint(ceil(listR[0] / (listR[1] - listR[0])));
 
-        for(uint i_r = 0; i_r <= N_r_add; i_r++)
-            _listR.push_back(listR[0] * (i_r / double(N_r_add)));
+        for(uint i_r = 0; i_r <= N_r_center; i_r++)
+            _listR.push_back(listR[0] * (i_r / double(N_r_center)));
 
         for(uint i_r = 1; i_r <= N_r; i_r++)
         {
-            double r1 = _listR.back();
+            double r0 = _listR[_listR.size() - 2];
+            double r1 = _listR[_listR.size() - 1];
             double r2 = listR[i_r];
-            if((r2 - r1) <= (listR[1] - listR[0]))
-                _listR.push_back(r2);
+            if((r2 - r1) < 5.0 * (r1 - r0))
+                for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
+                    _listR.push_back(r1 + (r2 - r1) * i_subpixel / double(subpixel_multiplier));
             else
             {
-                uint N_r_sub = max(uint(ceil((r2 - r1) / pixel_width)),
-                    min(subpixel_multiplier, uint(ceil((r2 - r1) / (listR[1] - listR[0])))));
+                uint N_r_sub = uint(ceil((r2 - r1) / (5.0 * (r1 - r0))));
                 for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
-                    _listR.push_back(r1 + (r2 - r1) * (i_r_sub / double(N_r_sub)));
+                    for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
+                        _listR.push_back(r1 + (r2 - r1) * i_r_sub / double(N_r_sub) * 
+                            i_subpixel / double(subpixel_multiplier));
             }
 
             // break if sidelength is smaller than full grid
@@ -476,30 +475,34 @@ public:
         if(_listR.back() <= max_len)
         {
             // Calculate additional rings for the outer rings
-            uint N_r_add_back = uint(ceil((max_len - listR[N_r]) / (listR[N_r] - listR[N_r - 1])));
+            uint N_r_outer = uint(ceil((max_len - listR[N_r]) / (listR[N_r] - listR[N_r - 1])));
 
-            for(uint i_r = 1; i_r <= N_r_add_back; i_r++)
-                _listR.push_back(listR[N_r] + (max_len - listR[N_r]) * (i_r / double(N_r_add_back)));
+            for(uint i_r = 1; i_r <= N_r_outer; i_r++)
+                for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
+                    _listR.push_back(listR[N_r] + (max_len - listR[N_r]) * i_r / double(N_r_outer) *
+                         i_subpixel / double(subpixel_multiplier));
         }
 
         // Set total size of the radial cells
         N_polar_r = _listR.size() - 1;
 
-        // Calc the number of phi background grid pixel
+       // Calc the number of phi background grid pixel
         N_polar_ph = new uint[N_polar_r];
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
-            N_polar_ph[i_r] = uint(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]));
+            N_polar_ph[i_r] = uint(ceil(PIx2 * _listR[i_r + 1] / 
+                min(pixel_width, (_listR[i_r + 1] - _listR[i_r]))));
 
         return true;
     }
 
 private:
     double Rmin, Rmax, Zmax;
-    uint N_r, N_ph, N_z;
+    uint N_r, N_z;
+    uint * N_ph;
     double log_factorR, log_factorPh, log_factorZ;
 
     double * listR;
-    double * listPh;
+    double ** listPh;
     double ** listZ;
 
     cell_cyl **** grid_cells;
@@ -524,12 +527,12 @@ private:
                 return false;
         }
 
-        double z1 = listZ[cell->getRID()][cell->getZID()];
-        double z2 = listZ[cell->getRID()][cell->getZID() + 1];
         double r1 = listR[cell->getRID()];
         double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPh[cell->getPhID()];
-        double ph2 = listPh[cell->getPhID() + 1];
+        double ph1 = listPh[cell->getRID()][cell->getPhID()];
+        double ph2 = listPh[cell->getRID()][cell->getPhID() + 1];
+        double z1 = listZ[cell->getRID()][cell->getZID()];
+        double z2 = listZ[cell->getRID()][cell->getZID() + 1];
 
         if(tmp_pos.R() < r1)
             return false;
@@ -588,8 +591,8 @@ private:
         {
             r1 = 0;
             r2 = listR[0];
-            ph1 = listPh[0];
-            ph2 = listPh[N_ph];
+            ph1 = listPh[0][0];
+            ph2 = listPh[0][N_ph[0]];
             z1 = listZ[0][0];
             z2 = listZ[0][N_z];
         }
@@ -597,8 +600,8 @@ private:
         {
             r1 = listR[tmp_cell->getRID()];
             r2 = listR[tmp_cell->getRID() + 1];
-            ph1 = listPh[tmp_cell->getPhID()];
-            ph2 = listPh[tmp_cell->getPhID() + 1];
+            ph1 = listPh[tmp_cell->getRID()][tmp_cell->getPhID()];
+            ph2 = listPh[tmp_cell->getRID()][tmp_cell->getPhID() + 1];
             z1 = listZ[tmp_cell->getRID()][tmp_cell->getZID()];
             z2 = listZ[tmp_cell->getRID()][tmp_cell->getZID() + 1];
         }

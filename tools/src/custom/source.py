@@ -109,13 +109,16 @@ class GGTauStars(StellarSource):
 
         self.parameter['nr_photons'] = 100000
 
-        a_Aab = 36. / 2.
-        a_Ab12 = 4.5 / 2.
-        a_planet = 260. + 20.
+        self.a_Aab = 36. / 2.
+        self.a_Ab12 = 4.5 / 2.
+        self.a_planet = 260. + 20.
 
-        angle_Aa = 3. / 2. * np.pi
-        angle_Ab = angle_Aa + np.pi
-        angle_planet = np.pi * (360. - 127.) / 180.
+        self.angle_Aa = 3. / 2. * np.pi
+        self.angle_Ab = angle_Aa + np.pi
+        self.angle_planet = np.pi * (360. - 127.) / 180.
+
+        # Add planet to sources?
+        self.add_planet = False
 
         '''
         From Robert Brunngräber!
@@ -137,17 +140,15 @@ class GGTauStars(StellarSource):
         #: dict: Parameters for the binary components
         self.parameter_lst = {
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
-            'temperature': [3870., 3550., 3410., 839.9],
-            'luminosity': np.multiply([0.84, 0.40, 0.31, 1e-1 * (1.4e-5 + 1.863234318727217e-3)],
-                                      self.math.const['L_sun']),
-            'position_star': [[0., a_Aab * self.math.const['au'] * np.sin(angle_Aa), 0.],
-                              [a_Aab * self.math.const['au'] * np.cos(angle_Ab) + a_Ab12 * self.math.const['au'],
-                               a_Aab * self.math.const['au'] * np.sin(angle_Ab), 0.],
-                              [a_Aab * self.math.const['au'] * np.cos(angle_Ab) - a_Ab12 * self.math.const['au'],
-                               a_Aab * self.math.const['au'] * np.sin(angle_Ab), 0.],
-                              [a_planet * self.math.const['au'] * np.sin(angle_planet),
-                               a_planet * self.math.const['au'] * np.cos(angle_planet), 0.],
-                              ]
+            'temperature': [3870., 3550., 3410.],
+            'luminosity': np.multiply([0.84, 0.40, 0.31], self.math.const['L_sun']),
+            'position_star': [[0., self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) + 
+                                    self.a_Ab12 * self.math.const['au'],
+                               self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.],
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) - 
+                                    self.a_Ab12 * self.math.const['au'],
+                               self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.]]
         }
 
     def get_command(self):
@@ -156,6 +157,12 @@ class GGTauStars(StellarSource):
             self.parameter['temperature'] = self.parameter_lst['temperature'][i_comp]
             self.parameter['luminosity'] = self.parameter_lst['luminosity'][i_comp]
             self.parameter['position'] = self.parameter_lst['position_star'][i_comp]
+            new_command_line += self.get_command_line()
+        if self.add_planet:
+            self.parameter['temperature'] = 839.9
+            self.parameter['luminosity'] = 1e-1 * (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
+            self.parameter['position'] = [self.a_planet * self.math.const['au'] * np.sin(self.angle_planet),
+                self.a_planet * self.math.const['au'] * np.cos(self.angle_planet), 0.]
             new_command_line += self.get_command_line()
         return new_command_line
 
