@@ -487,13 +487,13 @@ public:
             double r0 = _listR[_listR.size() - 2];
             double r1 = _listR[_listR.size() - 1];
             double r2 = listR[i_r];
-            if((r2 - r1) < min(pixel_width / 2.0, 5.0 * (r1 - r0)))
+            if((r2 - r1) < min(2.0 * pixel_width, 5.0 * (r1 - r0)))
                 for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
                     _listR.push_back(r1 + (r2 - r1) * i_subpixel / double(subpixel_multiplier));
             else
             {
-                uint N_r_sub = uint(ceil((r2 - r1) / min(pixel_width / 2.0, 5.0 * (r1 - r0))));
-                for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
+                uint N_r_sub = uint(ceil((r2 - r1) / min(2.0 * pixel_width, 5.0 * (r1 - r0))));
+                for(int i_r_sub = 0; i_r_sub < N_r_sub; i_r_sub++)
                     for(int i_subpixel = 1; i_subpixel <= subpixel_multiplier; i_subpixel++)
                         _listR.push_back(r1 + (r2 - r1) * (i_r_sub + i_subpixel / 
                         double(subpixel_multiplier)) / double(N_r_sub));
@@ -515,7 +515,7 @@ public:
         N_polar_ph = new uint[N_polar_r];
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
             N_polar_ph[i_r] = uint(ceil(PIx2 * _listR[i_r + 1] / 
-                min(pixel_width / 2.0, (_listR[i_r + 1] - _listR[i_r]))));
+                min(pixel_width, (_listR[i_r + 1] - _listR[i_r]))));
 
         return true;
     }
