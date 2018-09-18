@@ -1939,6 +1939,9 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         if(comp->getScatLoaded())
             initScatteringMatrixArray();
 
+        // Set the phase function initially
+        phID = comp->getPhaseFunctionID();
+
         // If the colarimetry data is read in, add them together as well
         if(comp->getCalorimetryLoaded())
         {
