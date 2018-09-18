@@ -1398,7 +1398,7 @@ public:
 
         if(npix_total > 1e6)
         {
-            cout << "HINT: Very high amount of rays required for DUST EMISSION simulationd!" << endl
+            cout << "HINT: Very high amount of rays required for DUST EMISSION simulation!" << endl
                 << "      Problem: The grid has too many cells in the outer regions that need to be resolved." << endl
                 << "      Solutions: Decrease max subpixel level or use the cartesian raytracing grid." << endl;
         }
@@ -1414,6 +1414,7 @@ public:
             tmpStokes[i_spectral] = new StokesVector * [npix_r + 1];
             for(uint i_r = 0; i_r < npix_r; i_r++)
                 tmpStokes[i_spectral][i_r] = new StokesVector[npix_ph[i_r]];
+                
             // Add center pixel
             tmpStokes[i_spectral][npix_r] = new StokesVector[1];
         }

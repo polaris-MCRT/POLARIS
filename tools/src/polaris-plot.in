@@ -1156,6 +1156,9 @@ class PlotRoutines:
     def set_plot_indizes(self):
         """Set the indices for visualizations depending on the user input.
         """
+        if self.parse_args.visualization_type == 'map':
+            self.file_io.n_quantities += 2
+
         if self.parse_args.visualization_type in ['map', 'sed']:
             if len(self.parse_args.visualization_input) == 1:
                 '''

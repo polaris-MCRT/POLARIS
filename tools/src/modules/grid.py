@@ -824,8 +824,7 @@ class Spherical(Grid):
             for i_p in range(sp_param['n_ph']):
                 for i_t in range(sp_param['n_th']):
                     stdout.write('--- Generate spherical grid: ' + str(round(100.0 * i_node / (
-                            sp_param['n_r'] * sp_param['n_th'] *
-                            sp_param['n_ph']), 3)) + ' %           \r')
+                            sp_param['n_r'] * sp_param['n_th'] * sp_param['n_ph']), 3)) + ' %           \r')
                     stdout.flush()
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)
@@ -1040,8 +1039,7 @@ class Cylindrical(Grid):
         elif cy_param['sf_ph'] == -1:
             if isinstance(cy_param['n_ph'], int):
                 raise ValueError('For sf_ph = -1, n_ph has to have a length equal to n_r!')
-            phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph)
-                for n_ph in cy_param['n_ph']]
+            phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph) for n_ph in cy_param['n_ph']]
         else:
             phi_list = np.array([self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'])
                 for i_r in range(cy_param['n_r'])])
@@ -1095,7 +1093,7 @@ class Cylindrical(Grid):
                 grid_file.write(struct.pack('d', tmp_phi))
         elif cy_param['sf_ph'] == -1:
             for i_r in range(cy_param['n_r']):
-                grid_file.write(struct.pack('d', cy_param['n_ph'][i_r]))
+                grid_file.write(struct.pack('H', cy_param['n_ph'][i_r]))
         # Write dz or z, if chosen
         if cy_param['sf_z'] == 0:
             for tmp_z in z_list[0][1:-1]:
@@ -1223,7 +1221,7 @@ class Cylindrical(Grid):
                 grid_file.write(tmp_file.read(8))
         elif struct.unpack('d', sf_z)[0] == -1:
             for i_r in range(struct.unpack('H', n_r)[0]):
-                grid_file.write(tmp_file.read(8))
+                grid_file.write(tmp_file.read(2))
 
 class Node:
     """The Node class includes the information of one node in the grid.

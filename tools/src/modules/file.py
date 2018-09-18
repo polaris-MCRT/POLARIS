@@ -119,10 +119,7 @@ class FileIO:
         """
         #: int: Number of quantities in the data file
         if tool_type == 'plot':
-            if 'dust' in simulation_type:
-                self.n_quantities = 8
-            elif simulation_type in ['line', 'zeeman']:
-                self.n_quantities = 6
+            self.n_quantities = 6
         # Path to directory with the polaris package
         self.path['polaris'] = self.polaris_dir
         # Path to directory with the polaris and PolarisTools binaries
@@ -353,8 +350,8 @@ class FileIO:
         else:
             raise ValueError('Error: For the simulation_type: ' + str(self.parse_args.simulation_type) +
                              ' is no automatic label generation for the colorbar available!')
-        if self.n_quantities != len(quantity_labels) or self.n_quantities <= i_quantity or i_quantity < 0:
-            raise ValueError('Error: For the quantity number ' + str(i_quantity) + ', no label is providable!')
+        if self.n_quantities > len(quantity_labels) or self.n_quantities <= i_quantity or i_quantity < 0:
+            raise ValueError('For the quantity number ' + str(i_quantity) + ', no label is providable!')
         return quantity_labels[i_quantity]
 
     def read_emission_map_header(self, hdulist):
@@ -661,7 +658,6 @@ class FileIO:
         tbldata = np.zeros((self.n_quantities, header['nr_wavelengths']))
         # Set the data array from fits input
         tbldata[0:4, :] = data[0:4, :]
-        tbldata[6:8, :] = data[4:6, :]
         tbldata[4, :] = np.sqrt(np.add(np.power(data[1, :], 2), np.power(data[2, :], 2)))
         # Ignore divide by zero
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -670,9 +666,6 @@ class FileIO:
         if self.cmap_unit == 'nuF':
             for i_wl in range(header['nr_wavelengths']):
                 tbldata[0:5, i_wl] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
-            if header['simulation_type'] in ['dust_mc', 'dust_full']:
-                for i_wl in range(header['nr_wavelengths']):
-                    tbldata[6:8, i_wl] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
         return tbldata, header, plot_data_type
 
     def read_midplane_file(self, visualisation_input, skip_not_known=False):

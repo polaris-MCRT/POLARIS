@@ -349,39 +349,41 @@ class GGTauDisk(Model):
         self.parameter['stellar_source'] = 'gg_tau_stars'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'gg_tau'
-        # Parameter for the spherical grid
+
+        # Parameter for the density distribution
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
         self.parameter['outer_radius'] = 300. * self.math.const['au']
-        # self.cylindrical_parameter['n_r'] = 100  # Not used. See below!
+        self.beta = 1.05
+        self.surf_dens_exp = -1.7
+        self.cut_off = 2. * self.math.const['au']
+        # --- Position angle of the stars (Ab12 is Ab1 and Ab2)
+        self.angle_Aa = 3. / 2. * np.pi
+        self.angle_Ab12 = self.angle_Aa + np.pi
+        # --- Half-major axis of the stars (Ab12 is Ab1 and Ab2)
+        self.a_Aab = 36. / 2. * self.math.const['au']
+        self.a_Ab12 = 4.5 / 2. * self.math.const['au']
+        # --- Extend of the circumstellar disks around the stars
+        self.inner_radius_Aab12 = 0.15 * self.math.const['au']
+        self.outer_radius_Aa = 7. * self.math.const['au']
+        self.outer_radius_Ab12 = 2. * self.math.const['au']
+        
+        # Distribution of cell borders
         self.cylindrical_parameter['n_z'] = 128
-        self.cylindrical_parameter['sf_r'] = 0
-        self.cylindrical_parameter['sf_ph'] = -1
-        self.cylindrical_parameter['sf_z'] = -1
-        # Own radial spacing of cells
+        self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
+        self.cylindrical_parameter['sf_ph'] = -1  # Custom number of phi-cells per ring
+        self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
+        # --- Radial cells
         r_list_cs_disks = np.linspace(10., 30., 100)
         r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
+        # --- Phi cells
         #ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
         #ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
         #self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
-        n_ph_list_1 = [100] * 100
+        n_ph_list_1 = [300] * 100
         n_ph_list_2 = [1] * 51
         self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
-        # Parameter for the density distribution
-        self.beta = 1.05
-        self.surf_dens_exp = -1.7
-        self.cut_off = 2. * self.math.const['au']
-        # Position angle of the stars (Ab12 is Ab1 and Ab2)
-        self.angle_Aa = 3. / 2. * np.pi
-        self.angle_Ab12 = self.angle_Aa + np.pi
-        # Position angle of the stars (Ab12 is Ab1 and Ab2)
-        self.a_Aab = 36. / 2. * self.math.const['au']
-        self.a_Ab12 = 4.5 / 2. * self.math.const['au']
-        # Extend of the circumstellar disks around the stars
-        self.inner_radius_Aab12 = 0.15 * self.math.const['au']
-        self.outer_radius_Aa = 7. * self.math.const['au']
-        self.outer_radius_Ab12 = 2. * self.math.const['au']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

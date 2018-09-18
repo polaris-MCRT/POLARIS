@@ -169,7 +169,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             // Read number of phi cells in the current ring
-            bin_reader.read((char*) &N_ph[i_r], 8);
+            bin_reader.read((char*) &N_ph[i_r], 2);
 
             // Init 2D cell borders in z-direction
             listPh[i_r] = new double[N_ph[i_r] + 1];
@@ -1109,7 +1109,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
             bin_writer.write((char*) &listPh[0][i_ph], 8);
     else if(log_factorPh == -1)
         for(uint i_r = 0; i_r < N_r; i_r++)
-            bin_writer.write((char*) &N_ph[i_r], 8);
+            bin_writer.write((char*) &N_ph[i_r], 2);
     if(log_factorZ == 0)
         for(uint i_th = 1; i_th < N_z; i_th++)
             bin_writer.write((char*) &listZ[0][i_th], 8);
