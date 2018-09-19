@@ -291,9 +291,9 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
             cout << "-> MC radiation field: [ 0 % ]      \r" << flush;
 
         // A loop for each wavelength
+#pragma omp parallel for schedule(dynamic) collapse(2)
         for(int wID = 0; wID < nr_used_wavelengths; wID++)
         {
-#pragma omp parallel for schedule(dynamic)
             // A loop for each photon
             for(llong r = 0; r < llong(nr_of_photons); r++)
             {

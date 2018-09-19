@@ -36,34 +36,35 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
     else
+    {
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
             << " [L_sun], photons: " << nr_of_photons << endl;
 
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-    {
-        if(wavelength_list[w] * star_emi[w] > max_flux)
-            max_flux = wavelength_list[w] * star_emi[w];
-    }
-
-    max_flux *= ACC_SELECT_LEVEL;
-
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-        if(wavelength_list[w] * star_emi[w] < max_flux)
+        for(uint w = 0; w < getNrOfWavelength(); w++)
         {
-            kill_counter++;
-            star_emi[w] = 0;
+            if(wavelength_list[w] * star_emi[w] > max_flux)
+                max_flux = wavelength_list[w] * star_emi[w];
         }
 
-    diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
-    diff_luminosity -= tmp_luminosity;
+        max_flux *= ACC_SELECT_LEVEL;
+        
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+            if(wavelength_list[w] * star_emi[w] < max_flux)
+            {
+                kill_counter++;
+                star_emi[w] = 0;
+            }
 
-    cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
-            << getNrOfWavelength() << ", neglected energy: "
-            << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+        diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        diff_luminosity -= tmp_luminosity;
+
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
+                << getNrOfWavelength() << ", neglected energy: "
+                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+    }
 
     double fr;
     lam_pf.resize(getNrOfWavelength());
-
     for(uint l = 0; l < getNrOfWavelength(); l++)
     {
         fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;

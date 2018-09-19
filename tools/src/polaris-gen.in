@@ -71,6 +71,8 @@ grid_args.add_argument('--sf_th', dest='sf_th', type=float, default=None,
                        help='step width factor in theta direction of spherical grid (overwrites model value).')
 grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
                        help='step width factor in vertical direction of cylindrical grid (overwrites model value).')
+grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
+                       help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '(multiple values possible, no unit strings!).')
