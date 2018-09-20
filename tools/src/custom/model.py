@@ -363,17 +363,17 @@ class GGTauDisk(Model):
         self.a_Aab = 36. / 2. * self.math.const['au']
         self.a_Ab12 = 4.5 / 2. * self.math.const['au']
         # --- Extend of the circumstellar disks around the stars
-        self.inner_radius = 0.1 * self.math.const['au']
+        self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
         self.outer_radius_Ab12 = 2. * self.math.const['au']
         
         # Distribution of cell borders
-        self.cylindrical_parameter['n_z'] = 128
+        self.cylindrical_parameter['n_z'] = 151
         self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
         self.cylindrical_parameter['sf_ph'] = -1  # Custom number of phi-cells per ring
         self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
         # --- Radial cells
-        r_list_cs_disks = np.linspace(10., 30., 100)
+        r_list_cs_disks = np.linspace(10., 25., 100)
         r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
@@ -381,7 +381,7 @@ class GGTauDisk(Model):
         #ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
         #ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
         #self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
-        n_ph_list_1 = [500] * 100
+        n_ph_list_1 = [600] * 100
         n_ph_list_2 = [50] * 51
         self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
 
