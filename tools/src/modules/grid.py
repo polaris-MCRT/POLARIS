@@ -329,12 +329,13 @@ class Grid:
         for i in range(self.data_length - self.nr_gas_densities - self.nr_dust_densities):
             grid_file.write(tmp_file.read(data_type_length))
 
-    def update_grid(self, grid_file, tmp_file):
+    def update_grid(self, grid_file, tmp_file, reverse):
         """Update grid to be in agreement with POLARIS newest version.
 
         Args:
             grid_file: Input grid file (previous grid).
             tmp_file: Output grid file (updated grid).
+            reverse (bool): Downgrading instead?
         """
         grid_id = grid_file.read(2)
         tmp_file.write(grid_id)
@@ -358,8 +359,12 @@ class Grid:
             tmp_file.write(n_th)
             sf_r = grid_file.read(8)
             tmp_file.write(sf_r)
-            # Add log_Phi value
-            tmp_file.write(struct.pack('d', 1.0))
+            if not reverse:
+                # Add log_Phi value
+                tmp_file.write(struct.pack('d', 1.0))
+            else:
+                # Ignore log_Phi value
+                sf_ph = grid_file.read(8)
             byte = grid_file.read(1)
             while byte != b'':
                 tmp_file.write(byte)
@@ -376,8 +381,12 @@ class Grid:
             tmp_file.write(n_z)
             sf_r = grid_file.read(8)
             tmp_file.write(sf_r)
-            # Add log_Phi value
-            tmp_file.write(struct.pack('d', 1.0))
+            if not reverse:
+                # Add log_Phi value
+                tmp_file.write(struct.pack('d', 1.0))
+            else:
+                # Ignore log_Phi value
+                sf_ph = grid_file.read(8)
             byte = grid_file.read(1)
             while byte != b'':
                 tmp_file.write(byte)
@@ -391,7 +400,7 @@ class OcTree(Grid):
     """
 
     def __init__(self, model, ext_input, file_io, parse_args):
-        """Initialisation of grid parameters.
+        """Initialization of grid parameters.
 
         Args:
             model: Handles the model space including various
