@@ -299,7 +299,7 @@ class Dust:
             'phi_angle_list': np.zeros(1),
             'material_density': 0,
             'calorimetry_type': 'heat_capacity',
-            'subl_temp': 2100,
+            'subl_temp': 3500,
             'align': 0,
             'aspect_ratio': 1,
             'rat_delta': 0,

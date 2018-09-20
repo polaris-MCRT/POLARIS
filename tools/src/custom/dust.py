@@ -10,6 +10,7 @@ import numpy as np
 """
 def update_dust_dict(dictionary):
     dust_dict = {
+        'large_silicate': LargeSilicate,
         'multi_sil': MultiSilicate,
         'multi_themis': MultiThemis,
         'olivine': Olivine,
@@ -85,6 +86,28 @@ class CustomDust(Dust):
         dust.parameter['choice_id'] = 2
         new_command_line += dust.get_command_line()
         return new_command_line
+
+
+class LargeSilicate(Dust):
+    """Dust class for large silicate grains."""
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        # For creation of a dust catalog
+        self.parameter['dust_cat_file'] = 'silicate'
+        self.parameter['scattering'] = 'MIE'
+        self.parameter['subl_temp'] = 1200
+        # Minimum dust grain size
+        self.parameter['amin'] = 5e-9
+        # Maximum dust grain size
+        self.parameter['amax'] = 1e-3
 
 
 class MultiSilicate(Dust):

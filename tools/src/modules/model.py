@@ -272,7 +272,7 @@ class Sphere(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
         self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_th'] = 91
         self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
@@ -286,7 +286,7 @@ class Sphere(Model):
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 30.
+        dust_temperature = 13.
         return dust_temperature
 
     def gas_temperature(self):
@@ -295,7 +295,7 @@ class Sphere(Model):
         Returns:
             float: Gas temperature at a given position.
         """
-        gas_temperature = 30.
+        gas_temperature = 13.
         return gas_temperature
 
     def gas_density_distribution(self):
@@ -316,8 +316,8 @@ class Sphere(Model):
             List[float, float, float]: Magnetic field strength at the given
             position.
         """
-        # magnetic_field = self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
-        magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
+        magnetic_field = self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+        #magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
         return magnetic_field
 
 
