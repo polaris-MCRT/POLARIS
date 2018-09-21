@@ -299,7 +299,7 @@ class Dust:
             'phi_angle_list': np.zeros(1),
             'material_density': 0,
             'calorimetry_type': 'heat_capacity',
-            'subl_temp': 2100,
+            'subl_temp': 3500,
             'align': 0,
             'aspect_ratio': 1,
             'rat_delta': 0,
@@ -564,6 +564,8 @@ class Model:
             'radius_list':[],
             'phi_list': [],
             'theta_list': [],
+            # Split the first radial cell into multiple
+            'split_first_cell': 1
         }
 
         #: dict: Includes parameters for the cylindrical grid
@@ -581,6 +583,8 @@ class Model:
             'radius_list': [],
             'phi_list': [],
             'z_list': [],
+            # Split the first radial cell into multiple
+            'split_first_cell': 1
         }
 
         #: dict: Includes conversion factors of different quantities
@@ -723,7 +727,6 @@ class Model:
         """
         self.parameter[name] = value
 
-
     def ignore_cell(self, node=None):
         """Ignore a cell for grid refinement, if necessary for a given model.
 
@@ -734,6 +737,12 @@ class Model:
             bool: True if ignore, False if considered for refinement.
         """
         return False
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update 
+        disk parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the model without changing the model.py file
 
     '''--------------------------------------------------------------------------------------------
     The following functions can be changed by the user and modified in each derived class of Model!

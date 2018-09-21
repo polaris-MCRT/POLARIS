@@ -1396,10 +1396,10 @@ public:
         
         npix_total++;
 
-        if(npix_total > 1e6)
+        if(npix_total > MAX_RT_RAYS)
         {
-            cout << "HINT: Very high amount of rays required for DUST EMISSION simulation!" << endl
-                << "      Problem: The grid has too many cells in the outer regions that need to be resolved." << endl
+            cout << "HINT: Very high amount of rays required for DUST EMISSION simulation with polar raytracing grid!" << endl
+                << "      Problem: The simulation may take a long time to process all rays." << endl
                 << "      Solutions: Decrease max subpixel level or use the cartesian raytracing grid." << endl;
         }
 

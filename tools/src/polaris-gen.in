@@ -71,6 +71,8 @@ grid_args.add_argument('--sf_th', dest='sf_th', type=float, default=None,
                        help='step width factor in theta direction of spherical grid (overwrites model value).')
 grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
                        help='step width factor in vertical direction of cylindrical grid (overwrites model value).')
+grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
+                       help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '(multiple values possible, no unit strings!).')
@@ -87,7 +89,9 @@ source_args.add_argument('--external', dest='external_input_name', default=None,
 
 source_args = parser.add_argument_group('update')
 source_args.add_argument('--update', dest='update_grid', default=False, action='store_true',
-                         help='updates POLARIS v4.00.00 grids to newest version.')
+                         help='updates POLARIS v4.00 grids to newest version.')
+source_args.add_argument('--revert', dest='revert_grid', default=False, action='store_true',
+                         help='revert POLARIS v4.XX grids to version 4.00.00.')
 
 parser_options = parser.parse_args()
 
@@ -231,7 +235,7 @@ class GridRoutines:
                         ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_gas_mass[i][j] /
                             self.math.const['M_sun']))
 
-    def update_polaris_grid(self):
+    def update_polaris_grid(self, reverse=False):
         """Checks a grid and adds values if required.
         """
         from modules.grid import Grid
@@ -241,11 +245,13 @@ class GridRoutines:
         #: Final grid file
         grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
         # Write header of the grid file
-        grid.update_grid(grid_file=grid_file, tmp_file=tmp_file)
+        grid.update_grid(grid_file=grid_file, tmp_file=tmp_file, reverse=reverse)
         # Close both binary files
         tmp_file.close()
         grid_file.close()
         # Rename the temporary grid file
+        os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
+            self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
         os.rename(self.file_io.path['model'] + 'tmp_tree.dat',
             self.file_io.path['model'] + self.parse_args.grid_filename)
 
@@ -257,12 +263,16 @@ if __name__ == '__main__':
     grid_routines = GridRoutines(parser_options)
     print('--- Initialization finished!                                    ')
     if parser_options.update_grid:
-        print('--- Update a grid ...')
+        print('--- Update grid to v4.01 ...')
         grid_routines.update_polaris_grid()
-        print('--- Update of grid finished!                                  ')
+        print('--- Update of grid finished!                                 ')
+    elif parser_options.revert_grid:
+        print('--- Revert grid to v4.00 ...')
+        grid_routines.update_polaris_grid(reverse=True)
+        print('--- Revert of grid finished!                                 ')
     else:
         print('--- Create a grid ...')
         grid_routines.create_polaris_grid()
-        print('--- Creation of grid finished!                                  ')
+        print('--- Creation of grid finished!                               ')
 
     

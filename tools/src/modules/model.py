@@ -89,8 +89,10 @@ class ModelChooser:
                 model.spherical_parameter['sf_th'] = self.parse_args.sf_th
             if self.parse_args.sf_z is not None:
                 model.cylindrical_parameter['sf_z'] = self.parse_args.sf_z
-            if self.parse_args.extra_parameter is not None:
-                model.use_extra_parameter(self.parse_args.extra_parameter)
+            if self.parse_args.split_first_cell is not None:
+                model.spherical_parameter['split_first_cell'] = self.parse_args.split_first_cell
+                model.cylindrical_parameter['split_first_cell'] = self.parse_args.split_first_cell
+            model.update_parameter(self.parse_args.extra_parameter)
         # Set the grid extent if global extent is set
         if model.parameter['grid_type'] == 'octree' and model.parameter['outer_radius'] is not None:
             model.octree_parameter['sidelength'] = 2. * model.parameter['outer_radius']
@@ -176,15 +178,16 @@ class Disk(Model):
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
 
-    def use_extra_parameter(self, extra_parameter):
+    def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use extra parameter to vary the disk structure
-        if len(extra_parameter) == 4:
-            self.parameter['ref_radius'] = self.math.parse(extra_parameter[0], 'length')
-            self.parameter['ref_scale_height'] = self.math.parse(extra_parameter[1], 'length')
-            self.parameter['alpha'] = float(extra_parameter[2])
-            self.parameter['beta'] = float(extra_parameter[3])
+        if extra_parameter is not None:
+            if len(extra_parameter) == 4:
+                self.parameter['ref_radius'] = self.math.parse(extra_parameter[0], 'length')
+                self.parameter['ref_scale_height'] = self.math.parse(extra_parameter[1], 'length')
+                self.parameter['alpha'] = float(extra_parameter[2])
+                self.parameter['beta'] = float(extra_parameter[3])    
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -269,7 +272,7 @@ class Sphere(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
         self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_th'] = 91
         self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
@@ -283,7 +286,7 @@ class Sphere(Model):
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 30.
+        dust_temperature = 13.
         return dust_temperature
 
     def gas_temperature(self):
@@ -292,7 +295,7 @@ class Sphere(Model):
         Returns:
             float: Gas temperature at a given position.
         """
-        gas_temperature = 30.
+        gas_temperature = 13.
         return gas_temperature
 
     def gas_density_distribution(self):
@@ -313,8 +316,8 @@ class Sphere(Model):
             List[float, float, float]: Magnetic field strength at the given
             position.
         """
-        # magnetic_field = self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
-        magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
+        magnetic_field = self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+        #magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
         return magnetic_field
 
 

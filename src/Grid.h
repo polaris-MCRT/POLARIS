@@ -1722,6 +1722,36 @@ public:
         return false;
     }
 
+    double setDustDensity(cell_basic * cell, double val)
+    {
+        if(data_pos_dd_list.size() > 0)
+            for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
+                cell->setData(data_pos_dd_list[i_density], val);
+        else
+            for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
+                cell->setData(data_pos_gd_list[i_density], val);
+    }
+
+    double setDustDensity(cell_basic * cell, uint i_density, double val)
+    {
+        if(data_pos_dd_list.size() > 0)
+            cell->setData(data_pos_dd_list[i_density], val);
+        else
+            cell->setData(data_pos_gd_list[i_density], val);
+    }
+
+    double setDustDensity(photon_package * pp, double val)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return setDustDensity(cell, val);
+    }
+
+    double setDustDensity(photon_package * pp, uint i_density, double val)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return setDustDensity(cell, i_density, val);
+    }
+
     double getDustDensity(cell_basic * cell)
     {
         double sum = 0;

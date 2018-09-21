@@ -246,9 +246,9 @@ class Math:
         elif 'm_jup' in mass.lower():
             conv = self.const['M_jup']
             mass = mass.lower().replace('m_jup', '')
-        elif 'm_sun' in mass.lower():
+        elif 'm_sun' in mass.lower() or 'msun' in mass.lower():
             conv = self.const['M_sun']
-            mass = mass.lower().replace('m_sun', '')
+            mass = mass.lower().replace('m_sun', '').replace('msun', '')
         try:
             return float(mass) * conv
         except ValueError:
@@ -285,9 +285,9 @@ class Math:
         conv = 1
         if 'w' in luminosity.lower():
             luminosity = luminosity.lower().replace('w', '')
-        elif 'l_sun' in luminosity.lower():
+        elif 'l_sun' in luminosity.lower() or 'lsun' in luminosity.lower():
             conv = self.const['L_sun']
-            luminosity = luminosity.lower().replace('l_sun', '')
+            luminosity = luminosity.lower().replace('l_sun', '').replace('lsun', '')
         try:
             return float(luminosity) * conv
         except ValueError:

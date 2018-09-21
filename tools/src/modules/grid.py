@@ -329,12 +329,13 @@ class Grid:
         for i in range(self.data_length - self.nr_gas_densities - self.nr_dust_densities):
             grid_file.write(tmp_file.read(data_type_length))
 
-    def update_grid(self, grid_file, tmp_file):
+    def update_grid(self, grid_file, tmp_file, reverse):
         """Update grid to be in agreement with POLARIS newest version.
 
         Args:
             grid_file: Input grid file (previous grid).
             tmp_file: Output grid file (updated grid).
+            reverse (bool): Downgrading instead?
         """
         grid_id = grid_file.read(2)
         tmp_file.write(grid_id)
@@ -358,8 +359,12 @@ class Grid:
             tmp_file.write(n_th)
             sf_r = grid_file.read(8)
             tmp_file.write(sf_r)
-            # Add log_Phi value
-            tmp_file.write(struct.pack('d', 1.0))
+            if not reverse:
+                # Add log_Phi value
+                tmp_file.write(struct.pack('d', 1.0))
+            else:
+                # Ignore log_Phi value
+                sf_ph = grid_file.read(8)
             byte = grid_file.read(1)
             while byte != b'':
                 tmp_file.write(byte)
@@ -376,8 +381,12 @@ class Grid:
             tmp_file.write(n_z)
             sf_r = grid_file.read(8)
             tmp_file.write(sf_r)
-            # Add log_Phi value
-            tmp_file.write(struct.pack('d', 1.0))
+            if not reverse:
+                # Add log_Phi value
+                tmp_file.write(struct.pack('d', 1.0))
+            else:
+                # Ignore log_Phi value
+                sf_ph = grid_file.read(8)
             byte = grid_file.read(1)
             while byte != b'':
                 tmp_file.write(byte)
@@ -391,7 +400,7 @@ class OcTree(Grid):
     """
 
     def __init__(self, model, ext_input, file_io, parse_args):
-        """Initialisation of grid parameters.
+        """Initialization of grid parameters.
 
         Args:
             model: Handles the model space including various
@@ -777,6 +786,12 @@ class Spherical(Grid):
         else:
             radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
+        if sp_param['split_first_cell'] > 1:
+            radius_list = np.hstack((np.linspace(radius_list[0], radius_list[1], 
+                sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            sp_param['sf_r'] = 0
+            sp_param['n_r'] = len(radius_list) - 1
+
         #: Array of phi values
         if sp_param['sf_ph'] == 0:
             phi_list = sp_param['phi_list']
@@ -1026,6 +1041,12 @@ class Cylindrical(Grid):
         else:
             radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
+        if cy_param['split_first_cell'] > 1:
+            radius_list = np.hstack((np.linspace(radius_list[0], radius_list[1], 
+                cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            cy_param['sf_r'] = 0
+            cy_param['n_r'] = len(radius_list) - 1
+
         #: Array of phi values
         if cy_param['sf_ph'] == 0:
             if len(cy_param['phi_list']) > 0:
@@ -1057,9 +1078,9 @@ class Cylindrical(Grid):
                 z_list = np.array([cy_param['z_list'] for i_r in range(cy_param['n_r'])])
                 cy_param['n_z'] = len(z_list) - 1
             else:
-                raise ValueError('Cell distriution in z-direction not understood!')
+                raise ValueError('Cell distribution in z-direction not understood!')
         elif  cy_param['sf_z'] == -1:
-            z_max_tmp = [self.model.get_dz(radius_list[i_r]) * cy_param['n_z'] for i_r in range(cy_param['n_r'])]
+            z_max_tmp = [self.model.get_dz(radius_list[i_r]) * cy_param['n_z'] / 2. for i_r in range(cy_param['n_r'])]
             z_list = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
         elif cy_param['sf_z'] == 1.0:
             z_list = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
@@ -1215,13 +1236,13 @@ class Cylindrical(Grid):
                 grid_file.write(tmp_file.read(8))
         elif struct.unpack('d', sf_ph)[0] == -1:
             for i_r in range(struct.unpack('H', n_r)[0]):
-                grid_file.write(tmp_file.read(8))
+                grid_file.write(tmp_file.read(2))
         if struct.unpack('d', sf_z)[0] == 0:
             for i_z in range(struct.unpack('H', n_z)[0] - 1):
                 grid_file.write(tmp_file.read(8))
         elif struct.unpack('d', sf_z)[0] == -1:
             for i_r in range(struct.unpack('H', n_r)[0]):
-                grid_file.write(tmp_file.read(2))
+                grid_file.write(tmp_file.read(8))
 
 class Node:
     """The Node class includes the information of one node in the grid.

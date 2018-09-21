@@ -244,7 +244,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
             // Set the cell borders
             for(uint i_z = 2; i_z <= N_z - 2; i_z++)
-                listZ[i_r][i_z] = -local_zmax + (i_z - 1) * dz;         
+                listZ[i_r][i_z] = -local_zmax + (i_z - 1) * dz;
         }
     }
     else if(log_factorZ == 1.0)
@@ -1185,7 +1185,11 @@ void CGridCylindrical::printParameter()
         }
         else
             cout << ", Nph: " << N_ph[0];
-        cout << ", Nz: " << N_z << ")" << endl;
+
+        if (log_factorZ == -1)
+            cout << ", Nz: " << N_z - 2 << ")" << endl;
+        else
+            cout << ", Nz: " << N_z << ")" << endl;
         cout << SEP_LINE;
 
         cout << "- Nr. of cylindrical cells      : " << max_cells << endl;

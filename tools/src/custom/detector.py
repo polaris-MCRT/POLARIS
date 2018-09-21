@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
 from modules.base import Detector
+
 
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
@@ -123,20 +125,27 @@ class GGTauDetector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        # First wavelength of the observing wavelengths
-        self.parameter['wavelength_min'] = 1e-6
-        # Last wavelength of the observing wavelengths
-        self.parameter['wavelength_max'] = 1e-6
-        # Rotation angle around the first rotation axis
+        self.wavelengths = None
+        if parse_args.wavelength is None: 
+            #self.wavelengths = np.array([3.5, 4.5, 5.6, 7.7, 10.5, 15.5]) * 1e-6 
+            self.wavelengths = np.array([10., 450., 1300.]) * 1e-6
         self.parameter['rot_angle_1'] = -37.0
-        # Rotation angle around the second rotation axis
-        self.parameter['rot_angle_2'] = 0.
-        # Number of pixel per axis of the detector
-        self.parameter['nr_pixel_x'] = 256 #64
-        self.parameter['nr_pixel_y'] = 256 #64
-        # Factor to zoom onto the observing object
-        #self.parameter['sidelength_zoom_x'] = 0.6087662337662337
-        #self.parameter['sidelength_zoom_y'] = 0.6087662337662337
+
+    def get_dust_emission_command(self):
+        """Provides detector configuration command line for raytrace
+        simulations for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the detector configuration.
+        """
+        if self.wavelengths is not None:
+            new_command_line = str()
+            for wl in self.wavelengths:
+                self.parameter['wavelength_min'] = wl
+                self.parameter['wavelength_max'] = wl
+                new_command_line += self.get_dust_emission_command_line()
+            return new_command_line 
+        return self.get_dust_emission_command_line()
 
 class HD97048Detector(Detector):
     """Change this to the detector you want to use.

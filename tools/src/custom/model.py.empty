@@ -38,8 +38,9 @@ class CustomModel(Model):
         self.parameter['gas_species'] = 'oh'
         self.parameter['detector'] = 'cartesian'
 
-    def use_extra_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters.
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update 
+        disk parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file
 
