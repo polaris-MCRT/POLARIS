@@ -787,10 +787,12 @@ class Spherical(Grid):
             radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
         if sp_param['split_first_cell'] > 1:
-            radius_list = np.hstack((np.linspace(radius_list[0], radius_list[1], 
+            sp_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            radius_list = sp_param['radius_list']
             sp_param['sf_r'] = 0
             sp_param['n_r'] = len(radius_list) - 1
+            sp_param['split_first_cell'] = 1
 
         #: Array of phi values
         if sp_param['sf_ph'] == 0:
@@ -1041,11 +1043,18 @@ class Cylindrical(Grid):
         else:
             radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
+        # Add refinement to innermost cell
         if cy_param['split_first_cell'] > 1:
-            radius_list = np.hstack((np.linspace(radius_list[0], radius_list[1], 
+            cy_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            radius_list = cy_param['radius_list']
             cy_param['sf_r'] = 0
             cy_param['n_r'] = len(radius_list) - 1
+            cy_param['split_first_cell'] = 1
+
+        # Prepare n_ph for grid creation
+        if isinstance(cy_param['n_ph'], int):
+            cy_param['n_ph'] = [cy_param['n_ph']] * cy_param['n_r']
 
         #: Array of phi values
         if cy_param['sf_ph'] == 0:
@@ -1053,21 +1062,15 @@ class Cylindrical(Grid):
                 if cy_param['phi_list'][0] != 0 or \
                         cy_param['phi_list'][-1] != 2. * np.pi:
                     raise ValueError('phi_list does not fullfil a full cicle!')
-                phi_list = np.array([cy_param['phi_list'] for i_r in range(cy_param['n_ph'])])
-                cy_param['n_ph'] = len(phi_list) - 1
+                phi_list = np.array([cy_param['phi_list'] for i_r in range(cy_param['n_ph'][0])])
+                cy_param['n_ph'][0] = len(phi_list) - 1
             else:
                 raise ValueError('Cell distriution in phi-direction not understood!')
         elif cy_param['sf_ph'] == -1:
-            if isinstance(cy_param['n_ph'], int):
-                raise ValueError('For sf_ph = -1, n_ph has to have a length equal to n_r!')
             phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph) for n_ph in cy_param['n_ph']]
         else:
-            phi_list = np.array([self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'])
+            phi_list = np.array([self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'][0])
                 for i_r in range(cy_param['n_r'])])
-        
-        # Prepare n_ph for grid creation
-        if isinstance(cy_param['n_ph'], int):
-            cy_param['n_ph'] = [cy_param['n_ph']] * cy_param['n_r']
 
         #: Array of z values
         if cy_param['sf_z'] == 0:

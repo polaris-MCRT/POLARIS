@@ -469,11 +469,12 @@ class HD97048(Model):
         self.parameter['outer_radius'] = 400. * self.math.const['au']
         self.parameter['grid_type'] = 'cylindrical'
         # In the case of a cylindrical grid
-        self.cylindrical_parameter['n_r'] = 300
-        self.cylindrical_parameter['n_z'] = 142
+        self.cylindrical_parameter['n_r'] = 250
+        self.cylindrical_parameter['n_z'] = 61
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.03
         self.cylindrical_parameter['sf_z'] = -1
+        self.cylindrical_parameter['split_first_cell'] = 20
         # Define the used sources, dust composition and gas species
         self.parameter['detector'] = 'hd97048'
         self.parameter['stellar_source'] = 'hd97048'
