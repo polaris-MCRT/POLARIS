@@ -532,15 +532,10 @@ class HD97048(Model):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use the continuum or ring version of the model and set PAH to silicate ration
-        if len(extra_parameter) == 2:
+        if len(extra_parameter) == 1:
             self.use_cont = bool(int(extra_parameter[0]))
-            self.mf_pah = float(extra_parameter[1])
-        elif len(extra_parameter) == 1:
-            self.use_cont = bool(int(extra_parameter[0]))
-            self.mf_pah = 1e-3
         else:
             self.use_cont = False
-            self.mf_pah = 1e-3
             
         # Radial cell border list
         list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']), 
@@ -550,13 +545,14 @@ class HD97048(Model):
         if self.use_cont:
             self.parameter['gas_mass'] = np.array([
                     [1e-4, 4e-3, 5e-3, 1e-1, 0], 
-                    [0, 0, 0, 0, 0.2*self.mf_pah],
-                    [0, 0, 0, 0, 0.8*self.mf_pah]
+                    [0, 0, 0, 0, 0.2 * 1e-3],
+                    [0, 0, 0, 0, 0.8 * 1e-3]
                 ]) * self.math.const['M_sun']
         else:
+            mf_pah = 1e-3
             self.parameter['gas_mass'] = np.array([
-                    [1e-4, (1-self.mf_pah)*4e-3, (1-self.mf_pah)*5e-3, (1-self.mf_pah)*1e-1], 
-                    [0, self.mf_pah*4e-3, self.mf_pah*5e-3, self.mf_pah*1e-1]
+                    [1e-4, (1 - mf_pah) * 4e-3, (1 - mf_pah) * 5e-3, (1 - mf_pah) * 1e-1], 
+                    [0, mf_pah * 4e-3, mf_pah * 5e-3, mf_pah * 1e-1]
                 ]) * self.math.const['M_sun']
 
     def gas_density_distribution(self):
