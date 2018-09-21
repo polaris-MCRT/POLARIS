@@ -960,6 +960,12 @@ public:
             return convDensityToNumber(grid, cell, true) * grid->getGasDensity(cell, i_density);
     }
 
+    double getNumberDensity(CGridBasic * grid, photon_package * pp, uint i_density)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getNumberDensity(grid, cell, i_density);
+    }
+
     double getMassDensity(CGridBasic * grid, cell_basic * cell)
     {
         if(grid->useDustDensities())
@@ -2331,8 +2337,9 @@ public:
 
     double getRelativeDustNumberDensity(CGridBasic * grid, cell_basic * cell, uint i_density)
     {
-        if(getNumberDensity(grid, cell) != 0)
-            return getNumberDensity(grid, cell, i_density) / getNumberDensity(grid, cell);
+        double dens = getNumberDensity(grid, cell);
+        if(dens != 0)
+            return getNumberDensity(grid, cell, i_density) / dens;
         else
             return 0;
     }
@@ -2345,8 +2352,9 @@ public:
 
     double getRelativeDustMassDensity(CGridBasic * grid, cell_basic * cell, uint i_density)
     {
-        if(getMassDensity(grid, cell) != 0)
-            return getMassDensity(grid, cell, i_density) / getMassDensity(grid, cell);
+        double dens = getMassDensity(grid, cell);
+        if(dens != 0)
+            return getMassDensity(grid, cell, i_density) / dens;
         else
             return 0;
     }

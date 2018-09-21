@@ -3040,7 +3040,7 @@ StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_packag
     double pl_hz = CMathFunctions::planck_hz(frequency, grid->getDustTemperature(pp, i_density));
 
     // Get number density of dust grains
-    double dens_dust = getNumberDensity(grid, pp);
+    double dens_dust = getNumberDensity(grid, pp, i_density);
 
     // Fill Stokes vector including optical depth
     StokesVector tmp_stokes(Cabs * pl_hz * dens_dust, 0, 0, 0, Cext * dens_dust);
@@ -3116,7 +3116,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     delete[] pl_abs_tmp;
 
     // Multiply with number density
-    pl_abs *= getNumberDensity(grid, pp);
+    pl_abs *= getNumberDensity(grid, pp, i_density);
 
     return pl_abs;
 }
@@ -3285,7 +3285,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid, photon_packa
     delete[] stokes_V;
 
     // Multiply with number density
-    stokes *= getNumberDensity(grid, pp);
+    stokes *= getNumberDensity(grid, pp, i_density);
 
     return stokes;
 }
