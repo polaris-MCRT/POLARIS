@@ -1348,16 +1348,16 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             switch(i_side)
             {
                 case 1:
-                    A = 1;
-                    B = 2 * p*d;
-                    C = p.sq_length() - r1*r1;
+                    A = d.X() * d.X() + d.Y() * d.Y();
+                    B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+                    C = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
                     dscr = B * B - 4 * A*C;
 
                     if(dscr >= 0)
                     {
                         dscr = sqrt(dscr);
-                        double l1 = (-B + dscr) / (2);
-                        double l2 = (-B - dscr) / (2);
+                        double l1 = (-B + dscr) / (2 * A);
+                        double l2 = (-B - dscr) / (2 * A);
 
                         if(l1 < 0)
                             l1 = 2e300;
@@ -1370,16 +1370,16 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     break;
 
                 case 2:
-                    A = 1;
-                    B = 2 * p*d;
-                    C = p.sq_length() - r2*r2;
+                    A = d.X() * d.X() + d.Y() * d.Y();
+                    B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+                    C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
                     dscr = B * B - 4 * A*C;
 
                     if(dscr >= 0)
                     {
                         dscr = sqrt(dscr);
-                        double l1 = (-B + dscr) / (2);
-                        double l2 = (-B - dscr) / (2);
+                        double l1 = (-B + dscr) / (2 * A);
+                        double l2 = (-B - dscr) / (2 * A);
 
                         if(l1 < 0)
                             l1 = 2e300;
