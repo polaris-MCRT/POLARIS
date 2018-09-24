@@ -1207,19 +1207,19 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
         return false;
 
     cell_cyl * tmp_cell = 0;
-    Vector3D sp_pos = ca_pos.getCylindricalCoord();
+    Vector3D cy_pos = ca_pos.getCylindricalCoord();
 
     if(ca_pos.X() * ca_pos.X() + ca_pos.Y() * ca_pos.Y() < Rmin * Rmin)
     {
-        uint i_z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[0], N_z + 1);
+        uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[0], N_z + 1);
         cell_cyl * tmp_cell = center_cells[i_z];
         pp->setPositionCell(tmp_cell);
         return true;
     }
 
-    uint i_r = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
-    uint i_ph = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPh[i_r], N_ph[i_r] + 1);
-    uint i_z = CMathFunctions::biListIndexSearch(sp_pos.Z(), listZ[i_r], N_z + 1);
+    uint i_r = CMathFunctions::biListIndexSearch(cy_pos.R(), listR, N_r + 1);
+    uint i_ph = CMathFunctions::biListIndexSearch(cy_pos.Phi(), listPh[i_r], N_ph[i_r] + 1);
+    uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[i_r], N_z + 1);
 
     if(i_r == MAX_UINT || i_ph == MAX_UINT || i_z == MAX_UINT)
         return false;
@@ -1337,6 +1337,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         double cos_ph1 = cos(ph1);
         double cos_ph2 = cos(ph2);
 
+        double r = sqrt(p.sq_length());
+
         double max_sides = 6;
         if(N_ph[tmp_cell_pos->getRID()] == 1)
             max_sides = 4;
@@ -1346,21 +1348,21 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             switch(i_side)
             {
                 case 1:
-                    B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                    C = p.X() * p.X() + p.Y() * p.Y() - r1*r1;
-                    A = d.X() * d.X() + d.Y() * d.Y();
+                    A = 1;
+                    B = 2 * p*d;
+                    C = p.sq_length() - r1*r1;
                     dscr = B * B - 4 * A*C;
 
                     if(dscr >= 0)
                     {
                         dscr = sqrt(dscr);
-                        double l1 = (-B + dscr) / (2 * A);
-                        double l2 = (-B - dscr) / (2 * A);
+                        double l1 = (-B + dscr) / (2);
+                        double l2 = (-B - dscr) / (2);
 
-                        if(l1 <= 0)
+                        if(l1 < 0)
                             l1 = 2e300;
 
-                        if(l2 <= 0)
+                        if(l2 < 0)
                             l2 = 2e300;
 
                         length = min(l1, l2);
@@ -1368,27 +1370,24 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     break;
 
                 case 2:
-                    B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                    C = p.X() * p.X() + p.Y() * p.Y() - r2*r2;
-                    A = d.X() * d.X() + d.Y() * d.Y();
+                    A = 1;
+                    B = 2 * p*d;
+                    C = p.sq_length() - r2*r2;
                     dscr = B * B - 4 * A*C;
 
                     if(dscr >= 0)
                     {
                         dscr = sqrt(dscr);
-                        double l1 = (-B + dscr) / (2 * A);
-                        double l2 = (-B - dscr) / (2 * A);
+                        double l1 = (-B + dscr) / (2);
+                        double l2 = (-B - dscr) / (2);
 
-                        if(l1 * l2 < 0)
-                        {
-                            if(l1 > 0)
-                                length = l1;
+                        if(l1 < 0)
+                            l1 = 2e300;
 
-                            if(l2 > 0)
-                                length = l2;
-                        }
-                        else
-                            length = 2e300;
+                        if(l2 < 0)
+                            l2 = 2e300;
+
+                        length = min(l1, l2);
                     }
                     break;
 
@@ -1430,7 +1429,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
                 case 5:
                     v_n = -Vector3D(-sin_ph1, cos_ph1, 0);
-                    v_a = r1 * Vector3D(cos_ph1, sin_ph1, z1);
+                    v_a = r * Vector3D(cos_ph1, sin_ph1, 0);
 
                     num = v_n * (p - v_a);
                     den = v_n * d;
@@ -1439,16 +1438,20 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         length = -num / den;
 
-                        if(length <= 0)
+                        if(length < 0)
                             length = 2e300;
                     }
                     else
                         length = 2e300;
+
+                    if(p.X() == 0 && (p.Y() + 2692761672600.0) < 10000.0)
+                        cout << "A: "<<  ph1 << ph2 << TAB << p.getCylindricalCoord().Phi() << TAB 
+                            << v_a << TAB << v_n << TAB << (p - v_a) << endl;
                     break;
 
                 case 6:
                     v_n = Vector3D(-sin_ph2, cos_ph2, 0);
-                    v_a = r1 * Vector3D(cos_ph2, sin_ph2, z1);
+                    v_a = r * Vector3D(cos_ph2, sin_ph2, 0);
 
                     num = v_n * (p - v_a);
                     den = v_n * d;
@@ -1457,11 +1460,15 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         length = -num / den;
 
-                        if(length <= 0)
+                        if(length < 0)
                             length = 2e300;
                     }
                     else
                         length = 2e300;
+
+                if(p.X() == 0 && (p.Y() + 2692761672600.0) < 10000.0)
+                        cout << "B: " <<  ph1 << ph2 << TAB << p.getCylindricalCoord().Phi() << TAB 
+                            << v_a << TAB << v_n << TAB << (p - v_a) << endl;
                     break;
             }
 
@@ -1473,25 +1480,11 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         }
     }
 
-    /*if(min_length == 0)
-    {
-        cout << "ERROR: Min.lenght is zero!" << endl;
-        min_length = min_len;
-    }
-
-    path_length = 1.0001 * min_length;
-
-    if(min_length < 1e-3 * min_len)
-        path_length = 1e-3 * min_len;
-
-    pp->setPosition(p + d * path_length);
-    pp->setTmpPathLength(path_length);
-    */
     if(hit)
         path_length = min_length + MIN_LEN_STEP * min_len;
     else
     {
-        cout << "Error: Wrong cell border!                           " << endl;
+        cout << "Error: Wrong cell border!                                   " << endl;
         return false;
     }
 

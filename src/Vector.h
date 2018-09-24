@@ -223,7 +223,7 @@ public:
         double r = sqrt(x * x + y * y);
         double ph = atan2(y, x);
 
-        if(ph < 0.0)
+        if(ph < 0)
             ph += PIx2;
 
         return Vector3D(r, ph, z);
@@ -236,7 +236,7 @@ public:
 
         double ph = atan2(y, x);
 
-        if(ph < 0.0)
+        if(ph < 0)
             ph += PIx2;
 
         return ph;
