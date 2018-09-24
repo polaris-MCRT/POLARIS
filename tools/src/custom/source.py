@@ -136,16 +136,12 @@ class GGTauStars(StellarSource):
         #                  -> T = 4000 K
 
         '''
-
-        # Add an offset to the x axis position of GG Tau Aa. Otherwise it would be on two cell borders.
-        offset = -1e-3
-
         #: dict: Parameters for the binary components
         self.parameter_lst = {
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
             'temperature': [3870., 3550., 3410.],
             'luminosity': np.multiply([0.84, 0.40, 0.31], self.math.const['L_sun']),
-            'position_star': [[offset, self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
+            'position_star': [[-1.0, self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
                               [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) + 
                                     self.a_Ab12 * self.math.const['au'],
                                self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.],

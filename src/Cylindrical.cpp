@@ -1443,10 +1443,6 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     }
                     else
                         length = 2e300;
-
-                    if(p.X() == 0 && (p.Y() + 2692761672600.0) < 10000.0)
-                        cout << "A: "<<  ph1 << ph2 << TAB << p.getCylindricalCoord().Phi() << TAB 
-                            << v_a << TAB << v_n << TAB << (p - v_a) << endl;
                     break;
 
                 case 6:
@@ -1465,10 +1461,6 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     }
                     else
                         length = 2e300;
-
-                if(p.X() == 0 && (p.Y() + 2692761672600.0) < 10000.0)
-                        cout << "B: " <<  ph1 << ph2 << TAB << p.getCylindricalCoord().Phi() << TAB 
-                            << v_a << TAB << v_n << TAB << (p - v_a) << endl;
                     break;
             }
 
