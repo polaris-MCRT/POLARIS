@@ -137,7 +137,7 @@ class GGTauStars(StellarSource):
 
         '''
         #: dict: Parameters for the binary components
-        self.parameter_lst = {
+        self.tmp_parameter = {
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
             'temperature': [3870., 3550., 3410.],
             'luminosity': np.multiply([0.84, 0.40, 0.31], self.math.const['L_sun']),
@@ -152,10 +152,10 @@ class GGTauStars(StellarSource):
 
     def get_command(self):
         new_command_line = str()
-        for i_comp in range(len(self.parameter_lst['temperature'])):
-            self.parameter['temperature'] = self.parameter_lst['temperature'][i_comp]
-            self.parameter['luminosity'] = self.parameter_lst['luminosity'][i_comp]
-            self.parameter['position'] = self.parameter_lst['position_star'][i_comp]
+        for i_comp in range(len(self.tmp_parameter['temperature'])):
+            self.parameter['temperature'] = self.tmp_parameter['temperature'][i_comp]
+            self.parameter['luminosity'] = self.tmp_parameter['luminosity'][i_comp]
+            self.parameter['position'] = self.tmp_parameter['position_star'][i_comp]
             new_command_line += self.get_command_line()
         if self.add_planet:
             self.parameter['temperature'] = 839.9

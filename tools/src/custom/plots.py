@@ -98,7 +98,6 @@ class CustomPlots:
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
 
-
     def plot_5(self):
         """Plot magnetic field strength map from Zeeman splitting.
         """
@@ -1288,18 +1287,18 @@ class CustomPlots:
                 # Limit data to reasonable values
                 tbldata[np.where(tbldata <= 1e-30)] = 0
                 # Plot midplane data depending on quantity derived from filename
-                self.basic_plots.plot_midplane_base(visualization_input, plot, tbldata, vec_field_data)
+                self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data)
                 # Load stellar source to get position of the binary stars
                 from modules.source import SourceChooser
                 stellar_source_chooser = SourceChooser(self.model, self.file_io, self.parse_args)
                 stellar_source = stellar_source_chooser.get_module_from_name('gg_tau_binary')
                 # Plot position of binary stars (with conversion from m to au)
-                stellar_source.parameter_lst['position_star'][0] = np.divide(stellar_source.parameter_lst['position_star'][0],
+                stellar_source.tmp_parameter['position_star'][0] = np.divide(stellar_source.tmp_parameter['position_star'][0],
                                                                         self.math.const['au'])
-                plot.plot_text(stellar_source.parameter_lst['position_star'][0], r'$+$')
-                stellar_source.parameter_lst['position_star'][1] = np.divide(stellar_source.parameter_lst['position_star'][1],
+                plot.plot_text(stellar_source.tmp_parameter['position_star'][0], r'$+$')
+                stellar_source.tmp_parameter['position_star'][1] = np.divide(stellar_source.tmp_parameter['position_star'][1],
                                                                         self.math.const['au'])
-                plot.plot_text(stellar_source.parameter_lst['position_star'][1], r'$+$')
+                plot.plot_text(stellar_source.tmp_parameter['position_star'][1], r'$+$')
                 # Save figure to pdf file or print it on screen
                 plot.save_figure(self.file_io)
 
@@ -1366,5 +1365,38 @@ class CustomPlots:
 
         # Plot the legend
         plot.plot_legend()
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1006001(self):
+        """Plot zoom in midplane of density distribution of GG Tau disk
+        """
+        # Set paths of each simulation
+        self.file_io.set_path_from_str('plot', 'gg_tau_disk', 'three_disks', 'temp')
+        # Set output filename
+        self.file_io.init_plot_output('zoom_in_gg_tau_disk', path=self.file_io.path['simulation'])
+        # Set midplane type
+        visualization_input = 'input_dust_mass_density_xy'
+        # Read midplane data (main image)
+        [tbldata, vec_field_data], _, _ = self.file_io.read_midplane_file(visualization_input)
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, label_plane='xy', ax_unit='au', cmap_scaling=['log'])
+        # Plot midplane data depending on quantity derived from filename
+        self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data, 
+            vmin=1e-14, set_bad_to_min=True)
+        # Read midplane data (zoomed image, changes extent of self.model)
+        [tbldata_zoom, vec_field_data_zoom], _, _ = self.file_io.read_midplane_file(visualization_input, filename='input_midplane_zoom.fits')
+        # Create zoom plot (set model to provide extent of zoomed image)
+        plot.create_zoom_axis(model=self.model, zoom_factor=4)
+        # Plot zoomed image
+        self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata_zoom, vec_field_data_zoom,
+            ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True)
+        # Load stellar source to get position of the binary stars
+        from modules.source import SourceChooser
+        stellar_source_chooser = SourceChooser(self.model, self.file_io, self.parse_args)
+        stellar_source = stellar_source_chooser.get_module_from_name('gg_tau_stars')
+        # Plot position of binary stars (with conversion from m to au)
+        for position in stellar_source.tmp_parameter['position_star']:
+            plot.plot_text(np.divide(position[0:2], self.math.const['au']), r'$\star$', ax_index=0, color='yellow', fontsize=8)
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)

@@ -668,13 +668,14 @@ class FileIO:
                 tbldata[0:5, i_wl] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
         return tbldata, header, plot_data_type
 
-    def read_midplane_file(self, visualisation_input, skip_not_known=False):
+    def read_midplane_file(self, visualization_input, skip_not_known=False, filename=None):
         """Reads the data of a file with midplane results.
 
         Args:
-            visualisation_input (str): Identifier of the midplane data.
+            visualization_input (str): Identifier of the midplane data.
                 (e.g. input_gas_density_xy)
             skip_not_known (bool): Ignore if midplane does not exists (if 'all' was chosen).
+            filename (str): Alternative file in the results directory to use.
 
         Returns:
             Tuple with:
@@ -686,18 +687,23 @@ class FileIO:
         """
         # Load data and header from fits if available
         from astropy.io import fits
-        if 'input' in visualisation_input:
+        if filename is not None:
+            if os.path.isfile(self.path['results'] + filename):
+                hdulist = fits.open(self.path['results'] + filename)
+            else:
+                raise FileExistsError('Error: No midplane file exists!')
+        elif 'input' in visualization_input:
             if os.path.isfile(self.path['results'] + 'input_midplane.fits'):
                 hdulist = fits.open(self.path['results'] + 'input_midplane.fits')
             else:
                 raise FileExistsError('Error: No midplane file exists!')
-        elif 'output' in visualisation_input:
+        elif 'output' in visualization_input:
             if os.path.isfile(self.path['results'] + 'output_midplane.fits'):
                 hdulist = fits.open(self.path['results'] + 'output_midplane.fits')
             else:
                 raise FileExistsError('Error: No midplane file exists!')
         else:
-            raise ValueError('Error: Visualisation_input is not set correctly (try \'all\')!')
+            raise ValueError('Error: visualization_input is not set correctly (try \'all\')!')
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_midplane_file_header(hdulist)
         #: int: Number of bins per dimension per polarization vector
@@ -706,11 +712,11 @@ class FileIO:
         #: Numpy array for the vector data
         vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 3))
         # Get index for different cuts through the model
-        if 'xy' in visualisation_input:
+        if 'xy' in visualization_input:
             cut_index = 0
-        elif 'xz' in visualisation_input:
+        elif 'xz' in visualization_input:
             cut_index = 1
-        elif 'yz' in visualisation_input:
+        elif 'yz' in visualization_input:
             cut_index = 2
         else:
             raise ValueError('Midplane cut is not one of xy, xz, yz!')
@@ -719,17 +725,17 @@ class FileIO:
         # Get index for different cuts through the model
         try:
             midlane_index = -1
-            if 'gas_number_density' in visualisation_input:
+            if 'gas_number_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_number_density ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'gas_mass_density' in visualisation_input:
+            elif 'gas_mass_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_mass_density ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'dust_number_density' in visualisation_input:
+            elif 'dust_number_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_number_density ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
@@ -738,7 +744,7 @@ class FileIO:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         midplane_mod = self.model.parameter['mass_fraction']
                         break
-            elif 'dust_mass_density' in visualisation_input:
+            elif 'dust_mass_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_mass_density ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
@@ -747,63 +753,63 @@ class FileIO:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         midplane_mod = self.model.parameter['mass_fraction']
                         break
-            elif 'gas_temperature' in visualisation_input:
+            elif 'gas_temperature' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_temperature ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'dust_temperature' in visualisation_input:
+            elif 'dust_temperature' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_temperature ' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'rat_aalig' in visualisation_input:
+            elif 'rat_aalig' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'rat_aalig' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'delta' in visualisation_input:
+            elif 'delta' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'delta' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'mag' in visualisation_input:
+            elif 'mag' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'mag_total' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'vel' in visualisation_input:
+            elif 'vel' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'vel_total' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'mach' in visualisation_input:
+            elif 'mach' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'mach' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'larm' in visualisation_input:
+            elif 'larm' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'larm' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'dust_choice' in visualisation_input:
+            elif 'dust_choice' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_choice' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'a_min' in visualisation_input:
+            elif 'a_min' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'a_min' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
-            elif 'a_max' in visualisation_input:
+            elif 'a_max' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'a_max' in quantity:
                         midlane_index = header['midplane_quantities'].index(quantity)
                         break
             if midlane_index == -1:
-                raise ValueError('visualisation_input: ' + visualisation_input + ' not found!')
+                raise ValueError('visualization_input: ' + visualization_input + ' not found!')
         except:
             if skip_not_known:
                 return None, None, plot_data_type
@@ -811,7 +817,7 @@ class FileIO:
                 raise ValueError('Midplane file does not include the chosen quantity! '
                     'Choose another quantity or try \'all\'.')
         data = np.transpose(hdulist[0].data, (0, 1, 3, 2))
-        if 'vel' in visualisation_input or 'mag' in visualisation_input:
+        if 'vel' in visualization_input or 'mag' in visualization_input:
             for i_x in range(header['nr_pixel_x']):
                 for i_y in range(header['nr_pixel_y']):
                     #: int: X-axis index to the vector
@@ -1445,7 +1451,7 @@ class FileIO:
             if hdulist[1].header['PIXTYPE'].lower() == 'healpix':
                 return 'healpix'
         except:
-            if self.parse_args.visualization_type in ['midplane', 'map', 'int_map', 'vel_map', 'mag_field', 'velocity']:
+            if self.parse_args.visualization_type in ['midplane', 'map', 'int_map', 'vel_map', 'mag_field', 'velocity', 'custom']:
                 if self.parse_args.cut_parameter is not None and self.parse_args.radial_parameter is not None:
                     raise ValueError('Choose only one of --cut and --radial!')
                 elif self.parse_args.cut_parameter is not None:
@@ -1456,8 +1462,6 @@ class FileIO:
                     return 'map'
             elif self.parse_args.visualization_type in ['sed', 'spectrum']:
                 return 'spectrum'
-
-
         return None
 
     def check_sidelengths(self, header_dict):

@@ -352,7 +352,7 @@ class GGTauDisk(Model):
 
         # Parameter for the density distribution
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        self.parameter['outer_radius'] = 260. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
         self.cut_off = 2. * self.math.const['au']
@@ -374,7 +374,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
         # --- Radial cells
         r_list_cs_disks = np.linspace(10., 25., 100)
-        r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
+        r_list_cb_disk = self.math.exp_list(180., 260., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
         # --- Phi cells

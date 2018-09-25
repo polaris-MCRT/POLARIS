@@ -515,7 +515,7 @@ class PlotRoutines:
                 raise ValueError('Midplane plot cannot be created from midplane fits file!')
 
 
-    def plot_midplane_map_base(self, midplane_name, plot, tbldata, vec_field_data):
+    def plot_midplane_map_base(self, midplane_name, plot, tbldata, vec_field_data, **args):
         """Plot midplane data depending on quantity derived from filename.
 
         Args:
@@ -527,24 +527,24 @@ class PlotRoutines:
         if 'number_density' in midplane_name:
             if 'gas' in midplane_name:
                 # Logarithmic plot for density
-                plot.plot_imshow(tbldata, cbar_label=r'$n_\mathsf{gas}\ [\si{\per\cubic\metre}}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$n_\mathsf{gas}\ [\si{\per\cubic\metre}}]$', **args)
             if 'dust' in midplane_name:
                 # Logarithmic plot for density
-                plot.plot_imshow(tbldata, cbar_label=r'$n_\mathsf{dust}\ [\si{\per\cubic\metre}}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$n_\mathsf{dust}\ [\si{\per\cubic\metre}}]$', **args)
         elif 'mass_density' in midplane_name:
             if 'gas' in midplane_name:
                 # Logarithmic plot for density
-                plot.plot_imshow(tbldata, cbar_label=r'$\rho_\mathsf{gas}\ [\si{\kilogram\per\cubic\metre}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$\rho_\mathsf{gas}\ [\si{\kilogram\per\cubic\metre}]$', **args)
             if 'dust' in midplane_name:
                 # Logarithmic plot for density
-                plot.plot_imshow(tbldata, cbar_label=r'$\rho_\mathsf{dust}\ [\si{\kilogram\per\cubic\metre}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$\rho_\mathsf{dust}\ [\si{\kilogram\per\cubic\metre}]$', **args)
         elif 'temperature' in midplane_name:
             if 'gas' in midplane_name:
                 # Default plot for temperature
-                plot.plot_imshow(tbldata, cbar_label=r'$T_\mathsf{gas}\ [\mathsf{K}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$T_\mathsf{gas}\ [\mathsf{K}]$', **args)
             if 'dust' in midplane_name:
                 # Default plot for temperature
-                plot.plot_imshow(tbldata, cbar_label=r'$T_\mathsf{dust}\ [\mathsf{K}]$')
+                plot.plot_imshow(tbldata, cbar_label=r'$T_\mathsf{dust}\ [\mathsf{K}]$', **args)
         elif 'mag' in midplane_name:
             # Change unit if magnetic field is large enough
             if np.nanmax(tbldata) >= 1e-4:
@@ -557,7 +557,7 @@ class PlotRoutines:
                 tbldata = np.multiply(tbldata, 1e10)
                 cbar_label = r'$B$\ $[\mathsf{\mu G}]$'
             # Default plot for magnetic field
-            plot.plot_imshow(tbldata, cbar_label=cbar_label)
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, **args)
             if not self.parse_args.no_vec:
                 # Plot vector field
                 vector_color = self.math.get_vector_color(tbldata, cmap=plot.cmap,
@@ -571,7 +571,7 @@ class PlotRoutines:
             else:
                 cbar_label = r'$v$\ $[\mathsf{m/s}]$'
             # Default plot for velocity field
-            plot.plot_imshow(tbldata, cbar_label=cbar_label)
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, **args)
             if not self.parse_args.no_vec:
                 # Plot vector field
                 vector_color = self.math.get_vector_color(tbldata, cmap=plot.cmap,
@@ -579,19 +579,19 @@ class PlotRoutines:
                 plot.plot_quiver(vec_field_data, color=vector_color, const_quiver=True)
         elif 'rat_aalig' in midplane_name:
             # Logarithmic plot for aligned radii
-            plot.plot_imshow(tbldata, cbar_label=r'$a_\mathsf{align}$\ $[\mathsf{m}]$')
+            plot.plot_imshow(tbldata, cbar_label=r'$a_\mathsf{align}$\ $[\mathsf{m}]$', **args)
         elif 'delta' in midplane_name:
             # Logarithmic plot for Larmor radius
-            plot.plot_imshow(tbldata, cbar_label=r'$\delta$')
+            plot.plot_imshow(tbldata, cbar_label=r'$\delta$', **args)
         elif 'mach' in midplane_name:
             # Logarithmic plot for Larmor radius
-            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{Mach\ Number}$')
+            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{Mach\ Number}$', **args)
         elif 'larm' in midplane_name:
             # Logarithmic plot for Larmor radius
-            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{larm\ limit}$')
+            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{larm\ limit}$', **args)
         elif 'dust_choice' in midplane_name:
             # Logarithmic plot for Larmor radius
-            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{dust\ Choice\ ID}$')
+            plot.plot_imshow(tbldata, cbar_label=r'$\mathsf{dust\ Choice\ ID}$', **args)
         else:
             raise ValueError('Chosen midplane name is not known!')
 

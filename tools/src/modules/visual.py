@@ -17,7 +17,7 @@ class Plot:
     def __init__(self, model, parse_args, image_type='image', nr_x_images=1, nr_y_images=1,
             xlabel='', ylabel='', zlabel='', extent=None, limits=None, title='', ax_unit=None,
             label_plane='xy', zoom_factor=None, zoom_x_factor=None, zoom_y_factor=None, with_cbar=True,
-            scale_axis_log=False, labelpad=None, language='english', size_x=6, size_y=4.5):
+            cmap_scaling=None, scale_axis_log=False, labelpad=None, language='english', size_x=6, size_y=4.5):
         """Initialisation of plot parameters.
 
         Args:
@@ -38,6 +38,8 @@ class Plot:
             zlabel (str): Label of the z-axis. Only used if image_type == projection_3d.
             extent (List[float, float, float, float]): Extent of the plot
                 [xmin, xmax, ymin, ymax].
+            limits (List[float, float, float, float]): Limits of the plot
+                [xmin, xmax, ymin, ymax].
             title (str): Title of the plot.
             zoom_factor (float): Zoom factor to reduce image to smaller region.
             zoom_x_factor (float): Zoom factor to reduce image to smaller region
@@ -45,6 +47,8 @@ class Plot:
             zoom_y_factor (float): Zoom factor to reduce image to smaller region
                 (Only for the Y-axis).
             with_cbar (bool): Add space for colorbar?
+            cmap_scaling (List): List with the scaling name first.
+                ('symlog' + linthresh, 'power' + gamma, 'log')
             scale_axis_log (bool): Logarithmic scale of both axis.
             labelpad (List): Padding of the axis label.
                 Dimension of the list has to match the dimensions of the plot.
@@ -57,7 +61,17 @@ class Plot:
         ################################## '''
         # Set plot parameter from user input
         if parse_args.ax_unit is not None:
-            ax_unit = parse_args.ax_unit
+            self.ax_unit = parse_args.ax_unit
+        if parse_args.zoom_factor is not None:
+            self.zoom_x_factor = parse_args.zoom_factor
+            self.zoom_y_factor = parse_args.zoom_factor
+        else:
+            self.zoom_x_factor = zoom_x_factor
+            self.zoom_y_factor = zoom_y_factor
+        if parse_args.zoom_x_factor is not None:
+            self.zoom_x_factor = parse_args.zoom_x_factor
+        if parse_args.zoom_y_factor is not None:
+            self.zoom_y_factor = parse_args.zoom_y_factor
         if parse_args.x_scaling is not None:
             self.x_scaling = parse_args.x_scaling
         else:
@@ -69,7 +83,7 @@ class Plot:
         if parse_args.cmap_scaling is not None:
             self.cmap_scaling = parse_args.cmap_scaling
         else:
-            self.cmap_scaling = None
+            self.cmap_scaling = cmap_scaling
         if parse_args.extend is not None:
             self.extend = parse_args.extend
         else:
@@ -141,170 +155,11 @@ class Plot:
         else:
             raise ValueError('Error: image_type is not known!')
 
-        ''' #################################
-        ######  Creating plot labels!  ######
-        ################################# '''
-        automatic_axes = None
-        # Set axis label and extent of 2D or 3D plot
-        if image_type == 'projection_3d':
-            # Set label padding, since padding of 3D plots seems to be too low
-            if labelpad is None:
-                labelpad = [None, None, None]
-            # Set label according to input label
-            if xlabel != '' and ylabel != '' and zlabel != '':
-                self.ax_list[0].set_xlabel(xlabel, labelpad=labelpad[0])
-                self.ax_list[0].set_ylabel(ylabel, labelpad=labelpad[1])
-                self.ax_list[0].set_zlabel(zlabel, labelpad=labelpad[2])
-            else:
-                if ax_unit == 'au':
-                    if language == 'german':
-                        ax_unit_str = 'AE'
-                    else:
-                        ax_unit_str = 'AU'
-                elif ax_unit == 'm':
-                    ax_unit_str = ax_unit
-                elif ax_unit == 'arb_units':
-                    if language == 'german':
-                        ax_unit_str = r'willk. Einh.'
-                    else:
-                        ax_unit_str = r'arb.\ units'
-                else:
-                    raise ValueError('Error Axis label for 3D plot cannot be set correctly!')
-                self.ax_list[0].set_xlabel(r'$\Delta x\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[0])
-                self.ax_list[0].set_ylabel(r'$\Delta y\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[1])
-                self.ax_list[0].set_zlabel(r'$\Delta z\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[2])
-        elif image_type in ['image', 'animation'] and nr_x_images == 1 and nr_y_images == 1:
-            if ax_unit is not None:
-                xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                    nr_x_images, nr_y_images, label_plane, ax_unit, language)
-            elif xlabel == '' or ylabel == '':
-                # If not enough labels are defined, raise error
-                raise ValueError('Error: ax_unit ist not set, but xlabel and ylabel neither!')
-            # Set labels of the axes of the subplot
-            for ax_index in range(len(self.ax_list)):
-                self.ax_list[ax_index].set_xlabel(xlabel)
-                self.ax_list[ax_index].set_ylabel(ylabel)
-        elif image_type == 'image':
-            if nr_x_images == 1 and nr_y_images > 1:
-                if ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, ax_unit, language)
-                elif isinstance(ylabel, str) or xlabel == '' or len(ylabel) != nr_y_images:
-                    # If not enough labels are defined, raise error
-                    raise ValueError('Error: The plot needs a list of ' + nr_y_images + ' ylabels and one xlabel!')
-                # Set labels of the axes of the subplots
-                for ax_index in range(len(self.ax_list)):
-                    if ax_index == nr_y_images - 1:
-                        self.ax_list[ax_index].set_xlabel(xlabel)
-                    self.ax_list[ax_index].set_ylabel(ylabel[ax_index])
-            elif nr_x_images > 1 and nr_y_images == 1:
-                if ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, ax_unit, language)
-                elif isinstance(xlabel, str) or ylabel == '' or len(xlabel) != nr_x_images:
-                    # If not enough labels are defined, raise error
-                    raise ValueError('Error: share_y plot needs a list of ' +
-                        nr_x_images + ' xlabels and one ylabel!')
-                # Set labels of the axes of the subplots
-                for ax_index in range(len(self.ax_list)):
-                    if ax_index == 0:
-                        self.ax_list[ax_index].set_ylabel(ylabel)
-                    self.ax_list[ax_index].set_xlabel(xlabel[ax_index])
-            elif nr_x_images > 1 and nr_y_images > 1:
-                if ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, ax_unit, language)
-                elif isinstance(xlabel, str) or isinstance(ylabel, str) or \
-                        len(ylabel) != nr_y_images or len(xlabel) != nr_x_images:
-                    # If not enough labels are defined, raise error
-                    raise ValueError('Error: share_both plot needs a list of ' +
-                        nr_x_images + ' xlabels and ' + nr_y_images + ' ylabels!')
-                # Set labels of the axes of the subplots
-                for ax_index in range(len(self.ax_list)):
-                    if ax_index % nr_x_images == 0:
-                        self.ax_list[ax_index].set_ylabel(ylabel[int(ax_index / nr_x_images)])
-                        if int(ax_index / nr_x_images) == nr_y_images - 1:
-                            self.ax_list[ax_index].set_xlabel(xlabel[0])
-                    elif ax_index > (nr_x_images * nr_y_images) - nr_x_images:
-                        self.ax_list[ax_index].set_xlabel(xlabel[int(ax_index - (nr_x_images * nr_y_images) + nr_x_images)])
-        elif image_type == 'healpix':
-            # Nothin needed here
-            None
-        else:
-            raise ValueError('Error: image_type is not known!')
-
-        ''' #########################################
-        ######  Setting the size of the plot!  ######
-        ######################################### '''
-        # Set extent to model (depending if 2D or 3D)
-        if ax_unit is not None:
-            if ax_unit == 'arb_units':
-                # Arbitrary units should go from -1 to 1.
-                if image_type == 'projection_3d':
-                    self.extent = [-1., 1., -1., 1., -1., 1.]
-                elif automatic_axes == 'xy':
-                    self.extent = [-1., 1., -1., 1.]
-                elif automatic_axes == 'x':
-                    self.extent = [-1., 1., None, None]
-                elif automatic_axes == 'y':
-                    self.extent = [None, None, -1., 1.]
-                elif automatic_axes is None:
-                    self.extent = [None, None, None, None]
-            else:
-                # Get extent from model
-                radius_x = model.tmp_parameter['radius_x_' + ax_unit]
-                radius_y = model.tmp_parameter['radius_y_' + ax_unit]
-                if image_type == 'projection_3d':
-                    self.extent = [-radius_x, radius_x, -radius_x, radius_x, -radius_x, radius_x]
-                elif automatic_axes == 'xy':
-                    self.extent = [-radius_x, radius_x, -radius_y, radius_y]
-                elif automatic_axes == 'x':
-                    self.extent = [-radius_x, radius_x, None, None]
-                elif automatic_axes == 'y':
-                    self.extent = [None, None, -radius_y, radius_y]
-                elif automatic_axes is None:
-                    self.extent = [None, None, None, None]
-        else:
-            if extent is not None:
-                self.extent = extent
-            else:
-                if image_type == 'projection_3d':
-                    self.extent = [None, None, None, None, None, None]
-                else:
-                    self.extent = [None, None, None, None]
-
-        ''' ###########################################
-        ######  Applying a zoom factor to plot!  ######
-        ########################################### '''
-        # If the zoom factor is set, modify the limits accordingly. If no zoom factor but limits are chosen,
-        # apply the limits. Else, apply not limit and use the extent.
-        self.zoom_x_factor = zoom_x_factor
-        self.zoom_y_factor = zoom_y_factor
-        if parse_args.zoom_factor is not None:
-            self.zoom_x_factor = parse_args.zoom_factor
-            self.zoom_y_factor = parse_args.zoom_factor
-        elif zoom_factor is not None:
-            self.zoom_x_factor = zoom_factor
-            self.zoom_y_factor = zoom_factor
-        if parse_args.zoom_x_factor is not None:
-            self.zoom_x_factor = parse_args.zoom_x_factor
-        if parse_args.zoom_y_factor is not None:
-            self.zoom_y_factor = parse_args.zoom_y_factor
-        # Set limit according to zoom factor
-        if (self.zoom_x_factor is not None or self.zoom_y_factor is not None) and image_type != 'projection_3d':
-            self.limits = [None, None, None, None]
-            for i_limits in range(len(self.extent)):
-                if self.extent[i_limits] is None:
-                    raise ValueError('Without a defined extent, no zoom factor can be applied!')
-                else:
-                    if i_limits in [0, 1] and self.zoom_x_factor is not None:
-                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_x_factor
-                    elif i_limits in [2, 3] and self.zoom_y_factor is not None:
-                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_y_factor
-        elif limits is not None:
-            self.limits = limits
-        else:
-            self.limits = self.extent
+        ''' ############################################
+        ######  Creating plot labels and extent!  ######
+        ############################################ '''
+        self.update_all(extent, limits, model, label_plane, 
+            nr_x_images, nr_y_images, xlabel, ylabel, zlabel, language, labelpad)
 
         ''' #######################################
         ######  Set various other settings!  ######
@@ -397,19 +252,130 @@ class Plot:
                 self.ax_list[i_ax].ticklabel_format(useLocale=True)
         mpl.rc('text.latex', preamble=preamble)
 
-    @staticmethod
-    def create_axis_label(xlabel, ylabel, dim_x, dim_y, label_plane, ax_unit, language):
+    def update_label(self, extent=None, label_plane=None, nr_x_images=1, nr_y_images=1, 
+            xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
+        """Creates labels based on the chosen model.
+
+        Args:
+            extent (List[float, float, float, float]): Extent of the plot
+                [xmin, xmax, ymin, ymax].
+            label_plane (str): Set the axis label to the correct plane for midplane plots.
+                'xy', 'xz', 'yz', 'rz'
+            nr_x_images (int): Number of images along the x-axis.
+            nr_y_images (int): Number of images along the y-axis.
+            xlabel (str or list): Label of the x-axis.
+            ylabel (str or list): Label of the y-axis.
+            zlabel (str): Label of the z-axis. Only used if image_type == projection_3d.
+            labelpad (List): Padding of the axis label.
+                Dimension of the list has to match the dimensions of the plot.
+            language (str): Language for decimal separation.
+
+        Return:
+            str: The axes that have to be adjusted automatically.
+                ('x', 'y', 'xy', None)
+        """
+        # Set axis label anautomatic_axes = None
+        automatic_axes = None
+        # Set axis label and extent of 2D or 3D plot
+        if self.image_type == 'projection_3d':
+            # Set label padding, since padding of 3D plots seems to be too low
+            if labelpad is None:
+                labelpad = [None, None, None]
+            # Set label according to input label
+            if xlabel != '' and ylabel != '' and zlabel != '':
+                self.ax_list[0].set_xlabel(xlabel, labelpad=labelpad[0])
+                self.ax_list[0].set_ylabel(ylabel, labelpad=labelpad[1])
+                self.ax_list[0].set_zlabel(zlabel, labelpad=labelpad[2])
+            else:
+                if self.ax_unit == 'au':
+                    if language == 'german':
+                        ax_unit_str = 'AE'
+                    else:
+                        ax_unit_str = 'AU'
+                elif self.ax_unit == 'm':
+                    ax_unit_str = self.ax_unit
+                elif self.ax_unit == 'arb_units':
+                    if language == 'german':
+                        ax_unit_str = r'willk. Einh.'
+                    else:
+                        ax_unit_str = r'arb.\ units'
+                else:
+                    raise ValueError('Error Axis label for 3D plot cannot be set correctly!')
+                self.ax_list[0].set_xlabel(r'$\Delta x\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[0])
+                self.ax_list[0].set_ylabel(r'$\Delta y\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[1])
+                self.ax_list[0].set_zlabel(r'$\Delta z\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[2])
+        elif self.image_type in ['image', 'animation'] and nr_x_images == 1 and nr_y_images == 1:
+            if self.ax_unit is not None:
+                xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
+                    nr_x_images, nr_y_images, label_plane, language)
+            elif xlabel == '' or ylabel == '':
+                # If not enough labels are defined, raise error
+                raise ValueError('Error: ax_unit ist not set, but xlabel and ylabel neither!')
+            # Set labels of the axes of the subplot
+            for ax_index in range(len(self.ax_list)):
+                self.ax_list[ax_index].set_xlabel(xlabel)
+                self.ax_list[ax_index].set_ylabel(ylabel)
+        elif self.image_type == 'image':
+            if nr_x_images == 1 and nr_y_images > 1:
+                if self.ax_unit is not None:
+                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
+                        nr_x_images, nr_y_images, label_plane, language)
+                elif isinstance(ylabel, str) or xlabel == '' or len(ylabel) != nr_y_images:
+                    # If not enough labels are defined, raise error
+                    raise ValueError('Error: The plot needs a list of ' + nr_y_images + ' ylabels and one xlabel!')
+                # Set labels of the axes of the subplots
+                for ax_index in range(len(self.ax_list)):
+                    if ax_index == nr_y_images - 1:
+                        self.ax_list[ax_index].set_xlabel(xlabel)
+                    self.ax_list[ax_index].set_ylabel(ylabel[ax_index])
+            elif nr_x_images > 1 and nr_y_images == 1:
+                if self.ax_unit is not None:
+                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
+                        nr_x_images, nr_y_images, label_plane, language)
+                elif isinstance(xlabel, str) or ylabel == '' or len(xlabel) != nr_x_images:
+                    # If not enough labels are defined, raise error
+                    raise ValueError('Error: share_y plot needs a list of ' +
+                        nr_x_images + ' xlabels and one ylabel!')
+                # Set labels of the axes of the subplots
+                for ax_index in range(len(self.ax_list)):
+                    if ax_index == 0:
+                        self.ax_list[ax_index].set_ylabel(ylabel)
+                    self.ax_list[ax_index].set_xlabel(xlabel[ax_index])
+            elif nr_x_images > 1 and nr_y_images > 1:
+                if self.ax_unit is not None:
+                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
+                        nr_x_images, nr_y_images, label_plane, language)
+                elif isinstance(xlabel, str) or isinstance(ylabel, str) or \
+                        len(ylabel) != nr_y_images or len(xlabel) != nr_x_images:
+                    # If not enough labels are defined, raise error
+                    raise ValueError('Error: share_both plot needs a list of ' +
+                        nr_x_images + ' xlabels and ' + nr_y_images + ' ylabels!')
+                # Set labels of the axes of the subplots
+                for ax_index in range(len(self.ax_list)):
+                    if ax_index % nr_x_images == 0:
+                        self.ax_list[ax_index].set_ylabel(ylabel[int(ax_index / nr_x_images)])
+                        if int(ax_index / nr_x_images) == nr_y_images - 1:
+                            self.ax_list[ax_index].set_xlabel(xlabel[0])
+                    elif ax_index > (nr_x_images * nr_y_images) - nr_x_images:
+                        self.ax_list[ax_index].set_xlabel(xlabel[int(ax_index - (nr_x_images * nr_y_images) + nr_x_images)])
+        elif self.image_type == 'healpix':
+            # Nothing needed here
+            None
+        else:
+            raise ValueError('Error: image_type is not known!')
+        # Return which axes where automatically set
+        return automatic_axes
+            
+    def create_axis_label(self, xlabel, ylabel, nr_x_images, nr_y_images, label_plane, language):
         """Create axis label from auto label format.
 
         Args:
             xlabel (str): Input xlabel from plot class (to check if generation is neccessary).
             ylabel (str): Input ylabel from plot class (to check if generation is neccessary).
-            dim_x (int): Dimension of xlabel output (1 -> only string).
-            dim_y (int): Dimension of ylabel output (1 -> only string).
+            nr_x_images (int): Dimension of xlabel output (1 -> only string).
+            nr_y_images (int): Dimension of ylabel output (1 -> only string).
             label_plane (str): Set the axis label to the correct plane for midplane plots.
                 'xy', 'xz', 'yz', 'rz'
-            ax_unit (str): Automatically format of the X- and Y-axis labels and the extent of the plot.
-                (arcsec, au, pc, m, arb_units)
             language (str): Language for decimal separation.
 
         Returns:
@@ -430,44 +396,199 @@ class Plot:
             tmp_ylabel = r'$\Delta z\ '
         else:
             raise ValueError('Error: label_plane is not set correctly!')
-        if ax_unit == 'arcsec':
+        if self.ax_unit == 'arcsec':
             axis_label_unit = r'[\si{\arcsec}]$'
-        elif ax_unit == 'au':
+        elif self.ax_unit == 'au':
             if language == 'german':
                 axis_label_unit = r'[\si{AE}]$'
             else:
                 axis_label_unit = r'[\si{au}]$'
-        elif ax_unit == 'pc':
+        elif self.ax_unit == 'pc':
             axis_label_unit = r'[\si{\parsec}]$'
-        elif ax_unit == 'm':
+        elif self.ax_unit == 'm':
             axis_label_unit = r'[\si{\metre}]$'
-        elif ax_unit == 'arb_units':
+        elif self.ax_unit == 'arb_units':
             axis_label_unit = r'[\mathsf{arb.\ units}]$'
         else:
             raise ValueError('Error: ax_unit is not set correctly!')
         tmp_xlabel += axis_label_unit
         tmp_ylabel += axis_label_unit
         if xlabel != '' and ylabel == '':
-            if dim_x > 1 and (isinstance(xlabel, str) or len(xlabel) != dim_x):
+            if nr_x_images > 1 and (isinstance(xlabel, str) or len(xlabel) != nr_x_images):
                 raise ValueError('xlabel was not set correctly!')
-            if dim_y > 1:
-                tmp_ylabel = [tmp_ylabel for i in range(dim_y)]
+            if nr_y_images > 1:
+                tmp_ylabel = [tmp_ylabel for i in range(nr_y_images)]
             return xlabel, tmp_ylabel, 'y'
         elif xlabel == '' and ylabel != '':
-            if dim_x > 1:
-                tmp_xlabel = [tmp_xlabel for i in range(dim_x)]
-            if dim_y > 1 and (isinstance(ylabel, str) or len(ylabel) != dim_y):
+            if nr_x_images > 1:
+                tmp_xlabel = [tmp_xlabel for i in range(nr_x_images)]
+            if nr_y_images > 1 and (isinstance(ylabel, str) or len(ylabel) != nr_y_images):
                 raise ValueError('ylabel was not set correctly!')
             return tmp_xlabel, ylabel, 'x'
         elif xlabel == '' and ylabel == '':
-            if dim_x > 1:
-                tmp_xlabel = [tmp_xlabel] * dim_x
-            if dim_y > 1:
-                tmp_ylabel = [tmp_ylabel] * dim_y
+            if nr_x_images > 1:
+                tmp_xlabel = [tmp_xlabel] * nr_x_images
+            if nr_y_images > 1:
+                tmp_ylabel = [tmp_ylabel] * nr_y_images
             return tmp_xlabel, tmp_ylabel, 'xy'
         else:
             return xlabel, ylabel, None
 
+    def update_extent(self, extent=None, model=None, automatic_axes=None):
+        """Update extent of the plot.
+
+        Args:
+            extent (List[float, float, float, float]): Extent of the plot
+                [xmin, xmax, ymin, ymax].
+            model: Handles the model space including various
+                quantities such as the density distribution.
+            automatic_axes (str): Set the axes that have to be adjusted automatically.
+                ('x', 'y', 'xy', None)
+        """
+        if self.ax_unit is not None:
+            if self.ax_unit == 'arb_units':
+                # Arbitrary units should go from -1 to 1.
+                if self.image_type == 'projection_3d':
+                    self.extent = [-1., 1., -1., 1., -1., 1.]
+                elif automatic_axes == 'xy':
+                    self.extent = [-1., 1., -1., 1.]
+                elif automatic_axes == 'x':
+                    self.extent = [-1., 1., None, None]
+                elif automatic_axes == 'y':
+                    self.extent = [None, None, -1., 1.]
+                elif automatic_axes is None:
+                    self.extent = [None, None, None, None]
+            elif model is not None:
+                # Get extent from model
+                radius_x = model.tmp_parameter['radius_x_' + self.ax_unit]
+                radius_y = model.tmp_parameter['radius_y_' + self.ax_unit]
+                if self.image_type == 'projection_3d':
+                    self.extent = [-radius_x, radius_x, -radius_x, radius_x, -radius_x, radius_x]
+                elif automatic_axes == 'xy':
+                    self.extent = [-radius_x, radius_x, -radius_y, radius_y]
+                elif automatic_axes == 'x':
+                    self.extent = [-radius_x, radius_x, None, None]
+                elif automatic_axes == 'y':
+                    self.extent = [None, None, -radius_y, radius_y]
+                elif automatic_axes is None:
+                    self.extent = [None, None, None, None]
+            else:
+                raise ValueError('Without defined model, the update of the extent is not possible!')
+        else:
+            if extent is not None:
+                self.extent = extent
+            else:
+                if self.image_type == 'projection_3d':
+                    self.extent = [None, None, None, None, None, None]
+                else:
+                    self.extent = [None, None, None, None]
+
+    def update_limits(self, limits=None):
+        """If the zoom factor is set, modify the limits accordingly. If no zoom factor but limits are chosen,
+        apply the limits. Else, apply not limit and use the extent.
+
+        Args:
+            limits (List[float, float, float, float]): Limit of the plot
+                [xmin, xmax, ymin, ymax].
+        """
+        # Set limit according to zoom factor
+        if (self.zoom_x_factor is not None or self.zoom_y_factor is not None) \
+                and self.extent is not Nones and self.image_type != 'projection_3d':
+            self.limits = [None, None, None, None]
+            for i_limits in range(len(self.extent)):
+                if self.extent[i_limits] is None:
+                    raise ValueError('Without a defined extent, no zoom factor can be applied!')
+                else:
+                    if i_limits in [0, 1] and self.zoom_x_factor is not None:
+                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_x_factor
+                    elif i_limits in [2, 3] and self.zoom_y_factor is not None:
+                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_y_factor
+        elif limits is not None:
+            self.limits = limits
+        else:
+            self.limits = None
+
+    def update_all(self, extent=None, limits=None, model=None, label_plane=None, 
+            nr_x_images=1, nr_y_images=1, xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
+        """Creates labels based on the chosen model.
+
+        Args:
+            extent (List[float, float, float, float]): Extent of the plot
+                [xmin, xmax, ymin, ymax].
+            limits (List[float, float, float, float]): Limits of the plot
+                [xmin, xmax, ymin, ymax].
+            model: Handles the model space including various
+                quantities such as the density distribution.
+            label_plane (str): Set the axis label to the correct plane for midplane plots.
+                'xy', 'xz', 'yz', 'rz'
+            nr_x_images (int): Number of images along the x-axis.
+            nr_y_images (int): Number of images along the y-axis.
+            xlabel (str or list): Label of the x-axis.
+            ylabel (str or list): Label of the y-axis.
+            zlabel (str): Label of the z-axis. Only used if image_type == projection_3d.
+            labelpad (List): Padding of the axis label.
+                Dimension of the list has to match the dimensions of the plot.
+            language (str): Language for decimal separation.
+        """
+        # Update the labels of the image
+        automatic_axes = self.update_label(extent, label_plane, nr_x_images, nr_y_images, 
+            xlabel, ylabel, zlabel, labelpad, language)
+        # Update the extent of the image
+        self.update_extent(extent, model, automatic_axes)
+        # Update the limits of the image
+        self.update_limits(limits)
+
+    def set_xlabel(self, xlabel, ax_index=None):
+        """Set xlabel after creation of plot instance.
+
+        Args:
+            xlabel (str): label of x-axis.
+            ax_index (int): Index of subplot image.
+        """
+        if ax_index is not None:
+            self.ax_list[ax_index].set_xlabel(xlabel)
+        else:
+            for ax in self.ax_list:
+                ax.set_xlabel(xlabel)
+
+    def set_ylabel(self, ylabel, ax_index=None):
+        """Set ylabel after creation of plot instance.
+
+        Args:
+            ylabel (str): label of y-axis.
+            ax_index (int): Index of subplot image.
+        """
+        if ax_index is not None:
+            self.ax_list[ax_index].set_ylabel(ylabel)
+        else:
+            for ax in self.ax_list:
+                ax.set_ylabel(ylabel)
+
+    def create_zoom_axis(self, ax_index=0, zoom_factor=3, loc=1, extent=None, model=None):
+        """
+        Create axis to plot zoomed image on.
+
+        Args:
+            ax_index (int): Index of subplot image.
+            zoom_factor (int): Size of the zoomed image.
+            loc (int): Position of the zoomed image
+            extent (List[float, float, float, float]): Extent zoomed image.
+                [xmin, xmax, ymin, ymax].
+            model: Instance of the model (to obtain the extent if not set)
+        """
+        # Import modules
+        from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+        from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+        # Create sub axis
+        self.ax_list = np.hstack([self.ax_list,
+            zoomed_inset_axes(self.ax_list[ax_index], zoom_factor, loc=loc)]).ravel()
+        # Update the extent of the zoomed image
+        self.update_extent(extent, model, automatic_axes='xy')
+        # Reomove ticks from zoom region
+        self.remove_ticks(-1)
+        # draw a bbox of the region of the inset axes in the parent axes and
+        # connecting lines between the bbox and the inset axes area
+        mark_inset(self.ax_list[ax_index], self.ax_list[-1], loc1=2, loc2=4, fc="none", ec="0.5")
 
     def plot_line(self, xdata, ydata, ax_index=0, log=None, step=False,
         fill_between=False, no_ticks=False, **args):
@@ -570,7 +691,7 @@ class Plot:
         self.ax_list[ax_index].bar(left, height, width=width, bottom=bottom, orientation=orientation, align=align,
                                  edgecolor=edgecolor, alpha=alpha, label=label, color=color)
 
-    def plot_imshow(self, tbldata, ax_index=0, cbar_label='', extend=None, norm='Normalize',
+    def plot_imshow(self, tbldata, ax_index=0, cbar_label='', plot_cbar=True, extend=None, norm='Normalize',
             cmap=None, interpolation='nearest', origin='lower', extent=None, aspect='auto',
             vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
         """Plot 3D data in 2D colorcoded form.
@@ -584,6 +705,7 @@ class Plot:
                 If vmax is smaller than the largest value ('max').
                 If both is true ('both').
             cbar_label (str): Label of the colorbar.
+            plot_cbar (bool): Plot the colorbar?
             norm (str): Type of color normalization (Normalize, LogNorm, SymLogNorm, ...).
             cmap: Name or instance of the colormap.
             interpolation (str): Type of interpolation between pixel.
@@ -667,20 +789,21 @@ class Plot:
         self.image = self.ax_list[ax_index].imshow(tbldata.T, cmap=colormap, interpolation=interpolation, norm=norm,
                                                    origin=origin, extent=extent, aspect=aspect)
         # Plot colorbar is chosen
-        if self.with_cbar:
+        if self.with_cbar and plot_cbar:
             self.plot_colorbar(ax_index=ax_index, label=cbar_label, extend=extend)
         # Add imshow plot to list for animation
         if self.image_type == 'animation':
             self.animation_images.append(self.image)
 
-    def plot_healpix(self, wmap_map, ax_index=0, cbar_label='', norm=None, cmap=None,
-            extent=None, vmin=None, vmax=None, title=''):
+    def plot_healpix(self, wmap_map, ax_index=0, cbar_label='', plot_cbar=True, 
+            norm=None, cmap=None, extent=None, vmin=None, vmax=None, title=''):
         """Plot healpix data in various ways.
 
         Args:
             wmap_map: Numpy array with the quantities and a 1D data axis.
             ax_index (int): Index of subplot image.
             cbar_label (str): Label of the colorbar.
+            plot_cbar (bool): Plot the colorbar?
             norm (str): Type of color normalization (Normalize, LogNorm, SymLogNorm, ...).
             cmap: Name or instance of the colormap.
             interpolation (str): Type of interpolation between pixel.
@@ -728,7 +851,7 @@ class Plot:
 
         # Plot 2D color plot
         self.image = hp.mollview(wmap_map, unit=cbar_label, title=title, min=vmin,
-            max=vmax, norm=norm, cbar=self.with_cbar, cmap=colormap, format=r'$\SI{%1.2e}{}$')
+            max=vmax, norm=norm, cbar=(self.with_cbar and plot_cbar), cmap=colormap, format=r'$\SI{%1.2e}{}$')
 
     def plot_quiver(self, vec_field_data, index=None, ax_index=0, units='width', scale_units='width', width=0.004,
                     headwidth=0., headlength=0., headaxislength=0., pivot='middle', color=None, cmap=None,
@@ -917,7 +1040,6 @@ class Plot:
         # Plot the line
         self.plot_line([line_pos[0] - (length / 2.), line_pos[0] + (length / 2.)], [line_pos[1], line_pos[1]],
                        log='never', color=color, ax_index=ax_index, zorder=2)
-
 
     def plot_contour(self, tbldata, ax_index=0, xaxis=None, yaxis=None, origin='lower',
                      interpolation='nearest', linestyles='-', extent=None, levels=None, colors=None, cmap=None,
@@ -1184,38 +1306,26 @@ class Plot:
             if yticks[0] == self.extent[2] or yticks[-1] == self.extent[3]:
                 ax.set_yticks(yticks[1:-1])
 
+    def remove_ticks(self, ax_index=None, axis='xy'):
+        """ Remove the ticks from a plot.
+        """
+        if ax_index is None:
+            for ax in self.ax_list:
+                if 'x' in axis.lower():
+                    ax.set_xticks([])
+                if 'y' in axis.lower():
+                    ax.set_yticks([])
+        else:
+            if 'x' in axis.lower():
+                self.ax_list[ax_index].set_xticks([])
+            if 'y' in axis.lower():
+                self.ax_list[ax_index].set_yticks([])
+
     @staticmethod
     def make_tight_layout():
         """Make plot layout tight.
         """
         plt.tight_layout()
-
-    def set_xlabel(self, xlabel, ax_index=None):
-        """Set xlabel after creation of plot instance.
-
-        Args:
-            xlabel (str): label of x-axis.
-            ax_index (int): Index of subplot image.
-        """
-        if ax_index is not None:
-            self.ax_list[ax_index].set_xlabel(xlabel)
-        else:
-            for ax in self.ax_list:
-                ax.set_xlabel(xlabel)
-
-    def set_ylabel(self, ylabel, ax_index=None):
-        """Set ylabel after creation of plot instance.
-
-        Args:
-            ylabel (str): label of y-axis.
-            ax_index (int): Index of subplot image.
-        """
-        if ax_index is not None:
-            self.ax_list[ax_index].set_ylabel(ylabel)
-        else:
-            for ax in self.ax_list:
-                ax.set_ylabel(ylabel)
-
 
     def set_limits(self, limits=None):
         """Limit axes of the plot.
@@ -1223,20 +1333,21 @@ class Plot:
         if limits is not None:
             if len(limits) == 4:
                 self.limits = limits
-        if self.image_type == 'projection_3d':
-            for ax in self.ax_list:
-                if self.limits[0] is not None or self.limits[1] is not None:
-                    ax.set_xlim3d(self.limits[0], self.limits[1])
-                if self.limits[2] is not None or self.limits[3] is not None:
-                    ax.set_ylim3d(self.limits[2], self.limits[3])
-                if self.limits[4] is not None or self.limits[5] is not None:
-                    ax.set_zlim3d(self.limits[4], self.limits[5])
-        else:
-            for ax in self.ax_list:
-                if self.limits[0] is not None or self.limits[1] is not None:
-                    ax.set_xlim(self.limits[0], self.limits[1])
-                if self.limits[2] is not None or self.limits[3] is not None:
-                    ax.set_ylim(self.limits[2], self.limits[3])
+        if self.limits is not None:
+            if self.image_type == 'projection_3d':
+                for ax in self.ax_list:
+                    if self.limits[0] is not None or self.limits[1] is not None:
+                        ax.set_xlim3d(self.limits[0], self.limits[1])
+                    if self.limits[2] is not None or self.limits[3] is not None:
+                        ax.set_ylim3d(self.limits[2], self.limits[3])
+                    if self.limits[4] is not None or self.limits[5] is not None:
+                        ax.set_zlim3d(self.limits[4], self.limits[5])
+            else:
+                for ax in self.ax_list:
+                    if self.limits[0] is not None or self.limits[1] is not None:
+                        ax.set_xlim(self.limits[0], self.limits[1])
+                    if self.limits[2] is not None or self.limits[3] is not None:
+                        ax.set_ylim(self.limits[2], self.limits[3])
 
     def save_figure(self, file_io, crop_image=True, subplots_adjust=None):
         """Saves the figure either to pdf file or display it on the screen.
