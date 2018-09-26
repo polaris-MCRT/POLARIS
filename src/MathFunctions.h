@@ -2364,6 +2364,24 @@ public:
         return x;
     }
 
+    /*! Returns the remainder of the division \a v1/v2.
+    The result is non-negative.
+    \a v1 can be positive or negative; \a v2 must be positive. */
+    static inline double fmodulo(double v1, double v2) {
+        if (v1 >= 0)
+            return (v1 < v2) ? v1 : fmod(v1, v2);
+        double tmp = fmod(v1, v2) + v2;
+        return (tmp == v2) ? 0. : tmp;
+    }
+    
+    /*! Returns the remainder of the division \a v1/v2.
+    The result is non-negative.
+    \a v1 can be positive or negative; \a v2 must be positive. */
+    static inline int imodulo(int v1, int v2) {
+        int v = v1 % v2;
+        return (v >= 0) ? v : v + v2;
+    }
+
     void fillC()
     {
     }

@@ -573,14 +573,10 @@ namespace
     double atan3(double x, double y)
     {
         double angle = atan2(y, x);
-        if(angle > 0.0)
-        {
+        if(angle > 0)
             return angle;
-        }
         else
-        {
             return angle + PIx2;
-        }
     }
 
     //inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};

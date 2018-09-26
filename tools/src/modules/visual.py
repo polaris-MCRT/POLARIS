@@ -796,7 +796,7 @@ class Plot:
             self.animation_images.append(self.image)
 
     def plot_healpix(self, wmap_map, ax_index=0, cbar_label='', plot_cbar=True, 
-            norm=None, cmap=None, extent=None, vmin=None, vmax=None, title=''):
+            norm=None, cmap=None, extent=None, vmin=None, vmax=None, title='', set_bad_to_min=False):
         """Plot healpix data in various ways.
 
         Args:
@@ -811,6 +811,8 @@ class Plot:
             vmax (float): Maximum value of the colorbar.
             linthresh (float): Limit under which 'SymLogNorm' is linear.
             title (str): Title of plot.
+            set_bad_to_min (bool): Set the bad color to the color of the
+                minimum value of the colorbar.
         """
         #Load healpy module
         import healpy as hp
@@ -847,10 +849,18 @@ class Plot:
         # Healpy adjustments
         colormap.set_under('w')
         colormap.set_over(colormap(1.0))
-        colormap.set_bad('gray')
+
+        # Change colormap bad values to lowest values
+        if set_bad_to_min or self.bad_to_min:
+            colormap.set_bad(colormap(0))
+        else:
+            colormap.set_bad('gray')
+
+        # Calculate size of the plot to fit the size of the healpix map
+        xsize = np.ceil(np.sqrt(wmap_map.size) / 800.) * 800
 
         # Plot 2D color plot
-        self.image = hp.mollview(wmap_map, unit=cbar_label, title=title, min=vmin,
+        self.image = hp.mollview(wmap_map, unit=cbar_label, title=title, min=vmin, xsize=xsize,
             max=vmax, norm=norm, cbar=(self.with_cbar and plot_cbar), cmap=colormap, format=r'$\SI{%1.2e}{}$')
 
     def plot_quiver(self, vec_field_data, index=None, ax_index=0, units='width', scale_units='width', width=0.004,

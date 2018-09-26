@@ -1149,7 +1149,7 @@ class FileIO:
                 u_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
                     tbldata[2, i_x, i_y] / self.vec_field_size ** 2
                 # Calculating pol vector length
-                if tbldata[0, i_x, i_y] >= 1e-100:
+                if tbldata[0, i_x, i_y] > 1e-200:
                     p_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
                         1e2 * np.sqrt(tbldata[1, i_x, i_y] ** 2 + tbldata[2, i_x, i_y] ** 2) \
                         / (tbldata[0, i_x, i_y])
@@ -1238,7 +1238,11 @@ class FileIO:
 
                     # Calculating the polarization angle from averaged Q and U components
                     pol_angle[i_x, i_y] = self.math.angle_from_stokes(tbldata[1, hp_id], tbldata[2, hp_id])
-                    p_vec_avg = np.sqrt(tbldata[1, hp_id] ** 2 + tbldata[2, hp_id] ** 2) / tbldata[0, hp_id] * 0.04
+
+                    if tbldata[0, hp_id] > 1e-200:
+                        p_vec_avg = np.sqrt(tbldata[1, hp_id] ** 2 + tbldata[2, hp_id] ** 2) / tbldata[0, hp_id] * 0.04
+                    else:
+                        p_vec_avg = 0
 
                     pol_a[hp_id] = pol_angle[i_x, i_y]
                     pol_a[hp_id] += 2 * np.pi

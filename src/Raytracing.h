@@ -944,7 +944,7 @@ public:
         tmp_ez.normalize();
 
         double theta = acos(tmp_ez.Z());
-        double phi = atan3(tmp_ez.Y(), -tmp_ez.X());
+        double phi = atan3(tmp_ez.X(), tmp_ez.Y()) - PI -atan3(det_pos.X(), det_pos.Y());
 
         tmp_ey.setX(cos(theta) * cos(phi));
         tmp_ey.setY(cos(theta) * sin(phi));
@@ -1134,39 +1134,39 @@ private:
         long ncap_ = nside_ * (nside_ - 1) * 2;
         long npix_ = 12 * nside_ * nside_;
         double za = abs(z);
-        double tt = fmod(phi, PIx2) * invPI2; // in [0,4)
+        double tt = CMathFunctions::fmodulo(phi, PIx2) * invPI2; // in [0,4)
         if (za <= TWOTHIRD) // Equatorial region
         {
-            double temp1 = nside_*(0.5+tt);
-            double temp2 = nside_*z*0.75;
-            int jp = int(temp1-temp2); // index of  ascending edge line
-            int jm = int(temp1+temp2); // index of descending edge line
+            double temp1 = nside_ * (0.5 + tt);
+            double temp2 = nside_ * z * 0.75;
+            int jp = (int) (temp1 - temp2); /* index of  ascending edge line */
+            int jm = (int) (temp1 + temp2); /* index of descending edge line */
 
-            // ring number counted from z=2/3
-            int ir = nside_ + 1 + jp - jm; // in {1,2n+1}
-            int kshift = 1-(ir&1); // kshift=1 if ir even, 0 otherwise
+            /* ring number counted from z=2/3 */
+            int ir = nside_ + 1 + jp - jm; /* in {1,2n+1} */
+            int kshift = 1 - (ir & 1); /* kshift=1 if ir even, 0 otherwise */
 
-            int ip = (jp+jm-nside_+kshift+1)/2; // in {0,4n-1}
-            ip = int(ip % 4*nside_);
+            int ip = (jp + jm - nside_ + kshift + 1) / 2; /* in {0,4n-1} */
+            ip = CMathFunctions::imodulo(ip, 4 * nside_);
 
-            *pix = ncap_ + (ir-1)*4*nside_ + ip;
+            *pix = nside_ * (nside_ - 1) * 2 + (ir - 1) * 4 * nside_ + ip;
         }
         else  // North & South polar caps
         {
-            double tp = tt-int(tt);
-            double tmp = nside_*sqrt(3*(1-za));
+            double tp = tt - (int) (tt);
+            double tmp = nside_ * sqrt(3 * (1 - za));
 
-            int jp = int(tp*tmp); // increasing edge line index
-            int jm = int((1.0-tp)*tmp); // decreasing edge line index
+            int jp = (int) (tp * tmp); /* increasing edge line index */
+            int jm = (int) ((1.0 - tp) * tmp); /* decreasing edge line index */
 
-            int ir = jp+jm+1; // ring number counted from the closest pole
-            int ip = int(tt*ir); // in {0,4*ir-1}
-            ip = int(ip % 4*ir);
+            int ir = jp + jm + 1; /* ring number counted from the closest pole */
+            int ip = (int) (tt * ir); /* in {0,4*ir-1} */
+            ip = CMathFunctions::imodulo(ip, 4 * ir);
 
             if (z>0)
                 *pix = 2 * ir * (ir - 1) + ip;
             else
-                *pix = npix_ - 2 * ir * (ir + 1) + ip;
+                *pix = 12 * nside_ * nside_ - 2 * ir * (ir + 1) + ip;
         }
     }
 
