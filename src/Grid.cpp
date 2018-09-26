@@ -561,12 +561,6 @@ bool CGridBasic::writeAMIRAFiles(string path, parameter & param, uint bins)
     string a_filename = path + "aalig.am";
     string d_filename = path + "delta.am";
 
-    if(!(dataID == 1 || dataID == 7))
-        plt_rat = false;
-
-    if(dataID < 6)
-        plt_vel = false;
-
     ofstream dens_writer, rat_writer;
     ofstream gas_writer, dust_writer;
     ofstream magvec_writer, magf_writer;

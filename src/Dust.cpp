@@ -2626,35 +2626,39 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
-
-    // Default value of the a_align size if not calculatable
-    int dID = nr_of_dust_species;
-
-    // delta ~ 2
-    double delta = getDeltaRat();
+    
+    // default value of the alignment radius
+    double a_alig = getSizeMax(grid, cell);
+    
+    //aspect ratio of the grain
+    double s=getAspectRatio();
+    
+    //density of the graim material
+    double rho=getMaterialDensity();
+    
     // alpha_1 ~ delta
-    double alpha_1 = delta;
-
-    // See equations (56 - 58) in Draine and Weingartner (1996)
-    double chi_gas = PI / (3 * delta * sqrt(2.0 * PI * con_kB * grid->getMu() * m_H));
-    double chi_em = 7.8489 * con_kB * con_kB / (con_hq * con_hq * con_c);
-
-    // See equations (8, 9) in Cho and Lazarian (2005)
-    double om_frac = 5 * alpha_1 / (192 * delta);// * 1e6;
+    double alpha_1 = getDeltaRat();;
 
     // Get grid values
     double T_gas = grid->getGasTemperature(cell);
     double n_g = grid->getGasNumberDensity(cell);
     double vol = grid->getVolume(cell);
+    
+    //average molecular weight
+    double mu=grid->getMu();
+    
+    //thermal velocity
+    double v_th = sqrt(2.0*con_kB*T_gas/(mu*m_H));
 
     // Loop over all considered grain sizes
     double omega_old = 0;
+    
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Init cross section class
-            cross_sections cs;
+            //cross_sections cs;
 
             // Get dust temperature from grid
             double T_dust;
@@ -2662,10 +2666,22 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 T_dust = grid->getDustTemperature(cell, i_density, a);
             else
                 T_dust = grid->getDustTemperature(cell, i_density);
+            
+            //minor and major axis
+            double a_minor = a_eff[a] * pow(s,2./3.);
+            double a_major = a_eff[a] * pow(s,-1./3.);
+            
+            //moment of inertia along a_1
+            double I_p = 8.*PI/15. * rho * a_minor * pow(a_major,4);
+            
+            //thermal angular momentum
+            double J_th = sqrt(I_p * con_kB * T_gas);
 
             // Init pointer arrays
-            double *arrQabs = new double[nr_of_wavelength];
             double *arr_product = new double[nr_of_wavelength];
+            
+            //drag time
+            double *dtau_drag = new double[nr_of_wavelength];
 
             for(uint w = 0; w < nr_of_wavelength; w++)
             {
@@ -2680,7 +2696,6 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // If the radiation field is zero -> set arrays to zero and move on
                 if(arr_en_dens == 0)
                 {
-                    arrQabs[w] = 0;
                     arr_product[w] = 0;
                     continue;
                 }
@@ -2689,72 +2704,87 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double theta = grid->getTheta(cell, en_dir);
 
                 // Calculate perfect aligned cross-sections
-                calcPACrossSections(a, w, cs, theta);
+                //calcPACrossSections(a, w, cs, theta);
+                
+                //drag by thermal emission
+                double FIR=1.40e10*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*T_gas);
+                
+                //drag by gas 
+                double tau_gas = 1.0e-12*3./(4*PIsq)*I_p/(mu*n_g*m_H*v_th*alpha_1*pow(a_eff[a],4));
 
+                dtau_drag[w]=1./(1./tau_gas+1./FIR);
+                
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);
+                //arr_en_dens=1e-10;
+                
                 // en_dir = 4 * PI * vol * j -> 4 * PI / c * j
                 en_dir /= double(vol * con_c);
 
-                // <Q_abs> = \integrate (u_lambda * Q_abs) d_lambda
-                arrQabs[w] = arr_en_dens * cs.Cabs / (PI * a_eff[a] * a_eff[a]);
-                // Anisotropy
+                //anisotropy parameter
                 gamma = en_dir.length() / arr_en_dens;
                 // \integrate (Q_torque * lambda * u_lambda) d_lambda
-                arr_product[w] = wavelength_list[w] * getQrat(a, w, theta) * gamma * arr_en_dens;
+                //arr_product[w] = wavelength_list[w] * getQrat(a, w, theta) * gamma * arr_en_dens;
+                //getQrat(a, w, theta)
+                
+                //use parameterized version for the time beeing
+                double Qr=0.4 /(pow(wavelength_list[w]/a_eff[a],3));
+                
+                if(wavelength_list[w]<2.0*a_eff[a])
+                    Qr=0.4;
+                
+                Qr*=abs(cos(theta));
+                //cout << wavelength_list[w] << " " << Qr << " " << getQrat(a, w, 0.0) << endl;
+                
+                //Qr=getQrat(a, w, 0.0);
+                arr_product[w]=arr_en_dens * (wavelength_list[w]/PIx2) * Qr * tau_gas/ J_th * gamma * PI * pow(a_eff[a],2);
+                Qr=0.4;
             }
 
             // Perform integration
-            double wQabs = CMathFunctions::integ(wavelength_list, arrQabs, 0, nr_of_wavelength - 1);
-            double end_sum = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
+            double omega_frac = 1e2*CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
+            
+            //cout << a_eff[a] << " " << omega_frac << endl;
 
             // Delete pointer array
-            delete[] arrQabs;
             delete[] arr_product;
-
-            // Set minimum wQabs
-            if(wQabs == 0)
-                wQabs = 1e-10;
-
-            // See equations (56 - 58) in Draine and Weingartner (1996)
-            double tau_fracsq = chi_em / chi_gas * a_eff[a] * a_eff[a] * T_dust * T_dust * n_g * sqrt(T_gas) / wQabs;
-
-            // Modify for equation 9 in Cho and Lazarian (2005)
-            tau_fracsq /= (1 + tau_fracsq);
-            tau_fracsq *= tau_fracsq;
-
-            // See equations (8, 9) in Cho and Lazarian (2005)
-            double omega_frac = om_frac * pow(n_g * con_kB * T_gas, -2.0)
-                    * getMaterialDensity() * a_eff[a] * end_sum * end_sum / m_H * tau_fracsq;
+            delete[] dtau_drag;
 
             if(omega_frac >= SUPERTHERMAL_LIMIT)
             {
-                if(abs(omega_old - SUPERTHERMAL_LIMIT) < abs(omega_frac - SUPERTHERMAL_LIMIT))
-                    dID = int(a) - 1;
+                //linear interpolation
+                if(a>1)
+                {
+                    double a1=a_eff[a-1];
+                    double a2=a_eff[a];
+                    
+                    double o1=omega_old-SUPERTHERMAL_LIMIT;
+                    double o2=omega_frac-SUPERTHERMAL_LIMIT;
+                
+                    a_alig=a1-o1*(a2-a1)/(o2-o1);
+                }
                 else
-                    dID = int(a);
+                    a_alig=a_min;
+                
                 break;
             }
 
+            //keep the prev. omega fraction for interpolation
             omega_old = omega_frac;
         }
     }
 
-    // Minimum aligned size index is zero
-    if(dID < 0)
-        dID = 0;
-
-    // Set aligned dist grain size
-    double a_alig;
-    if(dID >= nr_of_dust_species || a_eff[dID] >= a_max)
+    //Check for proper size range
+    if(a_alig < a_min)
+        a_alig = a_min;
+    
+    if(a_alig > a_max)
         a_alig = a_max;
-    else
-        a_alig = a_eff[dID];
-
-    // Set aligned dist grain size in grid
+    
+    // Set aligned grain size in grid
     grid->setAlignedRadius(cell, a_alig);
 
-    // Set aligned dist grain size limits
+    // Update aligned grain size limits
     if(a_alig < min_a_alig)
         min_a_alig = a_alig;
     if(a_alig > max_a_alig)

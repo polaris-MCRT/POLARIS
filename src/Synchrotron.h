@@ -33,6 +33,8 @@ public:
 
         kappa_Q = 0;
         kappa_V = 0;
+        
+        rot_ang=0;
     }
 
 
@@ -50,13 +52,30 @@ public:
         kappa_V = _kappa_V;
     }
 
+    
+    syn_param(double _j_I, double _j_Q, double _j_V, double _alpha_I, double _alpha_Q, double _alpha_V, double _kappa_Q, double _kappa_V, double _rot_ang)
+    {
+        j_I = _j_I;
+        j_Q = _j_Q;
+        j_V = _j_V;
+
+        alpha_I = _alpha_I;
+        alpha_Q = _alpha_Q;
+        alpha_V = _alpha_V;
+
+        kappa_Q = _kappa_Q;
+        kappa_V = _kappa_V;
+        rot_ang = _rot_ang;
+    }
+    
     syn_param operator+(const syn_param & rhs)
     {
         return syn_param(j_I + rhs.j_I, j_Q + rhs.j_Q, j_V + rhs.j_V,
                 alpha_I + rhs.alpha_I, alpha_Q + rhs.alpha_Q, alpha_V + rhs.alpha_V,
-                kappa_Q + rhs.kappa_Q, kappa_V+ rhs.kappa_V);
+                kappa_Q + rhs.kappa_Q, kappa_V+ rhs.kappa_V, rot_ang+ rhs.rot_ang);
     }
 
+    //(back) conversion into SI
     void scale()
     {
         j_I *= syn_SI;
@@ -98,7 +117,6 @@ public:
         cont_matrix.setValue(1, 2, kappa_V);
         cont_matrix.setValue(2, 1,-kappa_V);
 
-        //cont_matrix.printMatrix();
         return cont_matrix;
     }
 
@@ -112,6 +130,7 @@ public:
 
     double kappa_Q;
     double kappa_V;
+    double rot_ang;
 };
 
 
@@ -147,10 +166,29 @@ public:
         }
     };
 
-
+    //calculation of sync. coefficients on the basis of approximation functions (taken from Pandya 2016 and Dexter 2016)
     syn_param get_Thermal_Parameter(double n_e, double T_e, double l, double B, double theta);
     syn_param get_Power_Law_Parameter(double n_e, double l, double B, double theta, double g_min, double g_max, double p);
 
+    
+
+private:
+    // Gamma numerator coefficients for approximation over the interval (1,2)
+    double * p;
+
+    // Gamma denominator coefficients for approximation over the interval (1,2)
+    double * q;
+
+    // Asymptotic series LogGamma, Abramowitz and Stegun 6.1.41
+    double * c;
+
+    double Euler_gamma;
+    double halfLogTwoPi;
+
+    spline BesselK_0;
+    spline BesselK_1;
+    spline BesselK_2;
+    
     double BesselK(uint n, double x)
     {
         double res = 0;
@@ -177,23 +215,7 @@ public:
         return pow(10.0, res);
     }
 
-private:
-    // Gamma numerator coefficients for approximation over the interval (1,2)
-    double * p;
-
-    // Gamma denominator coefficients for approximation over the interval (1,2)
-    double * q;
-
-    // Asymptotic series LogGamma, Abramowitz and Stegun 6.1.41
-    double * c;
-
-    double Euler_gamma;
-    double halfLogTwoPi;
-
-    spline BesselK_0;
-    spline BesselK_1;
-    spline BesselK_2;
-
+    //initiate Gamma coefficients
     void initGamma()
     {
         p = new double[8];
@@ -231,6 +253,7 @@ private:
         halfLogTwoPi = 0.91893853320467274178032973640562;
     }
 
+    //initiate Bessel points for spline interpolation
     void initBesselK()
     {
         uint size = 68;
@@ -482,6 +505,7 @@ private:
     {
         double sign = 1;
 
+        //sign correcton for Stokes V parameter according to Pandya 2016
         if(cos_theta != 0)
             sign = cos_theta / fabs(cos_theta);
 
