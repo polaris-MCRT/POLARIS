@@ -3,6 +3,7 @@
 #include "MathFunctions.h"
 #include "typedefs.h"
 #include "Grid.h"
+#include <complex>
 
 void CDustComponent::initDustProperties()
 {
@@ -101,18 +102,18 @@ void CDustComponent::initScatteringMatrixArray()
             for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
             {
                 // Fourth init of the scattering matrix
-                sca_mat[a][w][inc] = new double**[nr_ofScatPhi];
-                for(int sph = 0; sph < nr_ofScatPhi; sph++)
+                sca_mat[a][w][inc] = new double**[nr_of_scat_phi];
+                for(int sph = 0; sph < nr_of_scat_phi; sph++)
                 {
                     // Fifth init of the scattering matrix
-                    sca_mat[a][w][inc][sph] = new double*[nr_ofScatTheta];
-                    for(int sth = 0; sth < nr_ofScatTheta; sth++)
+                    sca_mat[a][w][inc][sph] = new double*[nr_of_scat_theta];
+                    for(int sth = 0; sth < nr_of_scat_theta; sth++)
                     {
                         // sixth init of the scattering matrix
-                        sca_mat[a][w][inc][sph][sth] = new double[nr_ofScatMatElements];
+                        sca_mat[a][w][inc][sph][sth] = new double[nr_of_scat_mat_elements];
 
                         // Set each element to zero
-                        for(int mat = 0; mat < nr_ofScatMatElements; mat++)
+                        for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
                             sca_mat[a][w][inc][sph][sth][mat] = 0;
                     }
                 }
@@ -142,6 +143,13 @@ void CDustComponent::initCalorimetry()
 
 bool CDustComponent::readDustParameterFile(parameter & param, uint dust_component_choice)
 {
+    // Get Path to dust parameter file
+    string path = param.getDustPath(dust_component_choice);
+    
+    // Read refractive index and use Mie theory to get optical properties
+    if(path.find(".nk") != std::string::npos)
+        return readDustRefractiveIndexFile(param, dust_component_choice);
+
     // Init variables
     CCommandParser ps;
     unsigned char ru[4] = {'|', '/', '-', '\\'};
@@ -155,9 +163,6 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
     // Get min and max dust grain size
     double a_min = param.getSizeMin(dust_component_choice);
     double a_max = param.getSizeMax(dust_component_choice);
-
-    // Get Path to dust parameter file
-    string path = param.getDustPath(dust_component_choice);
 
     // Init text file reader for dust cat file
     fstream reader(path.c_str());
@@ -280,6 +285,7 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 // Calculate the grain size distribution
                 calcSizeDistribution(values, mass);
 
+                // Check if size limits are inside grain sizes and set global ones
                 if(!checkGrainSizeLimits(a_min, a_max))
                     return false;
                 break;
@@ -506,6 +512,293 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
     return true;
 }
 
+bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_component_choice)
+{
+    // Init variables
+    CCommandParser ps;
+    unsigned char ru[4] = {'|', '/', '-', '\\'};
+    string line;
+    dlist values;
+
+    // Set number of grain sizes for Mie-theory
+    nr_of_dust_species = MIE_SIZE_STEPS;
+    dlist values_aeff(nr_of_dust_species);
+
+    // temporary variables for wavelength interpolation
+    spline refractive_index_real, refractive_index_imag;
+    uint nr_of_wavelength_dustcat;
+
+    // Get min and max dust grain size
+    double a_min = param.getSizeMin(dust_component_choice);
+    double a_max = param.getSizeMax(dust_component_choice);
+
+    // Get Path to dust parameter file
+    string path = param.getDustPath(dust_component_choice);
+
+    // Init text file reader for dust cat file
+    fstream reader(path.c_str());
+
+    // Error message if the read does not work
+    if(reader.fail())
+    {
+        cout << "ERROR: Can not open dust refractive index file:" << endl;
+        cout << path << endl;
+        return false;
+    }
+
+    // Init progress counter
+    uint line_counter = 0;
+    uint char_counter = 0;
+    uint cmd_counter = 0;
+    uint wl_counter = 0;
+
+    while(getline(reader, line))
+    {
+        // Show progress
+        if(line_counter % 500 == 0)
+        {
+            char_counter++;
+            printIDs();
+            cout << "reading dust parameter file: " << ru[(uint) char_counter % 4] << "             \r";
+        }
+
+        // Format the text file line
+        ps.formatLine(line);
+
+        // Increase line counter
+        line_counter++;
+
+        // If the line is empty -> skip
+        if(line.size() == 0)
+            continue;
+
+        if(cmd_counter > 0)
+        {
+            // Parse the values of the current line
+            values = ps.parseValues(line);
+
+            // If no values found -> skip
+            if(values.size() == 0)
+                continue;
+        }
+
+        // Increase the command counter
+        cmd_counter++;
+
+        switch(cmd_counter)
+        {
+            case 1:
+                // The first line contains the name of the dust component
+                stringID = line;
+                break;
+
+            case 2:
+                // The second line needs 7 values
+                if(values.size() != 7)
+                {
+                    cout << "ERROR: Line " << line_counter << " wrong ammount of numbers!" << endl;
+                    return false;
+                }
+
+                // The number of wavelength used by the dust catalog
+                nr_of_wavelength_dustcat = (uint) values[0];
+
+                // The number of incident angles
+                nr_ofIncidentAngles = 1;  // For non-spherical: (uint) values[1];
+
+                // The aspect ratio between the longer and shorter axis
+                aspect_ratio = 1; // For non-spherical: values[2];
+
+                // The material density (only used if no one was set in the command file)
+                if(material_density == 0)
+                    material_density = values[3];
+
+                // The sublimation temperature
+                sub_temp = values[4];
+
+                // The delta value fot the RAT alignment theory
+                delta_rat = 0; // For non-spherical: values[5];
+
+                // The boolean value if the dust catalog is aligned or not
+                if(values[6] == 1)
+                    is_align = true;
+                else
+                    is_align = false;
+
+                // Calculate the GOLD alignment g factor
+                gold_g_factor = 0.5 * (aspect_ratio * aspect_ratio - 1);
+
+                // Init splines for wavelength interpolation of the dust optical properties
+                refractive_index_real.resize(nr_of_wavelength_dustcat);
+                refractive_index_imag.resize(nr_of_wavelength_dustcat);
+
+                // Set size parameters
+                a_eff = new double[nr_of_dust_species];
+                a_eff_2 = new double[nr_of_dust_species];
+                a_eff_1_5 = new double[nr_of_dust_species];
+                a_eff_3_5 = new double[nr_of_dust_species];
+                mass = new double[nr_of_dust_species];
+                
+                // Init dust grain sizes
+                CMathFunctions::LogList(a_min, a_max, values_aeff, 10);
+
+                // Calculate the grain size distribution
+                calcSizeDistribution(values_aeff, mass);
+
+                // Check if size limits are inside grain sizes and set global ones
+                if(!checkGrainSizeLimits(a_min, a_max))
+                    return false;
+                break;
+
+            default:
+                // Init boolean value to check if the lines contain the right values
+                bool rec = false;
+
+                // Each line contains NR_OF_EFF - 1 plus 2 times nr_ofIncidentAngles values
+                if(values.size() == 3)
+                {
+                    // he current line contains enough values
+                    rec = true;
+
+                    // Set the dust grain optical properties
+                    refractive_index_real.setValue(wl_counter, values[0], values[1]);
+                    refractive_index_imag.setValue(wl_counter, values[0], values[2]);
+
+                    // Increace the counter for the dust grain optical properties
+                    wl_counter++;
+                }
+
+                //  If a line was not correct, show error
+                if(!rec)
+                {
+                    cout << "WARING: Wrong ammount of values in line " << line_counter << "!" << endl;
+                    return false;
+                }
+                break;
+        }
+    }
+
+    // At the last wavelength, activate the splines
+    refractive_index_real.createSpline();
+    refractive_index_imag.createSpline();
+
+    // If not a line per combination of grain size and wavelength was found in the catalog, show error
+    if(wl_counter != nr_of_wavelength_dustcat)
+    {
+        cout << stringID << endl;
+        cout << "ERROR: Wrong ammount of efficiencies in file!" << endl;
+        return false;
+    }
+
+    // Close the text file reader for the dust catalog
+    reader.close();
+
+    // Init pointer arrays for dust optical properties
+    Qext1 = new double*[nr_of_dust_species];
+    Qext2 = new double*[nr_of_dust_species];
+    Qabs1 = new double*[nr_of_dust_species];
+    Qabs2 = new double*[nr_of_dust_species];
+    Qsca1 = new double*[nr_of_dust_species];
+    Qsca2 = new double*[nr_of_dust_species];
+    Qcirc = new double*[nr_of_dust_species];
+    HGg = new double*[nr_of_dust_species];
+
+    // Init splines for incident angle interpolation of Qtrq and HG g factor
+    Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+
+    // Set variables for scattering via Mie theory
+    nr_of_scat_phi = 1, 
+    nr_of_scat_theta = 2 * NANG - 1;
+    nr_of_scat_mat_elements = 4;
+
+    // Init normal scattering matrix array
+    initScatteringMatrixArray();
+
+#pragma omp parallel for
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        // Resize the splines for each grain size
+        Qext1[a] = new double[nr_of_wavelength];
+        Qext2[a] = new double[nr_of_wavelength];
+        Qabs1[a] = new double[nr_of_wavelength];
+        Qabs2[a] = new double[nr_of_wavelength];
+        Qsca1[a] = new double[nr_of_wavelength];
+        Qsca2[a] = new double[nr_of_wavelength];
+        Qcirc[a] = new double[nr_of_wavelength];
+        HGg[a] = new double[nr_of_wavelength];
+
+        for(uint w = 0; w < nr_of_wavelength; w++)
+        {
+            // Resize the splines of Qtrq and HG g factor for each wavelength
+            Qtrq[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
+            HG_g_factor[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
+
+            if(sizeIndexUsed(a, a_min_global, a_max_global))
+            {
+                // Init variables and pointer arrays
+                double *S11, *S12, *S33, *S34;
+                S11 = new double[nr_of_scat_theta];
+                S12 = new double[nr_of_scat_theta];
+                S33 = new double[nr_of_scat_theta];
+                S34 = new double[nr_of_scat_theta]; 
+
+                // Set size index and refractive index as complex number
+                double x = 2.0 * PI * a_eff[a] / wavelength_list[w];   
+                fcomplex refractive_index = fcomplex(refractive_index_real.getValue(wavelength_list[w]), 
+                    refractive_index_imag.getValue(wavelength_list[w]));
+
+                // Calculate Mie-scattering
+                CMathFunctions::calcBHMie(x, refractive_index, 
+                    Qext1[a][w], Qabs1[a][w], Qsca1[a][w], HGg[a][w], S11, S12, S33, S34);
+
+                // Set missing Efficiencies for other axis
+                Qext2[a][w] = Qext1[a][w];
+                Qabs2[a][w] = Qabs1[a][w];
+                Qsca2[a][w] = Qsca1[a][w];
+
+                for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
+                {
+                    for(int sph = 0; sph < nr_of_scat_phi; sph++)
+                    {
+                        for(int sth = 0; sth < nr_of_scat_theta; sth++)
+                        {
+                            sca_mat[a][w][inc][sph][sth][0] = S11[sth];
+                            sca_mat[a][w][inc][sph][sth][1] = S12[sth];
+                            sca_mat[a][w][inc][sph][sth][2] = S33[sth];
+                            sca_mat[a][w][inc][sph][sth][3] = S34[sth];
+                        }
+                    }
+                }
+                delete[] S11;
+                delete[] S12;
+                delete[] S33;
+                delete[] S34;
+            }
+            else
+            {
+                Qext1[a][w] = 0;
+                Qext2[a][w] = 0;
+                Qabs1[a][w] = 0;
+                Qabs2[a][w] = 0;
+                Qsca1[a][w] = 0;
+                Qsca2[a][w] = 0;
+                Qcirc[a][w] = 0;
+                HGg[a][w] = 0;
+            }
+
+            // Activate the splines of Qtrq and HG g factor
+            Qtrq[w * nr_of_dust_species + a].createSpline();
+            HG_g_factor[w * nr_of_dust_species + a].createSpline();
+        }
+    }
+
+    // Set that the scattering matrix was successfully read
+    scat_loaded = true;
+
+    return true;
+}
+
 bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat)
 {
     // Init variables
@@ -601,10 +894,10 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                 }
 
                 // The number of phi angles (outgoing radiation)
-                nr_ofScatPhi = uint(values[3]);
+                nr_of_scat_phi = uint(values[3]);
 
                 // The number of theta angles (outgoing radiation)
-                nr_ofScatTheta = uint(values[4]);
+                nr_of_scat_theta = uint(values[4]);
                 break;
 
             case 2:
@@ -617,7 +910,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                 }
 
                 // The number of used scattering elements
-                nr_ofScatMatElements = uint(values[0]);
+                nr_of_scat_mat_elements = uint(values[0]);
                 break;
 
             case 3:
@@ -655,7 +948,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
     uint last_percentage = 0;
 
     // Init maximum counter value
-    uint max_counter = nr_ofIncidentAngles * nr_of_dust_species * nr_ofScatPhi;
+    uint max_counter = nr_ofIncidentAngles * nr_of_dust_species * nr_of_scat_phi;
 
     // First init of the scattering matrix linear
     linear ***** sca_mat_wl = new linear****[nr_of_dust_species];
@@ -668,8 +961,8 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
         for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
         {
             // Third init of the scattering matrix linear
-            sca_mat_wl[a][inc] = new linear**[nr_ofScatPhi];
-            for(int sph = 0; sph < nr_ofScatPhi; sph++)
+            sca_mat_wl[a][inc] = new linear**[nr_of_scat_phi];
+            for(int sph = 0; sph < nr_of_scat_phi; sph++)
             {
                 // Increase counter used to show progress
                 per_counter++;
@@ -689,14 +982,14 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                 }
 
                 // Fourth init of the scattering matrix linear
-                sca_mat_wl[a][inc][sph] = new linear*[nr_ofScatTheta];
-                for(int sth = 0; sth < nr_ofScatTheta; sth++)
+                sca_mat_wl[a][inc][sph] = new linear*[nr_of_scat_theta];
+                for(int sth = 0; sth < nr_of_scat_theta; sth++)
                 {
                     // Fifth init of the scattering matrix linear
-                    sca_mat_wl[a][inc][sph][sth] = new linear[nr_ofScatMatElements];
+                    sca_mat_wl[a][inc][sph][sth] = new linear[nr_of_scat_mat_elements];
 
                     // Resize the linear for each scattering matrix element
-                    for(int mat = 0; mat < nr_ofScatMatElements; mat++)
+                    for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
                         sca_mat_wl[a][inc][sph][sth][mat].resize(nr_of_wavelength_dustcat);
                 }
             }
@@ -771,11 +1064,11 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 
             for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
             {
-                for(uint sph = 0; sph < nr_ofScatPhi; sph++)
+                for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                 {
-                    for(uint sth = 0; sth < nr_ofScatTheta; sth++)
+                    for(uint sth = 0; sth < nr_of_scat_theta; sth++)
                     {
-                        for(uint mat = 0; mat < nr_ofScatMatElements; mat++)
+                        for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
                         {
                             // Read value from binary file
                             bin_reader.read((char*) &tmp_val, 4);
@@ -805,11 +1098,11 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
         {
             for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
             {
-                for(int sph = 0; sph < nr_ofScatPhi; sph++)
+                for(int sph = 0; sph < nr_of_scat_phi; sph++)
                 {
-                    for(int sth = 0; sth < nr_ofScatTheta; sth++)
+                    for(int sth = 0; sth < nr_of_scat_theta; sth++)
                     {
-                        for(int mat = 0; mat < nr_ofScatMatElements; mat++)
+                        for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
                         {
                             for(int w = 0; w < nr_of_wavelength; w++)
                                 sca_mat[a][w][inc][sph][sth][mat] = 
@@ -1600,7 +1893,7 @@ void CDustComponent::preCalcMieScatteringProb()
     phase_pdf = new linear*[nr_of_dust_species];
 
     // Calculate differences between two angles
-    double d_ang = PI / double(nr_ofScatTheta - 1);
+    double d_ang = PI / double(nr_of_scat_theta - 1);
 
     // Init counter for progress
     uint per_counter = 0;
@@ -1609,9 +1902,9 @@ void CDustComponent::preCalcMieScatteringProb()
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Init pointer arrays
-        double * S11_tmp = new double[nr_ofScatTheta];
-        double * S11_solid_angle = new double[nr_ofScatTheta];
-        double * tmp_scat_frac = new double[nr_ofScatTheta];
+        double * S11_tmp = new double[nr_of_scat_theta];
+        double * S11_solid_angle = new double[nr_of_scat_theta];
+        double * tmp_scat_frac = new double[nr_of_scat_theta];
 
         // Init arrays of linear
         avg_scattering_frac[a] = new spline[nr_of_wavelength];
@@ -1619,10 +1912,10 @@ void CDustComponent::preCalcMieScatteringProb()
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Resize splines for scattering angles
-            avg_scattering_frac[a][w].resize(nr_ofScatTheta);
-            phase_pdf[a][w].resize(nr_ofScatTheta);
+            avg_scattering_frac[a][w].resize(nr_of_scat_theta);
+            phase_pdf[a][w].resize(nr_of_scat_theta);
 
-            for(uint th = 0; th < nr_ofScatTheta; th++)
+            for(uint th = 0; th < nr_of_scat_theta; th++)
             {
                 // Calculate the scattering propability in a certain direction
                 S11_tmp[th] = double(sca_mat[a][w][0][0][th][0]);
@@ -1638,9 +1931,9 @@ void CDustComponent::preCalcMieScatteringProb()
             }
 
             // Integral of the scattering S11 value over the full sphere
-            double int_scat_frac = tmp_scat_frac[nr_ofScatTheta - 1];
+            double int_scat_frac = tmp_scat_frac[nr_of_scat_theta - 1];
 
-            for(uint th = 0; th < nr_ofScatTheta; th++)
+            for(uint th = 0; th < nr_of_scat_theta; th++)
             {
                 if(int_scat_frac > 0)
                 {
@@ -1911,9 +2204,9 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         // Get common parameters from all dust components
         nr_of_dust_species = comp->getNrOfDustSpecies();
         nr_ofIncidentAngles = comp->getNrOfIncidentAngles();
-        nr_ofScatTheta = comp->getNrOfScatTheta();
-        nr_ofScatPhi = comp->getNrOfScatPhi();
-        nr_ofScatMatElements = comp->getNrOfScatMatElements();
+        nr_of_scat_theta = comp->getNrOfScatTheta();
+        nr_of_scat_phi = comp->getNrOfScatPhi();
+        nr_of_scat_mat_elements = comp->getNrOfScatMatElements();
         nr_of_calorimetry_temperatures = comp->getNrOfCalorimetryTemperatures();
         f_cor = comp->getCorrelationFactor();
         f_highJ = comp->getFHighJ();
@@ -1992,9 +2285,9 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
             if(comp->sizeIndexUsed(a, a_min, a_max))
                 for(uint w = 0; w < nr_of_wavelength; w++)
                     for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
-                        for(uint sph = 0; sph < nr_ofScatPhi; sph++)
-                            for(uint sth = 0; sth < nr_ofScatTheta; sth++)
-                                for(uint mat = 0; mat < nr_ofScatMatElements; mat++)
+                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
+                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                                for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
                                     sca_mat[a][w][inc][sph][sth][mat] += frac *
                                         comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
     }
@@ -3813,7 +4106,7 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
 
             // Read the dust catalog file for each dust component (including scatter matrix)
             if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
-                return false;
+                    return false;
 
             // Read the calorimetric file for each dust component
             if(param.getStochasticHeatingMaxSize() > single_component[i_comp].getSizeMin())
@@ -4021,7 +4314,8 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
         mixed_component[i_mixture].createStringID(&mixed_component[i_mixture], 1);
 
         // Pre-calculate various quantities
-        preCalcDustProperties(param, i_mixture);
+        if(!preCalcDustProperties(param, i_mixture))
+            return false;
 
         return true;
     }
@@ -4072,7 +4366,8 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
     }
 
     // Pre-calculate various quantities
-    preCalcDustProperties(param, i_mixture);
+    if(!preCalcDustProperties(param, i_mixture))
+        return false;
 
     return true;
 }
@@ -4118,6 +4413,11 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
     // If scattering matrix was loaded, pre-calculate phase function and scattering distribution
     if(mixed_component[i_mixture].getScatLoaded())
         mixed_component[i_mixture].preCalcMieScatteringProb();
+    else if(mixed_component[i_mixture].getPhaseFunctionID() == PH_MIE)
+    {
+        cout << "Error Mie scattering is chosen, but no scattering matrix was read!" << endl;
+        return false;
+    }
 
     // Use random alignment for Monte-Carlo simulations
     if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT ||

@@ -109,9 +109,9 @@ public:
         phID = 1;
         nr_of_dust_species = 0;
         nr_ofIncidentAngles = 0;
-        nr_ofScatTheta = 0;
-        nr_ofScatPhi = 0;
-        nr_ofScatMatElements = 0;
+        nr_of_scat_theta = 0;
+        nr_of_scat_phi = 0;
+        nr_of_scat_mat_elements = 0;
         nr_of_calorimetry_temperatures = 0;
 
         a_min_global = 1e200;
@@ -789,9 +789,9 @@ public:
                 {
                     for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
                     {
-                        for(uint sph = 0; sph < nr_ofScatPhi; sph++)
+                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         {
-                            for(uint sth = 0; sth < nr_ofScatTheta; sth++)
+                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
                                 delete[] sca_mat[a][w][inc][sph][sth];
                             delete[] sca_mat[a][w][inc][sph];
                         }
@@ -1509,17 +1509,17 @@ public:
 
     uint getNrOfScatTheta()
     {
-        return nr_ofScatTheta;
+        return nr_of_scat_theta;
     }
 
     uint getNrOfScatPhi()
     {
-        return nr_ofScatPhi;
+        return nr_of_scat_phi;
     }
 
     uint getNrOfScatMatElements()
     {
-        return nr_ofScatMatElements;
+        return nr_of_scat_mat_elements;
     }
 
     string getStringID()
@@ -1728,10 +1728,10 @@ public:
 
     uint getScatThetaID(double theta)
     {
-        uint res = uint(theta / PI * double(nr_ofScatTheta - 1) + 0.5);
+        uint res = uint(theta / PI * double(nr_of_scat_theta - 1) + 0.5);
 
-        if(res > nr_ofScatTheta - 1)
-            res = nr_ofScatTheta - 1;
+        if(res > nr_of_scat_theta - 1)
+            res = nr_of_scat_theta - 1;
 
         return res;
     }
@@ -1764,6 +1764,7 @@ public:
     void initCalorimetry();
 
     bool readDustParameterFile(parameter & param, uint dust_component_choice);
+    bool readDustRefractiveIndexFile(parameter & param, uint dust_component_choice);
     bool readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat);
     bool readCalorimetryFile(parameter & param, uint dust_component_choice);
 
@@ -1850,9 +1851,9 @@ private:
     uint phID;
     uint nr_of_dust_species;
     uint nr_ofIncidentAngles;
-    uint nr_ofScatTheta;
-    uint nr_ofScatPhi;
-    uint nr_ofScatMatElements;
+    uint nr_of_scat_theta;
+    uint nr_of_scat_phi;
+    uint nr_of_scat_mat_elements;
     uint nr_of_calorimetry_temperatures;
 
     dlist wavelength_list;

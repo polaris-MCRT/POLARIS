@@ -8,6 +8,7 @@
 #include <map>
 #include <limits>
 #include <algorithm>
+#include <complex>
 using namespace std;
 
 // Header and Version of POLARIS
@@ -229,6 +230,13 @@ using namespace std;
 #define CALO_HEAT_CAP      0
 #define CALO_ENTHALPY      1
 
+// Mie-scattering calculation
+#define MIE_SIZE_STEPS 100
+// Number of angles for scattering between 0° and 90°
+#define NANG 91
+#define NMXX 3000
+#define CXONE complex<float>(1.0, 0.0)
+
 // Projections for midplane files
 #define PROJ_XY 1
 #define PROJ_XZ 2
@@ -274,3 +282,4 @@ typedef vector<uint> uilist;
 typedef vector<ushort> uslist;
 typedef vector<int> ilist;
 typedef vector<string> strlist;
+typedef complex<float> fcomplex;

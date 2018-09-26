@@ -4,6 +4,7 @@
 #include "Stokes.h"
 #include "Faddeeva.hh"
 #include <limits>
+#include <complex>
 
 #ifndef CMATHFUNCTIONS
 #define CMATHFUNCTIONS
@@ -2364,26 +2365,295 @@ public:
         return x;
     }
 
-    /*! Returns the remainder of the division \a v1/v2.
-    The result is non-negative.
-    \a v1 can be positive or negative; \a v2 must be positive. */
     static inline double fmodulo(double v1, double v2) {
+        /*! Returns the remainder of the division \a v1/v2.
+        The result is non-negative.
+        \a v1 can be positive or negative; \a v2 must be positive. */
         if (v1 >= 0)
             return (v1 < v2) ? v1 : fmod(v1, v2);
         double tmp = fmod(v1, v2) + v2;
         return (tmp == v2) ? 0. : tmp;
     }
-    
-    /*! Returns the remainder of the division \a v1/v2.
-    The result is non-negative.
-    \a v1 can be positive or negative; \a v2 must be positive. */
+
     static inline int imodulo(int v1, int v2) {
+        /*! Returns the remainder of the division \a v1/v2.
+        The result is non-negative.
+        \a v1 can be positive or negative; \a v2 must be positive. */
         int v = v1 % v2;
         return (v >= 0) ? v : v + v2;
     }
 
-    void fillC()
+    static inline float Cabs(fcomplex z)
     {
+        float x, y, ans, tmp;
+
+        x = fabs(real(z));
+        y = fabs(imag(z));
+
+        if (x == 0.0)
+            ans = y;
+        else if (y == 0.0)
+            ans = x;
+        else if (x > y) {
+            tmp = y / x;
+            ans = x * sqrt(1.0 + tmp * tmp);
+        } else {
+            tmp = x / y;
+            ans = y * sqrt(1.0 + tmp * tmp);
+        }
+        return ans;
+    }
+
+    static inline fcomplex Csqrt(fcomplex z)
+    {
+        fcomplex c;
+        float x, y, w, r;
+
+        if(real(z) == 0.0 && imag(z) == 0.0)
+            c = fcomplex(0.0, 0.0);
+        else
+        {
+            x = fabs(real(z));
+            y = fabs(imag(z));
+            if (x >= y) {
+                r = y / x;
+                w = sqrt(x) * sqrt(0.5 * (1.0 + sqrt(1.0 + r * r)));
+            } 
+            else 
+            {
+                r = x / y;
+                w = sqrt(y) * sqrt(0.5 * (r + sqrt(1.0 + r * r)));
+            }
+            if(real(z) >= 0.0)
+            {
+                c.real(w);
+                c.imag(imag(z) / (2.0 * w));
+            }
+            else
+            {
+                c.imag((imag(z) >= 0) ? w : -w);
+                c.real(imag(z) / (2.0 * imag(c)));
+            }
+        }
+        return c;
+    }
+
+    static inline void calcBHMie(double x, fcomplex cxref, double &qext, double &qabs, double &qsca, double &gsca,
+            double *S11, double *S12, double *S33, double *S34)
+        /*Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
+        to calculate scattering and absorption by a homogenous isotropic
+        sphere.
+
+        Comment:
+            NANG = number of angles between 0 and 90 degrees
+                    (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
+
+        Given:
+            X = 2*pi*a/lambda
+            REFREL = (complex refractive index of sphere) / (real index of medium)
+
+        Returns:
+            S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
+                                      scattering E perpendicular to scattering plane)
+            S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
+                                      scattering E parallel to scattering plane)
+            QEXT = C_ext/pi*a**2 = efficiency factor for extinction
+            QSCA = C_sca/pi*a**2 = efficiency factor for scattering
+            QBACK = 4*pi*(dC_sca/domega)/pi*a**2
+                = backscattering efficiency
+            GSCA = <cos(theta)> for scattering
+    
+        Original program taken from Bohren and Huffman (1983), Appendix A
+        Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
+        in order to compute <cos(theta)>
+        */
+    {
+        float pii = 4.0 * atan(1.0);
+        double dx = x;
+        fcomplex cxy = fcomplex(x, 0.0) * cxref;
+
+        // Series expansion terminated after NSTOP terms
+        float xstop = x + 4.0 * pow(x, 0.3333) + 2.0;
+        uint nstop = uint(xstop);
+        float ymod = Cabs(cxy);
+        uint nmx = fmax(xstop, ymod) + 15;
+
+        if (nmx > NMXX) {
+            printf(" x, nmx, NMXX, cxref %f %i %i  \n ", x, nmx, NMXX);
+            printf(" xstop nstop ymod %f %i %f \n", xstop, nstop, ymod); 
+            printf(" Error: NMX > NMXX= %i \n", NMXX);
+            return;
+        }
+        
+        float amu[NANG];
+        float dang = 0.5 * pii / float(NANG - 1);
+        for (int j = 0; j < NANG; j++)
+        {
+            float theta = float(j) * dang;
+            amu[j] = cos(theta);
+        }
+
+        // Logarithmic derivative D(J) calculated by downward recurrence
+        // beginning with initial value (0.,0.) at J=NMX
+        fcomplex cxd[NMXX];
+        cxd[nmx] = fcomplex(0.0, 0.0);
+
+        fcomplex cxtemp;
+        for(int n = 0; n < nmx - 1; n++) {
+            float rn = nmx - n;
+            // cxd(nmx-n) = (rn/cxy) - (1.E0/(cxd(nmx-n+1)+rn/cxy))
+            cxtemp = cxd[nmx - n] + fcomplex(rn, 0.0) / cxy;
+            cxtemp = CXONE / cxtemp;
+            cxd[nmx - n] = fcomplex(rn, 0.0) / cxy - cxtemp;
+        }
+
+        float pi[NANG], pi0[NANG], pi1[NANG];
+        for(int j = 0; j < NANG; j++) {
+            pi0[j] = 0.0;
+            pi1[j] = 1.0;
+        }
+
+        fcomplex cxs1[2 * NANG - 1], cxs2[2 * NANG - 1];
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            cxs1[j] = fcomplex(0.0, 0.0);
+            cxs2[j] = fcomplex(0.0, 0.0);
+        }
+
+        // Riccati-Bessel functions with real argument X calculated by upward recurrence
+        double dn, psi; 
+        double psi0 = cos(dx);
+        double psi1 = sin(dx);
+        float rn, fn, apsi, chi;
+        float chi0 = -sin(x);
+        float chi1 = cos(x);
+        float apsi0 = psi0;
+        float apsi1 = psi1;
+        float tau[NANG];
+        fcomplex cxxi;
+        fcomplex cxxi0 = fcomplex(apsi0, -chi0);
+        fcomplex cxxi1 = fcomplex(apsi1, -chi1);
+        fcomplex cxan, cxan1, cxbn, cxbn1;
+
+        for (int n = 1; n <= nstop; n++)
+        {
+            dn = n;
+            rn = n;
+            fn = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
+            psi = (2.0 * dn - 1.0) * psi1 / dx - psi0;
+            apsi = psi;
+            chi = (2.0 * rn - 1.0) * chi1 / x - chi0;
+            cxxi = fcomplex(apsi, -chi);
+            // Store previous values of AN and BN for use in computation of g=<cos(theta)>
+            if(n > 1)
+            {
+                cxan1 = cxan;
+                cxbn1 = cxbn;
+            }
+
+            // Compute AN and BN: cxan = (cxd(n)/cxref+rn/x)*apsi - apsi1;
+            cxan = cxd[n] / cxref;
+            cxan = cxan + fcomplex(rn / x, 0.0);
+            cxan = cxan * fcomplex(apsi, 0.0);
+            cxan = cxan - fcomplex(apsi1, 0.0);
+
+            // cxan = cxan/((cxd(n)/cxref+rn/x)*cxxi-cxxi1);
+            cxtemp = cxd[n] / cxref;
+            cxtemp = cxtemp + fcomplex(rn / x, 0.0);
+            cxtemp = cxtemp * cxxi;
+            cxtemp = cxtemp - cxxi1;
+            cxan = cxan / cxtemp;
+
+            // cxbn = (cxref*cxd(n)+rn/x)*apsi - apsi1;
+            cxbn = cxref * cxd[n];
+            cxbn = cxbn + fcomplex(rn / x, 0.0);
+            cxbn = cxbn * fcomplex(apsi, 0.0);
+            cxbn = cxbn - fcomplex(apsi1, 0.0);
+
+            // cxbn = cxbn/((cxref*cxd(n)+rn/x)*cxxi-cxxi1);
+            cxtemp = cxref * cxd[n];
+            cxtemp = cxtemp + fcomplex(rn / x, 0.0);
+            cxtemp = cxtemp * cxxi;
+            cxtemp = cxtemp - cxxi1;
+            cxbn = cxbn / cxtemp;
+
+            // Augment sums for *qsca and g=<cos(theta)>
+            // *qsca = *qsca + (2.*rn+1.)*(cabs(cxan)**2+cabs(cxbn)**2);
+            qsca = qsca + (2.0 * rn + 1.0) * (Cabs(cxan) * Cabs(cxan) + Cabs(cxbn) * Cabs(cxbn)); 
+            gsca = gsca + ((2.0 * rn + 1.0) / (rn * (rn + 1.0))) * (real(cxan) * real(cxbn) + imag(cxan) * imag(cxbn)); 
+
+            if (n > 1)
+            {
+                gsca = gsca + ((rn-1.) * (rn + 1.0) / rn) * (
+                    real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) + 
+                    real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
+            }
+
+            for(int j = 0; j < NANG; j++)
+            {
+                int jj = 2 * NANG - j;
+                pi[j] = pi1[j];
+                tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
+                float p = pow(-1.0, n - 1);
+                // cxs1[j] = cxs1[j] + fn*(cxan*pi[j]+cxbn*tau[j]);
+                cxtemp = cxan * fcomplex(pi[j], 0.0);
+                cxtemp = cxtemp + cxbn * fcomplex(tau[j], 0.0);
+                cxtemp = fcomplex(fn, 0.0) * cxtemp;
+                cxs1[j] = cxs1[j] + cxtemp;
+                float t = pow(-1.0, n);
+                // cxs2[j] = cxs2[j] + fn*(cxan*tau[j]+cxbn*pi[j]);
+                cxtemp = cxan * fcomplex(tau[j], 0.0);
+                cxtemp = cxtemp + cxbn * fcomplex(pi[j], 0.0);
+                cxtemp = fcomplex(fn, 0.0) * cxtemp;
+                cxs2[j] = cxs2[j] + cxtemp;
+
+                if (j != jj)
+                {
+                    // cxs1[jj] = cxs1[jj] + fn*(cxan*pi(j)*p+cxbn*tau(j)*t);
+                    cxtemp = cxan * fcomplex(pi[j] * p, 0.0);
+                    cxtemp = cxtemp + cxbn * fcomplex(tau[j] * t, 0.0);
+                    cxtemp = fcomplex(fn, 0.0) * cxtemp;
+                    cxs1[jj] = cxs1[jj] + cxtemp;
+
+                    // cxs2[jj] = cxs2[jj] + fn*(cxan*tau(j)*t+cxbn*pi(j)*p);
+                    cxtemp = cxan * fcomplex(tau[j] * t, 0.0);
+                    cxtemp = cxtemp + cxbn * fcomplex(pi[j] * p, 0.0);
+                    cxtemp = fcomplex(fn, 0.0) * cxtemp;
+                    cxs2[jj] = cxs2[jj] + cxtemp;
+                }
+            }
+
+            psi0 = psi1;
+            psi1 = psi;
+            apsi1 = psi1;
+            chi0 = chi1;
+            chi1 = chi;
+            cxxi1 = fcomplex(apsi1, -chi1);
+
+            // For each angle J, compute pi_n+1 from PI = pi_n , PI0 = pi_n-1
+            for (int j = 0; j < NANG; j++) 
+            {
+                pi1[j] = ((2.0 * rn + 1.0) * amu[j] * pi[j] - (rn + 1.0) * pi0[j]) / rn;
+                pi0[j] = pi[j];
+            }
+        }
+
+        // Have summed sufficient terms. Now compute *qsca,*qext,*qback,and *gsca
+        gsca = 2.0 * gsca / qsca;
+        qsca = (2.0 / (x * x)) * qsca;
+        qext = (4.0 / (x * x)) * real(cxs1[1]);
+        qabs = qext - qsca;
+        //*qback = (4.0/(x * x)) * Cabs(cxs1[2 * NANG - 1]) * Cabs(cxs1[2 * NANG - 1]);
+
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            S11[j] = 0.5 * (Cabs(cxs2[j]) * Cabs(cxs2[j]) + Cabs(cxs1[j]) * Cabs(cxs1[j]));
+            S12[j] = 0.5 * (Cabs(cxs2[j]) * Cabs(cxs2[j]) - Cabs(cxs1[j]) * Cabs(cxs1[j]));
+            S33[j] = real(cxs2[j] * conj(cxs1[j]));
+            S34[j] = imag(cxs2[j] * conj(cxs1[j]));
+        }
+
+        return;
     }
 
     int IDUM;
