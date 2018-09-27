@@ -374,11 +374,11 @@ public:
         sU = tQ * s + tU * c;
     }
 
-    void rot(double s, double c)
+    void rot(double sin_phi, double cos_phi)
     {
         double tQ = sQ, tU = sU;
-        sQ = tQ * c - tU * s;
-        sU = tQ * s + tU * c;
+        sQ = tQ * cos_phi - tU * sin_phi;
+        sU = tQ * sin_phi + tU * cos_phi;
     }
 
     bool isConsistent()
@@ -388,6 +388,7 @@ public:
 
         if(sI < 0)
             return false;
+        
         if(sT < 0)
             return false;
 

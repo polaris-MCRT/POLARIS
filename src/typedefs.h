@@ -119,7 +119,7 @@ using namespace std;
 #define ALIG_RAT       8
 #define ALIG_GOLD      16
 
-#define SUPERTHERMAL_LIMIT 10
+#define SUPERTHERMAL_LIMIT 3
 #define MACH_LIMIT         1
 #define MRW_LIMIT          7
 #define PDA_LIMIT          30

@@ -1033,7 +1033,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     cout << CLR_LINE;
     cout << " -> Calc. RAT dust alig. radius: 0.0 %  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
@@ -1395,24 +1395,26 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 
         WMap_ca.setS(tmp_source->getStokesVector(pp1), i_wave);
     };
-
+    //cout << "START   \n";
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp1))
     {
         while(grid->next(pp1) && tracer->isNotAtCenter(pp1, cx, cy))
         {
             // Get necessary quantities from current cell
-            double dens_gas = grid->getGasNumberDensity(pp1);
+            //double dens_gas = grid->getGasNumberDensity(pp1);
+            //double dens_dust = dust->getNumberDensity(grid, pp1);
+            //double temp_dust = grid->getDustTemperature(pp1);
 
-            double n_th = grid->getThermalElectronDensity(pp1);
+            double n_th = 1e6;grid->getThermalElectronDensity(pp1);
             double T_e = grid->getElectronTemperature(pp1);
 
-            double n_cr = grid->getCRElectronDensity(pp1);
+            double n_cr =  1e6;grid->getCRElectronDensity(pp1);
             double g_min = grid->getGammaMin(pp1);
             double g_max = grid->getGammaMax(pp1);
             double pow_p = grid->getPowerLawIndex(pp1);
 
-            double B = grid->getMagField(pp1).length();
+            double B = 1e-9;grid->getMagField(pp1).length();
 
             // If the dust density is far too low, skip the current cell
             if(n_cr >= 1e-200)
@@ -1421,7 +1423,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                 double len = pp1->getTmpPathLength();
 
                 // Calculate orientation of the Stokes vector in relation to the detector
-                double phi = grid->getPhiMag(pp1);
+                double phi = 0;grid->getPhiMag(pp1);
                 double theta = grid->getThetaMag(pp1);
 
                 double sin_2ph = sin(2.0 * phi);
@@ -1433,9 +1435,8 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                     double wavelength = tracer->getWavelength(i_wave);
 
                     syn_param syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, wavelength, B, theta);
-                    syn_param syn_cr = synchrotron->get_Power_Law_Parameter(n_cr, wavelength, B, theta,
-                            g_min, g_max, pow_p);
-                    syn_param syn_ca = syn_th + syn_cr;
+                    syn_param syn_cr = synchrotron->get_Power_Law_Parameter(n_cr, wavelength, B, theta, g_min, g_max, pow_p);
+                    syn_param syn_ca = syn_cr; //+syn_th
 
                     // Get matrixes with the absorption's and conversions
                     Matrix2D alpha_th = -1 * syn_th.getSyncMatrix();
@@ -1466,7 +1467,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             syn_ca.j_Q * sin_2ph *cell_d_l, syn_ca.j_V * cell_d_l);
 
                     while(cell_sum < len)
-                    {
+                    {                             
                         // Init Runge-Kutta parameter and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
                         StokesVector * RK_k_th = new StokesVector[6];
@@ -1518,6 +1519,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             stokes_new_ca += (RK_k_ca[i] * cell_d_l) * RK_b1[i];
                             stokes_new2_ca += (RK_k_ca[i] * cell_d_l) * RK_b2[i];
                         }
+                      
 
                         // Delete the Runge-Kutta pointer
                         delete[] RK_k_th;
@@ -1552,9 +1554,9 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 
                             if(epsi==0)
                             {
-				                dz_new=len;
-                                cell_sum=len;
-                                cell_d_l=len;
+				                dz_new=0.01*len;
+                                //cell_sum=0.01*len;
+                                //cell_d_l=0.01*len;
                             }
                         }
 
@@ -1573,39 +1575,50 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             // Add additional data to stokes vector
                             stokes_new_cr.setT(WMap_cr.T(i_wave));
                             stokes_new_cr.setSp(WMap_cr.Sp(i_wave));
+                            
                             // Add the temporary Stokes vector to the total one
                             WMap_cr.setS(stokes_new_cr, i_wave);
+                            
                             //tau is set to Farraday rotation*lambda^2
                             WMap_cr.addT(syn_cr.kappa_V * cell_d_l, i_wave);
+                            
+                            // Sp is set to the CR electron column
                             WMap_cr.addSp(n_cr * cell_d_l, i_wave);
 
                             // Add additional data to stokes vector
                             stokes_new_ca.setT(WMap_ca.T(i_wave));
                             stokes_new_ca.setSp(WMap_ca.Sp(i_wave));
-                            // Add the temporary Stokes vector to the total one
-
-                            if(stokes_new_cr.I()<abs(stokes_new_cr.Q()))
-                                int tt=0;
 
 
-                            //cout << stokes_new_ca.linPol()<< endl;
+                            double res = sqrt(stokes_new_ca.Q()*stokes_new_ca.Q()+stokes_new_ca.U()*stokes_new_ca.U()+stokes_new_ca.V()*stokes_new_ca.V());
 
+                            if(1.0*stokes_new_ca.I()<res)
+                            {  
+                                cout << CLR_LINE;
+                                cout << "EROOOOOOOOOOOOOOOOOOOOR                                      \n";
+                                cout << cell_d_l << "\n";
+                                cout << stokes_new_ca.I() << "   " << res << "\n";
+                                cout << stokes_new_ca.I() << "   " << stokes_new_ca.Q() << "   " << stokes_new_ca.U() << "   " << stokes_new_ca.V()<< "\n";
+                                cout << res/stokes_new_ca.I() << "\n\n";
+                                cout << S_em_ca.I() << "   " << S_em_ca.Q() << "   " << S_em_ca.U() << "   " << S_em_ca.V()<< "\n\n";
+                                
+                                alpha_ca.printMatrix();
+                                                                
+                                cout << "\n\n" << syn_ca.j_I<< "   " << syn_ca.j_Q<< "   " << syn_ca.j_V << "\n";
+                            
+                                cout << theta/PI << "   B: " << B << "   n_cr: " << n_cr << "   n_th: " << n_th  << "   \n";
+                            
+                                
+                                cout << "!" << endl;
+                            }
 
-//                            if(stokes_new_ca.linPol()>0.76)
-//                            {
-//                                cout << stokes_new_ca.linPol()<< "\n\n";
-//                                alpha_ca.printMatrix();
-//                            }
-//
-//                            if(abs(stokes_new_ca.U())>1.0e33)
-//                                int tt=0;
-//
-//                            if(stokes_new_ca.I()<abs(stokes_new_ca.U()))
-//                                int tt=0;
 
                             WMap_ca.setS(stokes_new_ca, i_wave);
+                            
                             //tau is set to Farraday rotation*lambda^2
                             WMap_ca.addT(syn_ca.kappa_V * cell_d_l, i_wave);
+                            
+                            // sp is set to the total electron column
                             WMap_ca.addSp((n_cr + n_th) * cell_d_l, i_wave);
 
                             // Update the position of the photon package
@@ -1670,7 +1683,6 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
         pp3->setMultiStokesVector(WMap_ca.S(i_wave), i_wave);
     }
 }
-
 
 // -------------------------------------------
 // ------ Calculation of Dust transfer -------
