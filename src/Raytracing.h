@@ -1482,7 +1482,7 @@ public:
     bool postProcessing()
     {
         // Init counter and percentage to show progress
-        float per_counter = 0;
+        uint per_counter = 0;
         float last_percentage = 0;
 
         // Create a double list with the center points of the rt grid in radial direction
@@ -1508,8 +1508,8 @@ public:
             per_counter++;
 
             // Calculate percentage of total progress per source
-            float percentage = float(100.0 * float(per_counter) /
-                float(map_pixel_x * map_pixel_y * nr_spectral_bins));
+            float percentage = 100.0 * float(per_counter) /
+                float(map_pixel_x * map_pixel_y * nr_spectral_bins);
 
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)

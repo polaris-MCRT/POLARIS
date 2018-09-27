@@ -10,7 +10,6 @@ import numpy as np
 """
 def update_dust_dict(dictionary):
     dust_dict = {
-        'large_silicate': LargeSilicate,
         'multi_sil': MultiSilicate,
         'multi_themis': MultiThemis,
         'olivine': Olivine,
@@ -43,7 +42,7 @@ class CustomDust(Dust):
         Dust.__init__(self, file_io, parse_args)
         # Define the dust catalog file in the POLARIS standard file format
         # (relative to the polaris/input/ directory)
-        self.parameter['dust_cat_file'] = 'custom'
+        self.parameter['dust_cat_file'] = 'custom.dat'
         # Relative fraction of this dust composition to mix multiple dust compositions
         self.parameter['fraction'] = 1.0
         # Material density of the custom composition [kg/m^3]
@@ -56,10 +55,6 @@ class CustomDust(Dust):
         self.parameter['size_keyword'] = 'plaw'
         # List of size parameter for dust size distribution (plaw -> [exponent])
         self.parameter['size_parameter'] = [-3.5]
-        # Input refactive index file to create dust catalogs with Mie theory
-        self.parameter['input_file'] = 'olivine.nk'
-        # Define the dust grain sizes used to create a dust catalog
-        self.parameter['size_list'] = np.logspace(np.log10(5e-9), np.log10(0.25e-6), 100)
 
     def get_command(self):
         """Provides dust component command line for POLARIS .cmd file.
@@ -88,28 +83,6 @@ class CustomDust(Dust):
         return new_command_line
 
 
-class LargeSilicate(Dust):
-    """Dust class for large silicate grains."""
-
-    def __init__(self, file_io, parse_args):
-        """Initialisation of the dust parameters.
-
-        Args:
-            file_io : Handles file input/output and all
-                necessary paths.
-        """
-        Dust.__init__(self, file_io, parse_args)
-
-        # For creation of a dust catalog
-        self.parameter['dust_cat_file'] = 'silicate'
-        self.parameter['scattering'] = 'MIE'
-        self.parameter['subl_temp'] = 1200
-        # Minimum dust grain size
-        self.parameter['amin'] = 5e-9
-        # Maximum dust grain size
-        self.parameter['amax'] = 1e-3
-
-
 class MultiSilicate(Dust):
     """Dust class for silicate grains with different sizes in different
     regions of the model.
@@ -125,10 +98,9 @@ class MultiSilicate(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'silicate'
+        self.parameter['dust_cat_file'] = 'silicate.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 3500
-        self.parameter['subl_temp'] = 1200
 
     def get_command(self):
         """Provides dust composition command line for POLARIS .cmd file.
@@ -167,7 +139,7 @@ class MultiThemis(Dust):
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 0
         # Set the name of one component to allow print of sizes and wavelengths
-        self.parameter['dust_cat_file'] = 'CM20'
+        self.parameter['dust_cat_file'] = 'CM20.dat'
         # List of dust choice IDs
         self.choice_id = [0, 1]
 
@@ -216,13 +188,9 @@ class Olivine(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         # For creation of a dust catalog
-        self.parameter['dust_cat_file'] = 'olivine'
-        self.parameter['input_file'] = 'olivine.nk'
-        self.parameter['input_type'] = 'nk'
-        self.parameter['size_list'] = np.logspace(np.log10(5e-9), np.log10(1e-3), 200)
+        self.parameter['dust_cat_file'] = 'olivine.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 1500.
-        self.parameter['subl_temp'] = 1200
         # Minimum dust grain size
         self.parameter['amin'] = 0.03e-6
         # Maximum dust grain size
@@ -382,10 +350,9 @@ class TrustSilicate(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'trust_silicate'
+        self.parameter['dust_cat_file'] = 'trust_silicate.dat'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 3500
-        self.parameter['subl_temp'] = 1200
         self.parameter['size_keyword'] = 'zda'
         # c0, b0, m1, b1, a1, m2, b2, a2, m3, b3, a3, m4, b4, a4,
         self.parameter['size_parameter'] = [-8.47091, -3.68708, 22.5489, 2.37316e-5, 7.64943e-3,
@@ -397,6 +364,7 @@ class TrustSilicate(Dust):
         # For creation of a dust catalog
         self.parameter['input_file'] = 'suvSil_121_1201'
         self.parameter['input_type'] = 'trust'
+        self.parameter['subl_temp'] = 1200
 
 
 class TrustGraphite(Dust):
@@ -412,7 +380,7 @@ class TrustGraphite(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'trust_graphite'
+        self.parameter['dust_cat_file'] = 'trust_graphite.dat'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2240
         self.parameter['size_keyword'] = 'zda'
@@ -426,6 +394,7 @@ class TrustGraphite(Dust):
         # For creation of a dust catalog
         self.parameter['input_file'] = 'Gra_121_1201'
         self.parameter['input_type'] = 'trust'
+        self.parameter['subl_temp'] = 2100
 
 
 class TrustPah(Dust):
@@ -441,7 +410,7 @@ class TrustPah(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'trust_pah'
+        self.parameter['dust_cat_file'] = 'trust_pah.dat'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2240
         self.parameter['size_keyword'] = 'zda'
@@ -455,6 +424,7 @@ class TrustPah(Dust):
         # For creation of a dust catalog
         self.parameter['input_file'] = 'PAH_28_1201_neu'
         self.parameter['input_type'] = 'trust'
+        self.parameter['subl_temp'] = 2100
 
 
 class ThomasCM20(Dust):
@@ -470,7 +440,7 @@ class ThomasCM20(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'thomas_CM20'
+        self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 0
         self.parameter['size_keyword'] = 'plaw-ed'
@@ -498,7 +468,7 @@ class ThomasaPyM5(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'thomas_aPyM5'
+        self.parameter['dust_cat_file'] = 'thomas_aPyM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
         self.parameter['size_keyword'] = 'logn'
@@ -526,7 +496,7 @@ class ThomasaOlM5(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'thomas_aOlM5'
+        self.parameter['dust_cat_file'] = 'thomas_aOlM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
         self.parameter['size_keyword'] = 'logn'
@@ -560,7 +530,7 @@ class ThomasThemis(Dust):
         #: dict: Parameters which are different to the default values
         self.parameter['scattering'] = 'HG'
         # Set the name of one component to allow print of sizes and wavelengths
-        self.parameter['dust_cat_file'] = 'thomas_CM20'
+        self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
 
 
     def get_command(self):

@@ -92,51 +92,6 @@ class DustCreator:
         #self.write_dust_scat_to_file()
         print('------ Finished creation of polaris scattering data!')
 
-    def create_polaris_dust_from_mie(self):
-        """Create dust catalog with Mie theory.
-
-        Args:
-            parameter (dict): Dictionary with parameter to create dust grain catalog.
-        """
-        self.calc_mie()
-        print('------ Finished creation of MIEX dust data!                                 ')
-        self.write_dust_to_file(' (made with MIE)')
-        print('------ Finished creation of polaris dust component!')
-        self.write_dust_scat_to_file_init()
-        self.write_dust_scat_to_file()
-        print('------ Finished creation of polaris scattering data!')
-
-    def calc_mie(self):
-        """Calculate the Mie scattering with PyMieScatt.
-        """
-        from PyMieScatt import MatrixElements, MieQ
-        nk_data = np.genfromtxt(self.file_io.path['dust_nk'] + self.parameter['input_file'])
-
-        # Adjust unit
-        if self.parameter['nk_file_microns']:
-            nk_data[:, 0] *= 1e-6
-
-        # Set wavelength list
-        self.parameter['wavelength_list'] = nk_data[:, 0]
-
-        # Init arrays for dust properties
-        self.init_optical_properties()
-
-        import warnings
-        warnings.filterwarnings('ignore')
-        for i_a, a_eff in enumerate(self.parameter['size_list']):
-            for i_wl, (wavelength, n, k) in enumerate(nk_data):
-                print('Calculating the Mie optical properties for size ID:',
-                    str(i_a + 1) + '/' + str(self.parameter['size_list'].size), 'and wl ID:',
-                        str(i_wl + 1) + '/' + str(nk_data.shape[0]) + '      ', end='\r')
-                efficiencies_dict = MieQ(n + 1j * k, wavelength * 1e9, 2 * a_eff * 1e9, asDict=True)
-                for efficiency in ['Qext', 'Qsca', 'Qabs', 'g']:
-                    self.parameter[efficiency][i_a, i_wl] = efficiencies_dict[efficiency]
-                for i_theta, theta in enumerate(self.parameter['theta_angle_list']):
-                    cos_theta = np.cos(theta / 180. * np.pi)
-                    self.parameter['scat_matrix'][i_a, i_wl, 0, 0, i_theta, :] = MatrixElements(n + 1j * k,
-                        wavelength * 1e9, 2 * a_eff * 1e9, cos_theta)
-
     def read_dustem_wavelengths(self):
         #Open wavelength file
         wavelengths_file = open(self.file_io.path['dustem'] + 'oprop/' + self.parameter['dustem_wl_file'] + '.DAT')
@@ -290,7 +245,7 @@ class DustCreator:
                     self.parameter['scat_matrix'][i_a, i_wl, 0, 0, i_theta, :] = trust_scattering_matrix[i_wl, 1:]
 
     def write_dust_to_file(self, description):
-        dust_file = open(self.file_io.path['dust'] + self.parameter['dust_cat_file'] + '.dat', 'w')
+        dust_file = open(self.file_io.path['dust'] + self.parameter['dust_cat_file'], 'w')
         dust_file.write('#Robert Brauer (email: robert.brauer@cea.fr)\n')
         dust_file.write('\n')
         dust_file.write('#Post-Doc at CEA Saclay\n')
@@ -302,7 +257,7 @@ class DustCreator:
         dust_file.write('#History:   ' + str(datetime.date.today()) + '\n')
         dust_file.write('\n')
         dust_file.write('#string ID\n')
-        dust_file.write(str(self.parameter['dust_cat_file'] + description) + '\n')
+        dust_file.write(str(os.path.basename(self.parameter['dust_cat_file']) + description) + '\n')
         dust_file.write('\n')
         dust_file.write(
             '#nr. of dust species #wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align\n')
@@ -377,9 +332,9 @@ class DustCreator:
 
     def write_dust_scat_to_file_init(self):
         os.chdir(self.file_io.path['dust'])
-        if not os.path.isdir(self.parameter['dust_cat_file'] + '/'):
-            os.mkdir(self.parameter['dust_cat_file'] + '/')
-        scat_info_file = open(self.parameter['dust_cat_file'] + '/scat.inf', 'w')
+        if not os.path.isdir(os.path.basename(self.parameter['dust_cat_file']) + '/'):
+            os.mkdir(os.path.basename(self.parameter['dust_cat_file']) + '/')
+        scat_info_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/scat.inf', 'w')
         scat_info_file.write(str(self.parameter['size_list'].size) + '\t' +
                              str(self.parameter['wavelength_list'].size) + '\t' +
                              str(self.parameter['inc_angle_list'].size) + '\t' +
@@ -399,7 +354,7 @@ class DustCreator:
         import struct
         os.chdir(self.file_io.path['dust'])
         for i_wl, wl in enumerate(self.parameter['wavelength_list']):
-            scat_bin_file = open(self.parameter['dust_cat_file'] + '/wID' + str(i_wl + 1).zfill(3) + '.sca', 'wb')
+            scat_bin_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/wID' + str(i_wl + 1).zfill(3) + '.sca', 'wb')
             for i_dust, size in enumerate(self.parameter['size_list']):
                 for i_inc, inc in enumerate(self.parameter['inc_angle_list']):
                     for i_ph, phi in enumerate(self.parameter['phi_angle_list']):
@@ -411,9 +366,9 @@ class DustCreator:
 
     def write_dust_calorimetry_to_file(self):
         os.chdir(self.file_io.path['dust'])
-        if not os.path.isdir(self.parameter['dust_cat_file'] + '/'):
-            os.mkdir(self.parameter['dust_cat_file'] + '/')
-        calorimetry_data_file = open(self.parameter['dust_cat_file'] + '/calorimetry.dat', 'w')
+        if not os.path.isdir(os.path.basename(self.parameter['dust_cat_file']) + '/'):
+            os.mkdir(os.path.basename(self.parameter['dust_cat_file']) + '/')
+        calorimetry_data_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/calorimetry.dat', 'w')
         calorimetry_data_file.write('# nr. of temperatures\n')
         calorimetry_data_file.write(str(self.parameter['temp_list'].size) + '\n')
         line_string = str()

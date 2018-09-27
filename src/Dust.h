@@ -108,7 +108,7 @@ public:
         alignment = ALIG_PA;
         phID = 1;
         nr_of_dust_species = 0;
-        nr_ofIncidentAngles = 0;
+        nr_of_incident_angles = 0;
         nr_of_scat_theta = 0;
         nr_of_scat_phi = 0;
         nr_of_scat_mat_elements = 0;
@@ -787,7 +787,7 @@ public:
             {
                 for(uint w = 0; w < nr_of_wavelength; w++)
                 {
-                    for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
+                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                     {
                         for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         {
@@ -1504,7 +1504,7 @@ public:
 
     uint getNrOfIncidentAngles()
     {
-        return nr_ofIncidentAngles;
+        return nr_of_incident_angles;
     }
 
     uint getNrOfScatTheta()
@@ -1796,7 +1796,7 @@ public:
 
 private:
     spline **avg_scattering_frac;
-    linear **phase_pdf;
+    interp **phase_pdf;
 
     spline *HG_g_factor, *Qtrq;
     spline *tab_planck;
@@ -1814,6 +1814,7 @@ private:
     double *calorimetry_temperatures;
     double *mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
+    double *scattering_angles;
 
     string stringID;
     string size_keyword;
@@ -1850,7 +1851,7 @@ private:
     uint alignment;
     uint phID;
     uint nr_of_dust_species;
-    uint nr_ofIncidentAngles;
+    uint nr_of_incident_angles;
     uint nr_of_scat_theta;
     uint nr_of_scat_phi;
     uint nr_of_scat_mat_elements;

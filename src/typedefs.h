@@ -208,10 +208,10 @@ using namespace std;
 #define CROSS_ABS       1
 #define CROSS_SCA       2
 
-// Extrapolation IDs
-#define EXPOL_CONST     0
-#define EXPOL_LINEAR    1
-#define EXPOL_SPLINE    2
+// Extrapolation/Interpolation IDs
+#define CONST     0
+#define LINEAR    1
+#define SPLINE    2
 
 // Radiation types on detector
 // direct starlight
@@ -223,10 +223,12 @@ using namespace std;
 // multiple scattering at dust grains
 #define SCATTERED_DUST_2   3
 
+// Type of emission
 #define RESULTS_RAY        0
 #define RESULTS_MC         1
 #define RESULTS_FULL       2
 
+// Type of calorimetry data
 #define CALO_HEAT_CAP      0
 #define CALO_ENTHALPY      1
 
@@ -234,7 +236,7 @@ using namespace std;
 #define MIE_SIZE_STEPS 100
 // Number of angles for scattering between 0° and 90°
 #define NANG 91
-#define NMXX 3000
+#define NMXX 1000000
 #define CXONE complex<float>(1.0, 0.0)
 
 // Projections for midplane files

@@ -300,14 +300,12 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
                 // Init variables
                 double end_tau, Cext, Csca;
                 Vector3D old_pos;
-                linear phase_pdf;
-                spline avg_scattering_frac;
 
                 // Increase counter used to show progress
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage = float(100 * float(per_counter) / (nr_of_photons * nr_used_wavelengths));
+                float percentage = 100 * float(per_counter) / float(nr_of_photons * nr_used_wavelengths);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -639,7 +637,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage = float(100.0 * float(per_counter) / float(nr_of_photons));
+                float percentage = 100.0 * float(per_counter) / float(nr_of_photons);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1029,7 +1027,7 @@ void CRadiativeTransfer::calcAlignedRadii()
 {
     ulong max_cells = grid->getMaxDataCells();
 
-    float per_counter = 0;
+    uint per_counter = 0;
     float last_percentage = 0;
 
     cout << CLR_LINE;
@@ -1042,7 +1040,7 @@ void CRadiativeTransfer::calcAlignedRadii()
         dust->calcAlignedRadii(grid, cell);
 
         per_counter++;
-        float percentage = float(100.0 * float(per_counter) / float(max_cells));
+        float percentage = 100.0 * float(per_counter) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1066,7 +1064,7 @@ void CRadiativeTransfer::calcAlignedRadii()
 
 void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
 {
-    float per_counter = 0;
+    uint per_counter = 0;
     float last_percentage = 0;
 
     ulong max_cells = grid->getMaxDataCells();
@@ -1084,7 +1082,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
             grid->setGasTemperature(cell, adjTgas * dust->getDustTemperature(grid, cell));
 
         per_counter++;
-        float percentage = float(100.0 * float(per_counter) / float(max_cells));
+        float percentage = 100.0 * float(per_counter) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1105,7 +1103,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
 
 void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
 {
-    float per_counter = 0;
+    uint per_counter = 0;
     float last_percentage = 0;
 
     ulong max_cells = grid->getMaxDataCells();
@@ -1127,7 +1125,7 @@ void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
             dust->updateStochasticTemperature(grid, cell);
 
         per_counter++;
-        float percentage = float(100.0 * float(per_counter) / float(max_cells));
+        float percentage = 100.0 * float(per_counter) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1244,7 +1242,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameter & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            float per_counter = 0;
+            uint per_counter = 0;
             float last_percentage = 0;
 
             // Show information about the current detector
@@ -1266,7 +1264,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameter & param)
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage = float(100.0 * float(per_counter) / float(per_max));
+                float percentage = 100.0 * float(per_counter) / float(per_max);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1554,7 +1552,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 
                             if(epsi==0)
                             {
-				dz_new=len;
+				                dz_new=len;
                                 cell_sum=len;
                                 cell_d_l=len;
                             }
@@ -1735,7 +1733,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameter & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            float per_counter = 0;
+            uint per_counter = 0;
             float last_percentage = 0;
 
             // Show information about the current detector
@@ -1757,7 +1755,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameter & param)
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage = float(100.0 * float(per_counter) / float(per_max));
+                float percentage = 100.0 * float(per_counter) / float(per_max);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -2260,7 +2258,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameter & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            float per_counter = 0;
+            uint per_counter = 0;
             float last_percentage = 0;
 
             // Calculate pixel intensity for each pixel
@@ -2275,7 +2273,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameter & param)
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage = float(100.0 * float(per_counter) / float(per_max));
+                float percentage = 100.0 * float(per_counter) / float(per_max);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)

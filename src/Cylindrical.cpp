@@ -36,7 +36,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
     line_counter = 1;
     char_counter = 0;
-    uint last_percentage = 0;
+    float last_percentage = 0;
 
     bin_reader.read((char*) &tmpID, 2);
     bin_reader.read((char*) &tmpOffset, 2);
@@ -422,7 +422,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
             break;
             
          // Calculate percentage of total progress per source
-        uint percentage = uint(100.0 * double(line_counter) / double(max_cells));
+        float percentage = 100.0 * double(line_counter) / double(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)

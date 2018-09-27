@@ -289,17 +289,16 @@ class Dust:
             'scattering': 'ISO',
             # Parameter to create dust catalogs
             'input_file': None,
-            'input_type': 'nk',  # 'nk', 'dustem' or 'trust'
-            'nk_file_microns': True,  # used if type = nk
+            'input_type': None,  # 'dustem' or 'trust'
             'dustem_wl_file': 'LAMBDA',  # Only if input_type == dustem
             'wavelength_list': None,
-            'size_list': np.linspace(5e-9, 250e-6, 100),
+            'size_list': None,
             'theta_angle_list': np.linspace(0, 180, 181),
-            'inc_angle_list': np.zeros(1),
-            'phi_angle_list': np.zeros(1),
+            'inc_angle_list': None,
+            'phi_angle_list': None,
             'material_density': 0,
             'calorimetry_type': 'heat_capacity',
-            'subl_temp': 3500,
+            'subl_temp': 9999,
             'align': 0,
             'aspect_ratio': 1,
             'rat_delta': 0,
@@ -316,9 +315,7 @@ class Dust:
         if self.parameter['input_file'] is None:
             raise ValueError('No input file for dust catalog defined!')
 
-        if self.parameter['input_type'] == 'nk':
-            self.dust_creator.create_polaris_dust_from_mie()
-        elif self.parameter['input_type'] == 'dustem':
+        if self.parameter['input_type'] == 'dustem':
             self.dust_creator.create_polaris_dust_from_dustem()
         elif self.parameter['input_type'] == 'trust':
             self.dust_creator.create_polaris_dust_from_trust()
@@ -357,7 +354,7 @@ class Dust:
         else:
             dust_string = '\t<dust_component>\t"'
         if self.parameter['amin'] is not None and self.parameter['amax'] is not None:
-            dust_string += self.file_io.path['dust'] + self.parameter['dust_cat_file'] + '.dat' +  \
+            dust_string += self.file_io.path['dust'] + self.parameter['dust_cat_file'] +  \
                 '" "' + self.parameter['size_keyword'] + '" ' + str(self.parameter['fraction']) + ' ' + \
                 str(self.parameter['material_density']) + ' ' + str(self.parameter['amin']) + ' ' + \
                 str(self.parameter['amax'])

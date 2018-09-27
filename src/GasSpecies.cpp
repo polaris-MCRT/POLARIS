@@ -16,7 +16,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
 {
     uint const nr_of_energy_levels = getNrEnergyLevels();
     uint const nr_of_transitions = getNrOfTransitions();
-    uint last_percentage = 0;
+    float last_percentage = 0;
     long cell_count = 0;
     long max_cells = grid->getMaxDataCells();
 
@@ -27,7 +27,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
     {
         cell_basic * cell = grid->getCellFromIndex(i_cell);
         // Calculate percentage of total progress per source
-        uint percentage = uint(100 * float(cell_count) / float(max_cells));
+        float percentage = 100 * float(cell_count) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -83,7 +83,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
     uint nr_of_energy_levels = getNrEnergyLevels();
     uint nr_of_total_transitions = getNrOfTotalTransitions();
     uint nr_of_transitions = getNrOfTransitions();
-    uint last_percentage = 0;
+    float last_percentage = 0;
     long cell_count = 0;
     long max_cells = grid->getMaxDataCells();
     double * J_mid = new double[nr_of_total_transitions];
@@ -104,7 +104,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         double gas_number_density = grid->getGasNumberDensity(cell);
 
         // Calculate percentage of total progress per source
-        uint percentage = uint(100 * float(cell_count) / float(max_cells));
+        float percentage = 100 * float(cell_count) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -175,7 +175,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
     uint nr_of_energy_levels = getNrEnergyLevels();
     uint nr_of_transitions = getNrOfTransitions();
     uint nr_of_total_transitions = getNrOfTotalTransitions();
-    uint last_percentage = 0;
+    float last_percentage = 0;
     long cell_count = 0;
     long max_cells = grid->getMaxDataCells();
     bool no_error = true;
@@ -203,7 +203,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
         // Calculate percentage of total progress per source
-        uint percentage = uint(100 * float(cell_count) / float(max_cells));
+        float percentage = 100 * float(cell_count) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)

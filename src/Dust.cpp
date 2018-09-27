@@ -65,7 +65,7 @@ void CDustComponent::initScatteringMatrixArray()
 {
     // Init counter and percentage to show progress
     uint per_counter = 0;
-    uint last_percentage = 0;
+    float last_percentage = 0;
 
     // Init maximum counter value
     uint max_counter = nr_of_wavelength * nr_of_dust_species;
@@ -84,7 +84,7 @@ void CDustComponent::initScatteringMatrixArray()
             per_counter++;
 
             // Calculate percentage of total progress per source
-            uint percentage = uint(100.0 * float(per_counter) / float(max_counter));
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
 
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -98,8 +98,8 @@ void CDustComponent::initScatteringMatrixArray()
             }
 
             // Third init of the scattering matrix
-            sca_mat[a][w] = new double***[nr_ofIncidentAngles];
-            for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
+            sca_mat[a][w] = new double***[nr_of_incident_angles];
+            for(int inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 // Fourth init of the scattering matrix
                 sca_mat[a][w][inc] = new double**[nr_of_scat_phi];
@@ -236,7 +236,7 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 nr_of_wavelength_dustcat = (uint) values[1];
 
                 // The number of incident angles
-                nr_ofIncidentAngles = (uint) values[2];
+                nr_of_incident_angles = (uint) values[2];
 
                 // The aspect ratio between the longer and shorter axis
                 aspect_ratio = values[3];
@@ -262,8 +262,8 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
 
                 // Init splines for wavelength interpolation of the dust optical properties
                 eff_wl = new spline[nr_of_dust_species * NR_OF_EFF];
-                Qtrq_wl = new spline[nr_of_dust_species * nr_ofIncidentAngles];
-                HG_g_factor_wl = new spline[nr_of_dust_species * nr_ofIncidentAngles];
+                Qtrq_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
+                HG_g_factor_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
 
                 break;
 
@@ -321,8 +321,8 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                     for(uint i = 0; i < NR_OF_EFF - 1; i++)
                         eff_wl[a * NR_OF_EFF + i].resize(nr_of_wavelength_dustcat);
 
-                // Each line contains NR_OF_EFF - 1 plus 2 times nr_ofIncidentAngles values
-                if(values.size() == NR_OF_EFF - 1 + 2 * nr_ofIncidentAngles)
+                // Each line contains NR_OF_EFF - 1 plus 2 times nr_of_incident_angles values
+                if(values.size() == NR_OF_EFF - 1 + 2 * nr_of_incident_angles)
                 {
                     // he current line contains enough values
                     rec = true;
@@ -332,22 +332,22 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                         eff_wl[a * NR_OF_EFF + i].setValue(w, wavelength_list_dustcat[w], values[i]);
 
                     // For each incident angles, get Qtrq and HG g factor
-                    for(uint i_inc = 0; i_inc < nr_ofIncidentAngles; i_inc++)
+                    for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
                     {
                         // At the first wavelength, resize the splines for the wavelengths
                         if(w == 0)
                         {
-                            Qtrq_wl[a * nr_ofIncidentAngles + i_inc].resize(nr_of_wavelength_dustcat);
-                            HG_g_factor_wl[a * nr_ofIncidentAngles + i_inc].resize(nr_of_wavelength_dustcat);
+                            Qtrq_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
                         }
 
                         // Set the radiative torque efficiency
-                        Qtrq_wl[a * nr_ofIncidentAngles + i_inc].setValue(w, wavelength_list_dustcat[w],
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].setValue(w, wavelength_list_dustcat[w],
                             values[NR_OF_EFF - 1 + i_inc]);
 
                         // Set the Henyey-Greenstein factor
-                        HG_g_factor_wl[a * nr_ofIncidentAngles + i_inc].setValue(w, wavelength_list_dustcat[w],
-                            values[NR_OF_EFF - 1 + i_inc + nr_ofIncidentAngles]);
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].setValue(w, wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + nr_of_incident_angles]);
                     }
 
                     // Increace the counter for the dust grain optical properties
@@ -362,10 +362,10 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                         eff_wl[a * NR_OF_EFF + i].createSpline();
 
                     // For the Qtrq and HG g factor for each incident angle
-                    for(uint i_inc = 0; i_inc < nr_ofIncidentAngles; i_inc++)
+                    for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
                     {
-                        Qtrq_wl[a * nr_ofIncidentAngles + i_inc].createSpline();
-                        HG_g_factor_wl[a * nr_ofIncidentAngles + i_inc].createSpline();
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].createSpline();
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].createSpline();
                     }
                 }
 
@@ -419,25 +419,25 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Resize the splines of Qtrq and HG g factor for each wavelength
-            Qtrq[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
-            HG_g_factor[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
+            Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
             if(sizeIndexUsed(a, a_min_global, a_max_global))
             {
                 // Calculate the difference between two incident angles
                 double d_ang;
-                if(nr_ofIncidentAngles > 1)
-                    d_ang = PI / double(nr_ofIncidentAngles - 1);
+                if(nr_of_incident_angles > 1)
+                    d_ang = PI / double(nr_of_incident_angles - 1);
                 else
                     d_ang = 1;
 
                 // Set the splines of Qtrq and HG g factor for each incident angle
-                for(uint i_inc = 0; i_inc < nr_ofIncidentAngles; i_inc++)
+                for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
                 {
                     Qtrq[w * nr_of_dust_species + a].setValue(i_inc, i_inc * d_ang,
-                        Qtrq_wl[a * nr_ofIncidentAngles + i_inc].getValue(wavelength_list[w]));
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w]));
                     HG_g_factor[w * nr_of_dust_species + a].setValue(i_inc, i_inc * d_ang,
-                        HG_g_factor_wl[a * nr_ofIncidentAngles + i_inc].getValue(wavelength_list[w], EXPOL_CONST));
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w], CONST));
                 }
 
                 // Calculate the average HG g factor over all angles
@@ -518,11 +518,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     CCommandParser ps;
     unsigned char ru[4] = {'|', '/', '-', '\\'};
     string line;
-    dlist values;
-
-    // Set number of grain sizes for Mie-theory
-    nr_of_dust_species = MIE_SIZE_STEPS;
-    dlist values_aeff(nr_of_dust_species);
+    dlist values, values_aeff;
 
     // temporary variables for wavelength interpolation
     spline refractive_index_real, refractive_index_imag;
@@ -531,6 +527,13 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     // Get min and max dust grain size
     double a_min = param.getSizeMin(dust_component_choice);
     double a_max = param.getSizeMax(dust_component_choice);
+
+    // Set number of grain sizes for Mie-theory (1 if only one grain size is used)
+    if(a_min == a_max)
+        nr_of_dust_species = 1;
+    else
+        nr_of_dust_species = MIE_SIZE_STEPS; 
+    values_aeff.resize(nr_of_dust_species);
 
     // Get Path to dust parameter file
     string path = param.getDustPath(dust_component_choice);
@@ -604,7 +607,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                 nr_of_wavelength_dustcat = (uint) values[0];
 
                 // The number of incident angles
-                nr_ofIncidentAngles = 1;  // For non-spherical: (uint) values[1];
+                nr_of_incident_angles = 1;  // For non-spherical: (uint) values[1];
 
                 // The aspect ratio between the longer and shorter axis
                 aspect_ratio = 1; // For non-spherical: values[2];
@@ -654,7 +657,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                 // Init boolean value to check if the lines contain the right values
                 bool rec = false;
 
-                // Each line contains NR_OF_EFF - 1 plus 2 times nr_ofIncidentAngles values
+                // Each line contains NR_OF_EFF - 1 plus 2 times nr_of_incident_angles values
                 if(values.size() == 3)
                 {
                     // he current line contains enough values
@@ -708,17 +711,27 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
 
     // Set variables for scattering via Mie theory
-    nr_of_scat_phi = 1, 
-    nr_of_scat_theta = 2 * NANG - 1;
     nr_of_scat_mat_elements = 4;
 
+    // --- Phi angle
+    nr_of_scat_phi = 1;
+
+    // --- Theta angle
+    nr_of_scat_theta = 2 * NANG - 1;
+    
     // Init normal scattering matrix array
     initScatteringMatrixArray();
 
-#pragma omp parallel for
+    // Init counter and percentage to show progress
+    uint per_counter = 0;
+    float last_percentage = 0;
+
+    // Init maximum counter value
+    uint max_counter = nr_of_dust_species;
+
+#pragma omp parallel for schedule(dynamic)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
-        // Resize the splines for each grain size
         Qext1[a] = new double[nr_of_wavelength];
         Qext2[a] = new double[nr_of_wavelength];
         Qabs1[a] = new double[nr_of_wavelength];
@@ -727,12 +740,29 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+        
+        // Increase counter used to show progress
+        per_counter++;
+
+        // Calculate percentage of total progress per source
+        float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+#pragma omp critical
+            {
+                printIDs();
+                cout << "calculating Mie-scattering: " << percentage << " %                      \r";
+                last_percentage = percentage;
+            }
+        }
 
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Resize the splines of Qtrq and HG g factor for each wavelength
-            Qtrq[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
-            HG_g_factor[w * nr_of_dust_species + a].resize(nr_ofIncidentAngles);
+            Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
             if(sizeIndexUsed(a, a_min_global, a_max_global))
             {
@@ -749,7 +779,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                     refractive_index_imag.getValue(wavelength_list[w]));
 
                 // Calculate Mie-scattering
-                CMathFunctions::calcBHMie(x, refractive_index, 
+                CMathFunctions::calcBHMie(x, refractive_index,
                     Qext1[a][w], Qabs1[a][w], Qsca1[a][w], HGg[a][w], S11, S12, S33, S34);
 
                 // Set missing Efficiencies for other axis
@@ -757,7 +787,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                 Qabs2[a][w] = Qabs1[a][w];
                 Qsca2[a][w] = Qsca1[a][w];
 
-                for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
+                for(int inc = 0; inc < nr_of_incident_angles; inc++)
                 {
                     for(int sph = 0; sph < nr_of_scat_phi; sph++)
                     {
@@ -886,7 +916,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                 }
 
                 // The number of incident angles
-                if(values[2] != nr_ofIncidentAngles)
+                if(values[2] != nr_of_incident_angles)
                 {
                     cout << "ERROR: " << inf_filename.c_str() << " line " << line_counter << "!" << endl;
                     cout << "Number of incident angles does not match the number in the dust parameter file!" << endl;
@@ -898,6 +928,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 
                 // The number of theta angles (outgoing radiation)
                 nr_of_scat_theta = uint(values[4]);
+
                 break;
 
             case 2:
@@ -945,30 +976,30 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 
     // Init counter and percentage to show progress
     uint per_counter = 0;
-    uint last_percentage = 0;
+    float last_percentage = 0;
 
     // Init maximum counter value
-    uint max_counter = nr_ofIncidentAngles * nr_of_dust_species * nr_of_scat_phi;
+    uint max_counter = nr_of_incident_angles * nr_of_dust_species * nr_of_scat_phi;
 
-    // First init of the scattering matrix linear
-    linear ***** sca_mat_wl = new linear****[nr_of_dust_species];
+    // First init of the scattering matrix interp
+    interp ***** sca_mat_wl = new interp****[nr_of_dust_species];
 
 #pragma omp parallel for
     for(int a = 0; a < nr_of_dust_species; a++)
     {
-        // Second init of the scattering matrix linear
-        sca_mat_wl[a] = new linear***[nr_ofIncidentAngles];
-        for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
+        // Second init of the scattering matrix interp
+        sca_mat_wl[a] = new interp***[nr_of_incident_angles];
+        for(int inc = 0; inc < nr_of_incident_angles; inc++)
         {
-            // Third init of the scattering matrix linear
-            sca_mat_wl[a][inc] = new linear**[nr_of_scat_phi];
+            // Third init of the scattering matrix interp
+            sca_mat_wl[a][inc] = new interp**[nr_of_scat_phi];
             for(int sph = 0; sph < nr_of_scat_phi; sph++)
             {
                 // Increase counter used to show progress
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                uint percentage = uint(100.0 * float(per_counter) / float(max_counter));
+                float percentage = 100.0 * float(per_counter) / float(max_counter);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -981,12 +1012,12 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                     }
                 }
 
-                // Fourth init of the scattering matrix linear
-                sca_mat_wl[a][inc][sph] = new linear*[nr_of_scat_theta];
+                // Fourth init of the scattering matrix interp
+                sca_mat_wl[a][inc][sph] = new interp*[nr_of_scat_theta];
                 for(int sth = 0; sth < nr_of_scat_theta; sth++)
                 {
-                    // Fifth init of the scattering matrix linear
-                    sca_mat_wl[a][inc][sph][sth] = new linear[nr_of_scat_mat_elements];
+                    // Fifth init of the scattering matrix interp
+                    sca_mat_wl[a][inc][sph][sth] = new interp[nr_of_scat_mat_elements];
 
                     // Resize the linear for each scattering matrix element
                     for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
@@ -1049,7 +1080,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
             per_counter++;
 
             // Calculate percentage of total progress per source
-            uint percentage = uint(100.0 * float(per_counter) / float(max_counter));
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
 
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -1062,7 +1093,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                 }
             }
 
-            for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
+            for(uint inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                 {
@@ -1073,7 +1104,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
                             // Read value from binary file
                             bin_reader.read((char*) &tmp_val, 4);
 
-                            // Set value of linear to the read value
+                            // Set value of interp to the read value
                             sca_mat_wl[a][inc][sph][sth][mat].setValue(w, wavelength_list_dustcat[w], tmp_val);
                         }
                     }
@@ -1096,7 +1127,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
     {
         if(sizeIndexUsed(a, a_min_global, a_max_global))
         {
-            for(int inc = 0; inc < nr_ofIncidentAngles; inc++)
+            for(int inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 for(int sph = 0; sph < nr_of_scat_phi; sph++)
                 {
@@ -1888,9 +1919,9 @@ void CDustComponent::preCalcAbsorptionRates()
 
 void CDustComponent::preCalcMieScatteringProb()
 {
-    // Init arrays of splines/linear
+    // Init arrays of splines/interp
     avg_scattering_frac = new spline*[nr_of_dust_species];
-    phase_pdf = new linear*[nr_of_dust_species];
+    phase_pdf = new interp*[nr_of_dust_species];
 
     // Calculate differences between two angles
     double d_ang = PI / double(nr_of_scat_theta - 1);
@@ -1906,42 +1937,42 @@ void CDustComponent::preCalcMieScatteringProb()
         double * S11_solid_angle = new double[nr_of_scat_theta];
         double * tmp_scat_frac = new double[nr_of_scat_theta];
 
-        // Init arrays of linear
+        // Init arrays of interp
         avg_scattering_frac[a] = new spline[nr_of_wavelength];
-        phase_pdf[a] = new linear[nr_of_wavelength];
+        phase_pdf[a] = new interp[nr_of_wavelength];
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Resize splines for scattering angles
             avg_scattering_frac[a][w].resize(nr_of_scat_theta);
             phase_pdf[a][w].resize(nr_of_scat_theta);
 
-            for(uint th = 0; th < nr_of_scat_theta; th++)
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
             {
                 // Calculate the scattering propability in a certain direction
-                S11_tmp[th] = double(sca_mat[a][w][0][0][th][0]);
+                S11_tmp[sth] = double(sca_mat[a][w][0][0][sth][0]);
 
                 // Calculate the modified angle for integration
-                S11_solid_angle[th] = PIx2 * cos(double(th) * d_ang);
+                S11_solid_angle[sth] = PIx2 * cos(double(sth) * d_ang);
 
                 // Set the current value for the integration array tmp_scat_frac
-                if(th == 0)
-                    tmp_scat_frac[th] = 0;
+                if(sth == 0)
+                    tmp_scat_frac[sth] = 0;
                 else
-                    tmp_scat_frac[th] = -CMathFunctions::integ(S11_solid_angle, S11_tmp, 0, th);
+                    tmp_scat_frac[sth] = -CMathFunctions::integ(S11_solid_angle, S11_tmp, 0, sth);
             }
 
             // Integral of the scattering S11 value over the full sphere
             double int_scat_frac = tmp_scat_frac[nr_of_scat_theta - 1];
 
-            for(uint th = 0; th < nr_of_scat_theta; th++)
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
             {
                 if(int_scat_frac > 0)
                 {
                     // Set the cumulative distribution function of being scattered at a certain angle
-                    avg_scattering_frac[a][w].setValue(th, tmp_scat_frac[th] / int_scat_frac, double(th) * d_ang);
+                    avg_scattering_frac[a][w].setValue(sth, tmp_scat_frac[sth] / int_scat_frac, double(sth) * d_ang);
 
                     // Set the phase function of how much is scattered at a certain angle
-                    phase_pdf[a][w].setValue(th, double(th) * d_ang, S11_tmp[th] / int_scat_frac);
+                    phase_pdf[a][w].setValue(sth, double(sth) * d_ang, S11_tmp[sth] / int_scat_frac);
                 }
             }
 
@@ -2203,7 +2234,7 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     {
         // Get common parameters from all dust components
         nr_of_dust_species = comp->getNrOfDustSpecies();
-        nr_ofIncidentAngles = comp->getNrOfIncidentAngles();
+        nr_of_incident_angles = comp->getNrOfIncidentAngles();
         nr_of_scat_theta = comp->getNrOfScatTheta();
         nr_of_scat_phi = comp->getNrOfScatPhi();
         nr_of_scat_mat_elements = comp->getNrOfScatMatElements();
@@ -2224,8 +2255,8 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         // Resize Qtrq and Henyey-Greenstein g factor
         for(uint i = 0; i < nr_of_dust_species * nr_of_wavelength; i++)
         {
-            Qtrq[i].resize(nr_ofIncidentAngles);
-            HG_g_factor[i].resize(nr_ofIncidentAngles);
+            Qtrq[i].resize(nr_of_incident_angles);
+            HG_g_factor[i].resize(nr_of_incident_angles);
         }
 
         // If the scattering matrix is read in, add them together as well
@@ -2284,7 +2315,7 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         for(int a = 0; a < nr_of_dust_species; a++)
             if(comp->sizeIndexUsed(a, a_min, a_max))
                 for(uint w = 0; w < nr_of_wavelength; w++)
-                    for(uint inc = 0; inc < nr_ofIncidentAngles; inc++)
+                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                         for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                             for(uint sth = 0; sth < nr_of_scat_theta; sth++)
                                 for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
@@ -2352,14 +2383,14 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
 
         // Calculate the difference between two incident angles
         double d_ang;
-        if(nr_ofIncidentAngles > 1)
-            d_ang = PI / double(nr_ofIncidentAngles - 1);
+        if(nr_of_incident_angles > 1)
+            d_ang = PI / double(nr_of_incident_angles - 1);
         else
             d_ang = 1;
 
         for(uint i = 0; i < nr_of_dust_species * nr_of_wavelength; i++)
         {
-            for(uint i_inc = 0; i_inc < nr_ofIncidentAngles; i_inc++)
+            for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
             {
                 // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
                 comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
@@ -4330,7 +4361,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
 
     // Get common parameter grid
     uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
-    uint nr_ofIncidentAngles = single_component[0].getNrOfIncidentAngles();
+    uint nr_of_incident_angles = single_component[0].getNrOfIncidentAngles();
 
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
@@ -4342,7 +4373,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
         }
 
         // Check if the components have the same amount of incident angles
-        if(nr_ofIncidentAngles != single_component[i_comp].getNrOfIncidentAngles())
+        if(nr_of_incident_angles != single_component[i_comp].getNrOfIncidentAngles())
         {
             cout << "ERROR: Component Nr. " << i_comp + 1 << " has a different amount of incident angles!" << endl;
             return false;

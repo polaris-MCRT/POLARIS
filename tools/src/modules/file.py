@@ -128,8 +128,6 @@ class FileIO:
         self.path['input'] = self.path['polaris'] + 'input/'
         # Path to directory with input files besides the command file
         self.path['dust'] = self.path['input'] + 'dust/'
-        # Path to directory with input files besides the command file
-        self.path['dust_miex'] = self.path['input'] + 'dust_miex/'
         # Path to projects directory
         self.path['projects'] = self.path['polaris'] + 'projects/'
         # Path to directory with the PolarisTools source files and test cases
@@ -153,15 +151,13 @@ class FileIO:
             # Path to the directory with the gas files (LEIDEN database)
             self.path['gas'] = self.path['input'] + 'gas/'
             # Path to the directory with the gas files (JPL database)
-            self.path['jpl'] = self.path['input'] + 'jpl_catalog/'
+            self.path['jpl'] = self.path['gas'] + 'jpl_catalog/'
             # Path to the directory with the gas files (CDMS database)
-            self.path['cdms'] = self.path['input'] + 'cdms_catalog/'
-            # Path to the directory with dust nk files
-            self.path['dust_nk'] = self.path['input'] + 'dust_nk/'
+            self.path['cdms'] = self.path['gas'] + 'cdms_catalog/'
             # Path to the directory with the dustem input files
-            self.path['dustem'] = self.path['input'] + 'dustem/'
+            self.path['dustem'] = self.path['dust'] + 'dustem/'
             # Path to the directory with the dustem input files
-            self.path['trust'] = self.path['input'] + 'trust/DustModel/'
+            self.path['trust'] = self.path['dust'] + 'trust/DustModel/'
         if tool_type in ['plot', 'run']:
             # Path to the directory of the chosen simulation type (heat, rat, ...)
             self.path['simulation_type'] = self.path['simulation'] + \
@@ -268,12 +264,13 @@ class FileIO:
         Returns:
             Lists with the dust grain sizes and wavelengths.
         """
-        if dust_parameter_dict['dust_cat_file'] is None:
-            raise ValueError('The chosen dust component has no related dust catalog!')
+        if dust_parameter_dict['dust_cat_file'] is None or '.nk' in dust_parameter_dict['dust_cat_file']:
+            raise ValueError('The chosen dust component has no related dust catalog '
+                'or is a refractive index file!')
         size_list = []
         wavelength_list = []
         # Get dust data from catalog file
-        dust_file = open(self.path['dust'] + dust_parameter_dict['dust_cat_file'] + '.dat', 'r')
+        dust_file = open(self.path['dust'] + dust_parameter_dict['dust_cat_file'], 'r')
         i_line = 0
         i_print_dust_size = -1
         i_print_wavelength = -1

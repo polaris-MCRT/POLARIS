@@ -517,7 +517,6 @@ public:
         {
             N_polar_ph[i_r] = min(uint(subpixel_multiplier * 360.0), 
                 uint(ceil(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]))));
-            cout << N_polar_ph[i_r] << TAB << N_polar_r << TAB << _listR[i_r] / con_AU << endl;
         }
         
         return true;

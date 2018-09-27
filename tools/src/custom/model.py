@@ -545,7 +545,7 @@ class HD97048(Model):
             ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
         # RING #3
         ring_3 = self.math.default_disk_density(self.position,
-            beta=beta, surface_dens_exp=surf_dens_exp,
+            beta=beta, surface_dens_exp=surf_dens_exp, tappered_gamma=-0.0,
             inner_radius=269. * self.math.const['au'],
             outer_radius=400. * self.math.const['au'],
             ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
