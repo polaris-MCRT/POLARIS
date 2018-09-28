@@ -139,7 +139,7 @@ class Detector:
         # Add detector map shift if chosen
         for direction in ['_x', '_y']:
             shift_string = 'map_shift' + direction
-            if self.parameter[shift_string] > 0:
+            if self.parameter['map_shift_x'] > 0 or self.parameter['map_shift_y'] > 0:
                 cmd_string += '\t' + str(self.parameter[shift_string])
         return cmd_string
 
