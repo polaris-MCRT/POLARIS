@@ -130,6 +130,8 @@ class Detector:
                 cmd_string += '\t' + str(sidelength)
             elif self.parameter['sidelength_zoom_x'] != 1. or self.parameter['sidelength_zoom_y'] != 1.:
                 cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
+            elif self.parameter['map_shift_x'] > 0 or self.parameter['map_shift_y'] > 0:
+                cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
         return cmd_string
 
     def get_shift_cmd(self):
