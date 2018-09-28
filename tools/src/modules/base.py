@@ -88,6 +88,7 @@ class Detector:
             'wavelength_min': 1e-6,
             'wavelength_max': 1e-6,
             'nr_of_wavelength': 1,
+            'wavelength_list': None,
             'distance': model.parameter['distance'],
             'nr_pixel_x': 256,
             'nr_pixel_y': 256,
@@ -169,7 +170,14 @@ class Detector:
 
         Returns:
             str: Command line to consider the detector configuration.
-        """
+        """            
+        if self.parse_args.wavelength is None and self.parameter['wavelength_list'] is not None:
+            new_command_line = str()
+            for wl in self.parameter['wavelength_list']:
+                self.parameter['wavelength_min'] = wl
+                self.parameter['wavelength_max'] = wl
+                new_command_line += self.get_dust_scattering_command_line()
+            return new_command_line 
         return self.get_dust_scattering_command_line()
 
     def get_dust_emission_command_line(self):
@@ -209,6 +217,13 @@ class Detector:
         Returns:
             str: Command line to consider the detector configuration.
         """
+        if self.parse_args.wavelength is None and self.parameter['wavelength_list'] is not None:
+            new_command_line = str()
+            for wl in self.parameter['wavelength_list']:
+                self.parameter['wavelength_min'] = wl
+                self.parameter['wavelength_max'] = wl
+                new_command_line += self.get_dust_emission_command_line()
+            return new_command_line 
         return self.get_dust_emission_command_line()
 
     def get_line_command_line(self):
@@ -294,8 +309,8 @@ class Dust:
             'wavelength_list': None,
             'size_list': None,
             'theta_angle_list': np.linspace(0, 180, 181),
-            'inc_angle_list': None,
-            'phi_angle_list': None,
+            'inc_angle_list': np.zeros(1),
+            'phi_angle_list': np.zeros(1),
             'material_density': 0,
             'calorimetry_type': 'heat_capacity',
             'subl_temp': 9999,

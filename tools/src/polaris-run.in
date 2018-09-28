@@ -191,6 +191,8 @@ visualization_args.add_argument('--midplane_zoom', dest='midplane_zoom', default
 visualization_args.add_argument('--midplane_3d', dest='midplane_3d_param', default=None, type=str, nargs='+',
                                 help='enable 3d midplane fits files.\n'
                                      '    (plane e.g. 1 -> xy, nr_slices, z_min, z_max)')
+visualization_args.add_argument('--midplane_rad_field', dest='midplane_rad_field', default=False, action='store_true',
+                            help='add the radiation field to the midplane fits files.')
 
 conversion_args = parser.add_argument_group('conversion factors')
 conversion_args.add_argument('--conv_dens', dest='conv_dens', default=None, type=float,

@@ -531,6 +531,8 @@ class ThomasThemis(Dust):
         self.parameter['scattering'] = 'HG'
         # Set the name of one component to allow print of sizes and wavelengths
         self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
+        # Relative abundances from GRAIN.DAT
+        self.parameter['abundances'] = np.array([0.17e-03, 0.630e-04, 0.255e-03, 0.255e-03])
 
 
     def get_command(self):
@@ -541,18 +543,22 @@ class ThomasThemis(Dust):
         """
         new_command_line = str()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
-        dust.parameter['fraction'] = round(0.229 * (1. / (1. - 2. * 0.343)), 3)
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][0] / 
+            self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
         dust.parameter['size_keyword'] = 'logn'
         dust.parameter['size_parameter'] = [7e-9, 1.0]
         dust.parameter['amin'] = 0.5e-09
-        dust.parameter['fraction'] = round(0.085 * (1. / (1. - 2. * 0.343)), 3)
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][1] / 
+            self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('thomas_aPyM5')
-        dust.parameter['fraction'] = 0.343
-        #new_command_line += dust.get_command_line()
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][2] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('thomas_aOlM5')
-        dust.parameter['fraction'] = 0.343
-        #new_command_line += dust.get_command_line()
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][3] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
         return new_command_line

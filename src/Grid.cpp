@@ -1106,6 +1106,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
             else if(param.getWriteGZero())
                 plt_g_zero = true;
         }
+        else
+            if(param.getWriteRadiationField() || param.getWriteGZero())
+                cout << "HINT: The radiation field or G_0 can only be shown in the midplane fits files,\n"
+                    << "      if the radiation field will be saved to the grid or is included in the grid!" << endl;
     }
 
     uint nr_parameter = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp)

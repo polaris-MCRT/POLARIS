@@ -47,7 +47,8 @@ class CmdPolaris:
         self.math = Math()
 
     def write_common_part(self, cmd_file, midplane_points=None, midplane_zoom=None, midplane_3d_param=None,
-            mass_fraction=None, scattering=None, mu=None, nr_threads=-1, rot_axis_1=None, rot_axis_2=None):
+            midplane_rad_field=False, mass_fraction=None, scattering=None, mu=None, nr_threads=-1, 
+            rot_axis_1=None, rot_axis_2=None):
         """Writes commands into the command file.
 
         Args:
@@ -56,6 +57,7 @@ class CmdPolaris:
             midplane_zoom (int): Zoom factor per axis in midplane map data.
             midplane_3d_param (List[str, ]): Write midplane fits files as 3D slices?
                 (plane e.g. 1 -> xy, nr_slices, z_min, z_max)
+            midplane_rad_field (bool): Write radiation field into midplane fits files?
             mass_fraction (float): Fraction of mass between the dust and gas component.
             scattering (str): Name of the scattering method, used for scattering simulations.
                 (PH_ISO, PH_MIE, PH_HG)
@@ -84,6 +86,8 @@ class CmdPolaris:
             midplane_zoom = 1
         if self.parse_args.midplane_3d_param is not None:
             midplane_3d_param = self.parse_args.midplane_3d_param
+        if self.parse_args.midplane_rad_field:
+            midplane_rad_field = self.parse_args.midplane_rad_field
         if self.parse_args.mu is not None:
             mu = self.parse_args.mu
         elif mu is None:
@@ -126,6 +130,8 @@ class CmdPolaris:
         cmd_file.write('\t<plot_inp_midplanes>\t0\n')
         cmd_file.write('\t<plot_out_midplanes>\t0\n')
         cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
+        if midplane_rad_field:
+            cmd_file.write('\t<write_radiation_field>\t1\n')
         cmd_file.write('\n')
         cmd_file.write('\t<mass_fraction>\t\t' + str(mass_fraction) + '\n')
         cmd_file.write('\t<mu>\t\t\t' + str(mu) + '\n')

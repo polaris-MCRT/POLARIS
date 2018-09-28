@@ -12,6 +12,7 @@ def update_detector_dict(dictionary):
     detector_dict = {
         'gg_tau': GGTauDetector,
         'hd97048': HD97048Detector,
+        'thomas': ThomasDetector,
         'custom': CustomDetector,
     }
     dictionary.update(detector_dict)
@@ -125,27 +126,10 @@ class GGTauDetector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        self.wavelengths = None
-        if parse_args.wavelength is None: 
-            #self.wavelengths = np.array([3.5, 4.5, 5.6, 7.7, 10.5, 15.5]) * 1e-6 
-            self.wavelengths = np.array([10., 450., 1300.]) * 1e-6
+        # Rotation angle around the first rotation axis
         self.parameter['rot_angle_1'] = -37.0
-
-    def get_dust_emission_command(self):
-        """Provides detector configuration command line for raytrace
-        simulations for POLARIS .cmd file.
-
-        Returns:
-            str: Command line to consider the detector configuration.
-        """
-        if self.wavelengths is not None:
-            new_command_line = str()
-            for wl in self.wavelengths:
-                self.parameter['wavelength_min'] = wl
-                self.parameter['wavelength_max'] = wl
-                new_command_line += self.get_dust_emission_command_line()
-            return new_command_line 
-        return self.get_dust_emission_command_line()
+        # Wavelengths
+        self.parameter['wavelength_list'] = np.array([10., 450., 1300.]) * 1e-6
 
 class HD97048Detector(Detector):
     """Change this to the detector you want to use.
@@ -159,9 +143,6 @@ class HD97048Detector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        self.wavelengths = None
-        if parse_args.wavelength is None:  
-            self.wavelengths = [1.25e-6, 8.6e-6, 17.8e-6]            
         # Rotation angle around the first rotation axis
         self.parameter['rot_angle_1'] = 0.
         # Rotation angle around the second rotation axis
@@ -169,19 +150,21 @@ class HD97048Detector(Detector):
         # Number of pixel per axis of the detector
         self.parameter['nr_pixel_x'] = 201
         self.parameter['nr_pixel_y'] = 201
+        # Wavelengths
+        self.parameter['wavelength_list'] = np.array([1.25e-6, 8.6e-6, 17.8e-6]) * 1e-6
 
-    def get_dust_emission_command(self):
-        """Provides detector configuration command line for raytrace
-        simulations for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the detector configuration.
+class ThomasDetector(Detector):
+    """Detector for the radiation field disk for Thomas.
+    """
+
+    def __init__(self, model, parse_args):
+        """Initialisation of the detector configuration.
+
+        Args:
+            model: Handles the model space including various
+                quantities such as the density distribution.
         """
-        if self.wavelengths is not None:
-            new_command_line = str()
-            for wl in self.wavelengths:
-                self.parameter['wavelength_min'] = wl
-                self.parameter['wavelength_max'] = wl
-                new_command_line += self.get_dust_emission_command_line()
-            return new_command_line 
-        return self.get_dust_emission_command_line()
+        Detector.__init__(self, model, parse_args)
+        # Wavelengths
+        self.parameter['wavelength_list'] = np.array([3, 3.28, 3.38, 3.42, 3.7]) * 1e-6

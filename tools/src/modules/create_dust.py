@@ -257,7 +257,7 @@ class DustCreator:
         dust_file.write('#History:   ' + str(datetime.date.today()) + '\n')
         dust_file.write('\n')
         dust_file.write('#string ID\n')
-        dust_file.write(str(os.path.basename(self.parameter['dust_cat_file']) + description) + '\n')
+        dust_file.write(str(self.parameter['dust_cat_file'].replace('.dat','') + description) + '\n')
         dust_file.write('\n')
         dust_file.write(
             '#nr. of dust species #wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align\n')
@@ -332,9 +332,9 @@ class DustCreator:
 
     def write_dust_scat_to_file_init(self):
         os.chdir(self.file_io.path['dust'])
-        if not os.path.isdir(os.path.basename(self.parameter['dust_cat_file']) + '/'):
-            os.mkdir(os.path.basename(self.parameter['dust_cat_file']) + '/')
-        scat_info_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/scat.inf', 'w')
+        if not os.path.isdir(self.parameter['dust_cat_file'].replace('.dat','') + '/'):
+            os.mkdir(self.parameter['dust_cat_file'].replace('.dat','') + '/')
+        scat_info_file = open(self.parameter['dust_cat_file'].replace('.dat','') + '/scat.inf', 'w')
         scat_info_file.write(str(self.parameter['size_list'].size) + '\t' +
                              str(self.parameter['wavelength_list'].size) + '\t' +
                              str(self.parameter['inc_angle_list'].size) + '\t' +
@@ -354,7 +354,7 @@ class DustCreator:
         import struct
         os.chdir(self.file_io.path['dust'])
         for i_wl, wl in enumerate(self.parameter['wavelength_list']):
-            scat_bin_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/wID' + str(i_wl + 1).zfill(3) + '.sca', 'wb')
+            scat_bin_file = open(self.parameter['dust_cat_file'].replace('.dat','') + '/wID' + str(i_wl + 1).zfill(3) + '.sca', 'wb')
             for i_dust, size in enumerate(self.parameter['size_list']):
                 for i_inc, inc in enumerate(self.parameter['inc_angle_list']):
                     for i_ph, phi in enumerate(self.parameter['phi_angle_list']):
@@ -366,9 +366,9 @@ class DustCreator:
 
     def write_dust_calorimetry_to_file(self):
         os.chdir(self.file_io.path['dust'])
-        if not os.path.isdir(os.path.basename(self.parameter['dust_cat_file']) + '/'):
-            os.mkdir(os.path.basename(self.parameter['dust_cat_file']) + '/')
-        calorimetry_data_file = open(os.path.basename(self.parameter['dust_cat_file']) + '/calorimetry.dat', 'w')
+        if not os.path.isdir(self.parameter['dust_cat_file'].replace('.dat','') + '/'):
+            os.mkdir(self.parameter['dust_cat_file'].replace('.dat','') + '/')
+        calorimetry_data_file = open(self.parameter['dust_cat_file'].replace('.dat','') + '/calorimetry.dat', 'w')
         calorimetry_data_file.write('# nr. of temperatures\n')
         calorimetry_data_file.write(str(self.parameter['temp_list'].size) + '\n')
         line_string = str()
