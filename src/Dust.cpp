@@ -243,7 +243,15 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
 
                 // The material density (only used if no one was set in the command file)
                 if(material_density == 0)
+                {
+                    if(values[4] == 0)
+                    {
+                        printIDs();
+                        cout << "ERROR: dust bulk mass is zero!" << endl;
+                        return false;
+                    }
                     material_density = values[4];
+                }
 
                 // The sublimation temperature
                 sub_temp = values[5];

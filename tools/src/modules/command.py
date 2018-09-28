@@ -72,8 +72,8 @@ class CmdPolaris:
             mass_fraction = self.parse_args.mass_fraction
         elif mass_fraction is None:
             mass_fraction = self.model.parameter['mass_fraction']
-        elif self.parameter['abundances'] is not None:
-            mass_fraction = self.parameter['abundances'].sum()
+        elif self.model.parameter['abundances'] is not None:
+            mass_fraction = self.model.parameter['abundances'].sum()
         if self.parse_args.scattering is not None:
             scattering = self.parse_args.scattering
         elif scattering is None:
