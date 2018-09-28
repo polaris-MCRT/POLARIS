@@ -1783,7 +1783,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameter & param)
             }
 
             // Include stellar emission, if chosen
-            calcStellarEmission();
+            if(tracer->considerPointSources())
+                calcStellarEmission();
 
             // Show final progress
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1

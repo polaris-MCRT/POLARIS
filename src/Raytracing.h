@@ -136,6 +136,22 @@ public:
         return sID;
     }
 
+    uint considerPointSources()
+    {
+        switch(rt_detector_shape)
+        {
+            case DET_PLANE:
+            case DET_SPHER:
+            case DET_POLAR:
+                return true;
+                break;
+
+            default:
+                return false;
+                break;
+        }
+    }
+
     uint getNrSpectralBins()
     {
         return nr_spectral_bins;
