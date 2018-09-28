@@ -1286,7 +1286,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         length = -num / den;
 
-                        if(length <= 0)
+                        if(length < 0)
                             length = 2e300;
                     }
                     else
@@ -1306,7 +1306,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         length = -num / den;
 
-                        if(length <= 0)
+                        if(length < 0)
                             length = 2e300;
                     }
                     else
