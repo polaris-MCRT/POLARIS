@@ -2542,7 +2542,6 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
         if(max_size >= 0)
         {
             param->setStochasticHeatingMaxSize(max_size);
-            param->setFullDustTemp(true);
             return true;
         }
         else

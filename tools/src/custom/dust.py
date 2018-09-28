@@ -19,7 +19,8 @@ def update_dust_dict(dictionary):
         'trust_silicate': TrustSilicate,
         'trust_graphite': TrustGraphite,
         'trust_pah': TrustPah,
-        'thomas_themis': ThomasThemis,
+        'thomas_themis_1': ThomasThemis1,
+        'thomas_themis_2': ThomasThemis2,
         'thomas_CM20': ThomasCM20,
         'thomas_aPyM5': ThomasaPyM5,
         'thomas_aOlM5': ThomasaOlM5,
@@ -511,8 +512,61 @@ class ThomasaOlM5(Dust):
         self.parameter['dustem_wl_file'] = 'LAMBDA_THOMAS'
 
 
-class ThomasThemis(Dust):
-    """Dust class for themis dust grains (thomas version).
+class ThomasThemis1(Dust):
+    """Dust class for themis dust grains (thomas version 1).
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Note:
+            Link: https://www.ias.u-psud.fr/themis/
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        #: dict: Parameters which are different to the default values
+        self.parameter['scattering'] = 'HG'
+        # Set the name of one component to allow print of sizes and wavelengths
+        self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
+        # Relative abundances from GRAIN.DAT
+        self.parameter['abundances'] = np.array([0.17e-03, 0.630e-04, 0.255e-03, 0.255e-03])
+
+
+    def get_command(self):
+        """Provides dust composition command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the MRN dust composition.
+        """
+        new_command_line = str()
+        dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][0] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['size_keyword'] = 'logn'
+        dust.parameter['size_parameter'] = [7e-9, 1.0]
+        dust.parameter['amin'] = 0.5e-09
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][1] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('thomas_aPyM5')
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][2] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('thomas_aOlM5')
+        dust.parameter['fraction'] = np.round(self.parameter['abundances'][3] / 
+            self.parameter['abundances'].sum(), 3)
+        new_command_line += dust.get_command_line()
+        return new_command_line
+
+
+class ThomasThemis2(Dust):
+    """Dust class for themis dust grains (thomas version 2).
     """
 
     def __init__(self, file_io, parse_args):
