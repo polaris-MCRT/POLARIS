@@ -339,7 +339,8 @@ class CM20(Dust):
         #: dict: Parameters which are different to the default values
         self.parameter['dust_cat_file'] = 'CM20.dat'
         self.parameter['scattering'] = 'HG'
-        self.parameter['material_density'] = 0
+        self.parameter['material_density'] = 1600
+        self.parameter['subl_temp'] = 2100
         self.parameter['size_keyword'] = 'plaw-ed'
         self.parameter['size_parameter'] = [-5, 10e-9, 50e-9,  1.0]
         # Minimum dust grain size
@@ -364,6 +365,7 @@ class aPyM5(Dust):
         self.parameter['dust_cat_file'] = 'aPyM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
+        self.parameter['subl_temp'] = 1200
         self.parameter['size_keyword'] = 'logn'
         self.parameter['size_parameter'] = [8e-9, 1.0]
         # Minimum dust grain size (5 nm)
@@ -388,6 +390,7 @@ class aOlM5(Dust):
         self.parameter['dust_cat_file'] = 'aOlM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
+        self.parameter['subl_temp'] = 1200
         self.parameter['size_keyword'] = 'logn'
         self.parameter['size_parameter'] = [8e-9, 1.0]
         # Minimum dust grain size
@@ -426,7 +429,6 @@ class Themis(Dust):
         """
         new_command_line = str()
         dust = self.dust_chooser.get_module_from_name('CM20')
-        dust.parameter['material_density'] = 1600
         dust.parameter['fraction'] = 0.229
         # If more than the fraction is changed, overwrite parameter with user input
         self.dust_chooser.update_user_parameters(dust)

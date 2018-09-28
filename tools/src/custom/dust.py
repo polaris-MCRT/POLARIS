@@ -443,7 +443,8 @@ class ThomasCM20(Dust):
         #: dict: Parameters which are different to the default values
         self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
         self.parameter['scattering'] = 'HG'
-        self.parameter['material_density'] = 0
+        self.parameter['material_density'] = 1600
+        self.parameter['subl_temp'] = 2100
         self.parameter['size_keyword'] = 'plaw-ed'
         self.parameter['size_parameter'] = [-5, 10e-9, 50e-9,  1.0]
         # Minimum dust grain size (5 nm)
@@ -472,6 +473,7 @@ class ThomasaPyM5(Dust):
         self.parameter['dust_cat_file'] = 'thomas_aPyM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
+        self.parameter['subl_temp'] = 1200
         self.parameter['size_keyword'] = 'logn'
         self.parameter['size_parameter'] = [8e-9, 1.0]
         # Minimum dust grain size (5 nm)
@@ -500,6 +502,7 @@ class ThomasaOlM5(Dust):
         self.parameter['dust_cat_file'] = 'thomas_aOlM5.dat'
         self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 2190
+        self.parameter['subl_temp'] = 1200
         self.parameter['size_keyword'] = 'logn'
         self.parameter['size_parameter'] = [8e-9, 1.0]
         # Minimum dust grain size (5 nm)
@@ -544,13 +547,15 @@ class ThomasThemis1(Dust):
         """
         new_command_line = str()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['material_density'] = 1596
         dust.parameter['fraction'] = np.round(self.parameter['abundances'][0] / 
             self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['material_density'] = 1596
         dust.parameter['size_keyword'] = 'logn'
         dust.parameter['size_parameter'] = [7e-9, 1.0]
-        dust.parameter['amin'] = 0.5e-09
+        dust.parameter['amin'] = 0.5e-9
         dust.parameter['fraction'] = np.round(self.parameter['abundances'][1] / 
             self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()
@@ -586,8 +591,7 @@ class ThomasThemis2(Dust):
         # Set the name of one component to allow print of sizes and wavelengths
         self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
         # Relative abundances from GRAIN.DAT
-        self.parameter['abundances'] = np.array([0.17e-03, 0.630e-04, 0.255e-03, 0.255e-03])
-
+        self.parameter['abundances'] = np.array([0.17e-05, 0.630e-06, 0.255e-03, 0.255e-03])
 
     def get_command(self):
         """Provides dust composition command line for POLARIS .cmd file.
@@ -597,13 +601,15 @@ class ThomasThemis2(Dust):
         """
         new_command_line = str()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['material_density'] = 1596
         dust.parameter['fraction'] = np.round(self.parameter['abundances'][0] / 
             self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        dust.parameter['material_density'] = 1596
         dust.parameter['size_keyword'] = 'logn'
         dust.parameter['size_parameter'] = [7e-9, 1.0]
-        dust.parameter['amin'] = 0.5e-09
+        dust.parameter['amin'] = 0.5e-9
         dust.parameter['fraction'] = np.round(self.parameter['abundances'][1] / 
             self.parameter['abundances'].sum(), 3)
         new_command_line += dust.get_command_line()

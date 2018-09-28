@@ -317,6 +317,8 @@ class Dust:
             'align': 0,
             'aspect_ratio': 1,
             'rat_delta': 0,
+            # Optional custom parameter
+            'abundances': None,
         }
 
     def create_catalog(self):
