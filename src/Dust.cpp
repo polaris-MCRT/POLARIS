@@ -714,6 +714,18 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     Qcirc = new double*[nr_of_dust_species];
     HGg = new double*[nr_of_dust_species];
 
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        Qext1[a] = new double[nr_of_wavelength];
+        Qext2[a] = new double[nr_of_wavelength];
+        Qabs1[a] = new double[nr_of_wavelength];
+        Qabs2[a] = new double[nr_of_wavelength];
+        Qsca1[a] = new double[nr_of_wavelength];
+        Qsca2[a] = new double[nr_of_wavelength];
+        Qcirc[a] = new double[nr_of_wavelength];
+        HGg[a] = new double[nr_of_wavelength];
+    }
+
     // Init splines for incident angle interpolation of Qtrq and HG g factor
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
@@ -735,39 +747,30 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     float last_percentage = 0;
 
     // Init maximum counter value
-    uint max_counter = nr_of_dust_species;
+    uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) collapse(2)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
-        Qext1[a] = new double[nr_of_wavelength];
-        Qext2[a] = new double[nr_of_wavelength];
-        Qabs1[a] = new double[nr_of_wavelength];
-        Qabs2[a] = new double[nr_of_wavelength];
-        Qsca1[a] = new double[nr_of_wavelength];
-        Qsca2[a] = new double[nr_of_wavelength];
-        Qcirc[a] = new double[nr_of_wavelength];
-        HGg[a] = new double[nr_of_wavelength];
-        
-        // Increase counter used to show progress
-        per_counter++;
-
-        // Calculate percentage of total progress per source
-        float percentage = 100.0 * float(per_counter) / float(max_counter);
-
-        // Show only new percentage number if it changed
-        if((percentage - last_percentage) > PERCENTAGE_STEP)
-        {
-#pragma omp critical
-            {
-                printIDs();
-                cout << "calculating Mie-scattering: " << percentage << " %                      \r";
-                last_percentage = percentage;
-            }
-        }
-
         for(uint w = 0; w < nr_of_wavelength; w++)
-        {            
+        {   
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+    #pragma omp critical
+                {
+                    printIDs();
+                    cout << "calculating Mie-scattering: " << percentage << " %                      \r";
+                    last_percentage = percentage;
+                }
+            }
+         
             // Resize the splines of Qtrq and HG g factor for each wavelength
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
