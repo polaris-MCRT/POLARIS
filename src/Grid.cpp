@@ -436,11 +436,11 @@ void CGridBasic::printPhysicalParameter()
         cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]" << endl;
     else
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]" << endl;
-    if((dust_is_mass_density && data_pos_dd_list.size() > 0) || (gas_is_mass_density && data_pos_dd_list.empty()))
+    if(!dust_is_mass_density && data_pos_dd_list.size() > 0)
+        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]" << endl;
+    else
         cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
             << "] [kg m^-3]" << endl;
-    else
-        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]" << endl;
     if(data_pos_tg != MAX_UINT)
         cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]" << endl;
     else

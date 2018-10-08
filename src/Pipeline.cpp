@@ -817,7 +817,8 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     else
     {
         // Monte-Carlo simulations support various sources!
-        if(param.getDustSource() && param.getCommand() == CMD_TEMP)
+        if(param.getDustSource() && (param.getCommand() == CMD_TEMP ||
+                param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT))
             nr_ofSources--;
 
         for(uint s = 0; s < param.getPointSources().size(); s += NR_OF_POINT_SOURCES)
@@ -880,10 +881,11 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
 
         if(param.getDustSource())
         {
-            if(param.getCommand() == CMD_TEMP)
+            if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT ||
+                param.getCommand() == CMD_TEMP_RAT)
             {
                 cout << "ERROR: Dust as radiation source can not be considered "
-                    << "in temperature calculation!" << endl;
+                    << "in radiation field (e.g. temperature) calculations!" << endl;
             }
             else
             {
