@@ -1750,7 +1750,7 @@ public:
     void convertTempInQB(CGridBasic * grid, cell_basic * cell, uint i_density,
         double min_gas_density, bool use_gas_temp);
     bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, uint i_density,
-        bool calc_temp, bool use_energy_density);
+        bool use_energy_density);
     double updateDustTemperature(CGridBasic * grid, photon_package * pp,
         uint i_density, uint a, bool use_energy_density);
     void calcTemperature(CGridBasic * grid, cell_basic * cell, uint i_density, bool use_energy_density);
@@ -2064,13 +2064,12 @@ public:
         return sum;
     }
 
-    bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool calc_temp, bool use_energy_density)
+    bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density)
     {
         if(mixed_component != 0)
         {
             uint i_mixture = getEmittingMixture(grid, pp);
-            return mixed_component[i_mixture].adjustTempAndWavelengthBW(grid, pp, i_mixture,
-                calc_temp, use_energy_density);
+            return mixed_component[i_mixture].adjustTempAndWavelengthBW(grid, pp, i_mixture, use_energy_density);
         }
         return false;
     }

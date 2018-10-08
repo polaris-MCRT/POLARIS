@@ -646,7 +646,7 @@ class Model:
         return self.dust_temperature()
 
     def get_gas_density_distribution(self):
-        """Modifies the density defined by get_gas_density_distribution() to match the preset gas masses.
+        """Modifies the mass density defined by get_gas_density_distribution() to match the preset gas masses.
 
         Returns:
             float: Gas density at a given position.
@@ -656,7 +656,7 @@ class Model:
         return self.gas_density_distribution()
 
     def get_dust_density_distribution(self):
-        """Modifies the density defined by get_dust_density_distribution() to match the preset dust masses.
+        """Modifies the mass density defined by get_dust_density_distribution() to match the preset dust masses.
 
         Returns:
             float: Dust density at a given position.

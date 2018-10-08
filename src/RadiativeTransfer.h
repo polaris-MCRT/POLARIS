@@ -147,7 +147,7 @@ public:
     }
 
     // Temperature calculation and RATs
-    bool calcMonteCarloRadiationField(bool calc_temp, bool calc_rat, bool save_radiation_field);
+    bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission=false);
     // Set temperature (old!)
     bool setTemperatureDistribution();
 

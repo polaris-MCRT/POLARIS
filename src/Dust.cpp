@@ -767,7 +767,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
         }
 
         for(uint w = 0; w < nr_of_wavelength; w++)
-        {
+        {            
             // Resize the splines of Qtrq and HG g factor for each wavelength
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
@@ -794,6 +794,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                 Qext2[a][w] = Qext1[a][w];
                 Qabs2[a][w] = Qabs1[a][w];
                 Qsca2[a][w] = Qsca1[a][w];
+                Qcirc[a][w] = 0;
 
                 for(int inc = 0; inc < nr_of_incident_angles; inc++)
                 {
@@ -2774,7 +2775,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid, cell_basic * cell, uint 
 }
 
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp,
-        uint i_density, bool calc_temp, bool use_energy_density)
+        uint i_density, bool use_energy_density)
 {
     // Init variables
     double t_dust_new = 0;

@@ -472,7 +472,14 @@ class HD97048(Model):
         self.cylindrical_parameter['n_r'] = 250
         self.cylindrical_parameter['n_z'] = 61
         self.cylindrical_parameter['n_ph'] = 1
-        self.cylindrical_parameter['sf_r'] = 1.03
+        self.cylindrical_parameter['sf_r'] = 0
+        self.cylindrical_parameter['radius_list'] = np.logspace(
+            np.log10(self.parameter['inner_radius']), 
+            np.log10(self.parameter['outer_radius']),
+            self.cylindrical_parameter['n_r']
+        )
+        self.cylindrical_parameter['radius_list'][0] = self.parameter['inner_radius']
+        self.cylindrical_parameter['radius_list'][-1] = self.parameter['outer_radius']
         self.cylindrical_parameter['sf_z'] = -1
         self.cylindrical_parameter['split_first_cell'] = 20
         # Define the used sources, dust composition and gas species
@@ -481,7 +488,7 @@ class HD97048(Model):
         self.parameter['dust_composition'] = 'olivine_pah'
         # Use multiple dust compositionas depending on the region in the grid
         self.parameter['variable_dust'] = True
-
+        self.use_cont = False
         
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -489,8 +496,6 @@ class HD97048(Model):
         # Use the continuum or ring version of the model and set PAH to silicate ration
         if len(extra_parameter) == 1:
             self.use_cont = bool(int(extra_parameter[0]))
-        else:
-            self.use_cont = False
             
         # Radial cell border list
         list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']), 

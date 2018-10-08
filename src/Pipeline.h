@@ -34,7 +34,7 @@ public:
     {
     }
 
-    bool calcMonteCarloRadiationField(parameter & param, bool calc_temp, bool calc_rat);
+    bool calcMonteCarloRadiationField(parameter & param);
     bool calcPolarizationMapsViaRayTracing(parameter & param);
     bool calcPolarizationMapsViaSynchrotron(parameter & param);
     bool calcChMapsViaRayTracing(parameter & param);

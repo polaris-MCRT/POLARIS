@@ -213,7 +213,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('polaris_total_sed', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{I}\ [\si{Jy}]$', with_cbar=False)
 
         # Set paths of each simulation
@@ -1026,7 +1026,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('polaris_mcfost_sed', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{I}\ [\si{Jy}]$', with_cbar=False)
 
         # Set paths of each simulation
@@ -1116,7 +1116,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('polaris_mcfost_dust', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{\kappa}\ [\si{m^2/kg}]$', with_cbar=False)
 
         # Set paths of each simulation
@@ -1196,7 +1196,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('polaris_detector_nr0001_sed')
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         # Set paths of each simulation
         self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
@@ -1313,7 +1313,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('sed_plus_vizir')
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         # Set paths of each simulation
         self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')

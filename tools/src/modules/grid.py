@@ -786,7 +786,7 @@ class Spherical(Grid):
         else:
             radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
-        if sp_param['split_first_cell'] > 1:
+        if sp_param['split_first_cell'] > 1 and sp_param['sf_r'] != 0:
             sp_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = sp_param['radius_list']
@@ -1044,7 +1044,7 @@ class Cylindrical(Grid):
             radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
         # Add refinement to innermost cell
-        if cy_param['split_first_cell'] > 1:
+        if cy_param['split_first_cell'] > 1 and cy_param['sf_r'] != 0:
             cy_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = cy_param['radius_list']
