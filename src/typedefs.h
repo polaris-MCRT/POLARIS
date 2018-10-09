@@ -202,7 +202,8 @@ using namespace std;
 #define TEMP_EMPTY      0
 #define TEMP_SINGLE     1
 #define TEMP_EFF        2
-#define TEMP_FULL       3
+#define TEMP_STOCH      3
+#define TEMP_FULL       4
 
 // Cross-sections IDs
 #define CROSS_ABS       1

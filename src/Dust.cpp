@@ -1185,6 +1185,11 @@ bool CDustComponent::readCalorimetryFile(parameter & param, uint dust_component_
         pos = path.find(".dat");
         path.erase(pos, 4);
     }
+    else if(path.find(".nk") != string::npos)
+    {
+        pos = path.find(".nk");
+        path.erase(pos, 4);
+    }
 
     // Create the filename of the calorimetry file
     string calo_filename = path;
@@ -2872,41 +2877,75 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get absorpion rate from grid
-            abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
-
-            // Add offset on absorption rate
-            if(dust_offset)
+            // Check if dust grains should have been stochastically heated
+            if(a_eff[a] <= getStochasticHeatingMaxSize())
             {
-                if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                    abs_rate[a] += grid->getQBOffset(cell, i_density, a);
-                else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
-                    abs_rate[a] += grid->getQBOffset(cell, i_density);
-            }
+                // Reset average stochastic temperature
+                temp[a] = 0;
+                
+                // Init and resize spline for absorbed energy per wavelength
+                spline abs_rate_per_wl;
+                abs_rate_per_wl.resize(WL_STEPS);
 
-            // Calculate temperature from absorption rate
-            temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
+                // Get radiation field and calculate absorbed energy for each wavelength
+                for(uint w = 0; w < WL_STEPS; w++)
+                    abs_rate_per_wl.setValue(w, wavelength_list[w],
+                        grid->getRadiationField(cell, w) * getCabsMean(a, w));
 
-            // Consider sublimation temperature
-            if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                if(temp[a] >= getSublimationTemperature())
-                    temp[a] = 0;
+                // Activate spline of absorbed energy for each wavelength
+                abs_rate_per_wl.createSpline();
 
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-            {
-                // Set dust temperature in grid
+                // Get pointer array of the temperature propabilities
+                long double * temp_probability = getStochasticProbability(a, abs_rate_per_wl);
+                
+                // Set the temperature propabilities in the grid
+                for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                    temp[a] += temp_probability[t] * calorimetry_temperatures[t];
+
+                // Save temperature
                 grid->setDustTemperature(cell, i_density, a, temp[a]);
 
-                // Update min and max temperatures for visualization
-                if(temp[a] > max_temp)
-                    max_temp = temp[a];
-                if(temp[a] < min_temp)
-                    min_temp = temp[a];
+                // Delete pointer array
+                delete[] temp_probability;
             }
+            else
+            {
+                // Get absorpion rate from grid
+                abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
 
-            // Multiply it with the amount of dust grains in the current bin
-            abs_rate[a] *= a_eff_3_5[a];
-            temp[a] *= a_eff_3_5[a];
+                // Add offset on absorption rate
+                if(dust_offset)
+                {
+                    if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+                        abs_rate[a] += grid->getQBOffset(cell, i_density, a);
+                    else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+                        abs_rate[a] += grid->getQBOffset(cell, i_density);
+                }
+
+                // Calculate temperature from absorption rate
+                temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
+
+                // Consider sublimation temperature
+                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
+                    if(temp[a] >= getSublimationTemperature())
+                        temp[a] = 0;
+
+                if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+                {
+                    // Set dust temperature in grid
+                    grid->setDustTemperature(cell, i_density, a, temp[a]);
+
+                    // Update min and max temperatures for visualization
+                    if(temp[a] > max_temp)
+                        max_temp = temp[a];
+                    if(temp[a] < min_temp)
+                        min_temp = temp[a];
+                }
+
+                // Multiply it with the amount of dust grains in the current bin
+                abs_rate[a] *= a_eff_3_5[a];
+                temp[a] *= a_eff_3_5[a];
+            }
         }
         else
         {
@@ -3188,8 +3227,8 @@ double CDustComponent::calcGoldReductionFactor(Vector3D & v, Vector3D & B)
     return R;
 }
 
-void CDustComponent::calcStochasticHeating(CGridBasic * grid, cell_basic * cell, uint i_density, 
-        dlist & wavelength_list_full)
+void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, 
+        uint i_density, dlist & wavelength_list_full)
 {
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, cell);
@@ -3232,59 +3271,6 @@ void CDustComponent::calcStochasticHeating(CGridBasic * grid, cell_basic * cell,
             delete[] temp_probability;
         }
     }
-}
-
-void CDustComponent::updateStochasticTemperature(CGridBasic * grid, cell_basic * cell, uint i_density)
-{
-    // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
-
-    if(getNumberDensity(grid, cell, i_density) == 0)
-        return;
-
-    // Init variables
-    double rel_weight;
-
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
-
-    // Init average stochastic temperature for saving
-    double * tmp_temp = new double[nr_of_dust_species];
-
-    for(uint a = 0; a < nr_of_dust_species; a++)
-    {
-        // Get cross sections and relative weight of the current dust grain size
-        rel_weight = a_eff_3_5[a] / weight;
-
-        // Reset average stochastic temperature
-        tmp_temp[a] = 0;
-
-        // Check if dust grains should have been stochastically heated
-        if(a_eff[a] <= getStochasticHeatingMaxSize() && sizeIndexUsed(a, a_min, a_max))
-        {
-            // Set the temperature propabilities in the grid
-            for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
-                tmp_temp[a] += grid->getDustTempProbability(cell, i_density, a, t) * calorimetry_temperatures[t] * rel_weight;
-        }
-        else
-        {
-            // Consider the temperature of every dust grain size or an average temperature
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                tmp_temp[a] += grid->getDustTemperature(cell, i_density, a) * rel_weight;
-            else
-                tmp_temp[a] += grid->getDustTemperature(cell, i_density) * rel_weight;
-        }
-    }
-
-    // Calculate the average temperature
-    double avg_stochastic_temp = CMathFunctions::integ_dust_size(a_eff, tmp_temp, nr_of_dust_species, a_min, a_max);
-
-    // Update the dust temperature distribution
-    grid->setDustTemperature(cell, i_density, avg_stochastic_temp);
-
-    // Delete pointer array
-    delete[] tmp_temp;
 }
 
 double CDustComponent::getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl)
@@ -4332,6 +4318,16 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
             cout << "for all grain sizes" << endl;
         else
             cout << "for effective grain size" << endl;
+        
+        if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
+            cout << "                          : including stochastic heating up to " 
+                << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        else if(param.getStochasticHeatingMaxSize() > 0 && param.getSaveRadiationField())
+        {
+            cout << "HINT: Stochastic heating and saving the radiation field is chosen." << endl
+                <<  "      The radiation field will be saved and stochastic heating should be set" << endl
+                <<  "      with CMD_DUST_EMISSION simulation." << endl;
+        }
     }
 
     // Show information about saving the radiation field

@@ -337,13 +337,15 @@ uint CGridBasic::validateDataPositions(parameter & param)
         else
             nr_densities = data_pos_gd_list.size();
 
+        // Precalculate the number of temperature entries, if the grid has a 
+        // temperature for each grain size or stochastically heated grains
         for(uint i_density = 0; i_density < nr_densities; i_density++)
+        {
             multi_temperature_entries += nr_dust_sizes[i_density] + 1;
+            stochastic_temperature_entries += nr_stochastic_sizes[i_density] + 1;
+        }
 
-        for(uint i_density = 0; i_density < nr_densities; i_density++)
-            stochastic_entries += nr_stochastic_sizes[i_density] * nr_stochastic_temps[i_density];
-
-        // Check for a valid combination between densities and duts mixtures
+        // Check for a valid combination between densities and dust mixtures
         if(nr_densities > 1 && nr_mixtures != nr_densities)
         {
             cout << "ERROR: Amount of densities in the grid (" << nr_densities
@@ -1092,9 +1094,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
 
             plt_dust_temp = true;
         }
-        else if(cmd == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0 &&
-                param.getWriteStochasticTemperature())
-            plt_dust_temp = true;
 
         if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
             plt_rat = true;

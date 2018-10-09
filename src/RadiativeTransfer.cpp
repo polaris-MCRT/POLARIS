@@ -1057,7 +1057,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     cout << CLR_LINE;
     cout << " -> Calc. RAT dust alig. radius: 0.0 %  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
@@ -1125,16 +1125,16 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
     cout << "- Calculation of final temperatures :   done" << endl;
 }
 
-void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
+void CRadiativeTransfer::calcStochasticHeating()
 {
     uint per_counter = 0;
     float last_percentage = 0;
 
-    ulong max_cells = grid->getMaxDataCells();
-
-    // Resize wavelength list for stochastic heating
+    // Resize wavelength list for stochastic heating propabilities 
     dlist wl_list(WL_STEPS);
     CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
+
+    ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
     cout << "-> Calculation of stochastic heating: [ 0.00 % ]    \r" << flush;
@@ -1143,10 +1143,8 @@ void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        dust->calcStochasticHeating(grid, cell, wl_list);
 
-        if(update_temperature)
-            dust->updateStochasticTemperature(grid, cell);
+        dust->calcStochasticHeatingPropabilities(grid, cell, wl_list);        
 
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);

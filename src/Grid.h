@@ -94,10 +94,10 @@ public:
         nrOfOpiateIDs = 0;
 
         nr_densities = 1;
+        multi_temperature_entries = 0;
+        stochastic_temperature_entries = 0;
         nr_mixtures = 0;
 
-        multi_temperature_entries = 0;
-        stochastic_entries = 0;
         nr_dust_sizes = 0;
         nr_stochastic_sizes = 0;
         nr_stochastic_temps = 0;
@@ -823,7 +823,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += nr_dust_sizes[i];
+            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -910,7 +910,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += nr_dust_sizes[i];
+            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
         return cell->getData(data_pos_dt_list[id]);
     }
 
@@ -924,7 +924,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += nr_dust_sizes[i];
+            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -1950,6 +1950,8 @@ public:
         // Check which kind of temperature calculation the grid supports
         if(data_pos_dt_list.size() == multi_temperature_entries)
             return TEMP_FULL;
+        else if(data_pos_dt_list.size() == stochastic_temperature_entries)
+            return TEMP_STOCH;
         else if(data_pos_dt_list.size() == nr_densities)
             return TEMP_EFF;
         else if(data_pos_dt_list.size() == 1)
@@ -2579,33 +2581,30 @@ public:
     uint TempCheck(parameter & param, uint & tmp_data_offset)
     {
         uint extra_temp_entries = 0;
-        if(getTemperatureFieldInformation() == TEMP_EMPTY)
-        {
-            if(param.getDustTempMulti())
-                extra_temp_entries = multi_temperature_entries;
-            else
-                extra_temp_entries = nr_densities;
-        }
-        else if(getTemperatureFieldInformation() == TEMP_SINGLE)
-        {
-            if(param.getDustTempMulti())
-                extra_temp_entries = multi_temperature_entries - 1;
-            else
-                extra_temp_entries = nr_densities - 1;
-        }
-        else if(getTemperatureFieldInformation() == TEMP_EFF)
-        {
-            if(param.getDustTempMulti())
-                extra_temp_entries = multi_temperature_entries - nr_densities;
-            else
-                extra_temp_entries = 0;
-        }
-        else if(getTemperatureFieldInformation() == MAX_UINT)
+        if(getTemperatureFieldInformation() == MAX_UINT)
         {
             cout << "ERROR: The grid does not include the correct information for temperature calculations" << endl;
             cout << "       No dust temperature calculation possible (full_dust_temp or stochastic heating?)." << endl;
             return MAX_UINT;
         }
+        else
+        {
+            // Calculate the entries for the temperature that have to be added
+            if(param.getDustTempMulti())
+                extra_temp_entries = multi_temperature_entries;
+            else if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
+                extra_temp_entries = stochastic_temperature_entries;
+            else
+                extra_temp_entries = nr_densities;
+
+            // Entries that are already in the grid do not need to be added
+            if(getTemperatureFieldInformation() == TEMP_SINGLE)
+                extra_temp_entries--;
+            else if(getTemperatureFieldInformation() == TEMP_EFF)
+                extra_temp_entries -= nr_densities;
+        }
+
+        // Add entries to grid
         for(uint i_entries = 0; i_entries < extra_temp_entries; i_entries++)
         {
             data_pos_dt_list.push_back(data_offset + tmp_data_offset);
@@ -3119,7 +3118,7 @@ protected:
     uint nr_mixtures;
     uint nr_densities;
     uint multi_temperature_entries;
-    uint stochastic_entries;
+    uint stochastic_temperature_entries;
     uint * nr_dust_sizes;
     uint * nr_stochastic_sizes;
     uint * nr_stochastic_temps;

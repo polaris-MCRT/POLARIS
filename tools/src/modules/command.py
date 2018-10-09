@@ -145,7 +145,7 @@ class CmdPolaris:
         cmd_file.write('\n')
 
     def write_temp_part(self, cmd_file, grid_filename='grid.dat', dust_offset=False, radiation_field=False,
-                        adj_tgas=None, sub_dust=True, full_dust_temp=False, add_rat=False):
+            temp_a_max=None, adj_tgas=None, sub_dust=True, full_dust_temp=False, add_rat=False):
         """Writes commands for temperature calculation to the command file.
 
         Args:
@@ -155,6 +155,8 @@ class CmdPolaris:
                 temperatures written in the grid file.
             radiation_field (bool): Save radiation field in grid for stochastic heating
                 or scattering in raytracing?
+            temp_a_max (float): Calculate stochastic heating in addition to
+                equilibrium temperature up to a=temp_a_max.
             adj_tgas (float): Set output gas temperature with dust
                 temperature times adj_tgas.
             sub_dust (bool): Remove density in cells with temperature larger than the
@@ -174,6 +176,8 @@ class CmdPolaris:
             full_dust_temp = True
         if self.parse_args.radiation_field:
             radiation_field = True
+        if self.parse_args.temp_a_max is not None:
+            temp_a_max = self.parse_args.temp_a_max
         if self.parse_args.conv_dens is not None:
             conv_dens = self.parse_args.conv_dens
         else:
@@ -214,6 +218,8 @@ class CmdPolaris:
             cmd_file.write('\t<full_dust_temp>\t1\n')
         if radiation_field:
             cmd_file.write('\t<radiation_field>\t1\n')
+        if temp_a_max is not None:
+            cmd_file.write('\t<stochastic_heating>\t' + str(temp_a_max) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
@@ -222,7 +228,8 @@ class CmdPolaris:
         cmd_file.write('</task>\n')
         cmd_file.write('\n')
 
-    def write_rat_part(self, cmd_file, grid_filename='grid.dat', conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
+    def write_rat_part(self, cmd_file, grid_filename='grid.dat', conv_dens=1., 
+            conv_len=1., conv_mag=1., conv_vel=1.):
         """Writes commands for radiative torque calculation to the command file.
 
         Args:
@@ -352,8 +359,7 @@ class CmdPolaris:
         cmd_file.write('\n')
 
     def write_dust_part(self, cmd_file, grid_filename='grid.dat', max_subpixel_lvl=1, temp_a_max=None,
-                       f_c=0., f_highj=0.25, no_rt_scattering=False,
-                       conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
+             f_c=0., f_highj=0.25, no_rt_scattering=False, conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
         """Writes commands for raytrace simulations to the command file.
 
         Args:

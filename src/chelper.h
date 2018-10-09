@@ -528,7 +528,6 @@ public:
         plot_out_points = false;
         write_radiation_field = false;
         write_g_zero = false;
-        write_stochastic_temperature = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
 
@@ -927,11 +926,6 @@ public:
     bool getWriteGZero()
     {
         return write_g_zero;
-    }
-
-    bool getWriteStochasticTemperature()
-    {
-        return write_stochastic_temperature;
     }
 
     string getISRFPath()
@@ -1372,11 +1366,6 @@ public:
     void setWriteGZero(double val)
     {
         write_g_zero = val;
-    }
-
-    void setWriteStochastic(double val)
-    {
-        write_stochastic_temperature = val;
     }
 
     void updateDetectorPixel(uint pixel_x, uint pixel_y)
@@ -2307,7 +2296,6 @@ private:
     bool plot_out_points;
     bool write_radiation_field;
     bool write_g_zero;
-    bool write_stochastic_temperature;
 
     dlist midplane_3d_param;
     dlist star_mass;

@@ -438,7 +438,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     omp_set_num_threads(param.getNrOfThreads());
 
     if(param.getStochasticHeatingMaxSize() > 0)
-        rad.calcStochasticHeating(param.getWriteStochasticTemperature());
+        rad.calcStochasticHeating();
 
     // Precalculate the radiation field
     if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable())
@@ -1201,10 +1201,6 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
             break;
 
         case CMD_DUST_EMISSION:
-            // Add wavelength for stochastic heating
-            if(param.getStochasticHeatingMaxSize() > 0)
-                dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS);
-
             // Get detector parameter list
             values = param.getDustRayDetectors();
 

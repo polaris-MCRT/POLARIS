@@ -215,7 +215,7 @@ public:
     bool doMRWStepBWWithoutHeating(photon_package * pp);
 
     void calcFinalTemperature(bool use_energy_density);
-    void calcStochasticHeating(bool update_temperature);
+    void calcStochasticHeating();
     void calcAlignedRadii();
 
     bool isInvalid(double val)

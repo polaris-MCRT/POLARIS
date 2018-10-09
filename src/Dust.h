@@ -1754,8 +1754,10 @@ public:
     double updateDustTemperature(CGridBasic * grid, photon_package * pp,
         uint i_density, uint a, bool use_energy_density);
     void calcTemperature(CGridBasic * grid, cell_basic * cell, uint i_density, bool use_energy_density);
-    void calcStochasticHeating(CGridBasic * grid, cell_basic * cell, uint i_density, dlist & wavelengh_list_full);
-    void updateStochasticTemperature(CGridBasic * grid, cell_basic * cell, uint i_density);
+    void calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, 
+        uint i_density, dlist & wavelength_list_full);
+    void calcStochasticHeatingTemperatures(CGridBasic * grid, cell_basic * cell, 
+        uint i_density, dlist & wavelength_list_full);
 
     void calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density);
 
@@ -1976,36 +1978,40 @@ public:
         }
     }
 
-    void calcStochasticHeating(CGridBasic * grid, cell_basic * cell, dlist & wavelength_list_full)
+    void calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, dlist & wavelength_list_full)
     {
         if(mixed_component != 0)
         {
             if(grid->useDustChoice())
             {
                 uint i_mixture = grid->getDustChoiceID(cell);
-                mixed_component[i_mixture].calcStochasticHeating(grid, cell, 0, wavelength_list_full);
+                mixed_component[i_mixture].calcStochasticHeatingPropabilities(grid, cell, 
+                    0, wavelength_list_full);
             }
             else
             {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].calcStochasticHeating(grid, cell, i_mixture, wavelength_list_full);
+                    mixed_component[i_mixture].calcStochasticHeatingPropabilities(grid, cell, 
+                        i_mixture, wavelength_list_full);
             }
         }
     }
 
-    void updateStochasticTemperature(CGridBasic * grid, cell_basic * cell)
+    void calcStochasticHeatingTemperatures(CGridBasic * grid, cell_basic * cell, dlist & wavelength_list_full)
     {
         if(mixed_component != 0)
         {
             if(grid->useDustChoice())
             {
                 uint i_mixture = grid->getDustChoiceID(cell);
-                mixed_component[i_mixture].updateStochasticTemperature(grid, cell, 0);
+                mixed_component[i_mixture].calcStochasticHeatingTemperatures(grid, cell, 
+                    0, wavelength_list_full);
             }
             else
             {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].updateStochasticTemperature(grid, cell, i_mixture);
+                    mixed_component[i_mixture].calcStochasticHeatingTemperatures(grid, cell, 
+                        i_mixture, wavelength_list_full);
             }
         }
     }
