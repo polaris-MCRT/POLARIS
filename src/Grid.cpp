@@ -341,7 +341,7 @@ uint CGridBasic::validateDataPositions(parameter & param)
         // temperature for each grain size or stochastically heated grains
         for(uint i_density = 0; i_density < nr_densities; i_density++)
         {
-            multi_temperature_entries += nr_dust_sizes[i_density] + 1;
+            multi_temperature_entries += nr_dust_temp_sizes[i_density] + 1;
             stochastic_temperature_entries += nr_stochastic_sizes[i_density] + 1;
         }
 

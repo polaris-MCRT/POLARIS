@@ -406,7 +406,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
             z_counter = 0;
         }
 
-        if(ph_counter == N_ph[r_counter] && b_center == false)
+        if(r_counter < N_r && ph_counter == N_ph[r_counter] && b_center == false)
         {
             r_counter++;
             ph_counter = 0;

@@ -375,6 +375,17 @@ class TestRoutines:
         """
         self.get_result('emission_map')
 
+    
+    def test_1007003(self):
+        """Perform test simulation to check temperature distribution (with stochastic heating, cylindrical grid).
+        """
+        self.get_result('temperature')
+
+    def test_1007004(self):
+        """Perform test simulation to check full raytracing (incl. scattering and stochastic heating, cylindrical grid).
+        """
+        self.get_result('emission_map')
+
 
 if __name__ == '__main__':
     # Define some colors to show error and ok more clearly

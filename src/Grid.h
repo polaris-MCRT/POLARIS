@@ -98,7 +98,7 @@ public:
         stochastic_temperature_entries = 0;
         nr_mixtures = 0;
 
-        nr_dust_sizes = 0;
+        nr_dust_temp_sizes = 0;
         nr_stochastic_sizes = 0;
         nr_stochastic_temps = 0;
 
@@ -550,11 +550,11 @@ public:
         max_data = data_offset + sz;
     }
 
-    void setDustInformation(uint _nr_mixtures, uint * _nr_dust_sizes,
+    void setDustInformation(uint _nr_mixtures, uint * _nr_dust_temp_sizes,
             uint * _nr_stochastic_sizes, uint * _nr_stochastic_temps)
     {
         nr_mixtures = _nr_mixtures;
-        nr_dust_sizes = _nr_dust_sizes;
+        nr_dust_temp_sizes = _nr_dust_temp_sizes;
         nr_stochastic_sizes = _nr_stochastic_sizes;
         nr_stochastic_temps = _nr_stochastic_temps;
     }
@@ -823,7 +823,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -910,7 +910,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         return cell->getData(data_pos_dt_list[id]);
     }
 
@@ -924,7 +924,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += max(nr_dust_sizes[i], nr_stochastic_sizes[i]);
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -1231,7 +1231,7 @@ public:
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
-                id += nr_dust_sizes[i];
+                id += nr_dust_temp_sizes[i];
             return cell->getData(data_pos_dt_list[id]);
         }
         else
@@ -1948,9 +1948,9 @@ public:
     uint getTemperatureFieldInformation()
     {
         // Check which kind of temperature calculation the grid supports
-        if(data_pos_dt_list.size() == multi_temperature_entries)
+        if(multi_temperature_entries > 1 && data_pos_dt_list.size() == multi_temperature_entries)
             return TEMP_FULL;
-        else if(data_pos_dt_list.size() == stochastic_temperature_entries)
+        else if(stochastic_temperature_entries > 1 && data_pos_dt_list.size() == stochastic_temperature_entries)
             return TEMP_STOCH;
         else if(data_pos_dt_list.size() == nr_densities)
             return TEMP_EFF;
@@ -2694,6 +2694,10 @@ public:
 
     uint DustEmissionCheck(parameter & param)
     {
+        // Check if stochastic heating temperatures are saved in grid
+        if(data_pos_dt_list.size() > nr_densities && data_pos_dt_list.size() < multi_temperature_entries)
+            stochastic_temperature_entries = data_pos_dt_list.size();
+
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
             cout << "ERROR: Grid contains no dust temperature!" << endl;
@@ -3119,7 +3123,7 @@ protected:
     uint nr_densities;
     uint multi_temperature_entries;
     uint stochastic_temperature_entries;
-    uint * nr_dust_sizes;
+    uint * nr_dust_temp_sizes;
     uint * nr_stochastic_sizes;
     uint * nr_stochastic_temps;
 

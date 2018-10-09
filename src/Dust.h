@@ -2581,7 +2581,7 @@ public:
     void setGridRequirements(CGridBasic * grid, parameter & param)
     {
         uint nr_of_mixtures = getNrOfMixtures();
-        uint * nr_dust_species = new uint[nr_of_mixtures];
+        uint * nr_dust_temp_sizes = new uint[nr_of_mixtures];
         uint * nr_stochastic_temps = new uint[nr_of_mixtures];
         uint * nr_stochastic_sizes = new uint[nr_of_mixtures];
         if(mixed_component != 0)
@@ -2589,14 +2589,17 @@ public:
             for(uint i_mixture = 0; i_mixture < nr_of_mixtures; i_mixture++)
             {
                 // Maximum amount of dust grain sizes for which the grid has to contain a temperature
-                nr_dust_species[i_mixture] = getNrOfDustSpecies(i_mixture);
+                if(param.getDustTempMulti())
+                    nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);
+                else
+                    nr_dust_temp_sizes[i_mixture] = 0;
                 // Temperatures for which the griad has to contain propabilities
                 nr_stochastic_temps[i_mixture] = getNrOfCalorimetryTemperatures(i_mixture);
                 // Maximum amount of dust grain sizes affected by stochastic heating
                 nr_stochastic_sizes[i_mixture] = getNrOfStochasticSizes(i_mixture);
             }
         }
-        grid->setDustInformation(nr_of_mixtures, nr_dust_species, nr_stochastic_sizes, nr_stochastic_temps);
+        grid->setDustInformation(nr_of_mixtures, nr_dust_temp_sizes, nr_stochastic_sizes, nr_stochastic_temps);
     }
 
     void setIDs(CDustComponent & component, uint i_comp, uint nr_of_components, uint i_mixture, uint nr_of_mixtures)

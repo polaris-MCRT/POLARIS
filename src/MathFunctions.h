@@ -1723,10 +1723,7 @@ public:
         double res = 0;
 
         if(N == 1)
-        {
-            res = (x[1] - x[0]) * y[0] + 0.5 * (x[1] - x[0]) * (y[1] - y[0]);
-            integ_spline.setValue(0, res);
-        }
+            integ_spline.setValue(0, 1);
         else
         {
             integ_spline.setValue(0, 0);
@@ -1746,10 +1743,7 @@ public:
         double res = 0;
 
         if(N == 1)
-        {
-            res = (x[1] - x[0]) * y[0] + 0.5 * (x[1] - x[0]) * (y[1] - y[0]);
-            integ_spline.setValue(0, res);
-        }
+            integ_spline.setValue(0, 1);
         else
         {
             integ_spline.setValue(0, 0);

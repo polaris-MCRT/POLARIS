@@ -2889,8 +2889,12 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
                 // Get radiation field and calculate absorbed energy for each wavelength
                 for(uint w = 0; w < WL_STEPS; w++)
-                    abs_rate_per_wl.setValue(w, wavelength_list[w],
-                        grid->getRadiationField(cell, w) * getCabsMean(a, w));
+                {
+                    double abs_rate_wl_tmp = grid->getRadiationField(cell, w) * getCabsMean(a, w);
+                    if(!use_energy_density)
+                        abs_rate_wl_tmp /= wavelength_diff[w];
+                    abs_rate_per_wl.setValue(w, wavelength_list[w], abs_rate_wl_tmp);
+                }
 
                 // Activate spline of absorbed energy for each wavelength
                 abs_rate_per_wl.createSpline();
@@ -2901,9 +2905,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 // Set the temperature propabilities in the grid
                 for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
                     temp[a] += temp_probability[t] * calorimetry_temperatures[t];
-
-                // Save temperature
-                grid->setDustTemperature(cell, i_density, a, temp[a]);
 
                 // Delete pointer array
                 delete[] temp_probability;
@@ -2925,27 +2926,33 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 // Calculate temperature from absorption rate
                 temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
 
-                // Consider sublimation temperature
-                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                    if(temp[a] >= getSublimationTemperature())
-                        temp[a] = 0;
-
-                if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+                if(grid->getTemperatureFieldInformation() == TEMP_EFF)
                 {
-                    // Set dust temperature in grid
-                    grid->setDustTemperature(cell, i_density, a, temp[a]);
-
-                    // Update min and max temperatures for visualization
-                    if(temp[a] > max_temp)
-                        max_temp = temp[a];
-                    if(temp[a] < min_temp)
-                        min_temp = temp[a];
+                    // Multiply with the amount of dust grains in the current bin for integration
+                    abs_rate[a] *= a_eff_3_5[a];
                 }
-
-                // Multiply it with the amount of dust grains in the current bin
-                abs_rate[a] *= a_eff_3_5[a];
-                temp[a] *= a_eff_3_5[a];
             }
+
+            // Consider sublimation temperature
+            if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
+                if(temp[a] >= getSublimationTemperature())
+                    temp[a] = 0;
+
+            if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                grid->getTemperatureFieldInformation() == TEMP_STOCH)
+            {
+                // Set dust temperature in grid
+                grid->setDustTemperature(cell, i_density, a, temp[a]);
+
+                // Update min and max temperatures for visualization
+                if(temp[a] > max_temp)
+                    max_temp = temp[a];
+                if(temp[a] < min_temp)
+                    min_temp = temp[a];
+            }
+
+            // Multiply with the amount of dust grains in the current bin for integration
+            temp[a] *= a_eff_3_5[a];
         }
         else
         {
@@ -2956,9 +2963,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
     }
 
     double avg_temp;
-    if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-        avg_temp = 1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
-    else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+    if(grid->getTemperatureFieldInformation() == TEMP_EFF)
     {
         // Get average absorption rate via interpolation
         double avg_abs_rate = 1 / weight * CMathFunctions::integ_dust_size(a_eff, abs_rate,
@@ -2967,6 +2972,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
         // Calculate average temperature from absorption rate
         avg_temp = findTemperature(grid, cell, avg_abs_rate);
     }
+    else
+        avg_temp = 1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
     delete[] abs_rate;
@@ -4248,10 +4255,13 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
             cout << "temperatures for all grain sizes found in grid" << endl
                 << "    -> calculate stochastic heating up to grain size of "
                 << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        else if(grid->getTemperatureFieldInformation() == TEMP_STOCH)
+            cout << "temperatures for effective grain size found in grid" << endl
+                << "    including stochastically heated temperatures" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_FULL)
             cout << "temperatures for all grain sizes found in grid" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
-            cout << "temperatures for effective grain size found in grid" << endl;
+            cout << "temperature for effective grain size found in grid" << endl;
         else
             cout << "not available (This should not happen!)" << endl;
 
