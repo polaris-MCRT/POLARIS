@@ -910,17 +910,17 @@ public:
         pFits->pHDU().addKey("CUNIT2", "None", "unit of axis 2");
         if(results_type == RESULTS_RAY)
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy/px]", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "thermal emission", "type of emission");
         }
         else if(results_type == RESULTS_FULL)
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy/px]", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
         }
         else
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
         pFits->pHDU().addKey("ID", nr, "detector ID");

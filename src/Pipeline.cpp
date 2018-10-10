@@ -394,11 +394,11 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
             nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) *
                 dust->getNrOfCalorimetryTemperatures(i_mixture);
         }
-    if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable())
+    /*if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable())
     {
         grid->setSpecLengthAsVector(true);
         nr_of_offset_entries += 4 * WL_STEPS;
-    }
+    }*/
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
         return false;

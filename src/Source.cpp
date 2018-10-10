@@ -5,22 +5,24 @@
 
 bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 {
-    dlist star_emi;
-    double tmp_luminosity, diff_luminosity, max_flux = 0;
-    uint kill_counter = 0;
-
+    // Initial output
     cout << CLR_LINE << flush;
-
     cout << "-> Initiating source star         \r" << flush;
 
     if(use_energy_density)
     {
+        // For using energy density, only the photon number is required
         nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
     else
     {
+        // Init variables
+        dlist star_emi;
+        double tmp_luminosity, diff_luminosity, max_flux = 0;
+        uint kill_counter = 0;
+
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
             double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
@@ -61,14 +63,14 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
         cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
                 << getNrOfWavelength() << ", neglected energy: "
                 << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
-    }
 
-    double fr;
-    lam_pf.resize(getNrOfWavelength());
-    for(uint l = 0; l < getNrOfWavelength(); l++)
-    {
-        fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
-        lam_pf.setValue(l, fr, double(l));
+        double fr;
+        lam_pf.resize(getNrOfWavelength());
+        for(uint l = 0; l < getNrOfWavelength(); l++)
+        {
+            fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
+            lam_pf.setValue(l, fr, double(l));
+        }
     }
 
     return true;
@@ -201,28 +203,9 @@ void CSourceStar::createNextRay(photon_package * pp, llong i_pos)
 
 bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 {
-    dlist star_emi;
-    double tmp_luminosity, diff_luminosity, max_flux = 0;
-    uint kill_counter = 0;
-
+    // Initial output
     cout << CLR_LINE << flush;
     cout << "-> Initiating source star field      \r" << flush;
-
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-    {
-        double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
-        double sp_energy;
-
-        if(is_ext)
-            sp_energy = sp_ext.getValue(wavelength_list[w]);
-        else
-            sp_energy = R * pl; //[W m^-1] energy per second and wavelength
-
-        star_emi.push_back(sp_energy);
-    }
-
-    tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
-    L = tmp_luminosity;
 
     if(use_energy_density)
     {
@@ -231,38 +214,61 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
     else
+    {
+        // Init variables
+        dlist star_emi;
+        double tmp_luminosity, diff_luminosity, max_flux = 0;
+        uint kill_counter = 0;
+
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
+            double sp_energy;
+
+            if(is_ext)
+                sp_energy = sp_ext.getValue(wavelength_list[w]);
+            else
+                sp_energy = R * pl; //[W m^-1] energy per second and wavelength
+
+            star_emi.push_back(sp_energy);
+        }
+
+        tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        L = tmp_luminosity;
+
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
             << " [L_sun], photons: " << nr_of_photons << endl;
 
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-    {
-        if(wavelength_list[w] * star_emi[w] > max_flux)
-            max_flux = wavelength_list[w] * star_emi[w];
-    }
-
-    max_flux *= ACC_SELECT_LEVEL;
-
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-        if(wavelength_list[w] * star_emi[w] < max_flux)
+        for(uint w = 0; w < getNrOfWavelength(); w++)
         {
-            kill_counter++;
-            star_emi[w] = 0;
+            if(wavelength_list[w] * star_emi[w] > max_flux)
+                max_flux = wavelength_list[w] * star_emi[w];
         }
 
-    diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
-    diff_luminosity -= tmp_luminosity;
+        max_flux *= ACC_SELECT_LEVEL;
 
-    cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
-            << getNrOfWavelength() << ", neglected energy: "
-            << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+            if(wavelength_list[w] * star_emi[w] < max_flux)
+            {
+                kill_counter++;
+                star_emi[w] = 0;
+            }
 
-    double fr;
-    lam_pf.resize(getNrOfWavelength());
+        diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        diff_luminosity -= tmp_luminosity;
 
-    for(uint l = 0; l < getNrOfWavelength(); l++)
-    {
-        fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
-        lam_pf.setValue(l, fr, double(l));
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
+                << getNrOfWavelength() << ", neglected energy: "
+                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+
+        double fr;
+        lam_pf.resize(getNrOfWavelength());
+
+        for(uint l = 0; l < getNrOfWavelength(); l++)
+        {
+            fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
+            lam_pf.setValue(l, fr, double(l));
+        }
     }
 
     return true;
