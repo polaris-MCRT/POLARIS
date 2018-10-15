@@ -607,7 +607,7 @@ class Plot:
         mark_inset(self.ax_list[ax_index], self.ax_list[-1], loc1=2, loc2=4, fc="none", ec="0.5")
 
     def plot_line(self, xdata, ydata, ax_index=0, log=None, step=False,
-        fill_between=False, no_ticks=False, **args):
+        fill_between=False, no_ticks=False, no_grid=False, **args):
         """Plot 2D line from xdata and ydata.
 
         Args:
@@ -619,6 +619,7 @@ class Plot:
             step (bool): Use steps instead of linearly connected lines.
             fill_between (bool): fill below curve.
             no_ticks (bool): Set true if not ticks shall be plotted.
+            no_grid (bool): Set true to not show grid lines.
         """
         # Get user input for log
         if self.x_scaling == 'log' and self.y_scaling == 'log':
@@ -654,7 +655,8 @@ class Plot:
         plot_func(xdata, ydata, **args)
 
         # Enable grid for better reading
-        self.ax_list[ax_index].grid(linestyle=':')
+        if not no_grid:
+            self.ax_list[ax_index].grid(linestyle=':')
 
         # Remove ticks if chosen
         if no_ticks:
@@ -894,7 +896,11 @@ class Plot:
                 extend = 'neither'
 
         # Change colormap bad values to lowest values
-        colormap = plt.get_cmap(self.cmap)
+        if '_half' in self.cmap:  
+            colormap = self.truncate_colormap(
+                plt.get_cmap(self.cmap.replace('_half', '')) , 0.0, 0.5)
+        else:
+            colormap = plt.get_cmap(self.cmap)  
         if set_bad_to_min or self.bad_to_min:
             colormap.set_bad(colormap(0))
 
@@ -1143,12 +1149,22 @@ class Plot:
             round_lvl (int): How many digits for rounding the number.
         """
         # Position of the text object in image coordinates
-        text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
-                    self.limits[2] + (self.limits[3] - self.limits[2]) * 0.05]
-        line_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
-                    self.limits[2] + (self.limits[3] - self.limits[2]) * 0.045]
-        # Length of the longest polarization vector
-        length = (self.limits[1] - self.limits[0]) / (1.2 * vec_per_width)
+        if self.limits is not None:
+            text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
+                        self.limits[2] + (self.limits[3] - self.limits[2]) * 0.05]
+            line_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
+                        self.limits[2] + (self.limits[3] - self.limits[2]) * 0.045]
+            # Length of the longest polarization vector
+            length = (self.limits[1] - self.limits[0]) / (1.2 * vec_per_width)
+        elif self.extent is not None:
+            text_pos = [self.extent[0] + (self.extent[1] - self.extent[0]) * 0.9,
+                        self.extent[2] + (self.extent[3] - self.extent[2]) * 0.05]
+            line_pos = [self.extent[0] + (self.extent[1] - self.extent[0]) * 0.9,
+                        self.extent[2] + (self.extent[3] - self.extent[2]) * 0.045]
+            # Length of the longest polarization vector
+            length = (self.extent[1] - self.extent[0]) / (1.2 * vec_per_width)
+        else:
+            raise ValueError('Neither the extent nor the limits are set!')
         # Increase the size of the line if a zoom factor is used
         if self.zoom_x_factor is not None or self.zoom_y_factor is not None:
             length *= min(self.zoom_x_factor, self.zoom_y_factor)
@@ -1162,7 +1178,7 @@ class Plot:
         self.text.set_bbox(dict(facecolor='black', alpha=0.8, edgecolor='black'))
         # Plot the line
         self.plot_line([line_pos[0] - (length / 2.), line_pos[0] + (length / 2.)], [line_pos[1], line_pos[1]],
-                       log='never', color=color, ax_index=ax_index, zorder=2)
+                       log='never', color=color, ax_index=ax_index, zorder=2, no_grid=True)
 
     def plot_contour(self, tbldata, ax_index=0, xaxis=None, yaxis=None, origin='lower',
                      interpolation='nearest', linestyles='-', extent=None, levels=None, colors=None, cmap=None,
@@ -1401,6 +1417,21 @@ class Plot:
         cbar = plt.colorbar(self.image, cax=self.ax_list[ax_index].cax, extend=extend)
         # Set label of the colorbar
         cbar.set_label(label)
+
+    @staticmethod
+    def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+        """Use only part of a colormap.
+
+        Args:
+            cmap: Colormap instance.
+            minval (float): Minimum value to extract.
+            maxval (float): Maximum value to extract.
+            n (int): Number of values.
+        """
+        new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
+            'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+            cmap(np.linspace(minval, maxval, n)))
+        return new_cmap
 
     def plot_legend(self, loc=0, ncol=1, fancybox=True, ax_index=0, bbox_to_anchor=None):
         """Plot a legend.

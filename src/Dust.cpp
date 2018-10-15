@@ -2237,18 +2237,24 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     return true;
 }
 
-bool CDustComponent::add(double frac, CDustComponent * comp)
-{
+bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
+{   
     // Get global min and max grain sizes
     double a_min = comp->getSizeMin();
     double a_max = comp->getSizeMax();
 
-    // set that the current dust component was made via mixing
-    is_mixture = true;
+    // Use the highes a_max and lowest a_min of the components
+    if(a_min_global > a_min)
+        a_min_global = a_min;
+    if(a_max_global < a_max)
+        a_max_global = a_max;
 
     // The first component to add to the mixture initializes the variables
     if(comp->getComponentId() == 0)
     {
+        // set that the current dust component was made via mixing
+        is_mixture = true;
+
         // Get common parameters from all dust components
         nr_of_dust_species = comp->getNrOfDustSpecies();
         nr_of_incident_angles = comp->getNrOfIncidentAngles();
@@ -2295,6 +2301,7 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         }
     }
 
+    dlist rel_amount(nr_of_dust_species);
     for(int a = 0; a < nr_of_dust_species; a++)
     {
         // Check if the dust grain size is really the same
@@ -2307,10 +2314,11 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
 
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
+            rel_amount[a] = frac * comp->getEffectiveRadius3_5(a) / weight;
             // Mix size distribution with their relative fraction
-            a_eff_1_5[a] += frac * comp->getEffectiveRadius1_5(a);
-            a_eff_3_5[a] += frac * comp->getEffectiveRadius3_5(a);
-            mass[a] += frac * comp->getMass(a);
+            a_eff_3_5[a] += rel_amount[a];
+            a_eff_1_5[a] += rel_amount[a] * comp->getEffectiveRadius_2(a);
+            mass[a] += rel_amount[a] * comp->getMass(a);
         }
     }
 
@@ -2330,23 +2338,21 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     {
         // Mix scattering matrix for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-                for(uint w = 0; w < nr_of_wavelength; w++)
-                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
-                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
-                                for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                                    sca_mat[a][w][inc][sph][sth][mat] += frac *
-                                        comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
+            for(uint w = 0; w < nr_of_wavelength; w++)
+                for(uint inc = 0; inc < nr_of_incident_angles; inc++)
+                    for(uint sph = 0; sph < nr_of_scat_phi; sph++)
+                        for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                            for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
+                                sca_mat[a][w][inc][sph][sth][mat] += rel_amount[a] *
+                                    comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
     }
 
     if(comp->getCalorimetryLoaded())
     {
         // Mix enthalpy for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-                for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
-                    enthalpy[a][t] += frac * comp->getEnthalpy(a, t);
+            for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
+                enthalpy[a][t] += rel_amount[a] * comp->getEnthalpy(a, t);
     }
 
     // Show progress
@@ -2358,33 +2364,15 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     {
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
-            // Init variables
-            double Qext1, Qext2, Qabs1, Qabs2, Qsca1, Qsca2, dQphas, HGg;
-
-            // Mix only optical properties if grain size should be considered
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-            {
-                Qext1 = frac * comp->getQext1(a, w);
-                Qext2 = frac * comp->getQext2(a, w);
-                Qabs1 = frac * comp->getQabs1(a, w);
-                Qabs2 = frac * comp->getQabs2(a, w);
-                Qsca1 = frac * comp->getQsca1(a, w);
-                Qsca2 = frac * comp->getQsca2(a, w);
-                dQphas = frac * comp->getQcirc(a, w);
-                HGg = frac * comp->getHGg(a, w);
-            }
-            else
-                Qext1 = Qext2 = Qabs1 = Qabs2 = Qsca1 = Qsca2 = dQphas = HGg = 0;
-
             // Add optical properties on top of the mixture ones
-            addQext1(a, w, Qext1);
-            addQext2(a, w, Qext2);
-            addQabs1(a, w, Qabs1);
-            addQabs2(a, w, Qabs2);
-            addQsca1(a, w, Qsca1);
-            addQsca2(a, w, Qsca2);
-            addQcirc(a, w, dQphas);
-            addHGg(a, w, HGg);
+            addQext1(a, w, rel_amount[a] * comp->getQext1(a, w));
+            addQext2(a, w, rel_amount[a] * comp->getQext2(a, w));
+            addQabs1(a, w, rel_amount[a] * comp->getQabs1(a, w));
+            addQabs2(a, w, rel_amount[a] * comp->getQabs2(a, w));
+            addQsca1(a, w, rel_amount[a] * comp->getQsca1(a, w));
+            addQsca2(a, w, rel_amount[a] * comp->getQsca2(a, w));
+            addQcirc(a, w, rel_amount[a] * comp->getQcirc(a, w));
+            addHGg(a, w, rel_amount[a] * comp->getHGg(a, w));
         }
     }
 
@@ -2405,17 +2393,21 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         else
             d_ang = 1;
 
-        for(uint i = 0; i < nr_of_dust_species * nr_of_wavelength; i++)
+        for(uint w = 0; w < nr_of_wavelength; w++)
         {
-            for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+            for(uint a = 0; a < nr_of_dust_species; a++)
             {
-                // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
-                comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
-                comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
+                uint i = w * nr_of_dust_species + a;
+                for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+                {
+                    // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
+                    comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
+                    comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
 
-                // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
-                Qtrq[i].addValue(i_inc, i_inc * d_ang, frac * tmpQtrqY);
-                HG_g_factor[i].addValue(i_inc, i_inc * d_ang, frac * tmpHGgY);
+                    // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
+                    Qtrq[i].addValue(i_inc, i_inc * d_ang, rel_amount[a] * tmpQtrqY);
+                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, rel_amount[a] * tmpHGgY);
+                }
             }
         }
     }
@@ -2429,12 +2421,6 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     // Check for scattering phase function (use HG if one or more components use HG)
     if(comp->getPhaseFunctionID() < phID)
         phID = comp->getPhaseFunctionID();
-
-    // Use the highes a_max and lowest a_min of the components
-    if(a_min_global > a_min)
-        a_min_global = a_min;
-    if(a_max_global < a_max)
-        a_max_global = a_max;
 
     // Use the lowest sublimation temperature (use multiple mixtures for higher accuracy of the sublimation)
     if(sub_temp > comp->getSublimationTemperature())
@@ -2908,6 +2894,25 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
                 // Delete pointer array
                 delete[] temp_probability;
+
+                // Consider sublimation temperature
+                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                        grid->getTemperatureFieldInformation() == TEMP_STOCH)
+                    if(temp[a] >= getSublimationTemperature())
+                        temp[a] = 0;
+
+                if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                    grid->getTemperatureFieldInformation() == TEMP_STOCH)
+                {
+                    // Set dust temperature in grid
+                    grid->setDustTemperature(cell, i_density, a, temp[a]);
+
+                    // Update min and max temperatures for visualization
+                    if(temp[a] > max_temp)
+                        max_temp = temp[a];
+                    if(temp[a] < min_temp)
+                        min_temp = temp[a];
+                }
             }
             else
             {
@@ -2931,24 +2936,23 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                     // Multiply with the amount of dust grains in the current bin for integration
                     abs_rate[a] *= a_eff_3_5[a];
                 }
-            }
 
-            // Consider sublimation temperature
-            if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                if(temp[a] >= getSublimationTemperature())
-                    temp[a] = 0;
+                // Consider sublimation temperature
+                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
+                    if(temp[a] >= getSublimationTemperature())
+                        temp[a] = 0;
 
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
-                grid->getTemperatureFieldInformation() == TEMP_STOCH)
-            {
-                // Set dust temperature in grid
-                grid->setDustTemperature(cell, i_density, a, temp[a]);
+                if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+                {
+                    // Set dust temperature in grid
+                    grid->setDustTemperature(cell, i_density, a, temp[a]);
 
-                // Update min and max temperatures for visualization
-                if(temp[a] > max_temp)
-                    max_temp = temp[a];
-                if(temp[a] < min_temp)
-                    min_temp = temp[a];
+                    // Update min and max temperatures for visualization
+                    if(temp[a] > max_temp)
+                        max_temp = temp[a];
+                    if(temp[a] < min_temp)
+                        min_temp = temp[a];
+                }
             }
 
             // Multiply with the amount of dust grains in the current bin for integration
@@ -4411,6 +4415,13 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
     uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
     uint nr_of_incident_angles = single_component[0].getNrOfIncidentAngles();
 
+    // Calculate relative amounts of grains at each grain size bin
+    dlist weight(nr_of_components);
+    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+        for(int a = 0; a < nr_of_dust_species; a++)
+            if(single_component[i_comp].sizeIndexUsed(a))
+                weight[i_comp] += fractions[i_comp] * single_component[i_comp].getEffectiveRadius3_5(a);
+
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
         // Check if the components have the same amount of grain sizes
@@ -4440,7 +4451,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
             mixed_component[i_mixture].setIsAligned(true);
 
         // Add parameters of each component together to the mixture
-        if(!mixed_component[i_mixture].add(fractions[i_comp], &single_component[i_comp]))
+        if(!mixed_component[i_mixture].add(fractions[i_comp], weight[i_comp], &single_component[i_comp]))
             return false;
     }
 

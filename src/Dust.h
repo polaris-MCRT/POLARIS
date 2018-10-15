@@ -1129,6 +1129,23 @@ public:
         return false;
     }
 
+    bool sizeIndexUsed(uint a)
+    {
+        if((a_eff[a] - a_min_global) > -a_min_global * 1e-5 
+                && (a_max_global - a_eff[a]) > -a_max_global * 1e-5)
+            return true;
+        else
+        {
+            if(a < nr_of_dust_species - 1)
+                if(a_eff[a] < a_min_global && a_eff[a + 1] >= a_min_global)
+                    return true;
+            if(a > 0)
+                if(a_eff[a - 1] < a_max_global && a_eff[a] >= a_max_global)
+                    return true;
+        }
+        return false;
+    }
+
     double getInternalIDG(double Td, double Tg)
     {
         double alpha = sqrt((1 + 0.5 / (aspect_ratio * aspect_ratio)) * (1 + Td / Tg));
@@ -1772,7 +1789,7 @@ public:
 
     bool writeComponent(string path_data, string path_plot, double fraction);
     bool calcSizeDistribution(dlist values, double * mass);
-    bool add(double frac, CDustComponent * comp);
+    bool add(double frac, double weight, CDustComponent * comp);
 
     uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS);
 

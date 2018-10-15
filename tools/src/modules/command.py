@@ -70,8 +70,6 @@ class CmdPolaris:
         # Overwrite default values with user input
         if self.parse_args.mass_fraction is not None:
             mass_fraction = self.parse_args.mass_fraction
-        elif self.dust.parameter['abundances'] is not None:
-            mass_fraction = self.dust.parameter['abundances'].sum()
         elif mass_fraction is None:
             mass_fraction = self.model.parameter['mass_fraction']
         if self.parse_args.scattering is not None:
