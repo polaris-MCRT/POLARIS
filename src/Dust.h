@@ -43,6 +43,7 @@ public:
         a_eff_3_5 = 0;
         a_eff_2 = 0;
         mass = 0;
+        fraction = 0;
         calorimetry_temperatures = 0;
 
         tCext1 = 0;
@@ -701,6 +702,13 @@ public:
         return weight;
     }
 
+    double getWeight()
+    {
+        double weight = CMathFunctions::integ_dust_size(a_eff, a_eff_3_5, nr_of_dust_species, 
+            a_min_global, a_max_global);
+        return weight;
+    }
+
     double getGoldFactor()
     {
         return gold_g_factor;
@@ -878,6 +886,16 @@ public:
     void setStochasticHeatingMaxSize(double val)
     {
         stochastic_heating_max_size = val;
+    }
+
+    double getFraction()
+    {
+        return fraction;
+    }
+
+    void setFraction(double val)
+    {
+        fraction = val;
     }
 
     void setSizeParameter(string size_key, dlist size_parameter_list)
@@ -1548,25 +1566,25 @@ public:
         return stringID;
     }
 
-    void createStringID(CDustComponent * comp, double frac)
+    void createStringID(CDustComponent * comp)
     {
         // Init string stream
         stringstream str_stream;
         str_stream.str("");
 
         // Start with printing the dust components (if mixture or only single component)
-        if(stringID.length() == 0 || frac == 1)
+        if(stringID.length() == 0 || comp->getFraction() == 1)
             str_stream << "Dust components:" << endl;
 
         // Fill the string with various parameters and format it
         char tmp_str[1024];
 #ifdef WINDOWS
         sprintf_s(tmp_str, "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
-                comp->getStringID().c_str(), frac, comp->getDustSizeKeyword().c_str(),
+                comp->getStringID().c_str(), comp->getFraction(), comp->getDustSizeKeyword().c_str(),
                 comp->getDustSizeParameterString().c_str(), comp->getSizeMin(), comp->getSizeMax());
 #else
         sprintf(tmp_str, "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
-                comp->getStringID().c_str(), frac, comp->getDustSizeKeyword().c_str(),
+                comp->getStringID().c_str(), comp->getFraction(), comp->getDustSizeKeyword().c_str(),
                 comp->getDustSizeParameterString().c_str(), comp->getSizeMin(), comp->getSizeMax());
 #endif
 
@@ -1574,7 +1592,7 @@ public:
         str_stream << tmp_str;
 
         // Add stream to stringID or replace it if only one component
-        if(frac == 1)
+        if(comp->getFraction() == 1)
             stringID = str_stream.str();
         else
             stringID += str_stream.str();
@@ -1791,9 +1809,9 @@ public:
     bool readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat);
     bool readCalorimetryFile(parameter & param, uint dust_component_choice);
 
-    bool writeComponent(string path_data, string path_plot, double fraction);
+    bool writeComponent(string path_data, string path_plot);
     bool calcSizeDistribution(dlist values, double * mass);
-    bool add(double frac, double weight, CDustComponent * comp);
+    bool add(double * size_fraction, CDustComponent * comp);
 
     uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS);
 
@@ -1855,6 +1873,7 @@ private:
     double f_cor;
     double delta_rat;
     double mu;
+    double fraction;
     double avg_mass;
     double a_min_global;
     double a_max_global;
@@ -1897,8 +1916,6 @@ public:
         single_component = 0;
         mixed_component = 0;
 
-        fractions = 0;
-
         scattering_to_raytracing = true;
 
         nr_of_components = 0;
@@ -1911,8 +1928,6 @@ public:
             delete[] single_component;
         if(mixed_component != 0)
             delete[] mixed_component;
-        if(fractions != 0)
-            delete[] fractions;
     }
 
     double getAvgMass(uint i_mixture)
@@ -1924,8 +1939,8 @@ public:
     {
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    if(!mixed_component[i_mixture].writeComponent(path_data, path_plot, 1.0))
-                        return false;
+                if(!mixed_component[i_mixture].writeComponent(path_data, path_plot))
+                    return false;
         return true;
     }
 
@@ -2628,6 +2643,36 @@ public:
         component.setIDs(i_comp, nr_of_components, i_mixture, nr_of_mixtures);
     }
 
+    double ** getSizeFractions()
+    {
+        // Calculate relative amounts of grains at each grain size bin
+        uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
+        double ** size_fraction = new double*[nr_of_components];
+        for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+        {
+            double weight = single_component[i_comp].getWeight();
+            size_fraction[i_comp] = new double[nr_of_dust_species];
+            for(int a = 0; a < nr_of_dust_species; a++)
+                if(single_component[i_comp].sizeIndexUsed(a))
+                    size_fraction[i_comp][a] = single_component[i_comp].getFraction() * 
+                        single_component[i_comp].getEffectiveRadius3_5(a) / weight;
+        }
+
+        // Normalization
+        for(int a = 0; a < nr_of_dust_species; a++)
+        {
+            // Calulcate the sum for each size bin
+            double sum = 0;
+            for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+                sum += size_fraction[i_comp][a];
+
+            // Normalize each value
+            for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+                size_fraction[i_comp][a] /= sum;
+        }
+        return size_fraction;
+    }
+
     photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp,
             Vector3D obs_ex, Vector3D dir_obs, double albedo)
     {
@@ -2666,8 +2711,6 @@ public:
 private:
     CDustComponent * single_component;
     CDustComponent * mixed_component;
-
-    double * fractions;
 
     bool scattering_to_raytracing;
 

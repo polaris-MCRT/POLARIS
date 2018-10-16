@@ -1352,7 +1352,7 @@ bool CDustComponent::readCalorimetryFile(parameter & param, uint dust_component_
     return true;
 }
 
-bool CDustComponent::writeComponent(string path_data, string path_plot, double fraction)
+bool CDustComponent::writeComponent(string path_data, string path_plot)
 {
     // Do not write dust data if no dust component was chosen
     if(nr_of_wavelength == 0)
@@ -2237,7 +2237,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     return true;
 }
 
-bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
+bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
 {   
     // Get global min and max grain sizes
     double a_min = comp->getSizeMin();
@@ -2295,13 +2295,12 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
             // Init calorimetry data
             initCalorimetry();
 
-            // Set calorimetric temepraturs, which needs to be done only once
+            // Set calorimetric temperatures, which needs to be done only once
             for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
                 calorimetry_temperatures[t] = comp->getCalorimetricTemperature(t);
         }
     }
 
-    dlist rel_amount(nr_of_dust_species);
     for(int a = 0; a < nr_of_dust_species; a++)
     {
         // Check if the dust grain size is really the same
@@ -2314,11 +2313,10 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
 
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
-            rel_amount[a] = frac * comp->getEffectiveRadius3_5(a) / weight;
             // Mix size distribution with their relative fraction
-            a_eff_3_5[a] += rel_amount[a];
-            a_eff_1_5[a] += rel_amount[a] * comp->getEffectiveRadius_2(a);
-            mass[a] += rel_amount[a] * comp->getMass(a);
+            a_eff_3_5[a] += size_fraction[a] * comp->getEffectiveRadius3_5(a);
+            a_eff_1_5[a] += size_fraction[a] * comp->getEffectiveRadius1_5(a);
+            mass[a] += size_fraction[a] * comp->getMass(a);
         }
     }
 
@@ -2343,7 +2341,7 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
                     for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         for(uint sth = 0; sth < nr_of_scat_theta; sth++)
                             for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                                sca_mat[a][w][inc][sph][sth][mat] += rel_amount[a] *
+                                sca_mat[a][w][inc][sph][sth][mat] += size_fraction[a] *
                                     comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
     }
 
@@ -2352,7 +2350,7 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
         // Mix enthalpy for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
             for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
-                enthalpy[a][t] += rel_amount[a] * comp->getEnthalpy(a, t);
+                enthalpy[a][t] += size_fraction[a] * comp->getEnthalpy(a, t);
     }
 
     // Show progress
@@ -2365,14 +2363,14 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
             // Add optical properties on top of the mixture ones
-            addQext1(a, w, rel_amount[a] * comp->getQext1(a, w));
-            addQext2(a, w, rel_amount[a] * comp->getQext2(a, w));
-            addQabs1(a, w, rel_amount[a] * comp->getQabs1(a, w));
-            addQabs2(a, w, rel_amount[a] * comp->getQabs2(a, w));
-            addQsca1(a, w, rel_amount[a] * comp->getQsca1(a, w));
-            addQsca2(a, w, rel_amount[a] * comp->getQsca2(a, w));
-            addQcirc(a, w, rel_amount[a] * comp->getQcirc(a, w));
-            addHGg(a, w, rel_amount[a] * comp->getHGg(a, w));
+            addQext1(a, w, size_fraction[a] * comp->getQext1(a, w));
+            addQext2(a, w, size_fraction[a] * comp->getQext2(a, w));
+            addQabs1(a, w, size_fraction[a] * comp->getQabs1(a, w));
+            addQabs2(a, w, size_fraction[a] * comp->getQabs2(a, w));
+            addQsca1(a, w, size_fraction[a] * comp->getQsca1(a, w));
+            addQsca2(a, w, size_fraction[a] * comp->getQsca2(a, w));
+            addQcirc(a, w, size_fraction[a] * comp->getQcirc(a, w));
+            addHGg(a, w, size_fraction[a] * comp->getHGg(a, w));
         }
     }
 
@@ -2405,18 +2403,18 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
                     comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
 
                     // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
-                    Qtrq[i].addValue(i_inc, i_inc * d_ang, rel_amount[a] * tmpQtrqY);
-                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, rel_amount[a] * tmpHGgY);
+                    Qtrq[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpQtrqY);
+                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpHGgY);
                 }
             }
         }
     }
 
     // Mix various parameters
-    aspect_ratio += frac * comp->getAspectRatio();
-    material_density += frac * comp->getMaterialDensity();
-    delta_rat += frac * comp->getDeltaRat();
-    gold_g_factor += frac * comp->getGoldFactor();
+    aspect_ratio += comp->getFraction() * comp->getAspectRatio();
+    material_density += comp->getFraction() * comp->getMaterialDensity();
+    delta_rat += comp->getFraction() * comp->getDeltaRat();
+    gold_g_factor += comp->getFraction() * comp->getGoldFactor();
 
     // Check for scattering phase function (use HG if one or more components use HG)
     if(comp->getPhaseFunctionID() < phID)
@@ -2437,7 +2435,7 @@ bool CDustComponent::add(double frac, double weight, CDustComponent * comp)
     }
 
     // Create StringID for print parameter
-    createStringID(comp, frac);
+    createStringID(comp);
 
     return true;
 }
@@ -4143,10 +4141,6 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
 
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
-
-        // Init pointer array for the mass fractions of each dust component
-        fractions = new double[nr_of_components];
-
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
             uint dust_component_choice = unique_components[i_comp];
@@ -4155,8 +4149,9 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
             setIDs(single_component[i_comp], i_comp, nr_of_components, i_mixture, nr_of_dust_mixtures);
 
             // Get dust component fraction of mixture
-            fractions[i_comp] = param.getDustFraction(dust_component_choice);
-            sum += fractions[i_comp];
+            double fraction = param.getDustFraction(dust_component_choice);
+            single_component[i_comp].setFraction(fraction);
+            sum += fraction;
 
             // Get size distribution parameters
             string size_keyword = param.getDustSizeKeyword(dust_component_choice);
@@ -4187,7 +4182,15 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
                 }
 
             // Write dust component files
-            single_component[i_comp].writeComponent(path_data, path_plot, fractions[i_comp]);
+            single_component[i_comp].writeComponent(path_data, path_plot);
+        }
+
+        // Check if the sum of the fractions of the dust components add up to one
+        if(sum != 1.0)
+        {
+            cout << "ERROR: Fractions of dust materials do not add up to 100% "
+                << "(" << sum << "%)!" << endl;
+            return false;
         }
 
         // Set the ID and number of the mixtures
@@ -4202,13 +4205,6 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
 
         // Delete single components
         killSingleComponents();
-
-        // Check if the sum of the fractions of the dust components add up to one
-        if(sum != 1.0)
-        {
-            cout << "ERROR: Fractions of dust materials do not add up to 100%" << endl;
-            return false;
-        }
     }
 
     return true;
@@ -4394,7 +4390,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
         single_component = 0;
 
         // Create StringID for print parameter
-        mixed_component[i_mixture].createStringID(&mixed_component[i_mixture], 1);
+        mixed_component[i_mixture].createStringID(&mixed_component[i_mixture]);
 
         // Pre-calculate various quantities
         if(!preCalcDustProperties(param, i_mixture))
@@ -4411,16 +4407,12 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
     mixed_component[i_mixture].setScatLoaded(true);
     mixed_component[i_mixture].setCalorimetryLoaded(true);
 
+    // Get Relative fractions for each size bin
+    double ** size_fraction = getSizeFractions();
+
     // Get common parameter grid
     uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
     uint nr_of_incident_angles = single_component[0].getNrOfIncidentAngles();
-
-    // Calculate relative amounts of grains at each grain size bin
-    dlist weight(nr_of_components);
-    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-        for(int a = 0; a < nr_of_dust_species; a++)
-            if(single_component[i_comp].sizeIndexUsed(a))
-                weight[i_comp] += fractions[i_comp] * single_component[i_comp].getEffectiveRadius3_5(a);
 
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
@@ -4451,7 +4443,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
             mixed_component[i_mixture].setIsAligned(true);
 
         // Add parameters of each component together to the mixture
-        if(!mixed_component[i_mixture].add(fractions[i_comp], weight[i_comp], &single_component[i_comp]))
+        if(!mixed_component[i_mixture].add(size_fraction[i_comp], &single_component[i_comp]))
             return false;
     }
 
