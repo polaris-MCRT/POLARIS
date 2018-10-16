@@ -1201,6 +1201,10 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
             break;
 
         case CMD_DUST_EMISSION:
+            // Add wavelength for stochastic heating
+            if(param.getStochasticHeatingMaxSize() > 0)
+                dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS);
+                
             // Get detector parameter list
             values = param.getDustRayDetectors();
 

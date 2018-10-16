@@ -1948,9 +1948,9 @@ public:
     uint getTemperatureFieldInformation()
     {
         // Check which kind of temperature calculation the grid supports
-        if(multi_temperature_entries > 1 && data_pos_dt_list.size() == multi_temperature_entries)
+        if(data_pos_dt_list.size() == multi_temperature_entries)
             return TEMP_FULL;
-        else if(stochastic_temperature_entries > 1 && data_pos_dt_list.size() == stochastic_temperature_entries)
+        else if(data_pos_dt_list.size() == stochastic_temperature_entries)
             return TEMP_STOCH;
         else if(data_pos_dt_list.size() == nr_densities)
             return TEMP_EFF;

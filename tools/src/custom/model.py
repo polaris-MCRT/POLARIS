@@ -622,7 +622,7 @@ class ThemisDisk(Model):
         self.parameter['gas_mass'] = np.array([[0.17e-03], [0.63e-04], [0.255e-03], [0.255e-03]]) 
         # ---
         # Calc mass_Fraction out of themis density
-        self.parameter['gas_mass'] *= 1e-4 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+        self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
@@ -651,6 +651,8 @@ class ThemisDisk(Model):
         self.parameter['ref_scale_height'] = 10.  * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
+        # Enable multiple density distributions
+        self.parameter['variable_dust'] = True
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -670,8 +672,8 @@ class ThemisDisk(Model):
                 elif model_number == 2:
                     self.parameter['gas_mass'] = np.array([[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]]) 
                 self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum()
-                print(self.parameter['mass_fraction'])
-                self.parameter['gas_mass'] *= 1e-4 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+                print('--mass_fraction', self.parameter['mass_fraction'])
+                self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

@@ -124,9 +124,9 @@ class RemoteRoutines:
         print('--- Push POLARIS sources to ' + self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=src/ --include=tools/ --include=tools/src/ ' +
-            '--include=modules/ --include=*.cpp --include=*.cc --include=*.h --include=*.hh ' +
-            '--exclude=Makefile.in --include=src/*.in --include=*.py --include=*.sh --exclude=* ' +
-            self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
+            '--include=modules/ --include=custom/ --include=*.cpp --include=*.cc --include=*.h ' +
+            '--include=*.hh --exclude=Makefile.in --include=src/*.in --include=*.py --include=*.sh ' +
+            '--exclude=* ' + self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
 
     def push_polaris_input(self):
         """Push POLARIS sources to server.

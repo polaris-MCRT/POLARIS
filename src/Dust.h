@@ -723,10 +723,14 @@ public:
 
     uint getNrOfStochasticSizes()
     {
-        uint nr_stochastic_sizes = 0;
-        for(uint a = 0; a < nr_of_dust_species; a++)
-            if(a_eff[a] <= stochastic_heating_max_size)
-                nr_stochastic_sizes++;
+        uint nr_stochastic_sizes = MAX_UINT;
+        if(stochastic_heating_max_size > 0)
+        {
+            nr_stochastic_sizes = 0;
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                if(a_eff[a] <= stochastic_heating_max_size)
+                    nr_stochastic_sizes++;
+        }
         return nr_stochastic_sizes;
     }
 
@@ -2609,7 +2613,7 @@ public:
                 if(param.getDustTempMulti())
                     nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);
                 else
-                    nr_dust_temp_sizes[i_mixture] = 0;
+                    nr_dust_temp_sizes[i_mixture] = MAX_UINT;
                 // Temperatures for which the griad has to contain propabilities
                 nr_stochastic_temps[i_mixture] = getNrOfCalorimetryTemperatures(i_mixture);
                 // Maximum amount of dust grain sizes affected by stochastic heating
