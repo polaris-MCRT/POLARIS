@@ -2625,10 +2625,7 @@ public:
             for(uint i_mixture = 0; i_mixture < nr_of_mixtures; i_mixture++)
             {
                 // Maximum amount of dust grain sizes for which the grid has to contain a temperature
-                if(param.getDustTempMulti())
-                    nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);
-                else
-                    nr_dust_temp_sizes[i_mixture] = MAX_UINT;
+                nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);          
                 // Temperatures for which the griad has to contain propabilities
                 nr_stochastic_temps[i_mixture] = getNrOfCalorimetryTemperatures(i_mixture);
                 // Maximum amount of dust grain sizes affected by stochastic heating

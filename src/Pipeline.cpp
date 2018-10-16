@@ -254,7 +254,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
 
     omp_set_num_threads(param.getNrOfThreads());
 
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isTemperatureSimulation())
     {
         if(param.getDustOffset())
             rad.convertTempInQB(param.getOffsetMinGasDensity(), false);
@@ -265,7 +265,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     rad.calcMonteCarloRadiationField(param.getCommand(), 
         use_energy_density, (param.getCommand() == CMD_RAT));
         
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
     if(param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
         rad.calcAlignedRadii();
@@ -285,7 +285,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
 
     if(param.getSaveRadiationField())
         grid->saveRadiationField();
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isTemperatureSimulation())
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
     else if(param.getCommand() == CMD_RAT)
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
@@ -441,7 +441,8 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
         rad.calcStochasticHeating();
 
     // Precalculate the radiation field
-    if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable())
+    if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable() &&
+            sources_mc.size() > 0)
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
@@ -901,7 +902,7 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
 
         if(param.getDustSource())
         {
-            if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+            if(param.isTemperatureSimulation())
             {
                 cout << "ERROR: Dust as radiation source can not be considered in "
                     << "temperature calculations (use RAT to consider dust as a separate source)!" << endl;

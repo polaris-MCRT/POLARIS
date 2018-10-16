@@ -631,6 +631,20 @@ public:
         return cmd;
     }
 
+    bool isMonteCarloSimulation()
+    {
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
+            return true;
+        return false;
+    }
+
+    bool isTemperatureSimulation()
+    {
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)
+            return true;
+        return false;
+    }
+
     double getStarMass(uint i)
     {
         return star_mass[i];

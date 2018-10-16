@@ -314,6 +314,12 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
                     wavelength_list_dustcat[w] = values[w];
 
+                if(wavelength_list[0] < wavelength_list_dustcat[0] || 
+                         wavelength_list[nr_of_wavelength - 1] >
+                         wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
+                    cout << "HINT: The wavelength range is out of the limits of the catalog. "
+                        << "This may cause problems!" << endl;
+
                 break;
 
             default:
@@ -4227,13 +4233,12 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     cout << SEP_LINE;
 
     // Show the full wavelength grid for temo and RAT calculation
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT ||
+    if(param.isMonteCarloSimulation() || 
             (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0))
         cout << "- Nr. of wavelengths      : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT ||
-            param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_DUST_SCATTERING ||
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
             (grid->getRadiationFieldAvailable() && param.getScatteringToRay()))
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
@@ -4321,7 +4326,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     }
 
     // Show information about dust temperature distribution simulations
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isTemperatureSimulation())
     {
         cout << "- Temperature calculation : ";
         if(param.getDustTempMulti())
@@ -4341,7 +4346,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     }
 
     // Show information about saving the radiation field
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isMonteCarloSimulation())
     {
         cout << "- Save radiation field    : ";
         if(param.getSaveRadiationField())
@@ -4461,7 +4466,7 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
     mixed_component[i_mixture].setSublimate(param.isSublimate());
 
     // Calculate wavelength differences for temperature (reemission)
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT)
+    if(param.isMonteCarloSimulation())
         if(!mixed_component[i_mixture].calcWavelengthDiff())
         {
             cout << "ERROR: The wavelength grid has only one wavelength which is too less for temp calculation!.\n"
@@ -4484,11 +4489,11 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
         mixed_component[i_mixture].preCalcTemperatureLists(TEMP_MIN, TEMP_MAX, TEMP_STEP);
 
     // Pre-calculate reemission probability of the dust mixture at different temperatures
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT)
+    if(param.isMonteCarloSimulation())
         mixed_component[i_mixture].preCalcWaveProb();
 
     // Pre-calculate temperature to total emission relation (either for temperature or stochastic heating calculation)
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT ||
+    if(param.isMonteCarloSimulation() ||
             (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > mixed_component[i_mixture].getSizeMin()))
         mixed_component[i_mixture].preCalcAbsorptionRates();
 
@@ -4502,8 +4507,7 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
     }
 
     // Use random alignment for Monte-Carlo simulations
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT ||
-            param.getCommand() == CMD_RAT || param.getCommand() == CMD_DUST_SCATTERING)
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING)
         mixed_component[i_mixture].setAlignmentMechanism(ALIG_RND);
     else
         mixed_component[i_mixture].setAlignmentMechanism(param.getAlignmentMechanism());
