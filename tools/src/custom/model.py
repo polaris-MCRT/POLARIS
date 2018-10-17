@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import time
 
 from modules.math import Math
 from modules.base import Model
