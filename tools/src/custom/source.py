@@ -37,7 +37,7 @@ class CustomStar(StellarSource):
         # Radius of the star [R_sun] or luminosity [L_sun]
         self.parameter['radius'] = 2.0 * self.math.const['R_sun']
         # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1000000
+        self.parameter['nr_photons'] = 1e6
         # Can the velocity field be calculated by only this star in the center?
         self.parameter['kepler_usable'] = True
         # Mass of the star [M_sun] (for Keplerian rotation)
@@ -83,7 +83,7 @@ class FType(StellarSource):
         # Mass of the star [M_sun] (for Keplerian rotation)
         self.parameter['mass'] = 0.7 * self.math.const['M_sun']
         # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1000000
+        self.parameter['nr_photons'] = 1e6
 
 
 class GGTauStars(StellarSource):
@@ -107,7 +107,7 @@ class GGTauStars(StellarSource):
         """
         StellarSource.__init__(self, file_io, parse_args)
 
-        self.parameter['nr_photons'] = 100000
+        self.parameter['nr_photons'] = 1e8
 
         self.a_Aab = 36. / 2.
         self.a_Ab12 = 4.5 / 2.
@@ -181,13 +181,13 @@ class HD97048(StellarSource):
         # Position of the star [m, m, m]
         self.parameter['position'] = [0, 0, 0]
         # Effective temperature of the star [K]
-        self.parameter['temperature'] = 10000
+        self.parameter['temperature'] = 1e4
         # Radius of the star [R_sun]
         self.parameter['radius'] = 2.0 * self.math.const['R_sun']
         # Mass of the star [M_sun] (for Keplerian rotation)
         self.parameter['mass'] = 1.0 * self.math.const['M_sun']
         # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1000000
+        self.parameter['nr_photons'] = 1e6
 
 class Line(StellarSource):
     """A line of stars

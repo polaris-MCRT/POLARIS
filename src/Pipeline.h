@@ -303,10 +303,10 @@ public:
 
         if(!monte_carlo)
         {
-            if(param.getMaxMapShiftX() > 0)
+            if(param.getMaxMapShiftX() != 0)
                 cout << "- Map shift X [m]       : " << param.getMinMapShiftX() << " (min) - "
                         << param.getMaxMapShiftX() << " (max)" << endl;
-            if(param.getMaxMapShiftY() > 0)
+            if(param.getMaxMapShiftY() != 0)
                 cout << "- Map shift Y [m]       : " << param.getMinMapShiftY() << " (min) - "
                         << param.getMaxMapShiftY() << " (max)" << endl;
         }

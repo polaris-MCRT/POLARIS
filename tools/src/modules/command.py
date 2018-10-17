@@ -47,8 +47,7 @@ class CmdPolaris:
         self.math = Math()
 
     def write_common_part(self, cmd_file, midplane_points=None, midplane_zoom=None, midplane_3d_param=None,
-            midplane_rad_field=False, mass_fraction=None, scattering=None, mu=None, nr_threads=-1, 
-            rot_axis_1=None, rot_axis_2=None):
+            midplane_rad_field=False, mass_fraction=None, scattering=None, mu=None, nr_threads=-1):
         """Writes commands into the command file.
 
         Args:
@@ -63,8 +62,6 @@ class CmdPolaris:
                 (PH_ISO, PH_MIE, PH_HG)
             mu (float): Average mass of one gas particle.
             nr_threads (int): Number of cpu threads.
-            rot_axis_1 (List): First rotation angle (phi) rotates around this vector.
-            rot_axis_2 (List): Second rotation angle (theta) rotates around this vector.
         """
 
         # Overwrite default values with user input
@@ -94,27 +91,9 @@ class CmdPolaris:
             mu = self.math.const['avg_gas_mass']
         if self.parse_args.nr_threads is not None:
             nr_threads = self.parse_args.nr_threads
-        if self.parse_args.rot_axis_1 is not None:
-            rot_axis_1 = self.parse_args.rot_axis_1
-        elif rot_axis_1 is None:
-            rot_axis_1 = [1, 0, 0]
-        if self.parse_args.rot_axis_2 is not None:
-            rot_axis_2 = self.parse_args.rot_axis_2
-        elif rot_axis_2 is None:
-            rot_axis_2 = [0, 1, 0]
-
-        # Make rotation axis to unit length vectors
-        if np.linalg.norm(rot_axis_1) != 1:
-            rot_axis_1 /= np.linalg.norm(rot_axis_1)
-        if np.linalg.norm(rot_axis_2) != 1:
-            rot_axis_2 /= np.linalg.norm(rot_axis_2)
 
         cmd_file.write('<common>\n')
         cmd_file.write(self.dust.get_command())
-        cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
-                       + '\t' + str(rot_axis_1[2]) + '\n')
-        cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
-                       + '\t' + str(rot_axis_2[2]) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<write_inp_midplanes>\t' + str(midplane_points) + '\n')
         cmd_file.write('\t<write_out_midplanes>\t' + str(midplane_points) + '\n')
@@ -320,9 +299,28 @@ class CmdPolaris:
             conv_vel = self.parse_args.conv_vel
         elif self.parse_args.grid_filename is not None and 'grid_temp.dat' not in self.parse_args.grid_filename:
             conv_vel = self.model.conv_parameter['conv_vel']
+        if self.parse_args.rot_axis_1 is not None:
+            rot_axis_1 = self.parse_args.rot_axis_1
+        else:
+            rot_axis_1 = self.detector.parameter['rot_axis_1']
+        if self.parse_args.rot_axis_2 is not None:
+            rot_axis_2 = self.parse_args.rot_axis_2
+        else:
+            rot_axis_2 = self.detector.parameter['rot_axis_2']
+
+        # Make rotation axis to unit length vectors
+        if np.linalg.norm(rot_axis_1) != 1:
+            rot_axis_1 /= np.linalg.norm(rot_axis_1)
+        if np.linalg.norm(rot_axis_2) != 1:
+            rot_axis_2 /= np.linalg.norm(rot_axis_2)
 
         cmd_file.write('<task> 1\n')
+        cmd_file.write('\n')
         cmd_file.write(self.detector.get_dust_scattering_command())
+        cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
+                       + '\t' + str(rot_axis_1[2]) + '\n')
+        cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
+                       + '\t' + str(rot_axis_2[2]) + '\n')
         cmd_file.write('\n')
 
         if self.source is not None and self.source.parameter['nr_photons'] > 0:
@@ -356,7 +354,7 @@ class CmdPolaris:
         cmd_file.write('</task>\n')
         cmd_file.write('\n')
 
-    def write_dust_part(self, cmd_file, grid_filename='grid.dat', max_subpixel_lvl=1, temp_a_max=None,
+    def write_dust_part(self, cmd_file, grid_filename='grid.dat', max_subpixel_lvl=None, temp_a_max=None,
              f_c=0., f_highj=0.25, no_rt_scattering=False, conv_dens=1., conv_len=1., conv_mag=1., conv_vel=1.):
         """Writes commands for raytrace simulations to the command file.
 
@@ -381,6 +379,8 @@ class CmdPolaris:
         # Overwrite default values with user input
         if self.parse_args.max_subpixel_lvl is not None:
             max_subpixel_lvl = self.parse_args.max_subpixel_lvl
+        elif max_subpixel_lvl is None:
+            max_subpixel_lvl = self.detector.parameter['max_subpixel_lvl']
         if self.parse_args.f_highj is not None:
             f_highj = self.parse_args.f_highj
         if self.parse_args.temp_a_max is not None:
@@ -411,9 +411,28 @@ class CmdPolaris:
                 'grid_temp.dat' not in self.parse_args.grid_filename and \
                 'grid_rat.dat' not in self.parse_args.grid_filename:
             conv_vel = self.model.conv_parameter['conv_vel']
+        if self.parse_args.rot_axis_1 is not None:
+            rot_axis_1 = self.parse_args.rot_axis_1
+        else:
+            rot_axis_1 = self.detector.parameter['rot_axis_1']
+        if self.parse_args.rot_axis_2 is not None:
+            rot_axis_2 = self.parse_args.rot_axis_2
+        else:
+            rot_axis_2 = self.detector.parameter['rot_axis_2']
+
+        # Make rotation axis to unit length vectors
+        if np.linalg.norm(rot_axis_1) != 1:
+            rot_axis_1 /= np.linalg.norm(rot_axis_1)
+        if np.linalg.norm(rot_axis_2) != 1:
+            rot_axis_2 /= np.linalg.norm(rot_axis_2)
 
         cmd_file.write('<task> 1\n')
+        cmd_file.write('\n')
         cmd_file.write(self.detector.get_dust_emission_command())
+        cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
+                       + '\t' + str(rot_axis_1[2]) + '\n')
+        cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
+                       + '\t' + str(rot_axis_2[2]) + '\n')
         cmd_file.write('\n')
         if self.source is not None and self.source.parameter['nr_photons'] > 0:
             cmd_file.write(self.source.get_command())
@@ -496,6 +515,20 @@ class CmdPolaris:
             conv_vel = self.parse_args.conv_vel
         elif self.parse_args.grid_filename is not None and 'grid_temp.dat' not in self.parse_args.grid_filename:
             conv_vel = self.model.conv_parameter['conv_vel']
+        if self.parse_args.rot_axis_1 is not None:
+            rot_axis_1 = self.parse_args.rot_axis_1
+        else:
+            rot_axis_1 = self.detector.parameter['rot_axis_1']
+        if self.parse_args.rot_axis_2 is not None:
+            rot_axis_2 = self.parse_args.rot_axis_2
+        else:
+            rot_axis_2 = self.detector.parameter['rot_axis_2']
+
+        # Make rotation axis to unit length vectors
+        if np.linalg.norm(rot_axis_1) != 1:
+            rot_axis_1 /= np.linalg.norm(rot_axis_1)
+        if np.linalg.norm(rot_axis_2) != 1:
+            rot_axis_2 /= np.linalg.norm(rot_axis_2)
 
         cmd_file.write('<task> 1\n')
         cmd_file.write(self.gas.get_command())
@@ -503,6 +536,10 @@ class CmdPolaris:
         cmd_file.write(self.bg_source.get_command())
         cmd_file.write('\n')
         cmd_file.write(self.detector.get_line_command())
+        cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
+                       + '\t' + str(rot_axis_1[2]) + '\n')
+        cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
+                       + '\t' + str(rot_axis_2[2]) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<cmd>\t\tCMD_LINE_EMISSION\n')
         cmd_file.write('\n')

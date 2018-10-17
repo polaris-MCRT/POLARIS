@@ -23,7 +23,7 @@ class BGSource:
 
         #: dict: Includes parameters of a specific background source
         self.parameter = {
-            'nr_photons': 100000.,
+            'nr_photons': 1e5,
             'A': 0.,
             'T': 0.,
             'Q': 0.,
@@ -92,6 +92,7 @@ class Detector:
             'distance': model.parameter['distance'],
             'nr_pixel_x': 256,
             'nr_pixel_y': 256,
+            'max_subpixel_lvl': 1,
             'source_id': 1,
             'gas_species_id': 1,
             'transition_id': 1,
@@ -104,6 +105,8 @@ class Detector:
             'acceptance_angle': 1.0,
             'rot_angle_1': 0.,
             'rot_angle_2': 0.,
+            'rot_axis_1': [1, 0, 0],
+            'rot_axis_2': [0, 1, 0],
             # Parameter for healpix all-sky maps
             'nr_sides': 32,
             'obs_position_x': 0.,
@@ -130,7 +133,7 @@ class Detector:
                 cmd_string += '\t' + str(sidelength)
             elif self.parameter['sidelength_zoom_x'] != 1. or self.parameter['sidelength_zoom_y'] != 1.:
                 cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
-            elif self.parameter['map_shift_x'] > 0 or self.parameter['map_shift_y'] > 0:
+            elif self.parameter['map_shift_x'] != 0 or self.parameter['map_shift_y'] != 0:
                 cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
         return cmd_string
 
@@ -141,7 +144,7 @@ class Detector:
         # Add detector map shift if chosen
         for direction in ['_x', '_y']:
             shift_string = 'map_shift' + direction
-            if self.parameter['map_shift_x'] > 0 or self.parameter['map_shift_y'] > 0:
+            if self.parameter['map_shift_x'] != 0 or self.parameter['map_shift_y'] != 0:
                 cmd_string += '\t' + str(self.parameter[shift_string])
         return cmd_string
 

@@ -478,9 +478,9 @@ public:
         use_grid_sidelength_y = false;
 
         min_ray_map_shift_x = 1e300;
-        max_ray_map_shift_x = 0;
+        max_ray_map_shift_x = -1e300;
         min_ray_map_shift_y = 1e300;
-        max_ray_map_shift_y = 0;
+        max_ray_map_shift_y = -1e300;
 
         min_obs_distance = 1e300;
         max_obs_distance = -1e300;
