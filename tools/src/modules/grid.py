@@ -836,12 +836,17 @@ class Spherical(Grid):
             for tmp_theta in theta_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_theta))
 
+        # Calculate the total number of cells
+        nr_cells = 0
+        for i_r in range(sp_param['n_r']):
+            nr_cells += sp_param['n_ph'] * sp_param['n_th']
+
         i_node = 0
         for i_r in range(sp_param['n_r']):
             for i_p in range(sp_param['n_ph']):
                 for i_t in range(sp_param['n_th']):
-                    stdout.write('--- Generate spherical grid: ' + str(round(100.0 * i_node / (
-                            sp_param['n_r'] * sp_param['n_th'] * sp_param['n_ph']), 3)) + ' %           \r')
+                    stdout.write('--- Generate spherical grid: ' +
+                        str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)

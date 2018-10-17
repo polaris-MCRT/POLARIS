@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import time
 
 from modules.math import Math
 from modules.base import Model
@@ -362,9 +363,11 @@ class GGTauDisk(Model):
         # --- Half-major axis of the stars (Ab12 is Ab1 and Ab2)
         self.a_Aab = 36. / 2. * self.math.const['au']
         self.a_Ab12 = 4.5 / 2. * self.math.const['au']
+        # -- Inclination of the GG Tau Aa and Ab12 orbits
+        self.orbit_inclination = 30.0 / 180. * np.pi
         # -- Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 20.0 / 180. * np.pi
-        self.inclination_Ab12 = 20.0 / 180. * np.pi
+        self.inclination_Aa = 30.0 / 180. * np.pi
+        self.inclination_Ab12 = 30.0 / 180. * np.pi
         # --- Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
@@ -398,11 +401,13 @@ class GGTauDisk(Model):
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
 
         # --- GG Tau Aa
-        if self.a_Aab - self.outer_radius_Aa <= radius_cy <=  self.a_Aab + self.outer_radius_Aa:
+        if self.a_Aab - self.outer_radius_Aa <= radius_cy <= self.a_Aab + self.outer_radius_Aa:
             # Add inclination
-            pos_Aa = self.math.rotate_coord_system(
-                [self.position[0], (self.position[1] - self.a_Aab * np.sin(self.angle_Aa)), self.position[2]],
-                rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Aa)
+            pos_Aa = self.math.rotate_coord_system([
+                    self.position[0], 
+                    self.position[1] - self.a_Aab * np.sin(self.angle_Aa), 
+                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
                 inner_radius=self.inner_radius, real_zero=True)
@@ -414,25 +419,29 @@ class GGTauDisk(Model):
         if self.a_Aab - self.a_Ab12 - self.outer_radius_Ab12 <= radius_cy <=  self.a_Aab + self.a_Ab12 + self.outer_radius_Ab12:
             # --- GG Tau Ab1
             # Add inclination
-            pos_Ab1 = self.math.rotate_coord_system(
-                [(self.position[0] + self.a_Ab12), (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)), self.position[2]],
-                rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
+            pos_Ab1 = self.math.rotate_coord_system([
+                    self.position[0] + self.a_Ab12, 
+                    self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
+                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
                 inner_radius=self.inner_radius, real_zero=True)
 
             # --- GG Tau Ab2
             # Add inclination
-            pos_Ab2 = self.math.rotate_coord_system(
-                [(self.position[0] - self.a_Ab12), (self.position[1] - self.a_Aab * np.sin(self.angle_Ab12)), self.position[2]],
-                rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
+            pos_Ab2 = self.math.rotate_coord_system([
+                    self.position[0] - self.a_Ab12, 
+                    self.position[1] - self.a_Aab * np.sin(self.angle_Ab12), 
+                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
                 inner_radius=self.inner_radius, real_zero=True)
         else:
             # Set to zero outside of the disks
             disk_density_Ab1 = 0
-            disk_density_Ab2 = 0               
+            disk_density_Ab2 = 0  
 
         if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
             # Calculate the density

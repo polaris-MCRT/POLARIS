@@ -715,12 +715,12 @@ class Math:
         return carthesian_direction
 
     @staticmethod
-    def rotate_coord_system(positon, rotation_axis, rotation_angle):
+    def rotate_coord_system(position, rotation_axis, rotation_angle):
         """Convertes the postion coordinates into a coordinate system that is
         rotated around an rotation_axis.
 
         Args:
-            positond (List[float, float, float]): Position in cartesian coordinates.
+            position (List[float, float, float]): Position in cartesian coordinates.
             rotation_axis (List[float, float, float]): Rotation axis in cartesian coordinates.
             rotation_angle (float): Angle to rotate around [rad].
 
@@ -743,7 +743,7 @@ class Math:
                                     [u_z * u_x * (1 - rot_cos) + u_y * rot_sin,
                                      u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
                                      rot_cos + u_z ** 2 * (1 - rot_cos)]])
-        rotated_position = np.dot(positon, rotation_matrix)
+        rotated_position = np.dot(position, rotation_matrix)
         return rotated_position
 
     @staticmethod
