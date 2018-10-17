@@ -2869,10 +2869,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
         {
             // Check if dust grains should have been stochastically heated
             if(a_eff[a] <= getStochasticHeatingMaxSize())
-            {
-                // Reset average stochastic temperature
-                temp[a] = 0;
-                
+            {                
                 // Init and resize spline for absorbed energy per wavelength
                 spline abs_rate_per_wl;
                 abs_rate_per_wl.resize(WL_STEPS);
@@ -2892,71 +2889,59 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 // Get pointer array of the temperature propabilities
                 long double * temp_probability = getStochasticProbability(a, abs_rate_per_wl);
                 
+                // Reset absorpion rate
+                abs_rate[a] = 0;
+
                 // Set the temperature propabilities in the grid
                 for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
-                    temp[a] += temp_probability[t] * calorimetry_temperatures[t];
-
+                {
+                    uint tID = findTemperatureID(calorimetry_temperatures[t]);
+                    abs_rate[a] += temp_probability[t] * getQB(a, tID);
+                }
+                    
                 // Delete pointer array
                 delete[] temp_probability;
-
-                // Consider sublimation temperature
-                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL || 
-                        grid->getTemperatureFieldInformation() == TEMP_STOCH)
-                    if(temp[a] >= getSublimationTemperature())
-                        temp[a] = 0;
-
-                if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
-                    grid->getTemperatureFieldInformation() == TEMP_STOCH)
-                {
-                    // Set dust temperature in grid
-                    grid->setDustTemperature(cell, i_density, a, temp[a]);
-
-                    // Update min and max temperatures for visualization
-                    if(temp[a] > max_temp)
-                        max_temp = temp[a];
-                    if(temp[a] < min_temp)
-                        min_temp = temp[a];
-                }
             }
             else
             {
                 // Get absorpion rate from grid
                 abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
+            }
 
-                // Add offset on absorption rate
-                if(dust_offset)
-                {
-                    if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                        abs_rate[a] += grid->getQBOffset(cell, i_density, a);
-                    else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
-                        abs_rate[a] += grid->getQBOffset(cell, i_density);
-                }
-
-                // Calculate temperature from absorption rate
-                temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
-
-                if(grid->getTemperatureFieldInformation() == TEMP_EFF)
-                {
-                    // Multiply with the amount of dust grains in the current bin for integration
-                    abs_rate[a] *= a_eff_3_5[a];
-                }
-
-                // Consider sublimation temperature
-                if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                    if(temp[a] >= getSublimationTemperature())
-                        temp[a] = 0;
-
+            // Add offset on absorption rate
+            if(dust_offset)
+            {
                 if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                {
-                    // Set dust temperature in grid
-                    grid->setDustTemperature(cell, i_density, a, temp[a]);
+                    abs_rate[a] += grid->getQBOffset(cell, i_density, a);
+                else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+                    abs_rate[a] += grid->getQBOffset(cell, i_density);
+            }
 
-                    // Update min and max temperatures for visualization
-                    if(temp[a] > max_temp)
-                        max_temp = temp[a];
-                    if(temp[a] < min_temp)
-                        min_temp = temp[a];
-                }
+            // Calculate temperature from absorption rate
+            temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
+
+            // Consider sublimation temperature
+            if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
+                if(temp[a] >= getSublimationTemperature())
+                    temp[a] = 0;
+
+            if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+            {
+                // Multiply with the amount of dust grains in the current bin for integration
+                abs_rate[a] *= a_eff_3_5[a];
+            }
+            else if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                    (grid->getTemperatureFieldInformation() == TEMP_STOCH && 
+                    a_eff[a] <= getStochasticHeatingMaxSize()))
+            {
+                // Set dust temperature in grid
+                grid->setDustTemperature(cell, i_density, a, temp[a]);
+
+                // Update min and max temperatures for visualization
+                if(temp[a] > max_temp)
+                    max_temp = temp[a];
+                if(temp[a] < min_temp)
+                    min_temp = temp[a];
             }
 
             // Multiply with the amount of dust grains in the current bin for integration
