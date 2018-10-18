@@ -711,7 +711,7 @@ public:
         if(data_pos_rf_list.empty())
         {
             // Get SpecLength instead if no radiation field in grid
-            getSpecLength(cell, w, us, e_dir);
+            getSpecLength(cell, w, us, tmp_dir);
             us /= getVolume(cell);
         }
         else
