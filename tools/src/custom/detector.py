@@ -127,7 +127,7 @@ class GGTauDetector(Detector):
         """
         Detector.__init__(self, model, parse_args)
         # Rotation angle around the first rotation axis
-        self.parameter['rot_angle_1'] = -40.0
+        self.parameter['rot_angle_1'] = -37.0  # -40.0
         self.parameter['rot_angle_2'] = 26.45
         self.parameter['rot_axis_1'] = [0.9961946980917455, 0.08715574274765817,	0]
         self.parameter['rot_axis_2'] = [0, 0, 1]

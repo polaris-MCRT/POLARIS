@@ -464,6 +464,9 @@ class CmdPolaris:
         if no_rt_scattering:
             cmd_file.write('\t<rt_scattering>\t0\n')
             cmd_file.write('\n')
+        elif self.dust_source.parameter['nr_photons'] > 0:
+                cmd_file.write(self.dust_source.get_command())
+                cmd_file.write('\n')
         if temp_a_max is not None:
             cmd_file.write('\t<stochastic_heating>\t' + str(temp_a_max) + '\n')
             cmd_file.write('\n')

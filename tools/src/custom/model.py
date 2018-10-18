@@ -353,9 +353,6 @@ class GGTauDisk(Model):
         # Parameter for the density distribution
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
         self.parameter['outer_radius'] = 300. * self.math.const['au']
-        self.beta = 1.05
-        self.surf_dens_exp = -1.7
-        self.cut_off = 2. * self.math.const['au']
         # --- Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab12 = self.angle_Aa + np.pi
@@ -363,15 +360,21 @@ class GGTauDisk(Model):
         self.a_Aab = 36. / 2. * self.math.const['au']
         self.a_Ab12 = 4.5 / 2. * self.math.const['au']
         # -- Inclination of the GG Tau Aa and Ab12 orbits
-        self.orbit_inclination = 30.0 / 180. * np.pi
+        self.orbit_inclination = 0.0 / 180. * np.pi
         # -- Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 30.0 / 180. * np.pi
-        self.inclination_Ab12 = 30.0 / 180. * np.pi
+        self.inclination_Aa = 20.0 / 180. * np.pi
+        self.inclination_Ab12 = 20.0 / 180. * np.pi
+        self.inclination_rotation_axis = [1, -0.2, 0]
         # --- Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
         self.outer_radius_Ab12 = 2. * self.math.const['au']
-        
+        # Parameter of the circumbinary disk
+        self.ref_scale_height = 16. * self.math.const['au']  # 32. * self.math.const['au']
+        self.ref_radius = 180. * self.math.const['au']
+        self.beta = 1.05
+        self.surf_dens_exp = -1.7
+        self.cut_off = 2. * self.math.const['au']
         # Distribution of cell borders
         self.cylindrical_parameter['n_z'] = 151
         self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
@@ -406,7 +409,7 @@ class GGTauDisk(Model):
                     self.position[0], 
                     self.position[1] - self.a_Aab * np.sin(self.angle_Aa), 
                     self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Aa)
+                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
                 inner_radius=self.inner_radius, real_zero=True)
@@ -422,7 +425,7 @@ class GGTauDisk(Model):
                     self.position[0] + self.a_Ab12, 
                     self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
                     self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
+                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
                 inner_radius=self.inner_radius, real_zero=True)
@@ -433,7 +436,7 @@ class GGTauDisk(Model):
                     self.position[0] - self.a_Ab12, 
                     self.position[1] - self.a_Aab * np.sin(self.angle_Ab12), 
                     self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=[1, 0, 0], rotation_angle=self.inclination_Ab12)
+                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
                 inner_radius=self.inner_radius, real_zero=True)
@@ -445,8 +448,8 @@ class GGTauDisk(Model):
         if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
             # Calculate the density
             disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
-                inner_radius=180. * self.math.const['au'], ref_scale_height=32. * self.math.const['au'],
-                ref_radius=180. * self.math.const['au'], surface_dens_exp=self.surf_dens_exp, beta=self.beta)
+                inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height,
+                ref_radius=self.ref_radius, surface_dens_exp=self.surf_dens_exp, beta=self.beta)
             # Add exponential decay ath the inner border
             if radius_cy < 190. * self.math.const['au']:
                 disk_density *= np.exp(-0.5 * ((190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)

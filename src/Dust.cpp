@@ -2878,8 +2878,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 for(uint w = 0; w < WL_STEPS; w++)
                 {
                     double abs_rate_wl_tmp = grid->getRadiationField(cell, w) * getCabsMean(a, w);
-                    if(!use_energy_density)
-                        abs_rate_wl_tmp /= wavelength_diff[w];
                     abs_rate_per_wl.setValue(w, wavelength_list[w], abs_rate_wl_tmp);
                 }
 
@@ -4256,16 +4254,24 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
             cout << "not available (This should not happen!)" << endl;
 
         cout << "- Include scattered light : ";
-        if(grid->getRadiationFieldAvailable() && param.getScatteringToRay())
+        if(grid->getRadiationFieldAvailable())
         {
-            cout << "yes (based on the radiation field)" << endl;
-            cout << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl;
-            cout << "    -> If not, use <rt_scattering> 0                                      " << endl;
+            if(param.getScatteringToRay())
+            {
+                cout << "yes (based on the radiation field)" << endl;
+                cout << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl;
+                cout << "    -> If not, use <rt_scattering> 0                                      " << endl;
+            }
+            else
+                cout << "no (disabled via <rt_scattering> 0)" << endl;
         }
-        else if(!param.getScatteringToRay())
-            cout << "no (disabled via <rt_scattering> 0)" << endl;
-        else
-            cout << "no (radiation field not found in grid)" << endl;
+        else 
+        {
+            if(param.getScatteringToRay())
+                cout << "yes (radiation field will be calulated before raytracing)" << endl;
+            else
+                cout << "no (radiation field not found in grid)" << endl;
+        }
 
         cout << "Observed wavelengths:" << endl;
 

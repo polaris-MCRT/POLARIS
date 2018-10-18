@@ -2512,13 +2512,16 @@ public:
         StokesVector tmp_stokes;
 
         // Check if radiation field is available and scattering should be included
-        if(grid->getRadiationFieldAvailable() && scattering_to_raytracing)
+        if(scattering_to_raytracing)
         {
             // Get wavelength of photon package
             uint w = pp->getWavelengthID();
 
-            // Get radiation field and claculate angle to the photon package direction
-            grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
+            // Get radiation field and calculate angle to the photon package direction
+            if(grid->getRadiationFieldAvailable())                
+                grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
+            else
+                grid->getRadiationField(pp, w, energy, en_dir);
         }
 
         if(mixed_component != 0)

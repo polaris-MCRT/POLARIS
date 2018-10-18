@@ -193,9 +193,11 @@ void CPipeline::Error()
 
 bool CPipeline::calcMonteCarloRadiationField(parameter & param)
 {
-    // CHeck if the energy density is used instead of launching photons with fixed energy
+    // Check if the energy density is used instead of launching photons with fixed energy
+    // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
     bool use_energy_density = false;
-    if(param.getSaveRadiationField() || param.getCommand() == CMD_RAT)
+    if(param.getSaveRadiationField() || param.getCommand() == CMD_RAT || 
+            param.getStochasticHeatingMaxSize() > 0)
         use_energy_density = true;
 
     CGridBasic * grid = 0;
@@ -344,7 +346,6 @@ bool CPipeline::calcPolarizationMapsViaMC(parameter & param)
 
     if(detector == 0)
         return false;
-    cout << SEP_LINE;
 
     CRadiativeTransfer rad(param);
 
@@ -388,17 +389,23 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     grid->setSIConversionFactors(param);
 
     uint nr_of_offset_entries = 0;
-    if(param.getStochasticHeatingMaxSize() > 0)
-        for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-        {
-            nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) *
-                dust->getNrOfCalorimetryTemperatures(i_mixture);
-        }
-    /*if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable())
+    if(grid->getRadiationFieldAvailable())
     {
-        grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries += 4 * WL_STEPS;
-    }*/
+        // Add fields to store the stochastic heating propabilities for each cell
+        if(param.getStochasticHeatingMaxSize() > 0)
+            for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
+                nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) * 
+                    dust->getNrOfCalorimetryTemperatures(i_mixture);
+    }
+    else 
+    {
+        // Add fields to store the radiation field of each considered wavelength
+        if(param.getScatteringToRay())
+        {
+            grid->setSpecLengthAsVector(true);
+            nr_of_offset_entries += 4 * dust->getNrOfWavelength();
+        }
+    }
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
         return false;
@@ -424,8 +431,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
         return false;
     }
 
-    cout << CLR_LINE;
-
     CRadiativeTransfer rad(param);
 
     rad.setGrid(grid);
@@ -440,9 +445,9 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     if(param.getStochasticHeatingMaxSize() > 0)
         rad.calcStochasticHeating();
 
-    // Precalculate the radiation field
-    if(param.getScatteringToRay() && !grid->getRadiationFieldAvailable() &&
-            sources_mc.size() > 0)
+    // Calculate radiation field before raytracing (if sources defined and no radiation field in grid)
+    if(!grid->getRadiationFieldAvailable() && 
+            param.getScatteringToRay() && sources_mc.size() > 0)
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))

@@ -708,10 +708,19 @@ public:
         cell_basic * cell = pp->getPositionCell();
 
         // Get radiation field strength and direction from cell
-        us = cell->getData(data_pos_rf_list[w]);
-        tmp_dir.setX(cell->getData(data_pos_rx_list[w]));
-        tmp_dir.setY(cell->getData(data_pos_ry_list[w]));
-        tmp_dir.setZ(cell->getData(data_pos_rz_list[w]));
+        if(data_pos_rf_list.empty())
+        {
+            // Get SpecLength instead if no radiation field in grid
+            getSpecLength(cell, w, us, e_dir);
+            us /= getVolume(cell);
+        }
+        else
+        {
+            us = cell->getData(data_pos_rf_list[w]);
+            tmp_dir.setX(cell->getData(data_pos_rx_list[w]));
+            tmp_dir.setY(cell->getData(data_pos_ry_list[w]));
+            tmp_dir.setZ(cell->getData(data_pos_rz_list[w]));
+        }
 
         // Rotate vector to cell center
         e_dir = rotateToCenter(pp, tmp_dir, true);
