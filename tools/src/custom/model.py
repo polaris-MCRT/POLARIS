@@ -682,9 +682,9 @@ class ThemisDisk(Model):
                     self.parameter['gas_mass'] = np.array([[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3]]) 
                 elif model_number == 2:
                     self.parameter['gas_mass'] = np.array([[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]]) 
-                self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum() / (1e-2 * self.math.const['M_sun'])
+                self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum()
                 print('--mass_fraction', self.parameter['mass_fraction'])
-                self.parameter['gas_mass'] /= self.parameter['mass_fraction']
+                self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
