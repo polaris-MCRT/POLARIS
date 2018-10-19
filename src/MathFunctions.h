@@ -596,52 +596,54 @@ public:
     {
         uint min = 0, max = N;
 
-        if(x == 0)
-            return 0;
-
-        if(v < x[0])
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[0];
-                    break;
-
-                case LINEAR:
-                    return getLinear(0, v);
-                    break;
-            }
-        else if(v > x[N])
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[N];
-                    break;
-
-                case LINEAR:
-                    return getLinear(N - 1, v);
-                    break;
-            }
-        else
+        if(x != 0)
         {
-            while(max - min > 1)
-            {
-                const uint i = min + (max - min) / 2;
-                if(x[i] >= v)
-                    max = i;
-                else
-                    min = i;
-            }
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[max];
-                    break;
+            if(v < x[0])
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[0];
+                        break;
 
-                case LINEAR:
-                    return getLinear(min, v);
-                    break;
+                    case LINEAR:
+                        return getLinear(0, v);
+                        break;
+                }
+            else if(v > x[N])
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[N];
+                        break;
+
+                    case LINEAR:
+                        return getLinear(N - 1, v);
+                        break;
+                }
+            else
+            {
+                while(max - min > 1)
+                {
+                    const uint i = min + (max - min) / 2;
+                    if(x[i] >= v)
+                        max = i;
+                    else
+                        min = i;
+                }
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[max];
+                        break;
+
+                    case LINEAR:
+                        return getLinear(min, v);
+                        break;
+                }
             }
         }
+        
+        return 0;
     }
 
 private:

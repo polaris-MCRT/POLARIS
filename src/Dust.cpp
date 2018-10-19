@@ -314,11 +314,19 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
                     wavelength_list_dustcat[w] = values[w];
 
-                if(wavelength_list[0] < wavelength_list_dustcat[0] || 
-                         wavelength_list[nr_of_wavelength - 1] >
+                if(wavelength_list[0] < wavelength_list_dustcat[0] * 0.999 || 
+                         wavelength_list[nr_of_wavelength - 1] * 0.999 >
                          wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
+                    {
                     cout << "HINT: The wavelength range is out of the limits of the catalog. "
                         << "This may cause problems!" << endl;
+                    cout << "      wavelength range          : " << wavelength_list[0] 
+                        << " [m] to " << wavelength_list[nr_of_wavelength - 1] 
+                        << " [m]" << endl;
+                    cout << "      wavelength range (catalog): " << wavelength_list_dustcat[0]
+                        << " [m] to " << wavelength_list_dustcat[nr_of_wavelength_dustcat - 1] 
+                        << " [m]" << endl;
+                    }
 
                 break;
 
@@ -4241,11 +4249,11 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         cout << "- Temperature distr.      : ";
         if(grid->getTemperatureFieldInformation() == TEMP_FULL && param.getStochasticHeatingMaxSize() > 0)
             cout << "temperatures for all grain sizes found in grid" << endl
-                << "    -> calculate stochastic heating up to grain size of "
+                << "                            calculate stochastic heating up to grain size of "
                 << param.getStochasticHeatingMaxSize() << " [m]" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_STOCH)
             cout << "temperatures for effective grain size found in grid" << endl
-                << "    including stochastically heated temperatures" << endl;
+                << "                            including stochastically heated temperatures" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_FULL)
             cout << "temperatures for all grain sizes found in grid" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
@@ -4260,7 +4268,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
             {
                 cout << "yes (based on the radiation field)" << endl;
                 cout << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl;
-                cout << "    -> If not, use <rt_scattering> 0                                      " << endl;
+                cout << "          -> If not, use <rt_scattering> 0                                      " << endl;
             }
             else
                 cout << "no (disabled via <rt_scattering> 0)" << endl;

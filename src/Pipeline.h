@@ -210,7 +210,7 @@ public:
         cout << "Dust grain alignment" << endl;
 
         if(param.getAligRANDOM())
-            cout << "- Random alignment" << endl;
+            cout << "- No alignment" << endl;
         else if(param.getAligPA())
             cout << "- Perfect alignment" << endl;
         else

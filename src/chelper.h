@@ -478,9 +478,9 @@ public:
         use_grid_sidelength_y = false;
 
         min_ray_map_shift_x = 1e300;
-        max_ray_map_shift_x = -1e300;
+        max_ray_map_shift_x = 0;
         min_ray_map_shift_y = 1e300;
-        max_ray_map_shift_y = -1e300;
+        max_ray_map_shift_y = 0;
 
         min_obs_distance = 1e300;
         max_obs_distance = -1e300;
@@ -1436,16 +1436,16 @@ public:
 
     void updateRayGridShift(double map_shift_x, double map_shift_y)
     {
-        if(min_ray_map_shift_x > map_shift_x)
+        if(abs(min_ray_map_shift_x) > abs(map_shift_x))
             min_ray_map_shift_x = map_shift_x;
 
-        if(max_ray_map_shift_x < map_shift_x)
+        if(abs(max_ray_map_shift_x) < abs(map_shift_x))
             max_ray_map_shift_x = map_shift_x;
 
-        if(min_ray_map_shift_y > map_shift_y)
+        if(abs(min_ray_map_shift_y) > abs(map_shift_y))
             min_ray_map_shift_y = map_shift_y;
 
-        if(max_ray_map_shift_y < map_shift_y)
+        if(abs(max_ray_map_shift_y) < abs(map_shift_y))
             max_ray_map_shift_y = map_shift_y;
     }
 

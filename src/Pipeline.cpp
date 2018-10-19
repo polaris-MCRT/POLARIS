@@ -389,22 +389,18 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     grid->setSIConversionFactors(param);
 
     uint nr_of_offset_entries = 0;
-    if(grid->getRadiationFieldAvailable())
+    if(param.getStochasticHeatingMaxSize() > 0)
     {
         // Add fields to store the stochastic heating propabilities for each cell
-        if(param.getStochasticHeatingMaxSize() > 0)
-            for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-                nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) * 
-                    dust->getNrOfCalorimetryTemperatures(i_mixture);
+        for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
+            nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) * 
+                dust->getNrOfCalorimetryTemperatures(i_mixture);
     }
-    else 
+    else if(param.getScatteringToRay())
     {
         // Add fields to store the radiation field of each considered wavelength
-        if(param.getScatteringToRay())
-        {
-            grid->setSpecLengthAsVector(true);
-            nr_of_offset_entries += 4 * dust->getNrOfWavelength();
-        }
+        grid->setSpecLengthAsVector(true);
+        nr_of_offset_entries += 4 * dust->getNrOfWavelength();
     }
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
