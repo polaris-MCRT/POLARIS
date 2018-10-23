@@ -1749,7 +1749,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set grid" << endl;
     g_writer << "unset key" << endl;
     if(nr_of_wavelength > 1)
-        g_writer << "set xrange[" << wavelength_list[wavelength_offset] << ":" << wavelength_list[wavelength_offset] << "]" << endl;
+        g_writer << "set xrange[" << wavelength_list[wavelength_offset] 
+        << ":" << wavelength_list[wavelength_offset] << "]" << endl;
     g_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;

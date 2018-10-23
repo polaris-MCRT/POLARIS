@@ -2141,7 +2141,7 @@ public:
         wavelength_list.push_back(wavelength);
     }
 
-    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength, bool add_offset)
+    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength, bool add_offset=false)
     {
         dlist tmp_wavelength_list(nr_of_wavelength);
 
