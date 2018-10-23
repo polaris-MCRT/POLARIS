@@ -1372,6 +1372,10 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     if(nr_of_wavelength == 0)
         return true;
 
+    // Create a sorted list of the wavelengths (in case they are not)
+    dlist wavelength_list_sorted = wavelength_list;
+    sort(wavelength_list_sorted.begin(), wavelength_list_sorted.end());     
+
     // Init character variables to store filenames
     char str_comp_ID_tmp[1024];
     char str_comp_ID_end[1024];
@@ -1524,7 +1528,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set log y" << endl;
     cross_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        cross_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
+        cross_writer << "set xrange[" << wavelength_list_sorted.front() << ":" << wavelength_list_sorted.back() << "]" << endl;
     cross_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     cross_writer << "set format x \"%.1te%02T\"" << endl;
     cross_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1541,37 +1545,37 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Add Cext1 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCext1(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCext1(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCext1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cext2 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCext2(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCext2(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCext2(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cabs1 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCabs1(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCabs1(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCabs1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cabs2 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCabs2(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCabs2(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCabs2(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Csca1 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCsca1(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCsca1(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCsca1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Csca2 data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getCsca2(i) > 0)
-            cross_writer << wavelength_list[i] << "\t" << getCsca2(i) << endl;
+            cross_writer << wavelength_list_sorted[i] << "\t" << getCsca2(i) << endl;
     cross_writer << "e" << endl;
 
     // Close text file writer
@@ -1622,7 +1626,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set log y" << endl;
     diff_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        diff_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
+        diff_writer << "set xrange[" << wavelength_list_sorted.front() << ":" << wavelength_list_sorted.back() << "]" << endl;
     diff_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     diff_writer << "set format x \"%.1te%02T\"" << endl;
     diff_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1636,19 +1640,19 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Add Cext difference to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(abs(getCext1(i) - getCext2(i)) > 0)
-            diff_writer << wavelength_list[i] << "\t" << abs(getCext1(i) - getCext2(i)) << endl;
+            diff_writer << wavelength_list_sorted[i] << "\t" << abs(getCext1(i) - getCext2(i)) << endl;
     diff_writer << "e" << endl;
 
     // Add Cabs difference to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(abs(getCabs1(i) - getCabs2(i)) > 0)
-            diff_writer << wavelength_list[i] << "\t" << abs(getCabs1(i) - getCabs2(i)) << endl;
+            diff_writer << wavelength_list_sorted[i] << "\t" << abs(getCabs1(i) - getCabs2(i)) << endl;
     diff_writer << "e" << endl;
 
     // Add Ccirc data to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(abs(getCcirc(i)) > 0)
-            diff_writer << wavelength_list[i] << "\t" << abs(getCcirc(i)) << endl;
+            diff_writer << wavelength_list_sorted[i] << "\t" << abs(getCcirc(i)) << endl;
     diff_writer << "e" << endl;
 
     // Close text file writer
@@ -1703,7 +1707,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Add cross-sections to file
     for(uint i = 0; i < nr_of_wavelength; i++)
-        data_writer << wavelength_list[i] << "\t" << getCext1(i) << "\t" << getCext2(i)
+        data_writer << wavelength_list_sorted[i] << "\t" << getCext1(i) << "\t" << getCext2(i)
             << "\t" << getCabs1(i) << "\t" << getCabs2(i) << "\t" << getCsca1(i)
             << "\t" << getCsca2(i) << "\t" << getCcirc(i) << "\t" << getHGg(i)
             << endl;
@@ -1747,7 +1751,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set grid" << endl;
     g_writer << "unset key" << endl;
     if(nr_of_wavelength > 1)
-        g_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
+        g_writer << "set xrange[" << wavelength_list_sorted.front() << ":" << wavelength_list_sorted.back() << "]" << endl;
     g_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1759,7 +1763,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Add HG g factor to file (if larger than 0)
     for(uint i = 0; i < nr_of_wavelength; i++)
         if(getHGg(i) > 0)
-            g_writer << wavelength_list[i] << "\t" << getHGg(i) << endl;
+            g_writer << wavelength_list_sorted[i] << "\t" << getHGg(i) << endl;
     g_writer << "e" << endl;
 
     // Close text file writer

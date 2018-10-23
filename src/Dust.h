@@ -1604,24 +1604,6 @@ public:
         nr_of_wavelength = wavelength_list.size();
     }
 
-    double getWavelengthMin()
-    {
-        double min = 1e300;
-        for(uint w = 0; w < nr_of_wavelength; w++)
-            if(wavelength_list[w] < min)
-                min = wavelength_list[w];
-        return min;
-    }
-
-    double getWavelengthMax()
-    {
-        double max = 0;
-        for(uint w = 0; w < nr_of_wavelength; w++)
-            if(wavelength_list[w] > max)
-                max = wavelength_list[w];
-        return max;
-    }
-
     bool calcWavelengthDiff()
     {
         // Set width of each wavelength bin
