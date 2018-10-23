@@ -1604,6 +1604,24 @@ public:
         nr_of_wavelength = wavelength_list.size();
     }
 
+    double getWavelengthMin()
+    {
+        double min = 1e300;
+        for(uint w = 0; w < nr_of_wavelength; w++)
+            if(wavelength_list[w] < min)
+                min = wavelength_list[w];
+        return min;
+    }
+
+    double getWavelengthMax()
+    {
+        double max = 0;
+        for(uint w = 0; w < nr_of_wavelength; w++)
+            if(wavelength_list[w] > max)
+                max = wavelength_list[w];
+        return max;
+    }
+
     bool calcWavelengthDiff()
     {
         // Set width of each wavelength bin
@@ -2167,16 +2185,6 @@ public:
         return wavelength_list;
     }
 
-    double getWavelengthMin()
-    {
-        return wavelength_list.front();
-    }
-
-    double getWavelengthMax()
-    {
-        return wavelength_list.back();
-    }
-
     double getWavelength(uint wID)
     {
         return wavelength_list[wID];
@@ -2193,7 +2201,7 @@ public:
         if (it != wavelength_list.end())
             return distance(wavelength_list.begin(), it);
 
-        cout << "HINT: wavelength not fond! -> " << distance(wavelength_list.begin(), it) << endl;
+        cout << "HINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
         return 0;
     }
 

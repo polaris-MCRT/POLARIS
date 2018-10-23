@@ -1524,7 +1524,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set log y" << endl;
     cross_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        cross_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        cross_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
     cross_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     cross_writer << "set format x \"%.1te%02T\"" << endl;
     cross_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1622,7 +1622,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set log y" << endl;
     diff_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        diff_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        diff_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
     diff_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     diff_writer << "set format x \"%.1te%02T\"" << endl;
     diff_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1747,7 +1747,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set grid" << endl;
     g_writer << "unset key" << endl;
     if(nr_of_wavelength > 1)
-        g_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        g_writer << "set xrange[" << getWavelengthMin() << ":" << getWavelengthMax() << "]" << endl;
     g_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;
@@ -4178,8 +4178,9 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
                     return false;
                 }
 
-            // Write dust component files
-            single_component[i_comp].writeComponent(path_data, path_plot);
+            // Write dust component files, if multiple components will be mixed together
+            if(nr_of_components > 1)
+                single_component[i_comp].writeComponent(path_data, path_plot);
         }
 
         // Check if the sum of the fractions of the dust components add up to one
