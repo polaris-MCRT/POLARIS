@@ -103,6 +103,7 @@ public:
         i_component = 0;
         nr_of_components = 0;
         nr_of_wavelength = 0;
+        wavelength_offset = 0;
         i_mixture = 0;
         nr_of_mixtures = 0;
         calorimetry_type = 0;
@@ -1598,10 +1599,11 @@ public:
             stringID += str_stream.str();
     }
 
-    void setWavelengthList(dlist _wavelength_list)
+    void setWavelengthList(dlist _wavelength_list, uint _wavelength_offset)
     {
         wavelength_list = _wavelength_list;
         nr_of_wavelength = wavelength_list.size();
+        wavelength_offset = _wavelength_offset;
     }
 
     bool calcWavelengthDiff()
@@ -1889,6 +1891,7 @@ private:
     uint i_component, nr_of_components;
     uint i_mixture, nr_of_mixtures;
     uint nr_of_wavelength;
+    uint wavelength_offset;
     uint calorimetry_type;
     uint alignment;
     uint phID;
@@ -1920,6 +1923,7 @@ public:
 
         nr_of_components = 0;
         nr_of_wavelength = 0;
+        wavelength_offset = 0;
     }
 
     ~CDustMixture(void)
@@ -2137,9 +2141,13 @@ public:
         wavelength_list.push_back(wavelength);
     }
 
-    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength)
+    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength, bool add_offset)
     {
         dlist tmp_wavelength_list(nr_of_wavelength);
+
+        // Add the amount of added wavelength to the offset to skip them for writeComponent
+        if(add_offset && wavelength_list.size() == 0)
+            wavelength_offset += nr_of_wavelength;
 
         // Add new wavelengths first
         CMathFunctions::LogList(lam_min, lam_max, tmp_wavelength_list, 10);
@@ -2706,6 +2714,7 @@ private:
 
     uint nr_of_components;
     uint nr_of_wavelength;
+    uint wavelength_offset;
 
     uilist dust_choices;
     uilist dust_choices_to_index;
