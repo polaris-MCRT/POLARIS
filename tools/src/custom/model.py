@@ -412,7 +412,7 @@ class GGTauDisk(Model):
                 ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
-                inner_radius=self.inner_radius, real_zero=True)
+                inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disk
             disk_density_Aa = 0
@@ -428,7 +428,7 @@ class GGTauDisk(Model):
                 ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius, real_zero=True)
+                inner_radius=self.inner_radius)
 
             # --- GG Tau Ab2
             # Add inclination
@@ -439,7 +439,7 @@ class GGTauDisk(Model):
                 ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius, real_zero=True)
+                inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disks
             disk_density_Ab1 = 0

@@ -638,6 +638,14 @@ public:
         return false;
     }
 
+    bool isRaytracing()
+    {
+        if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION
+                || getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
+            return true;
+        return false;
+    }
+
     bool isTemperatureSimulation()
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)

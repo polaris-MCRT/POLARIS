@@ -1771,14 +1771,12 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     return true;
 }
 
-void CDustComponent::preCalcEffProperties()
+void CDustComponent::preCalcEffProperties(parameter & param)
 {
     // -------------- Calculate average-mass of effective grain size --------------
-
     avg_mass = getAvgMass();
 
     // -------------- Calculate cross-sections of effective grain size --------------
-
     tCext1 = new double[nr_of_wavelength];
     tCext2 = new double[nr_of_wavelength];
     tCabs1 = new double[nr_of_wavelength];
@@ -1801,44 +1799,46 @@ void CDustComponent::preCalcEffProperties()
     }
 
     // -------------- Calculate emission of effective grain size --------------
-
-    // Get number of temperatures from tab_temp spline
-    uint nr_of_temperatures = tab_temp.size();
-
-    // Init spline for absorption/emission energy interpolation
-    tab_em_eff.resize(nr_of_temperatures);
-
-    for(uint t = 0; t < nr_of_temperatures; t++)
+    if(param.isTemperatureSimulation())
     {
-        // Get temperature from tab_temp spline
-        double tmp_temp = tab_temp.getValue(t);
+        // Get number of temperatures from tab_temp spline
+        uint nr_of_temperatures = tab_temp.size();
 
-        // Init a temporary array for QB values
-        double * tmpQB = new double[nr_of_wavelength];
+        // Init spline for absorption/emission energy interpolation
+        tab_em_eff.resize(nr_of_temperatures);
 
-        // Calculate absorption cross-section times Planck function for each wavelength
-        for(uint w = 0; w < nr_of_wavelength; w++)
+        for(uint t = 0; t < nr_of_temperatures; t++)
         {
-            // Calculate mean absorption cross-section
-            double meanCabs = (2.0 * tCabs1[w] + tCabs2[w]) / 3.0;
+            // Get temperature from tab_temp spline
+            double tmp_temp = tab_temp.getValue(t);
 
-            // Set absroption/emission energy at current wavelength and temperature
-            tmpQB[w] = meanCabs * tab_planck[w].getValue(t);
+            // Init a temporary array for QB values
+            double * tmpQB = new double[nr_of_wavelength];
+
+            // Calculate absorption cross-section times Planck function for each wavelength
+            for(uint w = 0; w < nr_of_wavelength; w++)
+            {
+                // Calculate mean absorption cross-section
+                double meanCabs = (2.0 * tCabs1[w] + tCabs2[w]) / 3.0;
+
+                // Set absroption/emission energy at current wavelength and temperature
+                tmpQB[w] = meanCabs * tab_planck[w].getValue(t);
+            }
+
+            // Calculate QB integrated over all wavelengths
+            tab_em_eff.setValue(t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
+
+            // Delete pointer array
+            delete[] tmpQB;
         }
 
-        // Calculate QB integrated over all wavelengths
-        tab_em_eff.setValue(t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
-
-        // Delete pointer array
-        delete[] tmpQB;
+        // Create spline for interpolation
+        tab_em_eff.createSpline();
     }
 
-    // Create spline for interpolation
-    tab_em_eff.createSpline();
 
     // -------------- Calculate probability lists --------------
-
-    // Init pointer array of pslines
+    // Init pointer array of prob_lists
     dust_prob = new prob_list[nr_of_wavelength];
     abs_prob = new prob_list[nr_of_wavelength];
     sca_prob = new prob_list[nr_of_wavelength];
@@ -4197,9 +4197,6 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
         // Set the ID and number of the mixtures
         setIDs(mixed_component[i_mixture], 0, nr_of_components, i_mixture, nr_of_dust_mixtures);
 
-        // Set if scattering will be included in raytracing if possible
-        setScatteringToRay(param.getScatteringToRay());
-
         // Mix components together
         if(!mixComponents(param, i_mixture))
             return false;
@@ -4270,19 +4267,23 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         {
             if(param.getScatteringToRay())
             {
-                cout << "yes (based on the radiation field)" << endl;
-                cout << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl;
-                cout << "          -> If not, use <rt_scattering> 0                                      " << endl;
+                cout << "yes, based on the radiation field" << endl
+                    << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl
+                    << "          -> If not, use <rt_scattering> 0                                " << endl;
             }
             else
-                cout << "no (disabled via <rt_scattering> 0)" << endl;
+                cout << "no, disabled via <rt_scattering> 0" << endl;
         }
         else 
         {
             if(param.getScatteringToRay())
-                cout << "yes (radiation field will be calulated before raytracing)" << endl;
+                cout << "yes, radiation field will be calulated before raytracing" << endl;
             else
-                cout << "no (radiation field not found in grid)" << endl;
+            {
+                cout << "no, radiation field not found in grid and radiation sources missing" << endl
+                    << "                            "
+                    << "try to define point source(s) and/or the dust source" << endl;
+            }
         }
 
         cout << "Observed wavelengths:" << endl;
@@ -4380,7 +4381,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
 
     // If dust optical properties are constant -> pre calc some values
     if(grid->useConstantGrainSizes())
-        preCalcEffProperties();
+        preCalcEffProperties(param);
 }
 
 bool CDustMixture::mixComponents(parameter & param, uint i_mixture)

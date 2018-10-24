@@ -386,6 +386,10 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     if(!assignDustMixture(param, dust, grid))
         return false;
 
+    // Check if the scattered light can be added to the raytracing
+    if(param.getScatteringToRay())
+        checkScatteringToRay(param, dust, grid);
+
     grid->setSIConversionFactors(param);
 
     uint nr_of_offset_entries = 0;
@@ -740,19 +744,23 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     cout << CLR_LINE;
     cout << "-> Creating source list             \r" << flush;
 
-    if(param.getCommand() == CMD_OPIATE
-            || param.getCommand() == CMD_DUST_EMISSION
-            || param.getCommand() == CMD_SYNCHROTRON
-            || param.getCommand() == CMD_LINE_EMISSION)
+    if(param.isRaytracing())
     {
         // Raytracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
             cout << "WARNING: Diffuse sources can not be considered in "
                     << "dust, line, or synchrotron emission!" << endl;
 
+        // Dust source can only be used, if the radiation field will be calculated as well 
         if(param.getDustSource())
-            cout << "WARNING: Dust as radiation source can not be considered in "
-                << "dust, line, or synchrotron emission!" << endl;
+        {
+            if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "WARNING: Dust as radiation source can not be considered in "
+                    << "line or synchrotron emission!" << endl;
+            if(!param.getScatteringToRay())
+                cout << "WARNING: Dust as radiation source will only be considered in "
+                    << "dust emission, if the <rt_scattering> is enabled!" << endl;
+        }
 
         if(param.getISRFSource())
             cout << "WARNING: ISRF as radiation source can not be considered in "
@@ -796,7 +804,7 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
 
         if(param.getNrOfPointSources() > 0)
         {
-            if(!param.getScatteringToRay()) //|| !grid->getRadiationFieldAvailable())
+            if(!param.getScatteringToRay())
                 nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "WARNING: Point sources can not be considered in line or synchrotron emission!" << endl;
@@ -1111,7 +1119,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_TEMP:
             cout << "- Command        : TEMPERATURE DISTRIBUTION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, false, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1127,7 +1135,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_TEMP_RAT:
             cout << "- Command        : TEMPERATURE DISTRIBUTION and RAT ALIGNMENT" << endl;
             printPathParameter(param);
-            printSourceParameter(param, false, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1135,7 +1143,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_RAT:
             cout << "- Command        : RAT ALIGNMENT" << endl;
             printPathParameter(param);
-            printSourceParameter(param);
+            printSourceParameter(param, true);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1153,7 +1161,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_SYNCHROTRON:
             cout << "- Command        : SYNCHROTRON EMISSION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printDetectorParameter(param);
             printPlotParameter(param);
@@ -1177,7 +1185,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_LINE_EMISSION:
             cout << "- Command        : SPECTRAL LINE EMISSION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printDetectorParameter(param);
             printPlotParameter(param);

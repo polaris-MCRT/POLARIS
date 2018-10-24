@@ -382,7 +382,12 @@ class TestRoutines:
         self.get_result('temperature')
 
     def test_1007004(self):
-        """Perform test simulation to check full raytracing (incl. scattering and stochastic heating, cylindrical grid).
+        """Perform test simulation to check raytracing (incl. stochastic heating temperatures, cylindrical grid).
+        """
+        self.get_result('emission_map')
+
+    def test_1007005(self):
+        """Perform test simulation to check raytracing (incl. scattering calc before raytracing, cylindrical grid).
         """
         self.get_result('emission_map')
 
