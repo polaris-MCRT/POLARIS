@@ -596,52 +596,54 @@ public:
     {
         uint min = 0, max = N;
 
-        if(x == 0)
-            return 0;
-
-        if(v < x[0])
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[0];
-                    break;
-
-                case LINEAR:
-                    return getLinear(0, v);
-                    break;
-            }
-        else if(v > x[N])
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[N];
-                    break;
-
-                case LINEAR:
-                    return getLinear(N - 1, v);
-                    break;
-            }
-        else
+        if(x != 0)
         {
-            while(max - min > 1)
-            {
-                const uint i = min + (max - min) / 2;
-                if(x[i] >= v)
-                    max = i;
-                else
-                    min = i;
-            }
-            switch(interpolation)
-            {
-                case CONST:
-                    return y[max];
-                    break;
+            if(v < x[0])
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[0];
+                        break;
 
-                case LINEAR:
-                    return getLinear(min, v);
-                    break;
+                    case LINEAR:
+                        return getLinear(0, v);
+                        break;
+                }
+            else if(v > x[N])
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[N];
+                        break;
+
+                    case LINEAR:
+                        return getLinear(N - 1, v);
+                        break;
+                }
+            else
+            {
+                while(max - min > 1)
+                {
+                    const uint i = min + (max - min) / 2;
+                    if(x[i] >= v)
+                        max = i;
+                    else
+                        min = i;
+                }
+                switch(interpolation)
+                {
+                    case CONST:
+                        return y[max];
+                        break;
+
+                    case LINEAR:
+                        return getLinear(min, v);
+                        break;
+                }
             }
         }
+        
+        return 0;
     }
 
 private:
@@ -1555,12 +1557,7 @@ public:
     static inline double integ(const double * x, const double * y, uint xlow, uint xup)
     {
         double res = 0;
-        if(xup - xlow == 1)
-        {
-            res = (x[xup] - x[xlow]) * y[xlow]
-                    + 0.5 * (x[xup] - x[xlow]) * (y[xup] - y[xlow]);
-        }
-        else if(xlow != xup)
+        if(xlow != xup)
         {
             for(uint i = xlow + 1; i <= xup; i++)
                 res += (x[i] - x[i - 1]) * y[i - 1]
@@ -1723,10 +1720,7 @@ public:
         double res = 0;
 
         if(N == 1)
-        {
-            res = (x[1] - x[0]) * y[0] + 0.5 * (x[1] - x[0]) * (y[1] - y[0]);
-            integ_spline.setValue(0, res);
-        }
+            integ_spline.setValue(0, 1);
         else
         {
             integ_spline.setValue(0, 0);
@@ -1746,10 +1740,7 @@ public:
         double res = 0;
 
         if(N == 1)
-        {
-            res = (x[1] - x[0]) * y[0] + 0.5 * (x[1] - x[0]) * (y[1] - y[0]);
-            integ_spline.setValue(0, res);
-        }
+            integ_spline.setValue(0, 1);
         else
         {
             integ_spline.setValue(0, 0);

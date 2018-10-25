@@ -326,10 +326,9 @@ uint CGridBasic::validateDataPositions(parameter & param)
         return MAX_UINT;
     }
 
-    if(nr_mixtures > 0 &&
-            (param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT
-            || param.getCommand() == CMD_DUST_EMISSION || param.getCommand() == CMD_LINE_EMISSION
-            || param.getCommand() == CMD_FORCE || param.getCommand() == CMD_PROBING))
+    if(nr_mixtures > 0 && (param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_EMISSION || 
+            param.getCommand() == CMD_LINE_EMISSION || param.getCommand() == CMD_FORCE || 
+            param.getCommand() == CMD_PROBING))
     {
         // Get Number of temperature fields for temperature calculation
         if(data_pos_dd_list.size() > 0)
@@ -337,13 +336,15 @@ uint CGridBasic::validateDataPositions(parameter & param)
         else
             nr_densities = data_pos_gd_list.size();
 
+        // Precalculate the number of temperature entries, if the grid has a 
+        // temperature for each grain size or stochastically heated grains
         for(uint i_density = 0; i_density < nr_densities; i_density++)
-            multi_temperature_entries += nr_dust_sizes[i_density] + 1;
+        {
+            multi_temperature_entries += nr_dust_temp_sizes[i_density] + 1;
+            stochastic_temperature_entries += nr_stochastic_sizes[i_density] + 1;
+        }
 
-        for(uint i_density = 0; i_density < nr_densities; i_density++)
-            stochastic_entries += nr_stochastic_sizes[i_density] * nr_stochastic_temps[i_density];
-
-        // Check for a valid combination between densities and duts mixtures
+        // Check for a valid combination between densities and dust mixtures
         if(nr_densities > 1 && nr_mixtures != nr_densities)
         {
             cout << "ERROR: Amount of densities in the grid (" << nr_densities
@@ -436,11 +437,11 @@ void CGridBasic::printPhysicalParameter()
         cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]" << endl;
     else
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]" << endl;
-    if((dust_is_mass_density && data_pos_dd_list.size() > 0) || (gas_is_mass_density && data_pos_dd_list.empty()))
+    if(!dust_is_mass_density && data_pos_dd_list.size() > 0)
+        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]" << endl;
+    else
         cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
             << "] [kg m^-3]" << endl;
-    else
-        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]" << endl;
     if(data_pos_tg != MAX_UINT)
         cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]" << endl;
     else
@@ -1092,9 +1093,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
 
             plt_dust_temp = true;
         }
-        else if(cmd == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0 &&
-                param.getWriteStochasticTemperature())
-            plt_dust_temp = true;
 
         if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
             plt_rat = true;

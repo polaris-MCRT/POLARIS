@@ -115,12 +115,12 @@ class DetectorChooser:
             detector.parameter['acceptance_angle'] = self.parse_args.acceptance_angle
         if self.parse_args.raytracing_shape is not None:
             detector.parameter['shape'] = self.parse_args.raytracing_shape
-        elif self.model.parameter['grid_type'] in ['spherical', 'cylindrical'] and \
-                'mc' not in self.parse_args.simulation_type:
-            print('--- HINT: Raytracing simulation of spherical or cylindrical grid detected:\n'
-                '    --- Use polar raytracing grid by default!\n'
-                '    --- If this is causing problems, use \"--rt_grid cartesian\" instead!')
-            detector.parameter['shape'] = 'polar'
+        #elif self.model.parameter['grid_type'] in ['spherical', 'cylindrical'] and \
+        #        'mc' not in self.parse_args.simulation_type:
+        #    print('--- HINT: Raytracing simulation of spherical or cylindrical grid detected:\n'
+        #        '    --- Use polar raytracing grid by default!\n'
+        #        '    --- If this is causing problems, use \"--rt_grid cartesian\" instead!')
+        #    detector.parameter['shape'] = 'polar'
         return detector
 
 

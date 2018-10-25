@@ -115,7 +115,7 @@ class ISRF:
         #: dict: Parameters of the interstellar radiation field class
         self.parameter = {
             'filename': 'interstellar_radiation_field.dat',
-            'nr_photons': 1000000,
+            'nr_photons': 1e6,
             'kepler_usable': False,
         }
 
@@ -187,7 +187,7 @@ class TTauri(StellarSource):
         # Mass of the star [M_sun] (for Keplerian rotation)
         self.parameter['mass'] = 0.7 * self.math.const['M_sun']
         # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1000000
+        self.parameter['nr_photons'] = 1e6
 
 
 class HerbigAe(StellarSource):
@@ -211,7 +211,7 @@ class HerbigAe(StellarSource):
         # Mass of the star [M_sun]
         self.parameter['mass'] = 5.0 * self.math.const['M_sun']
         # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1000000
+        self.parameter['nr_photons'] = 1e6
 
 
 class BinaryStar(StellarSource):
@@ -227,7 +227,7 @@ class BinaryStar(StellarSource):
         """
         StellarSource.__init__(self, file_io, parse_args)
 
-        self.parameter['nr_photons'] = 100000
+        self.parameter['nr_photons'] = 1e5
 
         from math import fmod
         a = 5.0  # AU

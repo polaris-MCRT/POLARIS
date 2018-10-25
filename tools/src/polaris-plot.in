@@ -55,7 +55,7 @@ req_args.add_argument('simulation_type', metavar='simulation_type', type=str,
                            '    zeeman   : radiative line transfer (zeeman splitting)')
 req_args.add_argument('visualization_type', metavar='visualization_type', type=str,
                       choices=['midplane', 'map', 'sed', 'vel_map', 'int_map',
-                               'spectrum', 'mag_field', 'velocity', 'custom'],
+                               'spectrum', 'mag_field', 'velocity', 'tau', 'custom'],
                       help='visualization routine.\n'
                            '    midplane  : plot midplane data\n'
                            '    map       : plot polarization maps from RT or MC simulations\n'
@@ -65,7 +65,7 @@ req_args.add_argument('visualization_type', metavar='visualization_type', type=s
                            '    spectrum  : plot line spectrum\n'
                            '    velocity  : plot mean line-of-sight velocity\n'
                            '    mag_field : plot magnetic field from zeeman splitting\n'
-                      #    '    casa     : convert results to use in CASA\n'
+                           '    tau       : plot optical depth map\n'
                            '    custom    : execute custom plotting routines')
 req_args.add_argument('visualization_input', metavar='visualization_input', nargs='+',
                       help='option for visualization routine.\n'
@@ -79,7 +79,7 @@ req_args.add_argument('visualization_input', metavar='visualization_input', narg
                            '        gas species ID + spectral line ID\n'
                            '        gas species ID + spectral line ID + QuantityID\n'
                            '        gas species ID + spectral line ID + Quantity: minID + maxID\n'
-                      #    '    casa     : (optional: gas species index) + line index\n'
+                           '    tau       : mass extinction coefficient\n'
                            '    custom    : plot routine index')
 
 plot_mod_args = parser.add_argument_group('plot modification')
@@ -344,7 +344,7 @@ class PlotRoutines:
         # Create one plot per component of the simulation
         for i_quantity in range(self.quantity_index_start - 1, self.quantity_index_stop):
             # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+            plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                         ylabel=self.file_io.get_quantity_labels(i_quantity), with_cbar=False)
             quantity = sed_data[i_quantity, self.start_index - 1:self.stop_index]
             # Plot spectral energy distribution
@@ -364,7 +364,7 @@ class PlotRoutines:
         # Plot only the intensity as a full sed plot
         i_quantity = 0
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\mathsf{m}]$',
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         # Set paths of each simulation
         self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
@@ -579,7 +579,7 @@ class PlotRoutines:
                 plot.plot_quiver(vec_field_data, color=vector_color, const_quiver=True)
         elif 'rat_aalig' in midplane_name:
             # Logarithmic plot for aligned radii
-            plot.plot_imshow(tbldata, cbar_label=r'$a_\mathsf{align}$\ $[\mathsf{m}]$', **args)
+            plot.plot_imshow(tbldata, cbar_label=r'$a_\mathsf{align}$\ $[\si{\metre}]$', **args)
         elif 'delta' in midplane_name:
             # Logarithmic plot for Larmor radius
             plot.plot_imshow(tbldata, cbar_label=r'$\delta$', **args)
@@ -616,7 +616,7 @@ class PlotRoutines:
             if 'dust' in midplane_name:
                 plot.set_ylabel(r'$T_\mathsf{dust}\ [\mathsf{K}]$')
         elif 'rat_aalig' in midplane_name:
-            plot.set_ylabel(r'$a_\mathsf{align}$\ $[\mathsf{m}]$')
+            plot.set_ylabel(r'$a_\mathsf{align}$\ $[\si{\metre}]$')
         elif 'mag' in midplane_name:
             # Change unit if magnetic field is large enough
             if np.nanmax(data) >= 1e-4:
@@ -1099,47 +1099,45 @@ class PlotRoutines:
                            str(self.detector_index).zfill(4) + '.fits', overwrite=True)
         final_hdul.close()
 
-    def convert_fits_casa(self):
-        """Convert fits to be used in CASA.
-        """
-        if self.parse_args.simulation_type == 'line':
-            hdulist = self.file_io.read_vel_maps('vel_channel_maps_species_' + 
-                str(self.gas_species_index).zfill(4) + '_line_' + str(self.spectral_line_index).zfill(4))
+    def plot_optical_depth(self, kappa_mass):
+        """Create optical depth map from a certain point to the observer based on the 
+        analytical density distribution that is defined in the model.
 
-            hdulist[0].data = hdulist[0].data[3, :, :, :]
-            hdulist[0].header['NAXIS'] = 3
-            del hdulist[0].header['CTYPE4']
-            del hdulist[0].header['CRVAL4']
-            del hdulist[0].header['CRPIX4']
-            del hdulist[0].header['CDELT4']
-            del hdulist[0].header['CUNIT4']
-            hdulist[0].header['BUNIT'] = 'Jy/pixel'
-            hdulist[0].header['CTYPE1'] = 'RA---TAN'
-            arcsec_per_pixel = ((2. * self.model.tmp_parameter['radius_arcsec'])
-                                / hdulist[0].header['NAXIS1']) * (np.pi / (3600. * 180.))
-            hdulist[0].header['CRVAL1'] = -self.model.parameter[
-                'radius_arcsec'] + 0.5 * arcsec_per_pixel
-            hdulist[0].header['CRPIX1'] = 1
-            hdulist[0].header['CDELT1'] = arcsec_per_pixel
-            hdulist[0].header['CUNIT1'] = 'rad'
-            hdulist[0].header['CTYPE2'] = 'DEC--TAN'
-            arcsec_per_pixel = ((2. * self.model.tmp_parameter['radius_arcsec'])
-                                / hdulist[0].header['NAXIS2']) * (np.pi / (3600. * 180.))
-            hdulist[0].header['CRVAL2'] = -self.model.parameter[
-                'radius_arcsec'] + 0.5 * arcsec_per_pixel
-            hdulist[0].header['CRPIX2'] = 1
-            hdulist[0].header['CDELT2'] = arcsec_per_pixel
-            hdulist[0].header['CUNIT2'] = 'rad'
-            hdulist[0].header['CTYPE3'] = 'FREQ'
-            hdulist[0].header['CRVAL3'] = (hdulist[0].header['CRVAL3'] /
-                                           self.math.const['c'] + 1.) * hdulist[0].header['FREQ']
-            hdulist[0].header['CRPIX3'] = 1
-            hdulist[0].header['CDELT3'] = (hdulist[0].header['CDELT3'] /
-                   self.math.const['c']) * hdulist[0].header['FREQ']
-            hdulist[0].header['CUNIT3'] = 'Hz'
-            hdulist.writeto(self.file_io.path['results'] + 'new.fits', clobber=True)
-        else:
-            print('--- Error: Fits file cannot be loaded!')
+        Args:
+            kappa_mass (float): Mass extinction coefficient.
+        """
+        # Define coordinate lists
+        number_of_px = 256
+        vertical_list = np.logspace(np.log10(self.model.parameter['outer_radius']), 
+            np.log10(self.model.parameter['inner_radius']), number_of_px)
+        radial_list = np.logspace(np.log10(self.model.parameter['inner_radius']),
+            np.log10(self.model.parameter['outer_radius']), number_of_px)
+        tau_matrix = np.zeros((number_of_px, number_of_px))
+
+        # Create 2D matrix of optical depth
+        X, Y = np.meshgrid(radial_list, vertical_list[::-1])
+        for i in range(number_of_px):
+            for j in range(number_of_px):
+                self.model.position = [radial_list[i], 0, vertical_list[j]]
+                if isinstance(self.model.get_gas_density_distribution(), float):
+                    dens = self.model.get_gas_density_distribution() * self.model.parameter['mass_fraction']
+                else:
+                    dens = np.sum(self.model.get_gas_density_distribution()) * self.model.parameter['mass_fraction']
+                tau_index = number_of_px - j - 1
+                if j > 0:
+                    length = (vertical_list[j - 1] - vertical_list[j])
+                    tau_matrix[tau_index, i] = tau_matrix[tau_index + 1, i] + dens * length * kappa_mass
+                else:
+                    tau_matrix[tau_index, i] = 0
+
+        # Create plot
+        extent = [radial_list[0], radial_list[-1], vertical_list[-1], vertical_list[0]]
+        plot = Plot(self.model, self.parse_args, scale_axis_log=True, 
+            extent=extent, label_plane='xz')
+        # Plot spectrum as line
+        plot.plot_pcolor(X, Y, tau_matrix)
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)       
 
     def get_custom_routine(self):
         """Execute personalized routines from custom_plots.py.
@@ -1288,6 +1286,8 @@ if __name__ == '__main__':
     # OtherRoutines can contain all sorts of plot routines
     if parser_options.visualization_type == 'custom':
         plot_routines.get_custom_routine()
+    elif parser_options.visualization_type == 'tau':
+        plot_routines.plot_optical_depth(float(parser_options.visualization_input[0]))
     else:
         if parser_options.simulation_type in ['temp', 'rat', 'temp_rat']:
             # Heat and rat simulations offer only midplane results
@@ -1326,8 +1326,6 @@ if __name__ == '__main__':
                 plot_routines.plot_map()
             elif parser_options.visualization_type == 'sed':
                 plot_routines.plot_sed()
-            # elif parser_options.visualization_type == 'casa':
-            #     plot_routines.convert_fits_casa()
             else:
                 error = True
         elif parser_options.simulation_type in ['line', 'zeeman']:
@@ -1344,8 +1342,6 @@ if __name__ == '__main__':
                 plot_routines.plot_zeeman_mag_field_map()
             elif parser_options.visualization_type == 'velocity':
                 plot_routines.plot_velocity_map()
-            # elif parser_options.visualization_type == 'casa':
-            #     plot_routines.convert_fits_casa()
             else:
                 error = True
         else:

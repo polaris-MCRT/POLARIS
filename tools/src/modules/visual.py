@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import AxesGrid
 
+from modules.math import Math
+
 
 class Plot:
     """This class creates various plots from results of POLARIS simulations.
@@ -49,13 +51,17 @@ class Plot:
             with_cbar (bool): Add space for colorbar?
             cmap_scaling (List): List with the scaling name first.
                 ('symlog' + linthresh, 'power' + gamma, 'log')
-            scale_axis_log (bool): Logarithmic scale of both axis.
+            scale_axis_log (bool): Logarithmic scale of both axis (for imshow).
             labelpad (List): Padding of the axis label.
                 Dimension of the list has to match the dimensions of the plot.
             language (str): Language for decimal separation.
             size_x (float): Size of the figure in x-direction [inches].
             size_y (float): Size of the figure in y-direction [inches].
         """
+
+        # Get math module
+        self.math = Math()
+
         ''' ##################################
         ######  Setting up parameters!  ######
         ################################## '''
@@ -305,10 +311,12 @@ class Plot:
                 self.ax_list[0].set_ylabel(r'$\Delta y\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[1])
                 self.ax_list[0].set_zlabel(r'$\Delta z\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[2])
         elif self.image_type in ['image', 'animation'] and nr_x_images == 1 and nr_y_images == 1:
-            if self.ax_unit is not None:
+            if xlabel != '' and ylabel != '':
+                pass
+            elif self.ax_unit is not None:
                 xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
                     nr_x_images, nr_y_images, label_plane, language)
-            elif xlabel == '' or ylabel == '':
+            else:
                 # If not enough labels are defined, raise error
                 raise ValueError('Error: ax_unit ist not set, but xlabel and ylabel neither!')
             # Set labels of the axes of the subplot
@@ -317,10 +325,12 @@ class Plot:
                 self.ax_list[ax_index].set_ylabel(ylabel)
         elif self.image_type == 'image':
             if nr_x_images == 1 and nr_y_images > 1:
-                if self.ax_unit is not None:
+                if xlabel != '' and len(ylabel) == nr_y_images:
+                    pass
+                elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
                         nr_x_images, nr_y_images, label_plane, language)
-                elif isinstance(ylabel, str) or xlabel == '' or len(ylabel) != nr_y_images:
+                else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: The plot needs a list of ' + nr_y_images + ' ylabels and one xlabel!')
                 # Set labels of the axes of the subplots
@@ -329,10 +339,12 @@ class Plot:
                         self.ax_list[ax_index].set_xlabel(xlabel)
                     self.ax_list[ax_index].set_ylabel(ylabel[ax_index])
             elif nr_x_images > 1 and nr_y_images == 1:
-                if self.ax_unit is not None:
+                if ylabel != '' and len(xlabel) == nr_x_images:
+                    pass
+                elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
                         nr_x_images, nr_y_images, label_plane, language)
-                elif isinstance(xlabel, str) or ylabel == '' or len(xlabel) != nr_x_images:
+                else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_y plot needs a list of ' +
                         nr_x_images + ' xlabels and one ylabel!')
@@ -342,11 +354,12 @@ class Plot:
                         self.ax_list[ax_index].set_ylabel(ylabel)
                     self.ax_list[ax_index].set_xlabel(xlabel[ax_index])
             elif nr_x_images > 1 and nr_y_images > 1:
-                if self.ax_unit is not None:
+                if len(xlabel) == nr_x_images and len(ylabel) == nr_y_images:
+                    pass
+                elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
                         nr_x_images, nr_y_images, label_plane, language)
-                elif isinstance(xlabel, str) or isinstance(ylabel, str) or \
-                        len(ylabel) != nr_y_images or len(xlabel) != nr_x_images:
+                else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_both plot needs a list of ' +
                         nr_x_images + ' xlabels and ' + nr_y_images + ' ylabels!')
@@ -445,7 +458,13 @@ class Plot:
             automatic_axes (str): Set the axes that have to be adjusted automatically.
                 ('x', 'y', 'xy', None)
         """
-        if self.ax_unit is not None:
+        if extent is not None:
+            self.extent = extent
+            if 'x' in automatic_axes:
+                self.extent[0:2] = self.math.length_conv(extent[0:2], self.ax_unit)
+            if 'y' in automatic_axes:
+                self.extent[2:4] = self.math.length_conv(extent[2:4], self.ax_unit)
+        elif self.ax_unit is not None:
             if self.ax_unit == 'arb_units':
                 # Arbitrary units should go from -1 to 1.
                 if self.image_type == 'projection_3d':
@@ -475,13 +494,10 @@ class Plot:
             else:
                 raise ValueError('Without defined model, the update of the extent is not possible!')
         else:
-            if extent is not None:
-                self.extent = extent
+            if self.image_type == 'projection_3d':
+                self.extent = [None, None, None, None, None, None]
             else:
-                if self.image_type == 'projection_3d':
-                    self.extent = [None, None, None, None, None, None]
-                else:
-                    self.extent = [None, None, None, None]
+                self.extent = [None, None, None, None]
 
     def update_limits(self, limits=None):
         """If the zoom factor is set, modify the limits accordingly. If no zoom factor but limits are chosen,
@@ -493,7 +509,7 @@ class Plot:
         """
         # Set limit according to zoom factor
         if (self.zoom_x_factor is not None or self.zoom_y_factor is not None) \
-                and self.extent is not Nones and self.image_type != 'projection_3d':
+                and self.extent is not None and self.image_type != 'projection_3d':
             self.limits = [None, None, None, None]
             for i_limits in range(len(self.extent)):
                 if self.extent[i_limits] is None:
@@ -591,7 +607,7 @@ class Plot:
         mark_inset(self.ax_list[ax_index], self.ax_list[-1], loc1=2, loc2=4, fc="none", ec="0.5")
 
     def plot_line(self, xdata, ydata, ax_index=0, log=None, step=False,
-        fill_between=False, no_ticks=False, **args):
+        fill_between=False, no_ticks=False, no_grid=False, **args):
         """Plot 2D line from xdata and ydata.
 
         Args:
@@ -603,6 +619,7 @@ class Plot:
             step (bool): Use steps instead of linearly connected lines.
             fill_between (bool): fill below curve.
             no_ticks (bool): Set true if not ticks shall be plotted.
+            no_grid (bool): Set true to not show grid lines.
         """
         # Get user input for log
         if self.x_scaling == 'log' and self.y_scaling == 'log':
@@ -638,7 +655,8 @@ class Plot:
         plot_func(xdata, ydata, **args)
 
         # Enable grid for better reading
-        self.ax_list[ax_index].grid(linestyle=':')
+        if not no_grid:
+            self.ax_list[ax_index].grid(linestyle=':')
 
         # Remove ticks if chosen
         if no_ticks:
@@ -690,6 +708,103 @@ class Plot:
         # Plot the bars
         self.ax_list[ax_index].bar(left, height, width=width, bottom=bottom, orientation=orientation, align=align,
                                  edgecolor=edgecolor, alpha=alpha, label=label, color=color)
+
+    def plot_pcolor(self, X, Y, tbldata, ax_index=0, cbar_label='', plot_cbar=True, extend=None, norm='Normalize',
+            cmap=None, vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
+        """Plot 3D data in 2D colorcoded form.
+
+        Args:
+            X: Numpy array with 2 dimensions for the pixel coordinate X.
+            Y: Numpy array with 2 dimensions for the pixel coordinate Y.
+            tbldata: Numpy array with data for color plotting.
+            ax_index (int): Index of subplot image.
+            extend (str): Extend of the colorbar if clipping is used.
+                If vmin is larger than the smallest value ('min').
+                If vmax is smaller than the largest value ('max').
+                If both is true ('both').
+            cbar_label (str): Label of the colorbar.
+            plot_cbar (bool): Plot the colorbar?
+            norm (str): Type of color normalization (Normalize, LogNorm, SymLogNorm, ...).
+            cmap: Name or instance of the colormap.
+            vmin (float): Minimum value of the colorbar.
+            vmax (float): Maximum value of the colorbar.
+            linthresh (float): Limit under which 'SymLogNorm' is linear.
+            gamma (float): Exponent for exponential  normalization.
+            set_bad_to_min (bool): Set the bad color to the color of the
+                minimum value of the colorbar.
+        """
+        # Convert X and Y from metre to ax_unit
+        X = self.math.length_conv(X, self.ax_unit)
+        Y = self.math.length_conv(Y, self.ax_unit)
+
+        # Use default colormap if no one is defined
+        if self.cmap is None:
+            if cmap is not None:
+                self.cmap = cmap
+            else:
+                self.cmap = 'viridis'
+
+        # Change vmin and vmax if user demands it
+        if self.vmin is not None:
+            vmin = self.vmin
+        if self.vmax is not None:
+            vmax = self.vmax
+
+        # Change to log mode if user demands it
+        if self.cmap_scaling is not None:
+            if self.cmap_scaling[0] == 'symlog' and len(self.cmap_scaling) == 2:
+                norm = 'SymLogNorm'
+                linthresh = float(self.cmap_scaling[1])
+            elif self.cmap_scaling[0] == 'power' and len(self.cmap_scaling) == 2:
+                if (vmin is None or vmin >= 0) and (vmax is None or vmax > 0) and \
+                        tbldata.any():
+                    norm = 'PowerNorm'
+                    gamma = float(self.cmap_scaling[1])
+            elif self.cmap_scaling[0] == 'log':
+                if not any(i < 0. for i in tbldata.flatten()) \
+                        and not all(i == 0. for i in tbldata.flatten()) \
+                        and (vmin is None or vmin >= 0) \
+                        and (vmax is None or vmax > 0):
+                    norm = 'LogNorm'
+
+        # Set the norm related to chosen norm
+        from matplotlib.colors import Normalize, LogNorm, PowerNorm, SymLogNorm
+        if norm is 'Normalize':
+            norm = Normalize(vmin=vmin, vmax=vmax)
+        elif norm is 'LogNorm':
+            norm = LogNorm(vmin=vmin, vmax=vmax)
+        elif norm is 'PowerNorm' and gamma is not None:
+            norm = PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax, clip=True)
+        elif norm is 'SymLogNorm' and linthresh is not None:
+            norm = SymLogNorm(linthresh=linthresh, vmin=vmin, vmax=vmax)
+        else:
+            raise AttributeError('The chosen norm for imshow plot is not found or linthresh is not set!')
+
+        # Add colorbar extend if extend is set
+        if self.extend is not None:
+            extend = self.extend
+        elif extend is None:
+            # Set extend if vmin or vmax is set
+            if vmax is not None and vmin is not None:
+                extend = 'both'
+            elif vmin is not None:
+                extend = 'min'
+            elif vmax is not None:
+                extend = 'max'
+            else:
+                extend = 'neither'
+
+        # Change colormap bad values to lowest values
+        colormap = plt.get_cmap(self.cmap)
+        if set_bad_to_min or self.bad_to_min:
+            colormap.set_bad(colormap(0))
+
+        # Plot 2D color plot
+        self.image = self.ax_list[ax_index].pcolor(X, Y, tbldata, cmap=colormap, norm=norm)
+
+        # Plot colorbar is chosen
+        if self.with_cbar and plot_cbar:
+            self.plot_colorbar(ax_index=ax_index, label=cbar_label, extend=extend)
 
     def plot_imshow(self, tbldata, ax_index=0, cbar_label='', plot_cbar=True, extend=None, norm='Normalize',
             cmap=None, interpolation='nearest', origin='lower', extent=None, aspect='auto',
@@ -781,7 +896,11 @@ class Plot:
                 extend = 'neither'
 
         # Change colormap bad values to lowest values
-        colormap = plt.get_cmap(self.cmap)
+        if '_half' in self.cmap:  
+            colormap = self.truncate_colormap(
+                plt.get_cmap(self.cmap.replace('_half', '')) , 0.0, 0.5)
+        else:
+            colormap = plt.get_cmap(self.cmap)  
         if set_bad_to_min or self.bad_to_min:
             colormap.set_bad(colormap(0))
 
@@ -1030,12 +1149,22 @@ class Plot:
             round_lvl (int): How many digits for rounding the number.
         """
         # Position of the text object in image coordinates
-        text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
-                    self.limits[2] + (self.limits[3] - self.limits[2]) * 0.05]
-        line_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
-                    self.limits[2] + (self.limits[3] - self.limits[2]) * 0.045]
-        # Length of the longest polarization vector
-        length = (self.limits[1] - self.limits[0]) / (1.2 * vec_per_width)
+        if self.limits is not None:
+            text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
+                        self.limits[2] + (self.limits[3] - self.limits[2]) * 0.05]
+            line_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
+                        self.limits[2] + (self.limits[3] - self.limits[2]) * 0.045]
+            # Length of the longest polarization vector
+            length = (self.limits[1] - self.limits[0]) / (1.2 * vec_per_width)
+        elif self.extent is not None:
+            text_pos = [self.extent[0] + (self.extent[1] - self.extent[0]) * 0.9,
+                        self.extent[2] + (self.extent[3] - self.extent[2]) * 0.05]
+            line_pos = [self.extent[0] + (self.extent[1] - self.extent[0]) * 0.9,
+                        self.extent[2] + (self.extent[3] - self.extent[2]) * 0.045]
+            # Length of the longest polarization vector
+            length = (self.extent[1] - self.extent[0]) / (1.2 * vec_per_width)
+        else:
+            raise ValueError('Neither the extent nor the limits are set!')
         # Increase the size of the line if a zoom factor is used
         if self.zoom_x_factor is not None or self.zoom_y_factor is not None:
             length *= min(self.zoom_x_factor, self.zoom_y_factor)
@@ -1049,7 +1178,7 @@ class Plot:
         self.text.set_bbox(dict(facecolor='black', alpha=0.8, edgecolor='black'))
         # Plot the line
         self.plot_line([line_pos[0] - (length / 2.), line_pos[0] + (length / 2.)], [line_pos[1], line_pos[1]],
-                       log='never', color=color, ax_index=ax_index, zorder=2)
+                       log='never', color=color, ax_index=ax_index, zorder=2, no_grid=True)
 
     def plot_contour(self, tbldata, ax_index=0, xaxis=None, yaxis=None, origin='lower',
                      interpolation='nearest', linestyles='-', extent=None, levels=None, colors=None, cmap=None,
@@ -1288,6 +1417,21 @@ class Plot:
         cbar = plt.colorbar(self.image, cax=self.ax_list[ax_index].cax, extend=extend)
         # Set label of the colorbar
         cbar.set_label(label)
+
+    @staticmethod
+    def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+        """Use only part of a colormap.
+
+        Args:
+            cmap: Colormap instance.
+            minval (float): Minimum value to extract.
+            maxval (float): Maximum value to extract.
+            n (int): Number of values.
+        """
+        new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
+            'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+            cmap(np.linspace(minval, maxval, n)))
+        return new_cmap
 
     def plot_legend(self, loc=0, ncol=1, fancybox=True, ax_index=0, bbox_to_anchor=None):
         """Plot a legend.

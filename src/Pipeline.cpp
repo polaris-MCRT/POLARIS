@@ -123,15 +123,15 @@ void CPipeline::Run()
         switch(param.getCommand())
         {
             case CMD_TEMP:
-                result = calcMonteCarloRadiationField(param, true, false);
+                result = calcMonteCarloRadiationField(param);
                 break;
 
             case CMD_TEMP_RAT:
-                result = calcMonteCarloRadiationField(param, true, true);
+                result = calcMonteCarloRadiationField(param);
                 break;
 
             case CMD_RAT:
-                result = calcMonteCarloRadiationField(param, false, true);
+                result = calcMonteCarloRadiationField(param);
                 break;
 
             case CMD_DUST_EMISSION:
@@ -191,14 +191,13 @@ void CPipeline::Error()
 }
 
 
-bool CPipeline::calcMonteCarloRadiationField(parameter & param, bool calc_temp, bool calc_rat)
+bool CPipeline::calcMonteCarloRadiationField(parameter & param)
 {
-    if(!calc_temp && !calc_rat)
-        return false;
-
-    // CHeck if the energy density is used instead of launching photons with fixed energy
+    // Check if the energy density is used instead of launching photons with fixed energy
+    // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
     bool use_energy_density = false;
-    if(param.getSaveRadiationField() || calc_rat)
+    if(param.getSaveRadiationField() || param.getCommand() == CMD_RAT || 
+            param.getStochasticHeatingMaxSize() > 0)
         use_energy_density = true;
 
     CGridBasic * grid = 0;
@@ -257,7 +256,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param, bool calc_temp, 
 
     omp_set_num_threads(param.getNrOfThreads());
 
-    if(calc_temp)
+    if(param.isTemperatureSimulation())
     {
         if(param.getDustOffset())
             rad.convertTempInQB(param.getOffsetMinGasDensity(), false);
@@ -265,10 +264,12 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param, bool calc_temp, 
             rad.convertTempInQB(param.getOffsetMinGasDensity(), true);
     }
 
-    rad.calcMonteCarloRadiationField(calc_temp, calc_rat, use_energy_density);
-    if(calc_temp)
+    rad.calcMonteCarloRadiationField(param.getCommand(), 
+        use_energy_density, (param.getCommand() == CMD_RAT));
+        
+    if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
-    if(calc_rat)
+    if(param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
         rad.calcAlignedRadii();
 
     cout << SEP_LINE;
@@ -286,9 +287,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param, bool calc_temp, 
 
     if(param.getSaveRadiationField())
         grid->saveRadiationField();
-    if(calc_temp)
+    if(param.isTemperatureSimulation())
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
-    else if(calc_rat)
+    else if(param.getCommand() == CMD_RAT)
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
 
     delete grid;
@@ -345,7 +346,6 @@ bool CPipeline::calcPolarizationMapsViaMC(parameter & param)
 
     if(detector == 0)
         return false;
-    cout << SEP_LINE;
 
     CRadiativeTransfer rad(param);
 
@@ -386,13 +386,26 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     if(!assignDustMixture(param, dust, grid))
         return false;
 
+    // Check if the scattered light can be added to the raytracing
+    if(param.getScatteringToRay())
+        checkScatteringToRay(param, dust, grid);
+
     grid->setSIConversionFactors(param);
 
     uint nr_of_offset_entries = 0;
     if(param.getStochasticHeatingMaxSize() > 0)
+    {
+        // Add fields to store the stochastic heating propabilities for each cell
         for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-            nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) *
+            nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) * 
                 dust->getNrOfCalorimetryTemperatures(i_mixture);
+    }
+    else if(param.getScatteringToRay())
+    {
+        // Add fields to store the radiation field of each considered wavelength
+        grid->setSpecLengthAsVector(true);
+        nr_of_offset_entries += 4 * dust->getNrOfWavelength();
+    }
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
         return false;
@@ -418,8 +431,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
         return false;
     }
 
-    cout << CLR_LINE;
-
     CRadiativeTransfer rad(param);
 
     rad.setGrid(grid);
@@ -432,7 +443,12 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     omp_set_num_threads(param.getNrOfThreads());
 
     if(param.getStochasticHeatingMaxSize() > 0)
-        rad.calcStochasticHeating(param.getWriteStochasticTemperature());
+        rad.calcStochasticHeating();
+
+    // Calculate radiation field before raytracing (if sources defined and no radiation field in grid)
+    if(!grid->getRadiationFieldAvailable() && 
+            param.getScatteringToRay() && sources_mc.size() > 0)
+        rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
         return false;
@@ -728,19 +744,23 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     cout << CLR_LINE;
     cout << "-> Creating source list             \r" << flush;
 
-    if(param.getCommand() == CMD_OPIATE
-            || param.getCommand() == CMD_DUST_EMISSION
-            || param.getCommand() == CMD_SYNCHROTRON
-            || param.getCommand() == CMD_LINE_EMISSION)
+    if(param.isRaytracing())
     {
         // Raytracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
             cout << "WARNING: Diffuse sources can not be considered in "
                     << "dust, line, or synchrotron emission!" << endl;
 
+        // Dust source can only be used, if the radiation field will be calculated as well 
         if(param.getDustSource())
-            cout << "WARNING: Dust as radiation source can not be considered in "
-                << "dust, line, or synchrotron emission!" << endl;
+        {
+            if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "WARNING: Dust as radiation source can not be considered in "
+                    << "line or synchrotron emission!" << endl;
+            if(!param.getScatteringToRay())
+                cout << "WARNING: Dust as radiation source will only be considered in "
+                    << "dust emission, if the <rt_scattering> is enabled!" << endl;
+        }
 
         if(param.getISRFSource())
             cout << "WARNING: ISRF as radiation source can not be considered in "
@@ -784,8 +804,8 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
 
         if(param.getNrOfPointSources() > 0)
         {
-            if(!param.getScatteringToRay() || !grid->getRadiationFieldAvailable())
-                nr_ofSources--;
+            if(!param.getScatteringToRay())
+                nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "WARNING: Point sources can not be considered in line or synchrotron emission!" << endl;
             else
@@ -799,7 +819,7 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
                     if(path.size() == 0)
                     {
                         tmp_source->setParameter(param, grid, dust, s);
-                        tmp_source->setNrOfPhotons(1);
+                        //tmp_source->setNrOfPhotons(1);
                     }
                     else
                     {
@@ -813,13 +833,24 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
                 }
             }
         }
+
+        if(param.getDustSource())
+        {
+            if(!param.getScatteringToRay() && grid->getRadiationFieldAvailable())
+                nr_ofSources--;
+            else if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "WARNING: Dust source can not be considered in line or synchrotron emission!" << endl;
+            else
+            {
+                CSourceBasic * tmp_source = new CSourceDust();
+                tmp_source->setParameter(param, grid, dust, 0);
+                sources_mc.push_back(tmp_source);
+            }
+        }
     }
     else
     {
         // Monte-Carlo simulations support various sources!
-        if(param.getDustSource() && param.getCommand() == CMD_TEMP)
-            nr_ofSources--;
-
         for(uint s = 0; s < param.getPointSources().size(); s += NR_OF_POINT_SOURCES)
         {
             cout << "-> Creating star source list             \r" << flush;
@@ -880,10 +911,11 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
 
         if(param.getDustSource())
         {
-            if(param.getCommand() == CMD_TEMP)
+            if(param.isTemperatureSimulation())
             {
-                cout << "ERROR: Dust as radiation source can not be considered "
-                    << "in temperature calculation!" << endl;
+                cout << "ERROR: Dust as radiation source can not be considered in "
+                    << "temperature calculations (use RAT to consider dust as a separate source)!" << endl;
+                nr_ofSources--;
             }
             else
             {
@@ -1087,7 +1119,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_TEMP:
             cout << "- Command        : TEMPERATURE DISTRIBUTION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, false, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1103,7 +1135,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_TEMP_RAT:
             cout << "- Command        : TEMPERATURE DISTRIBUTION and RAT ALIGNMENT" << endl;
             printPathParameter(param);
-            printSourceParameter(param, false, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1111,7 +1143,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_RAT:
             cout << "- Command        : RAT ALIGNMENT" << endl;
             printPathParameter(param);
-            printSourceParameter(param);
+            printSourceParameter(param, true);
             printConversionParameter(param);
             printPlotParameter(param);
             break;
@@ -1129,7 +1161,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_SYNCHROTRON:
             cout << "- Command        : SYNCHROTRON EMISSION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printDetectorParameter(param);
             printPlotParameter(param);
@@ -1153,7 +1185,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
         case CMD_LINE_EMISSION:
             cout << "- Command        : SPECTRAL LINE EMISSION" << endl;
             printPathParameter(param);
-            printSourceParameter(param, true);
+            printSourceParameter(param);
             printConversionParameter(param);
             printDetectorParameter(param);
             printPlotParameter(param);
@@ -1181,8 +1213,8 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
         case CMD_DUST_EMISSION:
             // Add wavelength for stochastic heating
             if(param.getStochasticHeatingMaxSize() > 0)
-                dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS);
-
+                dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS, true);
+                
             // Get detector parameter list
             values = param.getDustRayDetectors();
 

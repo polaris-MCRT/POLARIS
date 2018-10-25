@@ -786,7 +786,7 @@ class Spherical(Grid):
         else:
             radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
-        if sp_param['split_first_cell'] > 1:
+        if sp_param['split_first_cell'] > 1 and sp_param['sf_r'] != 0:
             sp_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = sp_param['radius_list']
@@ -836,12 +836,17 @@ class Spherical(Grid):
             for tmp_theta in theta_list[1:-1]:
                 grid_file.write(struct.pack('d', tmp_theta))
 
+        # Calculate the total number of cells
+        nr_cells = 0
+        for i_r in range(sp_param['n_r']):
+            nr_cells += sp_param['n_ph'] * sp_param['n_th']
+
         i_node = 0
         for i_r in range(sp_param['n_r']):
             for i_p in range(sp_param['n_ph']):
                 for i_t in range(sp_param['n_th']):
-                    stdout.write('--- Generate spherical grid: ' + str(round(100.0 * i_node / (
-                            sp_param['n_r'] * sp_param['n_th'] * sp_param['n_ph']), 3)) + ' %           \r')
+                    stdout.write('--- Generate spherical grid: ' +
+                        str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)
@@ -1044,7 +1049,7 @@ class Cylindrical(Grid):
             radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
         # Add refinement to innermost cell
-        if cy_param['split_first_cell'] > 1:
+        if cy_param['split_first_cell'] > 1 and cy_param['sf_r'] != 0:
             cy_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
                 cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = cy_param['radius_list']

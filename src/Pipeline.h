@@ -34,7 +34,7 @@ public:
     {
     }
 
-    bool calcMonteCarloRadiationField(parameter & param, bool calc_temp, bool calc_rat);
+    bool calcMonteCarloRadiationField(parameter & param);
     bool calcPolarizationMapsViaRayTracing(parameter & param);
     bool calcPolarizationMapsViaSynchrotron(parameter & param);
     bool calcChMapsViaRayTracing(parameter & param);
@@ -210,7 +210,7 @@ public:
         cout << "Dust grain alignment" << endl;
 
         if(param.getAligRANDOM())
-            cout << "- Random alignment" << endl;
+            cout << "- No alignment" << endl;
         else if(param.getAligPA())
             cout << "- Perfect alignment" << endl;
         else
@@ -226,29 +226,26 @@ public:
         }
     }
 
-    void printSourceParameter(parameter & param, bool only_background=false, bool no_dust=false)
+    void printSourceParameter(parameter & param, bool show_dust=false)
     {
-        if(param.getNrOfSources() > 0)
+        if(param.getNrOfSources() > 0 || param.isRaytracing())
         {
-            if(param.getNrOfSources() != param.getNrOfPointSources() ||
-                (param.getNrOfSources() == param.getNrOfPointSources() && 
-                (!only_background || param.getScatteringToRay())))
-                cout << "Defined radiation sources" << endl;
+            cout << "Defined radiation sources" << endl;
 
             if(param.getNrOfPointSources() > 0 &&
-                    (!only_background || param.getScatteringToRay()))
+                    (!param.isRaytracing() || param.getScatteringToRay()))
                 cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
-            if(param.getNrOfDiffuseSources() > 0 && !only_background)
+            if(param.getNrOfDiffuseSources() > 0 && !param.isRaytracing())
                 cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
 
-            if(param.getNrOfBackgroundSources() > 0)
-                cout << "- Background(s)  : " << param.getNrOfBackgroundSources() << endl;
+            if(param.getNrOfBackgroundSources() > 0 || param.isRaytracing())
+                cout << "- Background(s)  : " << max(uint(1), param.getNrOfBackgroundSources()) << endl;
 
-            if(param.getDustSource() && !only_background && !no_dust)
+            if(param.getDustSource() && show_dust)
                 cout << "- Dust as sources: yes" << endl;
 
-            if(param.getISRFSource() && !only_background)
+            if(param.getISRFSource() && !param.isRaytracing())
                 cout << "- ISRF as sources: yes" << endl;
         }
     }
@@ -303,10 +300,10 @@ public:
 
         if(!monte_carlo)
         {
-            if(param.getMaxMapShiftX() > 0)
+            if(param.getMaxMapShiftX() != 0)
                 cout << "- Map shift X [m]       : " << param.getMinMapShiftX() << " (min) - "
                         << param.getMaxMapShiftX() << " (max)" << endl;
-            if(param.getMaxMapShiftY() > 0)
+            if(param.getMaxMapShiftY() != 0)
                 cout << "- Map shift Y [m]       : " << param.getMinMapShiftY() << " (min) - "
                         << param.getMaxMapShiftY() << " (max)" << endl;
         }
@@ -348,6 +345,17 @@ public:
         for(uint s = 0; s < sources_ray.size(); s++)
             delete sources_ray[s];
         sources_ray.clear();
+    }
+
+    void checkScatteringToRay(parameter & param, CDustMixture * dust, CGridBasic * grid)
+    {
+        // Check if either the radiation field is present or the radiation field can be calculated
+        // Otherwise, disable scattering added to the raytracing
+        if(!grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 && !param.getDustSource())
+            param.setScatteringToRay(false);
+
+        // Set if scattering will be included in raytracing if possible
+        dust->setScatteringToRay(param.getScatteringToRay());
     }
 
 private:

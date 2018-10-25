@@ -528,7 +528,6 @@ public:
         plot_out_points = false;
         write_radiation_field = false;
         write_g_zero = false;
-        write_stochastic_temperature = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
 
@@ -630,6 +629,28 @@ public:
     int getCommand()
     {
         return cmd;
+    }
+
+    bool isMonteCarloSimulation()
+    {
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
+            return true;
+        return false;
+    }
+
+    bool isRaytracing()
+    {
+        if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION
+                || getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
+            return true;
+        return false;
+    }
+
+    bool isTemperatureSimulation()
+    {
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)
+            return true;
+        return false;
     }
 
     double getStarMass(uint i)
@@ -927,11 +948,6 @@ public:
     bool getWriteGZero()
     {
         return write_g_zero;
-    }
-
-    bool getWriteStochasticTemperature()
-    {
-        return write_stochastic_temperature;
     }
 
     string getISRFPath()
@@ -1374,11 +1390,6 @@ public:
         write_g_zero = val;
     }
 
-    void setWriteStochastic(double val)
-    {
-        write_stochastic_temperature = val;
-    }
-
     void updateDetectorPixel(uint pixel_x, uint pixel_y)
     {
         if(min_detector_pixel_x > pixel_x)
@@ -1433,16 +1444,16 @@ public:
 
     void updateRayGridShift(double map_shift_x, double map_shift_y)
     {
-        if(min_ray_map_shift_x > map_shift_x)
+        if(abs(min_ray_map_shift_x) > abs(map_shift_x))
             min_ray_map_shift_x = map_shift_x;
 
-        if(max_ray_map_shift_x < map_shift_x)
+        if(abs(max_ray_map_shift_x) < abs(map_shift_x))
             max_ray_map_shift_x = map_shift_x;
 
-        if(min_ray_map_shift_y > map_shift_y)
+        if(abs(min_ray_map_shift_y) > abs(map_shift_y))
             min_ray_map_shift_y = map_shift_y;
 
-        if(max_ray_map_shift_y < map_shift_y)
+        if(abs(max_ray_map_shift_y) < abs(map_shift_y))
             max_ray_map_shift_y = map_shift_y;
     }
 
@@ -2307,7 +2318,6 @@ private:
     bool plot_out_points;
     bool write_radiation_field;
     bool write_g_zero;
-    bool write_stochastic_temperature;
 
     dlist midplane_3d_param;
     dlist star_mass;

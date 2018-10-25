@@ -127,9 +127,16 @@ class GGTauDetector(Detector):
         """
         Detector.__init__(self, model, parse_args)
         # Rotation angle around the first rotation axis
-        self.parameter['rot_angle_1'] = -37.0
+        self.parameter['rot_angle_1'] = -37.0  # -40.0
+        self.parameter['rot_angle_2'] = 26.45
+        self.parameter['rot_axis_1'] = [0.9961946980917455, 0.08715574274765817,	0]
+        self.parameter['rot_axis_2'] = [0, 0, 1]
+        self.parameter['nr_pixel_x'] = 512
+        self.parameter['nr_pixel_y'] = 512
+        self.parameter['max_subpixel_lvl'] = 0
         # Wavelengths
-        self.parameter['wavelength_list'] = np.array([10., 450., 1300.]) * 1e-6
+        self.parameter['wavelength_list'] = 1.65e-06
+        #self.parameter['wavelength_list'] = np.array([10., 450., 1300.]) * 1e-6
 
 class HD97048Detector(Detector):
     """Change this to the detector you want to use.
@@ -151,7 +158,7 @@ class HD97048Detector(Detector):
         self.parameter['nr_pixel_x'] = 201
         self.parameter['nr_pixel_y'] = 201
         # Wavelengths
-        self.parameter['wavelength_list'] = np.array([1.25e-6, 8.6e-6, 17.8e-6]) * 1e-6
+        self.parameter['wavelength_list'] = np.array([1.25, 8.6, 17.8]) * 1e-6
 
 
 class ThomasDetector(Detector):

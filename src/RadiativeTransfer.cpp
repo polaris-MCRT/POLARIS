@@ -248,7 +248,8 @@ bool CRadiativeTransfer::doMRWStepBW(photon_package * pp)
     return true;
 }
 
-bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_rat, bool use_energy_density)
+bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command, 
+        bool use_energy_density, bool disable_reemission)
 {
     // Init variables
     ullong nr_of_photons = 0;
@@ -281,15 +282,22 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
         // Init progress visualization
         per_counter = 0;
         cout << CLR_LINE;
-        if(calc_temp && calc_rat)
-            cout << "-> MC temp. and RAT distribution: [ 0 % ], max. temp. " << dust->getMaxDustTemp()
-                << " [K]      \r" << flush;
-        else if(calc_temp)
-            cout << "-> MC temp. distribution: [ 0 % ], max. temp. " << dust->getMaxDustTemp()
-                << " [K]      \r" << flush;
-        else if(calc_rat)
-            cout << "-> MC radiation field: [ 0 % ]      \r" << flush;
+        switch(command)
+        {
+            case CMD_TEMP_RAT:
+                cout << "-> MC temp. and RAT distribution: [ 0 % ], max. temp. " 
+                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                break;
+            
+            case CMD_TEMP:
+                cout << "-> MC temp. distribution: [ 0 % ], max. temp. " 
+                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                break;
 
+            default:
+                cout << "-> MC radiation field: [ 0 % ]      \r" << flush;
+                break;
+        }
         // A loop for each wavelength
 #pragma omp parallel for schedule(dynamic) collapse(2)
         for(int wID = 0; wID < nr_used_wavelengths; wID++)
@@ -312,14 +320,22 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
                 {
 #pragma omp critical
                     {
-                        if(calc_temp && calc_rat)
-                            cout << "-> MC temp. and RAT distribution: [ " << percentage << " % ], max. temp. "
-                                << dust->getMaxDustTemp() << " [K]      \r" << flush;
-                        else if(calc_temp)
-                            cout << "-> MC temp. distribution: [ " << percentage << " % ], max. temp. "
-                                << dust->getMaxDustTemp() << " [K]      \r" << flush;
-                        else if(calc_rat)
-                            cout << "-> MC radiation field: [ " << percentage << " % ]      \r" << flush;
+                        switch(command)
+                        {
+                            case CMD_TEMP_RAT:
+                                cout << "-> MC temp. and RAT distribution: [ " << percentage << " % ], max. temp. "
+                                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                                break;
+                            
+                            case CMD_TEMP:
+                                cout << "-> MC temp. distribution: [ " << percentage << " % ], max. temp. "
+                                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                                break;
+
+                            default:
+                                cout << "-> MC radiation field: [ " << percentage << " % ]      \r" << flush;
+                                break;
+                        }
                         last_percentage = percentage;
                     }
                 }
@@ -415,7 +431,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
                             {
                                 // Calculate the temperature of the absorbing cell
                                 // and change the wavelength of the photon
-                                if(dust->adjustTempAndWavelengthBW(grid, pp, calc_temp, use_energy_density))
+                                if(!disable_reemission && 
+                                    dust->adjustTempAndWavelengthBW(grid, pp, use_energy_density))
                                 {
                                     // Send this photon into a new random direction
                                     pp->calcRandomDirection();
@@ -456,13 +473,20 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(bool calc_temp, bool calc_
     if(kill_counter > 0)
         cout << "- Photons killed                    : " << kill_counter << endl;
 
-    if(calc_temp && calc_rat)
-        cout << "- MC Calc. of temperatures and RATs :   done                                " << endl;
-    else if(calc_temp)
-        cout << "- MC Calculation of temperatures    :   done                                " << endl;
-    else if(calc_rat)
-        cout << "- MC Calculation of radiation field :   done                                " << endl;
+    switch(command)
+    {
+        case CMD_TEMP_RAT:
+            cout << "- MC Calc. of temperatures and RATs :   done                                " << endl;
+            break;
+        
+        case CMD_TEMP:
+            cout << "- MC Calculation of temperatures    :   done                                " << endl;
+            break;
 
+        default:
+            cout << "- MC Calculation of radiation field :   done                                " << endl;
+            break;
+    }
     return true;
 }
 
@@ -1101,16 +1125,16 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
     cout << "- Calculation of final temperatures :   done" << endl;
 }
 
-void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
+void CRadiativeTransfer::calcStochasticHeating()
 {
     uint per_counter = 0;
     float last_percentage = 0;
 
-    ulong max_cells = grid->getMaxDataCells();
-
-    // Resize wavelength list for stochastic heating
+    // Resize wavelength list for stochastic heating propabilities 
     dlist wl_list(WL_STEPS);
     CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
+
+    ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
     cout << "-> Calculation of stochastic heating: [ 0.00 % ]    \r" << flush;
@@ -1119,10 +1143,8 @@ void CRadiativeTransfer::calcStochasticHeating(bool update_temperature)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        dust->calcStochasticHeating(grid, cell, wl_list);
 
-        if(update_temperature)
-            dust->updateStochasticTemperature(grid, cell);
+        dust->calcStochasticHeatingPropabilities(grid, cell, wl_list);        
 
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);

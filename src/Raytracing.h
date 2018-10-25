@@ -285,15 +285,17 @@ public:
     virtual void addToDetector(photon_package * pp1, photon_package * pp2, photon_package * pp3,
         int i_pix, bool direct=false)
     {
+        // pos was only traced of first photon package
+        pp2->setPosition(pp1->getPosition());
+        pp3->setPosition(pp1->getPosition());
+
         // Add first package of photons to detector
         addToDetector(pp1, i_pix, direct);
 
-        // Add second package of photons to detector (pos was only traced of first photon package)
-        pp2->setPosition(pp1->getPosition());
+        // Add second package of photons to detector
         addToDetector(pp2, i_pix, direct, 1);
 
-        // Add third package of photons to detector (pos was only traced of first photon package)
-        pp3->setPosition(pp1->getPosition());
+        // Add third package of photons to detector
         addToDetector(pp3, i_pix, direct, 2);
     }
 

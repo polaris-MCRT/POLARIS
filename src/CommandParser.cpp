@@ -868,7 +868,7 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
         }
         else if(values.size() == NR_OF_LINE_DET - 6)
         {
-            // As above, but with x- and y-shift of the detetor map
+            // As above, but with x- and y-shift of the detector map
             // Do not use the other values
             values.push_back(0.0);
             values.push_back(0.0);
@@ -1111,7 +1111,7 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
         }
         else if(values.size() == NR_OF_LINE_DET - 6)
         {
-            // As above, but with x- and y-shift of the detetor map
+            // As above, but with x- and y-shift of the detector map
             // Do not use the other values
             values.push_back(0.0);
             values.push_back(0.0);
@@ -2768,16 +2768,6 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
 
         return true;
     } 
-
-    if(cmd.compare("<write_stochastic>") == 0)
-    {
-        if(atob(atoi(data.c_str())))
-            param->setWriteStochastic(true);
-        else
-            param->setWriteStochastic(false);
-
-        return true;
-    }
 
     if(cmd.compare("<midplane_zoom>") == 0)
     {

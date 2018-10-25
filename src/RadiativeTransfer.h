@@ -147,7 +147,7 @@ public:
     }
 
     // Temperature calculation and RATs
-    bool calcMonteCarloRadiationField(bool calc_temp, bool calc_rat, bool save_radiation_field);
+    bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission=false);
     // Set temperature (old!)
     bool setTemperatureDistribution();
 
@@ -215,7 +215,7 @@ public:
     bool doMRWStepBWWithoutHeating(photon_package * pp);
 
     void calcFinalTemperature(bool use_energy_density);
-    void calcStochasticHeating(bool update_temperature);
+    void calcStochasticHeating();
     void calcAlignedRadii();
 
     bool isInvalid(double val)

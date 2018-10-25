@@ -314,6 +314,20 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
                     wavelength_list_dustcat[w] = values[w];
 
+                if(wavelength_list[0] < wavelength_list_dustcat[0] * 0.999 || 
+                         wavelength_list[nr_of_wavelength - 1] * 0.999 >
+                         wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
+                    {
+                    cout << "HINT: The wavelength range is out of the limits of the catalog. "
+                        << "This may cause problems!" << endl;
+                    cout << "      wavelength range          : " << wavelength_list[0] 
+                        << " [m] to " << wavelength_list[nr_of_wavelength - 1] 
+                        << " [m]" << endl;
+                    cout << "      wavelength range (catalog): " << wavelength_list_dustcat[0]
+                        << " [m] to " << wavelength_list_dustcat[nr_of_wavelength_dustcat - 1] 
+                        << " [m]" << endl;
+                    }
+
                 break;
 
             default:
@@ -714,6 +728,18 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     Qcirc = new double*[nr_of_dust_species];
     HGg = new double*[nr_of_dust_species];
 
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        Qext1[a] = new double[nr_of_wavelength];
+        Qext2[a] = new double[nr_of_wavelength];
+        Qabs1[a] = new double[nr_of_wavelength];
+        Qabs2[a] = new double[nr_of_wavelength];
+        Qsca1[a] = new double[nr_of_wavelength];
+        Qsca2[a] = new double[nr_of_wavelength];
+        Qcirc[a] = new double[nr_of_wavelength];
+        HGg[a] = new double[nr_of_wavelength];
+    }
+
     // Init splines for incident angle interpolation of Qtrq and HG g factor
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
@@ -735,39 +761,30 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
     float last_percentage = 0;
 
     // Init maximum counter value
-    uint max_counter = nr_of_dust_species;
+    uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) collapse(2)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
-        Qext1[a] = new double[nr_of_wavelength];
-        Qext2[a] = new double[nr_of_wavelength];
-        Qabs1[a] = new double[nr_of_wavelength];
-        Qabs2[a] = new double[nr_of_wavelength];
-        Qsca1[a] = new double[nr_of_wavelength];
-        Qsca2[a] = new double[nr_of_wavelength];
-        Qcirc[a] = new double[nr_of_wavelength];
-        HGg[a] = new double[nr_of_wavelength];
-        
-        // Increase counter used to show progress
-        per_counter++;
-
-        // Calculate percentage of total progress per source
-        float percentage = 100.0 * float(per_counter) / float(max_counter);
-
-        // Show only new percentage number if it changed
-        if((percentage - last_percentage) > PERCENTAGE_STEP)
-        {
-#pragma omp critical
-            {
-                printIDs();
-                cout << "calculating Mie-scattering: " << percentage << " %                      \r";
-                last_percentage = percentage;
-            }
-        }
-
         for(uint w = 0; w < nr_of_wavelength; w++)
-        {
+        {   
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+    #pragma omp critical
+                {
+                    printIDs();
+                    cout << "calculating Mie-scattering: " << percentage << " %                      \r";
+                    last_percentage = percentage;
+                }
+            }
+         
             // Resize the splines of Qtrq and HG g factor for each wavelength
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
@@ -794,6 +811,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_co
                 Qext2[a][w] = Qext1[a][w];
                 Qabs2[a][w] = Qabs1[a][w];
                 Qsca2[a][w] = Qsca1[a][w];
+                Qcirc[a][w] = 0;
 
                 for(int inc = 0; inc < nr_of_incident_angles; inc++)
                 {
@@ -1181,6 +1199,11 @@ bool CDustComponent::readCalorimetryFile(parameter & param, uint dust_component_
         pos = path.find(".dat");
         path.erase(pos, 4);
     }
+    else if(path.find(".nk") != string::npos)
+    {
+        pos = path.find(".nk");
+        path.erase(pos, 4);
+    }
 
     // Create the filename of the calorimetry file
     string calo_filename = path;
@@ -1343,7 +1366,7 @@ bool CDustComponent::readCalorimetryFile(parameter & param, uint dust_component_
     return true;
 }
 
-bool CDustComponent::writeComponent(string path_data, string path_plot, double fraction)
+bool CDustComponent::writeComponent(string path_data, string path_plot)
 {
     // Do not write dust data if no dust component was chosen
     if(nr_of_wavelength == 0)
@@ -1358,7 +1381,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     char str_frac_end[1024];
 
     // Init strings for various filenames/titles
-    string path_cross, path_diff, path_g, str_title, gnu_title, plot_sign = "points";
+    string path_cross, path_diff, path_g, path_scat, str_title, gnu_title, plot_sign = "points";
 
     // Check if enough points to draw lines
     if(nr_of_wavelength > 1)
@@ -1398,6 +1421,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
         path_data += str_mix_ID_end;
         path_data += ".dat";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
 
         // Format the strings
         uint pos = 0;
@@ -1442,6 +1466,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
         path_data += "dust_comp_";
         path_data += str_comp_ID_end;
         path_data += ".dat";
@@ -1461,14 +1486,14 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     double Cmin = 1e100, Cmax = -1e100;
 
     // Find min and max values over the wavelength (checks only Cext1 and Cabs1)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
     {
         if(getCext1(i) < Cmin && getCext1(i) > 0)
             Cmin = getCext1(i);
         if(getCabs1(i) < Cmin && getCabs1(i) > 0)
             Cmin = getCabs1(i);
         if(getCsca1(i) < Cmin && getCsca1(i) > 0)
-                Cmin = getCsca1(i);
+            Cmin = getCsca1(i);
         if(getCext2(i) < Cmin && getCext2(i) > 0)
             Cmin = getCext2(i);
         if(getCabs2(i) < Cmin && getCabs2(i) > 0)
@@ -1501,7 +1526,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     cross_writer << "set log y" << endl;
     cross_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        cross_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        cross_writer << "set xrange[" << wavelength_list[wavelength_offset] << ":" 
+        << wavelength_list.back() << "]" << endl;
     cross_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     cross_writer << "set format x \"%.1te%02T\"" << endl;
     cross_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1516,37 +1542,37 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
         << "\'-\' with " << plot_sign << " title \'C_{sca,y}\' lc rgb \"#909000\"" << endl;
 
     // Add Cext1 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCext1(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCext1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cext2 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCext2(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCext2(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cabs1 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCabs1(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCabs1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Cabs2 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCabs2(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCabs2(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Csca1 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCsca1(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCsca1(i) << endl;
     cross_writer << "e" << endl;
 
     // Add Csca2 data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getCsca2(i) > 0)
             cross_writer << wavelength_list[i] << "\t" << getCsca2(i) << endl;
     cross_writer << "e" << endl;
@@ -1571,7 +1597,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
 
     // Find min and max values over the wavelength
     // Checks only differences between Cext and Cabs as well as Ccirc
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
     {
         if(abs(getCext1(i) - getCext2(i)) < Cmin && abs(getCext1(i) - getCext2(i)) > 0)
             Cmin = abs(getCext1(i) - getCext2(i));
@@ -1599,7 +1625,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     diff_writer << "set log y" << endl;
     diff_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)
-        diff_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        diff_writer << "set xrange[" << wavelength_list[wavelength_offset] 
+        << ":" << wavelength_list.back() << "]" << endl;
     diff_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     diff_writer << "set format x \"%.1te%02T\"" << endl;
     diff_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1611,19 +1638,19 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
         << "\'-\' with " << plot_sign << " title \'|dC_{phas}| (C_{circ})\' lc rgb \"#800080\"" << endl;
 
     // Add Cext difference to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(abs(getCext1(i) - getCext2(i)) > 0)
             diff_writer << wavelength_list[i] << "\t" << abs(getCext1(i) - getCext2(i)) << endl;
     diff_writer << "e" << endl;
 
     // Add Cabs difference to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(abs(getCabs1(i) - getCabs2(i)) > 0)
             diff_writer << wavelength_list[i] << "\t" << abs(getCabs1(i) - getCabs2(i)) << endl;
     diff_writer << "e" << endl;
 
     // Add Ccirc data to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(abs(getCcirc(i)) > 0)
             diff_writer << wavelength_list[i] << "\t" << abs(getCcirc(i)) << endl;
     diff_writer << "e" << endl;
@@ -1679,7 +1706,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     data_writer << "#wavelength\tavgCext1\tavgCext2\tavgCabs1\tavgCabs2\tavgCsca1\tavgCsca2\tCcirc\tavgHGg" << endl;
 
     // Add cross-sections to file
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         data_writer << wavelength_list[i] << "\t" << getCext1(i) << "\t" << getCext2(i)
             << "\t" << getCabs1(i) << "\t" << getCabs2(i) << "\t" << getCsca1(i)
             << "\t" << getCsca2(i) << "\t" << getCcirc(i) << "\t" << getHGg(i)
@@ -1704,7 +1731,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     Cmin = 1e100, Cmax = -1e100;
 
     // Find min and max values over the wavelength
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
     {
         if(abs(getHGg(i)) < Cmin && abs(getHGg(i)) > 0)
             Cmin = abs(getHGg(i));
@@ -1724,7 +1751,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     g_writer << "set grid" << endl;
     g_writer << "unset key" << endl;
     if(nr_of_wavelength > 1)
-        g_writer << "set xrange[" << wavelength_list.front() << ":" << wavelength_list.back() << "]" << endl;
+        g_writer << "set xrange[" << wavelength_list[wavelength_offset] 
+        << ":" << wavelength_list[wavelength_offset] << "]" << endl;
     g_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;
@@ -1734,7 +1762,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     g_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 
     // Add HG g factor to file (if larger than 0)
-    for(uint i = 0; i < nr_of_wavelength; i++)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         if(getHGg(i) > 0)
             g_writer << wavelength_list[i] << "\t" << getHGg(i) << endl;
     g_writer << "e" << endl;
@@ -1742,17 +1770,159 @@ bool CDustComponent::writeComponent(string path_data, string path_plot, double f
     // Close text file writer
     g_writer.close();
 
+    // ------------------------------------------------------
+
+    if(phID == PH_MIE)
+    {
+        // Init text file writer for scattering matrix
+        ofstream scat_writer(path_scat.c_str());
+
+        // Error message if the write does not work
+        if(scat_writer.fail())
+        {
+            cout << "ERROR: Can't write to " << path_scat << endl;
+            return false;
+        }
+
+        // Init plot limits
+        double S11min = 1e100, S11max = -1e100;
+        double S12min = 1e100, S12max = -1e100;
+
+        // Init pointer arrays for scattering matrix elements
+        double ** S11, ** S12;
+
+        // Get weight from grain size distribution
+        double weight = getWeight();
+
+        // Init pointer dimension
+        S11 = new double * [nr_of_wavelength - wavelength_offset];
+        S12 = new double * [nr_of_wavelength - wavelength_offset];
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+            S11[wID] = new double[nr_of_scat_theta];
+            S12[wID] = new double[nr_of_scat_theta];
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+            {
+                // Init and reset variables
+                double sum = 0;
+                
+                double * S11_tmp = new double[nr_of_dust_species];
+                double * S12_tmp = new double[nr_of_dust_species];
+                for(uint a = 0; a < nr_of_dust_species; a++)
+                {
+                    if(sizeIndexUsed(a, a_min_global, a_max_global))
+                    {
+                        double Csca_tmp = getCscaMean(a, w);
+                        sum += Csca_tmp;
+                        double rel_amount = a_eff_3_5[a] / weight;
+                        S11_tmp[a] = Csca_tmp * rel_amount * getScatteringMatrixElement(a, w, 0, 0, sth, 0);
+                        S12_tmp[a] = Csca_tmp * rel_amount * getScatteringMatrixElement(a, w, 0, 0, sth, 1);
+                    }
+                    else
+                    {
+                        S11_tmp[a] = 0;
+                        S12_tmp[a] = 0;
+                    }
+                }
+                S11[wID][sth] = 1 / sum * 
+                    CMathFunctions::integ_dust_size(a_eff, S11_tmp, nr_of_dust_species, a_min_global, a_max_global);
+                S12[wID][sth] = 1 / sum * 
+                    CMathFunctions::integ_dust_size(a_eff, S12_tmp, nr_of_dust_species, a_min_global, a_max_global);
+
+                if(S11[wID][sth] < S11min)
+                    S11min = S11[wID][sth];
+                if(S12[wID][sth] < S12min)
+                    S12min = S12[wID][sth];
+            
+                if(S11[wID][sth] > S11max)
+                    S11max = S11[wID][sth];
+                if(S12[wID][sth] > S12max)
+                    S12max = S12[wID][sth];
+            }
+        }
+
+        // Add gnuplot commands to file
+        scat_writer << "reset" << endl;
+        scat_writer << "set grid" << endl;
+        scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
+        
+        if(nr_of_wavelength > 1)
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+        scat_writer << "set yrange[" << S11min << ":" << S11max << "]" << endl;
+        scat_writer << "set format x \"%.1f\"" << endl;
+        scat_writer << "set format y \"%.1te%02T\"" << endl;
+        scat_writer << "set ylabel \'S11\'" << endl;
+        scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
+        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "plot ";
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            scat_writer << "\'-\' with " << plot_sign << " title \'" << wavelength_list[w] << " [m]\'";
+            if(w != nr_of_wavelength - 1)
+                scat_writer << ",";
+            else
+                scat_writer << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                scat_writer << sth << "\t" << S11[wID][sth] << endl;
+            scat_writer << "e" << endl;
+        }
+
+        if(nr_of_wavelength > 1)
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+        scat_writer << "set yrange[" << S12min << ":" << S12max << "]" << endl;
+        scat_writer << "set format x \"%.1f\"" << endl;
+        scat_writer << "set format y \"%.1te%02T\"" << endl;
+        scat_writer << "set ylabel \'S12\'" << endl;
+        scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
+        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "plot ";
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            scat_writer << "\'-\' with " << plot_sign << " title \'" << wavelength_list[w] << " [m]\'";
+            if(w != nr_of_wavelength - 1)
+                scat_writer << ",";
+            else
+                scat_writer << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                scat_writer << sth << "\t" << S12[wID][sth] << endl;
+            scat_writer << "e" << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+            delete[] S11[wID];
+            delete[] S12[wID];
+        }
+        delete[] S11;
+        delete[] S12;
+
+        // Close text file writer
+        scat_writer.close();
+    }
+
     return true;
 }
 
-void CDustComponent::preCalcEffProperties()
+void CDustComponent::preCalcEffProperties(parameter & param)
 {
     // -------------- Calculate average-mass of effective grain size --------------
-
     avg_mass = getAvgMass();
 
     // -------------- Calculate cross-sections of effective grain size --------------
-
     tCext1 = new double[nr_of_wavelength];
     tCext2 = new double[nr_of_wavelength];
     tCabs1 = new double[nr_of_wavelength];
@@ -1775,44 +1945,46 @@ void CDustComponent::preCalcEffProperties()
     }
 
     // -------------- Calculate emission of effective grain size --------------
-
-    // Get number of temperatures from tab_temp spline
-    uint nr_of_temperatures = tab_temp.size();
-
-    // Init spline for absorption/emission energy interpolation
-    tab_em_eff.resize(nr_of_temperatures);
-
-    for(uint t = 0; t < nr_of_temperatures; t++)
+    if(param.isTemperatureSimulation())
     {
-        // Get temperature from tab_temp spline
-        double tmp_temp = tab_temp.getValue(t);
+        // Get number of temperatures from tab_temp spline
+        uint nr_of_temperatures = tab_temp.size();
 
-        // Init a temporary array for QB values
-        double * tmpQB = new double[nr_of_wavelength];
+        // Init spline for absorption/emission energy interpolation
+        tab_em_eff.resize(nr_of_temperatures);
 
-        // Calculate absorption cross-section times Planck function for each wavelength
-        for(uint w = 0; w < nr_of_wavelength; w++)
+        for(uint t = 0; t < nr_of_temperatures; t++)
         {
-            // Calculate mean absorption cross-section
-            double meanCabs = (2.0 * tCabs1[w] + tCabs2[w]) / 3.0;
+            // Get temperature from tab_temp spline
+            double tmp_temp = tab_temp.getValue(t);
 
-            // Set absroption/emission energy at current wavelength and temperature
-            tmpQB[w] = meanCabs * tab_planck[w].getValue(t);
+            // Init a temporary array for QB values
+            double * tmpQB = new double[nr_of_wavelength];
+
+            // Calculate absorption cross-section times Planck function for each wavelength
+            for(uint w = 0; w < nr_of_wavelength; w++)
+            {
+                // Calculate mean absorption cross-section
+                double meanCabs = (2.0 * tCabs1[w] + tCabs2[w]) / 3.0;
+
+                // Set absroption/emission energy at current wavelength and temperature
+                tmpQB[w] = meanCabs * tab_planck[w].getValue(t);
+            }
+
+            // Calculate QB integrated over all wavelengths
+            tab_em_eff.setValue(t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
+
+            // Delete pointer array
+            delete[] tmpQB;
         }
 
-        // Calculate QB integrated over all wavelengths
-        tab_em_eff.setValue(t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
-
-        // Delete pointer array
-        delete[] tmpQB;
+        // Create spline for interpolation
+        tab_em_eff.createSpline();
     }
 
-    // Create spline for interpolation
-    tab_em_eff.createSpline();
 
     // -------------- Calculate probability lists --------------
-
-    // Init pointer array of pslines
+    // Init pointer array of prob_lists
     dust_prob = new prob_list[nr_of_wavelength];
     abs_prob = new prob_list[nr_of_wavelength];
     sca_prob = new prob_list[nr_of_wavelength];
@@ -2228,18 +2400,24 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     return true;
 }
 
-bool CDustComponent::add(double frac, CDustComponent * comp)
-{
+bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
+{   
     // Get global min and max grain sizes
     double a_min = comp->getSizeMin();
     double a_max = comp->getSizeMax();
 
-    // set that the current dust component was made via mixing
-    is_mixture = true;
+    // Use the highes a_max and lowest a_min of the components
+    if(a_min_global > a_min)
+        a_min_global = a_min;
+    if(a_max_global < a_max)
+        a_max_global = a_max;
 
     // The first component to add to the mixture initializes the variables
     if(comp->getComponentId() == 0)
     {
+        // set that the current dust component was made via mixing
+        is_mixture = true;
+
         // Get common parameters from all dust components
         nr_of_dust_species = comp->getNrOfDustSpecies();
         nr_of_incident_angles = comp->getNrOfIncidentAngles();
@@ -2280,7 +2458,7 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
             // Init calorimetry data
             initCalorimetry();
 
-            // Set calorimetric temepraturs, which needs to be done only once
+            // Set calorimetric temperatures, which needs to be done only once
             for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
                 calorimetry_temperatures[t] = comp->getCalorimetricTemperature(t);
         }
@@ -2299,9 +2477,9 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
             // Mix size distribution with their relative fraction
-            a_eff_1_5[a] += frac * comp->getEffectiveRadius1_5(a);
-            a_eff_3_5[a] += frac * comp->getEffectiveRadius3_5(a);
-            mass[a] += frac * comp->getMass(a);
+            a_eff_3_5[a] += size_fraction[a] * comp->getEffectiveRadius3_5(a);
+            a_eff_1_5[a] += size_fraction[a] * comp->getEffectiveRadius1_5(a);
+            mass[a] += size_fraction[a] * comp->getMass(a);
         }
     }
 
@@ -2321,23 +2499,21 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     {
         // Mix scattering matrix for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-                for(uint w = 0; w < nr_of_wavelength; w++)
-                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
-                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
-                                for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                                    sca_mat[a][w][inc][sph][sth][mat] += frac *
-                                        comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
+            for(uint w = 0; w < nr_of_wavelength; w++)
+                for(uint inc = 0; inc < nr_of_incident_angles; inc++)
+                    for(uint sph = 0; sph < nr_of_scat_phi; sph++)
+                        for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                            for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
+                                sca_mat[a][w][inc][sph][sth][mat] += size_fraction[a] *
+                                    comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
     }
 
     if(comp->getCalorimetryLoaded())
     {
         // Mix enthalpy for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-                for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
-                    enthalpy[a][t] += frac * comp->getEnthalpy(a, t);
+            for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
+                enthalpy[a][t] += size_fraction[a] * comp->getEnthalpy(a, t);
     }
 
     // Show progress
@@ -2349,33 +2525,15 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     {
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
-            // Init variables
-            double Qext1, Qext2, Qabs1, Qabs2, Qsca1, Qsca2, dQphas, HGg;
-
-            // Mix only optical properties if grain size should be considered
-            if(comp->sizeIndexUsed(a, a_min, a_max))
-            {
-                Qext1 = frac * comp->getQext1(a, w);
-                Qext2 = frac * comp->getQext2(a, w);
-                Qabs1 = frac * comp->getQabs1(a, w);
-                Qabs2 = frac * comp->getQabs2(a, w);
-                Qsca1 = frac * comp->getQsca1(a, w);
-                Qsca2 = frac * comp->getQsca2(a, w);
-                dQphas = frac * comp->getQcirc(a, w);
-                HGg = frac * comp->getHGg(a, w);
-            }
-            else
-                Qext1 = Qext2 = Qabs1 = Qabs2 = Qsca1 = Qsca2 = dQphas = HGg = 0;
-
             // Add optical properties on top of the mixture ones
-            addQext1(a, w, Qext1);
-            addQext2(a, w, Qext2);
-            addQabs1(a, w, Qabs1);
-            addQabs2(a, w, Qabs2);
-            addQsca1(a, w, Qsca1);
-            addQsca2(a, w, Qsca2);
-            addQcirc(a, w, dQphas);
-            addHGg(a, w, HGg);
+            addQext1(a, w, size_fraction[a] * comp->getQext1(a, w));
+            addQext2(a, w, size_fraction[a] * comp->getQext2(a, w));
+            addQabs1(a, w, size_fraction[a] * comp->getQabs1(a, w));
+            addQabs2(a, w, size_fraction[a] * comp->getQabs2(a, w));
+            addQsca1(a, w, size_fraction[a] * comp->getQsca1(a, w));
+            addQsca2(a, w, size_fraction[a] * comp->getQsca2(a, w));
+            addQcirc(a, w, size_fraction[a] * comp->getQcirc(a, w));
+            addHGg(a, w, size_fraction[a] * comp->getHGg(a, w));
         }
     }
 
@@ -2396,36 +2554,34 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
         else
             d_ang = 1;
 
-        for(uint i = 0; i < nr_of_dust_species * nr_of_wavelength; i++)
+        for(uint w = 0; w < nr_of_wavelength; w++)
         {
-            for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+            for(uint a = 0; a < nr_of_dust_species; a++)
             {
-                // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
-                comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
-                comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
+                uint i = w * nr_of_dust_species + a;
+                for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+                {
+                    // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
+                    comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
+                    comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
 
-                // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
-                Qtrq[i].addValue(i_inc, i_inc * d_ang, frac * tmpQtrqY);
-                HG_g_factor[i].addValue(i_inc, i_inc * d_ang, frac * tmpHGgY);
+                    // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
+                    Qtrq[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpQtrqY);
+                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpHGgY);
+                }
             }
         }
     }
 
     // Mix various parameters
-    aspect_ratio += frac * comp->getAspectRatio();
-    material_density += frac * comp->getMaterialDensity();
-    delta_rat += frac * comp->getDeltaRat();
-    gold_g_factor += frac * comp->getGoldFactor();
+    aspect_ratio += comp->getFraction() * comp->getAspectRatio();
+    material_density += comp->getFraction() * comp->getMaterialDensity();
+    delta_rat += comp->getFraction() * comp->getDeltaRat();
+    gold_g_factor += comp->getFraction() * comp->getGoldFactor();
 
     // Check for scattering phase function (use HG if one or more components use HG)
     if(comp->getPhaseFunctionID() < phID)
         phID = comp->getPhaseFunctionID();
-
-    // Use the highes a_max and lowest a_min of the components
-    if(a_min_global > a_min)
-        a_min_global = a_min;
-    if(a_max_global < a_max)
-        a_max_global = a_max;
 
     // Use the lowest sublimation temperature (use multiple mixtures for higher accuracy of the sublimation)
     if(sub_temp > comp->getSublimationTemperature())
@@ -2442,7 +2598,7 @@ bool CDustComponent::add(double frac, CDustComponent * comp)
     }
 
     // Create StringID for print parameter
-    createStringID(comp, frac);
+    createStringID(comp);
 
     return true;
 }
@@ -2774,7 +2930,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid, cell_basic * cell, uint 
 }
 
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp,
-        uint i_density, bool calc_temp, bool use_energy_density)
+        uint i_density, bool use_energy_density)
 {
     // Init variables
     double t_dust_new = 0;
@@ -2868,8 +3024,44 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get absorpion rate from grid
-            abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
+            // Check if dust grains should have been stochastically heated
+            if(a_eff[a] <= getStochasticHeatingMaxSize())
+            {                
+                // Init and resize spline for absorbed energy per wavelength
+                spline abs_rate_per_wl;
+                abs_rate_per_wl.resize(WL_STEPS);
+
+                // Get radiation field and calculate absorbed energy for each wavelength
+                for(uint w = 0; w < WL_STEPS; w++)
+                {
+                    double abs_rate_wl_tmp = grid->getRadiationField(cell, w) * getCabsMean(a, w);
+                    abs_rate_per_wl.setValue(w, wavelength_list[w], abs_rate_wl_tmp);
+                }
+
+                // Activate spline of absorbed energy for each wavelength
+                abs_rate_per_wl.createSpline();
+
+                // Get pointer array of the temperature propabilities
+                long double * temp_probability = getStochasticProbability(a, abs_rate_per_wl);
+                
+                // Reset absorpion rate
+                abs_rate[a] = 0;
+
+                // Set the temperature propabilities in the grid
+                for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                {
+                    uint tID = findTemperatureID(calorimetry_temperatures[t]);
+                    abs_rate[a] += temp_probability[t] * getQB(a, tID);
+                }
+                    
+                // Delete pointer array
+                delete[] temp_probability;
+            }
+            else
+            {
+                // Get absorpion rate from grid
+                abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
+            }
 
             // Add offset on absorption rate
             if(dust_offset)
@@ -2888,7 +3080,14 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 if(temp[a] >= getSublimationTemperature())
                     temp[a] = 0;
 
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+            if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+            {
+                // Multiply with the amount of dust grains in the current bin for integration
+                abs_rate[a] *= a_eff_3_5[a];
+            }
+            else if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                    (grid->getTemperatureFieldInformation() == TEMP_STOCH && 
+                    a_eff[a] <= getStochasticHeatingMaxSize()))
             {
                 // Set dust temperature in grid
                 grid->setDustTemperature(cell, i_density, a, temp[a]);
@@ -2900,8 +3099,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                     min_temp = temp[a];
             }
 
-            // Multiply it with the amount of dust grains in the current bin
-            abs_rate[a] *= a_eff_3_5[a];
+            // Multiply with the amount of dust grains in the current bin for integration
             temp[a] *= a_eff_3_5[a];
         }
         else
@@ -2913,9 +3111,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
     }
 
     double avg_temp;
-    if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-        avg_temp = 1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
-    else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+    if(grid->getTemperatureFieldInformation() == TEMP_EFF)
     {
         // Get average absorption rate via interpolation
         double avg_abs_rate = 1 / weight * CMathFunctions::integ_dust_size(a_eff, abs_rate,
@@ -2924,6 +3120,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
         // Calculate average temperature from absorption rate
         avg_temp = findTemperature(grid, cell, avg_abs_rate);
     }
+    else
+        avg_temp = 1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
     delete[] abs_rate;
@@ -3180,8 +3378,8 @@ double CDustComponent::calcGoldReductionFactor(Vector3D & v, Vector3D & B)
     return R;
 }
 
-void CDustComponent::calcStochasticHeating(CGridBasic * grid, cell_basic * cell, uint i_density, 
-        dlist & wavelength_list_full)
+void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, 
+        uint i_density, dlist & wavelength_list_full)
 {
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, cell);
@@ -3224,59 +3422,6 @@ void CDustComponent::calcStochasticHeating(CGridBasic * grid, cell_basic * cell,
             delete[] temp_probability;
         }
     }
-}
-
-void CDustComponent::updateStochasticTemperature(CGridBasic * grid, cell_basic * cell, uint i_density)
-{
-    // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
-
-    if(getNumberDensity(grid, cell, i_density) == 0)
-        return;
-
-    // Init variables
-    double rel_weight;
-
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
-
-    // Init average stochastic temperature for saving
-    double * tmp_temp = new double[nr_of_dust_species];
-
-    for(uint a = 0; a < nr_of_dust_species; a++)
-    {
-        // Get cross sections and relative weight of the current dust grain size
-        rel_weight = a_eff_3_5[a] / weight;
-
-        // Reset average stochastic temperature
-        tmp_temp[a] = 0;
-
-        // Check if dust grains should have been stochastically heated
-        if(a_eff[a] <= getStochasticHeatingMaxSize() && sizeIndexUsed(a, a_min, a_max))
-        {
-            // Set the temperature propabilities in the grid
-            for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
-                tmp_temp[a] += grid->getDustTempProbability(cell, i_density, a, t) * calorimetry_temperatures[t] * rel_weight;
-        }
-        else
-        {
-            // Consider the temperature of every dust grain size or an average temperature
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                tmp_temp[a] += grid->getDustTemperature(cell, i_density, a) * rel_weight;
-            else
-                tmp_temp[a] += grid->getDustTemperature(cell, i_density) * rel_weight;
-        }
-    }
-
-    // Calculate the average temperature
-    double avg_stochastic_temp = CMathFunctions::integ_dust_size(a_eff, tmp_temp, nr_of_dust_species, a_min, a_max);
-
-    // Update the dust temperature distribution
-    grid->setDustTemperature(cell, i_density, avg_stochastic_temp);
-
-    // Delete pointer array
-    delete[] tmp_temp;
 }
 
 double CDustComponent::getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl)
@@ -4138,10 +4283,6 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
 
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
-
-        // Init pointer array for the mass fractions of each dust component
-        fractions = new double[nr_of_components];
-
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
             uint dust_component_choice = unique_components[i_comp];
@@ -4150,8 +4291,9 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
             setIDs(single_component[i_comp], i_comp, nr_of_components, i_mixture, nr_of_dust_mixtures);
 
             // Get dust component fraction of mixture
-            fractions[i_comp] = param.getDustFraction(dust_component_choice);
-            sum += fractions[i_comp];
+            double fraction = param.getDustFraction(dust_component_choice);
+            single_component[i_comp].setFraction(fraction);
+            sum += fraction;
 
             // Get size distribution parameters
             string size_keyword = param.getDustSizeKeyword(dust_component_choice);
@@ -4167,7 +4309,7 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
             single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
 
             // Get global wavelength grid
-            single_component[i_comp].setWavelengthList(wavelength_list);
+            single_component[i_comp].setWavelengthList(wavelength_list, wavelength_offset);
 
             // Read the dust catalog file for each dust component (including scatter matrix)
             if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
@@ -4181,15 +4323,21 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
                     return false;
                 }
 
-            // Write dust component files
-            single_component[i_comp].writeComponent(path_data, path_plot, fractions[i_comp]);
+            // Write dust component files, if multiple components will be mixed together
+            if(nr_of_components > 1)
+                single_component[i_comp].writeComponent(path_data, path_plot);
+        }
+
+        // Check if the sum of the fractions of the dust components add up to one
+        if(sum != 1.0)
+        {
+            cout << "ERROR: Fractions of dust materials do not add up to 100% "
+                << "(" << sum << "%)!" << endl;
+            return false;
         }
 
         // Set the ID and number of the mixtures
         setIDs(mixed_component[i_mixture], 0, nr_of_components, i_mixture, nr_of_dust_mixtures);
-
-        // Set if scattering will be included in raytracing if possible
-        setScatteringToRay(param.getScatteringToRay());
 
         // Mix components together
         if(!mixComponents(param, i_mixture))
@@ -4197,13 +4345,6 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
 
         // Delete single components
         killSingleComponents();
-
-        // Check if the sum of the fractions of the dust components add up to one
-        if(sum != 1.0)
-        {
-            cout << "ERROR: Fractions of dust materials do not add up to 100%" << endl;
-            return false;
-        }
     }
 
     return true;
@@ -4226,13 +4367,12 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     cout << SEP_LINE;
 
     // Show the full wavelength grid for temo and RAT calculation
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT ||
+    if(param.isMonteCarloSimulation() || 
             (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0))
         cout << "- Nr. of wavelengths      : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT ||
-            param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_DUST_SCATTERING ||
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
             (grid->getRadiationFieldAvailable() && param.getScatteringToRay()))
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
@@ -4252,26 +4392,41 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         cout << "- Temperature distr.      : ";
         if(grid->getTemperatureFieldInformation() == TEMP_FULL && param.getStochasticHeatingMaxSize() > 0)
             cout << "temperatures for all grain sizes found in grid" << endl
-                << "    -> calculate stochastic heating up to grain size of "
+                << "                            calculate stochastic heating up to grain size of "
                 << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        else if(grid->getTemperatureFieldInformation() == TEMP_STOCH)
+            cout << "temperatures for effective grain size found in grid" << endl
+                << "                            including stochastically heated temperatures" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_FULL)
             cout << "temperatures for all grain sizes found in grid" << endl;
         else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
-            cout << "temperatures for effective grain size found in grid" << endl;
+            cout << "temperature for effective grain size found in grid" << endl;
         else
             cout << "not available (This should not happen!)" << endl;
 
         cout << "- Include scattered light : ";
-        if(grid->getRadiationFieldAvailable() && param.getScatteringToRay())
+        if(grid->getRadiationFieldAvailable())
         {
-            cout << "yes (based on the radiation field)" << endl;
-            cout << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl;
-            cout << "    -> If not, use <rt_scattering> 0                                      " << endl;
+            if(param.getScatteringToRay())
+            {
+                cout << "yes, based on the radiation field" << endl
+                    << "    HINT: Only one dominant radiation source and mostly single scattering?" << endl
+                    << "          -> If not, use <rt_scattering> 0                                " << endl;
+            }
+            else
+                cout << "no, disabled via <rt_scattering> 0" << endl;
         }
-        else if(!param.getScatteringToRay())
-            cout << "no (disabled via <rt_scattering> 0)" << endl;
-        else
-            cout << "no (radiation field not found in grid)" << endl;
+        else 
+        {
+            if(param.getScatteringToRay())
+                cout << "yes, radiation field will be calulated before raytracing" << endl;
+            else
+            {
+                cout << "no, radiation field not found in grid and radiation sources missing" << endl
+                    << "                            "
+                    << "try to define point source(s) and/or the dust source" << endl;
+            }
+        }
 
         cout << "Observed wavelengths:" << endl;
 
@@ -4317,17 +4472,27 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     }
 
     // Show information about dust temperature distribution simulations
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isTemperatureSimulation())
     {
         cout << "- Temperature calculation : ";
         if(param.getDustTempMulti())
             cout << "for all grain sizes" << endl;
         else
             cout << "for effective grain size" << endl;
+        
+        if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
+            cout << "                          : including stochastic heating up to " 
+                << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        else if(param.getStochasticHeatingMaxSize() > 0 && param.getSaveRadiationField())
+        {
+            cout << "HINT: Stochastic heating and saving the radiation field is chosen." << endl
+                <<  "      The radiation field will be saved and stochastic heating should be set" << endl
+                <<  "      with CMD_DUST_EMISSION simulation." << endl;
+        }
     }
 
     // Show information about saving the radiation field
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isMonteCarloSimulation())
     {
         cout << "- Save radiation field    : ";
         if(param.getSaveRadiationField())
@@ -4358,7 +4523,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
 
     // If dust optical properties are constant -> pre calc some values
     if(grid->useConstantGrainSizes())
-        preCalcEffProperties();
+        preCalcEffProperties(param);
 }
 
 bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
@@ -4376,7 +4541,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
         single_component = 0;
 
         // Create StringID for print parameter
-        mixed_component[i_mixture].createStringID(&mixed_component[i_mixture], 1);
+        mixed_component[i_mixture].createStringID(&mixed_component[i_mixture]);
 
         // Pre-calculate various quantities
         if(!preCalcDustProperties(param, i_mixture))
@@ -4386,12 +4551,15 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
     }
 
     // Get global wavelength grid (including bin width)
-    mixed_component[i_mixture].setWavelengthList(wavelength_list);
+    mixed_component[i_mixture].setWavelengthList(wavelength_list, wavelength_offset);
 
     // Set Scat matrix loaded and calorimetry loaded to true
     // as long as no component has not loaded them
     mixed_component[i_mixture].setScatLoaded(true);
     mixed_component[i_mixture].setCalorimetryLoaded(true);
+
+    // Get Relative fractions for each size bin
+    double ** size_fraction = getSizeFractions();
 
     // Get common parameter grid
     uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
@@ -4426,7 +4594,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
             mixed_component[i_mixture].setIsAligned(true);
 
         // Add parameters of each component together to the mixture
-        if(!mixed_component[i_mixture].add(fractions[i_comp], &single_component[i_comp]))
+        if(!mixed_component[i_mixture].add(size_fraction[i_comp], &single_component[i_comp]))
             return false;
     }
 
@@ -4444,7 +4612,7 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
     mixed_component[i_mixture].setSublimate(param.isSublimate());
 
     // Calculate wavelength differences for temperature (reemission)
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT)
+    if(param.isMonteCarloSimulation())
         if(!mixed_component[i_mixture].calcWavelengthDiff())
         {
             cout << "ERROR: The wavelength grid has only one wavelength which is too less for temp calculation!.\n"
@@ -4467,11 +4635,11 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
         mixed_component[i_mixture].preCalcTemperatureLists(TEMP_MIN, TEMP_MAX, TEMP_STEP);
 
     // Pre-calculate reemission probability of the dust mixture at different temperatures
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT)
+    if(param.isMonteCarloSimulation())
         mixed_component[i_mixture].preCalcWaveProb();
 
     // Pre-calculate temperature to total emission relation (either for temperature or stochastic heating calculation)
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT || param.getCommand() == CMD_RAT ||
+    if(param.isMonteCarloSimulation() ||
             (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > mixed_component[i_mixture].getSizeMin()))
         mixed_component[i_mixture].preCalcAbsorptionRates();
 
@@ -4485,8 +4653,7 @@ bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
     }
 
     // Use random alignment for Monte-Carlo simulations
-    if(param.getCommand() == CMD_TEMP || param.getCommand() == CMD_TEMP_RAT ||
-            param.getCommand() == CMD_RAT || param.getCommand() == CMD_DUST_SCATTERING)
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING)
         mixed_component[i_mixture].setAlignmentMechanism(ALIG_RND);
     else
         mixed_component[i_mixture].setAlignmentMechanism(param.getAlignmentMechanism());

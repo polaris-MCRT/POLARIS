@@ -89,6 +89,7 @@ class TestRoutines:
         self.limit_dict = {
             'temperature': 1,
             'a_align': 2,
+            'scattering_map': 5,
             'emission_map': 1,
             'emission_sed': 1,
             'healpix_map': 1,
@@ -101,6 +102,7 @@ class TestRoutines:
         self.results_files = {
             'temperature': ['output_midplane.fits'],
             'a_align': ['output_midplane.fits'],
+            'scattering_map': ['polaris_detector_nr0001.fits'],
             'emission_map': ['polaris_detector_nr0001.fits'],
             'emission_sed': ['polaris_detector_nr0001_sed.fits'],
             'healpix_map': ['polaris_detector_nr0001.fits'],
@@ -255,9 +257,9 @@ class TestRoutines:
         self.get_result('emission_map')
 
     def test_1001011(self):
-        """Perform test simulation to check raytracing with single grain size.
+        """Perform test simulation to check Monte-Carlo self-scattering.
         """
-        self.get_result('emission_map', comparison_mode='avg_rel_diff_no_abs')
+        self.get_result('scattering_map', comparison_mode='avg_rel_diff_no_abs')
 
     def test_1002001(self):
         """Perform test simulation to check temp_rat calculation.
@@ -338,7 +340,7 @@ class TestRoutines:
         """Perform test simulation to check Monte-Carlo radiative transfer
         (with peel-off technique).
         """
-        self.get_result('emission_map', comparison_mode='avg_rel_diff_no_abs')
+        self.get_result('scattering_map', comparison_mode='avg_rel_diff_no_abs')
 
     def test_1006001(self):
         """Perform test simulation to check temperature distribution.
@@ -370,6 +372,22 @@ class TestRoutines:
 
     def test_1007002(self):
         """Perform test simulation to check continuum radiative transfer (cylindrical grid).
+        """
+        self.get_result('emission_map')
+
+    
+    def test_1007003(self):
+        """Perform test simulation to check temperature distribution (with stochastic heating, cylindrical grid).
+        """
+        self.get_result('temperature')
+
+    def test_1007004(self):
+        """Perform test simulation to check raytracing (incl. stochastic heating temperatures, cylindrical grid).
+        """
+        self.get_result('emission_map')
+
+    def test_1007005(self):
+        """Perform test simulation to check raytracing (incl. scattering calc before raytracing, cylindrical grid).
         """
         self.get_result('emission_map')
 
