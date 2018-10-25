@@ -509,7 +509,7 @@ class Plot:
         """
         # Set limit according to zoom factor
         if (self.zoom_x_factor is not None or self.zoom_y_factor is not None) \
-                and self.extent is not Nones and self.image_type != 'projection_3d':
+                and self.extent is not None and self.image_type != 'projection_3d':
             self.limits = [None, None, None, None]
             for i_limits in range(len(self.extent)):
                 if self.extent[i_limits] is None:

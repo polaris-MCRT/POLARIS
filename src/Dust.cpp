@@ -1381,7 +1381,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     char str_frac_end[1024];
 
     // Init strings for various filenames/titles
-    string path_cross, path_diff, path_g, str_title, gnu_title, plot_sign = "points";
+    string path_cross, path_diff, path_g, path_scat, str_title, gnu_title, plot_sign = "points";
 
     // Check if enough points to draw lines
     if(nr_of_wavelength > 1)
@@ -1421,6 +1421,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_data += str_mix_ID_end;
         path_data += ".dat";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
 
         // Format the strings
         uint pos = 0;
@@ -1465,6 +1466,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
         path_data += "dust_comp_";
         path_data += str_comp_ID_end;
         path_data += ".dat";
@@ -1491,7 +1493,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         if(getCabs1(i) < Cmin && getCabs1(i) > 0)
             Cmin = getCabs1(i);
         if(getCsca1(i) < Cmin && getCsca1(i) > 0)
-                Cmin = getCsca1(i);
+            Cmin = getCsca1(i);
         if(getCext2(i) < Cmin && getCext2(i) > 0)
             Cmin = getCext2(i);
         if(getCabs2(i) < Cmin && getCabs2(i) > 0)
@@ -1767,6 +1769,150 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Close text file writer
     g_writer.close();
+
+    // ------------------------------------------------------
+
+    if(phID == PH_MIE)
+    {
+        // Init text file writer for scattering matrix
+        ofstream scat_writer(path_scat.c_str());
+
+        // Error message if the write does not work
+        if(scat_writer.fail())
+        {
+            cout << "ERROR: Can't write to " << path_scat << endl;
+            return false;
+        }
+
+        // Init plot limits
+        double S11min = 1e100, S11max = -1e100;
+        double S12min = 1e100, S12max = -1e100;
+
+        // Init pointer arrays for scattering matrix elements
+        double ** S11, ** S12;
+
+        // Get weight from grain size distribution
+        double weight = getWeight();
+
+        // Init pointer dimension
+        S11 = new double * [nr_of_wavelength - wavelength_offset];
+        S12 = new double * [nr_of_wavelength - wavelength_offset];
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+            S11[wID] = new double[nr_of_scat_theta];
+            S12[wID] = new double[nr_of_scat_theta];
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+            {
+                // Init and reset variables
+                double sum = 0;
+                
+                double * S11_tmp = new double[nr_of_dust_species];
+                double * S12_tmp = new double[nr_of_dust_species];
+                for(uint a = 0; a < nr_of_dust_species; a++)
+                {
+                    if(sizeIndexUsed(a, a_min_global, a_max_global))
+                    {
+                        double Csca_tmp = getCscaMean(a, w);
+                        sum += Csca_tmp;
+                        double rel_amount = a_eff_3_5[a] / weight;
+                        S11_tmp[a] = Csca_tmp * rel_amount * getScatteringMatrixElement(a, w, 0, 0, sth, 0);
+                        S12_tmp[a] = Csca_tmp * rel_amount * getScatteringMatrixElement(a, w, 0, 0, sth, 1);
+                    }
+                    else
+                    {
+                        S11_tmp[a] = 0;
+                        S12_tmp[a] = 0;
+                    }
+                }
+                S11[wID][sth] = 1 / sum * 
+                    CMathFunctions::integ_dust_size(a_eff, S11_tmp, nr_of_dust_species, a_min_global, a_max_global);
+                S12[wID][sth] = 1 / sum * 
+                    CMathFunctions::integ_dust_size(a_eff, S12_tmp, nr_of_dust_species, a_min_global, a_max_global);
+
+                if(S11[wID][sth] < S11min)
+                    S11min = S11[wID][sth];
+                if(S12[wID][sth] < S12min)
+                    S12min = S12[wID][sth];
+            
+                if(S11[wID][sth] > S11max)
+                    S11max = S11[wID][sth];
+                if(S12[wID][sth] > S12max)
+                    S12max = S12[wID][sth];
+            }
+        }
+
+        // Add gnuplot commands to file
+        scat_writer << "reset" << endl;
+        scat_writer << "set grid" << endl;
+        scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
+        
+        if(nr_of_wavelength > 1)
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+        scat_writer << "set yrange[" << S11min << ":" << S11max << "]" << endl;
+        scat_writer << "set format x \"%.1f\"" << endl;
+        scat_writer << "set format y \"%.1te%02T\"" << endl;
+        scat_writer << "set ylabel \'S11\'" << endl;
+        scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
+        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "plot ";
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            scat_writer << "\'-\' with " << plot_sign << " title \'" << wavelength_list[w] << " [m]\'";
+            if(w != nr_of_wavelength - 1)
+                scat_writer << ",";
+            else
+                scat_writer << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                scat_writer << sth << "\t" << S11[wID][sth] << endl;
+            scat_writer << "e" << endl;
+        }
+
+        if(nr_of_wavelength > 1)
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+        scat_writer << "set yrange[" << S12min << ":" << S12max << "]" << endl;
+        scat_writer << "set format x \"%.1f\"" << endl;
+        scat_writer << "set format y \"%.1te%02T\"" << endl;
+        scat_writer << "set ylabel \'S12\'" << endl;
+        scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
+        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "plot ";
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            scat_writer << "\'-\' with " << plot_sign << " title \'" << wavelength_list[w] << " [m]\'";
+            if(w != nr_of_wavelength - 1)
+                scat_writer << ",";
+            else
+                scat_writer << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+
+            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+                scat_writer << sth << "\t" << S12[wID][sth] << endl;
+            scat_writer << "e" << endl;
+        }
+
+        for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
+        {
+            uint wID = w - wavelength_offset;
+            delete[] S11[wID];
+            delete[] S12[wID];
+        }
+        delete[] S11;
+        delete[] S12;
+
+        // Close text file writer
+        scat_writer.close();
+    }
 
     return true;
 }
