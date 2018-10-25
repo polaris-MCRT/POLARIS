@@ -47,7 +47,7 @@ bool CPipeline::Init(int argc, char** argv)
     }
     cout << SEP_LINE;
 
-    if(argc != 2)
+    /*if(argc != 2)
     {
         cout << "ERROR: Wrong number of arguments!" << endl;
         Error();
@@ -56,7 +56,7 @@ bool CPipeline::Init(int argc, char** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/home/s0reissl/polaris projects/RATtest/cmd_file");
+    CCommandParser parser("/home/s0reissl/polaris projects/RATtest/cmd_file");
     //CCommandParser parser("/home/s0reissl/polaris projects/Basti/cmds_temp");
 
     if(!parser.parse())

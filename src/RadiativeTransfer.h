@@ -164,7 +164,7 @@ public:
     // Synchrontron emission
     bool calcSyncMapsViaRaytracing(parameter & param);
     void getSyncPixelIntensity(CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl, int pos_id);
-    void getSyncIntensity(photon_package * pp1, photon_package * pp2,photon_package * pp3, CSourceBasic * tmp_source,
+    void getSyncIntensity(photon_package * pp1, photon_package * pp2, CSourceBasic * tmp_source,
             double cx, double cy, uint subpixel_lvl);
 
     // Line meission

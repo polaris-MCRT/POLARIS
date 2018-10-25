@@ -2976,7 +2976,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
     // Get grid values
     double T_gas = grid->getGasTemperature(cell);
-    double n_g = grid->getGasNumberDensity(cell);
+    double n_g = 1e-2;grid->getGasNumberDensity(cell);
     double vol = grid->getVolume(cell);
     
     //average molecular weight
@@ -2992,9 +2992,6 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Init cross section class
-            //cross_sections cs;
-
             // Get dust temperature from grid
             double T_dust;
             if(grid->getTemperatureFieldInformation() == TEMP_FULL)
@@ -3037,24 +3034,22 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
                 // Get angle between magnetic field and radiation field
                 double theta = grid->getTheta(cell, en_dir);
-
-                // Calculate perfect aligned cross-sections
-                //calcPACrossSections(a, w, cs, theta);
-                
-                //drag by thermal emission
-                double FIR=1.40e10*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*T_gas);
-                
-                //drag by gas 
-                double tau_gas = 1.0e-12*3./(4*PIsq)*I_p/(mu*n_g*m_H*v_th*alpha_1*pow(a_eff[a],4));
-
-                dtau_drag[w]=1./(1./tau_gas+1./FIR);
-                
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);
                 //arr_en_dens=1e-10;
                 
                 // en_dir = 4 * PI * vol * j -> 4 * PI / c * j
                 en_dir /= double(vol * con_c);
+                
+                //drag by thermal emission
+                double FIR=1.40e15*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*sqrt(T_gas));
+                
+                //drag by gas 
+                double tau_gas = 1e3*3./(4*PIsq)*I_p/(mu*n_g*m_H*v_th*alpha_1*pow(a_eff[a],4));
+
+                //double test=1./(1./tau_gas*(1.+FIR));
+                
+                dtau_drag[w]=FIR;//1./(1./tau_gas+1./FIR);
 
                 //anisotropy parameter
                 gamma = en_dir.length() / arr_en_dens;
@@ -3077,7 +3072,8 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             }
 
             // Perform integration
-            double omega_frac = 1e2*CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
+            //double test = CMathFunctions::integ(wavelength_list, dtau_drag, 0, nr_of_wavelength - 1);
+            double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
             
             //cout << a_eff[a] << " " << omega_frac << endl;
 
