@@ -2976,7 +2976,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
     // Get grid values
     double T_gas = grid->getGasTemperature(cell);
-    double n_g = 1e-2;grid->getGasNumberDensity(cell);
+    double n_g = grid->getGasNumberDensity(cell);
     double vol = grid->getVolume(cell);
     
     //average molecular weight
