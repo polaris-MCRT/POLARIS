@@ -9,6 +9,7 @@ from modules.base import Server
 def update_server_dict(dictionary):
     server_dict = {
         'herschel': HerschelServer,
+        'calculus': CalculusServer,
         'cea': CeaServer,
         'custom': CustomServer,
     }
@@ -82,7 +83,7 @@ class CeaServer(Server):
 
 
 class HerschelServer(Server):
-    """This is the server class for the NEC cluster at the Kiel university
+    """This is the server class for the herschel server at IAS Orsay
     """
 
     def __init__(self, parse_args):
@@ -92,5 +93,20 @@ class HerschelServer(Server):
 
         self.parameter['node_name'] = 'glx-herschel'
         self.parameter['address'] = 'glx-herschel.ias.u-psud.fr:~/'
+        self.parameter['server_polaris_dir'] = 'polaris/'
+        self.parameter['queue_system'] = None
+
+
+class CalculusServer(Server):
+    """This is the server class for the calculus server at IAS Orsay
+    """
+
+    def __init__(self, parse_args):
+        """Initialisation of the server/cluster parameters.
+        """
+        Server.__init__(self, parse_args)
+
+        self.parameter['node_name'] = 'glx-calcul1'
+        self.parameter['address'] = 'glx-calcul1.ias.u-psud.fr:~/'
         self.parameter['server_polaris_dir'] = 'polaris/'
         self.parameter['queue_system'] = None

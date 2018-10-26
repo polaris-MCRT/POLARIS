@@ -314,8 +314,8 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
                 for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
                     wavelength_list_dustcat[w] = values[w];
 
-                if(wavelength_list[0] < wavelength_list_dustcat[0] * 0.999 || 
-                         wavelength_list[nr_of_wavelength - 1] * 0.999 >
+                if(wavelength_list[0] < wavelength_list_dustcat[0] * 0.1 || 
+                         wavelength_list[nr_of_wavelength - 1] * 0.1 >
                          wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
                     {
                     cout << "HINT: The wavelength range is out of the limits of the catalog. "
@@ -3031,11 +3031,11 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     double n_g = grid->getGasNumberDensity(cell);
     double vol = grid->getVolume(cell);
     
-    //average molecular weight
-    double mu=grid->getMu();
+    // Get average molecular weight
+    double mu = grid->getMu();
     
-    //thermal velocity
-    double v_th = sqrt(2.0*con_kB*T_gas/(mu*m_H));
+    // Get thermal velocity
+    double v_th = sqrt(2.0 * con_kB * T_gas / (mu * m_H));
 
     // Loop over all considered grain sizes
     double omega_old = 0;
@@ -3097,9 +3097,10 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double FIR=1.40e10*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*T_gas);
                 
                 //drag by gas 
-                double tau_gas = 1.0e-12*3./(4*PIsq)*I_p/(mu*n_g*m_H*v_th*alpha_1*pow(a_eff[a],4));
+                double tau_gas = 1e-12 * 3. / (4 * PIsq) * I_p / 
+                    (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
 
-                dtau_drag[w]=1./(1./tau_gas+1./FIR);
+                dtau_drag[w] = 1. / (1. / tau_gas + 1. / FIR);
                 
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);
@@ -3115,21 +3116,22 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 //getQrat(a, w, theta)
                 
                 //use parameterized version for the time beeing
-                double Qr=0.4 /(pow(wavelength_list[w]/a_eff[a],3));
+                double Qr = 0.4 / (pow(wavelength_list[w] / a_eff[a], 3));
                 
-                if(wavelength_list[w]<2.0*a_eff[a])
-                    Qr=0.4;
+                if(wavelength_list[w] < 2.0 * a_eff[a])
+                    Qr = 0.4;
                 
-                Qr*=abs(cos(theta));
+                Qr *= abs(cos(theta));
                 //cout << wavelength_list[w] << " " << Qr << " " << getQrat(a, w, 0.0) << endl;
                 
                 //Qr=getQrat(a, w, 0.0);
-                arr_product[w]=arr_en_dens * (wavelength_list[w]/PIx2) * Qr * tau_gas/ J_th * gamma * PI * pow(a_eff[a],2);
-                Qr=0.4;
+                arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * 
+                    tau_gas / J_th * gamma * PI * pow(a_eff[a], 2);
+                Qr = 0.4;
             }
 
             // Perform integration
-            double omega_frac = 1e2*CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
+            double omega_frac = 1e2 * CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
             
             //cout << a_eff[a] << " " << omega_frac << endl;
 
@@ -3140,18 +3142,18 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             if(omega_frac >= SUPERTHERMAL_LIMIT)
             {
                 //linear interpolation
-                if(a>1)
+                if(a > 1)
                 {
-                    double a1=a_eff[a-1];
-                    double a2=a_eff[a];
+                    double a1 = a_eff[a - 1];
+                    double a2 = a_eff[a];
                     
-                    double o1=omega_old-SUPERTHERMAL_LIMIT;
-                    double o2=omega_frac-SUPERTHERMAL_LIMIT;
+                    double o1 = omega_old - SUPERTHERMAL_LIMIT;
+                    double o2 = omega_frac - SUPERTHERMAL_LIMIT;
                 
-                    a_alig=a1-o1*(a2-a1)/(o2-o1);
+                    a_alig = a1 - o1 * (a2 - a1) / (o2 - o1);
                 }
                 else
-                    a_alig=a_min;
+                    a_alig = a_min;
                 
                 break;
             }
