@@ -476,15 +476,15 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     switch(command)
     {
         case CMD_TEMP_RAT:
-            cout << "- MC Calc. of temperatures and RATs :   done                                " << endl;
+            cout << "- MC calc. of temperatures and RATs :   done                                " << endl;
             break;
         
         case CMD_TEMP:
-            cout << "- MC Calculation of temperatures    :   done                                " << endl;
+            cout << "- MC calculation of temperatures    :   done                                " << endl;
             break;
 
         default:
-            cout << "- MC Calculation of radiation field :   done                                " << endl;
+            cout << "- MC calculation of radiation field :   done                                " << endl;
             break;
     }
     return true;
