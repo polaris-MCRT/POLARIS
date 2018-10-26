@@ -4425,7 +4425,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         else 
         {
             if(param.getScatteringToRay())
-                cout << "yes, radiation field will be calulated before raytracing" << endl;
+                cout << "yes, radiation field will be calculated before raytracing" << endl;
             else
             {
                 cout << "no, radiation field not found in grid and radiation sources missing" << endl
