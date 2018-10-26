@@ -2120,6 +2120,10 @@ void CRadiativeTransfer::calcStellarEmission()
     // Transport photon to observer for each detector
     for(uint s = 0; s < sources_mc.size(); s++)
     {
+        // Ignore dust as Monte-Carle radiation source
+        if(sources_mc[s]->getStringID() == "dust source")
+            continue;
+
         // Get chosen wavelength parameter
         uint nr_used_wavelengths = tracer->getNrOfSpectralBins();
 
@@ -2147,7 +2151,7 @@ void CRadiativeTransfer::calcStellarEmission()
             pp->setWavelengthID(wID);
 
             // Launch photon package
-            sources_mc[s]->createNextRay(pp, long(0));
+            sources_mc[s]->createNextRay(pp, long(0), uint(1));
             Vector3D source_pos = pp->getPosition();
 
             // Set direction of the photon package to the observer
@@ -2175,6 +2179,7 @@ void CRadiativeTransfer::calcStellarEmission()
             }
             mult *= exp(-tau_obs) / (4.0 * PI);
             mult *= tracer->getDistanceFactor(source_pos);
+
 
             // Update the photon package with the multi Stokes vectors
             pp->setMultiStokesVector(WMap.S(i_wave) * mult, i_wave);

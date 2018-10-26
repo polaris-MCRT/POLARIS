@@ -1251,13 +1251,12 @@ class CustomPlots:
         # Set data input to Jy/px to calculate the total flux
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
-        # Read raytrace results from file
-        sed_data1, header1, _ = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
-        sed_data2, header2, _ = self.file_io.read_emission_sed('polaris_detector_nr0006_sed')
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
-        for sed_data, header in zip([sed_data1, sed_data2], [header1, header2]):
+        for i in [1, 6, 8]:
+            sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr' +
+                str(i).zfill(4) + '_sed')
             # Create pdf file if show_plot is not chosen
             self.file_io.init_plot_output('polaris_detector_compare_sed')
             # Plot spectral energy distribution
