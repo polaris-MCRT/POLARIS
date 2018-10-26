@@ -631,6 +631,13 @@ public:
         return cmd;
     }
 
+    bool isRatSimulation()
+    {
+        if(getCommand() == CMD_RAT || getCommand() == CMD_TEMP_RAT)
+            return true;
+        return false;
+    }
+
     bool isMonteCarloSimulation()
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
