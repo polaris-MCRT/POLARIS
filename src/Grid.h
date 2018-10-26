@@ -758,7 +758,6 @@ public:
         // Interpolate radiation field strength and direction
         us = CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
                 cell->getData(data_pos_rf_list[wID1]), cell->getData(data_pos_rf_list[wID2]), wavelength);
-        wID1 = 80;
         tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
                 cell->getData(data_pos_rx_list[wID1]), cell->getData(data_pos_rx_list[wID2]), wavelength));
         tmp_dir.setY(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],

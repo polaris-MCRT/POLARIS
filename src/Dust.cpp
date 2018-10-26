@@ -4422,7 +4422,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
             else
                 cout << "no, disabled via <rt_scattering> 0" << endl;
         }
-        else 
+        else
         {
             if(param.getScatteringToRay())
                 cout << "yes, radiation field will be calculated before raytracing" << endl;
