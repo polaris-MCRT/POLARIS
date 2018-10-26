@@ -1777,7 +1777,7 @@ public:
         return res;
     }
 
-    void preCalcEffProperties();
+    void preCalcEffProperties(parameter & param);
 
     void henyeygreen(photon_package * pp, uint a, double albedo = 0);
     void miesca(photon_package * pp, uint a, double albedo = 0);
@@ -1948,11 +1948,11 @@ public:
         return true;
     }
 
-    void preCalcEffProperties()
+    void preCalcEffProperties(parameter & param)
     {
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].preCalcEffProperties();
+                    mixed_component[i_mixture].preCalcEffProperties(param);
     }
 
     string getPhaseFunctionStr()

@@ -158,7 +158,7 @@ class HD97048Detector(Detector):
         self.parameter['nr_pixel_x'] = 201
         self.parameter['nr_pixel_y'] = 201
         # Wavelengths
-        self.parameter['wavelength_list'] = np.array([1.25e-6, 8.6e-6, 17.8e-6]) * 1e-6
+        self.parameter['wavelength_list'] = np.array([1.25, 8.6, 17.8]) * 1e-6
 
 
 class ThomasDetector(Detector):

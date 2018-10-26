@@ -457,10 +457,12 @@ public:
     ~CSourceDust(void)
     {
         if(cell_prob != 0)
-            delete cell_prob;
+            delete [] cell_prob;
     }
 
     bool initSource(uint w);
+
+    bool initSource(uint id, uint max, bool use_energy_density);
 
     void createNextRay(photon_package * pp, llong i_pos);
 

@@ -12,7 +12,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     if(use_energy_density)
     {
         // For using energy density, only the photon number is required
-        nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
@@ -209,7 +209,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density)
     {
-        nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
@@ -436,7 +436,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
         if(use_energy_density)
         {
-            nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
+            //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
         }
@@ -484,7 +484,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
         if(use_energy_density)
         {
-            nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
+            //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
                     << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
         }
@@ -663,7 +663,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     cout << CLR_LINE << flush;
     if(use_energy_density)
     {
-        nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
             << nr_of_photons << " photons per wavelength" << endl;
     }
@@ -796,6 +796,59 @@ void CSourceISRF::createNextRay(photon_package * pp, llong i_pos)
     pp->setStokesVector(tmp_stokes_vector);
 }
 
+bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
+{
+    if(!use_energy_density)
+    {
+        cout << "ERROR: The dust source for radiation field calculation "
+            << "can only be used with energy density!" << endl;
+        return false;
+    }
+
+    // Init variables
+    ulong nr_of_cells = grid->getMaxDataCells();
+    photon_package * pp = new photon_package();
+
+    cell_prob = new prob_list[getNrOfWavelength()];
+
+    for(uint w = 0; w < getNrOfWavelength(); w++)
+    {
+        // Init variables
+        cell_prob[w].resize(nr_of_cells + 1);
+
+        // Set wavelength of photon package
+        pp->setWavelengthID(w);
+
+        // Set total energy to zero and starting value of prob_list
+        total_energy = 0;
+        cell_prob[w].setValue(0, total_energy);
+
+        for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+        {
+            // Put photon package into current cell
+            pp->setPositionCell(grid->getCellFromIndex(i_cell));
+
+            // Get total energy of thermal emission
+            total_energy += dust->getCellEmission(grid, pp);
+
+            // Add energy to probability distribution
+            cell_prob[w].setValue(i_cell + 1, total_energy);
+        }
+
+        // Normalize probability distribution
+        cell_prob[w].normalize(total_energy);
+    }
+
+    // Delete pointer
+    delete pp;
+
+    // Show information
+    cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " 
+        << nr_of_photons << endl;
+
+    return true;
+}
+
 bool CSourceDust::initSource(uint w)
 {
     // Init variables
@@ -803,14 +856,15 @@ bool CSourceDust::initSource(uint w)
     photon_package * pp = new photon_package();
 
     // Init variables
-    cell_prob = new prob_list(nr_of_cells + 1);
+    cell_prob = new prob_list[getNrOfWavelength()];
+    cell_prob[w].resize(nr_of_cells + 1);
 
     // Set wavelength of photon package
     pp->setWavelengthID(w);
 
     // Set total energy to zero and starting value of prob_list
     total_energy = 0;
-    cell_prob->setValue(0, total_energy);
+    cell_prob[w].setValue(0, total_energy);
 
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
@@ -821,11 +875,11 @@ bool CSourceDust::initSource(uint w)
         total_energy += dust->getCellEmission(grid, pp);
 
         // Add energy to probability distribution
-        cell_prob->setValue(i_cell + 1, total_energy);
+        cell_prob[w].setValue(i_cell + 1, total_energy);
     }
 
     // Normalize probability distribution
-    cell_prob->normalize(total_energy);
+    cell_prob[w].normalize(total_energy);
 
     // Delete pointer
     delete pp;
@@ -837,13 +891,16 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
-    pp->calcRandomDirection();    
+    pp->calcRandomDirection();  
+
+    // Set wavelength of photon package
+    uint w = pp->getWavelengthID();  
 
     // Get random number
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob->getIndex(rnd);
+    ulong i_cell = cell_prob[w].getIndex(rnd);
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));

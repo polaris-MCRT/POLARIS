@@ -21,7 +21,7 @@ class DustSource:
         if self.parse_args.nr_photons_dust is not None:
             self.parameter['nr_photons'] = int(self.parse_args.nr_photons_dust)
         elif self.parse_args.simulation_type in ['rat']:
-            self.parameter['nr_photons'] = 100
+            self.parameter['nr_photons'] = 1e6
 
     def get_command_line(self):
         """Provides dust source command line for POLARIS .cmd file.

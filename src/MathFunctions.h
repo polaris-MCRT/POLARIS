@@ -1557,12 +1557,7 @@ public:
     static inline double integ(const double * x, const double * y, uint xlow, uint xup)
     {
         double res = 0;
-        if(xup - xlow == 1)
-        {
-            res = (x[xup] - x[xlow]) * y[xlow]
-                    + 0.5 * (x[xup] - x[xlow]) * (y[xup] - y[xlow]);
-        }
-        else if(xlow != xup)
+        if(xlow != xup)
         {
             for(uint i = xlow + 1; i <= xup; i++)
                 res += (x[i] - x[i - 1]) * y[i - 1]
