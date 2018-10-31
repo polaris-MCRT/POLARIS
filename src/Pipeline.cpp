@@ -196,7 +196,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     // Check if the energy density is used instead of launching photons with fixed energy
     // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
     bool use_energy_density = false;
-    if(param.getSaveRadiationField() || param.getCommand() == CMD_RAT || 
+    if(param.getSaveRadiationField() || param.isRatSimulation() || 
             param.getStochasticHeatingMaxSize() > 0)
         use_energy_density = true;
 
@@ -269,7 +269,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
         
     if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
-    if(param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isRatSimulation())
         rad.calcAlignedRadii();
 
     cout << SEP_LINE;

@@ -94,8 +94,8 @@ class Cube(Model):
 
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
-        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
-        self.octree_parameter['sidelength'] = 200.0 * self.math.const['au']
+        self.parameter['gas_mass'] = 2.8e-14 * self.math.const['M_sun']
+        self.parameter['outer_radius'] = 0.5 * self.math.const['au']
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn_oblate'
         self.parameter['detector'] = 'cartesian'
@@ -106,7 +106,7 @@ class Cube(Model):
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 10.
+        dust_temperature = 20.
         return dust_temperature
 
     def gas_temperature(self):

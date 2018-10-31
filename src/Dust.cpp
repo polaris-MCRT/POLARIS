@@ -3163,14 +3163,14 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     // default value of the alignment radius
     double a_alig = getSizeMax(grid, cell);
     
-    //aspect ratio of the grain
-    double s=getAspectRatio();
+    // Aspect ratio of the grain
+    double s = getAspectRatio();
     
-    //density of the graim material
-    double rho=getMaterialDensity();
+    // Density of the grain material
+    double rho = getMaterialDensity();
     
     // alpha_1 ~ delta
-    double alpha_1 = getDeltaRat();;
+    double alpha_1 = getDeltaRat();
 
     // Get grid values
     double T_gas = grid->getGasTemperature(cell);
@@ -3195,32 +3195,30 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
             // Get dust temperature from grid
             double T_dust;
-            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+            if(grid->getTemperatureFieldInformation() == TEMP_FULL || 
+                    (grid->getTemperatureFieldInformation() == TEMP_STOCH && 
+                    a_eff[a] <= getStochasticHeatingMaxSize()))
                 T_dust = grid->getDustTemperature(cell, i_density, a);
             else
                 T_dust = grid->getDustTemperature(cell, i_density);
             
-            //minor and major axis
-            double a_minor = a_eff[a] * pow(s,2./3.);
-            double a_major = a_eff[a] * pow(s,-1./3.);
+            // Minor and major axis
+            double a_minor = a_eff[a] * pow(s, 2./3.);
+            double a_major = a_eff[a] * pow(s, -1./3.);
             
-            //moment of inertia along a_1
-            double I_p = 8.*PI/15. * rho * a_minor * pow(a_major,4);
+            // Moment of inertia along a_1
+            double I_p = 8. * PI / 15. * rho * a_minor * pow(a_major, 4);
             
-            //thermal angular momentum
+            // Thermal angular momentum
             double J_th = sqrt(I_p * con_kB * T_gas);
 
             // Init pointer arrays
             double *arr_product = new double[nr_of_wavelength];
             
-            //drag time
-            double *dtau_drag = new double[nr_of_wavelength];
-
             for(uint w = 0; w < nr_of_wavelength; w++)
             {
                 // Init variables
                 Vector3D en_dir;
-                double gamma = 0;
                 double arr_en_dens = 0;
 
                 // Get radiation field (4 * PI * vol * J)
@@ -3236,54 +3234,40 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // Get angle between magnetic field and radiation field
                 double theta = grid->getTheta(cell, en_dir);
 
-                // Calculate perfect aligned cross-sections
-                //calcPACrossSections(a, w, cs, theta);
+                // Anisotropy parameter
+                double gamma = en_dir.length() / arr_en_dens;
+
+                // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
+                arr_en_dens /= double(vol * con_c);                
                 
-                //drag by thermal emission
-                double FIR=1.40e10*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*T_gas);
+                // drag by thermal emission
+                double FIR = 1e30;  // 1.40e10 * pow(arr_en_dens, 2./3.) / (a_eff[a] * n_g * T_gas);
                 
-                //drag by gas 
-                double tau_gas = 1e-12 * 3. / (4 * PIsq) * I_p / 
+                // Drag by gas 
+                double tau_gas = 3. / (4 * PIsq) * I_p / 
                     (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
 
-                dtau_drag[w] = 1. / (1. / tau_gas + 1. / FIR);
+                // Combine gas drag and FIR
+                double tau_drag = 1. / (1. / tau_gas + 1. / FIR);
                 
-                // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
-                arr_en_dens /= double(vol * con_c);
-                //arr_en_dens=1e-10;
+                // Use parameterized version for the time beeing
+                double Qr = 0.4 / (1 + pow(wavelength_list[w] / (2.0 * a_eff[a]), 3));
                 
-                // en_dir = 4 * PI * vol * j -> 4 * PI / c * j
-                en_dir /= double(vol * con_c);
-
-                //anisotropy parameter
-                gamma = en_dir.length() / arr_en_dens;
-                // \integrate (Q_torque * lambda * u_lambda) d_lambda
-                //arr_product[w] = wavelength_list[w] * getQrat(a, w, theta) * gamma * arr_en_dens;
-                //getQrat(a, w, theta)
-                
-                //use parameterized version for the time beeing
-                double Qr = 0.4 / (pow(wavelength_list[w] / a_eff[a], 3));
-                
-                if(wavelength_list[w] < 2.0 * a_eff[a])
-                    Qr = 0.4;
+                //if(wavelength_list[w] < 2.0 * a_eff[a])
+                //    Qr = 0.4;
                 
                 Qr *= abs(cos(theta));
-                //cout << wavelength_list[w] << " " << Qr << " " << getQrat(a, w, 0.0) << endl;
                 
                 //Qr=getQrat(a, w, 0.0);
                 arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * 
-                    tau_gas / J_th * gamma * PI * pow(a_eff[a], 2);
-                Qr = 0.4;
+                    tau_drag / J_th * gamma * PI * pow(a_eff[a], 2);
             }
 
             // Perform integration
-            double omega_frac = 1e2 * CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
-            
-            //cout << a_eff[a] << " " << omega_frac << endl;
+            double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
 
             // Delete pointer array
             delete[] arr_product;
-            delete[] dtau_drag;
 
             if(omega_frac >= SUPERTHERMAL_LIMIT)
             {
@@ -4396,17 +4380,27 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
     if(param.getCommand() == CMD_DUST_EMISSION)
     {
         cout << "- Temperature distr.      : ";
-        if(grid->getTemperatureFieldInformation() == TEMP_FULL && param.getStochasticHeatingMaxSize() > 0)
-            cout << "temperatures for all grain sizes found in grid" << endl
-                << "                            calculate stochastic heating up to grain size of "
-                << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+        {
+            cout << "temperatures for all grain sizes found in grid" << endl;
+            if(param.getStochasticHeatingMaxSize() > 0)
+                cout << "                            calculate stochastic heating up to grain size of "
+                    << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        }
         else if(grid->getTemperatureFieldInformation() == TEMP_STOCH)
+        {
             cout << "temperatures for effective grain size found in grid" << endl
                 << "                            including stochastically heated temperatures" << endl;
-        else if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-            cout << "temperatures for all grain sizes found in grid" << endl;
+            if(param.getStochasticHeatingMaxSize() > 0)
+                cout << "    HINT: Stochastic heating was already calculated. This should not happen!" << endl;
+        }
         else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+        {
             cout << "temperature for effective grain size found in grid" << endl;
+            if(param.getStochasticHeatingMaxSize() > 0)
+                cout << "                            calculate stochastic heating up to grain size of "
+                    << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        }
         else
             cout << "not available (This should not happen!)" << endl;
 

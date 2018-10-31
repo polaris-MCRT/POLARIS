@@ -2739,6 +2739,9 @@ public:
             return MAX_UINT;
         }
 
+        if(getTemperatureFieldInformation() == TEMP_STOCH)
+            param.setStochasticHeatingMaxSize(0.0);
+
         if(param.getStochasticHeatingMaxSize())
         {
             if(data_pos_rf_list.size() != WL_STEPS)
