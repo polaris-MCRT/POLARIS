@@ -1036,7 +1036,7 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
         {
 #pragma omp critical
             {
-                cout << "-> Converting emissivities:"
+                cout << "-> Converting emissivities: "
                         << 100.0 * float(pos_counter) / float(max_cells)
                         << " %       \r";
             }
