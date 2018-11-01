@@ -1266,6 +1266,20 @@ class Math:
         return density
 
     @staticmethod
+    def random_density_distribution(position, d_exp=3):
+        """Density profile with random clumps.
+
+        Args:
+            position (List[float, float, float]): Position in model space.
+            outer_radius (float): Radius of the sphere.
+
+        Returns:
+            Float: Density at the given position.
+        """
+        density = 10 ** (np.random.random() * d_exp)
+        return density
+
+    @staticmethod
     def simple_mag_field(mag_field_strength, axis='z',
                          random_variations=False, rnd_b_min=0.):
         """Magnetic field pointing in one direction.

@@ -87,11 +87,13 @@ source_args = parser.add_argument_group('source')
 source_args.add_argument('--external', dest='external_input_name', default=None,
                          help='define an external grid input from e.g. MHD simulations.')
 
-source_args = parser.add_argument_group('update')
+source_args = parser.add_argument_group('modify')
 source_args.add_argument('--update', dest='update_grid', default=False, action='store_true',
                          help='updates POLARIS v4.00 grids to newest version.')
 source_args.add_argument('--revert', dest='revert_grid', default=False, action='store_true',
                          help='revert POLARIS v4.XX grids to version 4.00.00.')
+source_args.add_argument('--set_align', dest='align_radius', type=float, default=None,
+                         help='Set the minimum alignment radius for the RAT theory in the grid.')
 
 parser_options = parser.parse_args()
 
@@ -237,6 +239,9 @@ class GridRoutines:
 
     def update_polaris_grid(self, reverse=False):
         """Checks a grid and adds values if required.
+
+        Args:
+            reverse (bool): Instead downgrade from newest version to oldest one.
         """
         from modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
@@ -246,6 +251,31 @@ class GridRoutines:
         grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
         # Write header of the grid file
         grid.update_grid(grid_file=grid_file, tmp_file=tmp_file, reverse=reverse)
+        # Close both binary files
+        tmp_file.close()
+        grid_file.close()
+        # Rename the temporary grid file
+        os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
+            self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
+        os.rename(self.file_io.path['model'] + 'tmp_tree.dat',
+            self.file_io.path['model'] + self.parse_args.grid_filename)
+
+    def set_cell_quantity(self, quantity_id, quantity_value):
+        """Set the value of the desired quantity to value in each cell of the grid.
+
+        Args:
+            quantity_id (int): Index of the quantity in the POLARIS grid.
+            quantity_value (float): Value to which the quantity should be set.
+        """
+        from modules.grid import Grid
+        grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
+        #: Temporary tree file
+        tmp_file = open(self.file_io.path['model'] + 'tmp_tree.dat', 'wb')
+        #: Final grid file
+        grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
+        # Write header of the grid file
+        grid.set_quantiy_in_grid(grid_file=grid_file, tmp_file=tmp_file, 
+            quantity_id=quantity_id, quantity_value=quantity_value)
         # Close both binary files
         tmp_file.close()
         grid_file.close()
@@ -270,6 +300,10 @@ if __name__ == '__main__':
         print('--- Revert grid to v4.00 ...')
         grid_routines.update_polaris_grid(reverse=True)
         print('--- Revert of grid finished!                                 ')
+    elif parser_options.align_radius is not None:
+        print('--- Set alignment radius in grid to', parser_options.align_radius, '[m] ...')
+        grid_routines.set_cell_quantity(13, parser_options.align_radius)
+        print('--- Set alignment radius finished!                           ')
     else:
         print('--- Create a grid ...')
         grid_routines.create_polaris_grid()

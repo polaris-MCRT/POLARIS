@@ -2726,7 +2726,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
     // Get angle between the magnetic field and the photon direction
     double theta = grid->getThetaMag(pp);
 
-    // Perfect alignement can be calculated efficiently
+    // Perfect alignment can be calculated efficiently
     if((alignment & ALIG_PA) == ALIG_PA)
     {
         calcPACrossSections(a, w, cs, theta);
@@ -2753,11 +2753,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
     double a_limit = CMathFunctions::calc_larm_limit(Blen, Td, Tg, ng, aspect_ratio, larm_f);
 
     // Init cross-sections
-    double Cext, Cpol, Cabs, Cpabs, Csca, Ccirc;
-
-    // Calculate the parameter for imperfect Davis-Greenstein alignment
-    if((alignment & ALIG_IDG) == ALIG_IDG)
-        delta = delta0 * CMathFunctions::calc_delta(Blen, Td, Tg, ng);
+    double Cext, Cpol, Cabs, Cpabs, Csca, Ccirc; 
 
     // Calculate the parameter for radiative torque alignment
     if((alignment & ALIG_RAT) == ALIG_RAT)
@@ -2787,12 +2783,11 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
         }
     }
 
-    // Calculate sin(theta)^2
-    double sinsq_theta = sin(theta);
-    sinsq_theta *= sinsq_theta;
-
+    // Calculate the parameter for imperfect Davis-Greenstein alignment
     if((alignment & ALIG_IDG) == ALIG_IDG)
     {
+        delta = delta0 * CMathFunctions::calc_delta(Blen, Td, Tg, ng);
+
         double zeta_sq = (a_eff[a] + delta * (Td / Tg)) / (a_eff[a] + delta);
 
         if(zeta_sq >= 1)
@@ -2820,6 +2815,10 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
         Rent = combinedRFactor(Ridg, Rrat, Rgold);
     else
         Rent = Ridg;
+
+    // Calculate sin(theta)^2
+    double sinsq_theta = sin(theta);
+    sinsq_theta *= sinsq_theta;
 
     double c_s_ext = getCext1(a, w);
     double c_p_ext = getCext2(a, w);
@@ -3170,7 +3169,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     double rho = getMaterialDensity();
     
     // alpha_1 ~ delta
-    double alpha_1 = getDeltaRat();
+    double alpha_1 = 1;//getDeltaRat();
 
     // Get grid values
     double T_gas = grid->getGasTemperature(cell);
@@ -3764,6 +3763,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid, photon_packa
             stokes_V[a] = 0;
         }
     }
+    
 
     // Perform integration for the emission
     stokes.setI(CMathFunctions::integ_dust_size(a_eff, stokes_I, nr_of_dust_species, a_min, a_max));

@@ -1919,7 +1919,7 @@ public:
         single_component = 0;
         mixed_component = 0;
 
-        scattering_to_raytracing = true;
+        scattering_to_raytracing = false;
 
         nr_of_components = 0;
         nr_of_wavelength = 0;

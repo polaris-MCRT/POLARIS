@@ -94,10 +94,10 @@ class Cube(Model):
 
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
-        self.parameter['gas_mass'] = 2.8e-14 * self.math.const['M_sun']
-        self.parameter['outer_radius'] = 0.5 * self.math.const['au']
-        self.parameter['stellar_source'] = 't_tauri'
-        self.parameter['dust_composition'] = 'mrn_oblate'
+        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']  # 2.8e-14 * self.math.const['M_sun']
+        self.parameter['outer_radius'] = 100.0 * self.math.const['au']  # 0.5 * self.math.const['au']
+        self.parameter['stellar_source'] = 'isrf'
+        self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
     def dust_temperature(self):
@@ -124,9 +124,10 @@ class Cube(Model):
         Returns:
             float: Gas density at a given position.
         """
-        #gas_density = self.math.bonor_ebert_density(self.position, outer_radius=self.spherical_parameter['outer_radius'],
+        #gas_density = self.math.bonor_ebert_density(self.position, outer_radius=self.parameter['outer_radius'],
         #                                        truncation_radius=1 * self.math.const['au'])
-        gas_density = 1.0
+        gas_density = self.math.random_density_distribution(self.position, d_exp=2)
+        #gas_density = 1.0
         return gas_density
 
     def magnetic_field(self):
