@@ -812,8 +812,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Transport a separate photon to each detector
                                     for(uint d = 0; d < nr_ofMCDetectors; d++)
                                     {
+                                        // Get index of wavelength in current detector
+                                        uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+
                                         // Only calculate for detectors with the corresponding wavelengths
-                                        if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
+                                        if(wID_det != MAX_UINT)
                                         {
                                             // Create an escaping photon into the direction
                                             // of the detector
@@ -826,7 +829,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                 dust->getWavelength(wID), detector[d].getDistance());
 
                                             // Add the photon package to the detector
-                                            detector[d].addToMonteCarloDetector(&tmp_pp, SCATTERED_DUST);
+                                            detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, SCATTERED_DUST);
                                         }
                                     }
                                 }
@@ -869,8 +872,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Transport photon to observer for each detector
                         for(uint d = 0; d < nr_ofMCDetectors; d++)
                         {
+                            // Get index of wavelength in current detector
+                            uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+
                             // Only calculate for detectors with the corresponding wavelengths
-                            if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
+                            if(wID_det != MAX_UINT)
                             {
                                 // Get direction to the current detector
                                 Vector3D dir_obs = detector[d].getDirection();
@@ -906,12 +912,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     if(interactions == 0)
                                     {
                                         // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(pp, DIRECT_STAR);
+                                        detector[d].addToMonteCarloDetector(pp, wID_det, DIRECT_STAR);
                                     }
                                     else
                                     {
                                         // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(pp, SCATTERED_DUST);
+                                        detector[d].addToMonteCarloDetector(pp, wID_det, SCATTERED_DUST);
                                     }
                                 }
                             }
@@ -931,8 +937,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 // Transport photon to observer for each detector
                 for(uint d = 0; d < nr_ofMCDetectors; d++)
                 {
+                    // Get index of wavelength in current detector
+                    uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+
                     // Only calculate for detectors with the corresponding wavelengths
-                    if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
+                    if(wID_det != MAX_UINT)
                     {
                         // Create temporary photon package
                         photon_package tmp_pp;
@@ -975,7 +984,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             detector[d].getDistance());
 
                         // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(&tmp_pp, DIRECT_STAR);
+                        detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
                     }
                 }
             }

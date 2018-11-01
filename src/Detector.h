@@ -544,13 +544,14 @@ public:
     {
         if(sedI != 0)
         {
-#pragma omp critical
-            {
-                sedI[i_spectral] += st.I();
-                sedQ[i_spectral] += st.Q();
-                sedU[i_spectral] += st.U();
-                sedV[i_spectral] += st.V();
-            }
+#pragma omp atomic update
+            sedI[i_spectral] += st.I();
+#pragma omp atomic update
+            sedQ[i_spectral] += st.Q();
+#pragma omp atomic update
+            sedU[i_spectral] += st.U();
+#pragma omp atomic update
+            sedV[i_spectral] += st.V();
         }
     }
 
@@ -566,15 +567,12 @@ public:
         uint i_spectral = pp->getWavelengthID();
         StokesVector st = pp->getMultiStokesVector(i_spectral);        
 
-#pragma omp critical
-        {
-            matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
-            matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
-            matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
-            matrixV[i_spectral + spectral_offset].addValue(pos_id, st.V());
-            matrixT[i_spectral + spectral_offset].addValue(pos_id, st.T());
-            matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
-        }
+        matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
+        matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
+        matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
+        matrixV[i_spectral + spectral_offset].addValue(pos_id, st.V());
+        matrixT[i_spectral + spectral_offset].addValue(pos_id, st.T());
+        matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
     }
 
     void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
@@ -593,23 +591,18 @@ public:
         if(y < 0 || y >= int(bins_y))
             return;
 
-#pragma omp critical
-        {
-            matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
-            matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
-            matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
-            matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
-            matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
-            matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
-        }
+        matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
+        matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
+        matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
+        matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
+        matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
+        matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
     }
 
-    void addToMonteCarloDetector(photon_package * pp, uint radiation_type)
+    void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)
     {
         Vector3D pos = pp->getPosition();
         Vector3D dir = pp->getDirection();
-
-        uint i_spectral = pp->getWavelengthID();
 
         if(dir.length() == 0)
             return;
@@ -629,18 +622,15 @@ public:
 
         StokesVector st = pp->getStokesVector();
 
-#pragma omp critical
-        {
-            matrixI[i_spectral].addValue(x, y, st.I());
-            matrixQ[i_spectral].addValue(x, y, st.Q());
-            matrixU[i_spectral].addValue(x, y, st.U());
-            matrixV[i_spectral].addValue(x, y, st.V());
+        matrixI[i_spectral].addValue(x, y, st.I());
+        matrixQ[i_spectral].addValue(x, y, st.Q());
+        matrixU[i_spectral].addValue(x, y, st.U());
+        matrixV[i_spectral].addValue(x, y, st.V());
 
-            if(radiation_type == DIRECT_STAR)
-                matrixT[i_spectral].addValue(x, y, st.I());
-            else
-                matrixS[i_spectral].addValue(x, y, st.I());
-        }
+        if(radiation_type == DIRECT_STAR)
+            matrixT[i_spectral].addValue(x, y, st.I());
+        else
+            matrixS[i_spectral].addValue(x, y, st.I());
 
         // Add Stokes Vector on SED as well        
         addToSedDetector(st, i_spectral);
@@ -2621,13 +2611,13 @@ public:
         return lam_max;
     }
 
-    bool isInWavelengthList(double wavelength)
+    uint getDetectorWavelengthID(double wavelength)
     {
         dlist::iterator it = find(wavelength_list_det.begin(), wavelength_list_det.end(), wavelength);
         if(it != wavelength_list_det.end())
-            return true;
+            return wavelength_list_det.begin() - it;
         else
-            return false;
+            return MAX_UINT;
     }
 
     double getWavelength(uint i_wave)

@@ -724,13 +724,9 @@ CDetector * CPipeline::createDetectorList(parameter & param, CDustMixture * dust
             param.setPeelOff(false);
         }*/
         if(param.getPeelOff() && param.getAcceptanceAngle() > 1.0)
-        {
             cout << "HINT: Peel-off technique needs no acceptance angle!" << endl;
-        }
         else
-        {
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
-        }
     }
 
     cout << "- Creating dust MC detectors    : done" << endl;
