@@ -744,23 +744,18 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     {
         // Raytracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
+        {
             cout << "WARNING: Diffuse sources can not be considered in "
                     << "dust, line, or synchrotron emission!" << endl;
-
-        // Dust source can only be used, if the radiation field will be calculated as well 
-        if(param.getDustSource())
-        {
-            if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "WARNING: Dust as radiation source can not be considered in "
-                    << "line or synchrotron emission!" << endl;
-            if(!param.getScatteringToRay())
-                cout << "WARNING: Dust as radiation source will only be considered in "
-                    << "dust emission, if the <rt_scattering> is enabled!" << endl;
+            nr_ofSources--;
         }
 
         if(param.getISRFSource())
+        {
             cout << "WARNING: ISRF as radiation source can not be considered in "
                 << "dust, line, or synchrotron emission!" << endl;
+            nr_ofSources--;
+        }
 
         if(param.getNrOfBackgroundSources() == 0)
         {
