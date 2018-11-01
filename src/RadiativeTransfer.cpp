@@ -1344,26 +1344,22 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source, double
         // Create new photon package
         photon_package * pp1 = new photon_package();
         photon_package * pp2 = new photon_package();
-        photon_package * pp3 = new photon_package();
 
         // Init photon package
         pp1->initMultiStokesVector(nr_used_wavelengths);
         pp2->initMultiStokesVector(nr_used_wavelengths);
-        pp3->initMultiStokesVector(nr_used_wavelengths);
 
         tracer->preparePhoton(pp1, cx, cy);
         tracer->preparePhoton(pp2, cx, cy);
-        tracer->preparePhoton(pp3, cx, cy);
 
         // Calculate continuum emission along one path
         getSyncIntensity(pp1, pp2, tmp_source, cx, cy, subpixel_lvl);
 
-        tracer->addToDetector(pp1, pp2, pp3, i_pix);
+        tracer->addToDetector(pp1, pp2, pp2, i_pix);
 
         // Delete photon package after usage
         delete pp1;
         delete pp2;
-        delete pp3;
     }
     else
     {
@@ -1489,18 +1485,18 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 
                         
                         // If too many sub steps are needed, kill the photon
-                        if(kill_counter > MAX_SOLVER_STEPS)
+                        if(kill_counter > 2.0*MAX_SOLVER_STEPS)
                         {
 #pragma omp critical
                             {
                                 cout << CLR_LINE;
-                                cout << "WARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                cout << "WARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                 cout << "         Skipping entire cell!" << endl << flush;
                             }
                             break;
                         }
                         
-                        if(kill_counter > 0.02*MAX_SOLVER_STEPS)
+                        if(kill_counter > 1.0*MAX_SOLVER_STEPS)
                         {
                             if(fail==false)
                             {
@@ -1508,7 +1504,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 #pragma omp critical
                                 {
                                     cout << CLR_LINE;
-                                    cout << "WARNING: Solver steps > " << 0.02*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                    cout << "WARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                     cout << "         Switching to approximate solver!" << endl << flush;
                                 }                            
                             }
@@ -1582,12 +1578,22 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                                     (rel_err * abs(stokes_new_cr.I()) + abs_err);
                             double epsi_ca = abs(stokes_new2_ca.I() - stokes_new_ca.I()) /
                                     (rel_err * abs(stokes_new_ca.I()) + abs_err);
-                            double epsi_QUV = abs(stokes_new2_ca.tPol() - stokes_new_ca.tPol()) /
-                                    (rel_err * abs(stokes_new_ca.tPol()) + abs_err);
+                            
+                            double epsi_Q = abs(abs(stokes_new2_ca.Q()) - abs(stokes_new_ca.Q())) /
+                                    (rel_err * abs(stokes_new_ca.Q()) + abs_err);
+                            
+                            double epsi_U = abs(abs(stokes_new2_ca.U()) - abs(stokes_new_ca.U())) /
+                                    (rel_err * abs(stokes_new_ca.U()) + abs_err);
+                            
+                            double epsi_V = abs(abs(stokes_new2_ca.V()) - abs(stokes_new_ca.V())) /
+                                    (rel_err * abs(stokes_new_ca.V()) + abs_err);
                             
                             double dz_new_cr = 0.9 * cell_d_l * pow(epsi_cr, -0.2);
                             double dz_new_ca = 0.9 * cell_d_l * pow(epsi_ca, -0.2);
-                            double dz_new_QUV = 0.9 * cell_d_l * pow(epsi_QUV, -0.2);
+                            
+                            double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);
+                            double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
+                            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);                         
 
                             // Do approximate solution
                             if(fail)
@@ -1595,7 +1601,6 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                                 epsi = epsi_cr;
                                 dz_new = dz_new_cr;
                                 
-                                double j_I=syn_ca.j_I;
                                 double j_Q=syn_ca.j_Q * cos_2ph;
                                 double j_U=syn_ca.j_Q * sin_2ph;
                                 double j_V=syn_ca.j_V;
@@ -1624,8 +1629,8 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             }
                             else
                             {
-                                epsi = max(epsi_cr, max(epsi_QUV, epsi_ca));
-                                dz_new = min(dz_new_cr, min(dz_new_QUV, dz_new_ca));
+                                epsi = max(epsi_cr, max(epsi_ca, max(epsi_Q, max(epsi_U, epsi_V))));
+                                dz_new = min(dz_new_cr, min(dz_new_ca, min(dz_new_Q, min(dz_new_U, dz_new_V))));
                             }
 
                             if(epsi==0)

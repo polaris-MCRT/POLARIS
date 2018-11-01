@@ -1951,9 +1951,10 @@ void CGridOcTree::clear(cell_oc * cell)
         {
             char_counter++;
             cout << " -> Final cleanup : "
-                    << ru[(unsigned int) char_counter % 4] << "           \r";
+                    << ru[(unsigned int) char_counter % 4] << "              \r";
         }
-
+        
+//#pragma omp parallel for schedule(dynamic)
         for(unsigned int i = 0; i < 8; i++)
             clear(&cell->getChildren()[i]);
 

@@ -648,6 +648,8 @@ public:
 
     bool writeMap(uint nr, uint results_type)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing map ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -840,11 +842,14 @@ public:
         pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
         pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
 
+        cout << CLR_LINE << flush;
         return true;
     }
 
     bool writeSed(uint nr, uint results_type)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing line spectrum ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -964,11 +969,15 @@ public:
         }
         pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
 
+        cout << CLR_LINE << flush;
+       
         return true;
     }
 
     bool writeHealMaps(uint nr, uint results_type)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing healpix map ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -1126,12 +1135,14 @@ public:
         newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
         newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
-
+        cout << CLR_LINE << flush;
         return true;
     }
 
     bool writeSyncMap(uint nr)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing synchrotron plane detector ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -1318,6 +1329,8 @@ public:
 
     bool writeSyncHealMap(uint nr)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing synchrotron healpix detector ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -1498,11 +1511,15 @@ public:
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
         newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
 
+        cout << CLR_LINE << flush;
+
         return true;
     }
 
     bool writeLineSpectrum(CGasMixture * gas, uint i_species, uint i_line)
     {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing line spectrum ...  \r" << flush;
         auto_ptr<CCfits::FITS> pFits(0);
         //unique_ptr<CCfits::FITS> pFits;
 
@@ -1594,6 +1611,7 @@ public:
         pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
         pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
 
+        cout << CLR_LINE << flush;
         return true;
     }
 
@@ -1967,7 +1985,7 @@ public:
     bool writeIntChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel maps: 0%     \r" << flush;
+        cout << " -> Writing integrated velocity channel maps: 0%  \r" << flush;
 
         long naxis = 3;
         long naxes[3] = {uint(bins_x), uint(bins_y), 6};
