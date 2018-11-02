@@ -2734,7 +2734,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
     }
 
     // Init variables
-    double Rrat = 0, Rrat_max = 0, Rgold = 0, Ridg = 0, Rent = 1;
+    double Rrat = 0, Rgold = 0, Ridg = 0, Rent = 1;
     double delta = 1;
     double a_alig = 1;
 
@@ -2759,10 +2759,13 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
     if((alignment & ALIG_RAT) == ALIG_RAT)
     {
         a_alig = grid->getAlignedRadius(pp);
-        if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
-            Rrat_max = f_highJ + (1 - f_highJ) * getInternalRAT();
-        else
-            Rrat_max = 1;
+        if(a_eff[a] > a_alig)
+        {
+            if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
+                Rrat = f_highJ + (1 - f_highJ) * getInternalRAT();
+            else
+                Rrat = 1;
+        }
     }
 
     // Calculate the parameter for GOLD mechanical alignment
@@ -2806,16 +2809,11 @@ void CDustComponent::calcCrossSections(CGridBasic * grid, photon_package * pp, u
         }
     }
 
-    if(a_eff[a] > a_alig)
-        Rrat = Rrat_max;
-    else
-        Rrat = 0;
-
     if(a_eff[a] < a_limit)
         Rent = combinedRFactor(Ridg, Rrat, Rgold);
     else
         Rent = Ridg;
-
+        
     // Calculate sin(theta)^2
     double sinsq_theta = sin(theta);
     sinsq_theta *= sinsq_theta;

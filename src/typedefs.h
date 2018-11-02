@@ -118,6 +118,7 @@ using namespace std;
 #define ALIG_IDG       4
 #define ALIG_RAT       8
 #define ALIG_GOLD      16
+#define ALIG_KRAT      32
 
 #define SUPERTHERMAL_LIMIT 3
 #define MACH_LIMIT         1
