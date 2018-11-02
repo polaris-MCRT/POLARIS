@@ -162,6 +162,8 @@ dust_args.add_argument('--dust_offset', dest='dust_offset', default=False, actio
                        help='consider preexisting dust temperature in temp calculation.')
 dust_args.add_argument('--fhj', dest='f_highj', default=None, type=float,
                        help='define f_highJ parameter.\n')
+dust_args.add_argument('--fc', dest='f_c', default=None, type=float,
+                       help='define f_c parameter.\n')
 
 gas_args = parser.add_argument_group('gas component')
 gas_args.add_argument('--gas', dest='gas_species', default=None,

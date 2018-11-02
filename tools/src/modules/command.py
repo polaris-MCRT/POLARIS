@@ -342,7 +342,7 @@ class CmdPolaris:
         cmd_file.write('\n')
         cmd_file.write('\t<max_subpixel_lvl>\t' + str(max_subpixel_lvl) + '\n')
         cmd_file.write('\t<f_highJ>\t\t' + str(self.parse_args.f_highj) + '\n')
-        cmd_file.write('\t<f_c>\t\t\t' + str(f_c) + '\n')
+        cmd_file.write('\t<f_c>\t\t\t' + str(self.parse_args.f_c) + '\n')
         cmd_file.write('\n')
         if self.parse_args.no_rt_scattering:
             cmd_file.write('\t<rt_scattering>\t0\n')

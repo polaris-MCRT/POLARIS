@@ -455,7 +455,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
 
     cout << CLR_LINE;
 
-
     if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
         return false;
 

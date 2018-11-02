@@ -470,9 +470,9 @@ class PAH0(Dust):
         # Add _pah to the keyword to consider the pah mass correctly
         self.parameter['size_keyword'] = 'plaw_pah'
         # Minimum dust grain size
-        self.parameter['amin'] = None
+        self.parameter['amin'] = 3e-10
         # Maximum dust grain size
-        self.parameter['amax'] = None
+        self.parameter['amax'] = 5e-9
         # For creation of a dust catalog
         self.parameter['input_file'] = 'PAH0_DL07'
         self.parameter['input_type'] = 'dustem'
@@ -496,9 +496,9 @@ class PAH1(Dust):
         # Add _pah to the keyword to consider the pah mass correctly
         self.parameter['size_keyword'] = 'plaw_pah'
         # Minimum dust grain size
-        self.parameter['amin'] = None
+        self.parameter['amin'] = 3e-10
         # Maximum dust grain size
-        self.parameter['amax'] = None
+        self.parameter['amax'] = 5e-9
         # For creation of a dust catalog
         self.parameter['input_file'] = 'PAH1_DL07'
         self.parameter['input_type'] = 'dustem'

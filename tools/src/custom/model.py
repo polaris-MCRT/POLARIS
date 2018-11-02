@@ -14,7 +14,6 @@ def update_model_dict(dictionary):
         'cube': Cube,
         'filament': Filament,
         'galaxy': Galaxy,
-        'mhd_bastian': MhdBastian,
         'mhd_binary': MhdFlock,
         'gg_tau_disk': GGTauDisk,
         'hd97048': HD97048,
@@ -256,35 +255,23 @@ class Filament(Model):
         Model.__init__(self)
 
         #: Set parameters of the sphere model
-        self.parameter['distance'] = 100.0 * self.math.const['pc']
-        self.octree_parameter['sidelength'] = 2. * 4.7305e+17
+        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        self.parameter['outer_radius'] = 10 * self.math.const['pc']
+        self.parameter['gas_mass'] = 100.0 * self.math.const['M_sun']
+        self.parameter['detector'] = 'cartesian'
+        #self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
+    def gas_density_distribution(self):
+        """Calculates the gas density at a given position.
 
-class MhdBastian(Model):
-    """A MHD simulation model. Made to import MHD simulation grids with
-    all needed conversion factors.
-    """
-
-    def __init__(self):
-        """Initialisation of the model parameters.
+        Returns:
+            float: Gas density at a given position.
         """
-        Model.__init__(self)
+        density = np.exp(-abs(self.position[0]) / self.math.const['pc']) 
+        return density
 
-        #: Set parameters of the MHD-simulation model
-        self.parameter['distance'] = 100.0 * self.math.const['pc']
-        self.octree_parameter['sidelength'] = 2. * 0.0125 * self.math.const['pc']
-        # self.octree_parameter['sidelength'] = 2. * 0.5 * self.math.const['pc']
-        # self.octree_parameter['sidelength'] = 2. * 2.9167 * self.math.const['pc']
-        self.parameter['detector'] = 'cartesian'
-        # Density factor to convert MHD simulation from g/cm^3 to kg/m^3
-        self.conv_parameter['conv_dens'] = 1e3
-        # Lengths factor to convert MHD simulation from cm to m
-        self.conv_parameter['conv_len'] = 1e-2
-        # Magnetic field factor to convert MHD simulation from Gauss to Tesla
-        self.conv_parameter['conv_mag'] = 1e-4
-        # Velocity factor to convert MHD simulation from cm/s to m/s
-        self.conv_parameter['conv_vel'] = 1e-2
 
 
 class MhdFlock(Model):
