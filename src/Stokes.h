@@ -224,7 +224,20 @@ public:
         sV /= val;
         return *this;
     }
-
+    
+    // linearly polarized intensity
+    double iPol()
+    {
+        return sqrt(sU * sU + sQ * sQ);
+    }
+    
+    // totaly polarized intensity
+    double tPol()
+    {
+        return sqrt(sU * sU + sQ * sQ + sV * sV);
+    }
+    
+    // degree of linear polarization
     double linPol()
     {
         if(sI != 0)
@@ -232,7 +245,8 @@ public:
 
         return 0;
     }
-
+    
+    // degree of circular polarization
     double circPol()
     {
         if(sI != 0)
@@ -241,6 +255,7 @@ public:
         return 0;
     }
 
+    // polarization angle
     double getAngle()
     {
         return 0.5 * angle(sQ, sU);

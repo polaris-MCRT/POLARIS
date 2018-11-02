@@ -6,15 +6,14 @@
 #define SYNCHROTRON_H
 
 //redefine some natural constants in cgs
-#define syn_me   9.1093826e-28  //electron mass      [g]            9.10938188e-31
-#define syn_e    4.80320680e-10 //electron charge    [Statcoulomb]  1.602176634e-19
-#define syn_h    6.6260693e-27  //Planck constant    [erg/s]        6.626176e-34
+#define syn_me   9.1093826e-28  //electron mass      [g]
+#define syn_e    4.80320680e-10 //electron charge    [Statcoulomb]
+#define syn_h    6.6260693e-27  //Planck constant    [erg/s]
 #define syn_kB   1.380662e-16   //Boltzmann constant [erg/K]
-#define syn_c    2.99792458e10  //speed of light     [m/s]          299792458.0
+#define syn_c    2.99792458e10  //speed of light     [m/s]
 
 //conversion factor 1/cm -> 1/m
 #define syn_SI   100.0
-
 
 //container class for the parameters of sync. RT
 class syn_param
@@ -33,10 +32,7 @@ public:
 
         kappa_Q = 0;
         kappa_V = 0;
-        
-        rot_ang=0;
     }
-
 
     syn_param(double _j_I, double _j_Q, double _j_V, double _alpha_I, double _alpha_Q, double _alpha_V, double _kappa_Q, double _kappa_V)
     {
@@ -51,28 +47,12 @@ public:
         kappa_Q = _kappa_Q;
         kappa_V = _kappa_V;
     }
-
-    
-    syn_param(double _j_I, double _j_Q, double _j_V, double _alpha_I, double _alpha_Q, double _alpha_V, double _kappa_Q, double _kappa_V, double _rot_ang)
-    {
-        j_I = _j_I;
-        j_Q = _j_Q;
-        j_V = _j_V;
-
-        alpha_I = _alpha_I;
-        alpha_Q = _alpha_Q;
-        alpha_V = _alpha_V;
-
-        kappa_Q = _kappa_Q;
-        kappa_V = _kappa_V;
-        rot_ang = _rot_ang;
-    }
     
     syn_param operator+(const syn_param & rhs)
     {
         return syn_param(j_I + rhs.j_I, j_Q + rhs.j_Q, j_V + rhs.j_V,
                 alpha_I + rhs.alpha_I, alpha_Q + rhs.alpha_Q, alpha_V + rhs.alpha_V,
-                kappa_Q + rhs.kappa_Q, kappa_V+ rhs.kappa_V, rot_ang+ rhs.rot_ang);
+                kappa_Q + rhs.kappa_Q, kappa_V+ rhs.kappa_V);
     }
 
     //(back) conversion into SI
@@ -130,7 +110,6 @@ public:
 
     double kappa_Q;
     double kappa_V;
-    double rot_ang;
 };
 
 
@@ -475,6 +454,19 @@ private:
 
     double LogGamma(double x);
     double Gamma(double x);
+    
+    
+    // additional correction function for alpha_V (see Reissl et al. 2018)
+    double corr(double theta)
+    {
+        if(theta>PI2)
+            theta=PI-theta;
+    
+        if(theta<0.803425)
+            return 0.99142 + 0.00748*pow(theta,(11./2.));
+        
+        return 0.99191 +  0.00127/sin(0.00475 + theta);
+    }
 
     double Gamma_I_p(double g_min, double g_max, double p)
     {
