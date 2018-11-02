@@ -3227,46 +3227,22 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
                 // Get angle between magnetic field and radiation field
                 double theta = grid->getTheta(cell, en_dir);
-<<<<<<< HEAD
 
                 // Anisotropy parameter
                 double gamma = en_dir.length() / arr_en_dens;
 
-=======
->>>>>>> sreissl/dev
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);                
                 
                 // drag by thermal emission
                 double FIR = 1e30;  // 1.40e10 * pow(arr_en_dens, 2./3.) / (a_eff[a] * n_g * T_gas);
                 
-<<<<<<< HEAD
                 // Drag by gas 
                 double tau_gas = 3. / (4 * PIsq) * I_p / 
                     (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
 
                 // Combine gas drag and FIR
                 double tau_drag = 1. / (1. / tau_gas + 1. / FIR);
-=======
-                // en_dir = 4 * PI * vol * j -> 4 * PI / c * j
-                en_dir /= double(vol * con_c);
-                
-                //drag by thermal emission
-                double FIR=1.40e15*pow(arr_en_dens,2./3.)/(a_eff[a]*n_g*sqrt(T_gas));
-                
-                //drag by gas 
-                double tau_gas = 1e3*3./(4*PIsq)*I_p/(mu*n_g*m_H*v_th*alpha_1*pow(a_eff[a],4));
-
-                //double test=1./(1./tau_gas*(1.+FIR));
-                
-                dtau_drag[w]=FIR;//1./(1./tau_gas+1./FIR);
-
-                //anisotropy parameter
-                gamma = en_dir.length() / arr_en_dens;
-                // \integrate (Q_torque * lambda * u_lambda) d_lambda
-                //arr_product[w] = wavelength_list[w] * getQrat(a, w, theta) * gamma * arr_en_dens;
-                //getQrat(a, w, theta)
->>>>>>> sreissl/dev
                 
                 // Use parameterized version for the time beeing
                 double Qr = 0.4 / (1 + pow(wavelength_list[w] / (2.0 * a_eff[a]), 3));
@@ -3282,14 +3258,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             }
 
             // Perform integration
-<<<<<<< HEAD
             double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
-=======
-            //double test = CMathFunctions::integ(wavelength_list, dtau_drag, 0, nr_of_wavelength - 1);
-            double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
-            
-            //cout << a_eff[a] << " " << omega_frac << endl;
->>>>>>> sreissl/dev
 
             // Delete pointer array
             delete[] arr_product;
