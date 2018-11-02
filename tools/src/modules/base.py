@@ -548,6 +548,8 @@ class Model:
             'outer_radius': 100. * self.math.const['au'],
             'mass_fraction': 0.01,
             'grid_type': 'octree',
+            # Global parameters of gas phase
+            'turbulent_velocity': 100.,
             # Define which other objects will be connected to this model
             'background_source': 'bg_plane',
             'detector': None,
@@ -559,6 +561,11 @@ class Model:
             'variable_size_limits': False,
             'external_input_name': None,
             'vel_is_speed_of_sound': False,
+            'enforced_scattering': True,
+            'peel_off': True,
+            # Plot parameter
+            'midplane_points': 256,
+            'midplane_zoom': 1,
         }
 
         #: dict: Includes parameters for the octree grid

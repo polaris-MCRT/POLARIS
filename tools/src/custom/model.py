@@ -259,14 +259,6 @@ class Filament(Model):
         self.parameter['distance'] = 100.0 * self.math.const['pc']
         self.octree_parameter['sidelength'] = 2. * 4.7305e+17
         self.parameter['detector'] = 'cartesian'
-        # Density factor to convert MHD simulation from g/cm^3 to kg/m^3
-        self.conv_parameter['conv_dens'] = 1e3
-        # Lengths factor to convert MHD simulation from cm to m
-        self.conv_parameter['conv_len'] = 1e-2
-        # Magnetic field factor to convert MHD simulation from Gauss to Tesla
-        self.conv_parameter['conv_mag'] = 1e-4
-        # Velocity factor to convert MHD simulation from cm/s to m/s
-        self.conv_parameter['conv_vel'] = 1e-2
 
 
 class MhdBastian(Model):

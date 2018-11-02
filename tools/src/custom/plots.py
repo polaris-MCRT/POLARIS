@@ -1264,6 +1264,26 @@ class CustomPlots:
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
+    def plot_71(self):
+        """Plot P_l over tau from SED results.
+        """
+        # Set data input to Jy/px to calculate the total flux
+        if self.parse_args.cmap_unit is None:
+            self.file_io.cmap_unit = 'total'
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
+                    ylabel=r'$\frac{\mathit{P}_\mathsf{l}}{\tau}\ [\%]$', with_cbar=False)
+        sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        # Create pdf file if show_plot is not chosen
+        self.file_io.init_plot_output('polaris_detector_p_over_tau')
+        # Plot spectral energy distribution
+        p_over_l = np.divide(sed_data[5, :], sed_data[6, :])
+        plot.plot_line(header['wavelengths'], p_over_l, log='xy', marker='.')
+        plot.plot_line([0.55e-6, 0.55e-6], [p_over_l.min(), p_over_l.max()], log='xy', marker='.')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
     # In the following section are plotting routines related to different paper/poster/talks/proposal.

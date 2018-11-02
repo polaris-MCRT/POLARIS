@@ -337,8 +337,8 @@ class PlotRoutines:
                 'It is not the ID from the dust catalog, '
                 'but the id of all simulated wavelength of the chosen detector!')
         # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('polaris_detector_nr' + str(self.start_index).zfill(4) + '_to_nr' +
-                                      str(self.stop_index).zfill(4) + '_sed')
+        self.file_io.init_plot_output('polaris_detector_nr' + str(self.detector_index).zfill(4) +
+            '_wl_nr' + str(self.start_index).zfill(4) + '_to_nr' + str(self.stop_index).zfill(4) + '_sed')
         # Init wavelengths
         wavelengths = header['wavelengths'][self.start_index - 1:self.stop_index]
         # Create one plot per component of the simulation
@@ -670,7 +670,7 @@ class PlotRoutines:
             for i_quantity in range(self.quantity_index_start - 1, self.quantity_index_stop):
                 cbar_label = self.file_io.get_quantity_labels(i_quantity)
                 # Create Matplotlib figure
-                if i_quantity == int(self.file_io.n_quantities) - 1:
+                if i_quantity == int(self.file_io.n_quantities_map) - 1:
                     vch_list = [0]
                     nr_y_images = 1
                     nr_x_images = 1
@@ -1154,10 +1154,13 @@ class PlotRoutines:
     def set_plot_indizes(self):
         """Set the indices for visualizations depending on the user input.
         """
-        if self.parse_args.visualization_type == 'map':
-            self.file_io.n_quantities += 2
-
         if self.parse_args.visualization_type in ['map', 'sed']:
+            # Get the number of quantities used by MAPs or SEDs
+            if self.parse_args.visualization_type == 'map':
+                n_quantities = self.file_io.n_quantities_map
+            elif self.parse_args.visualization_type == 'sed':
+                n_quantities = self.file_io.n_quantities_sed
+
             if len(self.parse_args.visualization_input) == 1:
                 '''
                 Use all wavelengths and quantities for one detector
@@ -1167,7 +1170,7 @@ class PlotRoutines:
                 self.start_index = 1
                 self.stop_index = None
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities)
+                self.quantity_index_stop = int(n_quantities)
             elif len(self.parse_args.visualization_input) == 2:
                 '''
                 Use one wavelength and all quantities for one detector
@@ -1178,7 +1181,7 @@ class PlotRoutines:
                 self.start_index = int(self.parse_args.visualization_input[1])
                 self.stop_index = int(self.parse_args.visualization_input[1])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities)
+                self.quantity_index_stop = int(n_quantities)
             elif len(self.parse_args.visualization_input) == 3:
                 '''
                 Use a range of wavelengths and all quantities for one detector
@@ -1190,7 +1193,7 @@ class PlotRoutines:
                 self.start_index = int(self.parse_args.visualization_input[1])
                 self.stop_index = int(self.parse_args.visualization_input[2])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities)
+                self.quantity_index_stop = int(n_quantities)
             elif len(self.parse_args.visualization_input) == 4:
                 '''
                 Use a range of wavelengths and one quantities for one detector
@@ -1230,7 +1233,7 @@ class PlotRoutines:
                 self.gas_species_index = 1
                 self.spectral_line_index = int(self.parse_args.visualization_input[0])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities)
+                self.quantity_index_stop = int(self.file_io.n_quantities_map)
             elif len(self.parse_args.visualization_input) == 2:
                 '''
                 Use all quantities
@@ -1240,7 +1243,7 @@ class PlotRoutines:
                 self.gas_species_index = int(self.parse_args.visualization_input[0])
                 self.spectral_line_index = int(self.parse_args.visualization_input[1])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities)
+                self.quantity_index_stop = int(self.file_io.n_quantities_map)
             elif len(self.parse_args.visualization_input) == 3:
                 # Use one quantities
                 # gas species index = visualization_input_0
@@ -1265,8 +1268,8 @@ class PlotRoutines:
             else:
                 raise ValueError('Too many visualization_input values with: ' +
                     str(self.parse_args.visualization_input) +  ' !')
-            if 1 > self.quantity_index_start > int(self.file_io.n_quantities) or \
-                    1 > self.quantity_index_stop > int(self.file_io.n_quantities):
+            if 1 > self.quantity_index_start > int(self.file_io.n_quantities_map) or \
+                    1 > self.quantity_index_stop > int(self.file_io.n_quantities_map):
                 raise ValueError('The chosen quantity range does not exist!')
 
 

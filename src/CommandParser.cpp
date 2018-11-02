@@ -2206,6 +2206,19 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
         return true;
     }
 
+    if(cmd.compare("<path_grid_cgs>") == 0)
+    {
+        string path = seperateString(data);
+        param->setPathGrid(path);
+
+        param->updateSIConvDH(1e3);
+        param->updateSIConvLength(1e-2);
+        param->updateSIConvBField(1e-4);
+        param->updateSIConvVField(1e-2);
+
+        return true;
+    }
+
     if(cmd.compare("<sub_dust>") == 0)
     {
         param->setSublimate(atob(atoi(data.c_str())));
@@ -2412,19 +2425,19 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
             value=-value;
         }
 
-        param->setSIConvDH(atof(data.c_str()));
+        param->updateSIConvDH(atof(data.c_str()));
         return true;
     }
 
     if(cmd.compare("<conv_len>") == 0)
     {
-        param->setSIConvLength(atof(data.c_str()));
+        param->updateSIConvLength(atof(data.c_str()));
         return true;
     }
 
     if(cmd.compare("<conv_mag>") == 0)
     {
-        param->setSIConvBField(atof(data.c_str()));
+        param->updateSIConvBField(atof(data.c_str()));
         return true;
     }
 
@@ -2439,7 +2452,7 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
             conv=abs(conv);
         }
 
-        param->setSIConvVField(conv);
+        param->updateSIConvVField(conv);
         return true;
     }
 

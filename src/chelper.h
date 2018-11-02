@@ -1499,6 +1499,38 @@ public:
         conv_V_in_SI = val;
     }
 
+    void updateSIConvLength(double val)
+    {
+        if(conv_l_in_SI != 1 && val != 1)
+            cout << "HINT: <conv_len> may be used multiple times!" << endl
+                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+        conv_l_in_SI *= val;
+    }
+
+    void updateSIConvDH(double val)
+    {
+        if(conv_dH_in_SI != 1 && val != 1)
+            cout << "HINT: <conv_dens> may be used multiple times!" << endl
+                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+        conv_dH_in_SI *= val;
+    }
+
+    void updateSIConvBField(double val)
+    {
+        if(conv_B_in_SI != 1 && val != 1)
+            cout << "HINT: <conv_mag> may be used multiple times!" << endl
+                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+        conv_B_in_SI *= val;
+    }
+
+    void updateSIConvVField(double val)
+    {
+        if(conv_V_in_SI != 1 && val != 1)
+            cout << "HINT: <conv_vel> may be used multiple times!" << endl
+                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+        conv_V_in_SI *= val;
+    }
+
     void setMassFraction(double val)
     {
         conv_mass_fraction = val;

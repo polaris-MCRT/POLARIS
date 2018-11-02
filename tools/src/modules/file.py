@@ -60,7 +60,8 @@ class FileIO:
             #: int: Index of the current plot image
             self.image_index = 0
             #: int: Number of quantities
-            self.n_quantities = 0
+            self.n_quantities_map = 8
+            self.n_quantities_sed = 7
             #: float: Size of the beam, if used [arcsec].
             if parse_args.beam_size is not None:
                 self.beam_size = self.math.parse(parse_args.beam_size, 'angle', 'arcsec')
@@ -117,9 +118,6 @@ class FileIO:
             simulation_name (str): Name of the simulation (see polaris-run.in).
             simulation_type (str): Type of the simulation (see polaris-run.in).
         """
-        #: int: Number of quantities in the data file
-        if tool_type == 'plot':
-            self.n_quantities = 6
         # Path to directory with the polaris package
         self.path['polaris'] = self.polaris_dir
         # Path to directory with the polaris and PolarisTools binaries
@@ -347,7 +345,7 @@ class FileIO:
         else:
             raise ValueError('Error: For the simulation_type: ' + str(self.parse_args.simulation_type) +
                              ' is no automatic label generation for the colorbar available!')
-        if self.n_quantities > len(quantity_labels) or self.n_quantities <= i_quantity or i_quantity < 0:
+        if len(quantity_labels) <= i_quantity or i_quantity < 0:
             raise ValueError('For the quantity number ' + str(i_quantity) + ', no label is providable!')
         return quantity_labels[i_quantity]
 
@@ -563,11 +561,11 @@ class FileIO:
                     'combined with Monte-Carlo results!')
             import healpy as hp
             data = hp.read_map(self.path['results'] + filename + '.fits', field=None, verbose=False)
-            wmap_map = np.zeros((self.n_quantities, header['nr_wavelengths'], data.shape[1]))
+            wmap_map = np.zeros((self.n_quantities_map, header['nr_wavelengths'], data.shape[1]))
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = 4 * np.pi * (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             for i_wl in range(header['nr_wavelengths']):
-                i_col = i_wl * int(self.n_quantities - 3)
+                i_col = i_wl * int(self.n_quantities_map - 3)
                 # Set the data array from fits input
                 wmap_map[0:4, i_wl, :] = data[i_col:i_col + 4, :]
                 wmap_map[6:7, i_wl, :] = data[i_col + 4 : i_col + 5, :]
@@ -582,7 +580,7 @@ class FileIO:
                 for i_wl in range(header['nr_wavelengths']):
                     wmap_map[0:5, i_wl, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
             # Add column density at the end
-            wmap_map[7, :, :] = data[int(self.n_quantities - 3) * header['nr_wavelengths'], :]
+            wmap_map[7, :, :] = data[int(self.n_quantities_map - 3) * header['nr_wavelengths'], :]
             # Apply beam convolution if chosen
             wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             return wmap_map, header, plot_data_type
@@ -590,7 +588,7 @@ class FileIO:
             #: Data from the file with the monte carlo results
             data = np.transpose(hdulist[0].data, (0, 1, 3, 2))
             #: 3 dimensional numpy array to save the results into
-            tbldata = np.zeros((self.n_quantities, header['nr_wavelengths'],
+            tbldata = np.zeros((self.n_quantities_map, header['nr_wavelengths'],
                 header['nr_pixel_x'], header['nr_pixel_y']))
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
@@ -652,9 +650,10 @@ class FileIO:
         #: Data from the file with the monte carlo results
         data = hdulist[0].data[:, 0, :]
         #: 3 dimensional numpy array to save the results into
-        tbldata = np.zeros((self.n_quantities, header['nr_wavelengths']))
+        tbldata = np.zeros((self.n_quantities_sed, header['nr_wavelengths']))
         # Set the data array from fits input
         tbldata[0:4, :] = data[0:4, :]
+        tbldata[6, :] = data[4, :]
         tbldata[4, :] = np.sqrt(np.add(np.power(data[1, :], 2), np.power(data[2, :], 2)))
         # Ignore divide by zero
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -874,7 +873,7 @@ class FileIO:
             # Load the extra data (zeeman, column dens)
             data_extra = hp.read_map(self.path['results'] + filename + '_extra.fits', field=None, verbose=False)
             #: Numpy array for the vel_map data
-            wmap_map = np.zeros((self.n_quantities, header['nr_channels'], header['nr_pixel_x']))
+            wmap_map = np.zeros((self.n_quantities_map, header['nr_channels'], header['nr_pixel_x']))
             # Fill the tbldata with the input data
             for vch in range(header['nr_channels']):
                 wmap_map[0:5, vch, ...] = data_list[vch][0:5, ...]

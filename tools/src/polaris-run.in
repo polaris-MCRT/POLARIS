@@ -54,7 +54,9 @@ req_args.add_argument('simulation_type', metavar='simulation_type', type=str,
 
 model_args = parser.add_argument_group('grid')
 model_args.add_argument('--grid', dest='grid_filename', default=None,
-                        help='define input grid filename.')
+                        help='define input grid filename (assumes grid in SI units).')
+model_args.add_argument('--grid_cgs', dest='grid_cgs_filename', default=None,
+                        help='define input grid filename (assumes grid in cgs units).')                        
 
 source_args = parser.add_argument_group('source')
 source_args.add_argument('--stellar_source', dest='stellar_source', default=None,
@@ -145,6 +147,8 @@ dust_args.add_argument('--size_dist', dest='dust_size_distribution', default=Non
 dust_args.add_argument('--scattering', dest='scattering', default=None, type=str,
                        choices=['MIE', 'HG', 'ISO'],
                        help='define method to calculate scattering.')
+dust_args.add_argument('--sub_dust', dest='sub_dust', default=False, action='store_true',
+                       help='Remove grains hotter that the sublimation temperature.')        
 dust_args.add_argument('--radiation_field', dest='radiation_field', default=False, action='store_true',
                        help='save the radiation field in the grid (required by --stochastic_heating)')
 dust_args.add_argument('--full_dust_temp', dest='full_dust_temp', default=False, action='store_true',
