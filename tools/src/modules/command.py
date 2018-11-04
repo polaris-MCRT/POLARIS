@@ -207,11 +207,11 @@ class CmdPolaris:
         if self.parse_args.peel_off is not None:
             peel_off = self.parse_args.peel_off
         else:
-            peel_off = self.detector.parameter['peel_off']
+            peel_off = self.model.parameter['peel_off']
         if self.parse_args.enfsca is not None:
             enfsca = self.parse_args.enfsca
         else:
-            enfsca = self.detector.parameter['enforced_scattering']
+            enfsca = self.model.parameter['enforced_scattering']
         if self.parse_args.rot_axis_1 is not None:
             rot_axis_1 = self.parse_args.rot_axis_1
         else:
