@@ -642,13 +642,32 @@ public:
         matrixU[i_spectral].addValue(x, y, st.U());
         matrixV[i_spectral].addValue(x, y, st.V());
 
-        if(radiation_type == DIRECT_STAR)
-            matrixT[i_spectral].addValue(x, y, st.I());
-        else
-            matrixS[i_spectral].addValue(x, y, st.I());
+        // Add to SED
+        if(sedI != 0)
+        {
+#pragma omp atomic update
+            sedI[i_spectral] += st.I();
+#pragma omp atomic update
+            sedQ[i_spectral] += st.Q();
+#pragma omp atomic update
+            sedU[i_spectral] += st.U();
+#pragma omp atomic update
+            sedV[i_spectral] += st.V();
+        }
 
-        // Add Stokes Vector on SED as well        
-        addToSedDetector(st, i_spectral);
+        if(radiation_type == DIRECT_STAR)
+        {
+            matrixT[i_spectral].addValue(x, y, st.I());
+        }
+        else
+        {
+            matrixS[i_spectral].addValue(x, y, st.I());
+            if(sedI != 0)
+            {
+#pragma omp atomic update
+                sedT[i_spectral] += st.I();
+            }
+        }
     }
 
     bool writeMap(uint nr, uint results_type)
@@ -934,7 +953,7 @@ public:
         }
         else
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy], optical depth", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_scat [Jy/px]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
         pFits->pHDU().addKey("ID", nr, "detector ID");

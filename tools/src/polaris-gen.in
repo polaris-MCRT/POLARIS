@@ -293,7 +293,7 @@ if __name__ == '__main__':
     grid_routines = GridRoutines(parser_options)
     print('--- Initialization finished!                                    ')
     if parser_options.update_grid:
-        print('--- Update grid to v4.01 ...')
+        print('--- Update grid to v4.02 ...')
         grid_routines.update_polaris_grid()
         print('--- Update of grid finished!                                 ')
     elif parser_options.revert_grid:
