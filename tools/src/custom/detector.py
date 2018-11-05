@@ -135,8 +135,8 @@ class GGTauDetector(Detector):
         self.parameter['nr_pixel_y'] = 512
         self.parameter['max_subpixel_lvl'] = 0
         # Wavelengths
-        self.parameter['wavelength_list'] = 1.65e-06
-        #self.parameter['wavelength_list'] = np.array([10., 450., 1300.]) * 1e-6
+        #self.parameter['wavelength_list'] = 1.65e-06
+        self.parameter['wavelength_list'] = np.array([1.65, 7.8, 10., 450., 1300.]) * 1e-6
 
 class HD97048Detector(Detector):
     """Change this to the detector you want to use.

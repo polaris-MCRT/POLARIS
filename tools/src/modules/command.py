@@ -333,7 +333,6 @@ class CmdPolaris:
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
         if 'dust_' in self.parse_args.simulation_type and \
                 self.parse_args.simulation_type not in ['dust_mc', 'dust_full']:
@@ -341,8 +340,10 @@ class CmdPolaris:
                 cmd_file.write('\t<align>\t\t\tALIG_' + str(align).upper() + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<max_subpixel_lvl>\t' + str(max_subpixel_lvl) + '\n')
-        cmd_file.write('\t<f_highJ>\t\t' + str(self.parse_args.f_highj) + '\n')
-        cmd_file.write('\t<f_c>\t\t\t' + str(self.parse_args.f_c) + '\n')
+        if self.parse_args.f_highj is not None:
+            cmd_file.write('\t<f_highJ>\t\t' + str(self.parse_args.f_highj) + '\n')
+        if self.parse_args.f_c is not None:
+            cmd_file.write('\t<f_c>\t\t\t' + str(self.parse_args.f_c) + '\n')
         cmd_file.write('\n')
         if self.parse_args.no_rt_scattering:
             cmd_file.write('\t<rt_scattering>\t0\n')
