@@ -265,7 +265,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     }
 
     rad.calcMonteCarloRadiationField(param.getCommand(), 
-        use_energy_density, (param.getCommand() == CMD_RAT));
+        use_energy_density, false); //(param.getCommand() == CMD_RAT));
         
     if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
