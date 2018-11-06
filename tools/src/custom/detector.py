@@ -134,6 +134,8 @@ class GGTauDetector(Detector):
         self.parameter['nr_pixel_x'] = 512
         self.parameter['nr_pixel_y'] = 512
         self.parameter['max_subpixel_lvl'] = 0
+        #self.parameter['sidelength_zoom_x'] = 600. / 686.
+        #self.parameter['sidelength_zoom_y'] = 600. / 686.
         # Wavelengths
         #self.parameter['wavelength_list'] = 1.65e-06
         self.parameter['wavelength_list'] = np.array([1.65, 7.8, 10., 450., 1300.]) * 1e-6

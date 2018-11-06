@@ -73,7 +73,7 @@ class Grid:
         #: int: Number of quantities per grid cell
         self.data_length = 8 + self.nr_gas_densities + self.nr_dust_densities
         if parse_args.variable_dust or self.model.parameter['variable_dust']:
-            if self.nr_gas_densities == 1 and self.nr_dust_densities == 1:
+            if self.nr_gas_densities == 1 and self.nr_dust_densities <= 1:
                 self.dust_id_used = True
                 self.data_length += 1
         else:
