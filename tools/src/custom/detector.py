@@ -129,7 +129,7 @@ class GGTauDetector(Detector):
         # Rotation angle around the first rotation axis
         self.parameter['rot_angle_1'] = -37.0  # -40.0
         self.parameter['rot_angle_2'] = 26.45
-        self.PA = (360. - 277.) / 180. * np.pi
+        self.PA = (360. - 327.) / 180. * np.pi
         self.parameter['rot_axis_1'] = [np.cos(self.PA), np.sin(self.PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]
         self.parameter['nr_pixel_x'] = 512
