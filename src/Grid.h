@@ -54,6 +54,9 @@ public:
         a_max_min = 0;
         a_max_max = 0;
 
+        dust_id_min = 0;
+        dust_id_max = 0;
+
         min_larm_limit = 0;
         max_larm_limit = 0;
 
@@ -238,6 +241,9 @@ public:
 
         a_max_min = 1e300;
         a_max_max = -1e300;
+
+        dust_id_min = MAX_UINT;
+        dust_id_max = 0;
 
         max_pres = -1e300;
         min_pres = 1e300;
@@ -3093,6 +3099,9 @@ protected:
     double a_min_max;
     double a_max_min;
     double a_max_max;
+
+    uint dust_id_min;
+    uint dust_id_max;
 
     double min_pres;
     double max_pres;

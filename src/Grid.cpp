@@ -149,6 +149,17 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             a_max_min = a_max;
     }
 
+    if(data_pos_id != MAX_UINT)
+    {
+        uint dust_id = cell->getData(data_pos_id);
+
+        if(dust_id > float(dust_id_max))
+            dust_id_max = dust_id;
+
+        if(dust_id < float(dust_id_min))
+            dust_id_min = dust_id;
+    }
+
     //data positions for synchrotron
     if(data_pos_n_th != MAX_UINT)
     {
@@ -479,6 +490,9 @@ void CGridBasic::printPhysicalParameter()
 
     if(data_pos_amax != MAX_UINT)
         cout << "- maximum grain size  (min,max) : [" << a_max_min << ", " << a_max_max << "] [m]" << endl;
+
+    if(data_pos_id != MAX_UINT)
+        cout << "- dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "] [m]" << endl;
 
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
