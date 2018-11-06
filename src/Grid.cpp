@@ -492,7 +492,7 @@ void CGridBasic::printPhysicalParameter()
         cout << "- maximum grain size  (min,max) : [" << a_max_min << ", " << a_max_max << "] [m]" << endl;
 
     if(data_pos_id != MAX_UINT)
-        cout << "- dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "] [m]" << endl;
+        cout << "- dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "]" << endl;
 
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
