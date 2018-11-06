@@ -327,9 +327,9 @@ class GGTauDisk(Model):
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['gas_mass'] = np.array([[1.e-3, 1.e-5, 1.e-5, 1.3e-1]]) * self.math.const['M_sun']
         self.parameter['stellar_source'] = 'gg_tau_stars'
-        self.parameter['dust_composition'] = 'silicate'
+        self.parameter['dust_composition'] = 'multi_sil'
         self.parameter['detector'] = 'gg_tau'
-
+        self.parameter['variable_dust'] = True
         # Parameter for the density distribution
         self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
         self.parameter['outer_radius'] = 300. * self.math.const['au']
@@ -370,7 +370,7 @@ class GGTauDisk(Model):
         #ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
         #self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
         n_ph_list_1 = [600] * 150
-        n_ph_list_2 = [1] * 51
+        n_ph_list_2 = [180] * 51
         self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
 
     def gas_density_distribution(self):
@@ -439,6 +439,23 @@ class GGTauDisk(Model):
 
         # Return the densities of each region
         return [[disk_density_Aa, disk_density_Ab1, disk_density_Ab2, disk_density]]
+
+    def dust_id(self):
+        """Calculates the dust ID depending on the position in the grid.
+        The dust ID is related to the dust composition. With this, one can
+        change the dust properties inside the disk.
+
+        Returns:
+            int: dust ID.
+        """
+        # Calculate cylindrical radius
+        radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+
+        if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
+            dust_id = 1
+        else:
+            dust_id = 0
+        return dust_id
 
     def scale_height(self, radius):
         """Calculates the scale height at a certain position.
