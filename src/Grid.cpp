@@ -1165,7 +1165,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
             per_max = bins * bins * bins;
         }
 
-        if(midplane_3d_param[2] != 0 && midplane_3d_param[3] != 0)
+        if(midplane_3d_param[2] != 0 || midplane_3d_param[3] != 0)
         {
             z_step = (midplane_3d_param[3] - midplane_3d_param[2]) / double(naxes[2]);
             off_z = 0.5 * z_step;

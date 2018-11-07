@@ -1401,8 +1401,9 @@ public:
             default:
                 break;
         }
-        
+
         // Include possible shift in z direction
+        cout << shift_z / con_AU << endl;
         tz += shift_z;
     }
 
