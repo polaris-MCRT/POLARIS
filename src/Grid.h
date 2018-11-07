@@ -1344,7 +1344,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tz = double(l) * z_step - sg * off_z;
+                    tz = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
                     tz = 0.1;
@@ -1361,7 +1361,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    ty = double(l) * z_step - sg * off_z;
+                    ty = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
                     ty = 0.1;
@@ -1378,7 +1378,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tx = double(l) * z_step - sg * off_z;
+                    tx = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
                     tx = 0.1;
@@ -1400,10 +1400,7 @@ public:
 
             default:
                 break;
-        }
-
-        // Include possible shift in z direction
-        tz += shift_z;
+        }        
     }
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)

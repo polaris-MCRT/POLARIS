@@ -2719,6 +2719,11 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
             nr_of_slices = uint(values[1]);
         if(values.size() == 4)
         {
+            if(values[2] > values[3])
+            {
+               cout << ">> ERROR: z_min is larger than z_max for 3D midplane creation!" << endl;
+                return false; 
+            }
             z_min = values[2];
             z_max = values[3];
         }
