@@ -1148,7 +1148,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
     double max_midplane_len = (max_len / param.getMidplaneZoom());
 
     dlist midplane_3d_param = param.getMidplane3dParams();
-    double z_step, off_z;
+    double z_step, off_z, shift_z = 0;
     uint plane_3d = 0;
     if(midplane_3d_param.size() == 4)
     {
@@ -1169,6 +1169,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
         {
             z_step = (midplane_3d_param[3] - midplane_3d_param[2]) / double(naxes[2]);
             off_z = 0.5 * z_step;
+            shift_z = (midplane_3d_param[3] + midplane_3d_param[2]) / 2.0;
         }
         else
         {
@@ -1353,11 +1354,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
                         j++;
 
                 double tx, ty, tz;
-                setPlaneParameter(plane_3d, xy_step, off_xy, z_step, off_z, j, k, l, tx, ty, tz);
-                
-                // Adjust for chosen z range
-                if(midplane_3d_param[2] != 0)
-                    tz += midplane_3d_param[2];
+                setPlaneParameter(plane_3d, xy_step, off_xy, z_step, off_z, shift_z,
+                    j, k, l, tx, ty, tz);
 
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
@@ -1570,7 +1568,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
 
                 double tx, ty, tz;
 
-                setPlaneParameter(i, xy_step, off_xy, 0, 0, j, k, 0, tx, ty, tz);
+                setPlaneParameter(i, xy_step, off_xy, 0, 0, j, k, 0, 0, tx, ty, tz);
 
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
@@ -1806,7 +1804,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
     if(midplane_3d_param.size() == 4)
     {
         double bin_width_z = z_step;
-        double first_pix_val_z = -(z_step *  double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
+        double first_pix_val_z = shift_z - (z_step *  double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
 
         // Grid
         pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");

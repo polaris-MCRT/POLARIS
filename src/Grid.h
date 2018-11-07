@@ -1320,7 +1320,8 @@ public:
         return cell->getData(data_pos_tg);
     }
 
-    void setPlaneParameter(uint plane_index, double xy_step, double off_xy, double z_step, double off_z,
+    void setPlaneParameter(uint plane_index, double xy_step, double off_xy, 
+        double z_step, double off_z, double shift_z,
         int j, int k, int l, double & tx, double & ty, double & tz)
     {
         switch(plane_index)
@@ -1400,6 +1401,9 @@ public:
             default:
                 break;
         }
+        
+        // Include possible shift in z direction
+        tz += shift_z;
     }
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
