@@ -648,7 +648,7 @@ class ThemisDisk(Model):
         Model.__init__(self)
 
         #: Set parameters of the disk model
-        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        self.parameter['distance'] = 109.0 * self.math.const['pc']
         # --- Adjusted for the 1. thomas model ---
         self.parameter['gas_mass'] = np.array([[0.17e-03], [0.63e-04], [0.255e-03], [0.255e-03]]) 
         # ---
@@ -702,6 +702,8 @@ class ThemisDisk(Model):
                     self.parameter['gas_mass'] = np.array([[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3]]) 
                 elif model_number == 2:
                     self.parameter['gas_mass'] = np.array([[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]]) 
+                elif model_number == 3:
+                    self.parameter['gas_mass'] = np.array([[0.8e-4], [0.63e-3], [0.255e-2], [0.255e-2]]) 
                 self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum()
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
