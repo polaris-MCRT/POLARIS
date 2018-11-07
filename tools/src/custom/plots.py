@@ -66,37 +66,26 @@ class CustomPlots:
             plot.save_figure(self.file_io)
 
     def plot_2(self):
-        """Plot mie results for testing purposes.
+        """Plot fits file with internal image creation.
         """
-        from PyMieScatt import MatrixElements
-
-        # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('scatter_matrix')
-
-        N_size = 10
-        size_list = np.linspace(5e-9, 0.25e-6, N_size)
-
-        n_th = 181
-        theta_list = np.linspace(0, 180, n_th)
-
-        nk_data = np.genfromtxt('/home/rbrauer/astrophysics/mc3d/input/dust/tables_nk/olivine1.nk')
-
-        scatter_matrix = np.zeros((nk_data.shape[0], N_size, 181, 4))
-
-        for i_wl, (wavelength, n, k) in enumerate(nk_data):
-            plot = Plot(self.model, self.parse_args, xlabel=r'$\theta\ [\si{\degree}]$',
-                ylabel=r'$\mathsf{S11}$', with_cbar=False)
-            for i_a, a_eff in enumerate(size_list):
-                for i_theta, theta in enumerate(theta_list):
-                    cos_theta = np.cos(theta / 180. * np.pi)
-                    scatter_matrix[i_wl, i_a, i_theta, :] = MatrixElements(n + 1j * k,
-                        wavelength * 1e3, a_eff * 1e9, cos_theta)
-                # Plot spectrum as line
-                plot.plot_line(theta_list, scatter_matrix[i_wl, i_a, :, 0], marker='.',
-                    label='a=' + str(i_a) + ', wl=' + str(wavelength * 1e-9))
-            plot.plot_legend()
-            # Save figure to pdf file or print it on screen
-            plot.save_figure(self.file_io)
+        from astropy.io import fits
+        self.file_io.init_plot_output('gg_tau_miri_simulation')
+        hdulist = fits.open(self.file_io.path['results'] + 'polaris_detector_nr0001.fits')
+        header_dict = dict(
+            wavelengths=[7.7e-6],
+            ID=1,
+            simulation_type='dust',
+        )
+        # Update dictionary with parameters from header
+        header_dict['nr_pixel_x'] = hdulist[0].header['NAXIS1']
+        header_dict['nr_pixel_y'] = hdulist[0].header['NAXIS2']
+        header_dict['nr_wavelengths'] = 1
+        tbldata = hdulist[0].data.T
+        tbldata[np.where(tbldata < 0)] = 0
+        plot = Plot(self.model, self.parse_args)
+        plot.plot_imshow(tbldata, cbar_label=self.file_io.get_quantity_labels(0), set_bad_to_min=False)
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
 
     def plot_5(self):
         """Plot magnetic field strength map from Zeeman splitting.

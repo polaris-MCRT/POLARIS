@@ -85,13 +85,14 @@ class CmdPolaris:
         cmd_file.write('\t<write_inp_midplanes>\t' + str(midplane_points) + '\n')
         cmd_file.write('\t<write_out_midplanes>\t' + str(midplane_points) + '\n')
         if self.parse_args.midplane_3d_param is not None:
-            if 0 <= len(midplane_3d_param) <= 4 and 1 <= int(midplane_3d_param[0]) <= 3:
+            if 0 <= len(self.parse_args.midplane_3d_param) <= 4 and \
+                    1 <= int(self.parse_args.midplane_3d_param[0]) <= 3:
                 cmd_file.write('\t<write_3d_midplanes>')
-                for i in range(len(midplane_3d_param)):
+                for i in range(len(self.parse_args.midplane_3d_param)):
                     if 1 < i < 4:
-                        cmd_file.write('\t' + str(self.math.parse(midplane_3d_param[i], 'length')))
+                        cmd_file.write('\t' + str(self.math.parse(self.parse_args.midplane_3d_param[i], 'length')))
                     else:
-                        cmd_file.write('\t' + str(midplane_3d_param[i]))
+                        cmd_file.write('\t' + str(self.parse_args.midplane_3d_param[i]))
                 cmd_file.write('\n')
         cmd_file.write('\t<plot_inp_midplanes>\t0\n')
         cmd_file.write('\t<plot_out_midplanes>\t0\n')

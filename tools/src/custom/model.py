@@ -322,30 +322,42 @@ class GGTauDisk(Model):
         """
         Model.__init__(self)
 
-        # Set parameters of the disk model
+        # ----------------------------------------------
+        # ------ Set parameters of the disk model ------
+        # ----------------------------------------------
         self.parameter['distance'] = 140. * self.math.const['pc']
         self.parameter['grid_type'] = 'cylindrical'
+        # ------ With circumstellar disks -----
         self.parameter['gas_mass'] = np.array([[1.e-3, 1.e-5, 1.e-5, 1.3e-1]]) * self.math.const['M_sun']
+        # ---- Without circumstellar disks ----
+        #self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
+        # -------------------------------------
         self.parameter['stellar_source'] = 'gg_tau_stars'
         self.parameter['dust_composition'] = 'multi_sil'
         self.parameter['detector'] = 'gg_tau'
-        self.parameter['variable_dust'] = True
-        # Parameter for the density distribution
-        self.parameter['inner_radius'] = 10. * self.math.const['au']  # 180 AU
+        self.parameter['variable_dust'] = False#True
+        # ----------------------------------------------
+        # --- Parameter for the density distribution ---
+        # ----------------------------------------------
         self.parameter['outer_radius'] = 300. * self.math.const['au']
-        # --- Position angle of the stars (Ab12 is Ab1 and Ab2)
+        # ------ With circumstellar disks -----
+        self.parameter['inner_radius'] = 10. * self.math.const['au']
+        # ---- Without circumstellar disks ----
+        #self.parameter['inner_radius'] = 180. * self.math.const['au'] 
+        # -------------------------------------
+        # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab12 = self.angle_Aa + np.pi
-        # --- Half-major axis of the stars (Ab12 is Ab1 and Ab2)
+        # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
         self.a_Aab = 36. / 2. * self.math.const['au']
         self.a_Ab12 = 4.5 / 2. * self.math.const['au']
-        # -- Inclination of the GG Tau Aa and Ab12 orbits
+        # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
-        # -- Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 20.0 / 180. * np.pi
-        self.inclination_Ab12 = 20.0 / 180. * np.pi
-        self.inclination_rotation_axis = [1, -0.2, 0]
-        # --- Extend of the circumstellar disks around the stars
+        # Inclination of the circumstellar disks around the stars
+        self.inclination_Aa = 45.0 / 180. * np.pi
+        self.inclination_Ab12 = 45.0 / 180. * np.pi
+        self.inclination_rotation_axis = [1, 0, 0]
+        # Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
         self.outer_radius_Ab12 = 2. * self.math.const['au']
@@ -355,23 +367,30 @@ class GGTauDisk(Model):
         self.beta = 1.05
         self.surf_dens_exp = -1.7
         self.cut_off = 2. * self.math.const['au']
-        # Distribution of cell borders
+        # ----------------------------------------------
+        # -------- Distribution of cell borders --------
+        # ----------------------------------------------
         self.cylindrical_parameter['n_z'] = 151
         self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
         self.cylindrical_parameter['sf_ph'] = -1  # Custom number of phi-cells per ring
         self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
-        # --- Radial cells
+        # Radial cells
         r_list_cs_disks = np.linspace(10., 25., 150)
         r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
+        # ------ With circumstellar disks -----
         self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
-        # --- Phi cells
-        #ph_list_1 = np.linspace((0.5 - 0.15) * np.pi, (0.5 + 0.15) * np.pi, 100)
-        #ph_list_2 = np.linspace((1.5 - 0.15) * np.pi, (1.5 + 0.15) * np.pi, 100)
-        #self.cylindrical_parameter['phi_list'] = np.hstack((ph_list_1, ph_list_2)).ravel()
+        # ---- Without circumstellar disks ----
+        #self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
+        # -------------------------------------
+        # Phi cells
         n_ph_list_1 = [600] * 150
         n_ph_list_2 = [180] * 51
+        # ------ With circumstellar disks -----
         self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
+        # ---- Without circumstellar disks ----
+        #self.cylindrical_parameter['n_ph'] = n_ph_list_2
+        # -------------------------------------
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -395,7 +414,7 @@ class GGTauDisk(Model):
                 inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disk
-            disk_density_Aa = 0
+            disk_density_Aa = 0.
 
         # --- GG Tau Ab1 and Ab2
         if self.a_Aab - self.a_Ab12 - self.outer_radius_Ab12 <= radius_cy <=  self.a_Aab + self.a_Ab12 + self.outer_radius_Ab12:
@@ -422,8 +441,8 @@ class GGTauDisk(Model):
                 inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disks
-            disk_density_Ab1 = 0
-            disk_density_Ab2 = 0  
+            disk_density_Ab1 = 0.
+            disk_density_Ab2 = 0.  
 
         if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
             # Calculate the density
@@ -435,10 +454,14 @@ class GGTauDisk(Model):
                 disk_density *= np.exp(-0.5 * ((190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
         else:
             # Set to zero outside of the disk
-            disk_density = 0
+            disk_density = 0.
 
         # Return the densities of each region
+        # ------ With circumstellar disks -----
         return [[disk_density_Aa, disk_density_Ab1, disk_density_Ab2, disk_density]]
+        # ---- Without circumstellar disks ----
+        #return disk_density
+        # -------------------------------------
 
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
