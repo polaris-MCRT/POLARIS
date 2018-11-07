@@ -1354,6 +1354,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
 
                 double tx, ty, tz;
                 setPlaneParameter(plane_3d, xy_step, off_xy, z_step, off_z, j, k, l, tx, ty, tz);
+                
+                // Adjust for chosen z range
+                if(midplane_3d_param[2] != 0)
+                    tz += midplane_3d_param[2];
 
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
