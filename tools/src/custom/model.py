@@ -370,7 +370,7 @@ class GGTauDisk(Model):
         # ----------------------------------------------
         # -------- Distribution of cell borders --------
         # ----------------------------------------------
-        self.cylindrical_parameter['n_z'] = 151
+        self.cylindrical_parameter['n_z'] = 251
         self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
         self.cylindrical_parameter['sf_ph'] = -1  # Custom number of phi-cells per ring
         self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
