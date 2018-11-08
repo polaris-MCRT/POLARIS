@@ -335,7 +335,7 @@ class GGTauDisk(Model):
         self.parameter['stellar_source'] = 'gg_tau_stars'
         self.parameter['dust_composition'] = 'multi_sil'
         self.parameter['detector'] = 'gg_tau'
-        self.parameter['variable_dust'] = False#True
+        self.parameter['variable_dust'] = True
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
@@ -356,7 +356,7 @@ class GGTauDisk(Model):
         # Inclination of the circumstellar disks around the stars
         self.inclination_Aa = 45.0 / 180. * np.pi
         self.inclination_Ab12 = 45.0 / 180. * np.pi
-        self.inclination_rotation_axis = [1, 0, 0]
+        self.inclination_rotation_axis = [1.0, 0, 0]
         # Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']

@@ -1568,7 +1568,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
 
                 double tx, ty, tz;
 
-                setPlaneParameter(i, xy_step, off_xy, 0, 0, j, k, 0, 0, tx, ty, tz);
+                setPlaneParameter(i, xy_step, off_xy, 0, 0, 0, j, k, 0, tx, ty, tz);
 
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 

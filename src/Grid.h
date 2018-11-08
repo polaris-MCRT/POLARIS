@@ -1344,10 +1344,11 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tz = double(l) * z_step - sg * off_z + shift_z;
+                    tz = double(l) * z_step - sg * off_z;
                 }
                 else
                     tz = 0.1;
+                tz += shift_z;
                 break;
 
             case PROJ_XZ:
@@ -1361,10 +1362,11 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    ty = double(l) * z_step - sg * off_z + shift_z;
+                    ty = double(l) * z_step - sg * off_z;
                 }
                 else
                     ty = 0.1;
+                ty += shift_z;
                 if(k != 0)
                 {
                     double sg = CMathFunctions::sgn(k);
@@ -1378,10 +1380,11 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tx = double(l) * z_step - sg * off_z + shift_z;
+                    tx = double(l) * z_step - sg * off_z;
                 }
                 else
                     tx = 0.1;
+                tx += shift_z;
                 if(j != 0)
                 {
                     double sg = CMathFunctions::sgn(j);
