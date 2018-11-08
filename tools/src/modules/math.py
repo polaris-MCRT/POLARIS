@@ -730,7 +730,7 @@ class Math:
         Returns:
             List[float, float, float]: Rotated carthesian coordinates
         """
-        #rotation_axis /= np.linalg.norm(rotation_axis)
+        rotation_axis /= np.linalg.norm(rotation_axis)
         (u_x, u_y, u_z) = rotation_axis
         rot_cos = np.cos(rotation_angle)
         rot_sin = np.sin(rotation_angle)

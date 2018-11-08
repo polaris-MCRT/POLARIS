@@ -354,15 +354,15 @@ class GGTauDisk(Model):
         # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 45.0 / 180. * np.pi
-        self.inclination_Ab12 = 45.0 / 180. * np.pi
-        self.inclination_rotation_axis = [1.0, 0, 0]
+        self.inclination_Aa = 25.0 / 180. * np.pi
+        self.inclination_Ab12 = 25.0 / 180. * np.pi
+        self.inclination_rotation_axis = [1, 0, 0]
         # Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
         self.outer_radius_Ab12 = 2. * self.math.const['au']
         # Parameter of the circumbinary disk
-        self.ref_scale_height = 16. * self.math.const['au']  # 32. * self.math.const['au']
+        self.ref_scale_height = 20. * self.math.const['au']  # 32. * self.math.const['au']
         self.ref_radius = 180. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
