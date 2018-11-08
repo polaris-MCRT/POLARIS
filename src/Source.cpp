@@ -12,6 +12,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     if(use_energy_density)
     {
         // For using energy density, only the photon number is required
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
     }
@@ -149,15 +150,12 @@ bool CSourceStar::setParameterFromFile(parameter & param, uint p)
     return true;
 }
 
-void CSourceStar::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceStar::createNextRay(photon_package * pp, llong i_pos)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
-
-    if(nr_photons == MAX_UINT)
-        nr_photons = nr_of_photons;
 
     pp->initRandomGenerator(i_pos);
     pp->calcRandomDirection();
@@ -167,7 +165,7 @@ void CSourceStar::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
         wID = pp->getWavelengthID();
         if(is_ext)
         {
-            energy = sp_ext.getValue(wavelength_list[wID]) / nr_photons;
+            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
             tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
@@ -175,13 +173,13 @@ void CSourceStar::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
         else
         {
             double pl = CMathFunctions::planck(wavelength_list[wID], T);
-            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_photons;
+            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
             tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
         }
     }
     else
     {
-        energy = L / nr_photons;
+        energy = L / nr_of_photons;
         wID = lam_pf.getXIndex(pp->getRND());
 
         if(is_ext)
@@ -210,8 +208,11 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
     cout << "-> Initiating source star field      \r" << flush;
 
     if(use_energy_density)
+    {
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
             << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
+    }
     else
     {
         // Init variables
@@ -348,14 +349,11 @@ bool CSourceStarField::setParameterFromFile(parameter & param, uint p)
     return true;
 }
 
-void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceStarField::createNextRay(photon_package * pp, llong i_pos)
 {
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
-
-    if(nr_photons == MAX_UINT)
-        nr_photons = nr_of_photons;
 
     pp->initRandomGenerator(i_pos);
     pp->calcRandomDirection();
@@ -370,7 +368,7 @@ void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, uint nr_p
         if(is_ext)
         {
             wID = pp->getWavelengthID();
-            energy = sp_ext.getValue(wavelength_list[wID]) / nr_photons;
+            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
             tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
@@ -378,13 +376,13 @@ void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, uint nr_p
         else
         {
             double pl = CMathFunctions::planck(wavelength_list[wID], T);
-            energy = 4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl / nr_photons;
+            energy = 4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
             tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
         }
     }
     else
     {
-        energy = L / nr_photons;
+        energy = L / nr_of_photons;
         wID = lam_pf.getXIndex(pp->getRND());
 
         tmp_stokes_vector = energy * StokesVector(1.0, 0, 0, 0);
@@ -437,8 +435,11 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         }
 
         if(use_energy_density)
+        {
+            //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+        }
         else
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
                 << "with " << nr_of_photons << " photons per cell" << endl;
@@ -482,8 +483,11 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         }
 
         if(use_energy_density)
+        {
+            //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
                     << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+        }
         else
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
                     << "with " << nr_of_photons << " photons per cell" << endl;
@@ -658,8 +662,11 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     }
     cout << CLR_LINE << flush;
     if(use_energy_density)
+    {
+        //nr_of_photons = llong(nr_of_photons / double(getNrOfWavelength()));
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
             << nr_of_photons << " photons per wavelength" << endl;
+    }
     else
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
             << nr_of_photons << " photons" << endl;
@@ -748,26 +755,23 @@ bool CSourceISRF::setParameterFromFile(parameter & param, uint p)
     return true;
 }
 
-void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceISRF::createNextRay(photon_package * pp, llong i_pos)
 {
     double energy, excess_x = 0, excess_y = 0, excess_z = 0;
     StokesVector tmp_stokes_vector;
     pp->initRandomGenerator(i_pos);
     uint wID;
 
-    if(nr_photons == MAX_UINT)
-        nr_photons = nr_of_photons;
-
     if(pp->getWavelengthID() != MAX_UINT)
     {
         wID = pp->getWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1]
-        energy = pl * PI * 3 * pow(sidelength, 2) / nr_photons; //[W m^-1] energy per second an wavelength
+        energy = pl * PI * 3 * pow(sidelength, 2) / nr_of_photons; //[W m^-1] energy per second an wavelength
     }
     else
     {
         wID = lam_pf.getXIndex(pp->getRND());
-        energy = L / nr_photons;
+        energy = L / nr_of_photons;
 
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
@@ -883,14 +887,11 @@ bool CSourceDust::initSource(uint w)
     return true;
 }
 
-void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceDust::createNextRay(photon_package * pp, llong i_pos)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
-    pp->calcRandomDirection(); 
-
-    if(nr_photons == MAX_UINT)
-        nr_photons = nr_of_photons; 
+    pp->calcRandomDirection();  
 
     // Set wavelength of photon package
     uint w = pp->getWavelengthID();  
@@ -908,7 +909,7 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     grid->setRndPositionInCell(pp);
 
     // Set Stokes vector of photon package
-    double energy = total_energy / double(nr_photons);
+    double energy = total_energy / double(nr_of_photons);
 
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));

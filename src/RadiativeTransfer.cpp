@@ -476,15 +476,15 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     switch(command)
     {
         case CMD_TEMP_RAT:
-            cout << "- MC calc. of temperatures and RATs :   done                                " << endl;
+            cout << "- MC Calc. of temperatures and RATs :   done                                " << endl;
             break;
         
         case CMD_TEMP:
-            cout << "- MC calculation of temperatures    :   done                                " << endl;
+            cout << "- MC Calculation of temperatures    :   done                                " << endl;
             break;
 
         default:
-            cout << "- MC calculation of radiation field :   done                                " << endl;
+            cout << "- MC Calculation of radiation field :   done                                " << endl;
             break;
     }
     return true;
@@ -812,11 +812,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Transport a separate photon to each detector
                                     for(uint d = 0; d < nr_ofMCDetectors; d++)
                                     {
-                                        // Get index of wavelength in current detector
-                                        uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
-
                                         // Only calculate for detectors with the corresponding wavelengths
-                                        if(wID_det != MAX_UINT)
+                                        if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
                                         {
                                             // Create an escaping photon into the direction
                                             // of the detector
@@ -829,7 +826,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                 dust->getWavelength(wID), detector[d].getDistance());
 
                                             // Add the photon package to the detector
-                                            detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, SCATTERED_DUST);
+                                            detector[d].addToMonteCarloDetector(&tmp_pp, SCATTERED_DUST);
                                         }
                                     }
                                 }
@@ -872,11 +869,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Transport photon to observer for each detector
                         for(uint d = 0; d < nr_ofMCDetectors; d++)
                         {
-                            // Get index of wavelength in current detector
-                            uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
-
                             // Only calculate for detectors with the corresponding wavelengths
-                            if(wID_det != MAX_UINT)
+                            if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
                             {
                                 // Get direction to the current detector
                                 Vector3D dir_obs = detector[d].getDirection();
@@ -912,12 +906,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     if(interactions == 0)
                                     {
                                         // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(pp, wID_det, DIRECT_STAR);
+                                        detector[d].addToMonteCarloDetector(pp, DIRECT_STAR);
                                     }
                                     else
                                     {
                                         // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(pp, wID_det, SCATTERED_DUST);
+                                        detector[d].addToMonteCarloDetector(pp, SCATTERED_DUST);
                                     }
                                 }
                             }
@@ -937,11 +931,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 // Transport photon to observer for each detector
                 for(uint d = 0; d < nr_ofMCDetectors; d++)
                 {
-                    // Get index of wavelength in current detector
-                    uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
-
                     // Only calculate for detectors with the corresponding wavelengths
-                    if(wID_det != MAX_UINT)
+                    if(detector[d].isInWavelengthList(dust->getWavelength(wID)))
                     {
                         // Create temporary photon package
                         photon_package tmp_pp;
@@ -984,7 +975,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             detector[d].getDistance());
 
                         // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
+                        detector[d].addToMonteCarloDetector(&tmp_pp, DIRECT_STAR);
                     }
                 }
             }
@@ -1045,7 +1036,7 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
         {
 #pragma omp critical
             {
-                cout << "-> Converting emissivities: "
+                cout << "-> Converting emissivities:"
                         << 100.0 * float(pos_counter) / float(max_cells)
                         << " %       \r";
             }
@@ -2145,10 +2136,6 @@ void CRadiativeTransfer::calcStellarEmission()
     // Transport photon to observer for each detector
     for(uint s = 0; s < sources_mc.size(); s++)
     {
-        // Ignore dust as Monte-Carle radiation source
-        if(sources_mc[s]->getStringID() == "dust source")
-            continue;
-
         // Get chosen wavelength parameter
         uint nr_used_wavelengths = tracer->getNrOfSpectralBins();
 
@@ -2176,7 +2163,7 @@ void CRadiativeTransfer::calcStellarEmission()
             pp->setWavelengthID(wID);
 
             // Launch photon package
-            sources_mc[s]->createNextRay(pp, long(0), uint(1));
+            sources_mc[s]->createNextRay(pp, long(0));
             Vector3D source_pos = pp->getPosition();
 
             // Set direction of the photon package to the observer
@@ -2204,7 +2191,6 @@ void CRadiativeTransfer::calcStellarEmission()
             }
             mult *= exp(-tau_obs) / (4.0 * PI);
             mult *= tracer->getDistanceFactor(source_pos);
-
 
             // Update the photon package with the multi Stokes vectors
             pp->setMultiStokesVector(WMap.S(i_wave) * mult, i_wave);
