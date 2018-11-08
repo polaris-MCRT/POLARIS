@@ -1936,7 +1936,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
     if(midplane_3d_param.size() == 4)
     {
         double bin_width_z = z_step;
-        double first_pix_val_z = -(z_step *  double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
+        double first_pix_val_z = shift_z - (z_step *  double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
 
         // Grid
         pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
