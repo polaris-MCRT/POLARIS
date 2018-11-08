@@ -134,7 +134,7 @@ public:
     {
     }
 
-    virtual void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT)
+    virtual void createNextRay(photon_package * pp, llong i_pos)
     {
     }
 
@@ -203,7 +203,7 @@ public:
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos);
 
     bool setParameterFromFile(parameter & param, uint p);
     void setParameter(parameter & param, uint p)
@@ -240,7 +240,7 @@ public:
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos);
 
     bool setParameterFromFile(parameter & param, uint p);
     void setParameter(parameter & param, uint p)
@@ -430,7 +430,7 @@ public:
 
     bool setParameterFromFile(parameter & param, uint p);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos);
 
 private:
     Vector3D e, l;
@@ -464,7 +464,7 @@ public:
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos);
 
     void setParameter(parameter & param, uint p)
     {

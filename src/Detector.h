@@ -58,7 +58,6 @@ public:
         sedQ = 0;
         sedU = 0;
         sedV = 0;
-        sedT = 0;
 
         lam_min = 0;
         lam_max = 0;
@@ -114,7 +113,6 @@ public:
         sedQ = new double[nr_extra * nr_of_spectral_bins];
         sedU = new double[nr_extra * nr_of_spectral_bins];
         sedV = new double[nr_extra * nr_of_spectral_bins];
-        sedT = new double[nr_extra * nr_of_spectral_bins];
 
         matrixI = new Matrix2D[nr_extra * nr_of_spectral_bins];
         matrixQ = new Matrix2D[nr_extra * nr_of_spectral_bins];
@@ -138,7 +136,6 @@ public:
                 sedQ[w + i_extra * nr_of_spectral_bins] = 0;
                 sedU[w + i_extra * nr_of_spectral_bins] = 0;
                 sedV[w + i_extra * nr_of_spectral_bins] = 0;
-                sedT[w + i_extra * nr_of_spectral_bins] = 0;
             }
         }
     }
@@ -186,7 +183,6 @@ public:
         sedQ = new double[nr_extra * nr_of_spectral_bins];
         sedU = new double[nr_extra * nr_of_spectral_bins];
         sedV = new double[nr_extra * nr_of_spectral_bins];
-        sedT = new double[nr_extra * nr_of_spectral_bins];
 
         matrixI = new Matrix2D[nr_extra * nr_of_spectral_bins];
         matrixQ = new Matrix2D[nr_extra * nr_of_spectral_bins];
@@ -210,7 +206,6 @@ public:
                 sedQ[w + i_extra * nr_of_spectral_bins] = 0;
                 sedU[w + i_extra * nr_of_spectral_bins] = 0;
                 sedV[w + i_extra * nr_of_spectral_bins] = 0;
-                sedT[w + i_extra * nr_of_spectral_bins] = 0;
             }
         }
         
@@ -266,7 +261,6 @@ public:
         sedQ = new double[nr_of_spectral_bins];
         sedU = new double[nr_of_spectral_bins];
         sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
 
         matrixI = new Matrix2D[nr_of_spectral_bins];
         matrixQ = new Matrix2D[nr_of_spectral_bins];
@@ -288,7 +282,6 @@ public:
             sedQ[vch] = 0;
             sedU[vch] = 0;
             sedV[vch] = 0;
-            sedT[vch] = 0;
         }
 
         lam_min = 0;
@@ -344,7 +337,6 @@ public:
         sedQ = new double[nr_of_spectral_bins];
         sedU = new double[nr_of_spectral_bins];
         sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
 
         matrixI = new Matrix2D[nr_of_spectral_bins];
         matrixQ = new Matrix2D[nr_of_spectral_bins];
@@ -366,7 +358,6 @@ public:
             sedQ[vch] = 0;
             sedU[vch] = 0;
             sedV[vch] = 0;
-            sedT[vch] = 0;
         }
 
         lam_min = 0;
@@ -421,7 +412,6 @@ public:
         sedQ = new double[nr_of_spectral_bins];
         sedU = new double[nr_of_spectral_bins];
         sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
 
         matrixI = new Matrix2D[nr_of_spectral_bins];
         matrixQ = new Matrix2D[nr_of_spectral_bins];
@@ -443,7 +433,6 @@ public:
             sedQ[w] = 0;
             sedU[w] = 0;
             sedV[w] = 0;
-            sedT[w] = 0;
         }
     }
 
@@ -470,8 +459,6 @@ public:
             delete[] sedU;
         if(sedV != 0)
             delete[] sedV;
-        if(sedT != 0)
-            delete[] sedT;
     }
 
     Vector3D getDirection()
@@ -557,16 +544,13 @@ public:
     {
         if(sedI != 0)
         {
-#pragma omp atomic update
-            sedI[i_spectral] += st.I();
-#pragma omp atomic update
-            sedQ[i_spectral] += st.Q();
-#pragma omp atomic update
-            sedU[i_spectral] += st.U();
-#pragma omp atomic update
-            sedV[i_spectral] += st.V();
-#pragma omp atomic update
-            sedT[i_spectral] += st.T() / max_cells;
+#pragma omp critical
+            {
+                sedI[i_spectral] += st.I();
+                sedQ[i_spectral] += st.Q();
+                sedU[i_spectral] += st.U();
+                sedV[i_spectral] += st.V();
+            }
         }
     }
 
@@ -582,12 +566,15 @@ public:
         uint i_spectral = pp->getWavelengthID();
         StokesVector st = pp->getMultiStokesVector(i_spectral);        
 
-        matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
-        matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
-        matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
-        matrixV[i_spectral + spectral_offset].addValue(pos_id, st.V());
-        matrixT[i_spectral + spectral_offset].addValue(pos_id, st.T());
-        matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
+#pragma omp critical
+        {
+            matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
+            matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
+            matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
+            matrixV[i_spectral + spectral_offset].addValue(pos_id, st.V());
+            matrixT[i_spectral + spectral_offset].addValue(pos_id, st.T());
+            matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
+        }
     }
 
     void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
@@ -606,18 +593,23 @@ public:
         if(y < 0 || y >= int(bins_y))
             return;
 
-        matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
-        matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
-        matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
-        matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
-        matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
-        matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
+#pragma omp critical
+        {
+            matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
+            matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
+            matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
+            matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
+            matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
+            matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
+        }
     }
 
-    void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)
+    void addToMonteCarloDetector(photon_package * pp, uint radiation_type)
     {
         Vector3D pos = pp->getPosition();
         Vector3D dir = pp->getDirection();
+
+        uint i_spectral = pp->getWavelengthID();
 
         if(dir.length() == 0)
             return;
@@ -637,37 +629,21 @@ public:
 
         StokesVector st = pp->getStokesVector();
 
-        matrixI[i_spectral].addValue(x, y, st.I());
-        matrixQ[i_spectral].addValue(x, y, st.Q());
-        matrixU[i_spectral].addValue(x, y, st.U());
-        matrixV[i_spectral].addValue(x, y, st.V());
-
-        // Add to SED
-        if(sedI != 0)
+#pragma omp critical
         {
-#pragma omp atomic update
-            sedI[i_spectral] += st.I();
-#pragma omp atomic update
-            sedQ[i_spectral] += st.Q();
-#pragma omp atomic update
-            sedU[i_spectral] += st.U();
-#pragma omp atomic update
-            sedV[i_spectral] += st.V();
+            matrixI[i_spectral].addValue(x, y, st.I());
+            matrixQ[i_spectral].addValue(x, y, st.Q());
+            matrixU[i_spectral].addValue(x, y, st.U());
+            matrixV[i_spectral].addValue(x, y, st.V());
+
+            if(radiation_type == DIRECT_STAR)
+                matrixT[i_spectral].addValue(x, y, st.I());
+            else
+                matrixS[i_spectral].addValue(x, y, st.I());
         }
 
-        if(radiation_type == DIRECT_STAR)
-        {
-            matrixT[i_spectral].addValue(x, y, st.I());
-        }
-        else
-        {
-            matrixS[i_spectral].addValue(x, y, st.I());
-            if(sedI != 0)
-            {
-#pragma omp atomic update
-                sedT[i_spectral] += st.I();
-            }
-        }
+        // Add Stokes Vector on SED as well        
+        addToSedDetector(st, i_spectral);
     }
 
     bool writeMap(uint nr, uint results_type)
@@ -895,7 +871,7 @@ public:
             remove(path_out.c_str());
 
             long naxis = 3;
-            long naxes[3] = {nr_of_spectral_bins, 1, 5};
+            long naxes[3] = {nr_of_spectral_bins, 1, 4};
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate){ return false; }
@@ -910,14 +886,12 @@ public:
         std::valarray<double> array_Q(nelements);
         std::valarray<double> array_U(nelements);
         std::valarray<double> array_V(nelements);
-        std::valarray<double> array_T(nelements);
         for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
         {
             array_I[i_spectral] = sedI[i_spectral];
             array_Q[i_spectral] = sedQ[i_spectral];
             array_U[i_spectral] = sedU[i_spectral];
             array_V[i_spectral] = sedV[i_spectral];
-            array_T[i_spectral] = sedT[i_spectral];
 
             fpixel[2] = 1;
             pFits->pHDU().write(fpixel, nelements, array_I);
@@ -927,8 +901,6 @@ public:
             pFits->pHDU().write(fpixel, nelements, array_U);
             fpixel[2] = 4;
             pFits->pHDU().write(fpixel, nelements, array_V);
-            fpixel[2] = 5;
-            pFits->pHDU().write(fpixel, nelements, array_T);
         }
 
         pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
@@ -943,17 +915,17 @@ public:
         pFits->pHDU().addKey("CUNIT2", "None", "unit of axis 2");
         if(results_type == RESULTS_RAY)
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy], optical depth", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "thermal emission", "type of emission");
         }
         else if(results_type == RESULTS_FULL)
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy], optical depth", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
         }
         else
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_scat [Jy/px]", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
         pFits->pHDU().addKey("ID", nr, "detector ID");
@@ -1568,7 +1540,7 @@ public:
             remove(path_out.c_str());
 
             long naxis = 3;
-            long naxes[3] = {nr_of_spectral_bins, 1, 5};
+            long naxes[3] = {nr_of_spectral_bins, 1, 4};
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1586,14 +1558,12 @@ public:
         std::valarray<double> array_Q(nelements);
         std::valarray<double> array_U(nelements);
         std::valarray<double> array_V(nelements);
-        std::valarray<double> array_T(nelements);
         for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
         {
             array_I[vch] = sedI[vch];
             array_Q[vch] = sedQ[vch];
             array_U[vch] = sedU[vch];
             array_V[vch] = sedV[vch];
-            array_T[vch] = sedT[vch];
 
             fpixel[2] = 1;
             pFits->pHDU().write(fpixel, nelements, array_I);
@@ -1603,8 +1573,6 @@ public:
             pFits->pHDU().write(fpixel, nelements, array_U);
             fpixel[2] = 4;
             pFits->pHDU().write(fpixel, nelements, array_V);
-            fpixel[2] = 5;
-            pFits->pHDU().write(fpixel, nelements, array_T);
         }
 
         // Frequency
@@ -1619,7 +1587,7 @@ public:
         pFits->pHDU().addKey("CRVAL2", 1, "value of axis 2");
         pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
         pFits->pHDU().addKey("CDELT2", 1, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2", "I, Q, U, V [Jy/px], optical depth", "unit of axis 2");
+        pFits->pHDU().addKey("CUNIT2", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 2");
 
         pFits->pHDU().addKey("GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
@@ -2671,13 +2639,13 @@ public:
         return lam_max;
     }
 
-    uint getDetectorWavelengthID(double wavelength)
+    bool isInWavelengthList(double wavelength)
     {
         dlist::iterator it = find(wavelength_list_det.begin(), wavelength_list_det.end(), wavelength);
         if(it != wavelength_list_det.end())
-            return wavelength_list_det.begin() - it;
+            return true;
         else
-            return MAX_UINT;
+            return false;
     }
 
     double getWavelength(uint i_wave)
@@ -2744,7 +2712,7 @@ private:
     uint nr_velocity_channels;
     uint i_trans;
     Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV, *matrixT, *matrixS;
-    double *sedI, *sedQ, *sedU, *sedV, *sedT;
+    double *sedI, *sedQ, *sedU, *sedV;
     dlist wavelength_list_det;
     dlist velocity_channel;
     Vector3D axis1, axis2, pos;

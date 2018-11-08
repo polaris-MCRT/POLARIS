@@ -54,9 +54,6 @@ public:
         a_max_min = 0;
         a_max_max = 0;
 
-        dust_id_min = 0;
-        dust_id_max = 0;
-
         min_larm_limit = 0;
         max_larm_limit = 0;
 
@@ -104,7 +101,6 @@ public:
         nr_dust_temp_sizes = 0;
         nr_stochastic_sizes = 0;
         nr_stochastic_temps = 0;
-        size_skip = 0;
 
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
@@ -147,6 +143,13 @@ public:
         plt_amax=false;
         plt_rad_field = false;
         plt_g_zero = false;
+        
+        plt_n_th=false;
+        plt_T_e=false;
+        plt_n_cr=false;
+        plt_g_min=false;
+        plt_g_max=false;
+        plt_p=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -172,6 +175,13 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
+        
+        buffer_n_th=0;
+        buffer_T_e=0;
+        buffer_n_cr=0;
+        buffer_g_min=0;
+        buffer_g_max=0;
+        buffer_p=0; 
 
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10); 
@@ -196,9 +206,6 @@ public:
             delete[] pos_OpiateIDS;
             pos_OpiateIDS = 0;
         }
-
-        if(size_skip != 0)
-            delete[] size_skip;
     }
 
     void printPhysicalParameter();
@@ -241,9 +248,6 @@ public:
 
         a_max_min = 1e300;
         a_max_max = -1e300;
-
-        dust_id_min = MAX_UINT;
-        dust_id_max = 0;
 
         max_pres = -1e300;
         min_pres = 1e300;
@@ -317,6 +321,13 @@ public:
         plt_amax=false;
         plt_rad_field = false;
         plt_g_zero = false;
+        
+        plt_n_th=false;
+        plt_T_e=false;
+        plt_n_cr=false;
+        plt_g_min=false;
+        plt_g_max=false;
+        plt_p=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -342,6 +353,13 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
+        
+        buffer_n_th=0;
+        buffer_T_e=0;
+        buffer_n_cr=0;
+        buffer_g_min=0;
+        buffer_g_max=0;
+        buffer_p=0; 
     }
 
     double getTurbulentVelocity(cell_basic * cell)
@@ -764,6 +782,7 @@ public:
         // Interpolate radiation field strength and direction
         us = CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
                 cell->getData(data_pos_rf_list[wID1]), cell->getData(data_pos_rf_list[wID2]), wavelength);
+        wID1 = 80;
         tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
                 cell->getData(data_pos_rx_list[wID1]), cell->getData(data_pos_rx_list[wID2]), wavelength));
         tmp_dir.setY(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
@@ -841,7 +860,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -897,6 +916,43 @@ public:
         cell->setData(data_pos_tg, temp);
     }
 
+void setElectronTemperature(cell_basic * cell, double temp)
+    {
+        if(data_pos_T_e!=MAX_UINT)
+            cell->setData(data_pos_T_e, temp);
+    }
+    
+    
+    void setThermalElectronDensity(cell_basic * cell, double dens)
+    {
+        if(data_pos_n_th!=MAX_UINT)
+            cell->setData(data_pos_n_th, dens);
+    }
+
+    void setCRElectronDensity(cell_basic * cell, double dens)
+    {
+        if(data_pos_n_cr!=MAX_UINT)
+            cell->setData(data_pos_n_cr, dens);
+    }
+
+    void setGammaMin(cell_basic * cell, double g_min)
+    {
+        if(data_pos_g_min!=MAX_UINT)
+            cell->setData(data_pos_g_min, g_min);
+    }
+
+    void setGammaMax(cell_basic * cell, double g_max)
+    {
+        if(data_pos_g_max!=MAX_UINT)
+            cell->setData(data_pos_g_max, g_max);
+    }
+
+    void setPowerLawIndex(cell_basic * cell, double p)
+    {
+        if(data_pos_p!=MAX_UINT)
+            cell->setData(data_pos_p, p);
+    }
+
     void setDustChoiceID(cell_basic * cell, uint dust_id)
     {
         if(data_pos_id != MAX_UINT)
@@ -928,7 +984,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         return cell->getData(data_pos_dt_list[id]);
     }
 
@@ -942,7 +998,7 @@ public:
     {
         uint id = a + nr_densities;
         for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
+            id += max(nr_dust_temp_sizes[i], nr_stochastic_sizes[i]);
         cell->setData(data_pos_dt_list[id], temp);
     }
 
@@ -1184,7 +1240,7 @@ public:
     double getOpiateTestData(cell_basic * cell)
     {
         uint pos = pos_OpiateIDS[1];
-        return uint(cell->getData(pos));
+        return cell->getData(pos);
     }
 
     void setOpiateTestData(cell_basic * cell, double val)
@@ -1202,6 +1258,14 @@ public:
 
         return 0;
     }
+    
+    double getElectronTemperature(cell_basic * cell)
+    {
+        if(data_pos_T_e!=MAX_UINT)
+            return cell->getData(data_pos_T_e);
+
+        return 0;
+    }
 
     double getThermalElectronDensity(photon_package * pp)
     {
@@ -1210,11 +1274,27 @@ public:
 
         return 0;
     }
+    
+    double getThermalElectronDensity(cell_basic * cell)
+    {
+        if(data_pos_n_th!=MAX_UINT)
+            return cell->getData(data_pos_n_th);
+
+        return 0;
+    }
 
     double getCRElectronDensity(photon_package * pp)
     {
         if(data_pos_n_cr!=MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_n_cr);
+
+        return 0;
+    }
+    
+    double getCRElectronDensity(cell_basic * cell)
+    {
+        if(data_pos_n_cr!=MAX_UINT)
+            return cell->getData(data_pos_n_cr);
 
         return 0;
     }
@@ -1249,7 +1329,7 @@ public:
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
-                id += size_skip[i];
+                id += nr_dust_temp_sizes[i];
             return cell->getData(data_pos_dt_list[id]);
         }
         else
@@ -1320,8 +1400,7 @@ public:
         return cell->getData(data_pos_tg);
     }
 
-    void setPlaneParameter(uint plane_index, double xy_step, double off_xy, 
-        double z_step, double off_z, double shift_z,
+    void setPlaneParameter(uint plane_index, double xy_step, double off_xy, double z_step, double off_z,
         int j, int k, int l, double & tx, double & ty, double & tz)
     {
         switch(plane_index)
@@ -1344,7 +1423,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tz = double(l) * z_step - sg * off_z + shift_z;
+                    tz = double(l) * z_step - sg * off_z;
                 }
                 else
                     tz = 0.1;
@@ -1361,7 +1440,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    ty = double(l) * z_step - sg * off_z + shift_z;
+                    ty = double(l) * z_step - sg * off_z;
                 }
                 else
                     ty = 0.1;
@@ -1378,7 +1457,7 @@ public:
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
-                    tx = double(l) * z_step - sg * off_z + shift_z;
+                    tx = double(l) * z_step - sg * off_z;
                 }
                 else
                     tx = 0.1;
@@ -1400,7 +1479,7 @@ public:
 
             default:
                 break;
-        }        
+        }
     }
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
@@ -1429,6 +1508,21 @@ public:
             }
             if(plt_gas_temp)
                 buffer_gas_temp[i_cell] = getGasTemperature(pp);
+            
+            if(plt_n_th)
+                buffer_n_th[i_cell]=getThermalElectronDensity(pp);
+            if(plt_T_e)
+                buffer_T_e[i_cell]=getElectronTemperature(pp);
+            if(plt_n_cr)
+                buffer_n_cr[i_cell]=getCRElectronDensity(pp);
+            if(plt_g_min)
+                buffer_g_min[i_cell]=getGammaMin(pp);
+            if(plt_g_max)
+                buffer_g_max[i_cell]=getGammaMax(pp);
+            if(plt_p)
+                buffer_p[i_cell]=getPowerLawIndex(pp); 
+        
+        
             if(plt_dust_temp)
             {
                 buffer_dust_temp[i_cell][0] = getDustTemperature(pp);
@@ -1551,6 +1645,19 @@ public:
                     buffer_rad_field[i_cell][wID] = 0;
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = 0;
+            
+            if(plt_n_th)
+                buffer_n_th[i_cell]=0;
+            if(plt_T_e)
+                buffer_T_e[i_cell]=0;
+            if(plt_n_cr)
+                buffer_n_cr[i_cell]=0;
+            if(plt_g_min)
+                buffer_g_min[i_cell]=0;
+            if(plt_g_max)
+                buffer_g_max[i_cell]=0;
+            if(plt_p)
+                buffer_p[i_cell]=0; 
         }
         delete pp;
     }
@@ -1558,7 +1665,6 @@ public:
     bool writeSpecialLines(string path);
     bool writeAMIRAFiles(string path, parameter & param, uint bins);
     bool writeMidplaneFits(string data_path, parameter & param, uint bins, bool all=false);
-    bool writeMidplaneFits1(string data_path, parameter & param, uint bins, bool all=false);
 
     void updateMidplaneString(char * str_1, char * str_2, uint counter)
     {
@@ -2609,28 +2715,13 @@ public:
         }
         else
         {
-            // Init list to know how many dust sizes are used per dust component
-            size_skip = new uint[nr_densities];
-
             // Calculate the entries for the temperature that have to be added
             if(param.getDustTempMulti())
-            {
                 extra_temp_entries = multi_temperature_entries;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = nr_dust_temp_sizes[i_density];
-            }
             else if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
-            {
                 extra_temp_entries = stochastic_temperature_entries;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = nr_stochastic_sizes[i_density];
-            }
             else
-            {
                 extra_temp_entries = nr_densities;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = 1;
-            }
 
             // Entries that are already in the grid do not need to be added
             if(getTemperatureFieldInformation() == TEMP_SINGLE)
@@ -2745,9 +2836,6 @@ public:
             cout << "       No dust emission possible." << endl;
             return MAX_UINT;
         }
-
-        if(getTemperatureFieldInformation() == TEMP_STOCH)
-            param.setStochasticHeatingMaxSize(0.0);
 
         if(param.getStochasticHeatingMaxSize())
         {
@@ -3101,9 +3189,6 @@ protected:
     double a_max_min;
     double a_max_max;
 
-    uint dust_id_min;
-    uint dust_id_max;
-
     double min_pres;
     double max_pres;
 
@@ -3167,7 +3252,6 @@ protected:
     uint * nr_dust_temp_sizes;
     uint * nr_stochastic_sizes;
     uint * nr_stochastic_temps;
-    uint * size_skip;
 
     uilist data_pos_gd_list;
     uilist data_pos_dd_list;
@@ -3228,6 +3312,13 @@ protected:
     bool plt_amax;
     bool plt_rad_field;
     bool plt_g_zero;
+    
+    bool plt_n_th;
+    bool plt_T_e;
+    bool plt_n_cr;
+    bool plt_g_min;
+    bool plt_g_max;
+    bool plt_p;
 
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
@@ -3260,6 +3351,13 @@ protected:
     double * buffer_dust_amax;
     double ** buffer_rad_field;
     double * buffer_g_zero;
+    
+    double * buffer_n_th;
+    double * buffer_T_e;
+    double * buffer_n_cr;
+    double * buffer_g_min;
+    double * buffer_g_max;
+    double * buffer_p; 
 };
 
 #endif
