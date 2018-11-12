@@ -196,7 +196,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     // Check if the energy density is used instead of launching photons with fixed energy
     // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
     bool use_energy_density = false;
-    if(param.getSaveRadiationField() || param.getCommand() == CMD_RAT || 
+    if(param.getSaveRadiationField() || param.isRatSimulation() || 
             param.getStochasticHeatingMaxSize() > 0)
         use_energy_density = true;
 
@@ -265,11 +265,11 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     }
 
     rad.calcMonteCarloRadiationField(param.getCommand(), 
-        use_energy_density, (param.getCommand() == CMD_RAT));
+        use_energy_density, false); //(param.getCommand() == CMD_RAT));
         
     if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
-    if(param.getCommand() == CMD_RAT || param.getCommand() == CMD_TEMP_RAT)
+    if(param.isRatSimulation())
         rad.calcAlignedRadii();
 
     cout << SEP_LINE;
@@ -454,7 +454,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
         return false;
 
     cout << CLR_LINE;
-
 
     if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
         return false;
@@ -724,13 +723,9 @@ CDetector * CPipeline::createDetectorList(parameter & param, CDustMixture * dust
             param.setPeelOff(false);
         }*/
         if(param.getPeelOff() && param.getAcceptanceAngle() > 1.0)
-        {
             cout << "HINT: Peel-off technique needs no acceptance angle!" << endl;
-        }
         else
-        {
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
-        }
     }
 
     cout << "- Creating dust MC detectors    : done" << endl;
@@ -748,23 +743,18 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     {
         // Raytracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
+        {
             cout << "WARNING: Diffuse sources can not be considered in "
                     << "dust, line, or synchrotron emission!" << endl;
-
-        // Dust source can only be used, if the radiation field will be calculated as well 
-        if(param.getDustSource())
-        {
-            if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "WARNING: Dust as radiation source can not be considered in "
-                    << "line or synchrotron emission!" << endl;
-            if(!param.getScatteringToRay())
-                cout << "WARNING: Dust as radiation source will only be considered in "
-                    << "dust emission, if the <rt_scattering> is enabled!" << endl;
+            nr_ofSources--;
         }
 
         if(param.getISRFSource())
+        {
             cout << "WARNING: ISRF as radiation source can not be considered in "
                 << "dust, line, or synchrotron emission!" << endl;
+            nr_ofSources--;
+        }
 
         if(param.getNrOfBackgroundSources() == 0)
         {

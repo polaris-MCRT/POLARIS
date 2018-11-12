@@ -131,14 +131,6 @@ public:
         plt_larm=false;
         plt_mach=false;
         plt_dust_id=false;
-        
-        
-        plt_n_th=false;
-        plt_T_e=false;
-        plt_n_cr=false;
-        plt_g_min=false;
-        plt_g_max=false;
-        plt_p=false;
 
         total_volume = 0;
         cell_volume = 0;
