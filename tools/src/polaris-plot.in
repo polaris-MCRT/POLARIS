@@ -139,6 +139,8 @@ cbar_args.add_argument('--ymin', dest='ymin', default=None, type=float,
                        help='define minimum value of the y-axis.')
 cbar_args.add_argument('--ymax', dest='ymax', default=None, type=float,
                        help='define maximum value of the y-axis.')
+cbar_args.add_argument('--no_cbar', dest='no_cbar', default=False, action='store_true',
+                         help='Disable the plot of the colorbar.')
 
 vector_args = parser.add_argument_group('vector plot')
 vector_args.add_argument('--vec_size', dest='vec_field_size', default=None, type=int,

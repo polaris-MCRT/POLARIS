@@ -113,7 +113,10 @@ class Plot:
         # Set the axis formatter as class variable
         self.label_plane = label_plane
         # Create space in image for colorbar?
-        self.with_cbar = with_cbar
+        if parse_args.no_cbar:
+            self.with_cbar = False
+        else:
+            self.with_cbar = with_cbar
 
         # Set the style (Latex font)
         self.set_style(font=parse_args.font, font_size_env=parse_args.font_size_env,
@@ -134,13 +137,13 @@ class Plot:
             # Create figure with a size fitting to one or multiple plots
             self.fig = plt.figure(figsize=(np.power(nr_x_images, 0.7) * size_x,
                                            np.power(nr_y_images, 0.7) * size_y))
-            if with_cbar:
+            if self.with_cbar:
                 self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(nr_y_images, nr_x_images),
                     axes_pad=0.1, cbar_mode='single', cbar_location='right', cbar_pad=0.1,
                     cbar_size=str(4.5 / np.sqrt(nr_x_images)) + '%')
             else:
                 self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(nr_y_images, nr_x_images),
-                axes_pad=0.05, aspect=False)
+                axes_pad=0.05)
         elif image_type == 'projection_3d':
             # One 3D plot
             # noinspection PyUnresolvedReferences

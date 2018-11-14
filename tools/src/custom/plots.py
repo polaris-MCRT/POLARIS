@@ -68,6 +68,10 @@ class CustomPlots:
     def plot_2(self):
         """Plot fits file with internal image creation.
         """
+        self.model.tmp_parameter['radius_x_arcsec'] = self.math.length_conv(
+            600. * self.math.const['au'], 'arcsec', self.model.parameter['distance'])
+        self.model.tmp_parameter['radius_y_arcsec'] = self.math.length_conv(
+            600. * self.math.const['au'], 'arcsec', self.model.parameter['distance'])
         from astropy.io import fits
         self.file_io.init_plot_output('gg_tau_miri_simulation')
         hdulist = fits.open(self.file_io.path['results'] + 'polaris_detector_nr0001.fits')
