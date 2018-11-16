@@ -1207,6 +1207,13 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
                 
             // Get detector parameter list
             values = param.getDustRayDetectors();
+            
+            // Check if a detector is defined
+            if(values.empty())
+            {
+                cout << "Error: No dust raytracing detector defined (see <detector_dust>)!" << endl;
+                return false;
+            }
 
             // Add wavelength to global list of wavelength
             for(uint i = 0; i < values.size(); i += NR_OF_RAY_DET)
@@ -1216,6 +1223,13 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
         case CMD_DUST_SCATTERING:
             // Get detector parameter list
             values = param.getDustMCDetectors();
+
+            // Check if a detector is defined
+            if(values.empty())
+            {
+                cout << "Error: No dust Monte-Carlo detector defined (see <detector_dust_mc>)!" << endl;
+                return false;
+            }
 
             // Add wavelength to global list of wavelength
             for(uint i = 0; i < values.size(); i += NR_OF_MC_DET)
@@ -1230,6 +1244,13 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
             // Get detector parameter list
             maplist line_ray_detector_list = param.getLineRayDetectors();
             maplist::iterator it;
+
+            // Check if a detector is defined
+            if(line_ray_detector_list.empty())
+            {
+                cout << "Error: No spectral line detector of gas species defined!" << endl;
+                return false;
+            }
 
             // Perform radiative transfer for each chosen gas species
             for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
@@ -1256,6 +1277,13 @@ bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGa
         case CMD_SYNCHROTRON:
             // Get detector parameter list
             values = param.getSyncRayDetectors();
+
+            // Check if a detector is defined
+            if(values.empty())
+            {
+                cout << "Error: No synchrotron detector defined (see <detector_sync>)!" << endl;
+                return false;
+            }
 
             // Add wavelength to global list of wavelength
             for(uint i = 0; i < values.size(); i += NR_OF_RAY_DET)
