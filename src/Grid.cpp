@@ -1140,8 +1140,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bin
             + 4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) + uint(plt_larm) +
             uint(plt_mach) + uint(plt_dust_id) + uint(plt_rad_field) * WL_STEPS + uint(plt_g_zero) + 
             uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) + uint(plt_p);
-    
-    nr_parameter += 
 
     if(nr_parameter == 0)
         return res;
