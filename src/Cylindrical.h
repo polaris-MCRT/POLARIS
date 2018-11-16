@@ -120,17 +120,23 @@ public:
         rot_angle1 = 0;
         rot_angle2 = 0;
 
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
+        plt_n_th = false;
+        plt_T_e = false;
+        plt_n_cr = false;
+        plt_g_min = false;
+        plt_g_max = false;
+        plt_p = false;
 
         total_volume = 0;
         cell_volume = 0;

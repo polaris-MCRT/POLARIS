@@ -147,6 +147,12 @@ public:
         plt_amax=false;
         plt_rad_field = false;
         plt_g_zero = false;
+        plt_n_th=false;
+        plt_T_e=false;
+        plt_n_cr=false;
+        plt_g_min=false;
+        plt_g_max=false;
+        plt_p=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -172,6 +178,12 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
+        buffer_n_th=0;
+        buffer_T_e=0;
+        buffer_n_cr=0;
+        buffer_g_min=0;
+        buffer_g_max=0;
+        buffer_p=0; 
 
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10); 
@@ -317,6 +329,12 @@ public:
         plt_amax=false;
         plt_rad_field = false;
         plt_g_zero = false;
+        plt_n_th=false;
+        plt_T_e=false;
+        plt_n_cr=false;
+        plt_g_min=false;
+        plt_g_max=false;
+        plt_p=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -342,6 +360,12 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
+        buffer_n_th=0;
+        buffer_T_e=0;
+        buffer_n_cr=0;
+        buffer_g_min=0;
+        buffer_g_max=0;
+        buffer_p=0; 
     }
 
     double getTurbulentVelocity(cell_basic * cell)
@@ -897,6 +921,43 @@ public:
         cell->setData(data_pos_tg, temp);
     }
 
+    void setElectronTemperature(cell_basic * cell, double temp)
+    {
+        if(data_pos_T_e!=MAX_UINT)
+            cell->setData(data_pos_T_e, temp);
+    }
+    
+    
+    void setThermalElectronDensity(cell_basic * cell, double dens)
+    {
+        if(data_pos_n_th!=MAX_UINT)
+            cell->setData(data_pos_n_th, dens);
+    }
+
+    void setCRElectronDensity(cell_basic * cell, double dens)
+    {
+        if(data_pos_n_cr!=MAX_UINT)
+            cell->setData(data_pos_n_cr, dens);
+    }
+
+    void setGammaMin(cell_basic * cell, double g_min)
+    {
+        if(data_pos_g_min!=MAX_UINT)
+            cell->setData(data_pos_g_min, g_min);
+    }
+
+    void setGammaMax(cell_basic * cell, double g_max)
+    {
+        if(data_pos_g_max!=MAX_UINT)
+            cell->setData(data_pos_g_max, g_max);
+    }
+
+    void setPowerLawIndex(cell_basic * cell, double p)
+    {
+        if(data_pos_p!=MAX_UINT)
+            cell->setData(data_pos_p, p);
+    }
+
     void setDustChoiceID(cell_basic * cell, uint dust_id)
     {
         if(data_pos_id != MAX_UINT)
@@ -1203,6 +1264,14 @@ public:
         return 0;
     }
 
+    double getElectronTemperature(cell_basic * cell)
+    {
+        if(data_pos_T_e!=MAX_UINT)
+            return cell->getData(data_pos_T_e);
+
+        return 0;
+    }
+
     double getThermalElectronDensity(photon_package * pp)
     {
         if(data_pos_n_th!=MAX_UINT)
@@ -1211,10 +1280,26 @@ public:
         return 0;
     }
 
+    double getThermalElectronDensity(cell_basic * cell)
+    {
+        if(data_pos_n_th!=MAX_UINT)
+            return cell->getData(data_pos_n_th);
+
+        return 0;
+    }
+
     double getCRElectronDensity(photon_package * pp)
     {
         if(data_pos_n_cr!=MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_n_cr);
+
+        return 0;
+    }
+
+    double getCRElectronDensity(cell_basic * cell)
+    {
+        if(data_pos_n_cr!=MAX_UINT)
+            return cell->getData(data_pos_n_cr);
 
         return 0;
     }
@@ -1495,6 +1580,18 @@ public:
                     buffer_rad_field[i_cell][wID] = getRadiationField(pp, wID);
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = getGZero(pp);
+            if(plt_n_th)
+                buffer_n_th[i_cell]=getThermalElectronDensity(pp);
+            if(plt_T_e)
+                buffer_T_e[i_cell]=getElectronTemperature(pp);
+            if(plt_n_cr)
+                buffer_n_cr[i_cell]=getCRElectronDensity(pp);
+            if(plt_g_min)
+                buffer_g_min[i_cell]=getGammaMin(pp);
+            if(plt_g_max)
+                buffer_g_max[i_cell]=getGammaMax(pp);
+            if(plt_p)
+                buffer_p[i_cell]=getPowerLawIndex(pp); 
         }
         else
         {
@@ -1554,6 +1651,18 @@ public:
                     buffer_rad_field[i_cell][wID] = 0;
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = 0;
+            if(plt_n_th)
+                buffer_n_th[i_cell]=0;
+            if(plt_T_e)
+                buffer_T_e[i_cell]=0;
+            if(plt_n_cr)
+                buffer_n_cr[i_cell]=0;
+            if(plt_g_min)
+                buffer_g_min[i_cell]=0;
+            if(plt_g_max)
+                buffer_g_max[i_cell]=0;
+            if(plt_p)
+                buffer_p[i_cell]=0; 
         }
         delete pp;
     }
@@ -3231,6 +3340,12 @@ protected:
     bool plt_amax;
     bool plt_rad_field;
     bool plt_g_zero;
+    bool plt_n_th;
+    bool plt_T_e;
+    bool plt_n_cr;
+    bool plt_g_min;
+    bool plt_g_max;
+    bool plt_p;
 
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
@@ -3263,6 +3378,12 @@ protected:
     double * buffer_dust_amax;
     double ** buffer_rad_field;
     double * buffer_g_zero;
+    double * buffer_n_th;
+    double * buffer_T_e;
+    double * buffer_n_cr;
+    double * buffer_g_min;
+    double * buffer_g_max;
+    double * buffer_p;
 };
 
 #endif

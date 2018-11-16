@@ -183,11 +183,11 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
             cout << "ERROR: Dust ID in grid exceeds maximum number of dust choices available!  \n";
             return false;
         }
+
+        updateDataRange(tmp_cell);
         
         cell_volume += tmp_vol;
         total_gas_mass += getGasMassDensity(tmp_cell) * tmp_vol;
-
-        updateDataRange(tmp_cell);
 
         line_counter++;
     }
