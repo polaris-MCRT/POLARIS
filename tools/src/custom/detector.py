@@ -128,7 +128,8 @@ class GGTauDetector(Detector):
         Detector.__init__(self, model, parse_args)
         # Rotation angle around the first rotation axis
         self.parameter['rot_angle_1'] = -37.0  # -40.0
-        self.parameter['rot_angle_2'] = 26.45
+        self.parameter['rot_angle_2'] = 26.8
+        # Cite: PA GG Tau Aab (Yang et al. 2017)
         self.PA = (360. - 327.) / 180. * np.pi
         self.parameter['rot_axis_1'] = [np.cos(self.PA), np.sin(self.PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]

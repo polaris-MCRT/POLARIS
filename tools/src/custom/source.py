@@ -109,6 +109,22 @@ class GGTauStars(StellarSource):
 
         self.parameter['nr_photons'] = 1e8
 
+        # Temperatures
+        # Cite: temperature of Aa ...
+        self.T_Aa = 3870.
+        self.T_Ab1 = 3550.
+        self.T_Ab2 = 3410.
+        self.T_planet = 839.9
+
+        # Luminosities
+        # Cite: luminosity of Aa (White et al. 1999)
+        self.L_Aa = 0.84 * self.math.const['L_sun']
+        self.L_Ab1 = 0.40 * self.math.const['L_sun']
+        self.L_Ab2 =0.31 * self.math.const['L_sun']
+        self.L_planet = 1e-1 * (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
+
+        # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
+        # Cite: separation Aa and Ab (White et al. 1999)
         self.a_Aab = 36. / 2.
         self.a_Ab12 = 4.5 / 2.
         self.a_planet = 260. + 20.
@@ -139,8 +155,8 @@ class GGTauStars(StellarSource):
         #: dict: Parameters for the binary components
         self.tmp_parameter = {
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
-            'temperature': [3870., 3550., 3410.],
-            'luminosity': np.multiply([0.84, 0.40, 0.31], self.math.const['L_sun']),
+            'temperature': [self.T_Aa, self.T_Ab1, self.T_Ab2],
+            'luminosity': [self.L_Aa, self.L_Ab1, self.L_Ab2],
             'position_star': [[-1.0, self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
                               [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) + 
                                     self.a_Ab12 * self.math.const['au'],
@@ -158,8 +174,8 @@ class GGTauStars(StellarSource):
             self.parameter['position'] = self.tmp_parameter['position_star'][i_comp]
             new_command_line += self.get_command_line()
         if self.add_planet:
-            self.parameter['temperature'] = 839.9
-            self.parameter['luminosity'] = 1e-1 * (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
+            self.parameter['temperature'] = self.T_planet
+            self.parameter['luminosity'] = self.L_planet
             self.parameter['position'] = [self.a_planet * self.math.const['au'] * np.sin(self.angle_planet),
                 self.a_planet * self.math.const['au'] * np.cos(self.angle_planet), 0.]
             new_command_line += self.get_command_line()

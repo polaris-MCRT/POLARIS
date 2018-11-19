@@ -82,6 +82,8 @@ grid_args.add_argument('--variable_dust', dest='variable_dust', default=False, a
 grid_args.add_argument('--variable_size_limits', dest='variable_size_limits', default=False, action='store_true',
                        help='Use the get_dust_id() function in model.py.\n'
                             'This allows the variation of the dust grain size limits in the grid.')
+grid_args.add_argument('--tmp', dest='tmp_filename', type=str, default=None,
+                         help='Set filename of temporary grid file (to create multiple grids at once).')
 
 source_args = parser.add_argument_group('source')
 source_args.add_argument('--external', dest='external_input_name', default=None,
@@ -94,6 +96,7 @@ source_args.add_argument('--revert', dest='revert_grid', default=False, action='
                          help='revert POLARIS v4.XX grids to version 4.00.00.')
 source_args.add_argument('--set_align', dest='align_radius', type=float, default=None,
                          help='Set the minimum alignment radius for the RAT theory in the grid.')
+                         
 
 parser_options = parser.parse_args()
 
@@ -147,6 +150,10 @@ class GridRoutines:
         """
         if self.ext_input is not None:
             normalize = False
+        if self.parse_args.tmp_filename is not None:
+            tmp_filename = self.parse_args.tmp_filename
+        else:
+            tmp_filename = 'tmp_grid.dat'
 
         #: Init grid
         if self.model.parameter['grid_type'] == 'octree':
@@ -163,7 +170,7 @@ class GridRoutines:
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_tree.dat', 'wb')
+        tmp_file = open(self.file_io.path['model'] + str(tmp_filename), 'wb')
         # Write header of the grid file
         grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
         # Create the grid
@@ -174,7 +181,7 @@ class GridRoutines:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
-                tmp_file = open(self.file_io.path['model'] + 'tmp_tree.dat', 'rb')
+                tmp_file = open(self.file_io.path['model'] + str(tmp_filename), 'rb')
                 #: Final grid file
                 grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'wb')
                 # Normalize the density of the grid and save it in the final file
@@ -182,7 +189,7 @@ class GridRoutines:
                 # Close the temporary grid file
                 tmp_file.close()
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] + 'tmp_tree.dat')
+                os.remove(self.file_io.path['model'] + str(tmp_filename))
                 # Close the final grid file
                 grid_file.close()
             elif np.shape(self.model.parameter['gas_mass']) == np.shape(grid.total_gas_mass):
@@ -212,7 +219,7 @@ class GridRoutines:
                 # Create the grid
                 grid.create_grid(grid_file, root)
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] + 'tmp_tree.dat')
+                os.remove(self.file_io.path['model'] + str(tmp_filename))
                 # Close the temporary grid file
                 grid_file.close()
             else:
@@ -221,7 +228,7 @@ class GridRoutines:
                     'get via density_distribution ' +  str(np.shape(grid.total_gas_mass)))
         else:
             # Rename the temporary grid file
-            os.rename(self.file_io.path['model'] + 'tmp_tree.dat',
+            os.rename(self.file_io.path['model'] + str(tmp_filename),
                       self.file_io.path['model'] + self.parse_args.grid_filename)
         # Plot additional information if set
         if self.model.parameter['gas_mass'] is not None and not isinstance(self.model.parameter['gas_mass'], float):
@@ -246,7 +253,7 @@ class GridRoutines:
         from modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_tree.dat', 'wb')
+        tmp_file = open(self.file_io.path['model'] + str(tmp_filename), 'wb')
         #: Final grid file
         grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
         # Write header of the grid file
@@ -257,7 +264,7 @@ class GridRoutines:
         # Rename the temporary grid file
         os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
             self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
-        os.rename(self.file_io.path['model'] + 'tmp_tree.dat',
+        os.rename(self.file_io.path['model'] + str(tmp_filename),
             self.file_io.path['model'] + self.parse_args.grid_filename)
 
     def set_cell_quantity(self, quantity_id, quantity_value):
@@ -270,7 +277,7 @@ class GridRoutines:
         from modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_tree.dat', 'wb')
+        tmp_file = open(self.file_io.path['model'] + str(tmp_filename), 'wb')
         #: Final grid file
         grid_file = open(self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
         # Write header of the grid file
@@ -282,7 +289,7 @@ class GridRoutines:
         # Rename the temporary grid file
         os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
             self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
-        os.rename(self.file_io.path['model'] + 'tmp_tree.dat',
+        os.rename(self.file_io.path['model'] + str(tmp_filename),
             self.file_io.path['model'] + self.parse_args.grid_filename)
 
 
