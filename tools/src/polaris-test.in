@@ -40,6 +40,7 @@ req_args.add_argument('test_id', metavar='test_id', type=str,
 
 parser_options = parser.parse_args()
 
+
 class TestRoutines:
     """Manages the preparation and execution of example POLARIS simulations and
     test the results of correctness.
@@ -75,7 +76,8 @@ class TestRoutines:
 
         # Get file input/output module
         from modules.file import FileIO
-        self.file_io = FileIO(self.model, self.server, parse_args, '@POLARIS@', 'test')
+        self.file_io = FileIO(self.model, self.server,
+                              parse_args, '@POLARIS@', 'test')
 
         # Get fits modules to read fits files
         from astropy.io import fits
@@ -83,7 +85,8 @@ class TestRoutines:
 
         # Check if the testing directory is existing
         if not os.path.isdir(self.file_io.path['testing']):
-            raise IOError('Testing directory is missing (ask the developer for it).')
+            raise IOError(
+                'Testing directory is missing (ask the developer for it).')
 
         #: dict: Collection of maximum allowed differences to the correct result
         self.limit_dict = {
@@ -107,9 +110,9 @@ class TestRoutines:
             'emission_sed': ['polaris_detector_nr0001_sed.fits'],
             'healpix_map': ['polaris_detector_nr0001.fits'],
             'healpix_vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
-                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
+                                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
             'vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
-                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
+                        for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
         }
 
     def check(self, diff, max_diff):
@@ -122,9 +125,9 @@ class TestRoutines:
 
     def template_to_cmd_file(self):
         os.system('sed -e \'s/@POLARIS_DIR@/' + self.file_io.path['polaris'].replace('/', '\/') + '/g\' ' +
-            '-e \'s/@TEST_ID@/test_' + str(self.test_index) + '/g\' ' +
-            self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/template.cmd > ' +
-            self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/POLARIS.cmd')
+                  '-e \'s/@TEST_ID@/test_' + str(self.test_index) + '/g\' ' +
+                  self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/template.cmd > ' +
+                  self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/POLARIS.cmd')
 
     def get_result(self, quantity, comparison_mode='avg_rel_diff'):
         """Perform a simulation with POLARIS and compare it with the
@@ -136,19 +139,20 @@ class TestRoutines:
                 (avg_rel_diff, )
         """
         if os.path.exists(self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/results/'):
-            os.system('rm -r ' + self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/results')
+            os.system(
+                'rm -r ' + self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/results')
         if self.quiet:
             os.system(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['testing'] +
-                'test_' + str(self.test_index) + '/POLARIS.cmd > /dev/null 2>&1')
+                      'test_' + str(self.test_index) + '/POLARIS.cmd > /dev/null 2>&1')
         else:
             os.system(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['testing'] +
-                'test_' + str(self.test_index) + '/POLARIS.cmd')
+                      'test_' + str(self.test_index) + '/POLARIS.cmd')
         result = 0
         for filename in self.results_files[quantity]:
             hdul_correct = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
-                '/results_correct/' + filename)
+                                          '/results_correct/' + filename)
             hdul = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
-                '/results/data/' + filename)
+                                  '/results/data/' + filename)
             if 'healpix' in quantity:
                 data_correct = hdul_correct[1].data.tolist()
                 data = hdul[1].data.tolist()
@@ -180,7 +184,8 @@ class TestRoutines:
             elif comparison_mode == 'abs_avg_diff':
                 result += abs(np.subtract(data_correct, data)).mean()
         result /= len(self.results_files[quantity])
-        print('--- Test case (' + str(self.test_index) + '): Average difference = ' + str(result) + ' %')
+        print('--- Test case (' + str(self.test_index) +
+              '): Average difference = ' + str(result) + ' %')
         self.check(result, self.limit_dict[quantity])
 
     # ------------------------------------------------------------------------------------------------
@@ -201,7 +206,6 @@ class TestRoutines:
     # 1005XXX: Model of a BokGlobule (octree)
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
-
 
     def test_1001001(self):
         """Perform test simulation to check temperature distribution.
@@ -259,7 +263,8 @@ class TestRoutines:
     def test_1001011(self):
         """Perform test simulation to check Monte-Carlo self-scattering.
         """
-        self.get_result('scattering_map', comparison_mode='avg_rel_diff_no_abs')
+        self.get_result('scattering_map',
+                        comparison_mode='avg_rel_diff_no_abs')
 
     def test_1002001(self):
         """Perform test simulation to check temp_rat calculation.
@@ -340,7 +345,8 @@ class TestRoutines:
         """Perform test simulation to check Monte-Carlo radiative transfer
         (with peel-off technique).
         """
-        self.get_result('scattering_map', comparison_mode='avg_rel_diff_no_abs')
+        self.get_result('scattering_map',
+                        comparison_mode='avg_rel_diff_no_abs')
 
     def test_1006001(self):
         """Perform test simulation to check temperature distribution.
@@ -375,7 +381,6 @@ class TestRoutines:
         """
         self.get_result('emission_map')
 
-    
     def test_1007003(self):
         """Perform test simulation to check temperature distribution (with stochastic heating, cylindrical grid).
         """
@@ -410,13 +415,14 @@ if __name__ == '__main__':
             for i_test in TestRoutines.__dict__.keys():
                 test_routines = TestRoutines(parser_options, i_test)
                 if 'test_' in i_test:
-                    print('ID = ' + i_test.replace('test_','') + ', description:',
-                        TestRoutines.__dict__[i_test].__doc__)
+                    print('ID = ' + i_test.replace('test_', '') + ', description:',
+                          TestRoutines.__dict__[i_test].__doc__)
         elif parser_options.test_id == 'all':
-            for test_str in TestRoutines.__dict__.keys():                
+            for test_str in TestRoutines.__dict__.keys():
                 if 'test_' in test_str and test_str not in ignore__if_all:
                     i_test = int(test_str.replace('test_', ''))
-                    test_routines = TestRoutines(parser_options, i_test, quiet=True)
+                    test_routines = TestRoutines(
+                        parser_options, i_test, quiet=True)
                     test_routines.template_to_cmd_file()
                     print('--- Test case (' + str(i_test) + '): ...')
                     TestRoutines.__dict__['test_' + str(i_test)](test_routines)
@@ -429,4 +435,5 @@ if __name__ == '__main__':
             TestRoutines.__dict__['test_' + str(i_test)](test_routines)
         print('--- POLARIS test simulations finished!    ')
     else:
-        raise ValueError('No valid execution of polaris-extra found (Try --help for usage)!')
+        raise ValueError(
+            'No valid execution of polaris-extra found (Try --help for usage)!')

@@ -9,6 +9,8 @@ from modules.base import Model
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_model_dict(dictionary):
     model_dict = {
         'custom': CustomModel,

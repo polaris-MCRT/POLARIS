@@ -53,8 +53,9 @@ class BGSourceChooser:
             bg_source_name = self.model.parameter['background_source']
         else:
             raise ValueError('Background source not known! '
-                'You can add a new background source in bg_source.py')
-        bg_source = self.bg_source_dict[bg_source_name](self.file_io, self.parse_args)
+                             'You can add a new background source in bg_source.py')
+        bg_source = self.bg_source_dict[bg_source_name](
+            self.file_io, self.parse_args)
         # Overwrite default values with user input
         if self.parse_args.nr_photons is not None:
             bg_source.parameter['nr_photons'] = int(self.parse_args.nr_photons)

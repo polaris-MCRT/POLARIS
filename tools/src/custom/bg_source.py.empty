@@ -8,11 +8,14 @@ from modules.base import BGSource
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_bg_source_dict(dictionary):
     bg_source_dict = {
         'custom': CustomBGsource,
     }
     dictionary.update(bg_source_dict)
+
 
 class CustomBGsource(BGSource):
     """Change this to the background source you want to use.

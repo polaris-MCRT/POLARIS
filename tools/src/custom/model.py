@@ -360,17 +360,32 @@ class GGTauDisk(Model):
         # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
         # Cite: separation Aa and Ab (White et al. 1999)
         self.a_Aab = 44. / 2. * self.math.const['au']
-        self.a_Ab12 = 4.5 / 2. * self.math.const['au']
+        self.a_Ab12 = 5. / 2. * self.math.const['au']
         # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
         self.inclination_Aa = 30.0 / 180. * np.pi
         self.inclination_Ab12 = 30.0 / 180. * np.pi
         self.inclination_rotation_axis = [
-            np.sin(-26.8 / 180. * np.pi),
-            np.cos(-26.8 / 180. * np.pi),
+            np.cos(25 / 180. * np.pi),
+            np.sin(25 / 180. * np.pi),
             0
         ]
+
+        # pos = [
+        #     np.sin(-25 / 180. * np.pi),
+        #     np.cos(-24.9 / 180. * np.pi),
+        #     0
+        # ]
+        # rot_pos = self.math.rotate_coord_system(pos,
+        #     rotation_axis=[
+        #         np.sin(277. / 180. * np.pi),
+        #         np.cos(277. / 180. * np.pi),
+        #         0
+        #     ],
+        #     rotation_angle=37. / 180. * np.pi)
+        # print(np.arctan2(rot_pos[0], rot_pos[1]) / np.pi  * 180.)
+
         # Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']

@@ -8,6 +8,8 @@ import numpy as np
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_dust_dict(dictionary):
     dust_dict = {
         'multi_sil': MultiSilicate,
@@ -26,7 +28,6 @@ def update_dust_dict(dictionary):
         'custom': CustomDust,
     }
     dictionary.update(dust_dict)
-
 
 
 class CustomDust(Dust):
@@ -196,6 +197,7 @@ class Olivine(Dust):
         # Maximum dust grain size
         self.parameter['amax'] = 1000.0e-6
 
+
 class SilicatePAH(Dust):
     """Dust class for silicate and PAH grains.
     """
@@ -236,7 +238,7 @@ class SilicatePAH(Dust):
         dust.parameter['size_keyword'] = 'plaw_pah'
         dust.parameter['size_parameter'] = [-3.5]
         dust.parameter['amin'] = 4e-10
-        dust.parameter['amax'] = 4e-10        
+        dust.parameter['amax'] = 4e-10
         dust.parameter['choice_id'] = 1
         new_command_line += dust.get_command_line()
         return new_command_line
@@ -278,7 +280,7 @@ class OlivinePAH(Dust):
         dust.parameter['size_keyword'] = 'plaw_pah'
         dust.parameter['size_parameter'] = [-3.5]
         dust.parameter['amin'] = 4e-10
-        dust.parameter['amax'] = 4e-10        
+        dust.parameter['amax'] = 4e-10
         dust.parameter['choice_id'] = 1
         new_command_line += dust.get_command_line()
         return new_command_line
@@ -356,7 +358,7 @@ class TrustSilicate(Dust):
         self.parameter['size_keyword'] = 'zda'
         # c0, b0, m1, b1, a1, m2, b2, a2, m3, b3, a3, m4, b4, a4,
         self.parameter['size_parameter'] = [-8.47091, -3.68708, 22.5489, 2.37316e-5, 7.64943e-3,
-            0, 0, 0, 12.1717, 2961.28, 0.480229, 0, 0, 0]
+                                            0, 0, 0, 12.1717, 2961.28, 0.480229, 0, 0, 0]
         # Minimum dust grain size
         self.parameter['amin'] = 0.00035e-6
         # Maximum dust grain size
@@ -386,7 +388,7 @@ class TrustGraphite(Dust):
         self.parameter['size_keyword'] = 'zda'
         # c0, b0, m1, b1, a1, m2, b2, a2, m3, b3, a3, m4, b4, a4,
         self.parameter['size_parameter'] = [-9.86, -5.02082, 4.63229, 5.81215e-3, 0.415861, 0, 0, 0,
-            3.69897, 1125.02, 0.160344, 3.69967, 1126.02, 0.160501]
+                                            3.69897, 1125.02, 0.160344, 3.69967, 1126.02, 0.160501]
         # Minimum dust grain size
         self.parameter['amin'] = 0.00035e-6
         # Maximum dust grain size
@@ -416,7 +418,7 @@ class TrustPah(Dust):
         self.parameter['size_keyword'] = 'zda'
         # c0, b0, m1, b1, a1, m2, b2, a2, m3, b3, a3, m4, b4, a4,
         self.parameter['size_parameter'] = [-8.02895, -3.45764, -8.20551, 1.18396e3, 1.0, 0, 0, 0,
-        12.0146, 1.0e24, -5.29496e-3, 0, 0, 0]
+                                            12.0146, 1.0e24, -5.29496e-3, 0, 0, 0]
         # Minimum dust grain size
         self.parameter['amin'] = 0.00035e-6
         # Maximum dust grain size
@@ -534,7 +536,6 @@ class ThomasThemis(Dust):
         self.parameter['scattering'] = 'HG'
         # Set the name of one component to allow print of sizes and wavelengths
         self.parameter['dust_cat_file'] = 'thomas_CM20.dat'
-
 
     def get_command(self):
         """Provides dust composition command line for POLARIS .cmd file.

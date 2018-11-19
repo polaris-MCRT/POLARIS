@@ -62,23 +62,29 @@ class SourceChooser:
             else:
                 return None
         else:
-            raise ValueError('stellar source not known! You can add a new source in source.py')
-        stellar_source = self.sources_dict[source_name](self.file_io, self.parse_args)
+            raise ValueError(
+                'stellar source not known! You can add a new source in source.py')
+        stellar_source = self.sources_dict[source_name](
+            self.file_io, self.parse_args)
         # Overwrite default values with user input
         if self.parse_args.nr_photons is not None:
-            stellar_source.parameter['nr_photons'] = int(self.parse_args.nr_photons)
+            stellar_source.parameter['nr_photons'] = int(
+                self.parse_args.nr_photons)
         if self.parse_args.stellar_position is not None:
             stellar_source.parameter['position'] = [self.math.parse(self.parse_args.stellar_position[i], 'length')
-                for i in range(3)]
+                                                    for i in range(3)]
         if self.parse_args.stellar_temperature is not None:
             stellar_source.parameter['temperature'] = self.parse_args.stellar_temperature
         if self.parse_args.stellar_luminosity is not None:
-            stellar_source.parameter['luminosity'] = self.math.parse(self.parse_args.stellar_luminosity, 'luminosity')
+            stellar_source.parameter['luminosity'] = self.math.parse(
+                self.parse_args.stellar_luminosity, 'luminosity')
             stellar_source.parameter['radius'] = 0.
         elif self.parse_args.stellar_radius is not None:
-            stellar_source.parameter['radius'] = self.math.parse(self.parse_args.stellar_radius, 'length')
+            stellar_source.parameter['radius'] = self.math.parse(
+                self.parse_args.stellar_radius, 'length')
         if self.parse_args.stellar_mass is not None:
-            stellar_source.parameter['mass'] = self.math.parse(self.parse_args.stellar_mass, 'mass')
+            stellar_source.parameter['mass'] = self.math.parse(
+                self.parse_args.stellar_mass, 'mass')
         return stellar_source
 
     def get_module_from_name(self, stellar_source_name):
@@ -91,9 +97,11 @@ class SourceChooser:
             Instance of chosen stellar source .
         """
         if stellar_source_name in self.sources_dict.keys():
-            stellar_source = self.sources_dict[stellar_source_name](self.file_io, self.parse_args)
+            stellar_source = self.sources_dict[stellar_source_name](
+                self.file_io, self.parse_args)
         else:
-            raise ValueError('No source with the name ' + str(stellar_source_name) + '!')
+            raise ValueError('No source with the name ' +
+                             str(stellar_source_name) + '!')
         return stellar_source
 
 

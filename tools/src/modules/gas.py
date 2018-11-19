@@ -69,9 +69,10 @@ class GasChooser:
                 self.parse_args.gas_species.upper() in self.gas_dict.keys():
             gas_species_name = self.parse_args.gas_species.upper()
         elif self.model is not None and self.model.parameter['gas_species'] is not None:
-                gas_species_name = self.model.parameter['gas_species'].upper()
+            gas_species_name = self.model.parameter['gas_species'].upper()
         else:
-            raise ValueError('Gas species not known! You can add a new species in gas.py!')
+            raise ValueError(
+                'Gas species not known! You can add a new species in gas.py!')
         gas = self.gas_dict[gas_species_name](self.file_io, self.parse_args)
         # Overwrite default values with user input
         if self.parse_args.level_pop_type is not None:
@@ -93,7 +94,8 @@ class GasChooser:
         if species_name in self.gas_dict.keys():
             gas = self.gas_dict[species_name](self.file_io, self.parse_args)
         else:
-            raise ValueError('No gas species with the name ' + str(species_name) + '!')
+            raise ValueError('No gas species with the name ' +
+                             str(species_name) + '!')
         return gas
 
 
@@ -281,8 +283,10 @@ class GasSO(Gas):
             float: Magnetic field strength in [T]
         """
         try:
-            frequency_shift = self.math.velocity_2_frequency(velocity_shift, f_0)
-            magnetic_field = 1e-10 * frequency_shift / (0.5 * self.zeeman_shift[i_trans])
+            frequency_shift = self.math.velocity_2_frequency(
+                velocity_shift, f_0)
+            magnetic_field = 1e-10 * frequency_shift / \
+                (0.5 * self.zeeman_shift[i_trans])
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -301,8 +305,10 @@ class GasSO(Gas):
             float: Zeeman shift in [m/s]
         """
         try:
-            frequency_shift = (magnetic_field / 1e-10) * (0.5 * self.zeeman_shift[i_trans])
-            velocity_shift = self.math.frequency_2_velocity(frequency_shift, f_0)
+            frequency_shift = (magnetic_field / 1e-10) * \
+                (0.5 * self.zeeman_shift[i_trans])
+            velocity_shift = self.math.frequency_2_velocity(
+                frequency_shift, f_0)
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -349,9 +355,11 @@ class GasOH(Gas):
             float: Magnetic field strength in [T]
         """
         try:
-            frequency_shift = self.math.velocity_2_frequency(velocity_shift, f_0)
+            frequency_shift = self.math.velocity_2_frequency(
+                velocity_shift, f_0)
             constant = self.math.const['h'] / self.math.const['mu_B']
-            magnetic_field = frequency_shift * constant / float(self.parameter['lande_factor'][i_trans])
+            magnetic_field = frequency_shift * constant / \
+                float(self.parameter['lande_factor'][i_trans])
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -371,8 +379,10 @@ class GasOH(Gas):
         """
         try:
             constant = self.math.const['mu_B'] / self.math.const['h']
-            frequency_shift = magnetic_field * constant * float(self.parameter['lande_factor'][i_trans])
-            velocity_shift = self.math.frequency_2_velocity(frequency_shift, f_0)
+            frequency_shift = magnetic_field * constant * \
+                float(self.parameter['lande_factor'][i_trans])
+            velocity_shift = self.math.frequency_2_velocity(
+                frequency_shift, f_0)
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -427,8 +437,10 @@ class GasCN(Gas):
             float: Magnetic field strength in [T]
         """
         try:
-            frequency_shift = self.math.velocity_2_frequency(velocity_shift, f_0)
-            magnetic_field = frequency_shift / (0.5 * self.zeeman_shift[i_trans]) * 1e-10
+            frequency_shift = self.math.velocity_2_frequency(
+                velocity_shift, f_0)
+            magnetic_field = frequency_shift / \
+                (0.5 * self.zeeman_shift[i_trans]) * 1e-10
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -447,8 +459,10 @@ class GasCN(Gas):
             float: Zeeman shift in [m/s]
         """
         try:
-            frequency_shift = (magnetic_field / 1e-10) * (0.5 * self.zeeman_shift[i_trans])
-            velocity_shift = self.math.frequency_2_velocity(frequency_shift, f_0)
+            frequency_shift = (magnetic_field / 1e-10) * \
+                (0.5 * self.zeeman_shift[i_trans])
+            velocity_shift = self.math.frequency_2_velocity(
+                frequency_shift, f_0)
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -497,8 +511,10 @@ class GasH1(Gas):
             float: Magnetic field strength in [T]
         """
         try:
-            frequency_shift = self.math.velocity_2_frequency(velocity_shift, f_0)
-            magnetic_field = frequency_shift / (0.5 * self.zeeman_shift[i_trans]) * 1e-10
+            frequency_shift = self.math.velocity_2_frequency(
+                velocity_shift, f_0)
+            magnetic_field = frequency_shift / \
+                (0.5 * self.zeeman_shift[i_trans]) * 1e-10
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')
@@ -517,8 +533,10 @@ class GasH1(Gas):
             float: Zeeman shift in [m/s]
         """
         try:
-            frequency_shift = (magnetic_field / 1e-10) * (0.5 * self.zeeman_shift[i_trans])
-            velocity_shift = self.math.frequency_2_velocity(frequency_shift, f_0)
+            frequency_shift = (magnetic_field / 1e-10) * \
+                (0.5 * self.zeeman_shift[i_trans])
+            velocity_shift = self.math.frequency_2_velocity(
+                frequency_shift, f_0)
         except ValueError:
             print('The chosen species has a known Zeeman splitting in some of its transitions. '
                   'However, you have not chosen one of them!')

@@ -7,12 +7,13 @@ from modules.base import Dust
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_dust_dict(dictionary):
     dust_dict = {
         'custom': CustomDust,
     }
     dictionary.update(dust_dict)
-
 
 
 class CustomDust(Dust):

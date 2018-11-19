@@ -7,6 +7,8 @@ from modules.base import Gas
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_gas_dict(dictionary):
     gas_dict = {
         'custom': GasCustom,

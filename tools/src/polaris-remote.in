@@ -104,14 +104,16 @@ class RemoteRoutines:
 
         # Get file input/output module
         from modules.file import FileIO
-        self.file_io = FileIO(self.model, self.server, parse_args, '@POLARIS@', 'remote')
+        self.file_io = FileIO(self.model, self.server,
+                              parse_args, '@POLARIS@', 'remote')
 
         self.rsync_cmd = 'rsync -vr -l -e ssh  --progress '
 
     def push_polaris_package(self):
         """Push complete POLARIS package to server.
         """
-        print('--- Push POLARIS package to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push POLARIS package to ' +
+              self.file_io.path['server'] + ' ...')
         os.chdir(self.file_io.path['polaris'])
         os.system('./create_polaris_installer.sh')
         os.system(self.rsync_cmd + self.file_io.path['polaris'] +
@@ -121,7 +123,8 @@ class RemoteRoutines:
     def push_polaris_sources(self):
         """Push POLARIS sources to server.
         """
-        print('--- Push POLARIS sources to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push POLARIS sources to ' +
+              self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=src/ --include=tools/ --include=tools/src/ ' +
             '--include=modules/ --include=custom/ --include=*.cpp --include=*.cc --include=*.h ' +
@@ -131,7 +134,8 @@ class RemoteRoutines:
     def push_polaris_input(self):
         """Push POLARIS sources to server.
         """
-        print('--- Push POLARIS input files to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push POLARIS input files to ' +
+              self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=input/ --include=input/dust/ --include=input/dust/*/ ' +
             '--include=input/gas/ --include=*.dct --include=*.lot --include=*.dat --include=*.sca '
@@ -141,7 +145,8 @@ class RemoteRoutines:
     def push_polaris_tests(self):
         """Push POLARIS test files to server.
         """
-        print('--- Push POLARIS test files to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push POLARIS test files to ' +
+              self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=testing/ --include=testing/*/ ' +
             '--include=testing/*/results_correct/ --include=*.dat --include=template.cmd '
@@ -151,7 +156,8 @@ class RemoteRoutines:
     def pull_polaris_tests(self):
         """Pull POLARIS test files to server.
         """
-        print('--- Pull POLARIS test files from ' + self.file_io.path['server'] + ' ...')
+        print('--- Pull POLARIS test files from ' +
+              self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=testing/ --include=testing/*/ ' +
             '--include=testing/*/results_correct/ --include=*.dat --include=template.cmd '
@@ -161,7 +167,8 @@ class RemoteRoutines:
     def push_polaris(self):
         """Push POLARIS sources to server.
         """
-        print('--- Push all POLARIS files to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push all POLARIS files to ' +
+              self.file_io.path['server'] + ' ...')
         os.system(
             self.rsync_cmd + '--include=.git/ --exclude=projects/ --exclude=testing/*/results/ ' +
             self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
@@ -172,8 +179,10 @@ class RemoteRoutines:
         Args:
             path_to_file (str): Path to file that has to be pushed to server.
         """
-        print('--- Push file to ' + self.file_io.path['server_polaris'] + ' ...')
-        os.system(self.rsync_cmd + path_to_file + ' ' + self.file_io.path['server_polaris'])
+        print('--- Push file to ' +
+              self.file_io.path['server_polaris'] + ' ...')
+        os.system(self.rsync_cmd + path_to_file + ' ' +
+                  self.file_io.path['server_polaris'])
 
     def push_polaris_results(self, all_simulations=False, exclude=''):
         """Push POLARIS results to server.
@@ -185,7 +194,8 @@ class RemoteRoutines:
         if self.parse_args.exclude is not None:
             exclude = self.parse_args.exclude
 
-        print('--- Push POLARIS results to ' + self.file_io.path['server'] + ' ...')
+        print('--- Push POLARIS results to ' +
+              self.file_io.path['server'] + ' ...')
         if all_simulations:
             os.system(self.rsync_cmd + '--exclude=' + exclude + ' ' + self.file_io.path['model'] + '/ ' +
                       self.file_io.path['server_model'] + '/')
@@ -203,7 +213,8 @@ class RemoteRoutines:
         if self.parse_args.exclude is not None:
             exclude = self.parse_args.exclude
 
-        print('--- Pull POLARIS sources to ' + self.file_io.path['server'] + ' ...')
+        print('--- Pull POLARIS sources to ' +
+              self.file_io.path['server'] + ' ...')
         if all_simulations:
             os.system(self.rsync_cmd + '--exclude=' + exclude + ' ' + self.file_io.path['server_model'] + '/ ' +
                       self.file_io.path['model'] + '/')
@@ -235,10 +246,10 @@ if __name__ == '__main__':
             remote_routines.push_polaris_input()
         elif parser_options.push_polaris_tests:
             # Push POLARIS input files to server
-            remote_routines.push_polaris_tests()           
+            remote_routines.push_polaris_tests()
         elif parser_options.pull_polaris_tests:
             # Pull POLARIS input files from server
-            remote_routines.pull_polaris_tests()   
+            remote_routines.pull_polaris_tests()
         elif parser_options.path_to_file is not None:
             # Push file to PolarisTools on server
             remote_routines.push_file(parser_options.path_to_file)
@@ -275,5 +286,6 @@ if __name__ == '__main__':
         else:
             raise ValueError('No valid polaris-remote command!')
     else:
-        raise ValueError('Remote server is not set but needed for the chosen command!')
+        raise ValueError(
+            'Remote server is not set but needed for the chosen command!')
     print('--- Remote control POLARIS finished!')

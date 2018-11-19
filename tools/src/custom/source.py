@@ -7,6 +7,8 @@ from modules.base import StellarSource
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_sources_dict(dictionary):
     sources_dict = {
         'f_type': FType,
@@ -110,27 +112,36 @@ class GGTauStars(StellarSource):
         self.parameter['nr_photons'] = 1e8
 
         # Temperatures
-        # Cite: temperature of Aa ...
-        self.T_Aa = 3870.
-        self.T_Ab1 = 3550.
-        self.T_Ab2 = 3410.
+        # Cite: temperature of Aa and Ab1/2 (Di Folco et al. 2014)
+        # GG Tau Aa: M0 spectral type
+        self.T_Aa = 3750.
+        # GG Tau Aa: M2 spectral type
+        self.T_Ab1 = 3600.
+        # GG Tau Aa: M3 spectral type
+        self.T_Ab2 = 3500.
+
         self.T_planet = 839.9
 
         # Luminosities
         # Cite: luminosity of Aa (White et al. 1999)
         self.L_Aa = 0.84 * self.math.const['L_sun']
-        self.L_Ab1 = 0.40 * self.math.const['L_sun']
-        self.L_Ab2 =0.31 * self.math.const['L_sun']
-        self.L_planet = 1e-1 * (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
+        # Cite: luminosity of Aa (White et al. 1999 and Di Folco et al. 2014)
+        self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
+        self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
+        self.L_planet = 1e-1 * \
+            (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
 
         # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
         # Cite: separation Aa and Ab (White et al. 1999)
-        self.a_Aab = 36. / 2.
+        self.a_Aab = 44. / 2.
         self.a_Ab12 = 4.5 / 2.
         self.a_planet = 260. + 20.
 
+        # Cite: PA (Di Folco et al. 1999)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab = self.angle_Aa + np.pi
+
+        # Cite: Position of planet (Dutrey et al. 2014)
         self.angle_planet = np.pi * (360. - 127.) / 180.
 
         # Add planet to sources?
@@ -158,11 +169,11 @@ class GGTauStars(StellarSource):
             'temperature': [self.T_Aa, self.T_Ab1, self.T_Ab2],
             'luminosity': [self.L_Aa, self.L_Ab1, self.L_Ab2],
             'position_star': [[-1.0, self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
-                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) + 
-                                    self.a_Ab12 * self.math.const['au'],
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) +
+                               self.a_Ab12 * self.math.const['au'],
                                self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.],
-                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) - 
-                                    self.a_Ab12 * self.math.const['au'],
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) -
+                               self.a_Ab12 * self.math.const['au'],
                                self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.]]
         }
 
@@ -177,7 +188,7 @@ class GGTauStars(StellarSource):
             self.parameter['temperature'] = self.T_planet
             self.parameter['luminosity'] = self.L_planet
             self.parameter['position'] = [self.a_planet * self.math.const['au'] * np.sin(self.angle_planet),
-                self.a_planet * self.math.const['au'] * np.cos(self.angle_planet), 0.]
+                                          self.a_planet * self.math.const['au'] * np.cos(self.angle_planet), 0.]
             new_command_line += self.get_command_line()
         return new_command_line
 
@@ -204,6 +215,7 @@ class HD97048(StellarSource):
         self.parameter['mass'] = 1.0 * self.math.const['M_sun']
         # Number of photons if no number is chosen via --photons
         self.parameter['nr_photons'] = 1e6
+
 
 class Line(StellarSource):
     """A line of stars
