@@ -36,7 +36,7 @@ class CustomDetector(Detector):
         self.parameter['wavelength_min'] = 1e-6
         # Last wavelength of the observing wavelengths
         self.parameter['wavelength_max'] = 1e-6
-        # Number of logaritmically distributed wavelengths
+        # Number of logarithmically distributed wavelengths
         # between wavelength_min and wavelength_max
         self.parameter['nr_of_wavelength'] = 1
         # Rotation angle around the first rotation axis
@@ -128,12 +128,14 @@ class GGTauDetector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        # Rotation angle around the first rotation axis
+        # ------ Rotation angles -----
+        # Cite: inclination (Duchêne et al. 2004)
         self.parameter['rot_angle_1'] = -37.0
+        # Cite: position angle of Aa and Ab (Yang et al. 2017)
         self.parameter['rot_angle_2'] = 25.
-        # Cite: PA GG Tau Aab (Yang et al. 2017)
-        self.PA = (360. - 277.) / 180. * np.pi
-        self.parameter['rot_axis_1'] = [np.cos(self.PA), np.sin(self.PA), 0]
+        # Cite: rotation axis of inclination (Yang et al. 2017)
+        PA = (360. - 277.) / 180. * np.pi
+        self.parameter['rot_axis_1'] = [np.sin(PA), np.cos(PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]
         self.parameter['nr_pixel_x'] = 512
         self.parameter['nr_pixel_y'] = 512

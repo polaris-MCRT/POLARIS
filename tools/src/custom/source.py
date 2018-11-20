@@ -108,40 +108,40 @@ class GGTauStars(StellarSource):
 
         """
         StellarSource.__init__(self, file_io, parse_args)
-
+        # ------ Default nr. of photons -----
         self.parameter['nr_photons'] = 1e8
 
-        # Temperatures
-        # Cite: temperature of Aa and Ab1/2 (Di Folco et al. 2014)
+        # ------ Effective temperatures -----
+        # Cite: temperatures and spectral types (Di Folco et al. 2014)
         # GG Tau Aa: M0 spectral type
         self.T_Aa = 3750.
         # GG Tau Aa: M2 spectral type
         self.T_Ab1 = 3600.
         # GG Tau Aa: M3 spectral type
         self.T_Ab2 = 3500.
-
+        # Cite: 
         self.T_planet = 839.9
 
-        # Luminosities
+        # ------ Luminosities -----
         # Cite: luminosity of Aa (White et al. 1999)
         self.L_Aa = 0.84 * self.math.const['L_sun']
         # Cite: luminosity of Aa (White et al. 1999 and Di Folco et al. 2014)
         self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
         self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
+        # Cite: 
         self.L_planet = 1e-1 * \
             (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
 
-        # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
-        # Cite: separation Aa and Ab (White et al. 1999)
+        # ------ Half-major axis of the stars -----
+        # Cite: separations (White et al. 1999)
         self.a_Aab = 44. / 2.
         self.a_Ab12 = 4.5 / 2.
         self.a_planet = 260. + 20.
 
-        # Cite: PA (Di Folco et al. 1999)
+        # Cite: position angle (Di Folco et al. 1999)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab = self.angle_Aa + np.pi
-
-        # Cite: Position of planet (Dutrey et al. 2014)
+        # Cite: position of planet (Dutrey et al. 2014)
         self.angle_planet = np.pi * (360. - 127.) / 180.
 
         # Add planet to sources?
@@ -153,7 +153,7 @@ class GGTauStars(StellarSource):
         1 M_jup:  T = 839.9 K, L = 1.409e-5 L_sun
         10 M_jup: T = 2423 K,  L = 1.950e-3 L_sun
 
-        10 millionen years
+        10 million years
         1 M_jup:  T = 528.7 K, L = 1.423e-6 L_sun
         10 M_jup: T = 1591 K,  L = 1.262e-4 L_sun
 

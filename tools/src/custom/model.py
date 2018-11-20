@@ -42,7 +42,7 @@ class CustomModel(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100.0 * self.math.const['au']
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
-        # Define which other choise are default for this model
+        # Define which other choice are default for this model
         self.parameter['background_source'] = 'bg_plane'
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
@@ -203,10 +203,10 @@ class TestModel(Model):
         gas_density1 = self.math.sphere_density(self.position,
                                                 inner_radius=self.parameter['inner_radius'],
                                                 outer_radius=self.parameter['outer_radius'])
-        gas_density2 = self.math.sphere_density(self.position,
-                                                inner_radius=100. *
-                                                self.parameter['inner_radius'],
-                                                outer_radius=self.parameter['outer_radius'])
+        # gas_density2 = self.math.sphere_density(self.position,
+        #                                         inner_radius=100. *
+        #                                         self.parameter['inner_radius'],
+        #                                         outer_radius=self.parameter['outer_radius'])
         # return [[gas_density1], [gas_density2]]
         if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
             return [[gas_density1], [0]]
@@ -372,6 +372,7 @@ class GGTauDisk(Model):
             0
         ]
 
+        # ------ Conversion of position angles -----
         # pos = [
         #     np.sin(-25 / 180. * np.pi),
         #     np.cos(-24.9 / 180. * np.pi),
@@ -392,7 +393,8 @@ class GGTauDisk(Model):
         self.outer_radius_Ab12 = 2. * self.math.const['au']
         # Parameter of the circumbinary disk
         # Cite: scale height (McCabe et al. 2002)
-        self.ref_scale_height = 21. * self.math.const['au']
+        # Range: 16 AU, 21 AU, 26 AU, 31 AU
+        self.ref_scale_height = 26. * self.math.const['au']
         self.ref_radius = 180. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
@@ -582,8 +584,8 @@ class HD97048(Model):
             self.use_cont = bool(int(extra_parameter[0]))
 
         # Radial cell border list
-        list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']),
-                                      np.log10(2.6 * self.math.const['au']), 50)
+        #list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']),
+        #                              np.log10(2.6 * self.math.const['au']), 50)
 
         # Set the gas density
         if self.use_cont:
@@ -705,7 +707,7 @@ class ThemisDisk(Model):
         # ---
         # Calc mass_Fraction out of themis density
         self.parameter['gas_mass'] *= 1e-2 * \
-            self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+            self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'])
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
@@ -761,10 +763,10 @@ class ThemisDisk(Model):
                 elif model_number == 3:
                     self.parameter['gas_mass'] = np.array(
                         [[0.8e-4], [0.63e-3], [0.255e-2], [0.255e-2]])
-                self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum()
+                self.parameter['mass_fraction'] = np.sum(self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 1e-2 * \
-                    self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+                    self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
