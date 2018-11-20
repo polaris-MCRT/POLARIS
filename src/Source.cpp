@@ -837,7 +837,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-                cout << "-> Calculate cell probability distribution: [ " << percentage << " % ]      \r" << flush;
+                cout << "-> Calculate probability distribution for dust source: [ " 
+                    << percentage << " % ]\r" << flush;
                 last_percentage = percentage;
             }
 
