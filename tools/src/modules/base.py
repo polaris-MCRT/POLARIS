@@ -623,8 +623,8 @@ class Model:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
-            'gas_density_overhead': 0,
-            'dust_density_overhead': 0,
+            'ignored_gas_density': 0,
+            'ignored_dust_density': 0,
         }
 
     def init_position(self, position, cell_IDs=None):
@@ -1059,8 +1059,8 @@ class ExternalInput:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
-            'gas_density_overhead': 0,
-            'dust_density_overhead': 0,
+            'ignored_gas_density': 0,
+            'ignored_dust_density': 0,
         }
 
     def external_data_loaded(self):

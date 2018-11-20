@@ -762,7 +762,7 @@ class ThemisDisk(Model):
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                     if self.parameter['model_number'] == 5:
-                        self.tmp_parameter['gas_density_overhead'] = np.zeros((4, 1))
+                        self.tmp_parameter['ignored_gas_density'] = np.zeros((4, 1))
                 self.parameter['mass_fraction'] = np.sum(self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 1e-2 * \
@@ -788,8 +788,11 @@ class ThemisDisk(Model):
 
             # Set density of larger grains to zero to create a gap
             if 5 * self.math.const['au'] <= radius_cy <= 20 * self.math.const['au']:
+                # Add negatively to take it into account for normalization
+                # Same as material which was in a disk with the total disk mass but is
+                # for instance accreted on a planet or star
+                self.tmp_parameter['ignored_gas_density'][1:, 0] -= density_list[1:, 0]
                 density_list[1:, 0] = 0.
-                self.tmp_parameter['gas_density_overhead'] += density_list           
                 
         return density_list
 
