@@ -258,7 +258,7 @@ class Grid:
             grid_file.seek(-(self.data_length * data_type_length), 1)
 
         # Transmit the cell position to the model to obtain the cell quantities
-        self.data.init_position(node.parameter['position'], cell_IDs)
+        self.data.init_position(node, cell_IDs)
         node.parameter['gas_density'] = self.data.get_gas_density_distribution()
         node.parameter['dust_density'] = self.data.get_dust_density_distribution()
         dust_temperature = self.data.get_dust_temperature()
@@ -733,7 +733,7 @@ class OcTree(Grid):
             center of the parent and in each of the 8 children.
         """
         # Set density of parent node for refinement calculation
-        self.model.init_position(node.parameter['position'])
+        self.model.init_position(node)
         node.parameter['gas_density'] = self.model.get_gas_density_distribution()
         if isinstance(node.parameter['gas_density'], float):
             if np.sum(node.parameter['gas_density']) > 0:
@@ -767,10 +767,10 @@ class OcTree(Grid):
             center of the parent and in each of the 8 children.
         """
         difference = 0.
-        self.model.init_position(node.parameter['position'])
+        self.model.init_position(node)
         parent_mag = self.model.get_magnetic_field()
         for i_leaf in range(8):
-            self.model.init_position(node.children[i_leaf].position)
+            self.model.init_position(node.children[i_leaf])
             children_mag = self.model.get_magnetic_field()
             for i in range(3):
                 if abs(parent_mag[i] + children_mag[i]) > 0:
@@ -789,10 +789,10 @@ class OcTree(Grid):
             center of the parent and in each of the 8 children.
         """
         difference = 0.
-        self.model.init_position(node.parameter['position'])
+        self.model.init_position(node)
         parent_t_gas = self.model.get_gas_temperature()
         for i_leaf in range(8):
-            self.model.init_position(node.children[i_leaf].position)
+            self.model.init_position(node.children[i_leaf])
             children_t_gas = self.model.get_gas_temperature()
             if abs(parent_t_gas + children_t_gas) > 0:
                 diff = 10 * abs(parent_t_gas - children_t_gas) / abs(parent_t_gas + children_t_gas)

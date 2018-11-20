@@ -201,19 +201,21 @@ class GridRoutines:
                 # Close the final grid file
                 grid_file.close()
             elif np.shape(self.model.parameter['gas_mass']) == np.shape(grid.total_gas_mass):
-                # Update the relation between the regions in the grid
+                # Update the relation between the regions in the grid (gas)
                 if self.model.parameter['gas_mass'] is not None:
                     self.model.tmp_parameter['relative_gas_densities'] = np.divide(
                         self.model.parameter['gas_mass'], np.subtract(
                             grid.total_gas_mass, self.model.tmp_parameter['ignored_gas_density']),
                         out=np.zeros_like(self.model.parameter['gas_mass']),
                         where=self.model.parameter['gas_mass'] != 0)
+                # Update the relation between the regions in the grid  (dust)
                 if self.model.parameter['dust_mass'] is not None:
                     self.model.tmp_parameter['relative_dust_densities'] = np.divide(
                         self.model.parameter['dust_mass'], np.subtract(
                             grid.total_dust_mass, self.model.tmp_parameter['ignored_dust_density']),
                         out=np.zeros_like(self.model.parameter['gas_mass']),
                         where=self.model.parameter['gas_mass'] != 0)
+                #: Init grid
                 if self.model.parameter['grid_type'] == 'octree':
                     grid = OcTree(self.model, self.ext_input,
                                   self.file_io, self.parse_args)
