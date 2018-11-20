@@ -623,6 +623,8 @@ class Model:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
+            'gas_density_overhead': 0,
+            'dust_density_overhead': 0,
         }
 
     def init_position(self, position, cell_IDs=None):
@@ -674,7 +676,7 @@ class Model:
         return self.dust_density_distribution()
 
     def get_velocity_field(self):
-        """The velocity field can be modified by the code here if neccessary.
+        """The velocity field can be modified by the code here if necessary.
 
         Returns:
             List[float, float, float]: Velocity at a given position.
@@ -1057,6 +1059,8 @@ class ExternalInput:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
+            'gas_density_overhead': 0,
+            'dust_density_overhead': 0,
         }
 
     def external_data_loaded(self):
