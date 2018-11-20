@@ -477,7 +477,7 @@ public:
     }
 
 private:
-    double total_energy;
+    double * total_energy;
     prob_list * cell_prob;
 };
 

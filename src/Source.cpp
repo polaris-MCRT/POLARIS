@@ -804,12 +804,16 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     // Init variables
     ulong nr_of_cells = grid->getMaxDataCells();
     photon_package * pp = new photon_package();
-
     cell_prob = new prob_list[getNrOfWavelength()];
+    total_energy = new double[getNrOfWavelength()];
+    uint max_counter = getNrOfWavelength() * nr_of_cells;
+    uint per_counter = 0;
+    float last_percentage = 0;
 
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
+#pragma omp parallel for
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
         // Init variables
@@ -819,27 +823,36 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         pp->setWavelengthID(w);
 
         // Set total energy to zero and starting value of prob_list
-        total_energy = 0;
-        cell_prob[w].setValue(0, total_energy);
+        total_energy[w] = 0;
+        cell_prob[w].setValue(0, total_energy[w]);
 
         for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
         {
-            // Show progress
-            float percentage = 100 * float(i_cell) / float(nr_of_cells - 1);
-            cout << "-> Calculate cell probability distribution: [ " << percentage << " % ]      \r" << flush;
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+                cout << "-> Calculate cell probability distribution: [ " << percentage << " % ]      \r" << flush;
+                last_percentage = percentage;
+            }
 
             // Put photon package into current cell
             pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
             // Get total energy of thermal emission
-            total_energy += dust->getCellEmission(grid, pp);
+            total_energy[w] += dust->getCellEmission(grid, pp);
 
             // Add energy to probability distribution
-            cell_prob[w].setValue(i_cell + 1, total_energy);
+            cell_prob[w].setValue(i_cell + 1, total_energy[w]);
         }
 
         // Normalize probability distribution
-        cell_prob[w].normalize(total_energy);
+        cell_prob[w].normalize(total_energy[w]);
     }
 
     // Delete pointer
@@ -859,6 +872,7 @@ bool CSourceDust::initSource(uint w)
     photon_package * pp = new photon_package();
 
     // Init variables
+    total_energy = new double[getNrOfWavelength()];
     cell_prob = new prob_list[getNrOfWavelength()];
     cell_prob[w].resize(nr_of_cells + 1);
 
@@ -866,8 +880,8 @@ bool CSourceDust::initSource(uint w)
     pp->setWavelengthID(w);
 
     // Set total energy to zero and starting value of prob_list
-    total_energy = 0;
-    cell_prob[w].setValue(0, total_energy);
+    total_energy[w] = 0;
+    cell_prob[w].setValue(0, total_energy[w]);
 
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
@@ -875,14 +889,14 @@ bool CSourceDust::initSource(uint w)
         pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
         // Get total energy of thermal emission
-        total_energy += dust->getCellEmission(grid, pp);
+        total_energy[w] += dust->getCellEmission(grid, pp);
 
         // Add energy to probability distribution
-        cell_prob[w].setValue(i_cell + 1, total_energy);
+        cell_prob[w].setValue(i_cell + 1, total_energy[w]);
     }
 
     // Normalize probability distribution
-    cell_prob[w].normalize(total_energy);
+    cell_prob[w].normalize(total_energy[w]);
 
     // Delete pointer
     delete pp;
@@ -915,7 +929,7 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     grid->setRndPositionInCell(pp);
 
     // Set Stokes vector of photon package
-    double energy = total_energy / double(nr_photons);
+    double energy = total_energy[w] / double(nr_photons);
 
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));
