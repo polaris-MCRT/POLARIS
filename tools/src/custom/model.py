@@ -788,8 +788,8 @@ class ThemisDisk(Model):
 
             # Set density of larger grains to zero to create a gap
             if 5 * self.math.const['au'] <= radius_cy <= 20 * self.math.const['au']:
-                self.tmp_parameter['gas_density_overhead'][1:, 0] += density_list[1:, 0]
                 density_list[1:, 0] = 0.
+                self.tmp_parameter['gas_density_overhead'] += density_list           
                 
         return density_list
 
