@@ -4357,8 +4357,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         cout << "- Nr. of wavelengths      : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-            (grid->getRadiationFieldAvailable() && param.getScatteringToRay()))
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING || param.getScatteringToRay())
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps

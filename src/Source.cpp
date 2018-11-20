@@ -807,6 +807,9 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 
     cell_prob = new prob_list[getNrOfWavelength()];
 
+    // Show Initial message
+    cout << "-> Initiating dust grain emission          \r" << flush;
+
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
         // Init variables
@@ -821,6 +824,10 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 
         for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
         {
+            // Show progress
+            float percentage = 100 * float(i_cell) / float(nr_of_cells - 1);
+            cout << "-> Calculate cell probability distribution: [ " << percentage << " % ]      \r" << flush;
+
             // Put photon package into current cell
             pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
@@ -887,7 +894,7 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
-    pp->calcRandomDirection(); 
+    pp->calcRandomDirection();
 
     if(nr_photons == MAX_UINT)
         nr_photons = nr_of_photons; 

@@ -350,7 +350,7 @@ class GGTauDisk(Model):
         # Cite: extent of circumbinary disk 180 AU - 260 AU (McCabe et al. 2002)
         self.parameter['outer_radius'] = 300. * self.math.const['au']
         # ------ With circumstellar disks -----
-        self.parameter['inner_radius'] = 10. * self.math.const['au']
+        self.parameter['inner_radius'] = 15. * self.math.const['au']
         # ---- Without circumstellar disks ----
         #self.parameter['inner_radius'] = 180. * self.math.const['au']
         # -------------------------------------
@@ -394,7 +394,7 @@ class GGTauDisk(Model):
         # Parameter of the circumbinary disk
         # Cite: scale height (McCabe et al. 2002)
         # Range: 16 AU, 21 AU, 26 AU, 31 AU
-        self.ref_scale_height = 26. * self.math.const['au']
+        self.ref_scale_height = 16. * self.math.const['au']
         self.ref_radius = 180. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
@@ -409,7 +409,7 @@ class GGTauDisk(Model):
         # Custom width of z-cell borders per ring
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
-        r_list_cs_disks = np.linspace(10., 25., 150)
+        r_list_cs_disks = np.linspace(15., 30., 150)
         r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         # ------ With circumstellar disks -----
