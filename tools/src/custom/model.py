@@ -709,23 +709,16 @@ class ThemisDisk(Model):
         self.parameter['gas_mass'] *= 1e-2 * \
             self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'])
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['inner_radius'] = 0.1 * self.math.const['au']
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        self.parameter['inner_radius'] = 0.2 * self.math.const['au']
+        self.parameter['outer_radius'] = 350. * self.math.const['au']
         # Define the used sources, dust composition and gas species
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'themis'
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
-        # In the case of a spherical grid
-        self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 181
-        self.spherical_parameter['n_ph'] = 1
-        self.spherical_parameter['sf_r'] = 1.03
-        # sf_th = 1 is sinus; sf_th > 1 is exp with step width sf_th; rest is linear
-        self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 100
-        self.cylindrical_parameter['n_z'] = 181
+        self.cylindrical_parameter['n_z'] = 142
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.03
         # sf_z = -1 is using scale height; sf_z = 1 is sinus;
@@ -738,6 +731,8 @@ class ThemisDisk(Model):
         self.parameter['beta'] = 1.125
         # Enable multiple density distributions
         self.parameter['variable_dust'] = True
+        # Init new parameter
+        self.parameter['model_number'] = 0
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -753,16 +748,19 @@ class ThemisDisk(Model):
                 self.parameter['beta'] = float(extra_parameter[3])
             # Change mass ratios depending on the chosen model
             if len(extra_parameter) == 1:
-                model_number = int(extra_parameter[0])
-                if model_number == 1:
+                self.parameter['model_number'] = int(extra_parameter[0])
+                if self.parameter['model_number'] == 1:
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3]])
-                elif model_number == 2:
+                elif self.parameter['model_number'] == 2:
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]])
-                elif model_number == 3:
+                elif self.parameter['model_number'] == 3:
                     self.parameter['gas_mass'] = np.array(
                         [[0.8e-4], [0.63e-3], [0.255e-2], [0.255e-2]])
+                elif self.parameter['model_number'] in [4, 5]:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                 self.parameter['mass_fraction'] = np.sum(self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 1e-2 * \
@@ -781,7 +779,15 @@ class ThemisDisk(Model):
                                                      ref_radius=self.parameter['ref_radius'],
                                                      ref_scale_height=self.parameter['ref_scale_height'],
                                                      alpha=self.parameter['alpha'], beta=self.parameter['beta'])
-        return np.ones((4, 1)) * gas_density
+        density_list = np.ones((4, 1)) * gas_density
+        if self.parameter['model_number'] == 5:
+            # Calculate cylindrical radius
+            radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+
+            # Set density of larger grains to zero to create a gap
+            if 5 * self.math.const['au'] <= radius_cy <= 20 * self.math.const['au']:
+                density_list[1:, 0] = 0.
+        return density_list
 
     def scale_height(self, radius):
         """Calculates the scale height at a certain position.
