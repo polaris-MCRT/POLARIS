@@ -584,7 +584,7 @@ class HD97048(Model):
             self.use_cont = bool(int(extra_parameter[0]))
 
         # Radial cell border list
-        #list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']),
+        # list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']),
         #                              np.log10(2.6 * self.math.const['au']), 50)
 
         # Set the gas density
@@ -761,12 +761,15 @@ class ThemisDisk(Model):
                 elif self.parameter['model_number'] in [4, 5]:
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
-                    if self.parameter['model_number'] == 5:
+                    if self.parameter['model_number'] == 5 and \
+                            self.tmp_parameter['ignored_gas_density'] == 0:
                         self.tmp_parameter['ignored_gas_density'] = np.zeros((4, 1))
-                self.parameter['mass_fraction'] = np.sum(self.parameter['gas_mass'])
+                self.parameter['mass_fraction'] = np.sum(
+                    self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 1e-2 * \
-                    self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'])
+                    self.math.const['M_sun'] / \
+                    np.sum(self.parameter['gas_mass'])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -793,7 +796,7 @@ class ThemisDisk(Model):
                 # for instance accreted on a planet or star
                 self.tmp_parameter['ignored_gas_density'][1:, 0] -= density_list[1:, 0]
                 density_list[1:, 0] = 0.
-                
+
         return density_list
 
     def scale_height(self, radius):
