@@ -394,7 +394,7 @@ class GGTauDisk(Model):
         # Parameter of the circumbinary disk
         # Cite: scale height (McCabe et al. 2002)
         # Range: 16 AU, 21 AU, 26 AU, 31 AU
-        self.ref_scale_height = 16. * self.math.const['au']
+        self.ref_scale_height = 21. * self.math.const['au']
         self.ref_radius = 180. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
@@ -427,6 +427,19 @@ class GGTauDisk(Model):
         # ---- Without circumstellar disks ----
         #self.cylindrical_parameter['n_ph'] = n_ph_list_2
         # -------------------------------------
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 2:
+                # Range: 16 AU, 21 AU, 26 AU, 31 AU
+                self.ref_scale_height = float(extra_parameter[0]) * self.math.const['au']
+                self.inclination_Aa = float(extra_parameter[1]) / 180. * np.pi
+                self.inclination_Ab12 = float(extra_parameter[1]) / 180. * np.pi
+            else:
+                raise ValueError('Wrong number of extra parameters!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -529,10 +542,8 @@ class GGTauDisk(Model):
         if(radius <= self.a_Aab + self.outer_radius_Aa):
             scale_height = 0.3 * self.math.const['au']
         else:
-            scale_height = self.math.default_disk_scale_height(radius,
-                                                               ref_radius=180. *
-                                                               self.math.const['au'],
-                                                               ref_scale_height=32. * self.math.const['au'], beta=self.beta)
+            scale_height = self.math.default_disk_scale_height(
+                radius, ref_radius=self.ref_radius, ref_scale_height=self.ref_scale_height, beta=self.beta)
         return scale_height
 
 
@@ -746,8 +757,8 @@ class ThemisDisk(Model):
                     extra_parameter[1], 'length')
                 self.parameter['alpha'] = float(extra_parameter[2])
                 self.parameter['beta'] = float(extra_parameter[3])
-            # Change mass ratios depending on the chosen model
-            if len(extra_parameter) == 1:
+            elif len(extra_parameter) == 1:
+                # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
                     self.parameter['gas_mass'] = np.array(
@@ -762,7 +773,8 @@ class ThemisDisk(Model):
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                     if self.parameter['model_number'] == 5:
-                        self.tmp_parameter['ignored_gas_density'] = np.zeros((4, 1))
+                        self.tmp_parameter['ignored_gas_density'] = np.zeros(
+                            (4, 1))
                 self.parameter['mass_fraction'] = np.sum(
                     self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
@@ -793,7 +805,8 @@ class ThemisDisk(Model):
                 # Add negatively to take it into account for normalization
                 # Same as material which was in a disk with the total disk mass but is
                 # for instance accreted on a planet or star
-                self.tmp_parameter['ignored_gas_density'][1:, 0] -= density_list[1:, 0] * self.volume
+                self.tmp_parameter['ignored_gas_density'][1:,
+                                                          0] -= density_list[1:, 0] * self.volume
                 density_list[1:, 0] = 0.
 
         return density_list

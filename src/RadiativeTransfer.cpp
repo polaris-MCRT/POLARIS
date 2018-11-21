@@ -352,12 +352,6 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 else
                     tm_source->createNextRay(pp, llong(r));
 
-                if(pp->getStokesVector().I() < 1e-200)
-                {
-                    delete pp;
-                    continue;
-                }
-
                 if(!grid->positionPhotonInGrid(pp))
                     if(!grid->findStartingPoint(pp))
                     {
@@ -381,7 +375,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions > MAX_INTERACTION)
+                    if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
                     {
                         kill_counter++;
                         break;
