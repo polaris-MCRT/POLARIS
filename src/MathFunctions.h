@@ -2476,6 +2476,12 @@ public:
         // Series expansion terminated after XSTOP terms
         float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
         long nmx = fmax(xstop, abs(cxy)) + 15;
+
+        if (nmx >= NMXX) {
+            cout << "ERROR: Failure in Mie-scattering calculation (NMX = " 
+                << nmx << " >= NMXX = " << NMXX << ")" << endl;
+            return;
+        }
         
         float amu[NANG];
         float dang = 0.5 * PI / float(NANG - 1);
@@ -2484,7 +2490,7 @@ public:
 
         // Logarithmic derivative D(J) calculated by downward recurrence
         // beginning with initial value (0., 0.) at J=NMX
-        fcomplex cxd[nmx + 1];
+        fcomplex cxd[NMXX];
         cxd[nmx] = fcomplex(0, 0);
 
         fcomplex cxtemp;
