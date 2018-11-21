@@ -2440,7 +2440,7 @@ public:
         return c;
     }
 
-    static inline void calcBHMie(double x, fcomplex refractive_index, 
+    static void calcBHMie(double x, fcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
         /*Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
@@ -2484,7 +2484,8 @@ public:
 
         // Logarithmic derivative D(J) calculated by downward recurrence
         // beginning with initial value (0., 0.) at J=NMX
-        fcomplex cxd[nmx];
+        fcomplex cxd[nmx + 1];
+        cxd[nmx] = fcomplex(0, 0);
 
         fcomplex cxtemp;
         for(long n = 0; n < nmx - 1; n++)
