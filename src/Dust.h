@@ -2607,7 +2607,7 @@ public:
     }
 
     void scatter(CGridBasic * grid, photon_package * pp, double albedo = 0)
-    {
+    {       
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp);

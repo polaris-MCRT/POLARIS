@@ -114,11 +114,11 @@ class GGTauStars(StellarSource):
         # ------ Effective temperatures -----
         # Cite: temperatures and spectral types (Di Folco et al. 2014)
         # GG Tau Aa: M0 spectral type
-        self.T_Aa = 3750.
+        self.T_Aa = 3700.
         # GG Tau Aa: M2 spectral type
-        self.T_Ab1 = 3600.
+        self.T_Ab1 = 3300.
         # GG Tau Aa: M3 spectral type
-        self.T_Ab2 = 3500.
+        self.T_Ab2 = 3100.
         # Cite: 
         self.T_planet = 839.9
 
@@ -135,7 +135,7 @@ class GGTauStars(StellarSource):
         # ------ Half-major axis of the stars -----
         # Cite: separations (White et al. 1999)
         self.a_Aab = 44. / 2.
-        self.a_Ab12 = 4.5 / 2.
+        self.a_Ab12 = 5. / 2.
         self.a_planet = 260. + 20.
 
         # Cite: position angle (Di Folco et al. 1999)

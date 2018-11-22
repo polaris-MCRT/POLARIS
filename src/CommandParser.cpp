@@ -2777,6 +2777,16 @@ bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint 
         return true;
     }
 
+    if(cmd.compare("<write_full_radiation_field>") == 0)
+    {
+        if(atob(atoi(data.c_str())))
+            param->setWriteFullRadiationField(true);
+        else
+            param->setWriteFullRadiationField(false);
+
+        return true;
+    }
+
     if(cmd.compare("<write_g_zero>") == 0)
     {
         if(atob(atoi(data.c_str())))

@@ -347,8 +347,8 @@ class GGTauDisk(Model):
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
-        # Cite: extent of circumbinary disk 180 AU - 260 AU (McCabe et al. 2002)
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
+        self.parameter['outer_radius'] = 280. * self.math.const['au']
         # ------ With circumstellar disks -----
         self.parameter['inner_radius'] = 15. * self.math.const['au']
         # ---- Without circumstellar disks ----
@@ -364,8 +364,8 @@ class GGTauDisk(Model):
         # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 30.0 / 180. * np.pi
-        self.inclination_Ab12 = 30.0 / 180. * np.pi
+        self.inclination_Aa = 0 / 180. * np.pi
+        self.inclination_Ab12 = 0 / 180. * np.pi
         self.inclination_rotation_axis = [
             np.cos(25 / 180. * np.pi),
             np.sin(25 / 180. * np.pi),
@@ -410,7 +410,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
         r_list_cs_disks = np.linspace(15., 30., 150)
-        r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
+        r_list_cb_disk = self.math.exp_list(180., 280., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         # ------ With circumstellar disks -----
         self.cylindrical_parameter['radius_list'] = np.multiply(
@@ -436,8 +436,8 @@ class GGTauDisk(Model):
             if len(extra_parameter) == 2:
                 # Range: 16 AU, 21 AU, 26 AU, 31 AU
                 self.ref_scale_height = float(extra_parameter[0]) * self.math.const['au']
-                self.inclination_Aa = float(extra_parameter[1]) / 180. * np.pi
-                self.inclination_Ab12 = float(extra_parameter[1]) / 180. * np.pi
+                self.inclination_Aa = -float(extra_parameter[1]) / 180. * np.pi
+                self.inclination_Ab12 = -float(extra_parameter[1]) / 180. * np.pi
             else:
                 raise ValueError('Wrong number of extra parameters!')
 

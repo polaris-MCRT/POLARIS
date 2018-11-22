@@ -204,9 +204,9 @@ class Math:
         elif 'pc' in length.lower():
             conv = self.const['pc']
             length = length.lower().replace('pc', '')
-        elif 'r_sun' in length.lower():
+        elif 'r_sun' in length.lower() or 'rsun' in length.lower():
             conv = self.const['R_sun']
-            length = length.lower().replace('r_sun', '')
+            length = length.lower().replace('r_sun', '').replace('rsun', '')
         try:
             return float(length) * conv
         except ValueError:
@@ -243,9 +243,9 @@ class Math:
         conv = 1
         if 'kg' in mass.lower():
             mass = mass.lower().replace('kg', '')
-        elif 'm_jup' in mass.lower():
+        elif 'm_jup' in mass.lower() or 'mjup' in mass.lower():
             conv = self.const['M_jup']
-            mass = mass.lower().replace('m_jup', '')
+            mass = mass.lower().replace('m_jup', '').replace('mjup', '')
         elif 'm_sun' in mass.lower() or 'msun' in mass.lower():
             conv = self.const['M_sun']
             mass = mass.lower().replace('m_sun', '').replace('msun', '')
