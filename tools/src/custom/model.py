@@ -50,7 +50,7 @@ class CustomModel(Model):
         self.parameter['detector'] = 'cartesian'
 
     def update_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters and update 
+        """Use this function to set model parameter with the extra parameters and update
         disk parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file
@@ -64,7 +64,8 @@ class CustomModel(Model):
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
-                dust_temperature(self), velocity_field(self), magnetic_field(self),
+                dust_temperature(self), velocity_field(
+                    self), magnetic_field(self),
                 dust_id(self), dust_min_size(self), dust_max_size(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
@@ -130,7 +131,7 @@ class Cube(Model):
         #                                        truncation_radius=1 * self.math.const['au'])
         gas_density = self.math.random_density_distribution(
             self.position, d_exp=2)
-        #gas_density = 1.0
+        # gas_density = 1.0
         return gas_density
 
     def magnetic_field(self):
@@ -265,7 +266,7 @@ class Filament(Model):
         self.parameter['outer_radius'] = 10 * self.math.const['pc']
         self.parameter['gas_mass'] = 100.0 * self.math.const['M_sun']
         self.parameter['detector'] = 'cartesian'
-        #self.parameter['stellar_source'] = 't_tauri'
+        # self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -337,7 +338,7 @@ class GGTauDisk(Model):
         self.parameter['gas_mass'] = np.array(
             [[1.e-3, 1.e-5, 1.e-5, 1.3e-1]]) * self.math.const['M_sun']
         # ---- Without circumstellar disks ----
-        #self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
+        # self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
         # -------------------------------------
         self.parameter['stellar_source'] = 'gg_tau_stars'
         # Cite: larger grains in cb disk (McCabe et al. 2002)
@@ -352,7 +353,7 @@ class GGTauDisk(Model):
         # ------ With circumstellar disks -----
         self.parameter['inner_radius'] = 15. * self.math.const['au']
         # ---- Without circumstellar disks ----
-        #self.parameter['inner_radius'] = 180. * self.math.const['au']
+        # self.parameter['inner_radius'] = 180. * self.math.const['au']
         # -------------------------------------
         # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
@@ -371,6 +372,9 @@ class GGTauDisk(Model):
             np.sin(25 / 180. * np.pi),
             0
         ]
+        # Vertical shift of the disks
+        self.vertical_shift_Aa = 0
+        self.vertical_shift_Ab12 = 0
 
         # ------ Conversion of position angles -----
         # pos = [
@@ -416,7 +420,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['radius_list'] = np.multiply(
             full_r_list, self.math.const['au'])
         # ---- Without circumstellar disks ----
-        #self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
+        # self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
         # -------------------------------------
         # Phi cells
         n_ph_list_1 = [600] * 150
@@ -425,7 +429,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['n_ph'] = np.hstack(
             (n_ph_list_1, n_ph_list_2)).ravel()
         # ---- Without circumstellar disks ----
-        #self.cylindrical_parameter['n_ph'] = n_ph_list_2
+        # self.cylindrical_parameter['n_ph'] = n_ph_list_2
         # -------------------------------------
 
     def update_parameter(self, extra_parameter):
@@ -437,9 +441,13 @@ class GGTauDisk(Model):
                 # Range: 16 AU, 21 AU, 26 AU, 31 AU
                 self.ref_scale_height = float(
                     extra_parameter[0]) * self.math.const['au']
-                self.inclination_Aa = -float(extra_parameter[1]) / 180. * np.pi
-                self.inclination_Ab12 = - \
-                    float(extra_parameter[1]) / 180. * np.pi
+                # self.inclination_Aa = -float(extra_parameter[1]) / 180. * np.pi
+                # self.inclination_Ab12 = - \
+                #    float(extra_parameter[1]) / 180. * np.pi
+                self.vertical_shift_Aa = float(
+                    extra_parameter[1]) * self.math.const['au']
+                self.vertical_shift_Ab12 = -float(
+                    extra_parameter[1]) * self.math.const['au']
             else:
                 raise ValueError('Wrong number of extra parameters!')
 
@@ -458,7 +466,7 @@ class GGTauDisk(Model):
             pos_Aa = self.math.rotate_coord_system([
                 self.position[0],
                 self.position[1] - self.a_Aab * np.sin(self.angle_Aa),
-                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Aa
             ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
@@ -474,7 +482,7 @@ class GGTauDisk(Model):
             pos_Ab1 = self.math.rotate_coord_system([
                 self.position[0] + self.a_Ab12,
                 self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
-                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
             ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
@@ -485,7 +493,7 @@ class GGTauDisk(Model):
             pos_Ab2 = self.math.rotate_coord_system([
                 self.position[0] - self.a_Ab12,
                 self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
-                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
             ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
@@ -542,7 +550,7 @@ class GGTauDisk(Model):
             float: Scale height.
         """
         if(radius <= self.a_Aab + self.outer_radius_Aa):
-            scale_height = 0.3 * self.math.const['au']
+            scale_height = 2.0 * self.math.const['au']
         else:
             scale_height = self.math.default_disk_scale_height(
                 radius, ref_radius=self.ref_radius, ref_scale_height=self.ref_scale_height, beta=self.beta)
