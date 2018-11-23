@@ -435,9 +435,11 @@ class GGTauDisk(Model):
         if extra_parameter is not None:
             if len(extra_parameter) == 2:
                 # Range: 16 AU, 21 AU, 26 AU, 31 AU
-                self.ref_scale_height = float(extra_parameter[0]) * self.math.const['au']
+                self.ref_scale_height = float(
+                    extra_parameter[0]) * self.math.const['au']
                 self.inclination_Aa = -float(extra_parameter[1]) / 180. * np.pi
-                self.inclination_Ab12 = -float(extra_parameter[1]) / 180. * np.pi
+                self.inclination_Ab12 = - \
+                    float(extra_parameter[1]) / 180. * np.pi
             else:
                 raise ValueError('Wrong number of extra parameters!')
 

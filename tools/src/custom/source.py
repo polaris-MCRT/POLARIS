@@ -119,7 +119,7 @@ class GGTauStars(StellarSource):
         self.T_Ab1 = 3300.
         # GG Tau Aa: M3 spectral type
         self.T_Ab2 = 3100.
-        # Cite: 
+        # Cite:
         self.T_planet = 839.9
 
         # ------ Luminosities -----
@@ -128,7 +128,7 @@ class GGTauStars(StellarSource):
         # Cite: luminosity of Aa (White et al. 1999 and Di Folco et al. 2014)
         self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
         self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
-        # Cite: 
+        # Cite:
         self.L_planet = 1e-1 * \
             (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
 
