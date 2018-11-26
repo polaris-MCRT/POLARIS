@@ -7,6 +7,8 @@ from modules.base import ExternalInput
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_ext_input_dict(dictionary):
     ext_input_dict = {
         'custom': CustomInput,
@@ -36,7 +38,6 @@ class CustomInput(ExternalInput):
         # Save the data in this list
         self.data = [1.0]
 
-
     def gas_density_distribution(self):
         """Define here your routine to get the density at a given position
         in the model space from your read input data.
@@ -54,4 +55,3 @@ class CustomInput(ExternalInput):
             float: Gas density at a given position.
         """
         return self.data[0]
-        

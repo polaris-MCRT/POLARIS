@@ -527,6 +527,7 @@ public:
         plot_inp_points = false;
         plot_out_points = false;
         write_radiation_field = false;
+        write_full_radiation_field = false;
         write_g_zero = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
@@ -950,6 +951,11 @@ public:
     bool getWriteRadiationField()
     {
         return write_radiation_field;
+    }
+
+    bool getWriteFullRadiationField()
+    {
+        return write_full_radiation_field;
     }
 
     bool getWriteGZero()
@@ -1390,6 +1396,11 @@ public:
     void setWriteRadiationField(bool val)
     {
         write_radiation_field = val;
+    }
+
+    void setWriteFullRadiationField(bool val)
+    {
+        write_full_radiation_field = val;
     }
 
     void setWriteGZero(double val)
@@ -2356,6 +2367,7 @@ private:
     bool plot_inp_points;
     bool plot_out_points;
     bool write_radiation_field;
+    bool write_full_radiation_field;
     bool write_g_zero;
 
     dlist midplane_3d_param;

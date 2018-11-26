@@ -67,12 +67,12 @@ public:
             m_data[i] = rhs(i);
     }
 
-    const uint get_n()
+    uint get_n()
     {
         return m_n;
     }
 
-    const uint get_m()
+    uint get_m()
     {
         return m_m;
     }

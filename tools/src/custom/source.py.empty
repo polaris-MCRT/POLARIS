@@ -7,6 +7,8 @@ from modules.base import StellarSource
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_sources_dict(dictionary):
     sources_dict = {
         'custom': CustomStar,

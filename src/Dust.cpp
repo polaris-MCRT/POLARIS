@@ -3244,7 +3244,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // Combine gas drag and FIR
                 double tau_drag = 1. / (1. / tau_gas + 1. / FIR);
                 
-                // Use parameterized version for the time beeing
+                // Radiative torque efficiency as a power-law
                 double Qr = 0.4 / (1 + pow(wavelength_list[w] / (2.0 * a_eff[a]), 3));
                 
                 //if(wavelength_list[w] < 2.0 * a_eff[a])
@@ -4357,8 +4357,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         cout << "- Number of wavelengths      : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-            (grid->getRadiationFieldAvailable() && param.getScatteringToRay()))
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING || param.getScatteringToRay())
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps

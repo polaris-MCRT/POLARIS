@@ -6,6 +6,8 @@ from modules.base import Server
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_server_dict(dictionary):
     server_dict = {
         'herschel': HerschelServer,
@@ -51,20 +53,25 @@ class CustomServer(Server):
         """
         new_command_line = str()
         new_command_line += '#' + self.parameter['queue_system'] + ' -o ' \
-                            + self.parameter['simulation_directory'] + 'POLARIS.out' + '\n'
+                            + self.parameter['simulation_directory'] + \
+            'POLARIS.out' + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -j o\n'
         new_command_line += '#' + self.parameter['queue_system'] \
-                            + ' -l elapstim_req=' + self.parameter['walltime'] + '\n'
+                            + ' -l elapstim_req=' + \
+            self.parameter['walltime'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] \
-                            + ' -l memsz_job=' + self.parameter['ram_usage'] + '\n'
+                            + ' -l memsz_job=' + \
+            self.parameter['ram_usage'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] \
                             + ' -b ' + self.parameter['node_number'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] \
-                            + ' -l cpunum_job=' + str(self.parameter['nr_threads']) + '\n'
+                            + ' -l cpunum_job=' + \
+            str(self.parameter['nr_threads']) + '\n'
         new_command_line += '#' + self.parameter['queue_system'] \
                             + ' -q ' + self.parameter['batch_class'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] \
-                            + ' -N ' + self.parse_args.simulation_name[0:15] + '\n'
+                            + ' -N ' + \
+            self.parse_args.simulation_name[0:15] + '\n'
         return new_command_line
 
 

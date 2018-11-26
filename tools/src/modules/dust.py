@@ -69,7 +69,8 @@ class DustChooser:
             else:
                 dust_composition = 'none'
         else:
-            raise ValueError('dust component not known! You can add a new component in dust.py')
+            raise ValueError(
+                'dust component not known! You can add a new component in dust.py')
 
         dust = self.dust_dict[dust_composition](self.file_io, self.parse_args)
         # Overwrite preset parameters from user input
@@ -90,7 +91,8 @@ class DustChooser:
             Instance of chosen dust composition.
         """
         if dust_name not in self.dust_dict.keys():
-            raise ValueError('dust component not known! You can add a new component in dust.py')
+            raise ValueError(
+                'dust component not known! You can add a new component in dust.py')
         dust = self.dust_dict[dust_name](self.file_io, self.parse_args)
         # Overwrite preset parameters from user input
         if user_input:
@@ -122,7 +124,8 @@ class DustChooser:
                 else:
                     min_len = 0
                 if min_len != len(self.parse_args.dust_size_distribution) - 1:
-                    raise ValueError('Defined dust size distribution not usable!')
+                    raise ValueError(
+                        'Defined dust size distribution not usable!')
                 else:
                     dust.parameter['size_parameter'] = []
                     for i in range(min_len):
@@ -476,6 +479,7 @@ class PAH0(Dust):
         # For creation of a dust catalog
         self.parameter['input_file'] = 'PAH0_DL07'
         self.parameter['input_type'] = 'dustem'
+
 
 class PAH1(Dust):
     """Dust class for ionized PAH grains (see Draine & Lee 2001)."""

@@ -2440,7 +2440,7 @@ public:
         return c;
     }
 
-    static inline void calcBHMie(double x, fcomplex refractive_index, 
+    static void calcBHMie(double x, fcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
         /*Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
@@ -2473,11 +2473,9 @@ public:
     {
         fcomplex cxy = fcomplex(x, 0) * refractive_index;
 
-        // Series expansion terminated after NSTOP terms
+        // Series expansion terminated after XSTOP terms
         float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
-        uint nstop = uint(xstop);
-        float ymod = abs(cxy);
-        uint nmx = fmax(xstop, ymod) + 15;
+        long nmx = fmax(xstop, abs(cxy)) + 15;
 
         if (nmx >= NMXX) {
             cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " 
@@ -2496,14 +2494,16 @@ public:
         cxd[nmx] = fcomplex(0, 0);
 
         fcomplex cxtemp;
-        for(int n = 0; n < nmx - 1; n++) {
+        for(long n = 0; n < nmx - 1; n++)
+        {
             float rn = float(nmx - n);
             cxd[nmx - (n + 1)] = fcomplex(rn, 0) / cxy - 
                 CXONE / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
         }
 
         float pi[NANG], pi0[NANG], pi1[NANG];
-        for(int j = 0; j < NANG; j++) {
+        for(int j = 0; j < NANG; j++)
+        {
             pi0[j] = 0.0;
             pi1[j] = 1.0;
         }
@@ -2532,7 +2532,7 @@ public:
         fcomplex cxxi1 = fcomplex(apsi1, -chi1);
         fcomplex cxan, cxan1, cxbn, cxbn1;
 
-        for (int n = 1; n <= nstop; n++)
+        for (long n = 1; n <= long(xstop); n++)
         {
             dn = n;
             rn = n;
@@ -2569,7 +2569,7 @@ public:
                 gsca = gsca + ((rn-1.) * (rn + 1.0) / rn) * (
                     real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) + 
                     real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
-
+            
             for(int j = 0; j < NANG; j++)
             {
                 int jj = 2 * NANG - 1 - j;

@@ -52,11 +52,13 @@ class ServerChooser:
         """
         if self.tool_type == 'remote':
             if self.parse_args.server_name in self.server_dict.keys():
-                server = self.server_dict[self.parse_args.server_name](self.parse_args)
+                server = self.server_dict[self.parse_args.server_name](
+                    self.parse_args)
             elif self.parse_args.server_name is None:
                 server = self.server_dict['nec'](self.parse_args)
             else:
-                raise ValueError('Server not known! You can add a new server in server.py')
+                raise ValueError(
+                    'Server not known! You can add a new server in server.py')
             # Overwrite preset parameters from user input
             if self.parse_args.user_id is not None:
                 server.parameter['user_id'] = self.parse_args.user_id
@@ -104,16 +106,21 @@ class NECServer(Server):
         """
         new_command_line = str()
         new_command_line += '#' + self.parameter['queue_system'] + ' -o ' \
-                            + self.parameter['simulation_directory'] + 'POLARIS.out' + '\n'
+                            + self.parameter['simulation_directory'] + \
+            'POLARIS.out' + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -j o\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l elapstim_req=' \
                             + self.parameter['walltime'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l memsz_job=' \
                             + self.parameter['ram_usage'] + '\n'
-        new_command_line += '#' + self.parameter['queue_system'] + ' -b ' + self.parameter['node_number'] + '\n'
+        new_command_line += '#' + \
+            self.parameter['queue_system'] + ' -b ' + \
+            self.parameter['node_number'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l cpunum_job=' \
                             + str(self.parameter['nr_threads']) + '\n'
-        new_command_line += '#' + self.parameter['queue_system'] + ' -q ' + self.parameter['batch_class'] + '\n'
+        new_command_line += '#' + \
+            self.parameter['queue_system'] + ' -q ' + \
+            self.parameter['batch_class'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -N ' \
                             + self.parse_args.simulation_name[0:15] + '\n'
         return new_command_line
@@ -146,14 +153,18 @@ class RZServer(Server):
         """
         new_command_line = str()
         new_command_line += '#' + self.parameter['queue_system'] + ' --output=' \
-                            + self.parameter['simulation_directory'] + 'POLARIS.out' + '\n'
+                            + self.parameter['simulation_directory'] + \
+            'POLARIS.out' + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -j o\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' --time=' \
                             + self.parameter['walltime'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' --mem=' \
                             + self.parameter['ram_usage'] + '\n'
-        new_command_line += '#' + self.parameter['queue_system'] + ' --nodes=' + self.parameter['node_number'] + '\n'
-        new_command_line += '#' + self.parameter['queue_system'] + ' --tasks-per-node=1\n'
+        new_command_line += '#' + \
+            self.parameter['queue_system'] + ' --nodes=' + \
+            self.parameter['node_number'] + '\n'
+        new_command_line += '#' + \
+            self.parameter['queue_system'] + ' --tasks-per-node=1\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' --cpus-per-task=' \
                             + str(self.parameter['nr_threads']) + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' --partition=' + self.parameter[
@@ -191,15 +202,19 @@ class AstroServer(Server):
         """
         new_command_line = str()
         new_command_line += '#' + self.parameter['queue_system'] + ' -o ' \
-                            + self.parameter['simulation_directory'] + 'POLARIS.out' + '\n'
+                            + self.parameter['simulation_directory'] + \
+            'POLARIS.out' + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -j oe\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l walltime=' \
                             + self.parameter['walltime'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l mem=' \
                             + self.parameter['ram_usage'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -l nodes=' + self.parameter['node_number'] \
-                            + ':ppn=' + str(self.parameter['nr_threads']) + '\n'
-        new_command_line += '#' + self.parameter['queue_system'] + ' -q ' + self.parameter['batch_class'] + '\n'
+                            + ':ppn=' + \
+            str(self.parameter['nr_threads']) + '\n'
+        new_command_line += '#' + \
+            self.parameter['queue_system'] + ' -q ' + \
+            self.parameter['batch_class'] + '\n'
         new_command_line += '#' + self.parameter['queue_system'] + ' -N ' \
                             + self.parse_args.simulation_name[0:15] + '\n'
         return new_command_line

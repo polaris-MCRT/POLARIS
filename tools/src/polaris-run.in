@@ -56,7 +56,7 @@ model_args = parser.add_argument_group('grid')
 model_args.add_argument('--grid', dest='grid_filename', default=None,
                         help='define input grid filename (assumes grid in SI units).')
 model_args.add_argument('--grid_cgs', dest='grid_cgs_filename', default=None,
-                        help='define input grid filename (assumes grid in cgs units).')                        
+                        help='define input grid filename (assumes grid in cgs units).')
 
 source_args = parser.add_argument_group('source')
 source_args.add_argument('--stellar_source', dest='stellar_source', default=None,
@@ -148,7 +148,7 @@ dust_args.add_argument('--scattering', dest='scattering', default=None, type=str
                        choices=['MIE', 'HG', 'ISO'],
                        help='define method to calculate scattering.')
 dust_args.add_argument('--sub_dust', dest='sub_dust', default=False, action='store_true',
-                       help='Remove grains hotter that the sublimation temperature.')        
+                       help='Remove grains hotter that the sublimation temperature.')
 dust_args.add_argument('--radiation_field', dest='radiation_field', default=False, action='store_true',
                        help='save the radiation field in the grid (required by --stochastic_heating)')
 dust_args.add_argument('--full_dust_temp', dest='full_dust_temp', default=False, action='store_true',
@@ -198,7 +198,7 @@ visualization_args.add_argument('--midplane_3d', dest='midplane_3d_param', defau
                                 help='enable 3d midplane fits files.\n'
                                      '    (plane e.g. 1 -> xy, nr_slices, z_min, z_max)')
 visualization_args.add_argument('--midplane_rad_field', dest='midplane_rad_field', default=False, action='store_true',
-                            help='add the radiation field to the midplane fits files.')
+                                help='add the radiation field to the midplane fits files.')
 
 conversion_args = parser.add_argument_group('conversion factors')
 conversion_args.add_argument('--conv_dens', dest='conv_dens', default=None, type=float,
@@ -265,7 +265,8 @@ class RunRoutines:
 
         # Get file input/output module
         from modules.file import FileIO
-        self.file_io = FileIO(self.model, self.server, parse_args, '@POLARIS@', 'run')
+        self.file_io = FileIO(self.model, self.server,
+                              parse_args, '@POLARIS@', 'run')
 
         # Get dust module
         from modules.dust import DustChooser
@@ -279,7 +280,8 @@ class RunRoutines:
 
         # Get background source module
         from modules.bg_source import BGSourceChooser
-        bg_source_chooser = BGSourceChooser(self.model, self.file_io, parse_args)
+        bg_source_chooser = BGSourceChooser(
+            self.model, self.file_io, parse_args)
         self.bg_source = bg_source_chooser.get_module()
 
         # Get dust source module
@@ -293,7 +295,7 @@ class RunRoutines:
 
         # Get detector module
         if self.parse_args.simulation_type in ['line', 'zeeman'] or \
-            'dust' in self.parse_args.simulation_type:
+                'dust' in self.parse_args.simulation_type:
             from modules.detector import DetectorChooser
             detector_chooser = DetectorChooser(self.model, parse_args)
             self.detector = detector_chooser.get_module()
@@ -307,7 +309,8 @@ class RunRoutines:
         cmd = self.command(self.file_io, self.model, self.gas, self.dust, self.source, self.bg_source,
                            self.dust_source, self.detector, self.server, self.parse_args)
         #: Command file open in write mode
-        cmd_file = open(self.file_io.path['simulation_type'] + 'POLARIS.cmd', 'w')
+        cmd_file = open(
+            self.file_io.path['simulation_type'] + 'POLARIS.cmd', 'w')
         # Create POLARIS command file
         cmd.write_common_part(cmd_file)
         if self.parse_args.simulation_type == 'temp':
