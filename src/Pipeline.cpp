@@ -49,7 +49,7 @@ bool CPipeline::Init(int argc, char** argv)
 
     if(argc != 2)
     {
-        cout << "ERROR: Wrong amount of arguments!                     \n";
+        cout << "\nERROR: Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
         Error();
         return false;
@@ -70,7 +70,7 @@ bool CPipeline::Init(int argc, char** argv)
 
     if(param_list.size() == 0)
     {
-        cout << "ERROR: No tasks defined!" << endl;
+        cout << "\nERROR: No tasks defined!" << endl;
         return false;
     }
 
@@ -161,7 +161,7 @@ void CPipeline::Run()
                   break;
 
             default:
-                cout << "ERROR : Command is unknown!" << endl;
+                cout << "\nERROR : Command is unknown!" << endl;
         }
 
         cout << SEP_LINE << endl;
@@ -244,7 +244,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     createSourceLists(param, dust, grid);
     if(sources_mc.size() == 0)
     {
-        cout << "ERROR: No sources for Monte-Carlo simulations defined!" << endl;
+        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
         return false;
     }
 
@@ -339,7 +339,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     createSourceLists(param, dust, grid);
     if(sources_mc.size() == 0)
     {
-        cout << "ERROR: No sources for Monte-Carlo simulations defined!" << endl;
+        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
         return false;
     }
 
@@ -428,7 +428,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     createSourceLists(param, dust, grid);
     if(sources_ray.size() == 0)
     {
-        cout << "ERROR: No sources for raytracing simulations defined!" << endl;
+        cout << "\nERROR: No sources for raytracing simulations defined!" << endl;
         return false;
     }
 
@@ -514,7 +514,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
     createSourceLists(param, dust, grid);
     if(sources_ray.size() == 0)
     {
-        cout << "ERROR: No sources for raytracing simulations defined!" << endl;
+        cout << "\nERROR: No sources for raytracing simulations defined!" << endl;
         return false;
     }
 
@@ -580,7 +580,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     createSourceLists(param, dust, grid);
     if(sources_ray.size() == 0)
     {
-        cout << "ERROR: No sources for raytracing simulations defined!" << endl;
+        cout << "\nERROR: No sources for raytracing simulations defined!" << endl;
         return false;
     }
 
@@ -616,7 +616,7 @@ bool CPipeline::assignGridType(CGridBasic * &grid, parameters & param)
 
     if(bin_reader.fail())
     {
-        cout << "ERROR: Can not open binary grid file:" << endl;
+        cout << "\nERROR: Cannot open binary grid file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -647,7 +647,7 @@ bool CPipeline::assignGridType(CGridBasic * &grid, parameters & param)
             break;
 
         default:
-            cout << "ERROR: Grid type unknown!" << endl;
+            cout << "\nERROR: Grid type unknown!" << endl;
             return false;
             break;
     }
@@ -673,7 +673,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
     if(dust_mc_detectors.size() <= 0)
     {
-        cout << "ERROR: No Monte-Carlo detector defined!" << endl;
+        cout << "\nERROR: No Monte-Carlo detector defined!" << endl;
         delete[] detector;
         detector = 0;
         return detector;
@@ -720,11 +720,11 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
         detector[pos].setOrientation(axis1, axis2, rot_angle_1, rot_angle_2);
         /*if(param.getPeelOff() && param.getNrOfDustPhotons() != 0)
         {
-            cout << "HINT: Peel-off technique disabled for self-scattering of dust grain emission!" << endl;
+            cout << "\nHINT: Peel-off technique disabled for self-scattering of dust grain emission!" << endl;
             param.setPeelOff(false);
         }*/
         if(param.getPeelOff() && param.getAcceptanceAngle() > 1.0)
-            cout << "HINT: Peel-off technique needs no acceptance angle!" << endl;
+            cout << "\nHINT: Peel-off technique needs no acceptance angle!" << endl;
         else
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
     }
@@ -745,21 +745,21 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         // Raytracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
         {
-            cout << "WARNING: Diffuse sources can not be considered in "
+            cout << "\nWARNING: Diffuse sources cannot be considered in "
                     << "dust, line, or synchrotron emission!" << endl;
             nr_ofSources--;
         }
 
         if(param.getISRFSource())
         {
-            cout << "WARNING: ISRF as radiation source can not be considered in "
+            cout << "\nWARNING: ISRF as radiation source cannot be considered in "
                 << "dust, line, or synchrotron emission!" << endl;
             nr_ofSources--;
         }
 
         if(param.getNrOfBackgroundSources() == 0)
         {
-            cout << "HINT: No background source was defined!" << endl;
+            cout << "\nHINT: No background source was defined!" << endl;
             cout << "- Default background source initiated." << endl;
             cout << SEP_LINE;
 
@@ -784,7 +784,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                 {
                     if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                     {
-                        cout << "ERROR: Background source nr. " << s / NR_OF_BG_SOURCES + 1
+                        cout << "\nERROR: Background source nr. " << s / NR_OF_BG_SOURCES + 1
                                 << " undefined!" << endl;
                         sources_ray.clear();
                     }
@@ -798,7 +798,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             if(!param.getScatteringToRay())
                 nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "WARNING: Point sources can not be considered in line or synchrotron emission!" << endl;
+                cout << "\nWARNING: Point sources cannot be considered in line or synchrotron emission!" << endl;
             else
             {
                 for(uint s = 0; s < param.getPointSources().size(); s += NR_OF_POINT_SOURCES)
@@ -816,7 +816,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                     {
                         if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                         {
-                            cout << "ERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1 << " undefined!" << endl;
+                            cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1 << " undefined!" << endl;
                             sources_mc.clear();
                         }
                     }
@@ -830,7 +830,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             if(!param.getScatteringToRay() && grid->getRadiationFieldAvailable())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "WARNING: Dust source can not be considered in line or synchrotron emission!" << endl;
+                cout << "\nWARNING: Dust source cannot be considered in line or synchrotron emission!" << endl;
             else
             {
                 CSourceBasic * tmp_source = new CSourceDust();
@@ -854,7 +854,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             {
                 if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                 {
-                    cout << "ERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1
+                    cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1
                             << " undefined!" << endl;
                     sources_mc.clear();
                 }
@@ -875,7 +875,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             {
                 if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                 {
-                    cout << "ERROR: Sorce Starfield nr. " << s / NR_OF_DIFF_SOURCES + 1 << " undefined! \n" << flush;
+                    cout << "\nERROR: Sorce Starfield nr. " << s / NR_OF_DIFF_SOURCES + 1 << " undefined! \n" << flush;
                     sources_mc.clear();
                 }
             }
@@ -883,7 +883,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         }
 
         if(param.getBackgroundSources().size() > 0)
-            cout << "ERROR: Background sources can only be used for raytracing simulations!" << endl;
+            cout << "\nERROR: Background sources can only be used for raytracing simulations!" << endl;
 
         if(param.getISRFSource())
         {
@@ -893,7 +893,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
             if(!tmp_source->setParameterFromFile(param, grid, dust, 0))
             {
-                cout << "ERROR: Interstellar radiation field undefined! \n" << flush;
+                cout << "\nERROR: Interstellar radiation field undefined! \n" << flush;
                 sources_mc.clear();
             }
 
@@ -904,7 +904,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         {
             if(param.isTemperatureSimulation())
             {
-                cout << "ERROR: Dust as radiation source can not be considered in "
+                cout << "\nERROR: Dust as radiation source cannot be considered in "
                     << "temperature calculations (use RAT to consider dust as a separate source)!" << endl;
                 nr_ofSources--;
             }
@@ -919,7 +919,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
     if((sources_mc.size() + sources_ray.size()) != nr_ofSources)
     {
-        cout << "ERROR: Not enough source were initiated! \n" << flush;
+        cout << "\nERROR: Not enough source(s) were initiated! \n" << flush;
 
         sources_mc.clear();
         sources_ray.clear();
@@ -1102,7 +1102,7 @@ bool CPipeline::assignGasSpecies(parameters & param, CGasMixture * gas, CGridBas
 void CPipeline::printParameters(parameters & param, uint max_id)
 {
     cout << CLR_LINE;
-    cout << "Input parameter (task " << param.getTaskID() << " of " << max_id << ")" << endl;
+    cout << "Input parameters (task " << param.getTaskID() << " of " << max_id << ")" << endl;
     cout << SEP_LINE;
 
     switch(param.getCommand())
@@ -1183,8 +1183,8 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         default:
-            cout << "ERROR: Command is unkown!" << endl;
-            cout << "No parameter available!" << endl;
+            cout << "\nERROR: Command is unknown!" << endl;
+            cout << "No parameters available!" << endl;
     };
     cout << SEP_LINE;
 }
@@ -1206,13 +1206,13 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             if(param.getStochasticHeatingMaxSize() > 0)
                 dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS, true);
                 
-            // Get detector parameter list
+            // Get detector parameters list
             values = param.getDustRayDetectors();
             
             // Check if a detector is defined
             if(values.empty())
             {
-                cout << "Error: No dust raytracing detector defined (see <detector_dust>)!" << endl;
+                cout << "\nERROR: No dust raytracing detector defined (see <detector_dust>)!" << endl;
                 return false;
             }
 
@@ -1222,13 +1222,13 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             break;
 
         case CMD_DUST_SCATTERING:
-            // Get detector parameter list
+            // Get detector parameters list
             values = param.getDustMCDetectors();
 
             // Check if a detector is defined
             if(values.empty())
             {
-                cout << "Error: No dust Monte-Carlo detector defined (see <detector_dust_mc>)!" << endl;
+                cout << "\nERROR: No dust Monte-Carlo detector defined (see <detector_dust_mc>)!" << endl;
                 return false;
             }
 
@@ -1242,14 +1242,14 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             if(gas == 0)
                 return false;
 
-            // Get detector parameter list
+            // Get detector parameters list
             maplist line_ray_detector_list = param.getLineRayDetectors();
             maplist::iterator it;
 
             // Check if a detector is defined
             if(line_ray_detector_list.empty())
             {
-                cout << "Error: No spectral line detector of gas species defined!" << endl;
+                cout << "\nERROR: No spectral line detector of gas species defined!" << endl;
                 return false;
             }
 
@@ -1276,13 +1276,13 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
         }
 
         case CMD_SYNCHROTRON:
-            // Get detector parameter list
+            // Get detector parameters list
             values = param.getSyncRayDetectors();
 
             // Check if a detector is defined
             if(values.empty())
             {
-                cout << "Error: No synchrotron detector defined (see <detector_sync>)!" << endl;
+                cout << "\nERROR: No synchrotron detector defined (see <detector_sync>)!" << endl;
                 return false;
             }
 
@@ -1338,7 +1338,7 @@ bool CPipeline::calcRadPressure(parameter & param)
     createSourceLists(param, dust, grid);
     if(sources_mc.size() == 0)
     {
-        cout << "ERROR: No sources for Monte-Carlo simulations defined!" << endl;
+        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
         return false;
     }
 
@@ -1366,7 +1366,7 @@ bool CPipeline::calcRadPressure(parameter & param)
 */
 
 /*
-bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, parameter & param, bool plot, uint itID)
+bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters & param, bool plot, uint itID)
 {
     uint per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
@@ -1525,7 +1525,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         rad_writer.open(rad_filename.c_str(), ios::out);
         if(rad_writer.fail())
         {
-            cout << "ERROR: Can't write to " << rad_filename
+            cout << "\nERROR: Cannot write to " << rad_filename
                     << endl;
             res = false;
             continue;
@@ -1534,7 +1534,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         gra_writer.open(gra_filename.c_str(), ios::out);
         if(gra_writer.fail())
         {
-            cout << "ERROR: Can't write to " << gra_filename
+            cout << "\nERROR: Cannot write to " << gra_filename
                     << endl;
             res = false;
             continue;

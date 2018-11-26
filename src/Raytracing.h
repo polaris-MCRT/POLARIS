@@ -1398,7 +1398,7 @@ public:
         double max_len = 0.5 * sqrt(sidelength_x * sidelength_x + sidelength_y * sidelength_y);
         if(!grid->getPolarRTGridParameter(max_len, pixel_width, max_subpixel_lvl, listR, npix_r, npix_ph))
         {
-            cout << "Error: Polar detector can only be used with spherical or cylindrical grids!";
+            cout << "\nERROR: Polar detector can only be used with spherical or cylindrical grids!";
             return false;
         }
 
@@ -1416,7 +1416,7 @@ public:
 
         if(npix_total > MAX_RT_RAYS)
         {
-            cout << "HINT: Very high amount of rays required for DUST EMISSION simulation with polar raytracing grid!" << endl
+            cout << "\nHINT: Very high amount of rays required for DUST EMISSION simulation with polar raytracing grid!" << endl
                 << "      Problem: The simulation may take a long time to process all rays." << endl
                 << "      Solutions: Decrease max subpixel level or use the cartesian raytracing grid." << endl;
         }

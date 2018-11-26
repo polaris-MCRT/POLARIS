@@ -332,7 +332,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
 
     if(data_pos_gd_list.size() == 0)
     {
-        cout << "ERROR: Grid contains no gas (number) density!" << endl;
+        cout << "\nERROR: Grid contains no gas (number) density!" << endl;
         cout << "       No RT calculations possible!" << endl;
         return MAX_UINT;
     }
@@ -358,7 +358,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
         // Check for a valid combination between densities and dust mixtures
         if(nr_densities > 1 && nr_mixtures != nr_densities)
         {
-            cout << "ERROR: Amount of densities in the grid (" << nr_densities
+            cout << "\nERROR: Amount of densities in the grid (" << nr_densities
                 << ") does not fit with the defined dust mixtures (" << nr_mixtures << ")!\n"
                 << "(Use a grid with only one density distribution or define more/less dust mixtures!)" << endl;
             return MAX_UINT;
@@ -421,7 +421,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
             break;
 
         default:
-            cout << "ERROR : Command is unknown!" << endl;
+            cout << "\nERROR : Command is unknown!" << endl;
             return MAX_UINT;
     }
 
@@ -579,7 +579,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(dens_writer.fail())
         {
-            cout << "ERROR: Can't write to " << dens_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << dens_filename << endl;
             return false;
         }
     }
@@ -590,7 +590,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(gas_writer.fail())
         {
-            cout << "ERROR: Can't write to " << gtemp_filename
+            cout << "\nERROR: Cannot write to:\n " << gtemp_filename
                     << endl;
             return false;
         }
@@ -601,7 +601,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
         dust_writer.open(dtemp_filename.c_str(), ios::out);
         if(dust_writer.fail())
         {
-            cout << "ERROR: Can't write to " << dtemp_filename
+            cout << "\nERROR: Cannot write to:\n " << dtemp_filename
                     << endl;
             return false;
         }
@@ -613,7 +613,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(rat_writer.fail())
         {
-            cout << "ERROR: Can't write to " << a_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << a_filename << endl;
             return false;
         }
     }
@@ -624,7 +624,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(d_writer.fail())
         {
-            cout << "ERROR: Can't write to " << d_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << d_filename << endl;
             return false;
         }
     }
@@ -635,7 +635,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(magvec_writer.fail())
         {
-            cout << "ERROR: Can't write to " << magvec_filename
+            cout << "\nERROR: Cannot write to:\n " << magvec_filename
                     << endl;
             return false;
         }
@@ -644,7 +644,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(magf_writer.fail())
         {
-            cout << "ERROR: Can't write to " << magf_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << magf_filename << endl;
             return false;
         }
     }
@@ -655,7 +655,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(velvec_writer.fail())
         {
-            cout << "ERROR: Can't write to " << velvec_filename
+            cout << "\nERROR: Cannot write to:\n " << velvec_filename
                     << endl;
             return false;
         }
@@ -664,7 +664,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(velf_writer.fail())
         {
-            cout << "ERROR: Can't write to " << velf_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << velf_filename << endl;
             return false;
         }
     }
@@ -860,19 +860,19 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     if(x_writer.fail())
     {
-        cout << "ERROR: Can't write to " << x_filename << endl;
+        cout << "\nERROR: Cannot write to:\n " << x_filename << endl;
         return false;
     }
 
     if(y_writer.fail())
     {
-        cout << "ERROR: Can't write to " << y_filename << endl;
+        cout << "\nERROR: Cannot write to:\n " << y_filename << endl;
         return false;
     }
 
     if(z_writer.fail())
     {
-        cout << "ERROR: Can't write to " << z_filename << endl;
+        cout << "\nERROR: Cannot write to:\n " << z_filename << endl;
         return false;
     }
 
@@ -1123,7 +1123,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
         else
             if(param.getWriteRadiationField() || param.getWriteGZero())
-                cout << "HINT: The radiation field or G_0 can only be shown in the midplane fits files,\n"
+                cout << "\nHINT: The radiation field or G_0 can only be shown in the midplane fits files.\n"
                     << "      if the radiation field will be saved to the grid or is included in the grid!" << endl;
     }
 

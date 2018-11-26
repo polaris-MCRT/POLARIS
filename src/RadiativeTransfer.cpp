@@ -17,13 +17,13 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model!" << endl;
+        cout << "\nERROR: No dust model!" << endl;
         return false;
     }
 
@@ -31,7 +31,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 
     if(dust_ray_detectors.size() == 0)
     {
-        cout << "ERROR: No sequence defined!" << endl;
+        cout << "\nERROR: No sequence defined!" << endl;
         return false;
     }
 
@@ -48,7 +48,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 
         if(nr_source > sources_ray.size())
         {
-            cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount (" << sources_ray.size()
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount (" << sources_ray.size()
                     << ") of defined sources!" << endl;
             return false;
         }
@@ -56,7 +56,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
         if(detector_id == DET_POLAR &&
                 grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
             return false;
         }
     }
@@ -73,13 +73,13 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model!" << endl;
+        cout << "\nERROR: No dust model!" << endl;
         return false;
     }
 
@@ -87,7 +87,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 
     if(sync_ray_detectors.size() == 0)
     {
-        cout << "ERROR: No sequence defined!" << endl;
+        cout << "\nERROR: No sequence defined!" << endl;
         return false;
     }
 
@@ -104,7 +104,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 
         if(nr_source > sources_ray.size())
         {
-            cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount ("
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
                 << sources_ray.size() << ") of defined sources!" << endl;
             return false;
         }
@@ -112,7 +112,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
         if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH &&
                 grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
             return false;
         }
     }
@@ -131,19 +131,19 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model defined!" << endl;
+        cout << "\nERROR: No dust model defined!" << endl;
         return false;
     }
 
     if(gas == 0)
     {
-        cout << "ERROR: No gas model loaded!" << endl;
+        cout << "\nERROR: No gas model loaded!" << endl;
         return false;
     }
 
@@ -154,7 +154,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 
     if(nrOfGasSpecies == 0)
     {
-        cout << "ERROR: No gas species transition defined!" << endl;
+        cout << "\nERROR: No gas species transition defined!" << endl;
         return false;
     }
 
@@ -170,7 +170,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 
             if(nr_source > sources_ray.size())
             {
-                cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount ("
+                cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
                     << sources_ray.size() << ") of defined sources!" << endl;
                 return false;
             }
@@ -178,7 +178,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
             if(detector_id == DET_POLAR &&
                 grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
             {
-                cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+                cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
                 return false;
             }
         }
@@ -196,13 +196,13 @@ bool CRadiativeTransfer::initiateOPIATE(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "Hint: No dust model defined!" << endl;
+        cout << "\nHINT: No dust model defined!" << endl;
         return false;
     }
 
@@ -621,7 +621,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         // each chosen wavelength of the chosen source
         for(uint wID = 0; wID < nr_of_wavelength; wID++)
         {
-            // Init source parameter for scattering maps
+            // Init source parameters for scattering maps
             if(!tm_source->initSource(wID))
                 continue;
 
@@ -992,7 +992,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         if(peel_off && tm_source->getStringID() == "dust source")
         {
             cout << CLR_LINE;
-            cout << "HINT: MC simulations with dust source and peel-off include only the scattered radiation.\n"
+            cout << "\nHINT: MC simulations with dust source and peel-off include only the scattered radiation.\n"
                     << "Add results from Raytracing simulations for full dust emission!" << endl;
         }
     }
@@ -1499,7 +1499,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 #pragma omp critical
                             {
                                 cout << CLR_LINE;
-                                cout << "WARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                cout << "\nWARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                 cout << "         Skipping entire cell!" << endl << flush;
                             }
                             break;
@@ -1513,14 +1513,14 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 #pragma omp critical
                                 {
                                     cout << CLR_LINE;
-                                    cout << "WARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                    cout << "\nWARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                     cout << "         Switching to approximate solver!" << endl << flush;
                                 }                            
                             }
                         
                         }
                         
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
                         StokesVector * RK_k_cr = new StokesVector[6];
                         StokesVector * RK_k_ca = new StokesVector[6];
@@ -1539,7 +1539,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                                 scalar_product_ca += (RK_k_ca[i] * RK_a(i, k));
                             }
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k_cr[k] = alpha_cr * (scalar_product_cr * cell_d_l + WMap_cr.S(i_wave)) + S_em_cr;
                             RK_k_ca[k] = alpha_ca * (scalar_product_ca * cell_d_l + WMap_ca.S(i_wave)) + S_em_ca;
@@ -2029,11 +2029,11 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter > MAX_SOLVER_STEPS)
                         {
-                            cout << "WARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
                             break;
                         }
 
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
@@ -2048,7 +2048,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                             for(uint i = 0; i < 6; i++)
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k[k] = alpha_dust * (scalar_product * cell_d_l + WMap.S(i_wave)) + S_dust;
                         }
@@ -2254,7 +2254,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         // Calculate the level populations for each cell
         if(!gas->calcLevelPopulation(grid, i_species))
         {
-            cout << "Error: Level population cannot be calculated!";
+            cout << "\nERROR: Level population cannot be calculated!";
             return false;
         }
 
@@ -2305,7 +2305,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             uint nr_velocity_channels = tracer->getNrSpectralBins();
             if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 5)
             {
-                cout << "ERROR: The magnetic field information requires at least 5 channels\n"
+                cout << "\nERROR: The magnetic field information requires at least 5 channels\n"
                     << "    for simulations with Zeeman splitting" << endl;
                 return false;
             }
@@ -2556,11 +2556,11 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter > MAX_SOLVER_STEPS)
                         {
-                            cout << "WARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
                             break;
                         }
 
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
@@ -2620,7 +2620,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                             for(uint i = 0; i <= k; i++)
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k[k] = alpha_ges * (scalar_product * cell_d_l + CHMap.S(vch)) + S_ges;
                         }

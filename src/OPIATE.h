@@ -374,7 +374,7 @@ public:
 
         if(next_level->size() < 2)
         {
-            cout << "ERROR: Linked list is inconsistent!  " << endl;
+            cout << "\nERROR: Linked list is inconsistent!  " << endl;
             return res;
         }
 
@@ -393,7 +393,7 @@ public:
 
         if(column_length == 0)
         {
-            cout << "ERROR: No data file loaded yet!" << endl;
+            cout << "\nERROR: No data file loaded yet!" << endl;
             return -1;
         }
 
@@ -401,13 +401,13 @@ public:
 
         if(index == MAX_UINT)
         {
-            cout << "ERROR: ID out of boundaries!" << endl;
+            cout << "\nERROR: ID out of boundaries!" << endl;
             return -1;
         }
 
         if(pos >= column_length)
         {
-            cout << "ERROR: Position out of boundaries!" << endl;
+            cout << "\nERROR: Position out of boundaries!" << endl;
             return -1;
         }
 

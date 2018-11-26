@@ -131,7 +131,7 @@ bool OPIATE::loadDataFile(string filename)
 
     if(reader.fail())
     {
-        cout << "ERROR: Cannot load OPIAE data file:" << endl;
+        cout << "\nERROR: Cannot load OPIAE data file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -141,7 +141,7 @@ bool OPIATE::loadDataFile(string filename)
         if(line_counter % 1000 == 0)
         {
             char_counter++;
-            cout << " -> Loading OPIATE data file : "
+            cout << " -> Loading OPIATE data file:\n"
                     << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
         }
 
@@ -156,7 +156,7 @@ bool OPIATE::loadDataFile(string filename)
         {
             if(values.size() < 2)
             {
-                cout << "ERROR in line: " << line_counter << endl;
+                cout << "\nERROR in line: " << line_counter << endl;
                 cout << "Opiate data files rquire more than one column! \n" << endl;
                 return false;
             }
@@ -168,8 +168,8 @@ bool OPIATE::loadDataFile(string filename)
         {
             if(values.size() != max_entries)
             {
-                cout << "ERROR in line: " << line_counter << endl;
-                cout << " Wrong ammount of columns. \n" << endl;
+                cout << "\nERROR in line: " << line_counter << endl;
+                cout << " Wrong amount of columns. \n" << endl;
                 return false;
             }
         }
@@ -197,7 +197,7 @@ bool OPIATE::loadUniqueParamFile(string filename)
 
     if(reader.fail())
     {
-        cout << "ERROR: Cannot load uinique parameter file:" << endl;
+        cout << "\nERROR: Cannot load unique parameters file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -209,7 +209,7 @@ bool OPIATE::loadUniqueParamFile(string filename)
         if(line_counter % 1000 == 0)
         {
             char_counter++;
-            cout << "-> Loading uinique parameter file : "
+            cout << "-> Loading unique parameters file:\n"
                     << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
         }
 
@@ -222,8 +222,8 @@ bool OPIATE::loadUniqueParamFile(string filename)
 
         if(values.size() != 9)
         {
-            cout << "ERROR: in line: " << line_counter << endl;
-            cout << " Wrong ammount of columns. \n" << endl;
+            cout << "\nERROR: in line: " << line_counter << endl;
+            cout << " Wrong amount of columns. \n" << endl;
             return false;
         }
 
@@ -243,7 +243,7 @@ bool OPIATE::loadUniqueParamFile(string filename)
     reader.close();
 
     cout << CLR_LINE1;
-    cout << " Loading OPIATE uinique parameter file : done" << endl;
+    cout << " Loading OPIATE unique parameters file:\ndone" << endl;
     return true;
 }*/
 

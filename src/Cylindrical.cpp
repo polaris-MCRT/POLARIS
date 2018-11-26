@@ -23,7 +23,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     if(bin_reader.fail())
     {
-        cout << "ERROR: Can not load binary cylindrical grid file:" << endl;
+        cout << "\nERROR: Cannot load binary cylindrical grid file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -61,7 +61,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     }
     else
     {
-        cout << "ERROR: A cylindrical grid requires an ID of \"" << GRID_ID_CYL << "\"!" << endl;
+        cout << "\nERROR: A cylindrical grid requires an ID of \"" << GRID_ID_CYL << "\"!" << endl;
         return false;
     }
 
@@ -280,31 +280,31 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     // -----------------------------------------
     if(Rmin <= 0)
     {
-        cout << "ERROR: Inner radius (Rmin = " << Rmin << " must be larger than zero!" << endl;
+        cout << "\nERROR: Inner radius (Rmin = " << Rmin << " must be larger than zero!" << endl;
         return false;
     }
 
     if(Rmax <= 0)
     {
-        cout << "ERROR: Outer radius (Rmax = " << Rmax << " must be larger than zero!" << endl;
+        cout << "\nERROR: Outer radius (Rmax = " << Rmax << " must be larger than zero!" << endl;
         return false;
     }
 
     if(Rmax <= Rmin)
     {
-        cout << "ERROR: Outer radius (Rmax = " << Rmax << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
+        cout << "\nERROR: Outer radius (Rmax = " << Rmax << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
         return false;
     }
 
     if(Zmax <= 0)
     {
-        cout << "ERROR: Maximum vertical extent must be larger than zero (Zmax = " << Zmax << ")!" << endl;
+        cout << "\nERROR: Maximum vertical extent must be larger than zero (Zmax = " << Zmax << ")!" << endl;
         return false;
     }
 
     if(N_r < 3)
     {
-        cout << "ERROR: Nr.of cells in R direction has to be larger than 2!" << endl;
+        cout << "\nERROR: Number of cells in R direction has to be larger than 2!" << endl;
         return false;
     }
 
@@ -357,7 +357,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
             if(dr == 0)
             {
-                cout << "ERROR: No step size in r-direction of cylindrical grid!" << endl;
+                cout << "\nERROR: No step size in r-direction of cylindrical grid!" << endl;
                 return false;
             }
 
@@ -370,7 +370,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
                 if(dph == 0)
                 {
-                    cout << "ERROR: No step size in phi-direction of cylindrical grid!" << endl;
+                    cout << "\nERROR: No step size in phi-direction of cylindrical grid!" << endl;
                     return false;
                 }
 
@@ -389,8 +389,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
                 if(dz == 0)
                 {
-                    cout << "ERROR: No step size in z-direction of cylindrical grid!" << endl
-                        << "HINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
+                    cout << "\nERROR: No step size in z-direction of cylindrical grid!" << endl
+                        << "\nHINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
                         << "      Please look in the manual or use \"polaris-gen ... --update\"" << endl;
                     return false;
                 }
@@ -428,7 +428,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading cylindrical grid file : "
+            cout << "-> Loading cylindrical grid file:\n"
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
@@ -468,7 +468,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         if(uint(tmp_cell->getData(data_pos_id)) < 0 ||
             uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
         {
-            cout << "ERROR: Dust ID in grid exceeds maximum number of dust choices available!" << endl;
+            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available!" << endl;
             return false;
         }
 
@@ -486,7 +486,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     if(max_cells != uint(line_counter))
     {
-        cout << "ERROR: Nr. of read in cells do not match the maximal number of expected cells!" << endl;
+        cout << "\nERROR: Number of read in cells do not match the maximal number of expected cells!" << endl;
         cout << "       Expected " << max_cells << " cells, but found " << uint(line_counter) 
             << " cells in grid!" << endl;
         return false;
@@ -494,7 +494,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     if(min_len < 0)
     {
-        cout << "ERROR: Minimum length is smaller than zero!" << endl;
+        cout << "\nERROR: Minimum length is smaller than zero!" << endl;
         return false;
     }
 
@@ -516,7 +516,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
     if(max_cells == 0)
     {
-        cout << "Error: Can't plot spherical grid to gnuplot file to:" << endl;
+        cout << "\nERROR: Cannot plot spherical grid to gnuplot file to:" << endl;
         cout << path;
         cout << "Not enough tree cells available!" << endl;
         return false;
@@ -586,7 +586,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
     if(point_fields[0].fail())
     {
-        cout << "ERROR: Can't write to " << grid_filename << endl;
+        cout << "\nERROR: Cannot write to:\n " << grid_filename << endl;
         return false;
     }
 
@@ -596,7 +596,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << dens_gas_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << dens_gas_filename << endl;
             return false;
         }
     }
@@ -607,7 +607,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[2].fail())
         {
-            cout << "ERROR: Can't write to " << dens_dust_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << dens_dust_filename << endl;
             return false;
         }
     }
@@ -618,7 +618,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[3].fail())
         {
-            cout << "ERROR: Can't write to " << temp_gas_filename
+            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename
                     << endl;
             return false;
         }
@@ -630,7 +630,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[4].fail())
         {
-            cout << "ERROR: Can't write to " << temp_dust_filename
+            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename
                     << endl;
             return false;
         }
@@ -642,7 +642,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[5].fail())
         {
-            cout << "ERROR: Can't write to " << rat_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << rat_filename << endl;
             return false;
         }
     }
@@ -653,7 +653,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[6].fail())
         {
-            cout << "ERROR: Can't write to " << delta_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << delta_filename << endl;
             return false;
         }
     }
@@ -664,7 +664,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[7].fail())
         {
-            cout << "ERROR: Can't write to " << larm_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << larm_filename << endl;
             return false;
         }
     }
@@ -675,7 +675,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[8].fail())
         {
-            cout << "ERROR: Can't write to " << mach_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << mach_filename << endl;
             return false;
         }
     }
@@ -686,7 +686,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(vec_fields[0].fail())
         {
-            cout << "ERROR: Can't write to " << mag_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << mag_filename << endl;
             return false;
         }
     }
@@ -697,7 +697,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(vec_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << vel_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << vel_filename << endl;
             return false;
         }
     }
@@ -1051,7 +1051,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 {
     if(max_cells == 0)
     {
-        cout << "Error: Cannot save cylindrical grid file to:" << endl;
+        cout << "\nERROR: Cannot save cylindrical grid file to:" << endl;
         cout << filename;
         cout << "Not enough cells available!" << endl;
         return false;
@@ -1061,7 +1061,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 
     if(bin_writer.fail())
     {
-        cout << "ERROR: Cannot open cylindrical grid file:" << endl;
+        cout << "\nERROR: Cannot open cylindrical grid file:" << endl;
         cout << filename;
         return false;
     }
@@ -1079,7 +1079,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     }
     else
     {
-        cout << "Error: Cannot save cylindrical grid file to:" << endl;
+        cout << "\nERROR: Cannot save cylindrical grid file to:" << endl;
         cout << filename;
         cout << "A cylindrical grid requires an ID of " << GRID_ID_CYL << "!" << endl;
         return false;
@@ -1156,7 +1156,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing cylindrical grid file : done" << endl;
+    cout << "- Writing cylindrical grid file:\ndone" << endl;
 
     return true;
 }
@@ -1164,7 +1164,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 void CGridCylindrical::printParameters()
 {
     if(max_cells == 0)
-        cout << "Error: No cylindrical grid parameters available!" << endl;
+        cout << "\nERROR: No cylindrical grid parameters available!" << endl;
     else
     {
         cout << CLR_LINE;
@@ -1192,7 +1192,7 @@ void CGridCylindrical::printParameters()
             cout << ", Nz: " << N_z << ")" << endl;
         cout << SEP_LINE;
 
-        cout << "- Nr. of cylindrical cells      : " << max_cells << endl;
+        cout << "- Number of cylindrical cells      : " << max_cells << endl;
 
         printPhysicalParameters();
         cout << SEP_LINE;
@@ -1482,7 +1482,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         path_length = min_length + MIN_LEN_STEP * min_len;
     else
     {
-        cout << "Error: Wrong cell border!                                   " << endl;
+        cout << "\nERROR: Wrong cell border!                                   " << endl;
         return false;
     }
 

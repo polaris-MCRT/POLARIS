@@ -704,7 +704,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -1035,7 +1035,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -1200,7 +1200,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -1388,7 +1388,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -1685,7 +1685,7 @@ public:
             long nelements = uint(bins_x) * uint(bins_y);
             if(max_cells != nelements)
             {
-                cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+                cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
                 return false;
             }
 
@@ -1854,7 +1854,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -2050,7 +2050,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -2233,7 +2233,7 @@ public:
             long nelements = uint(bins_x) * uint(bins_y);
             if(max_cells != nelements)
             {
-                cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+                cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
                 return false;
             }
 
@@ -2354,7 +2354,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 
@@ -2515,7 +2515,7 @@ public:
         long nelements = uint(bins_x) * uint(bins_y);
         if(max_cells != nelements)
         {
-            cout << "WARNING: Max cells are not equal to bins x bins!" << endl;
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
             return false;
         }
 

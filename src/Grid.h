@@ -2106,12 +2106,12 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "ERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
                             return false;
                         }
                         if(gas_is_mass_density == true)
                         {
-                            cout << "ERROR: Gas number densities cannot be combined with gas mass densities!" << endl;
+                            cout << "\nERROR: Gas number densities cannot be combined with gas mass densities!" << endl;
                             return false;
                         }
                     }
@@ -2124,12 +2124,12 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "ERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
                             return false;
                         }
                         if(gas_is_mass_density == false)
                         {
-                            cout << "ERROR: Gas mass densities cannot be combined with gas number densities!" << endl;
+                            cout << "\nERROR: Gas mass densities cannot be combined with gas number densities!" << endl;
                             return false;
                         }
                     }
@@ -2142,12 +2142,12 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "ERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
                             return false;
                         }
                         if(dust_is_mass_density == true)
                         {
-                            cout << "ERROR: Dust number densities cannot be combined with dust mass densities!" << endl;
+                            cout << "\nERROR: Dust number densities cannot be combined with dust mass densities!" << endl;
                             return false;
                         }
                     }
@@ -2160,12 +2160,12 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "ERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
                             return false;
                         }
                         if(dust_is_mass_density == false)
                         {
-                            cout << "ERROR: Dust mass densities cannot be combined with dust number densities!" << endl;
+                            cout << "\nERROR: Dust mass densities cannot be combined with dust number densities!" << endl;
                             return false;
                         }
                     }
@@ -2180,7 +2180,7 @@ public:
                 case GRIDgas_temp:
                     if(data_pos_tg != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDgas_temp << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDgas_temp << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2190,7 +2190,7 @@ public:
                 case GRIDmx:
                     if(data_pos_mx != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDmx << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDmx << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2200,7 +2200,7 @@ public:
                 case GRIDmy:
                     if(data_pos_my != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDmy << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDmy << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2210,7 +2210,7 @@ public:
                 case GRIDmz:
                     if(data_pos_mz != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDmz << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDmz << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2220,7 +2220,7 @@ public:
                 case GRIDvx:
                     if(data_pos_vx != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDvx << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDvx << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2230,7 +2230,7 @@ public:
                 case GRIDvy:
                     if(data_pos_vy != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDvy << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDvy << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2240,7 +2240,7 @@ public:
                 case GRIDvz:
                     if(data_pos_vz != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDvz << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDvz << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2250,7 +2250,7 @@ public:
                 case GRIDpx:
                     if(data_pos_px != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDpx << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDpx << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2260,7 +2260,7 @@ public:
                 case GRIDpy:
                     if(data_pos_py != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDpy << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDpy << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2270,7 +2270,7 @@ public:
                 case GRIDpz:
                     if(data_pos_pz != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDpz << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDpz << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2280,7 +2280,7 @@ public:
                 case GRIDa_alg:
                     if(data_pos_aalg != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDa_alg << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDa_alg << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2290,7 +2290,7 @@ public:
                 case GRIDa_min:
                     if(data_pos_amin != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDa_min << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDa_min << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2300,7 +2300,7 @@ public:
                 case GRIDa_max:
                     if(data_pos_amax != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDa_max << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDa_max << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2310,7 +2310,7 @@ public:
                 case GRIDq:
                     if(data_pos_eq != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDq << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDq << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2320,7 +2320,7 @@ public:
                 case GRIDv_turb:
                     if(data_pos_vt != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDvx << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDvx << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2330,7 +2330,7 @@ public:
                 case GRIDn_th:
                     if(data_pos_n_th != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDn_th << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDn_th << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2340,7 +2340,7 @@ public:
                 case GRIDT_e:
                     if(data_pos_T_e != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDT_e << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDT_e << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2350,7 +2350,7 @@ public:
                 case GRIDn_cr:
                     if(data_pos_n_cr != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDn_cr << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDn_cr << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2360,7 +2360,7 @@ public:
                 case GRIDg_min:
                     if(data_pos_g_min != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDg_min << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDg_min << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2370,7 +2370,7 @@ public:
                  case GRIDg_max:
                     if(data_pos_g_max != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDg_max << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDg_max << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2380,7 +2380,7 @@ public:
                 case GRIDp:
                     if(data_pos_p != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDp << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDp << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2399,12 +2399,12 @@ public:
                 case GRIDdust_id:
                     if(data_pos_gd_list.size() > 1 || data_pos_dd_list.size() > 1)
                     {
-                        cout << "ERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                        cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
                         return false;
                     }
                     if(data_pos_id != MAX_UINT)
                     {
-                        cout << "ERROR: Grid ID " << GRIDdust_id << " can be set only once!" << endl;
+                        cout << "\nERROR: Grid ID " << GRIDdust_id << " can be set only once!" << endl;
                         return false;
                     }
 
@@ -2428,7 +2428,7 @@ public:
                     break;
 
                 default:
-                    cout << "ERROR: Unknown data IDs!" << endl;
+                    cout << "\nERROR: Unknown data IDs!" << endl;
                     cout << "  IDs have to be between " << minGRID << " and " << maxGRID << "!" << endl;
                     return false;
             }
@@ -2436,7 +2436,7 @@ public:
 
         if(data_pos_gd_list.size() == 0)
         {
-            cout << "ERROR: Grid requires a gas density! " << endl;
+            cout << "\nERROR: Grid requires a gas density! " << endl;
             return false;
         }
 
@@ -2476,7 +2476,7 @@ public:
             case 0:
                 if(data_offset != 6)
                 {
-                    cout << "ERROR: A grid ID of 0 requires a data length of 6!" << endl;
+                    cout << "\nERROR: A grid ID of 0 requires a data length of 6!" << endl;
                     cout << "       Cannot create a compatible octree!" << endl;
                     return false;
                 }
@@ -2502,7 +2502,7 @@ public:
             case 1:
                 if(data_offset != 7)
                 {
-                    cout << "ERROR: A grid ID of 1 requires a data length of 7!" << endl;
+                    cout << "\nERROR: A grid ID of 1 requires a data length of 7!" << endl;
                     cout << "       Cannot create a compatible octree!" << endl;
                     return false;
                 }
@@ -2532,7 +2532,7 @@ public:
             case 6:
                 if(data_offset != 9)
                 {
-                    cout << "ERROR: A grid ID of 6 requires a data length of 9!" << endl;
+                    cout << "\nERROR: A grid ID of 6 requires a data length of 9!" << endl;
                     cout << "       Cannot create a compatible octree!" << endl;
                     return false;
                 }
@@ -2565,7 +2565,7 @@ public:
             case 7:
                 if(data_offset != 10)
                 {
-                    cout << "ERROR: A grid ID of 7 requires a data length of 10!" << endl;
+                    cout << "\nERROR: A grid ID of 7 requires a data length of 10!" << endl;
                     cout << "       Cannot create a compatible octree!" << endl;
                     return false;
                 }
@@ -2601,7 +2601,7 @@ public:
                 break;
 
             default:
-                cout << "ERROR: Grid ID = " << dataID << " doesn't match any of the old octree IDs!" << endl;
+                cout << "\nERROR: Grid ID = " << dataID << " doesn't match any of the old octree IDs!" << endl;
                 cout << "       Cannot create a compatible octree!" << endl;
                 return false;
         }
@@ -2615,47 +2615,47 @@ public:
     {
         if(data_pos_n_th == MAX_UINT && data_pos_n_th == MAX_UINT)
         {
-            cout << "ERROR: Neither thermal electrons nor CR electrons are defined in grid file!" << endl;
+            cout << "\nERROR: Neither thermal electrons nor CR electrons are defined in grid file!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_mx == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no magnetic Bx component!" << endl;
+            cout << "\nERROR: Grid contains no magnetic Bx component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
         if(data_pos_my == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no magnetic By component!" << endl;
+            cout << "\nERROR: Grid contains no magnetic By component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
         if(data_pos_mz == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no magnetic Bz component!" << endl;
+            cout << "\nERROR: Grid contains no magnetic Bz component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_n_th == MAX_UINT)
         {
-            cout << "WARNING: Grid contains no thermal electron component!" << endl;
+            cout << "\nWARNING: Grid contains no thermal electron component!" << endl;
             cout << "         Only CR SYNCHROTRON calculation possible." << endl;
         }
         else
         {
             if(data_pos_tg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no gas temperature!" << endl;
+                cout << "\nERROR: Grid contains no gas temperature!" << endl;
                 cout << "       No SYNCHROTRON calculation possible." << endl;
                 return MAX_UINT;
             }
 
             if(data_pos_T_e == MAX_UINT)
             {
-                cout << "WARNING: Grid contains no electron temperature component!" << endl;
+                cout << "\nWARNING: Grid contains no electron temperature component!" << endl;
                 cout << "         Electron temperature will be set to equal gas temperature!" << endl;
                 data_pos_T_e = data_pos_tg;
             }
@@ -2663,35 +2663,35 @@ public:
 
         if(data_pos_n_cr == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no CR electron component!" << endl;
+            cout << "\nERROR: Grid contains no CR electron component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_g_min == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gamma_min component!" << endl;
+            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_g_min == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gamma_min component!" << endl;
+            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_g_max == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gamma_max component!" << endl;
+            cout << "\nERROR: Grid contains no gamma_max component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_p == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no electron power-law index p component!" << endl;
+            cout << "\nERROR: Grid contains no electron power-law index p component!" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
@@ -2702,7 +2702,7 @@ public:
     {
         if(data_pos_tg == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gas temperature!" << endl;
+            cout << "\nERROR: Grid contains no gas temperature!" << endl;
             cout << "       No OPIATE calculation possible." << endl;
             return MAX_UINT;
         }
@@ -2714,7 +2714,7 @@ public:
         uint extra_temp_entries = 0;
         if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "ERROR: The grid does not include the correct information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the correct information for temperature calculations" << endl;
             cout << "       No dust temperature calculation possible (full_dust_temp or stochastic heating?)." << endl;
             return MAX_UINT;
         }
@@ -2762,7 +2762,7 @@ public:
             if(data_pos_rx_list.size() != 0 || data_pos_ry_list.size() != 0 ||
                     data_pos_rz_list.size() != 0 || data_pos_rf_list.size() != 0)
             {
-                cout << "ERROR: The grid includes partial/broken information about a radiation field!" << endl;
+                cout << "\nERROR: The grid includes partial/broken information about a radiation field!" << endl;
                 cout << "       No dust temperature calculation possible." << endl;
                 return MAX_UINT;
             }
@@ -2783,7 +2783,7 @@ public:
                 data_ids.push_back(GRIDgas_temp);
                 tmp_data_offset++;
                 cout << SEP_LINE;
-                cout << "HINT: No gas temperature found in grid." << endl;
+                cout << "\nHINT: No gas temperature found in grid." << endl;
                 cout << "    Add entry and set gas temperature to dust temperature after calculation!" << endl;
                 cout << SEP_LINE;
             }
@@ -2803,36 +2803,36 @@ public:
 
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
-            cout << "ERROR: Grid contains no dust temperature!" << endl;
+            cout << "\nERROR: Grid contains no dust temperature!" << endl;
             cout << "       No RAT calculation possible." << endl;
             return MAX_UINT;
         }
         else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
         {
-            cout << "ERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No RAT calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_tg == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gas temperature!" << endl;
+            cout << "\nERROR: Grid contains no gas temperature!" << endl;
             cout << "       No RAT calculation possible." << endl;
             return MAX_UINT;
         }
         if(data_pos_mx == MAX_UINT)
         {
-            cout << "WARNING: Grid contains no magnetic Bx component!" << endl;
+            cout << "\nWARNING: Grid contains no magnetic Bx component!" << endl;
             cout << "         No follow up calculations possible." << endl;
         }
         if(data_pos_my == MAX_UINT)
         {
-            cout << "WARNING: Grid contains no magnetic By component!" << endl;
+            cout << "\nWARNING: Grid contains no magnetic By component!" << endl;
             cout << "         No follow up calculations possible." << endl;
         }
         if(data_pos_mz == MAX_UINT)
         {
-            cout << "WARNING: Grid contains no magnetic Bz component!" << endl;
+            cout << "\nWARNING: Grid contains no magnetic Bz component!" << endl;
             cout << "         No follow up calculations possible." << endl;
         }
         return 0;
@@ -2846,13 +2846,13 @@ public:
 
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
-            cout << "ERROR: Grid contains no dust temperature!" << endl;
+            cout << "\nERROR: Grid contains no dust temperature!" << endl;
             cout << "       No dust emission possible." << endl;
             return MAX_UINT;
         }
         else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
         {
-            cout << "ERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No dust emission possible." << endl;
             return MAX_UINT;
         }
@@ -2864,7 +2864,7 @@ public:
         {
             if(data_pos_rf_list.size() != WL_STEPS)
             {
-               cout << "ERROR: The grid includes partial/no information about a radiation field!" << endl;
+               cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
                cout << "       No dust emission with stochastic heating possible." << endl;
                return MAX_UINT;
            }
@@ -2872,7 +2872,7 @@ public:
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "ERROR: The grid includes partial/no information about a radiation field!" << endl;
+           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
            cout << "       No dust emission possible." << endl;
            return MAX_UINT;
        }
@@ -2881,25 +2881,25 @@ public:
         {
             if(data_pos_tg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no gas temperature!" << endl;
+                cout << "\nERROR: Grid contains no gas temperature!" << endl;
                 cout << "       No dust emission with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bx component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bx component!" << endl;
                 cout << "       No dust emission with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_my == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic By component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic By component!" << endl;
                 cout << "       No dust emission with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bz component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bz component!" << endl;
                 cout << "       No dust emission with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
@@ -2909,19 +2909,19 @@ public:
         {
             if(data_pos_vx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vx component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vx component!" << endl;
                 cout << "        No dust emission with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vy == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vy component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vy component!" << endl;
                 cout << "        No dust emission with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vz component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vz component!" << endl;
                 cout << "        No dust emission with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
@@ -2931,7 +2931,7 @@ public:
         {
             if(data_pos_aalg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no minimum alignment radius for RATs!" << endl;
+                cout << "\nERROR: Grid contains no minimum alignment radius for RATs!" << endl;
                 cout << "        No dust emission with RAT alignment possible." << endl;
                 return MAX_UINT;
             }
@@ -2945,25 +2945,25 @@ public:
         {
             if(data_pos_tg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no gas temperature!           " << endl;
+                cout << "\nERROR: Grid contains no gas temperature!           " << endl;
                 cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bx component!     " << endl;
+                cout << "\nERROR: Grid contains no magnetic Bx component!     " << endl;
                 cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_my == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic By component!     " << endl;
+                cout << "\nERROR: Grid contains no magnetic By component!     " << endl;
                 cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bz component!     " << endl;
+                cout << "\nERROR: Grid contains no magnetic Bz component!     " << endl;
                 cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
@@ -2973,19 +2973,19 @@ public:
         {
             if(data_pos_vx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vx component!  " << endl;
+                cout << "\nERROR: Grid contains no velocity vx component!  " << endl;
                 cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vy == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vy component!  " << endl;
+                cout << "\nERROR: Grid contains no velocity vy component!  " << endl;
                 cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vz component!  " << endl;
+                cout << "\nERROR: Grid contains no velocity vz component!  " << endl;
                 cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
@@ -2995,7 +2995,7 @@ public:
         {
             if(data_pos_aalg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no minimum alignment radius for RATs!" << endl;
+                cout << "\nERROR: Grid contains no minimum alignment radius for RATs!" << endl;
                 cout << "        No dust scattering calculations with RAT alignment possible." << endl;
                 return MAX_UINT;
             }
@@ -3008,20 +3008,20 @@ public:
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
-            cout << "ERROR: Grid contains no dust temperature!" << endl;
+            cout << "\nERROR: Grid contains no dust temperature!" << endl;
             cout << "       No FORCE calculation possible." << endl;
             return MAX_UINT;
         }
         else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
         {
-            cout << "ERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No FORCE calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "ERROR: The grid includes partial/no information about a radiation field!" << endl;
+           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
            cout << "       No FORCE calculation possible." << endl;
            return MAX_UINT;
        }
@@ -3035,13 +3035,13 @@ public:
         {
             if(getTemperatureFieldInformation() == TEMP_EMPTY)
             {
-                cout << "ERROR: Grid contains no dust temperature!" << endl;
+                cout << "\nERROR: Grid contains no dust temperature!" << endl;
                 cout << "       No line transfer including dust emission possible." << endl;
                 return MAX_UINT;
             }
             else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
             {
-                cout << "ERROR: The grid does not include the information for temperature calculations" << endl;
+                cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
                 cout << "       No line transfer including dust emission possible." << endl;
                 return MAX_UINT;
             }
@@ -3049,7 +3049,7 @@ public:
 
         if(data_pos_tg == MAX_UINT)
         {
-            cout << "ERROR: Grid contains no gas temperature!" << endl;
+            cout << "\nERROR: Grid contains no gas temperature!" << endl;
             cout << "       No line transfer with possible.  " << endl;
             return MAX_UINT;
         }
@@ -3058,19 +3058,19 @@ public:
         {
             if(data_pos_mx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bx component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bx component!" << endl;
                 cout << "       No line transfer possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_my == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic By component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic By component!" << endl;
                 cout << "       No line transfer possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bz component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bz component!" << endl;
                 cout << "       No line transfer possible." << endl;
                 return MAX_UINT;
             }
@@ -3080,19 +3080,19 @@ public:
         {
             if(data_pos_vx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vx component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vx component!" << endl;
                 cout << "        No line transfer possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vy == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vy component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vy component!" << endl;
                 cout << "        No line transfer possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vz component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vz component!" << endl;
                 cout << "        No line transfer possible." << endl;
                 return MAX_UINT;
             }
@@ -3104,20 +3104,20 @@ public:
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
-            cout << "ERROR: Grid contains no dust temperature!" << endl;
+            cout << "\nERROR: Grid contains no dust temperature!" << endl;
             cout << "       No LOS analysis with aligned dust grains possible." << endl;
             return MAX_UINT;
         }
         else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
         {
-            cout << "ERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No LOS analysis with aligned dust grains possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "ERROR: The grid includes partial/no information about a radiation field!" << endl;
+           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
            cout << "       No LOS analysis with aligned dust grains possible." << endl;
            return MAX_UINT;
        }
@@ -3126,25 +3126,25 @@ public:
         {
             if(data_pos_tg == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no gas temperature!" << endl;
+                cout << "\nERROR: Grid contains no gas temperature!" << endl;
                 cout << "       No LOS analysis with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bx component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bx component!" << endl;
                 cout << "       No LOS analysis with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_my == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic By component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic By component!" << endl;
                 cout << "       No LOS analysis with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_mz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no magnetic Bz component!" << endl;
+                cout << "\nERROR: Grid contains no magnetic Bz component!" << endl;
                 cout << "       No LOS analysis with aligned dust grains possible." << endl;
                 return MAX_UINT;
             }
@@ -3154,19 +3154,19 @@ public:
         {
             if(data_pos_vx == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vx component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vx component!" << endl;
                 cout << "        No LOS analysis with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vy == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vy component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vy component!" << endl;
                 cout << "        No LOS analysis with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }
             if(data_pos_vz == MAX_UINT)
             {
-                cout << "ERROR: Grid contains no velocity vz component!" << endl;
+                cout << "\nERROR: Grid contains no velocity vz component!" << endl;
                 cout << "        No LOS analysis with GOLD alignment possible." << endl;
                 return MAX_UINT;
             }

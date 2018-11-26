@@ -222,7 +222,7 @@ public:
     {
         if(max_cells == 0)
         {
-            cout << "ERROR: OcTree grid contains no cells!" << endl;
+            cout << "\nERROR: OcTree grid contains no cells!" << endl;
             cout << "       Cell list cannot be created!" << endl;
             return false;
         }
