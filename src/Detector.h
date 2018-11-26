@@ -2674,8 +2674,9 @@ public:
     uint getDetectorWavelengthID(double wavelength)
     {
         dlist::iterator it = find(wavelength_list_det.begin(), wavelength_list_det.end(), wavelength);
+        cout << it - wavelength_list_det.begin() << endl;
         if(it != wavelength_list_det.end())
-            return wavelength_list_det.begin() - it;
+            return it - wavelength_list_det.begin();
         else
             return MAX_UINT;
     }
