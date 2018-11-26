@@ -2500,7 +2500,7 @@ public:
 
                 default:
                     cout << "\nERROR: Unknown data IDs!" << endl;
-                    cout << "  IDs have to be between " << minGRID << " and " << maxGRID << "!" << endl;
+                    cout << "         IDs have to be between " << minGRID << " and " << maxGRID << "!" << endl;
                     return false;
             }
         }

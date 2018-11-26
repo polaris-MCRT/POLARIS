@@ -1478,7 +1478,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Error message if the write does not work
     if(cross_writer.fail())
     {
-        cout << "\nERROR: Cannot write to " << path_cross << endl;
+        cout << "\nERROR: Cannot write to:\n" << path_cross << endl;
         return false;
     }
 
@@ -1519,7 +1519,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add gnuplot commands to file
+    // Add Gnuplot commands to file
     cross_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         cross_writer << "set log x" << endl;
@@ -1588,7 +1588,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Error message if the write does not work
     if(diff_writer.fail())
     {
-        cout << "\nERROR: Cannot write to " << path_cross << endl;
+        cout << "\nERROR: Cannot write to:\n" << path_cross << endl;
         return false;
     }
 
@@ -1618,7 +1618,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add gnuplot commands to file
+    // Add Gnuplot commands to file
     diff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         cross_writer << "set log x" << endl;
@@ -1666,11 +1666,11 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Error message if the write does not work
     if(data_writer.fail())
     {
-        cout << "\nERROR: Cannot write to " << path_data << endl;
+        cout << "\nERROR: Cannot write to:\n" << path_data << endl;
         return false;
     }
 
-    // Add gnuplot commands to file
+    // Add Gnuplot commands to file
     data_writer << "#material" << endl;
     data_writer << str_title << endl;
     data_writer << "#weight" << endl;
@@ -1723,7 +1723,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Error message if the write does not work
     if(g_writer.fail())
     {
-        cout << "\nERROR: Cannot write to " << path_g << endl;
+        cout << "\nERROR: Cannot write to:\n" << path_g << endl;
         return false;
     }
 
@@ -1743,7 +1743,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add gnuplot commands to file
+    // Add Gnuplot commands to file
     g_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         cross_writer << "set log x" << endl;
@@ -1842,7 +1842,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
             }
         }
 
-        // Add gnuplot commands to file
+        // Add Gnuplot commands to file
         scat_writer << "reset" << endl;
         scat_writer << "set grid" << endl;
         scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
@@ -2279,7 +2279,7 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
 
         // Show progress
         printIDs();
-        cout << "precalculation of planck functions: "
+        cout << "Pre-calculation of Planck functions: "
             << 100.0 * float(w) / float(nr_of_wavelength) << "                                \r";
 
         // Set each entry of tab_planck with the corresponding Planck function values
@@ -4609,7 +4609,7 @@ bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
     if(param.isMonteCarloSimulation())
         if(!mixed_component[i_mixture].calcWavelengthDiff())
         {
-            cout << "\nERROR: The wavelength grid has only one wavelength which is too less for temp calculation!.\n"
+            cout << "\nERROR: The wavelength grid only has one wavelength which is not enough for temp calculation!\n"
                  << "       Change WL_STEPS to more than one in the typedefs.h file!" << endl;
             return false;
         }

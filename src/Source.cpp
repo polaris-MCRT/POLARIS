@@ -115,7 +115,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
 
         if(value.size() != 4 && value.size() != 2)
         {
-            cout << "\nERROR: In spectrum file :\n" << filename << endl;
+            cout << "\nERROR: In spectrum file:\n" << filename << endl;
             cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
             return false;
         }

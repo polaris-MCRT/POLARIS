@@ -2158,7 +2158,7 @@ public:
 
     void printRTGridDescription()
     {
-        cout << "- background grid shape : " << rt_grid_description << endl;
+        cout << "- background grid shape: " << rt_grid_description << endl;
     }
 
     double getAcceptanceAngle()

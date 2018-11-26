@@ -71,7 +71,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res.size() < 8)
     {
-        cout << "\nERROR: At least two colors are required  in line "
+        cout << "\nERROR: At least two colors are required in line "
                 << line_counter << "!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -87,7 +87,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res[0] != 0)
     {
-        cout << "\nERROR: First position  in line " << line_counter
+        cout << "\nERROR: First position in line " << line_counter
                 << " has to be 0!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -95,7 +95,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res[res.size() - 4] != 1)
     {
-        cout << "\nERROR: Last position  in line " << line_counter
+        cout << "\nERROR: Last position in line " << line_counter
                 << " has to be 1!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -115,7 +115,7 @@ dlist CCommandParser::parseDataString(string data)
 
             if(res[i] <= tmp_val)
             {
-                cout << "\nERROR: Position values  in line " << line_counter
+                cout << "\nERROR: Position values in line " << line_counter
                         << " have to be in ascending order!\nColor bar set to default." << endl;
                 res.clear();
                 return res;
@@ -127,7 +127,7 @@ dlist CCommandParser::parseDataString(string data)
         {
             if(res[i] < 0 || res[i] > 255)
             {
-                cout << "\nERROR: Color values  in line " << line_counter
+                cout << "\nERROR: Color values in line " << line_counter
                         << " have to be between 0 and 255!\nColor bar set to default." << endl;
                 res.clear();
                 return res;
@@ -1912,7 +1912,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->addGasSpecies(gas_species_path, zeeman_path, values);
         else
         {
-            cout << "\nERROR: False amount of parameterss for gas species line transfer in line "
+            cout << "\nERROR: False amount of parameters for gas species line transfer in line "
                 << line_counter << "!" << endl;
             return false;
         }
@@ -2467,7 +2467,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(atob(atoi(data.c_str())))
             param->setMRW(true);
 
-        cout << "\nWARNING: MRW currently unavailable!" << endl;
+        cout << "\nWARNING: MRW currently unavailable! " << endl;
 
         return true;
     }
@@ -2477,7 +2477,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(atob(atoi(data.c_str())))
             param->setPDA(true);
 
-        cout << "\nWARNING: PDA currently unavailable!" << endl;
+        cout << "\nWARNING: PDA currently unavailable! " << endl;
 
         return true;
     }
@@ -2648,7 +2648,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(tr > max_t)
         {
             tr = max_t;
-            cout << "\nWARNING: Max. nr. of threads is : " << max_t
+            cout << "\nWARNING: Max. nr. of threads is:  " << max_t
                     << endl;
         }
 

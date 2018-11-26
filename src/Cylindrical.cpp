@@ -318,7 +318,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     {
         grid_cells[i_r] = new cell_cyl**[N_ph[i_r]];
 
-        cout << "Allocating memory for cylindrical grid cells : " <<
+        cout << "Allocating memory for cylindrical grid cells: " <<
                 float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
@@ -468,7 +468,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         if(uint(tmp_cell->getData(data_pos_id)) < 0 ||
             uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
         {
-            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available!" << endl;
+            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available! " << endl;
             return false;
         }
 
@@ -516,9 +516,9 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
     if(max_cells == 0)
     {
-        cout << "\nERROR: Cannot plot spherical grid to gnuplot file to:" << endl;
+        cout << "\nERROR: Cannot plot spherical grid to Gnuplot file to:" << endl;
         cout << path;
-        cout << "Not enough tree cells available!" << endl;
+        cout << "Not enough tree cells available! " << endl;
         return false;
     }
 
@@ -1043,7 +1043,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    //cout << "- Writing of gnuplot files      : done" << endl;
+    //cout << "- Writing of Gnuplot files      : done" << endl;
     return true;
 }
 
@@ -1053,7 +1053,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     {
         cout << "\nERROR: Cannot save cylindrical grid file to:" << endl;
         cout << filename;
-        cout << "Not enough cells available!" << endl;
+        cout << "Not enough cells available! " << endl;
         return false;
     }
 
@@ -1164,7 +1164,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 void CGridCylindrical::printParameters()
 {
     if(max_cells == 0)
-        cout << "\nERROR: No cylindrical grid parameters available!" << endl;
+        cout << "\nERROR: No cylindrical grid parameters available! " << endl;
     else
     {
         cout << CLR_LINE;

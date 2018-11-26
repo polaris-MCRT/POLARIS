@@ -421,7 +421,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
             break;
 
         default:
-            cout << "\nERROR : Command is unknown!" << endl;
+            cout << "\nERROR: Command is unknown!" << endl;
             return MAX_UINT;
     }
 
@@ -885,7 +885,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     z_writer.precision(8);
     z_writer << scientific;
 
-    cout << " -> Writing lines : 0.0 %                   \r" << flush;
+    cout << " -> Writing lines: 0.0 %                   \r" << flush;
 
     photon_package * pp = new photon_package;
 
@@ -934,7 +934,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                 << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines : 33.3 %                   \r" << flush;
+    cout << " -> Writing lines: 33.3 %                   \r" << flush;
 
     pp->setPosition(Vector3D(0, -2.0 * max_len, 0));
     pp->setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
@@ -980,7 +980,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                 << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines : 66.6 %                   \r" << flush;
+    cout << " -> Writing lines: 66.6 %                   \r" << flush;
 
     pp->setPosition(Vector3D(-2.0 * max_len, 0, 0));
     pp->setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());

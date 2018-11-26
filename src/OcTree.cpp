@@ -16,7 +16,7 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing gnuplot vectors: "
+            cout << "-> Writing Gnuplot vectors: "
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -218,7 +218,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Writing gnuplot grid file: " << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << " -> Writing Gnuplot grid file: " << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
         stringstream buffer;
@@ -516,7 +516,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
             if(uint(cell_oc_pos->getData(data_pos_id)) < 0 ||
                 uint(cell_oc_pos->getData(data_pos_id)) > param.getMaxDustComponentChoice())
             {
-                cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available!" << endl;
+                cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available! " << endl;
                 return false;
             }
 
@@ -667,7 +667,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     {
         cout << "\nERROR: Cannot plot octree to:" << endl;
         cout << path;
-        cout << "Not enough tree cells available!" << endl;
+        cout << "Not enough tree cells available! " << endl;
         return false;
     }
 
@@ -1213,7 +1213,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         vec_fields[pos].close();
 
     cout << CLR_LINE;
-    cout << "- Writing of gnuplot files      : done" << endl;
+    cout << "- Writing of Gnuplot files      : done" << endl;
     return true;
 }
 
@@ -1239,7 +1239,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
     {
         cout << "\nERROR: Cannot save octree grid file to:" << endl;
         cout << filename;
-        cout << "No cells available!" << endl;
+        cout << "No cells available! " << endl;
         return false;
     }
 
@@ -1332,7 +1332,7 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
 void CGridOcTree::printParameters()
 {
     if(max_cells == 0)
-        cout << "\nERROR: No octree grid parameters available!" << endl;
+        cout << "\nERROR: No octree grid parameters available! " << endl;
     else
     {
         ulong tmp_cells = ulong(pow(double(8), double(max_level)));
@@ -1419,7 +1419,7 @@ void CGridOcTree::createNextLevel(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " - Creating artificial tree : "
+            cout << " - Creating artificial tree: "
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -1950,7 +1950,7 @@ void CGridOcTree::clear(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Final cleanup : "
+            cout << " -> Final cleanup: "
                     << ru[(unsigned int) char_counter % 4] << "              \r";
         }
         

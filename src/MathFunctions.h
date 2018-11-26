@@ -750,7 +750,7 @@ namespace
     inline prob_list operator-(prob_list & list1, prob_list & list2)
     {
         if (list1.size() != list2.size())
-            cout << "\nERROR: Propability lists have different lengths!";
+            cout << "\nERROR: Probability lists have different lengths!";
         prob_list diff_list(list1.size());
 
         for(uint i = 0; i < list1.size(); i++)

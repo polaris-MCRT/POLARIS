@@ -161,7 +161,7 @@ void CPipeline::Run()
                   break;
 
             default:
-                cout << "\nERROR : Command is unknown!" << endl;
+                cout << "\nERROR: Command is unknown!" << endl;
         }
 
         cout << SEP_LINE << endl;
@@ -1082,7 +1082,7 @@ bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust,
     if(!dust->createDustMixtures(param, path_data, path_plot))
         return false;
 
-    // Write gnuplot files to show dust properties
+    // Write Gnuplot files to show dust properties
     if(!dust->writeComponent(path_data, path_plot))
         return false;
 
@@ -1184,7 +1184,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
 
         default:
             cout << "\nERROR: Command is unknown!" << endl;
-            cout << "No parameters available!" << endl;
+            cout << "No parameters available! " << endl;
     };
     cout << SEP_LINE;
 }
@@ -1459,14 +1459,14 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         {
             per_counter++;
             if(per_counter % 100 == 0)
-                cout << "-> Calculation of final proberties: [ "
+                cout << "-> Calculation of final properties: [ "
                     << 100.0 * float(per_counter) / float(max_cells)
                 << " % ]          \r";
         }
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of final proberties:   done" << endl;
+    cout << "- Calculation of final properties:   done" << endl;
 
     uint bins = param.getInpMidDataPoints();
     double max_len = grid->getMaxLength();
@@ -1525,7 +1525,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         rad_writer.open(rad_filename.c_str(), ios::out);
         if(rad_writer.fail())
         {
-            cout << "\nERROR: Cannot write to " << rad_filename
+            cout << "\nERROR: Cannot write to:\n" << rad_filename
                     << endl;
             res = false;
             continue;
@@ -1534,7 +1534,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         gra_writer.open(gra_filename.c_str(), ios::out);
         if(gra_writer.fail())
         {
-            cout << "\nERROR: Cannot write to " << gra_filename
+            cout << "\nERROR: Cannot write to:\n" << gra_filename
                     << endl;
             res = false;
             continue;

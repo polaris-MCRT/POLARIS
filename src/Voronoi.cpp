@@ -189,7 +189,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if(uint(tmp_cell->getData(data_pos_id)) < 0 ||
             uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
         {
-            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available!  \n";
+            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available!   \n";
             return false;
         }
 
@@ -229,7 +229,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     return true;
 }
 
-// plot Voronoi as gnuplot file
+// plot Voronoi as Gnuplot file
 bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
 {
     nrOfGnuPoints = param.getNrOfGnuPoints();
@@ -241,9 +241,9 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
     
     if(max_cells == 0)
     {
-        cout << "\nERROR: Cannot plot Voronoi grid to gnuplot file in:\n";
+        cout << "\nERROR: Cannot plot Voronoi grid to Gnuplot file in:\n";
         cout << path;
-        cout << "Not enough Voronoi cells available!\n";
+        cout << "Not enough Voronoi cells available! \n";
         return false;
     }
 
@@ -434,7 +434,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         }
     }
     
-    cout << "-> Writing gnuplot files  .....      \r" << flush;
+    cout << "-> Writing Gnuplot files  .....      \r" << flush;
         
     line_counter = 0;
     char_counter = 0;
@@ -714,7 +714,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         if(line_counter % 200 == 0)
         {
             char_counter++;
-            cout << "-> Writing gnuplot files : " <<
+            cout << "-> Writing Gnuplot files : " <<
                     float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
         }
         
@@ -833,7 +833,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    cout << "- Writing of gnuplot files      : done       \n";
+    cout << "- Writing of Gnuplot files      : done       \n";
     return true;
 }
 
@@ -844,7 +844,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
     {
         cout << "\nERROR: Cannot save Voronoi grid file to:\n";
         cout << filename;
-        cout << "Not enough cells available!\n";
+        cout << "Not enough cells available! \n";
         return false;
     }
 
@@ -1103,14 +1103,14 @@ void CGridVoronoi::printParameters()
 {
     if(max_cells == 0)
     {
-        cout << "\nERROR: No Voronoi cells available!\n";
+        cout << "\nERROR: No Voronoi cells available! \n";
     }
     else
     {
         cout << CLR_LINE;
         cout << SEP_LINE;
         cout << "Voronoi grid parameters (ID: " << getDataID()
-                << ", data len: " << getDataOffset() << ")         \n";
+                << ", data len.:  " << getDataOffset() << ")         \n";
         cout << SEP_LINE;
 
         if(stree!=0)
