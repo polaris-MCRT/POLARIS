@@ -201,7 +201,7 @@ public:
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for spherical grid file:\n" <<
+                cout << "Cleaning memory for spherical grid file: " <<
                         float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph; i_ph++)
@@ -349,7 +349,7 @@ public:
         ulong pos_counter = 0;
 
         cout << CLR_LINE;
-        cout << "-> Creating cell list    : 0 %           \r" << flush;
+        cout << "-> Creating cell list    : 0.0 [%]           \r" << flush;
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
@@ -370,7 +370,7 @@ public:
         cell_list[pos_counter] = (cell_basic*) center_cell;
 
         cout << CLR_LINE;
-        //cout << "- Creating of cell list         : done          \n" << flush;
+        cout << "- Creating of cell list                : done          \n" << flush;
         return true;
     }
 

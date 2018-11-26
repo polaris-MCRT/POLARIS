@@ -161,9 +161,9 @@ public:
 
     void printPathParameters(parameters & param)
     {
-        cout << "- Path grid file:\n" << param.getPathGrid() << endl;
-        cout << "- Path output    : " << param.getPathOutput() << endl;
-        cout << "- Number of threads : " << param.getNrOfThreads() << endl;
+        cout << "- Path grid file   : " << param.getPathGrid() << endl;
+        cout << "- Path output      : " << param.getPathOutput() << endl;
+        cout << "- Number of threads: " << param.getNrOfThreads() << endl;
     }
 
     void printPlotParameters(parameters & param, bool input_output=false)
@@ -230,7 +230,7 @@ public:
     {
         if(param.getNrOfSources() > 0 || param.isRaytracing())
         {
-            cout << "Defined radiation sources" << endl;
+            cout << "Defined radiation source(s)" << endl;
 
             if(param.getNrOfPointSources() > 0 &&
                     (!param.isRaytracing() || param.getScatteringToRay()))

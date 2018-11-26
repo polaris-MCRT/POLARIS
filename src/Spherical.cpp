@@ -292,7 +292,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading spherical grid file:\n"
+            cout << "-> Loading spherical grid file:"
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
@@ -378,7 +378,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     //min_len = listR[1] - listR[0];
 
     cout << CLR_LINE;
-    //cout << "Loading spherical grid file          : done" << endl;
+    cout << "- Loading spherical grid file          : done" << endl;
+	
 
     return true;
 }
@@ -1079,7 +1080,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    cout << "- Writing of Gnuplot files      : done" << endl;
+    cout << "- Writing of Gnuplot files             : done" << endl;
     return true;
 }
 
@@ -1166,7 +1167,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing spherical grid file   : done" << endl;
+    cout << "- Writing spherical grid file          : done" << endl;
 
     return true;
 }
@@ -1259,7 +1260,7 @@ bool CGridSpherical::createArtificialGrid(string path)
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
         if(i_r % 50 == 0)
-            cout << "-> Creating tree: " << 100.0 * float(i_r) / float(N_r) << " %           \r" << flush;
+            cout << "-> Creating tree: " << 100.0 * float(i_r) / float(N_r) << " [%]           \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {

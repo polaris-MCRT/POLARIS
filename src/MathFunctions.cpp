@@ -12,7 +12,7 @@ bool CMathFunctions::writeSEDStatistics(string path, bool fin, Vector3D axis1,
 
     if(data_writer.fail())
     {
-        cout << "\nERROR: Cannot write to " << data_path << endl;
+        cout << "\nERROR: Cannot write to:\n" << data_path << endl;
         return false;
     }
 

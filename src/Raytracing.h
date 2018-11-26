@@ -1534,8 +1534,8 @@ public:
             {
 #pragma omp critical
                 {
-                    cout << "-> Interpolating from polar grid to detector map [ "
-                        << percentage << " % ]         \r" << flush;
+                    cout << "-> Interpolating from polar grid to detector map: "
+                        << percentage << " [%]            \r" << flush;
                     last_percentage = percentage;
                 }
             }
@@ -1658,7 +1658,7 @@ public:
             delete pp;
         }
 
-        cout << "-> Interpolating from polar grid to detector map [ 100 % ]         \r" << flush;
+        cout << "-> Interpolating from polar grid to detector map: 100 [%]         \r" << flush;
 
         return true;
     }

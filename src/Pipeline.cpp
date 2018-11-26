@@ -87,7 +87,7 @@ void CPipeline::Finish()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing:%luh %02lumin %02lusec  \n", h, m, s);
+    printf("  Total time of processing: %luh %02lumin. %02lusec.  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;
@@ -183,7 +183,7 @@ void CPipeline::Error()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing:%luh %02lumin %02lusec  \n", h, m, s);
+    printf("  Total time of processing: %luh %02lumin. %02lusec.  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;
@@ -729,7 +729,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
     }
 
-    cout << "- Creating dust MC detectors    : done" << endl;
+    cout << "- Creating dust MC detectors           : done" << endl;
     return detector;
 }
 
@@ -1108,7 +1108,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
     switch(param.getCommand())
     {
         case CMD_TEMP:
-            cout << "- Command        : TEMPERATURE DISTRIBUTION" << endl;
+            cout << "- Command          : TEMPERATURE DISTRIBUTION" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1116,7 +1116,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_FORCE:
-            cout << "- Command        : RADIATION FORCE" << endl;
+            cout << "- Command          : RADIATION FORCE" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1124,7 +1124,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_TEMP_RAT:
-            cout << "- Command        : TEMPERATURE DISTRIBUTION and RAT ALIGNMENT" << endl;
+            cout << "- Command          : TEMPERATURE DISTRIBUTION and RAT ALIGNMENT" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1132,7 +1132,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_RAT:
-            cout << "- Command        : RAT ALIGNMENT" << endl;
+            cout << "- Command          : RAT ALIGNMENT" << endl;
             printPathParameters(param);
             printSourceParameters(param, true);
             printConversionParameters(param);
@@ -1140,7 +1140,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_DUST_EMISSION:
-            cout << "- Command        : DUST EMISSION" << endl;
+            cout << "- Command          : DUST EMISSION" << endl;
             printPathParameters(param);
             printSourceParameters(param, true);
             printConversionParameters(param);
@@ -1150,7 +1150,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_SYNCHROTRON:
-            cout << "- Command        : SYNCHROTRON EMISSION" << endl;
+            cout << "- Command          : SYNCHROTRON EMISSION" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1160,7 +1160,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             break;
 
         case CMD_DUST_SCATTERING:
-            cout << "- Command        : DUST SCATTERING (Monte-Carlo)" << endl;
+            cout << "- Command          : DUST SCATTERING (Monte-Carlo)" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1174,7 +1174,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
 
             break;
         case CMD_LINE_EMISSION:
-            cout << "- Command        : SPECTRAL LINE EMISSION" << endl;
+            cout << "- Command          : SPECTRAL LINE EMISSION" << endl;
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
@@ -1461,7 +1461,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
             if(per_counter % 100 == 0)
                 cout << "-> Calculation of final properties: [ "
                     << 100.0 * float(per_counter) / float(max_cells)
-                << " % ]          \r";
+                << " %]          \r";
         }
     }
 
@@ -1620,9 +1620,9 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
 #pragma omp critical
                 {
                     if(per_counter % 220 == 0)
-                        cout << " -> Writing midplane files: [ "
+                        cout << " -> Writing midplane files: "
                             << 100.0 * float(per_counter) / float(per_max)
-                        << " % ]             \r";
+                        << " [%]             \r";
                 }
             }
         }

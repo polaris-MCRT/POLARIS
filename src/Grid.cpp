@@ -297,7 +297,7 @@ bool CGridBasic::fillGridWithOpiateData(uint col_id)
          {
              if(cell_count % 500 == 0)
              {
-                 cout << "- Filling grid with OPIATE data  : "
+                 cout << "-> Filling grid with OPIATE data  : "
                          << 100 * float(cell_count) / float(max_cells) << " [%]               \r";
              }
          }
@@ -432,7 +432,7 @@ void CGridBasic::printPhysicalParameters()
 {
     cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume
             << " [m^3], " << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume))
-            << " %" << endl;
+            << " [%]" << endl;
     cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun]" << endl;
     cout << "- Grid length         (min,max) : [" << min_len << ", " << max_len << "] [m]" << endl;
     if(gas_is_mass_density)
@@ -823,9 +823,9 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
             per_counter++;
             if(per_counter % 49 == 0)
-                cout << " -> Writing AMIRA files:    [ "
+                cout << " -> Writing AMIRA files:     "
                     << 100.0 * float(per_counter) / float(per_max)
-                << " % ]                  \r";
+                << " [%]                  \r";
         }
     }
 
@@ -840,7 +840,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     rat_writer.close();
     d_writer.close();
 
-    //cout << "- Writing AMIRA files           : done" << endl;
+    cout << "- Writing AMIRA files                  : done" << endl;
 
     delete pp;
     return true;
@@ -885,7 +885,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     z_writer.precision(8);
     z_writer << scientific;
 
-    cout << " -> Writing lines: 0.0 %                   \r" << flush;
+    cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
 
     photon_package * pp = new photon_package;
 
@@ -934,7 +934,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                 << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines: 33.3 %                   \r" << flush;
+    cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
 
     pp->setPosition(Vector3D(0, -2.0 * max_len, 0));
     pp->setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
@@ -980,7 +980,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                 << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines: 66.6 %                   \r" << flush;
+    cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
 
     pp->setPosition(Vector3D(-2.0 * max_len, 0, 0));
     pp->setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
@@ -1032,7 +1032,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     delete pp;
 
-    cout << "- Writing lines                 : done" << endl;
+    cout << "- Writing lines                        : done" << endl;
     return true;
 }
 
@@ -1400,8 +1400,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 {
 #pragma omp critical
                     {
-                        cout << " -> Writing 3D midplane file: [ " << 100.0 * float(per_counter) / float(per_max)
-                                << " % ]                 \r";
+                        cout << " -> Writing 3D midplane file: " << 100.0 * float(per_counter) / float(per_max)
+                                << " [%]                 \r";
                     }
                 }
             }
@@ -1662,8 +1662,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 {
 #pragma omp critical
                     {
-                        cout << " -> Writing midplane files: [ " << 100.0 * float(per_counter) / float(per_max)
-                                << " % ]             \r";
+                        cout << " -> Writing midplane files: " << 100.0 * float(per_counter) / float(per_max)
+                                << " [%]             \r";
                     }
                 }
             }
@@ -2286,7 +2286,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_p;  
 
     cout << CLR_LINE;
-    //cout << "- Writing of midplane files     : done" << endl;
+    cout << "- Writing of midplane files            : done" << endl;
 
     return res;
 }

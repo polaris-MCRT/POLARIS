@@ -34,7 +34,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
         {
 #pragma omp critical
             {
-                cout << "- Calculating LTE level population  : " << percentage << " [%]               \r";
+                cout << "-> Calculating LTE level population  : " << percentage << " [%]               \r";
                 last_percentage = percentage;
             }
         }
@@ -111,7 +111,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         {
 #pragma omp critical
             {
-                cout << "- Calculating FEP level population  : "
+                cout << "-> Calculating FEP level population  : "
                         << last_percentage << " [%]                       \r";
                 last_percentage = percentage;
             }
@@ -210,7 +210,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         {
 #pragma omp critical
             {
-                cout << "- Calculating LVG level population : "
+                cout << "-> Calculating LVG level population : "
                         << last_percentage << " [%]                       \r";
                 last_percentage = percentage;
             }

@@ -141,7 +141,7 @@ bool OPIATE::loadDataFile(string filename)
         if(line_counter % 1000 == 0)
         {
             char_counter++;
-            cout << " -> Loading OPIATE data file:\n"
+            cout << " -> Loading OPIATE data file:"
                     << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
         }
 
@@ -209,7 +209,7 @@ bool OPIATE::loadUniqueParamFile(string filename)
         if(line_counter % 1000 == 0)
         {
             char_counter++;
-            cout << "-> Loading unique parameters file:\n"
+            cout << "-> Loading unique parameters file:"
                     << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
         }
 
@@ -243,7 +243,7 @@ bool OPIATE::loadUniqueParamFile(string filename)
     reader.close();
 
     cout << CLR_LINE1;
-    cout << " Loading OPIATE unique parameters file:\ndone" << endl;
+    cout << " Loading OPIATE unique parameters file: done" << endl;
     return true;
 }*/
 

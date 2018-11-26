@@ -428,7 +428,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading cylindrical grid file:\n"
+            cout << "-> Loading cylindrical grid file:"
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
@@ -516,7 +516,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
     if(max_cells == 0)
     {
-        cout << "\nERROR: Cannot plot spherical grid to Gnuplot file to:" << endl;
+        cout << "\nERROR: Cannot plot cylindrical grid to Gnuplot file to:" << endl;
         cout << path;
         cout << "Not enough tree cells available! " << endl;
         return false;
@@ -731,7 +731,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
     //0 spherical grid
     point_fields[0] << point_header.str();
-    point_fields[0] << "set title \'3D spherical grid geometry\' font \'Arial,12\'" << endl;
+    point_fields[0] << "set title \'3D cylindrical grid geometry\' font \'Arial,12\'" << endl;
     point_fields[0] << "set style arrow 3 nohead ls 1 lw 0.5 lc rgb 0x550066" << endl;
     point_fields[0] << "splot '-' with vectors as 3,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
@@ -1043,7 +1043,8 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    //cout << "- Writing of Gnuplot files      : done" << endl;
+    cout << "- Writing of Gnuplot files             : done" << endl;
+
     return true;
 }
 
@@ -1156,7 +1157,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing cylindrical grid file:\ndone" << endl;
+    cout << "- Writing cylindrical grid file        : done" << endl;
 
     return true;
 }

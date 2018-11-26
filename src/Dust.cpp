@@ -92,7 +92,7 @@ void CDustComponent::initScatteringMatrixArray()
 #pragma omp critical
                 {
                     printIDs();
-                    cout << "allocating memory: " << percentage << " %                      \r";
+                    cout << "-> allocating memory: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -780,7 +780,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     #pragma omp critical
                 {
                     printIDs();
-                    cout << "calculating Mie-scattering: " << percentage << " %                      \r";
+                    cout << " - calculating Mie-scattering: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -1033,7 +1033,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 #pragma omp critical
                     {
                         printIDs();
-                        cout << "allocating memory: " << percentage << " %                      \r";
+                        cout << " - allocating memory: " << percentage << " [%]                      \r";
                         last_percentage = percentage;
                     }
                 }
@@ -1114,7 +1114,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 #pragma omp critical
                 {
                     printIDs();
-                    cout << "loading matrices: " << percentage << " %                      \r";
+                    cout << " - loading matrices: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -2084,8 +2084,8 @@ void CDustComponent::preCalcAbsorptionRates()
             if(per_counter % 2 == 0)
             {
                 printIDs();
-                cout << "precalculation of absorption rates: "
-                    << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " %                         \r";
+                cout << "-> Pre-calculation of absorption rates: "
+                    << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " [%]                         \r";
             }
         }
 
@@ -2170,8 +2170,8 @@ void CDustComponent::preCalcMieScatteringProb()
             if(per_counter % 2 == 0)
             {
                 printIDs();
-                cout << "precalculation of Mie probabilities: "
-                    << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " %                         \r";
+                cout << "-> Pre-calculation of Mie probabilities: "
+                    << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " [%]                         \r";
             }
         }
 
@@ -2238,7 +2238,7 @@ void CDustComponent::preCalcWaveProb()
             {
                 printIDs();
                 cout << "precalculation of wavelength-probabilities: "
-                    << 100.0 * float(per_counter) / float(nr_of_temperatures - 1) << " %           \r";
+			<< 100.0 * float(per_counter) / float(nr_of_temperatures - 1) << " [%]           \r";
             }
         }
 
@@ -4316,7 +4316,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
         // Check if the sum of the fractions of the dust components add up to one
         if(sum != 1.0)
         {
-            cout << "\nERROR: Fractions of dust materials do not add up to 100% "
+            cout << "\nERROR: Fractions of dust materials do not add up to 100 % "
                 << "(" << sum << "%)!" << endl;
             return false;
         }
@@ -4354,7 +4354,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
     // Show the full wavelength grid for temo and RAT calculation
     if(param.isMonteCarloSimulation() || 
             (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0))
-        cout << "- Number of wavelengths      : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
+        cout << "- Number of wavelengths   : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
     if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING || param.getScatteringToRay())

@@ -490,7 +490,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if(line_counter % 5000 == 0)
         {
             char_counter++;
-            cout << "-> Loading octree grid file:\n"
+            cout << "-> Loading octree grid file:"
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -627,7 +627,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_len += tmp_data_offset;
 
     cout << CLR_LINE;
-    //cout << "Loading octree grid file             : done" << endl;
+    cout << "- Loading octree grid file             : done" << endl;
+
     return true;
 }
 
@@ -1213,7 +1214,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         vec_fields[pos].close();
 
     cout << CLR_LINE;
-    cout << "- Writing of Gnuplot files      : done" << endl;
+    cout << "- Writing of Gnuplot files             : done" << endl;
     return true;
 }
 
@@ -1284,7 +1285,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     bin_writer.close();
     cout << CLR_LINE;
-    cout << "- Writing octree grid file      : done" << endl;
+    cout << "- Writing octree grid file             : done" << endl;
 
     return true;
 }
@@ -2070,9 +2071,9 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
             per_counter++;
 
             if(j % 10 == 0)
-                cout << " -> Reading input data        [ "
+                cout << " -> Reading input data: "
                     << 100.0 * float(per_counter) / float(nx * nx)
-                << " % ]              \r";
+                << " [%]                \r";
 
             for(uint k = 0; k < nx; k++)
             {
@@ -2164,9 +2165,9 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
 
         if(treelevel_counter % 10000 == 0)
         {
-            cout << "Creating tree ["
+            cout << "Creating tree: "
                     << float(100.0 * treelevel_counter) / max_cells
-                    << " % ]                          \r";
+                    << " [%]                          \r";
         }
 
         p_x = int(px * scale_factor);

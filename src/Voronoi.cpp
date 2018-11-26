@@ -104,7 +104,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading Voronoi grid file:\n"
+            cout << "-> Loading Voronoi grid file: "
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
@@ -224,7 +224,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_offset += tmp_data_offset;
 
     cout << CLR_LINE;
-    cout << "Loading Voronoi grid file            : done       \n";
+    cout << "- Loading Voronoi grid file            : done       \n";
 
     return true;
 }
@@ -833,7 +833,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    cout << "- Writing of Gnuplot files      : done       \n";
+    cout << "- Writing of Gnuplot files             : done       \n";
     return true;
 }
 
@@ -888,7 +888,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
         if(line_counter % 100 == 0)
         {
             char_counter++;
-            cout << "-> Writing binary Voronoi grid file:\n" <<
+            cout << "-> Writing binary Voronoi grid file: " <<
                     float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
         }
 
@@ -931,7 +931,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing Voronoi grid file     : done     \n";
+    cout << "- Writing Voronoi grid file            : done     \n";
     return true;
 }
 
@@ -1060,7 +1060,7 @@ bool CGridVoronoi::createArtificialGrid(string path)
     for(uint i = 0; i < max_cells; i++)
     {
         if(i % 50 == 0)
-            cout << "-> Creating grid: " << 100.0 * float(i) / float(max_cells) << " %           \r" << flush;
+            cout << "-> Creating grid: " << 100.0 * float(i) / float(max_cells) << " [%]           \r" << flush;
 
         double tmpC;
 

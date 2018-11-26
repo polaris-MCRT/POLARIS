@@ -285,17 +285,17 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         switch(command)
         {
             case CMD_TEMP_RAT:
-                cout << "-> MC temp. and RAT distribution: [ 0 % ], max. temp. " 
+                cout << "-> MC temp. and RAT distribution: 0 [%], max. temp. " 
                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                 break;
             
             case CMD_TEMP:
-                cout << "-> MC temp. distribution: [ 0 % ], max. temp. " 
+                cout << "-> MC temp. distribution: 0 [%], max. temp. " 
                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                 break;
 
             default:
-                cout << "-> MC radiation field: [ 0 % ]      \r" << flush;
+                cout << "-> MC radiation field: 0 [%]      \r" << flush;
                 break;
         }
         // A loop for each wavelength
@@ -323,17 +323,17 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         switch(command)
                         {
                             case CMD_TEMP_RAT:
-                                cout << "-> MC temp. and RAT distribution: [ " << percentage << " % ], max. temp. "
+                                cout << "-> MC temp. and RAT distribution: " << percentage << " [%], max. temp. "
                                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                                 break;
                             
                             case CMD_TEMP:
-                                cout << "-> MC temp. distribution: [ " << percentage << " % ], max. temp. "
+                                cout << "-> MC temp. distribution: " << percentage << " [%], max. temp. "
                                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                                 break;
 
                             default:
-                                cout << "-> MC radiation field: [ " << percentage << " % ]      \r" << flush;
+                                cout << "-> MC radiation field: " << percentage << " [%]      \r" << flush;
                                 break;
                         }
                         last_percentage = percentage;
@@ -582,8 +582,8 @@ bool CRadiativeTransfer::setTemperatureDistribution()
         {
             per_counter++;
             if(per_counter % 5000 == 0)
-                cout << "-> Estimating of temperatures: [ " << 100.0 * float(per_counter) / float(max_cells)
-                << " % ] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
+                cout << "-> Estimating of temperatures: " << 100.0 * float(per_counter) / float(max_cells)
+                << " [%] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
         }
     }
 
@@ -627,7 +627,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Init progress visualization
             cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                    << " [m], photons: " << nr_of_photons << ") [ 0 % ]   \r" << flush;
+                    << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
 
             // Init counter and percentage to show progress
             per_counter = 0;
@@ -669,7 +669,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 #pragma omp critical
                     {
                         cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                                << " [m], photons: " << nr_of_photons << ") [ " << percentage << " % ]   \r" << flush;
+                                << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1025,7 +1025,7 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
     ulong max_cells = grid->getMaxDataCells();
     ulong pos_counter = 0;
 
-    cout << "-> Converting emissivities: 0 %        \r" << flush;
+    cout << "-> Converting emissivities: 0 [%]        \r" << flush;
 
 #pragma omp parallel for
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1047,13 +1047,13 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
             {
                 cout << "-> Converting emissivities: "
                         << 100.0 * float(pos_counter) / float(max_cells)
-                        << " %       \r";
+                        << " [%]       \r";
             }
         }
     }
 
     cout << CLR_LINE;
-    cout << "- Converting emissivities       : done" << endl;
+    //cout << "- Converting emissivities             : done" << endl;
 }
 
 void CRadiativeTransfer::calcAlignedRadii()
@@ -1064,7 +1064,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     float last_percentage = 0;
 
     cout << CLR_LINE;
-    cout << " -> Calc. RAT dust alig. radius: 0.0 %  (min: 0 [m]; max: 0 [m])        \r" << flush;
+    cout << " -> Calc. RAT dust alig. radius: 0.0 [%]  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1080,8 +1080,8 @@ void CRadiativeTransfer::calcAlignedRadii()
         {
 #pragma omp critical
             {
-                cout << " -> Calc. RAT dust alig. radius: ["
-                    << 100.0 * float(per_counter) / float(max_cells) << " % ] (min: "
+                cout << " -> Calc. RAT dust alig. radius: "
+                    << 100.0 * float(per_counter) / float(max_cells) << " [%] (min: "
                         << dust->getMinAlignedRadius() << " [m]; max: "
                         << dust->getMaxAlignedRadius() << " [m])" << "          \r";
                 last_percentage = percentage;
@@ -1103,7 +1103,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
     ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
-    cout << "-> Calculation of final temperatures : [ 0.00 % ]                        \r";
+    cout << "-> Calculation of final temperatures : 0.0[%]                        \r";
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1122,8 +1122,8 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         {
 #pragma omp critical
             {
-                cout << "-> Calculation of final temperatures : [ " << 100.0 * float(per_counter) / float(max_cells)
-                        << " % ]          \r";
+                cout << "-> Calculation of final temperatures : " << 100.0 * float(per_counter) / float(max_cells)
+                        << " [%]              \r";
 
                 last_percentage = percentage;
             }
@@ -1146,7 +1146,7 @@ void CRadiativeTransfer::calcStochasticHeating()
     ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
-    cout << "-> Calculation of stochastic heating: [ 0.00 % ]    \r" << flush;
+    cout << "-> Calculation of stochastic heating: 0.0[%]    \r" << flush;
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1163,15 +1163,15 @@ void CRadiativeTransfer::calcStochasticHeating()
         {
 #pragma omp critical
             {
-                cout << "-> Calculation of stochastic heating: [ "
-                        << 100.0 * float(per_counter) / float(max_cells) << " % ]          \r" << flush;
+                cout << "-> Calculation of stochastic heating: "
+                        << 100.0 * float(per_counter) / float(max_cells) << " [%]          \r" << flush;
                 last_percentage = percentage;
             }
         }
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of stochastic heating: done" << endl;
+    cout << "- Calculation of stochastic heating    : done" << endl;
 }
 
 double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
@@ -1279,7 +1279,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             // Show information about the current detector
             cout << CLR_LINE;
             cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: "
-                    << sID + 1 << ") [ 0.0 % ]   \r" << flush;
+                    << sID + 1 << ") 0.0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1303,9 +1303,9 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
-                                << ", source: " << sID + 1 << ") [ "
+                                << ", source: " << sID + 1 << ")  "
                                 << float(100.0 * float(per_counter) / float(per_max))
-                                << " % ]       \r" << flush;
+                                << " [%]         \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1314,7 +1314,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             // Show final progress
             cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
                     << ", source: " << sID + 1
-                    << ") [ 100 % ]       \r" << flush;
+                    << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1331,7 +1331,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing synchrotron map: done" << endl;
+    cout << "- Raytracing synchrotron map           : done" << endl;
 
     return true;
 }
@@ -1798,7 +1798,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             // Show information about the current detector
             cout << CLR_LINE;
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: "
-                << sID + 1 << ") [ 0 % ]   \r" << flush;
+                << sID + 1 << ") 0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1822,8 +1822,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                            << ", source: " << sID + 1 << ") [ "
-                            << percentage << " % ]       \r" << flush;
+                            << ", source: " << sID + 1 << ") "
+                            << percentage << " [%]       \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1835,7 +1835,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Show final progress
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                    << ", source: " << sID + 1 << ") [ 100 % ]       \r" << flush;
+                    << ", source: " << sID + 1 << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1857,7 +1857,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing dust map           : done" << endl;
+    cout << "- Raytracing dust map                  : done" << endl;
 
     return true;
 }
@@ -2318,7 +2318,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
             cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1
-                << ", line " << i_line + 1 << " of " << nr_of_transitions << " [0.00 %]  \r" << flush;
+                << ", line " << i_line + 1 << " of " << nr_of_transitions << " 0.0[%]  \r" << flush;
 
             uint per_max = tracer->getNpix();
 
@@ -2346,7 +2346,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
-                            << i_line + 1 << " of " << nr_of_transitions << " [" << percentage << " %]    \r" << flush;
+                            << i_line + 1 << " of " << nr_of_transitions << " " << percentage << " [%]      \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -2366,7 +2366,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     }
 
     cout << CLR_LINE;
-    cout << "- Raytracing Channel Maps  : done" << endl;
+    cout << "- Raytracing Channel Maps              : done" << endl;
 
     return true;
 }

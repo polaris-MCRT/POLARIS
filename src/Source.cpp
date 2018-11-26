@@ -61,7 +61,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 
         cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
                 << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -258,7 +258,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
         cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
                 << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]           " << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -446,7 +446,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     else
     {
         cout << CLR_LINE;
-        cout << "Initiating variable background source: 0 %       \r";
+	cout << "Initiating variable background source: 0.0 [%]          \r";
 
         for(uint p = 0; p < max_len; p++)
         {
@@ -478,7 +478,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
             if(p % 500 == 0)
                 cout << "Initiating variable background source: "
-                    << 100 * float(p) / float(max_len) << " %       \r";
+                    << 100 * float(p) / float(max_len) << " [%]       \r";
         }
 
         if(use_energy_density)
@@ -839,8 +839,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             {
 #pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: [ " 
-                        << percentage << " % ]\r" << flush;
+                    cout << "-> Calculate prob. distribution for dust source: " 
+                        << percentage << " [%]\r" << flush;
                     last_percentage = percentage;
                 }
             }
