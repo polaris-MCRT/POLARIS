@@ -4,7 +4,7 @@
 #include "CommandParser.h"
 #include <limits>
 
-bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
+bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -383,7 +383,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameter & param, uint _data_len)
     return true;
 }
 
-bool CGridSpherical::writeGNUPlotFiles(string path, parameter & param)
+bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 {
     nrOfGnuPoints = param.getNrOfGnuPoints();
     nrOfGnuVectors = param.getNrOfGnuVectors();
@@ -1311,15 +1311,15 @@ bool CGridSpherical::createArtificialGrid(string path)
     return true;
 }
 
-void CGridSpherical::printParameter()
+void CGridSpherical::printParameters()
 {
     if(max_cells == 0)
-        cout << "Error: No tree parameter available!" << endl;
+        cout << "Error: No tree parameters available!" << endl;
     else
     {
         cout << CLR_LINE;
-        cout << "Spherical grid parameter (ID: " << getDataID()
-                << ", data len: " << getDataOffset()
+        cout << "Spherical grid parameters (ID: " << getDataID()
+                << ", data len.: " << getDataOffset()
                 << ", Nr: " << N_r
                 << ", Nph: " << N_ph
                 << ", Nth: " << N_th
@@ -1327,7 +1327,7 @@ void CGridSpherical::printParameter()
         cout << SEP_LINE;
 
         cout << "- Nr. of spherical cells        : " << max_cells << endl;
-        printPhysicalParameter();
+        printPhysicalParameters();
         cout << SEP_LINE;
     }
 }

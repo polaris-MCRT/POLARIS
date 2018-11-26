@@ -49,14 +49,15 @@ bool CPipeline::Init(int argc, char** argv)
 
     if(argc != 2)
     {
-        cout << "ERROR: Wrong number of arguments!" << endl;
+        cout << "ERROR: Wrong amount of arguments!                     \n";
+        cout << "       POLARIS requires only the path of a command file!            \n";
         Error();
         return false;
     }
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/home/s0reissl/polaris projects/RATtest/cmd_file");
+    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/voronoi/cmd_file");
     //CCommandParser parser("/home/s0reissl/polaris projects/Basti/cmds_temp");
 
     if(!parser.parse())
@@ -116,9 +117,9 @@ void CPipeline::Run()
 
     for(uint i = 0; i < size; i++)
     {
-        parameter & param = param_list[i];
+        parameters & param = param_list[i];
 
-        printParameter(param, size);
+        printParameters(param, size);
 
         switch(param.getCommand())
         {
@@ -191,7 +192,7 @@ void CPipeline::Error()
 }
 
 
-bool CPipeline::calcMonteCarloRadiationField(parameter & param)
+bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 {
     // Check if the energy density is used instead of launching photons with fixed energy
     // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
@@ -229,7 +230,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameter(param, grid);
-    grid->printParameter();
+    grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -299,7 +300,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameter & param)
     return true;
 }
 
-bool CPipeline::calcPolarizationMapsViaMC(parameter & param)
+bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
@@ -324,7 +325,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameter & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameter(param, grid);
-    grid->printParameter();
+    grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -369,7 +370,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameter & param)
     return true;
 }
 
-bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
+bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
@@ -413,7 +414,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameter(param, grid);
-    grid->printParameter();
+    grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -469,7 +470,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameter & param)
     return true;
 }
 
-bool CPipeline::calcChMapsViaRayTracing(parameter & param)
+bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
@@ -499,7 +500,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameter & param)
     grid->createCellList();
     dust->printParameter(param, grid);
     gas->printParameter(param, grid);
-    grid->printParameter();
+    grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -540,7 +541,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameter & param)
     return true;
 }
 
-bool CPipeline::calcPolarizationMapsViaSynchrotron(parameter & param)
+bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
@@ -565,7 +566,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameter & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameter(param, grid);
-    grid->printParameter();
+    grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -607,7 +608,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameter & param)
     return true;
 }
 
-bool CPipeline::assignGridType(CGridBasic * &grid, parameter & param)
+bool CPipeline::assignGridType(CGridBasic * &grid, parameters & param)
 {
     string filename = param.getPathGrid();
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
@@ -654,7 +655,7 @@ bool CPipeline::assignGridType(CGridBasic * &grid, parameter & param)
     return true;
 }
 
-CDetector * CPipeline::createDetectorList(parameter & param, CDustMixture * dust, CGridBasic * grid)
+CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dust, CGridBasic * grid)
 {
     CDetector * detector;
     dlist dust_mc_detectors = param.getDustMCDetectors();
@@ -732,7 +733,7 @@ CDetector * CPipeline::createDetectorList(parameter & param, CDustMixture * dust
     return detector;
 }
 
-void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridBasic * grid)
+void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGridBasic * grid)
 {
     uint nr_ofSources = param.getNrOfSources();
 
@@ -925,7 +926,7 @@ void CPipeline::createSourceLists(parameter & param, CDustMixture * dust, CGridB
     }
 }
 
-bool CPipeline::writeSources(parameter & param, CGridBasic * grid)
+bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
 {
     dlist point_source = param.getPointSources();
     dlist diffuse_source = param.getDiffuseSources();
@@ -1074,7 +1075,7 @@ bool CPipeline::writeSources(parameter & param, CGridBasic * grid)
     return true;
 }
 
-bool CPipeline::assignDustMixture(parameter & param, CDustMixture * dust,
+bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust,
         CGridBasic * grid)
 {
     // Get the number of different mixtures of dust_components
@@ -1090,7 +1091,7 @@ bool CPipeline::assignDustMixture(parameter & param, CDustMixture * dust,
     return true;
 }
 
-bool CPipeline::assignGasSpecies(parameter & param, CGasMixture * gas, CGridBasic * grid)
+bool CPipeline::assignGasSpecies(parameters & param, CGasMixture * gas, CGridBasic * grid)
 {
     if(!gas->createGasSpecies(param))
         return false;
@@ -1098,7 +1099,7 @@ bool CPipeline::assignGasSpecies(parameter & param, CGasMixture * gas, CGridBasi
     return true;
 }
 
-void CPipeline::printParameter(parameter & param, uint max_id)
+void CPipeline::printParameters(parameters & param, uint max_id)
 {
     cout << CLR_LINE;
     cout << "Input parameter (task " << param.getTaskID() << " of " << max_id << ")" << endl;
@@ -1108,64 +1109,64 @@ void CPipeline::printParameter(parameter & param, uint max_id)
     {
         case CMD_TEMP:
             cout << "- Command        : TEMPERATURE DISTRIBUTION" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printPlotParameters(param);
             break;
 
         case CMD_FORCE:
             cout << "- Command        : RADIATION FORCE" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printPlotParameters(param);
             break;
 
         case CMD_TEMP_RAT:
             cout << "- Command        : TEMPERATURE DISTRIBUTION and RAT ALIGNMENT" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printPlotParameters(param);
             break;
 
         case CMD_RAT:
             cout << "- Command        : RAT ALIGNMENT" << endl;
-            printPathParameter(param);
-            printSourceParameter(param, true);
-            printConversionParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param, true);
+            printConversionParameters(param);
+            printPlotParameters(param);
             break;
 
         case CMD_DUST_EMISSION:
             cout << "- Command        : DUST EMISSION" << endl;
-            printPathParameter(param);
-            printSourceParameter(param, true);
-            printConversionParameter(param);
-            printAlignmentParameter(param);
-            printDetectorParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param, true);
+            printConversionParameters(param);
+            printAlignmentParameters(param);
+            printDetectorParameters(param);
+            printPlotParameters(param);
             break;
 
         case CMD_SYNCHROTRON:
             cout << "- Command        : SYNCHROTRON EMISSION" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printDetectorParameter(param);
-            printPlotParameter(param);
-            printSynchrotronParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printDetectorParameters(param);
+            printPlotParameters(param);
+            printSynchrotronParameters(param);
             break;
 
         case CMD_DUST_SCATTERING:
             cout << "- Command        : DUST SCATTERING (Monte-Carlo)" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printAlignmentParameter(param);
-            printDetectorParameter(param, true);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printAlignmentParameters(param);
+            printDetectorParameters(param, true);
+            printPlotParameters(param);
             break;
 
         case CMD_OPIATE:
@@ -1174,11 +1175,11 @@ void CPipeline::printParameter(parameter & param, uint max_id)
             break;
         case CMD_LINE_EMISSION:
             cout << "- Command        : SPECTRAL LINE EMISSION" << endl;
-            printPathParameter(param);
-            printSourceParameter(param);
-            printConversionParameter(param);
-            printDetectorParameter(param);
-            printPlotParameter(param);
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printDetectorParameters(param);
+            printPlotParameters(param);
             break;
 
         default:
@@ -1188,7 +1189,7 @@ void CPipeline::printParameter(parameter & param, uint max_id)
     cout << SEP_LINE;
 }
 
-bool CPipeline::createWavelengthList(parameter & param, CDustMixture * dust, CGasMixture * gas)
+bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas)
 {
     dlist values;
 

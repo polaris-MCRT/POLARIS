@@ -141,7 +141,7 @@ void CDustComponent::initCalorimetry()
     }
 }
 
-bool CDustComponent::readDustParameterFile(parameter & param, uint dust_component_choice)
+bool CDustComponent::readDustParameterFile(parameters & param, uint dust_component_choice)
 {
     // Get Path to dust parameter file
     string path = param.getDustPath(dust_component_choice);
@@ -534,7 +534,7 @@ bool CDustComponent::readDustParameterFile(parameter & param, uint dust_componen
     return true;
 }
 
-bool CDustComponent::readDustRefractiveIndexFile(parameter & param, uint dust_component_choice)
+bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_component_choice)
 {
     // Init variables
     CCommandParser ps;
@@ -1182,7 +1182,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
     return true;
 }
 
-bool CDustComponent::readCalorimetryFile(parameter & param, uint dust_component_choice)
+bool CDustComponent::readCalorimetryFile(parameters & param, uint dust_component_choice)
 {
     // Init variables
     string::size_type pos = 0;
@@ -1917,7 +1917,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     return true;
 }
 
-void CDustComponent::preCalcEffProperties(parameter & param)
+void CDustComponent::preCalcEffProperties(parameters & param)
 {
     // -------------- Calculate average-mass of effective grain size --------------
     avg_mass = getAvgMass();
@@ -4217,7 +4217,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, double albedo)
     }
 }
 
-bool CDustMixture::createDustMixtures(parameter & param, string path_data, string path_plot)
+bool CDustMixture::createDustMixtures(parameters & param, string path_data, string path_plot)
 {
     // Do not load dust component if not required
     uint nr_of_total_components = param.getTotalNrOfDustComponents();
@@ -4335,7 +4335,7 @@ bool CDustMixture::createDustMixtures(parameter & param, string path_data, strin
     return true;
 }
 
-void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
+void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
 {
     // If no mixture was defined, show basic information
     if(getNrOfMixtures() == 0)
@@ -4521,7 +4521,7 @@ void CDustMixture::printParameter(parameter & param, CGridBasic * grid)
         preCalcEffProperties(param);
 }
 
-bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
+bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
 {
     // If only one component is defined for this mixture -> change only pointer
     if(nr_of_components == 1)
@@ -4601,7 +4601,7 @@ bool CDustMixture::mixComponents(parameter & param, uint i_mixture)
 }
 
 
-bool CDustMixture::preCalcDustProperties(parameter & param, uint i_mixture)
+bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
 {
     // Set various parameters for the mixture
     mixed_component[i_mixture].setSublimate(param.isSublimate());

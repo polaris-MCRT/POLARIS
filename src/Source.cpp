@@ -75,7 +75,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-bool CSourceStar::setParameterFromFile(parameter & param, uint p)
+bool CSourceStar::setParameterFromFile(parameters & param, uint p)
 {
     dlist values = param.getPointSources();
     string filename = param.getPointSourceString(p / NR_OF_POINT_SOURCES);
@@ -273,7 +273,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-bool CSourceStarField::setParameterFromFile(parameter & param, uint p)
+bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 {
     dlist values = param.getDiffuseSources();
     string filename = param.getDiffuseSourceString(p / NR_OF_DIFF_SOURCES);
@@ -496,7 +496,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-bool CSourceBackground::setParameterFromFile(parameter & param, uint p)
+bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
 {
     dlist values = param.getDiffuseSources();
     string filename = param.getBackgroundSourceString(p / NR_OF_BG_SOURCES);
@@ -669,7 +669,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-bool CSourceISRF::setParameterFromFile(parameter & param, uint p)
+bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
 {
     nr_of_photons = param.getNrOfISRFPhotons();
     string filename = param.getISRFPath();

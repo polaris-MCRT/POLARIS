@@ -34,15 +34,15 @@ public:
     {
     }
 
-    bool calcMonteCarloRadiationField(parameter & param);
-    bool calcPolarizationMapsViaRayTracing(parameter & param);
-    bool calcPolarizationMapsViaSynchrotron(parameter & param);
-    bool calcChMapsViaRayTracing(parameter & param);
-    bool calcPolarizationMapsViaMC(parameter & param);
-    bool proberobeLineOfSight(parameter & param);
+    bool calcMonteCarloRadiationField(parameters & param);
+    bool calcPolarizationMapsViaRayTracing(parameters & param);
+    bool calcPolarizationMapsViaSynchrotron(parameters & param);
+    bool calcChMapsViaRayTracing(parameters & param);
+    bool calcPolarizationMapsViaMC(parameters & param);
+    bool proberobeLineOfSight(parameters & param);
 
-    bool assignDustMixture(parameter & param, CDustMixture * dust, CGridBasic * grid);
-    bool assignGasSpecies(parameter & param, CGasMixture * gas, CGridBasic * grid);
+    bool assignDustMixture(parameters & param, CDustMixture * dust, CGridBasic * grid);
+    bool assignGasSpecies(parameters & param, CGasMixture * gas, CGridBasic * grid);
 
     //bool calcRadPressure(parameter & param);
 
@@ -52,9 +52,9 @@ public:
     };
     //bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameter & param, bool plot, uint itID);
 
-    bool createWavelengthList(parameter & param, CDustMixture * dust, CGasMixture * gas = 0);
+    bool createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas = 0);
 
-    void printParameter(parameter & param, uint max_id);
+    void printParameters(parameters & param, uint max_id);
 
     bool Init(int argc, char** argv);
     void Finish();
@@ -131,7 +131,7 @@ public:
         return true;
     }
 
-    bool assignGridType(CGridBasic * &grid, parameter & param);
+    bool assignGridType(CGridBasic * &grid, parameters & param);
 
     bool createPath(string path)
     {
@@ -148,7 +148,7 @@ public:
         return true;
     }
 
-    void printConversionParameter(parameter & param)
+    void printConversionParameters(parameters & param)
     {
         cout << "Conversion factors" << endl;
         cout << "- Conv. gas dens. in SI        : " << param.getSIConvDH() << endl;
@@ -159,18 +159,18 @@ public:
         cout << "- Relative molecular mass (mu) : " << param.getMu() << endl;
     }
 
-    void printPathParameter(parameter & param)
+    void printPathParameters(parameters & param)
     {
         cout << "- Path grid file : " << param.getPathGrid() << endl;
         cout << "- Path output    : " << param.getPathOutput() << endl;
         cout << "- Nr. of threads : " << param.getNrOfThreads() << endl;
     }
 
-    void printPlotParameter(parameter & param, bool input_output=false)
+    void printPlotParameters(parameters & param, bool input_output=false)
     {
         if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() + param.getInpMidDataPoints() +
                 param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() > 0)
-            cout << "Plot parameter" << endl;
+            cout << "Plot parameters" << endl;
 
         if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() != 0)
         {
@@ -205,7 +205,7 @@ public:
         }
     }
 
-    void printAlignmentParameter(parameter & param)
+    void printAlignmentParameters(parameters & param)
     {
         cout << "Dust grain alignment" << endl;
 
@@ -222,11 +222,11 @@ public:
             if(param.getAligGOLD())
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())
-                cout << "- Internal disalignment; f_c: " << param.getFcorr() << endl;
+                cout << "- Internal alignment; f_c: " << param.getFcorr() << endl;
         }
     }
 
-    void printSourceParameter(parameter & param, bool show_dust=false)
+    void printSourceParameters(parameters & param, bool show_dust=false)
     {
         if(param.getNrOfSources() > 0 || param.isRaytracing())
         {
@@ -250,7 +250,7 @@ public:
         }
     }
 
-    void printDetectorParameter(parameter & param, bool monte_carlo=false)
+    void printDetectorParameters(parameters & param, bool monte_carlo=false)
     {
         if(monte_carlo)
         {
@@ -318,7 +318,7 @@ public:
                 << param.getMaxDetectorAngle2() << " (max)" << endl;
     }
 
-    void printSynchrotronParameter(parameter & param)
+    void printSynchrotronParameters(parameters & param)
     {
         cout << SEP_LINE;
         cout << "Synchotron parameter" << endl;
@@ -332,7 +332,7 @@ public:
             double lam_max = sync_ray_detectors[i + 1];
             uint lam_skip = uint(sync_ray_detectors[i + 2]);
             cout << "    - Synchotron emission detector " << (pos + 1) << ": from wl = " << lam_min << " [m] to wl = "
-                << lam_max << " [m] with " << lam_skip << " steps" << endl;
+                << lam_max << " [m] with " << lam_skip << " step(s)" << endl;
         }
     }
 
@@ -347,7 +347,7 @@ public:
         sources_ray.clear();
     }
 
-    void checkScatteringToRay(parameter & param, CDustMixture * dust, CGridBasic * grid)
+    void checkScatteringToRay(parameters & param, CDustMixture * dust, CGridBasic * grid)
     {
         // Check if either the radiation field is present or the radiation field can be calculated
         // Otherwise, disable scattering added to the raytracing
@@ -359,9 +359,9 @@ public:
     }
 
 private:
-    bool writeSources(parameter & param, CGridBasic * grid);
-    void createSourceLists(parameter & param, CDustMixture * dust, CGridBasic * grid);
-    CDetector * createDetectorList(parameter & param, CDustMixture * dust, CGridBasic * grid);
+    bool writeSources(parameters & param, CGridBasic * grid);
+    void createSourceLists(parameters & param, CDustMixture * dust, CGridBasic * grid);
+    CDetector * createDetectorList(parameters & param, CDustMixture * dust, CGridBasic * grid);
     string path_plot, path_data;
     slist sources_mc, sources_ray;
     long h, m, s;

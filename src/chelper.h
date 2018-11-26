@@ -441,11 +441,11 @@ private:
     uint rID, phID, zID;
 };
 
-class parameter
+class parameters
 {
 public:
 
-    parameter()
+    parameters()
     {
         path_grid = "";
         path_output = "";
@@ -557,7 +557,7 @@ public:
         opiate_data_path = "";
     }
 
-    ~parameter()
+    ~parameters()
     {
     }
 

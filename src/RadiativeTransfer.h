@@ -16,7 +16,7 @@ class CRadiativeTransfer
 {
 public:
 
-    CRadiativeTransfer(parameter & param)
+    CRadiativeTransfer(parameters & param)
     {
         grid = 0;
         dust = 0;
@@ -68,13 +68,13 @@ public:
             delete synchrotron;
     }
 
-    bool initiateDustRaytrace(parameter & param);
-    bool initiateSyncRaytrace(parameter & param);
-    bool initiateLineRaytrace(parameter & param);
-    bool initiateOPIATE(parameter & param);
-    bool initiateProbing(parameter & param);
-    void initiateRadFieldMC(parameter & param);
-    void initiateDustMC(parameter & param);
+    bool initiateDustRaytrace(parameters & param);
+    bool initiateSyncRaytrace(parameters & param);
+    bool initiateLineRaytrace(parameters & param);
+    bool initiateOPIATE(parameters & param);
+    bool initiateProbing(parameters & param);
+    void initiateRadFieldMC(parameters & param);
+    void initiateDustMC(parameters & param);
 
     void initiateRungeKuttaFehlberg()
     {
@@ -155,20 +155,20 @@ public:
     bool calcPolMapsViaMC();
 
     // Dust emission
-    bool calcPolMapsViaRaytracing(parameter & param);
+    bool calcPolMapsViaRaytracing(parameters & param);
     void getDustPixelIntensity(CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl, int pos_id);
     void getDustIntensity(photon_package * pp, CSourceBasic * tmp_source,
             double cx, double cy, uint subpixel_lvl);
     void calcStellarEmission();
 
     // Synchrontron emission
-    bool calcSyncMapsViaRaytracing(parameter & param);
+    bool calcSyncMapsViaRaytracing(parameters & param);
     void getSyncPixelIntensity(CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl, int pos_id);
     void getSyncIntensity(photon_package * pp1, photon_package * pp2, CSourceBasic * tmp_source,
             double cx, double cy, uint subpixel_lvl);
 
     // Line meission
-    bool calcChMapsViaRaytracing(parameter & param);
+    bool calcChMapsViaRaytracing(parameters & param);
     void getLinePixelIntensity(CSourceBasic * tmp_source, double cx, double cy,
             const uint i_species, const uint i_line, uint subpixel_lvl, int pos_id);
     void getLineIntensity(photon_package * pp, CSourceBasic * tmp_source, double cx, double cy,

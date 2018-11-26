@@ -170,7 +170,7 @@ public:
     }
 
     //begin IO functions
-    bool writeGNUPlotFiles(string path, parameter & param);
+    bool writeGNUPlotFiles(string path, parameters & param);
 
     void goToRoot()
     {
@@ -341,7 +341,7 @@ public:
         return cell_oc_root->getLength();
     }
 
-    void printParameter();
+    void printParameters();
 
     bool createArtificialGrid(string path);
 
@@ -353,12 +353,12 @@ public:
     };
 
 
-    bool loadGridFromBinrayFile(parameter & param, uint data_len);
+    bool loadGridFromBinrayFile(parameters & param, uint data_len);
 
 
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameter & param)
+    bool loadGridFromBinrayFile(parameters & param)
     {
         return loadGridFromBinrayFile(param, 0);
     };

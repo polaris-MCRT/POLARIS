@@ -1777,7 +1777,7 @@ public:
         return res;
     }
 
-    void preCalcEffProperties(parameter & param);
+    void preCalcEffProperties(parameters & param);
 
     void henyeygreen(photon_package * pp, uint a, double albedo = 0);
     void miesca(photon_package * pp, uint a, double albedo = 0);
@@ -1806,10 +1806,10 @@ public:
     void initScatteringMatrixArray();
     void initCalorimetry();
 
-    bool readDustParameterFile(parameter & param, uint dust_component_choice);
-    bool readDustRefractiveIndexFile(parameter & param, uint dust_component_choice);
+    bool readDustParameterFile(parameters & param, uint dust_component_choice);
+    bool readDustRefractiveIndexFile(parameters & param, uint dust_component_choice);
     bool readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat);
-    bool readCalorimetryFile(parameter & param, uint dust_component_choice);
+    bool readCalorimetryFile(parameters & param, uint dust_component_choice);
 
     bool writeComponent(string path_data, string path_plot);
     bool calcSizeDistribution(dlist values, double * mass);
@@ -1948,7 +1948,7 @@ public:
         return true;
     }
 
-    void preCalcEffProperties(parameter & param)
+    void preCalcEffProperties(parameters & param)
     {
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
@@ -2615,7 +2615,7 @@ public:
         }
     }
 
-    void setGridRequirements(CGridBasic * grid, parameter & param)
+    void setGridRequirements(CGridBasic * grid, parameters & param)
     {
         uint nr_of_mixtures = getNrOfMixtures();
         uint * nr_dust_temp_sizes = new uint[nr_of_mixtures];
@@ -2698,13 +2698,13 @@ public:
         return mixed_component[0].getTabPlanck(w, temp);
     }
 
-    bool createDustMixtures(parameter & param, string path_data, string path_plot);
-    bool readScatteringMatrices(parameter & param);
-    bool readColarimetry(parameter & param);
-    bool mixComponents(parameter & param, uint i_mixture);
-    bool preCalcDustProperties(parameter & param, uint i_mixture);
+    bool createDustMixtures(parameters & param, string path_data, string path_plot);
+    bool readScatteringMatrices(parameters & param);
+    bool readColarimetry(parameters & param);
+    bool mixComponents(parameters & param, uint i_mixture);
+    bool preCalcDustProperties(parameters & param, uint i_mixture);
 
-    void printParameter(parameter & param, CGridBasic * grid);
+    void printParameter(parameters & param, CGridBasic * grid);
 
 private:
     CDustComponent * single_component;

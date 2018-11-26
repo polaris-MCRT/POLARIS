@@ -60,7 +60,7 @@ public:
         return 0;
     }
 
-    void setParameter(parameter & param, CGridBasic * _grid, CDustMixture * _dust, uint p)
+    void setParameter(parameters & param, CGridBasic * _grid, CDustMixture * _dust, uint p)
     {
         setGrid(_grid);
         setDust(_dust);
@@ -71,11 +71,11 @@ public:
         setParameter(param, p);
     }
 
-    virtual void setParameter(parameter & param, uint p)
+    virtual void setParameter(parameters & param, uint p)
     {
     }
 
-    bool setParameterFromFile(parameter & param, CGridBasic * _grid, CDustMixture * _dust, uint p)
+    bool setParameterFromFile(parameters & param, CGridBasic * _grid, CDustMixture * _dust, uint p)
     {
         setGrid(_grid);
         setDust(_dust);
@@ -86,7 +86,7 @@ public:
         return setParameterFromFile(param, p);
     }
 
-    virtual bool setParameterFromFile(parameter & param, uint p)
+    virtual bool setParameterFromFile(parameters & param, uint p)
     {
         return false;
     }
@@ -205,8 +205,8 @@ public:
 
     void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
 
-    bool setParameterFromFile(parameter & param, uint p);
-    void setParameter(parameter & param, uint p)
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
     {
         dlist values = param.getPointSources();
 
@@ -242,8 +242,8 @@ public:
 
     void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
 
-    bool setParameterFromFile(parameter & param, uint p);
-    void setParameter(parameter & param, uint p)
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
     {
         dlist values = param.getDiffuseSources();
 
@@ -313,8 +313,8 @@ public:
 
     StokesVector getStokesVector(photon_package * pp);
 
-    bool setParameterFromFile(parameter & param, uint p);
-    void setParameter(parameter & param, uint p)
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
     {
         dlist values;
         if(param.getNrOfBackgroundSources() == 0)
@@ -428,7 +428,7 @@ public:
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    bool setParameterFromFile(parameter & param, uint p);
+    bool setParameterFromFile(parameters & param, uint p);
 
     void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
 
@@ -466,7 +466,7 @@ public:
 
     void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
 
-    void setParameter(parameter & param, uint p)
+    void setParameter(parameters & param, uint p)
     {
         nr_of_photons = param.getNrOfDustPhotons();
     }

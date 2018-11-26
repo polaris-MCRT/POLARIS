@@ -292,7 +292,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
 
 bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint tr_level)
 {
-    parameter param;
+    parameters param;
     param.setCommand(CMD_TEMP);
     param.setPathGrid(in_filename);
 
@@ -383,7 +383,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
     return false;
 }
 
-bool CGridOcTree::loadGridFromBinrayFile(parameter & param, uint _data_len)
+bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {
     double cube_length;
     int cube_pos;
@@ -631,7 +631,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameter & param, uint _data_len)
     return true;
 }
 
-bool CGridOcTree::writeGNUPlotFiles(string path, parameter & param)
+bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 {
     nrOfGnuPoints = param.getNrOfGnuPoints();
     nrOfGnuVectors = param.getNrOfGnuVectors();
@@ -1329,19 +1329,19 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
     }
 }
 
-void CGridOcTree::printParameter()
+void CGridOcTree::printParameters()
 {
     if(max_cells == 0)
-        cout << "Error: No octree grid parameter available!" << endl;
+        cout << "Error: No octree grid parameters available!" << endl;
     else
     {
         ulong tmp_cells = ulong(pow(double(8), double(max_level)));
         cout << CLR_LINE;
-        cout << "OcTree parameter (ID: " << getDataID() << "; data len: " << getDataOffset() << "; level: " << max_level << ")" << endl;
+        cout << "OcTree parameters (ID: " << getDataID() << "; data len.: " << getDataOffset() << "; level: " << max_level << ")" << endl;
         cout << SEP_LINE;
         cout << "- Nr. of OcTree cells           : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
 
-        printPhysicalParameter();
+        printPhysicalParameters();
         cout << SEP_LINE;
     }
 }

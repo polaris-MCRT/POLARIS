@@ -4,7 +4,7 @@
 #include "CommandParser.h"
 #include <limits>
 
-bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
+bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -505,7 +505,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameter & param, uint _data_len)
     return true;
 }
 
-bool CGridCylindrical::writeGNUPlotFiles(string path, parameter & param)
+bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 {
     nrOfGnuPoints = param.getNrOfGnuPoints();
     nrOfGnuVectors = param.getNrOfGnuVectors();
@@ -1161,15 +1161,15 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     return true;
 }
 
-void CGridCylindrical::printParameter()
+void CGridCylindrical::printParameters()
 {
     if(max_cells == 0)
-        cout << "Error: No cylindrical grid parameter available!" << endl;
+        cout << "Error: No cylindrical grid parameters available!" << endl;
     else
     {
         cout << CLR_LINE;
-        cout << "Cylindrical grid parameter (ID: " << getDataID()
-                << ", data len: " << getDataOffset() << ", Nr: " << N_r;
+        cout << "Cylindrical grid parameters (ID: " << getDataID()
+                << ", data len.: " << getDataOffset() << ", Nr: " << N_r;
         if (log_factorPh == -1)
         {
             uint min_phi = MAX_UINT;
@@ -1194,7 +1194,7 @@ void CGridCylindrical::printParameter()
 
         cout << "- Nr. of cylindrical cells      : " << max_cells << endl;
 
-        printPhysicalParameter();
+        printPhysicalParameters();
         cout << SEP_LINE;
     }
 }

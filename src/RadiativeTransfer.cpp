@@ -13,7 +13,7 @@
 #define PARA     2
 #define ORTH     3
 
-bool CRadiativeTransfer::initiateDustRaytrace(parameter & param)
+bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 {
     if(grid == 0)
     {
@@ -69,7 +69,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameter & param)
     return true;
 }
 
-bool CRadiativeTransfer::initiateSyncRaytrace(parameter & param)
+bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 {
     if(grid == 0)
     {
@@ -127,7 +127,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameter & param)
     return true;
 }
 
-bool CRadiativeTransfer::initiateLineRaytrace(parameter & param)
+bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 {
     if(grid == 0)
     {
@@ -192,7 +192,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameter & param)
     return true;
 }
 
-bool CRadiativeTransfer::initiateOPIATE(parameter & param)
+bool CRadiativeTransfer::initiateOPIATE(parameters & param)
 {
     if(grid == 0)
     {
@@ -217,7 +217,7 @@ bool CRadiativeTransfer::initiateOPIATE(parameter & param)
     return true;
 }
 
-void CRadiativeTransfer::initiateDustMC(parameter & param)
+void CRadiativeTransfer::initiateDustMC(parameters & param)
 {
     nr_ofMCDetectors = param.getNrOfDustMCDetectors();
     b_forced = param.getEnfScattering();
@@ -228,7 +228,7 @@ void CRadiativeTransfer::initiateDustMC(parameter & param)
     axis2 = param.getAxis2();
 }
 
-void CRadiativeTransfer::initiateRadFieldMC(parameter & param)
+void CRadiativeTransfer::initiateRadFieldMC(parameters & param)
 {
     b_forced = param.getEnfScattering();
     mrw_step = param.getMRW();
@@ -1211,7 +1211,7 @@ double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
 // ------ Calculation of Synchotron transfer -------
 // -------------------------------------------------
 
-bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameter & param)
+bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 {
     // Init math environment
     CMathFunctions mf;
@@ -1735,7 +1735,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 // ------ Calculation of Dust transfer -------
 // -------------------------------------------
 
-bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameter & param)
+bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 {
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist dust_ray_detectors = param.getDustRayDetectors();
@@ -2222,7 +2222,7 @@ void CRadiativeTransfer::calcStellarEmission()
 // ------ Calculation of Line transfer -------
 // -------------------------------------------
 
-bool CRadiativeTransfer::calcChMapsViaRaytracing(parameter & param)
+bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 {
     // Get maximum length of the simulation model
     double max_length = grid->getMaxLength();

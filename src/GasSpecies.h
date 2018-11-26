@@ -629,7 +629,7 @@ public:
         return single_species[i_species].getGasSpeciesName();
     }
 
-    bool createGasSpecies(parameter & param);
+    bool createGasSpecies(parameters & param);
 
     bool calcLevelPopulation(CGridBasic * grid, uint i_species);
 
@@ -797,7 +797,7 @@ public:
         return single_species[i_species].calcEmissivities(grid, pp, i_line);
     }
 
-    void printParameter(parameter & param, CGridBasic * grid);
+    void printParameter(parameters & param, CGridBasic * grid);
 
 private:
     CGasSpecies * single_species;

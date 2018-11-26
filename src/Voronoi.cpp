@@ -6,7 +6,7 @@
 #include <limits>
 #include <limits.h>
 
-bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
+bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -23,7 +23,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
     if(bin_reader.fail())
     {
-        cout << "ERROR: Can not load binary voronoi grid file: \n";
+        cout << "\nERROR: Can not load binary Voronoi grid file: \n";
         cout << filename << "\n\n";
         return false;
     }
@@ -64,13 +64,13 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
     }
     else
     {
-        cout << "ERROR: A voronoi grid requires an ID of \"" << GRID_ID_VOR << "\"!               \n";
+        cout << "ERROR: A Voronoi grid requires an ID of \"" << GRID_ID_VOR << "\"!               \n";
         return false;
     }
 
     if(max_cells < 4)
     {
-        cout << "ERROR: A minimum of at least four voronoi cells is required!     \n";
+        cout << "ERROR: A minimum amount of at least four Voronoi cells is required!     \n";
         return false;
     }
 
@@ -86,7 +86,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
     cell_list = new cell_basic*[max_cells];
     vector<h_list> tmp_h_list;
     stree = new search_tree();
-    stree->initTree(max_cells,max_len);
+    stree->initTree(max_len);
 
     cout << CLR_LINE;
 
@@ -104,7 +104,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading voronoi grid file : "
+            cout << "-> Loading Voronoi grid file : "
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
@@ -122,7 +122,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
         if(tmp_vol == 0)
         {
-            cout << "ERROR: A voronoi cell requires a non-zero volume                     \n";
+            cout << "\nERROR: A Voronoi cell requires a non-zero volume                     \n";
             return false;
         }
 
@@ -145,6 +145,14 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
         int tmp_n = 0;
 
         bin_reader.read((char*) &nr_neighbors, 4);
+        
+        if(nr_neighbors==0)
+        {
+            cout << "\nWARNING: Voronoi cell nr. "<<line_counter+1<< " without neighbors!                     \n";
+            cout << "           Check your grid for identical cell positions!                     \n";
+            cout << "           Possible deadlock in any RT simulation!                     \n";
+      
+        }
 
         if(nr_neighbors < 0)
         {
@@ -158,7 +166,6 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
         if(min_nrOfNeigbors > uint(nr_neighbors))
             min_nrOfNeigbors = uint(nr_neighbors);
 
-        //cout << line_counter << " " << nr_neighbors << endl;
         tmp_cell->initNeighbors(ushort(nr_neighbors));
 
         for(uint i = 0; i < uint(nr_neighbors); i++)
@@ -171,7 +178,9 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
         if(!stree->addCell(tmp_cell))
         {
-            cout << "ERROR: Failed attempt to add voronoi cell to the search octree!                     \n";
+            cout << "ERROR: Failed attempt to add Voronoi cell to the search tree!                     \n";
+            cout << "       Voronoi cell center nr. "<<line_counter+1<< " outside of grid boundaries!                     \n";
+            
             return false;
         }
 
@@ -196,7 +205,8 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
 
     if(max_cells != uint(line_counter))
     {
-        cout << "ERROR: Nr. of read in cells do not match the maximal number of expected cells!  \n";
+        cout << "ERROR: Amount of read in Voronoi cells ("<< uint(line_counter) <<  
+                ")\n does not match the maximal number ("<< max_cells << ") of expected cells!  \n";
         return false;
     }
 
@@ -214,12 +224,13 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameter & param, uint _data_len)
     data_offset += tmp_data_offset;
 
     cout << CLR_LINE;
-    cout << "Loading voronoi grid file            : done       \n";
+    cout << "Loading Voronoi grid file            : done       \n";
 
     return true;
 }
 
-bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
+// plot Voronoi as gnuplot file
+bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
 {
     nrOfGnuPoints = param.getNrOfGnuPoints();
     nrOfGnuVectors = param.getNrOfGnuVectors();
@@ -227,12 +238,12 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
     if(nrOfGnuPoints + nrOfGnuVectors == 0)
         return true;
-
+    
     if(max_cells == 0)
     {
-        cout << "Error: Cannot plot voronoi grid to gnuplot file in:\n";
+        cout << "Error: Cannot plot Voronoi grid to gnuplot file in:\n";
         cout << path;
-        cout << "Not enough voronoi cells available!\n";
+        cout << "Not enough Voronoi cells available!\n";
         return false;
     }
 
@@ -272,6 +283,13 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
     }
     else
         nrOfGnuVectors = max_cells / nrOfGnuVectors;
+    
+    if(maxGridLines <= 1)
+    {
+        maxGridLines = max_cells / 10;
+    }
+    else
+        maxGridLines = max_cells / maxGridLines;
 
     if(nrOfGnuPoints == 0)
         nrOfGnuPoints = 1;
@@ -300,7 +318,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
     if(point_fields[0].fail())
     {
-        cout << "ERROR: Can't write to " << grid_filename << "          \n";
+        cout << "ERROR: Cannot write to " << grid_filename << "          \n";
         return false;
     }
 
@@ -310,7 +328,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << dens_gas_filename << "          \n";
+            cout << "ERROR: Cannot write to " << dens_gas_filename << "          \n";
             return false;
         }
     }
@@ -321,7 +339,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[2].fail())
         {
-            cout << "ERROR: Can't write to " << dens_dust_filename << "          \n";
+            cout << "ERROR: Cannot write to " << dens_dust_filename << "          \n";
             return false;
         }
     }
@@ -332,7 +350,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[3].fail())
         {
-            cout << "ERROR: Can't write to " << temp_gas_filename
+            cout << "ERROR: Cannot write to " << temp_gas_filename
                     << "          \n";
             return false;
         }
@@ -344,7 +362,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[4].fail())
         {
-            cout << "ERROR: Can't write to " << temp_dust_filename
+            cout << "ERROR: Cannot write to " << temp_dust_filename
                     << "          \n";
             return false;
         }
@@ -356,7 +374,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[5].fail())
         {
-            cout << "ERROR: Can't write to " << rat_filename << "          \n";
+            cout << "ERROR: Cannot write to " << rat_filename << "          \n";
             return false;
         }
     }
@@ -367,7 +385,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[6].fail())
         {
-            cout << "ERROR: Can't write to " << delta_filename << "          \n";
+            cout << "ERROR: Cannot write to " << delta_filename << "          \n";
             return false;
         }
     }
@@ -378,7 +396,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[7].fail())
         {
-            cout << "ERROR: Can't write to " << larm_filename << "          \n";
+            cout << "ERROR: Cannot write to " << larm_filename << "          \n";
             return false;
         }
     }
@@ -389,7 +407,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(point_fields[8].fail())
         {
-            cout << "ERROR: Can't write to " << mach_filename << "          \n";
+            cout << "ERROR: Cannot write to " << mach_filename << "          \n";
             return false;
         }
     }
@@ -400,7 +418,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(vec_fields[0].fail())
         {
-            cout << "ERROR: Can't write to " << mag_filename << "          \n";
+            cout << "ERROR: Cannot write to " << mag_filename << "          \n";
             return false;
         }
     }
@@ -411,11 +429,13 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
         if(vec_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << vel_filename << "          \n";
+            cout << "ERROR: Cannot write to " << vel_filename << "          \n";
             return false;
         }
     }
-
+    
+    cout << "-> Writing gnuplot files  .....      \r" << flush;
+        
     line_counter = 0;
     char_counter = 0;
 
@@ -463,11 +483,6 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
     basic_grid << xm + max_len << " " << xm << " " << xm + max_len << " "
             << 0 << " " << 0 << " " << -max_len << " \n";
 
-    //Delenay lines
-    for(uint i = 0; i < uint(max_cells); i++)
-    {
-        addGNULines(i, tetra_lines);
-    }
 
     cout << CLR_LINE;
 
@@ -499,7 +514,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
     point_fields[0] << point_header.str();
     point_fields[0] << "set style line 2 pt 1 ps 2 lc rgb 0x550066\n";
     point_fields[0] << "set style arrow 3 nohead lt 2 lc rgb 0xff54dd lw 0.5\n";
-    point_fields[0] << "set style line 2 pt 7 ps 1 lc rgb 0xff0000\n";
+    point_fields[0] << "set style line 2 pt 7 ps 0.25 lc rgb 0xff0000\n";
     point_fields[0] << "set title \'3D voronoi grid geometry\' font \'Arial,12\'\n";
     point_fields[0] << "splot '-' with vectors as 3,'-' with vectors as 2,'-' with vectors as 1, '-' w p ls 2\n";
 
@@ -614,7 +629,6 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
             << aalg_min << "; max ID: " << aalg_max
             << ")\' font \'Arial,12\'\n";
 
-
     point_fields[5] << "set cblabel \'aligned radius ID\'\n";
 
     if(aalg_min == aalg_max)
@@ -697,46 +711,57 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
     for(uint i = 0; i < max_cells; i++)
     {
+        if(line_counter % 200 == 0)
+        {
+            char_counter++;
+            cout << "-> Writing gnuplot files : " <<
+                    float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
+        }
+        
+        // Delaunay lines
+        if(line_counter%maxGridLines==0)
+            addGNULines(i, tetra_lines);
+        
         cell_vo * tmp_cell_pos = (cell_vo *) cell_list[i];
         Vector3D c = getCenter(tmp_cell_pos);
 
-        point_fields[0] << c.X() << " " << c.Y() << " " << c.Z() << "\n";
-
         line_counter++;
 
-        double scale = 0;
-        double size = 1;
+        double p_size = 1.0;
+        double v_size = 1.0e-2;
 
         if(line_counter % nrOfGnuPoints == 0)
         {
+            point_fields[0] << c.X() << " " << c.Y() << " " << c.Z() << "\n";
+            
             if(plt_gas_dens)
             {
                 double dens = getGasDensity(tmp_cell_pos);
 
                 if(dens > 0)
                     point_fields[1] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                    << float(size) << " " << log10(dens) << "  \n";
+                    << float(p_size) << " " << log10(dens) << "  \n";
             }
 
             if(plt_gas_temp)
             {
                 double Tg = getGasTemperature(tmp_cell_pos);
                 point_fields[3] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                        << float(size) << " " << Tg << "  \n";
+                        << float(p_size) << " " << Tg << "  \n";
             }
 
             if(plt_gas_temp)
             {
                 double Td = getDustTemperature(tmp_cell_pos);
                 point_fields[4] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                        << float(size) << " " << Td << "  \n";
+                        << float(p_size) << " " << Td << "  \n";
             }
 
             if(plt_rat)
             {
                 double a_alg = getAlignedRadius(tmp_cell_pos);
                 point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                        << float(size) << " " << a_alg << "  \n";
+                        << float(p_size) << " " << a_alg << "  \n";
             }
         }
 
@@ -752,9 +777,9 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
                 if(b_len != 0)
                 {
-                    mx = 0.45 * min_len * size * mx / b_len;
-                    my = 0.45 * min_len * size * my / b_len;
-                    mz = 0.45 * min_len * size * mz / b_len;
+                    mx = max_len * v_size * mx / b_len;
+                    my = max_len * v_size * my / b_len;
+                    mz = max_len * v_size * mz / b_len;
 
                     vec_fields[0]
                             << float(c.X() - mx) << " " << float(c.Y() - my) << " " << float(c.Z() - mz) << " "
@@ -774,9 +799,9 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
                 if(v_len != 0)
                 {
-                    vx = 0.45 * min_len * size * vx / v_len;
-                    vy = 0.45 * min_len * size * vy / v_len;
-                    vz = 0.45 * min_len * size * vz / v_len;
+                    vx = max_len * v_size * vx / v_len;
+                    vy = max_len * v_size * vy / v_len;
+                    vz = max_len * v_size * vz / v_len;
 
                     vec_fields[1]
                             << float(c.X() - vx) << " " << float(c.Y() - vy) << " " << float(c.Z() - vz) << " "
@@ -788,16 +813,18 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
 
 
 
-            for(uint pos = 1; pos < 6; pos++)
-            {
-                point_fields[pos] << "\ne\n" << basic_grid.str() << "\ne\n";
-            }
 
-            for(uint pos = 0; pos < 2; pos++)
-            {
-                vec_fields[pos] << "\ne\n" << basic_grid.str() << "\ne\n";
-            }
         }
+    }
+    
+    for(uint pos = 1; pos < 6; pos++)
+    {
+        point_fields[pos] << "\ne\n" << basic_grid.str() << "\ne\n";
+    }
+
+    for(uint pos = 0; pos < 2; pos++)
+    {
+        vec_fields[pos] << "\ne\n" << basic_grid.str() << "\ne\n";
     }
 
     for(uint pos = 0; pos < 8; pos++)
@@ -810,11 +837,12 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameter & param)
     return true;
 }
 
+// saves grid in the POLARIS Voronoi grid file format
 bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_size)
 {
     if(max_cells == 0)
     {
-        cout << "Error: Cannot save voronoi grid file to:\n";
+        cout << "Error: Cannot save Voronoi grid file to:\n";
         cout << filename;
         cout << "Not enough cells available!\n";
         return false;
@@ -824,7 +852,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
 
     if(bin_writer.fail())
     {
-        cout << "ERROR: Cannot open voronoi grid file: \n";
+        cout << "ERROR: Cannot open Voronoi grid file: \n";
         cout << filename;
         return false;
     }
@@ -842,9 +870,9 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
     }
     else
     {
-        cout << "Error: Cannot save voronoi grid file to:\n";
+        cout << "Error: Cannot save Voronoi grid file to:\n";
         cout << filename;
-        cout << "A spherical grid requires an ID of " << GRID_ID_SPH << "!               \n";
+        cout << "A Voronoi grid requires an ID of " << GRID_ID_VOR << "!               \n";
         return false;
     }
 
@@ -860,7 +888,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
         if(line_counter % 100 == 0)
         {
             char_counter++;
-            cout << "-> Writing binary voronoi grid file : " <<
+            cout << "-> Writing binary Voronoi grid file : " <<
                     float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
         }
 
@@ -903,12 +931,11 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing voronoi grid file     : done     \n";
-    cout << "- Writing octree grid file      : done     \n";
-
+    cout << "- Writing Voronoi grid file     : done     \n";
     return true;
 }
 
+// function for debug purposes only
 bool CGridVoronoi::createArtificialGrid(string path)
 {
     resetGridValues();
@@ -1066,35 +1093,43 @@ bool CGridVoronoi::createArtificialGrid(string path)
     bin_writer.close();
 
     cout << "min: " << min_gas_dens << "  max_dens: " << max_gas_dens << "   \n";
-    cout << "Creating artificial voronoi grid                  : done    \n";
+    cout << "Creating artificial Voronoi grid                  : done    \n";
     cout << "Max cells: " << max_cells << "   \n";
 
     return true;
 }
 
-void CGridVoronoi::printParameter()
+void CGridVoronoi::printParameters()
 {
     if(max_cells == 0)
     {
-        cout << "Error: No voronoi cells available!\n";
+        cout << "Error: No Voronoi cells available!\n";
     }
     else
     {
         cout << CLR_LINE;
         cout << SEP_LINE;
-        cout << "Voronoi grid parameter (ID: " << getDataID()
+        cout << "Voronoi grid parameters (ID: " << getDataID()
                 << ", data len: " << getDataOffset() << ")         \n";
         cout << SEP_LINE;
 
-        cout << "- Nr. of voronoi cells          : " << max_cells << " \n";
+        if(stree!=0)
+        {
+            cout << "- Nr. of search tree depth      : " << stree->getMaxLevel() << " \n";
+            cout << "- Nr. of total tree nodes       : " << stree->getMaxNodes() << " \n";
+        }
+        
+        cout << "- Nr. of Voronoi cells          : " << max_cells << " \n";
         cout << "- Nr. of convex hull points     : " << hull_size << " \n";
         cout << "- Nr. of neighbors    (min,max) : [" << min_nrOfNeigbors << ", " << max_nrOfNeigbors << "]   \n";
-
-        printPhysicalParameter();
+        cout << SEP_LINE;
+        
+        printPhysicalParameters();
         cout << SEP_LINE;
     }
 }
 
+// brute force Voronoi position finder for debug purposes only
 bool CGridVoronoi::positionPhotonInGridTest(photon_package * pp)
 {
     Vector3D pos = pp->getPosition();
@@ -1161,7 +1196,7 @@ bool CGridVoronoi::positionPhotonInGrid(photon_package * pp)
 
     if(cell==0)
     {
-        cout << "ERROR: Photon package cannot be psitioned in Voronoi grid!                        \n";
+        cout << "ERROR: Photon package cannot be positioned in Voronoi grid!                        \n";
         return false;
     }
 
@@ -1351,7 +1386,7 @@ bool CGridVoronoi::findStartingPoint(photon_package *pp)
     double max_l = 0.5 * max_len;
 
     Vector3D dir = pp->getDirection();
-    Vector3D pos = pp->getPosition(); //+0.5*dir*max_len;
+    Vector3D pos = pp->getPosition();
 
     if(isInside(pos))
         return true;

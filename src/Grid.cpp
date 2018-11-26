@@ -324,7 +324,7 @@ bool CGridBasic::fillGridWithOpiateData(uint col_id)
      */return true;
 }
 
-uint CGridBasic::validateDataPositions(parameter & param)
+uint CGridBasic::validateDataPositions(parameters & param)
 {
     uint tmp_data_offset = 0;
 
@@ -428,17 +428,8 @@ uint CGridBasic::validateDataPositions(parameter & param)
     return tmp_data_offset;
 }
 
-void CGridBasic::printPhysicalParameter()
+void CGridBasic::printPhysicalParameters()
 {
-    /*if(nrOfDensRatios > 0)
-    {
-        cout << "- Additional dens. ratio IDs    :";
-        for(uint i = 0; i < nrOfDensRatios; i++)
-            cout << " " << pos_GasSpecRatios[i];
-
-        cout << endl;
-    }*/
-
     cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume
             << " [m^3], " << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume))
             << " %" << endl;
@@ -494,6 +485,29 @@ void CGridBasic::printPhysicalParameter()
     if(data_pos_id != MAX_UINT)
         cout << "- Dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "]" << endl;
 
+    if(data_pos_n_cr != MAX_UINT)
+        cout << "- CR el. density      (min,max) : [" << min_n_cr << "; " << max_n_cr << "] [m^-3]" << endl;
+
+    if(data_pos_g_min != MAX_UINT)
+        cout << "- Gamma_min           (min,max) : [" << min_g_min << "; " << max_g_min << "]" << endl;
+
+    if(data_pos_g_max != MAX_UINT)
+        cout << "- Gamma_max           (min,max) : [" << min_g_max << "; " << max_g_max << "]" << endl;
+
+    if(data_pos_p != MAX_UINT)
+        cout << "- El. energy index p  (min,max) : [" << min_p << "; " << max_p << "]" << endl;
+
+    if(data_pos_n_th != MAX_UINT)
+        cout << "- Therm. el. density  (min,max) : [" << min_n_th << "; " << max_n_th << "] [m]" << endl;
+
+    if(data_pos_T_e != MAX_UINT)
+    {
+        if(min_T_e == 1e300)
+            cout << "- Electron temperature          : same as dust temperature" << endl;
+        else
+            cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
+    }
+        
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
         cout << SEP_LINE;
@@ -522,34 +536,11 @@ void CGridBasic::printPhysicalParameter()
         cout << endl;
     }
 
-    if(data_pos_n_cr != MAX_UINT)
-        cout << "- CR el. density      (min,max) : [" << min_n_cr << "; " << max_n_cr << "] [m^-3]" << endl;
-
-    if(data_pos_g_min != MAX_UINT)
-        cout << "- Gamma_min           (min,max) : [" << min_g_min << "; " << max_g_min << "]" << endl;
-
-    if(data_pos_g_max != MAX_UINT)
-        cout << "- Gamma_max           (min,max) : [" << min_g_max << "; " << max_g_max << "]" << endl;
-
-    if(data_pos_p != MAX_UINT)
-        cout << "- El. energy index p  (min,max) : [" << min_p << "; " << max_p << "]" << endl;
-
-    if(data_pos_n_th != MAX_UINT)
-        cout << "- Therm. el. density  (min,max) : [" << min_n_th << "; " << max_n_th << "] [m]" << endl;
-
-    if(data_pos_T_e != MAX_UINT)
-    {
-        if(min_T_e == 1e300)
-            cout << "- Electron temperature          : same as dust temperature" << endl;
-        else
-            cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
-    }
-
     if(data_pos_op != UINT_MAX)
         cout << " - Unique OPIATE IDs" << endl;
 };
 
-bool CGridBasic::writeAMIRAFiles(string path, parameter & param, uint bins)
+bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 {
     if(bins == 0)
         return true;
@@ -1045,7 +1036,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     return true;
 }
 
-bool CGridBasic::writeMidplaneFits(string data_path, parameter & param, uint bins, bool all)
+bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bins, bool all)
 {
     bool res = true;
 

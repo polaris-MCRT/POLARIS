@@ -1205,7 +1205,7 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
     }
 }
 
-bool CGasMixture::createGasSpecies(parameter & param)
+bool CGasMixture::createGasSpecies(parameters & param)
 {
     nr_of_species = param.getNrOfGasSpecies();
     single_species = new CGasSpecies[nr_of_species];
@@ -1265,7 +1265,7 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
     return true;
 }
 
-void CGasMixture::printParameter(parameter & param, CGridBasic * grid)
+void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
 {
     cout << CLR_LINE;
     cout << "Gas parameter                             " << endl;

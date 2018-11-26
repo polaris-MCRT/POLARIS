@@ -226,7 +226,7 @@ public:
         cout << CLR_LINE << flush;
     }
 
-    bool writeGNUPlotFiles(string path, parameter & param);
+    bool writeGNUPlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
@@ -454,10 +454,10 @@ public:
         return saveBinaryGridFile(filename, GRID_ID_SPH, data_offset);
     }
 
-    bool loadGridFromBinrayFile(parameter & param, uint _data_len);
+    bool loadGridFromBinrayFile(parameters & param, uint _data_len);
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameter & param)
+    bool loadGridFromBinrayFile(parameters & param)
     {
         return loadGridFromBinrayFile(param, 0);
     };
@@ -469,7 +469,7 @@ public:
         cout << "Final cleanup                                :  done" << endl;
     }
 
-    void printParameter();
+    void printParameters();
 
         bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
             dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)

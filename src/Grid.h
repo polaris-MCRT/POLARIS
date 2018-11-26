@@ -213,7 +213,7 @@ public:
             delete[] size_skip;
     }
 
-    void printPhysicalParameter();
+    void printPhysicalParameters();
 
     void resetGridValues()
     {
@@ -392,7 +392,7 @@ public:
 
     void updateDataRange(cell_basic * cell);
 
-    void updateVelocity(cell_basic * cell, parameter & param)
+    void updateVelocity(cell_basic * cell, parameters & param)
     {
         if(param.getIsSpeedOfSound() && data_pos_tg != MAX_UINT)
         {
@@ -453,7 +453,7 @@ public:
         return max_data;
     }
 
-    virtual void printParameter()
+    virtual void printParameters()
     {
     };
 
@@ -554,7 +554,7 @@ public:
         return cell_list[i];
     }
 
-    void setSIConversionFactors(parameter & param)
+    void setSIConversionFactors(parameters & param)
     {
         mu = param.getMu();
         conv_length_in_SI = param.getSIConvLength();
@@ -574,7 +574,7 @@ public:
         return false;
     }
 
-    virtual bool writeGNUPlotFiles(string path, parameter & param)
+    virtual bool writeGNUPlotFiles(string path, parameters & param)
     {
         return false;
     }
@@ -926,8 +926,7 @@ public:
         if(data_pos_T_e!=MAX_UINT)
             cell->setData(data_pos_T_e, temp);
     }
-    
-    
+        
     void setThermalElectronDensity(cell_basic * cell, double dens)
     {
         if(data_pos_n_th!=MAX_UINT)
@@ -1119,8 +1118,8 @@ public:
         return cell->getID();
     }
 
-    uint validateDataPositions(parameter & param);
-    uint getDataIdsOffset(parameter & param);
+    uint validateDataPositions(parameters & param);
+    uint getDataIdsOffset(parameters & param);
 
     void setAlignedPos(uint pos)
     {
@@ -1668,9 +1667,9 @@ public:
     }
 
     bool writeSpecialLines(string path);
-    bool writeAMIRAFiles(string path, parameter & param, uint bins);
-    bool writeMidplaneFits(string data_path, parameter & param, uint bins, bool all=false);
-    bool writeMidplaneFits1(string data_path, parameter & param, uint bins, bool all=false);
+    bool writeAMIRAFiles(string path, parameters & param, uint bins);
+    bool writeMidplaneFits(string data_path, parameters & param, uint bins, bool all=false);
+    bool writeMidplaneFits1(string data_path, parameters & param, uint bins, bool all=false);
 
     void updateMidplaneString(char * str_1, char * str_2, uint counter)
     {
@@ -1705,12 +1704,12 @@ public:
         return false;
     }
 
-    virtual bool loadGridFromBinrayFile(parameter & param)
+    virtual bool loadGridFromBinrayFile(parameters & param)
     {
         return false;
     }
 
-    virtual bool loadGridFromBinrayFile(parameter & param, uint data_len)
+    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len)
     {
         return false;
     }
@@ -2074,7 +2073,7 @@ public:
         aalg_max = a_max;
     }
 
-    bool doPDA(parameter & param, uint pda_id);
+    bool doPDA(parameters & param, uint pda_id);
 
     uint getTemperatureFieldInformation()
     {
@@ -2612,7 +2611,7 @@ public:
         return true;
     }
 
-    uint SynchrotronCheck(parameter & param)
+    uint SynchrotronCheck(parameters & param)
     {
         if(data_pos_n_th == MAX_UINT && data_pos_n_th == MAX_UINT)
         {
@@ -2699,7 +2698,7 @@ public:
         return 0;
     }
 
-    uint OpiateCheck(parameter & param)
+    uint OpiateCheck(parameters & param)
     {
         if(data_pos_tg == MAX_UINT)
         {
@@ -2710,7 +2709,7 @@ public:
         return 0;
     }
 
-    uint TempCheck(parameter & param, uint & tmp_data_offset)
+    uint TempCheck(parameters & param, uint & tmp_data_offset)
     {
         uint extra_temp_entries = 0;
         if(getTemperatureFieldInformation() == MAX_UINT)
@@ -2792,7 +2791,7 @@ public:
         return 0;
     }
 
-    uint RatCheck(parameter & param, uint & tmp_data_offset)
+    uint RatCheck(parameters & param, uint & tmp_data_offset)
     {
         if(data_pos_aalg == MAX_UINT)
         {
@@ -2839,7 +2838,7 @@ public:
         return 0;
     }
 
-    uint DustEmissionCheck(parameter & param)
+    uint DustEmissionCheck(parameters & param)
     {
         // Check if stochastic heating temperatures are saved in grid
         if(data_pos_dt_list.size() > nr_densities && data_pos_dt_list.size() < multi_temperature_entries)
@@ -2940,7 +2939,7 @@ public:
         return 0;
     }
 
-    uint DustScatteringCheck(parameter & param)
+    uint DustScatteringCheck(parameters & param)
     {
         if(param.getAlign() != 0 && !param.getAligPA())
         {
@@ -3005,7 +3004,7 @@ public:
         return 0;
     }
 
-    uint RadiationForceCheck(parameter & param)
+    uint RadiationForceCheck(parameters & param)
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
@@ -3030,7 +3029,7 @@ public:
         return 0;
     }
 
-    uint LineEmissionCheck(parameter & param)
+    uint LineEmissionCheck(parameters & param)
     {
         if(param.getTotalNrOfDustComponents() != 0)
         {
@@ -3101,7 +3100,7 @@ public:
         return 0;
     }
 
-    uint ProbingCheck(parameter & param)
+    uint ProbingCheck(parameters & param)
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {

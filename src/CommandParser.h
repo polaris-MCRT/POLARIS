@@ -8,7 +8,7 @@
 #define id_tsk 1
 #define id_cmn 2
 
-typedef vector<parameter> parameter_list;
+typedef vector<parameters> parameter_list;
 //int counter=0;
 
 class CCommandParser
@@ -54,7 +54,7 @@ public:
     dlist parseValues(string & str);
     void formatLine(string &line);
     bool parse();
-    bool parseLine(parameter * param, string cmd, string data, uint id);
+    bool parseLine(parameters * param, string cmd, string data, uint id);
     dlist parseDataString(string data);
     string seperateString(string & str);
 

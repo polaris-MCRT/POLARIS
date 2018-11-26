@@ -451,7 +451,7 @@ bool CCommandParser::parse()
     param_list.resize(tasks.size());
     tasks.insert(tasks.begin(), str_common);
 
-    parameter common_param;
+    parameters common_param;
 
     for(uint i = 0; i < tasks.size(); i++)
     {
@@ -461,7 +461,7 @@ bool CCommandParser::parse()
         string::size_type pos1 = 0, pos2 = 0;
         string ret = "";
         int len = -1;
-        parameter * param;
+        parameters * param;
 
         if(i == 0)
             param = &common_param;
@@ -680,7 +680,7 @@ string CCommandParser::seperateString(string & str)
     return ret;
 }
 
-bool CCommandParser::parseLine(parameter * param, string cmd, string data, uint id)
+bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint id)
 {
     if(cmd.compare("<cmd>") == 0)
     {
