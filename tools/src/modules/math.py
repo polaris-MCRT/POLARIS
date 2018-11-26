@@ -204,9 +204,9 @@ class Math:
         elif 'pc' in length.lower():
             conv = self.const['pc']
             length = length.lower().replace('pc', '')
-        elif 'r_sun' in length.lower():
+        elif 'r_sun' in length.lower() or 'rsun' in length.lower():
             conv = self.const['R_sun']
-            length = length.lower().replace('r_sun', '')
+            length = length.lower().replace('r_sun', '').replace('rsun', '')
         try:
             return float(length) * conv
         except ValueError:
@@ -243,9 +243,9 @@ class Math:
         conv = 1
         if 'kg' in mass.lower():
             mass = mass.lower().replace('kg', '')
-        elif 'm_jup' in mass.lower():
+        elif 'm_jup' in mass.lower() or 'mjup' in mass.lower():
             conv = self.const['M_jup']
-            mass = mass.lower().replace('m_jup', '')
+            mass = mass.lower().replace('m_jup', '').replace('mjup', '')
         elif 'm_sun' in mass.lower() or 'msun' in mass.lower():
             conv = self.const['M_sun']
             mass = mass.lower().replace('m_sun', '').replace('msun', '')
@@ -715,14 +715,15 @@ class Math:
         return carthesian_direction
 
     @staticmethod
-    def rotate_coord_system(position, rotation_axis, rotation_angle):
-        """Convertes the postion coordinates into a coordinate system that is
+    def rotate_coord_system(position, rotation_axis, rotation_angle, inv=False):
+        """Converts the postion coordinates into a coordinate system that is
         rotated around an rotation_axis.
 
         Args:
             position (List[float, float, float]): Position in cartesian coordinates.
             rotation_axis (List[float, float, float]): Rotation axis in cartesian coordinates.
             rotation_angle (float): Angle to rotate around [rad].
+            inv (bool): Invert rotation?
 
         Note:
             Source: https://en.wikipedia.org/wiki/Rotation_matrix
@@ -739,10 +740,12 @@ class Math:
                                      u_x * u_z * (1 - rot_cos) + u_y * rot_sin],
                                     [u_y * u_x * (1 - rot_cos) + u_z * rot_sin,
                                      rot_cos + u_y ** 2 * (1 - rot_cos),
-                                     u_y * u_z * (1 - rot_cos) + u_x * rot_sin],
-                                    [u_z * u_x * (1 - rot_cos) + u_y * rot_sin,
+                                     u_y * u_z * (1 - rot_cos) - u_x * rot_sin],
+                                    [u_z * u_x * (1 - rot_cos) - u_y * rot_sin,
                                      u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
                                      rot_cos + u_z ** 2 * (1 - rot_cos)]])
+        if inv:
+            rotation_matrix = rotation_matrix.T
         rotated_position = np.dot(position, rotation_matrix)
         return rotated_position
 

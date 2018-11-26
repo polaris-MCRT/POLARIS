@@ -8,6 +8,8 @@ from modules.base import Detector
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_detector_dict(dictionary):
     detector_dict = {
         'gg_tau': GGTauDetector,
@@ -34,7 +36,7 @@ class CustomDetector(Detector):
         self.parameter['wavelength_min'] = 1e-6
         # Last wavelength of the observing wavelengths
         self.parameter['wavelength_max'] = 1e-6
-        # Number of logaritmically distributed wavelengths 
+        # Number of logarithmically distributed wavelengths
         # between wavelength_min and wavelength_max
         self.parameter['nr_of_wavelength'] = 1
         # Rotation angle around the first rotation axis
@@ -126,11 +128,14 @@ class GGTauDetector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        # Rotation angle around the first rotation axis
-        self.parameter['rot_angle_1'] = -37.0  # -40.0
-        self.parameter['rot_angle_2'] = 26.45
-        self.PA = (360. - 327.) / 180. * np.pi
-        self.parameter['rot_axis_1'] = [np.cos(self.PA), np.sin(self.PA), 0]
+        # ------ Rotation angles -----
+        # Cite: inclination (Duchêne et al. 2004)
+        self.parameter['rot_angle_1'] = -37.0
+        # Cite: position angle of Aa and Ab (Yang et al. 2017)
+        self.parameter['rot_angle_2'] = 25.
+        # Cite: rotation axis of inclination (Yang et al. 2017)
+        PA = (360. - 277.) / 180. * np.pi
+        self.parameter['rot_axis_1'] = [np.sin(PA), np.cos(PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]
         self.parameter['nr_pixel_x'] = 512
         self.parameter['nr_pixel_y'] = 512
@@ -139,7 +144,9 @@ class GGTauDetector(Detector):
         #self.parameter['sidelength_zoom_y'] = 600. / 686.
         # Wavelengths
         #self.parameter['wavelength_list'] = 1.65e-06
-        self.parameter['wavelength_list'] = np.array([0.8, 1.0, 1.6, 3.8, 1.65, 7.8, 450., 1300.]) * 1e-6
+        self.parameter['wavelength_list'] = np.array(
+            [0.8, 1.0, 1.6, 3.8, 1.65, 7.8, 450., 1300.]) * 1e-6
+
 
 class HD97048Detector(Detector):
     """Change this to the detector you want to use.
@@ -177,4 +184,5 @@ class ThomasDetector(Detector):
         """
         Detector.__init__(self, model, parse_args)
         # Wavelengths
-        self.parameter['wavelength_list'] = np.array([3, 3.28, 3.38, 3.42, 3.7]) * 1e-6
+        self.parameter['wavelength_list'] = np.array(
+            [3, 3.28, 3.38, 3.42, 3.7]) * 1e-6

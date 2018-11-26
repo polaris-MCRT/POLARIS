@@ -1075,6 +1075,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             if(param.getWriteRadiationField())
                plt_rad_field = true;
+            else if(param.getWriteFullRadiationField())
+            {
+                plt_rad_field = true;
+                nr_rad_field_comp = 4;
+            }
             else if(param.getWriteGZero())
                 plt_g_zero = true;
         }
@@ -1118,6 +1123,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             if(param.getWriteRadiationField())
                 plt_rad_field = true;
+            else if(param.getWriteFullRadiationField())
+            {
+                plt_rad_field = true;
+                nr_rad_field_comp = 4;
+            }
             else if(param.getWriteGZero())
                 plt_g_zero = true;
         }
@@ -1129,7 +1139,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     uint nr_parameter = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp)
             + 4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) + uint(plt_larm) +
-            uint(plt_mach) + uint(plt_dust_id) + uint(plt_rad_field) * WL_STEPS + uint(plt_g_zero) + 
+            uint(plt_mach) + uint(plt_dust_id) + uint(plt_rad_field) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero) + 
             uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) + uint(plt_p);
 
     if(nr_parameter == 0)
@@ -1323,9 +1333,13 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         buffer_dust_amax = new double[nelements];
     if(plt_rad_field)
     {
-        buffer_rad_field = new double*[nelements];
+        buffer_rad_field = new double**[nelements];
         for(int i_cell = 0; i_cell < nelements; i_cell++)
-            buffer_rad_field[i_cell] = new double[WL_STEPS];
+        {
+            buffer_rad_field[i_cell] = new double*[WL_STEPS];
+            for(int wID = 0; wID < WL_STEPS; wID++)
+                buffer_rad_field[i_cell][wID] = new double[nr_rad_field_comp];
+        }
     }
     if(plt_g_zero)
         buffer_g_zero = new double[nelements];    
@@ -1546,14 +1560,15 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field)
             {
-                for(uint wID = 0; wID < WL_STEPS; wID++)
-                {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_rad_field[i_cell] = buffer_rad_field[i_cell][wID];
+                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                    for(int wID = 0; wID < WL_STEPS; wID++)
+                    {
+                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                            array_rad_field[i_cell] = buffer_rad_field[i_cell][wID][i_comp];
 
-                    fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_rad_field);
-                }
+                        fpixel[3]++;
+                        pFits->pHDU().write(fpixel, nelements, array_rad_field);
+                    }
             }
             if(plt_g_zero)
             {
@@ -1807,14 +1822,15 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field)
             {
-                for(uint wID = 0; wID < WL_STEPS; wID++)
-                {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_rad_field[i_cell] = buffer_rad_field[i_cell][wID];
+                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                    for(int wID = 0; wID < WL_STEPS; wID++)
+                    {
+                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                            array_rad_field[i_cell] = buffer_rad_field[i_cell][wID][i_comp];
 
-                    fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_rad_field);
-                }
+                        fpixel[3]++;
+                        pFits->pHDU().write(fpixel, nelements, array_rad_field);
+                    }
             }
             if(plt_g_zero)
             {
@@ -2116,17 +2132,49 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_rad_field)
     {
-        for(uint wID = 0; wID < WL_STEPS; wID++)
+        for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
         {
-            counter++;
-            updateMidplaneString(str_1, str_2, counter);
-            char str_3[1024];
+            for (int wID = 0; wID < WL_STEPS; wID++)
+            {
+                counter++;
+                updateMidplaneString(str_1, str_2, counter);
+                char str_3[1024];
+                switch(i_comp)
+                {
+                default:
 #ifdef WINDOWS
-            sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                    sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-            sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                    sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
-            pFits->pHDU().addKey(str_1, string(str_3), str_2);
+                    break;
+
+                case 1:
+#ifdef WINDOWS
+                    sprintf_s(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#else
+                    sprintf(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#endif
+                    break;
+
+                case 2:
+#ifdef WINDOWS
+                    sprintf_s(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#else
+                    sprintf(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#endif
+                    break;
+
+                case 3:
+#ifdef WINDOWS
+                    sprintf_s(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#else
+                    sprintf(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
+#endif
+                    break;
+                }
+                pFits->pHDU().addKey(str_1, string(str_3), str_2);
+            }
         }
     }
     if(plt_g_zero)
@@ -2215,7 +2263,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_rad_field)
     {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
+        {
+            for(uint wID = 0; wID < WL_STEPS; wID++)
+                delete[] buffer_rad_field[i_cell][wID];
             delete[] buffer_rad_field[i_cell];
+        }
         delete[] buffer_rad_field;
     }
     if(plt_g_zero)

@@ -623,18 +623,21 @@ class Model:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
+            'ignored_gas_density': 0,
+            'ignored_dust_density': 0,
         }
 
-    def init_position(self, position, cell_IDs=None):
-        """Initialise the grid position to calculate the nessecary cell data.
+    def init_position(self, node, cell_IDs=None):
+        """Initialise the grid position to calculate the necessary cell data.
 
         Args:
-            position (List[float, float, float]): position in model space.
+            node (node class instance)): instance of node.
             cell_IDs (List): cell_IDs of the cells (alternative to the grid position).
                 Spherical -> [i_r, i_t, i_p]
                 Cylindrical -> [i_r, i_p, i_z]
         """
-        self.position = position
+        self.position = node.parameter['position']
+        self.volume = node.parameter['volume']
 
     def get_gas_temperature(self):
         """The gas temperature can be modified by the code here if neccessary.
@@ -674,7 +677,7 @@ class Model:
         return self.dust_density_distribution()
 
     def get_velocity_field(self):
-        """The velocity field can be modified by the code here if neccessary.
+        """The velocity field can be modified by the code here if necessary.
 
         Returns:
             List[float, float, float]: Velocity at a given position.
@@ -1057,6 +1060,8 @@ class ExternalInput:
         self.tmp_parameter = {
             'relative_gas_densities': None,
             'relative_dust_densities': None,
+            'ignored_gas_density': 0,
+            'ignored_dust_density': 0,
         }
 
     def external_data_loaded(self):

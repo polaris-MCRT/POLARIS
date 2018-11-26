@@ -45,13 +45,15 @@ class CustomPlots:
         # Set data input to Jy to calculate the total flux
         self.file_io.cmap_unit = 'total'
         # Read spectrum data
-        plot_data, header = self.file_io.read_spectrum('line_spectrum_species_0001_line_0001')
+        plot_data, header = self.file_io.read_spectrum(
+            'line_spectrum_species_0001_line_0001')
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('line_spectrum_species_0001_line_0001')
         velocity = []
         for vch in range(header['nr_channels']):
             # Get velocity of current channel
-            velocity.append(1e-3 * self.math.get_velocity(vch, header['nr_channels'], header['max_velocity']))
+            velocity.append(1e-3 * self.math.get_velocity(vch,
+                                                          header['nr_channels'], header['max_velocity']))
         for i_quantity in range(4):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args, xlabel=r'$\mathit{v}\ [\si{\kilo\metre\per\second}]$',

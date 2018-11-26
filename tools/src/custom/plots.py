@@ -47,19 +47,21 @@ class CustomPlots:
         # Set data input to Jy to calculate the total flux
         self.file_io.cmap_unit = 'total'
         # Read spectrum data
-        plot_data, header = self.file_io.read_spectrum('line_spectrum_species_0001_line_0001')
+        plot_data, header = self.file_io.read_spectrum(
+            'line_spectrum_species_0001_line_0001')
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('line_spectrum_species_0001_line_0001')
         velocity = []
         for vch in range(header['nr_channels']):
             # Get velocity of current channel
-            velocity.append(1e-3 * self.math.get_velocity(vch, header['nr_channels'], header['max_velocity']))
+            velocity.append(1e-3 * self.math.get_velocity(vch,
+                                                          header['nr_channels'], header['max_velocity']))
         for i_quantity in range(4):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args,
-                xlabel=r'$\mathit{v}\ [\si{\kilo\metre\per\second}]$',
-                ylabel=self.file_io.get_quantity_labels(i_quantity),
-                extent=[velocity[0], velocity[-1], None, None], with_cbar=False)
+                        xlabel=r'$\mathit{v}\ [\si{\kilo\metre\per\second}]$',
+                        ylabel=self.file_io.get_quantity_labels(i_quantity),
+                        extent=[velocity[0], velocity[-1], None, None], with_cbar=False)
             # Plot spectrum as line
             plot.plot_line(velocity, plot_data[i_quantity, :], marker='.')
             # Save figure to pdf file or print it on screen
@@ -74,7 +76,8 @@ class CustomPlots:
             600. * self.math.const['au'], 'arcsec', self.model.parameter['distance'])
         from astropy.io import fits
         self.file_io.init_plot_output('gg_tau_miri_simulation')
-        hdulist = fits.open(self.file_io.path['results'] + 'polaris_detector_nr0001.fits')
+        hdulist = fits.open(
+            self.file_io.path['results'] + 'polaris_detector_nr0001.fits')
         header_dict = dict(
             wavelengths=[7.7e-6],
             ID=1,
@@ -87,7 +90,8 @@ class CustomPlots:
         tbldata = hdulist[0].data.T
         tbldata[np.where(tbldata < 0)] = 0
         plot = Plot(self.model, self.parse_args)
-        plot.plot_imshow(tbldata, cbar_label=self.file_io.get_quantity_labels(0), set_bad_to_min=False)
+        plot.plot_imshow(tbldata, cbar_label=self.file_io.get_quantity_labels(
+            0), set_bad_to_min=False)
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -98,29 +102,35 @@ class CustomPlots:
         # Set that file_io reads data as unit/arcsec
         self.file_io.cmap_unit = 'px'
         # Read velocity channel data
-        tbldata, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         # Calculate velocity width of a channel
         velocity_channel = np.subtract(
-            np.multiply(range(header['nr_channels']), 2. * header['max_velocity'] / header['nr_channels']),
+            np.multiply(range(header['nr_channels']), 2. *
+                        header['max_velocity'] / header['nr_channels']),
             header['max_velocity'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, ylabel='$I\ [\mathsf{Jy}]$',
                     xlabel=r'$v\ [\si{\kilo\metre\per\second}]$')
         cut_pixel_index = int(header['nr_pixel_x'] * 1. / 2.)
         for i_x in range(0, cut_pixel_index):
-            plot.plot_line(xdata=velocity_channel, ydata=tbldata[0, :, i_x, cut_pixel_index], linestyle='-')
+            plot.plot_line(xdata=velocity_channel,
+                           ydata=tbldata[0, :, i_x, cut_pixel_index], linestyle='-')
 
-        plot.plot_line(xdata=velocity_channel, ydata=tbldata[0, :, cut_pixel_index, cut_pixel_index], linestyle=':')
+        plot.plot_line(xdata=velocity_channel,
+                       ydata=tbldata[0, :, cut_pixel_index, cut_pixel_index], linestyle=':')
 
         for i_x in range(header['nr_pixel_x'] - 1, cut_pixel_index, -1):
-            plot.plot_line(xdata=velocity_channel, ydata=tbldata[0, :, i_x, cut_pixel_index], linestyle='--')
+            plot.plot_line(xdata=velocity_channel,
+                           ydata=tbldata[0, :, i_x, cut_pixel_index], linestyle='--')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
     def plot_10(self):
         """Plot integrated velocity channel map from POLARIS simulations.
         """
-        self.file_io.init_plot_output('comparison_subpixel', path=self.file_io.path['model'])
+        self.file_io.init_plot_output(
+            'comparison_subpixel', path=self.file_io.path['model'])
         # Read velocity channel data
         tbldata_i_list = []
         vmin = 1e99
@@ -128,7 +138,8 @@ class CustomPlots:
         for i_sb in range(3):
             self.file_io.set_path_from_str('plot', model_name='disk', simulation_type='line',
                                            simulation_name='compare_mol3d_polaris_theta_0_sp_' + str(i_sb))
-            tbldata, header = self.file_io.read_int_vel_map('int_channel_map_species_0001_line_0001')
+            tbldata, header = self.file_io.read_int_vel_map(
+                'int_channel_map_species_0001_line_0001')
             tbldata_i = tbldata[0, :, :]
             tbldata_i_list.append(tbldata_i)
             vmin = min(vmin, np.min(tbldata_i[np.nonzero(tbldata_i)]))
@@ -136,7 +147,8 @@ class CustomPlots:
         for i_data in range(len(tbldata_i_list)):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args, ax_unit='au')
-            plot.plot_title(r'$\mathsf{Max\ level\ of\ subpixel}=' + str(i_data) + '$')
+            plot.plot_title(
+                r'$\mathsf{Max\ level\ of\ subpixel}=' + str(i_data) + '$')
             # Plot chosen quantity to velocity map
             plot.plot_imshow(tbldata_i_list[i_data], cbar_label=self.file_io.get_quantity_labels(0, int_map=True),
                              vmin=vmin, vmax=vmax, extend='neither')
@@ -159,16 +171,19 @@ class CustomPlots:
                 self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name,
                                                simu_types[i_simulation_type])
                 # Read raytrace results from file
-                map_data, header = self.file_io.read_emission_map('polaris_detector_nr' + str(i_wl + 1).zfill(4))
+                map_data, header = self.file_io.read_emission_map(
+                    'polaris_detector_nr' + str(i_wl + 1).zfill(4))
                 if total_map_data.all():
                     total_map_data = map_data
                 else:
                     for i in range(len(total_map_data[:, 0, 0])):
                         for i_x in range(len(total_map_data[i, :, 0])):
                             for i_y in range(len(total_map_data[i, i_x, :])):
-                                total_map_data[i, i_x, i_y] += map_data[i, i_x, i_y]
+                                total_map_data[i, i_x,
+                                               i_y] += map_data[i, i_x, i_y]
             map_title = r'$\mathsf{total\ emission},\ \lambda=\SI{' + \
-                        str(self.math.latex_float(header['wavelength'] * 1e6)) + '}{\micro\metre}$'
+                        str(self.math.latex_float(
+                            header['wavelength'] * 1e6)) + '}{\micro\metre}$'
             # Create one plot per component of the simulation
             for i_quantity in range(4):
                 # Take colorbar label from quantity id
@@ -179,7 +194,8 @@ class CustomPlots:
                 if not tbldata.any():
                     continue
                 # Create Matplotlib figure
-                plot = Plot(self.model, self.parse_args, ax_unit='au', title=map_title)
+                plot = Plot(self.model, self.parse_args,
+                            ax_unit='au', title=map_title)
                 if i_quantity is 0:
                     # Intensity plot
                     plot.plot_imshow(tbldata, cbar_label=cbar_label)
@@ -204,26 +220,34 @@ class CustomPlots:
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
         # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('polaris_total_sed', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'polaris_total_sed', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{I}\ [\si{Jy}]$', with_cbar=False)
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
         # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution
-        plot.plot_line(ray_header['wavelengths'], ray_data[0, :], log='y', label=r'$\mathsf{thermal\ emission}$')
+        plot.plot_line(ray_header['wavelengths'], ray_data[0, :],
+                       log='y', label=r'$\mathsf{thermal\ emission}$')
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
         # Read raytrace results from file
-        mc_data, mc_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        mc_data, mc_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution (direct)
-        plot.plot_line(mc_header['wavelengths'], mc_data[6, :], log='y', label=r'$\mathsf{direct\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[6, :],
+                       log='y', label=r'$\mathsf{direct\ starlight}$')
         # Plot spectral energy distribution (scattered)
-        plot.plot_line(mc_header['wavelengths'], mc_data[7, :], log='y', label=r'$\mathsf{scattered\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[7, :],
+                       log='y', label=r'$\mathsf{scattered\ starlight}$')
 
         wavelengths_total = []
         quantity_total = []
@@ -232,11 +256,13 @@ class CustomPlots:
             if i_wl - offset >= ray_header['nr_wavelengths']:
                 break
             elif i_wl >= mc_header['nr_wavelengths']:
-                wavelengths_total.append(ray_header['wavelengths'][i_wl - offset])
+                wavelengths_total.append(
+                    ray_header['wavelengths'][i_wl - offset])
                 quantity_total.append(ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
                 wavelengths_total.append(ray_header['wavelengths'][i_wl])
-                quantity_total.append(mc_data[0, i_wl] + ray_data[0, i_wl - offset])
+                quantity_total.append(
+                    mc_data[0, i_wl] + ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
                 offset += 1
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
@@ -249,7 +275,8 @@ class CustomPlots:
         # Plot the legend
         plot.plot_legend()
         # adapt limits
-        plot.set_limits(limits=[None, None, 1e-5, np.max(quantity_total) * 1e1])
+        plot.set_limits(
+            limits=[None, None, 1e-5, np.max(quantity_total) * 1e1])
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -258,9 +285,11 @@ class CustomPlots:
         """
         import matplotlib.animation as animation
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', 'mhd_run', 'animation_test', 'dust')
+        self.file_io.set_path_from_str(
+            'plot', 'mhd_run', 'animation_test', 'dust')
         # Read raytrace results from file
-        raytrace_data, header = self.file_io.read_emission_map('polaris_detector_nr0001')
+        raytrace_data, header = self.file_io.read_emission_map(
+            'polaris_detector_nr0001')
         # Set vector size to match with 64 x 64 pixel sized image
         self.file_io.vec_field_size = 8
         # Number of angles
@@ -270,15 +299,18 @@ class CustomPlots:
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # list of tbldata
-        tbldata_list = np.zeros((n_ph, header['nr_pixel_x'], header['nr_pixel_y']))
+        tbldata_list = np.zeros(
+            (n_ph, header['nr_pixel_x'], header['nr_pixel_y']))
         artist_list = []
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=1.0, ax_unit='pc', image_type='animation')
+        plot = Plot(self.model, self.parse_args, zoom_factor=1.0,
+                    ax_unit='pc', image_type='animation')
         for i_phi in range(n_ph):
             # Print progress
             print('Create animation image number:', i_phi + 1, '/', n_ph)
             # Read raytrace results from file
-            raytrace_data, header = self.file_io.read_emission_map('polaris_detector_nr' + str(i_phi + 1).zfill(4))
+            raytrace_data, header = self.file_io.read_emission_map(
+                'polaris_detector_nr' + str(i_phi + 1).zfill(4))
             # Take data for current quantity
             tbldata_list[i_phi, :, :] = raytrace_data[i_quantity, :, :]
             vmin = 0.
@@ -291,20 +323,26 @@ class CustomPlots:
                 plot.plot_imshow(tbldata=tbldata_list[i_phi, :, :], cbar_label=cbar_label,
                                  vmin=vmin, vmax=vmax, extend='neither')
             # For PI and P, plot polarization vectors
-            vec_field_data = self.file_io.read_polarization_vectors(raytrace_data)
-            vector_color = self.math.get_vector_color(tbldata_list[i_phi, :, :], log=self.parse_args.log)
-            plot.plot_quiver(vec_field_data, color=vector_color, vmin=vmin, vmax=vmax)
+            vec_field_data = self.file_io.read_polarization_vectors(
+                raytrace_data)
+            vector_color = self.math.get_vector_color(
+                tbldata_list[i_phi, :, :], log=self.parse_args.log)
+            plot.plot_quiver(vec_field_data, color=vector_color,
+                             vmin=vmin, vmax=vmax)
             # Make Layout tight
             plot.make_tight_layout()
             artist_list.append(plot.animation_images)
             plot.animation_images = []
 
-        print(np.asscalar(np.nanmin(tbldata_list)), np.asscalar(np.nanmax(tbldata_list)))
+        print(np.asscalar(np.nanmin(tbldata_list)),
+              np.asscalar(np.nanmax(tbldata_list)))
 
         # Create Matplotlib figure
-        animation = animation.ArtistAnimation(plot.fig, artist_list, interval=100, blit=True)
+        animation = animation.ArtistAnimation(
+            plot.fig, artist_list, interval=100, blit=True)
         # Save image to movie file
-        animation.save(self.file_io.path['plots'] + 'continuum_polarization_animation.mp4', dpi=800)
+        animation.save(
+            self.file_io.path['plots'] + 'continuum_polarization_animation.mp4', dpi=800)
 
     def plot_22(self):
         """Plot 2D graph of optical depth profile.
@@ -316,27 +354,29 @@ class CustomPlots:
         N = len(data[:, 0])
         N_pos = int(N / N_wl)
         data = data.reshape(N_pos, N_wl, 5).transpose(1, 0, 2)
-        wl_list =  ['1.5364e-06', '3.61733e-06', '4.98706e-06', '7.6522e-06',
-                    '1.05498e-05', '1.45445e-05']
+        wl_list = ['1.5364e-06', '3.61733e-06', '4.98706e-06', '7.6522e-06',
+                   '1.05498e-05', '1.45445e-05']
 
         #initial_intensity = radius.copy()
         #final_intensity = radius.copy()
-        #for i in range(N):
-            #radius[i] = np.sqrt(data[i, 0] ** 2 + data[i, 1] ** 2 + data[i, 2] ** 2) / self.math.const['au']
-            #radius_proj[i] = np.sqrt(data[i, 0] ** 2 + (data[i, 1] * np.cos(37. / 180. * np.pi)) ** 2 + data[i, 2] ** 2) / self.math.const['au']
-            #optical_depth[i] = data[i, 3]
-            #mult =  self.math.const['c'] / (freq * freq)
-            #mult *= 1e+26  / (140. * self.math.const['pc']) ** 2
-            #initial_intensity[i] = data[i, 4] * mult * 1e3
-            #final_intensity[i] = data[i, 5] * mult * 1e3
+        # for i in range(N):
+        #radius[i] = np.sqrt(data[i, 0] ** 2 + data[i, 1] ** 2 + data[i, 2] ** 2) / self.math.const['au']
+        #radius_proj[i] = np.sqrt(data[i, 0] ** 2 + (data[i, 1] * np.cos(37. / 180. * np.pi)) ** 2 + data[i, 2] ** 2) / self.math.const['au']
+        #optical_depth[i] = data[i, 3]
+        #mult =  self.math.const['c'] / (freq * freq)
+        #mult *= 1e+26  / (140. * self.math.const['pc']) ** 2
+        #initial_intensity[i] = data[i, 4] * mult * 1e3
+        #final_intensity[i] = data[i, 5] * mult * 1e3
 
         radius = np.zeros(N_pos)
         radius_proj = np.zeros(N_pos)
         optical_depth = np.zeros((N_wl, N_pos))
         wavelength = np.zeros(N_wl)
         for i_pos in range(N_pos):
-            radius[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + data[0, i_pos, 2] ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
-            radius_proj[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + (data[0, i_pos, 2] * np.cos(37. / 180. * np.pi)) ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
+            radius[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + data[0, i_pos, 2]
+                                    ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
+            radius_proj[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + (data[0, i_pos, 2] * np.cos(
+                37. / 180. * np.pi)) ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
             for i_wl in range(N_wl):
                 wavelength[i_wl] = data[i_wl, i_pos, 0]
                 optical_depth[i_wl, i_pos] = data[i_wl, i_pos, 4]
@@ -353,7 +393,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$R_\textsf{plane-of-sky}\ [\si{au}]$',
-                        ylabel=r'$\tau_\textsf{obs}$', with_cbar=False)
+                    ylabel=r'$\tau_\textsf{obs}$', with_cbar=False)
         for i_wl in range(N_wl):
             if str(wavelength[i_wl]) in wl_list:
                 plot.plot_line(radius_proj, optical_depth[i_wl, :], label=r'$\lambda=\SI{' +
@@ -369,19 +409,24 @@ class CustomPlots:
         i_quantity = 0
         # Calculation of the column density of each simulation
         col_dens = [5e-8, 1e-7, 1e-6, 1e-5]
-        col_dens = np.multiply(col_dens, 2.21859e+14)  # Density at abundance = 1e-5
-        col_dens = np.multiply(col_dens, self.math.const['au'])  # To column density
+        # Density at abundance = 1e-5
+        col_dens = np.multiply(col_dens, 2.21859e+14)
+        col_dens = np.multiply(
+            col_dens, self.math.const['au'])  # To column density
         # Read spectrum data
-        tbldata = self.file_io.read_data_file('line_spectrum_species_0001_line_0001.det', skip_header=21)
+        tbldata = self.file_io.read_data_file(
+            'line_spectrum_species_0001_line_0001.det', skip_header=21)
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    ylabel='$F_\mathsf{' + self.stokes_parameter[i_quantity] + '}\ [\mathsf{Jy}]$',
+                    ylabel='$F_\mathsf{' +
+                    self.stokes_parameter[i_quantity] + '}\ [\mathsf{Jy}]$',
                     xlabel=r'$v\ [\si{\kilo\metre\per\second}]$', with_cbar=False,
                     extent=[tbldata[0, 0] * 1e-3, tbldata[-1, 0] * 1e-3, 0., 1.5e-4])
         for line_number in range(len(col_dens)):
             # Read spectrum data
             tbldata = self.file_io.read_data_file(
-                'line_spectrum_species_0001_line_' + str(line_number + 1).zfill(4) + '.det',
+                'line_spectrum_species_0001_line_' +
+                str(line_number + 1).zfill(4) + '.det',
                 skip_header=21)
             # Plot spectrum as line
             plot.plot_line(tbldata[:, 0] * 1e-3, tbldata[:, i_quantity + 1], marker='.',
@@ -400,21 +445,25 @@ class CustomPlots:
         # Set that file_io reads data as unit/arcsec
         self.file_io.cmap_unit = 'px'
         # Read velocity channel data
-        tbldata_vel_map, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata_vel_map, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         # Read velocity channel data
-        tbldata_int_map = self.file_io.read_int_vel_map('int_channel_map_species_0001_line_0001')[0]
+        tbldata_int_map = self.file_io.read_int_vel_map(
+            'int_channel_map_species_0001_line_0001')[0]
         # Get gas module
         gas_chooser = GasChooser(self.file_io, self.parse_args)
         gas = gas_chooser.get_module_from_name(header['species_name'])
         # Calculate velocity width of a channel
-        vel_channel_width = 2. * header['max_velocity'] / (header['nr_channels'] - 1)
+        vel_channel_width = 2. * \
+            header['max_velocity'] / (header['nr_channels'] - 1)
         # Initialise output arrays for the derived and reference magnetic field strength
-        mag_times_intensity = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
+        mag_times_intensity = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
         for i_x in range(header['nr_pixel_x']):
             for i_y in range(header['nr_pixel_y']):
                 stdout.write('--- Calculate magnetic field strength for each pixel: ' +
                              str(int(100. * (i_x * header['nr_pixel_y'] + i_y + 1) /
-                             (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
+                                     (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
                 stdout.flush()
                 # Calculate velocity shift by comparing I and V profiles
                 velocity_shift = self.math.velocity_shift_from_profile(
@@ -447,27 +496,34 @@ class CustomPlots:
         # Set that file_io reads data as unit/arcsec
         self.file_io.cmap_unit = 'px'
         # Read velocity channel data
-        tbldata, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         # Get gas module
         gas_chooser = GasChooser(self.file_io, self.parse_args)
         gas = gas_chooser.get_module_from_name(header['species_name'])
         # Calculate velocity width of a channel
-        vel_channel_width = 2. * header['max_velocity'] / (header['nr_channels'] - 1)
+        vel_channel_width = 2. * \
+            header['max_velocity'] / (header['nr_channels'] - 1)
         #: float: define global zoom factor
         zoom_factor = 1
         # Initialise output arrays for the derived and reference magnetic field strength
-        derived_magnetic_field = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
-        reference_magnetic_field = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
-        magnetic_field_difference = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
-        magnetic_field_rel_difference = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
-        abs_magnetic_field_rel_difference = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
+        derived_magnetic_field = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
+        reference_magnetic_field = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
+        magnetic_field_difference = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
+        magnetic_field_rel_difference = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
+        abs_magnetic_field_rel_difference = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
         column_density = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
 
         for i_x in range(header['nr_pixel_x']):
             for i_y in range(header['nr_pixel_y']):
                 stdout.write('--- Calculate magnetic field strength for each pixel: ' +
                              str(int(100. * (i_x * header['nr_pixel_y'] + i_y + 1) /
-                             (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
+                                     (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
                 stdout.flush()
                 # Calculate velocity shift by comparing I and V profiles
                 velocity_shift = self.math.velocity_shift_from_profile(
@@ -476,12 +532,14 @@ class CustomPlots:
                 derived_magnetic_field[i_x, i_y] = gas.shift_2_mag(velocity_shift, header['frequency'],
                                                                    header['i_transition']) * 1e10
                 # Channel number 0 contains the LOS magnetic field strength of the model
-                reference_magnetic_field[i_x, i_y] = tbldata[4, 0, i_x, i_y] * 1e10
+                reference_magnetic_field[i_x,
+                                         i_y] = tbldata[4, 0, i_x, i_y] * 1e10
                 magnetic_field_difference[i_x, i_y] = \
-                    (derived_magnetic_field[i_x, i_y] - reference_magnetic_field[i_x, i_y])
+                    (derived_magnetic_field[i_x, i_y] -
+                     reference_magnetic_field[i_x, i_y])
                 magnetic_field_rel_difference[i_x, i_y] = 100.0 * (
-                        (derived_magnetic_field[i_x, i_y] - reference_magnetic_field[i_x, i_y]) /
-                        reference_magnetic_field[i_x, i_y])
+                    (derived_magnetic_field[i_x, i_y] - reference_magnetic_field[i_x, i_y]) /
+                    reference_magnetic_field[i_x, i_y])
                 abs_magnetic_field_rel_difference[i_x, i_y] = 100.0 * abs(
                     derived_magnetic_field[i_x, i_y] - reference_magnetic_field[i_x, i_y]) / abs(
                     reference_magnetic_field[i_x, i_y])
@@ -510,9 +568,11 @@ class CustomPlots:
                                        label=r'$F_\mathsf{U}$')
                         '''
                     velocity_channel = np.subtract(
-                        np.multiply(range(header['nr_channels']), 2. * header['max_velocity'] / header['nr_channels']),
+                        np.multiply(range(
+                            header['nr_channels']), 2. * header['max_velocity'] / header['nr_channels']),
                         header['max_velocity'])
-                    intensity_derivative = np.gradient(tbldata[0, :, i_x, i_y], vel_channel_width)
+                    intensity_derivative = np.gradient(
+                        tbldata[0, :, i_x, i_y], vel_channel_width)
                     plot.plot_line(xdata=velocity_channel, ydata=np.multiply(intensity_derivative[:], velocity_shift),
                                    marker='.', color='blue', label=r'$\mathsf{d}I \cdot\nu_\mathsf{measured}$')
                     # plot.plot_line(xdata=velocity_channel, ydata=intensity_derivative[:, i_x, i_y] * gas.mag_2_shift(
@@ -525,30 +585,38 @@ class CustomPlots:
                     # Plot the legend
                     plot.plot_legend()
                     print('derived:',
-                          gas.shift_2_mag(velocity_shift, header['frequency'], header['i_transition']) * 1e10,
+                          gas.shift_2_mag(
+                              velocity_shift, header['frequency'], header['i_transition']) * 1e10,
                           'reference:', tbldata[4, 0, i_x, i_y] * 1e10)
                     plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=zoom_factor, ax_unit='au')
+        plot = Plot(self.model, self.parse_args,
+                    zoom_factor=zoom_factor, ax_unit='au')
         # Plot quantity to velocity map
         plot.plot_imshow(derived_magnetic_field, cbar_label=r'$B_\mathsf{LOS}\ [\si{\micro G}]$', cmap='coolwarm',
-                         vmin=-np.asscalar(np.nanmax(np.abs(derived_magnetic_field))),
+                         vmin=-
+                         np.asscalar(
+                             np.nanmax(np.abs(derived_magnetic_field))),
                          vmax=np.asscalar(np.nanmax(np.abs(derived_magnetic_field))), extend='neither')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=zoom_factor, ax_unit='au')
+        plot = Plot(self.model, self.parse_args,
+                    zoom_factor=zoom_factor, ax_unit='au')
         # Plot quantity to velocity map
         plot.plot_imshow(reference_magnetic_field, cbar_label=r'$B_\mathsf{LOS}\ [\si{\micro G}]$', cmap='coolwarm',
-                         vmin=-np.asscalar(np.nanmax(np.abs(reference_magnetic_field))),
+                         vmin=-
+                         np.asscalar(
+                             np.nanmax(np.abs(reference_magnetic_field))),
                          vmax=np.asscalar(np.nanmax(np.abs(reference_magnetic_field))), extend='neither')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=zoom_factor, ax_unit='au')
+        plot = Plot(self.model, self.parse_args,
+                    zoom_factor=zoom_factor, ax_unit='au')
         # Plot quantity to velocity map
         plot.plot_imshow(magnetic_field_difference, cbar_label=r'$\Delta B_\mathsf{LOS}\ [\si{\micro G}]$',
                          cmap='coolwarm', vmin=-np.asscalar(np.nanmax(np.abs(magnetic_field_difference))),
@@ -557,18 +625,22 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=zoom_factor, ax_unit='au')
+        plot = Plot(self.model, self.parse_args,
+                    zoom_factor=zoom_factor, ax_unit='au')
         # Plot quantity to velocity map
         plot.plot_imshow(magnetic_field_rel_difference,
                          cbar_label=r'$\Delta B_\mathsf{LOS}/B_\mathsf{LOS}\ [\si{\percent}]$',
                          cmap='coolwarm', extend='neither',
-                         vmin=-np.asscalar(np.nanmax(np.abs(magnetic_field_rel_difference))),
+                         vmin=-
+                         np.asscalar(
+                             np.nanmax(np.abs(magnetic_field_rel_difference))),
                          vmax=np.asscalar(np.nanmax(np.abs(magnetic_field_rel_difference))))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, zoom_factor=zoom_factor, ax_unit='au')
+        plot = Plot(self.model, self.parse_args,
+                    zoom_factor=zoom_factor, ax_unit='au')
         # Plot quantity to velocity map (optional extend='max', vmin=0., vmax=10.)
         plot.plot_imshow(abs_magnetic_field_rel_difference,
                          cbar_label=r'$|\Delta B_\mathsf{LOS}|/B_\mathsf{LOS}\ [\si{\percent}]$')
@@ -585,7 +657,8 @@ class CustomPlots:
         # Set that file_io reads data as unit/arcsec
         self.file_io.cmap_unit = 'px'
         # Read velocity channel data
-        tbldata, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         for i_x in range(header['nr_pixel_x']):
             for i_y in range(header['nr_pixel_y']):
                 # Visualize the line profiles with additional information as line plots
@@ -597,7 +670,8 @@ class CustomPlots:
                     plot = Plot(self.model, self.parse_args, ylabel='$I\ [\mathsf{Jy}]$', with_cbar=False,
                                 xlabel=r'$v\ [\si{\kilo\metre\per\second}]$', limits=[None, None, None, None])
                     velocity_channel = np.subtract(
-                        np.multiply(range(header['nr_channels']), 2. * header['max_velocity'] / header['nr_channels']),
+                        np.multiply(range(
+                            header['nr_channels']), 2. * header['max_velocity'] / header['nr_channels']),
                         header['max_velocity'])
                     plot.plot_line(xdata=velocity_channel, ydata=tbldata[0, :, i_x, i_y], marker='.', color='red',
                                    linestyle='-.', label=r'$I$')
@@ -607,7 +681,8 @@ class CustomPlots:
         """Plot schematic illustration of two Zeeman split spectral lines
         with either low or high magnetic field strengths.
         """
-        self.file_io.init_plot_output('derive_mag_field_spectrum_3', path=self.file_io.path['model'])
+        self.file_io.init_plot_output(
+            'derive_mag_field_spectrum_3', path=self.file_io.path['model'])
         for i_mag_field in range(2):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args, xlabel=r'$\mathsf{Frequency}$',
@@ -625,7 +700,8 @@ class CustomPlots:
                 tmp_ydata = np.add(tmp_ydata_pi.pdf(tmp_xdata),
                                    np.add(0.5 * tmp_ydata_sp.pdf(tmp_xdata),
                                           0.5 * tmp_ydata_sm.pdf(tmp_xdata)))
-                plot.plot_line(tmp_xdata, tmp_ydata, color='black', label=r'$I$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata, color='black',
+                               label=r'$I$', no_ticks=True)
             elif i_mag_field == 1:
                 # Create gauss curves
                 tmp_ydata_pi = norm(loc=0, scale=0.6)
@@ -634,16 +710,20 @@ class CustomPlots:
                 tmp_ydata = np.add(tmp_ydata_pi.pdf(tmp_xdata),
                                    np.add(0.5 * tmp_ydata_sp.pdf(tmp_xdata),
                                           0.5 * tmp_ydata_sm.pdf(tmp_xdata)))
-                plot.plot_line(tmp_xdata, tmp_ydata, color='gray', label=r'$I$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata, color='gray',
+                               label=r'$I$', no_ticks=True)
                 plot.plot_line(tmp_xdata, 0.5 * tmp_ydata_sp.pdf(tmp_xdata), color=plot.colorpalette[2],
                                label=r'$\sigma_+$',
                                no_ticks=True)
-                plot.plot_line(tmp_xdata, tmp_ydata_pi.pdf(tmp_xdata), color='#ff8000', label=r'$\pi$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata_pi.pdf(
+                    tmp_xdata), color='#ff8000', label=r'$\pi$', no_ticks=True)
                 plot.plot_line(tmp_xdata, 0.5 * tmp_ydata_sm.pdf(tmp_xdata), color=plot.colorpalette[0],
                                label=r'$\sigma_-$',
                                no_ticks=True)
-                plot.plot_double_arrow(arrow_origin=[-1.05, 0.38], arrow_offset=[1.1, 0.])
-                plot.plot_text(text_pos=[-0.5, 0.42], text=r'$\Delta\nu_\mathsf{z}$', color='black')
+                plot.plot_double_arrow(
+                    arrow_origin=[-1.05, 0.38], arrow_offset=[1.1, 0.])
+                plot.plot_text(
+                    text_pos=[-0.5, 0.42], text=r'$\Delta\nu_\mathsf{z}$', color='black')
 
             # Plot the legend
             plot.plot_legend()
@@ -654,7 +734,8 @@ class CustomPlots:
         """Plot schematic illustration of two Zeeman split spectral lines
         with either low or high magnetic field strengths.
         """
-        self.file_io.init_plot_output('derive_mag_field_spectrum_3_german', path=self.file_io.path['model'])
+        self.file_io.init_plot_output(
+            'derive_mag_field_spectrum_3_german', path=self.file_io.path['model'])
         for i_mag_field in range(2):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args, xlabel=r'$\mathsf{Frequenz}$', with_cbar=False,
@@ -672,7 +753,8 @@ class CustomPlots:
                 tmp_ydata = np.add(tmp_ydata_pi.pdf(tmp_xdata),
                                    np.add(0.5 * tmp_ydata_sp.pdf(tmp_xdata),
                                           0.5 * tmp_ydata_sm.pdf(tmp_xdata)))
-                plot.plot_line(tmp_xdata, tmp_ydata, color='black', label=r'$I$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata, color='black',
+                               label=r'$I$', no_ticks=True)
             elif i_mag_field == 1:
                 # Create gauss curves
                 tmp_ydata_pi = norm(loc=0, scale=0.6)
@@ -681,16 +763,20 @@ class CustomPlots:
                 tmp_ydata = np.add(tmp_ydata_pi.pdf(tmp_xdata),
                                    np.add(0.5 * tmp_ydata_sp.pdf(tmp_xdata),
                                           0.5 * tmp_ydata_sm.pdf(tmp_xdata)))
-                plot.plot_line(tmp_xdata, tmp_ydata, color='gray', label=r'$I$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata, color='gray',
+                               label=r'$I$', no_ticks=True)
                 plot.plot_line(tmp_xdata, 0.5 * tmp_ydata_sp.pdf(tmp_xdata), color=plot.colorpalette[2],
                                label=r'$\sigma_+$',
                                no_ticks=True)
-                plot.plot_line(tmp_xdata, tmp_ydata_pi.pdf(tmp_xdata), color='#ff8000', label=r'$\pi$', no_ticks=True)
+                plot.plot_line(tmp_xdata, tmp_ydata_pi.pdf(
+                    tmp_xdata), color='#ff8000', label=r'$\pi$', no_ticks=True)
                 plot.plot_line(tmp_xdata, 0.5 * tmp_ydata_sm.pdf(tmp_xdata), color=plot.colorpalette[0],
                                label=r'$\sigma_-$',
                                no_ticks=True)
-                plot.plot_double_arrow(arrow_origin=[-1.05, 0.38], arrow_offset=[1.1, 0.])
-                plot.plot_text(text_pos=[-0.5, 0.42], text=r'$\Delta\nu_\mathsf{z}$')
+                plot.plot_double_arrow(
+                    arrow_origin=[-1.05, 0.38], arrow_offset=[1.1, 0.])
+                plot.plot_text(text_pos=[-0.5, 0.42],
+                               text=r'$\Delta\nu_\mathsf{z}$')
 
             # Plot the legend
             plot.plot_legend()
@@ -705,24 +791,31 @@ class CustomPlots:
         from sys import stdout
         self.file_io.init_plot_output('mag_field_column_density')
         # Read velocity channel data
-        tbldata, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         # Get gas module
         gas_chooser = GasChooser(self.file_io, self.parse_args)
         gas = gas_chooser.get_module_from_name(header['species_name'])
         # Calculate velocity width of a channel
-        vel_channel_width = 2. * header['max_velocity'] / (header['nr_channels'] - 1)
+        vel_channel_width = 2. * \
+            header['max_velocity'] / (header['nr_channels'] - 1)
         # Initialise output arrays for the derived and reference magnetic field strength
-        derived_magnetic_field = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
-        reference_magnetic_field = np.zeros((header['nr_pixel_x'], header['nr_pixel_y']))
+        derived_magnetic_field = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
+        reference_magnetic_field = np.zeros(
+            (header['nr_pixel_x'], header['nr_pixel_y']))
         # Initialise data for column density and LOS magnetic field strength
-        column_density_xdata = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
-        derived_magnetic_field_ydata = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
-        reference_magnetic_field_ydata = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
+        column_density_xdata = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
+        derived_magnetic_field_ydata = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
+        reference_magnetic_field_ydata = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
         for i_x in range(header['nr_pixel_x']):
             for i_y in range(header['nr_pixel_y']):
                 stdout.write('--- Calculate magnetic field strength for each pixel: ' +
                              str(int(100. * (i_x * header['nr_pixel_y'] + i_y + 1) /
-                             (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
+                                     (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
                 stdout.flush()
                 # Calculate velocity shift by comparing I and V profiles
                 velocity_shift = self.math.velocity_shift_from_profile(
@@ -731,13 +824,17 @@ class CustomPlots:
                 derived_magnetic_field[i_x, i_y] = gas.shift_2_mag(velocity_shift, header['frequency'],
                                                                    header['i_transition']) * 1e10
                 # Channel number 0 contains the LOS magnetic field strength of the model
-                reference_magnetic_field[i_x, i_y] = tbldata[4, 0, i_x, i_y] * 1e10
+                reference_magnetic_field[i_x,
+                                         i_y] = tbldata[4, 0, i_x, i_y] * 1e10
                 # Channel number 2 contains the column density (convert to cm^-2)
                 column_density = tbldata[4, 2, i_x, i_y] * 1e-4
                 # mu = 2.8 to take He into account (Crutcher 2004)
-                column_density_xdata[i_x * header['nr_pixel_y'] + i_y] = column_density * 2.0 / 2.8
-                derived_magnetic_field_ydata[i_x * header['nr_pixel_y'] + i_y] = derived_magnetic_field[i_x, i_y]
-                reference_magnetic_field_ydata[i_x * header['nr_pixel_y'] + i_y] = reference_magnetic_field[i_x, i_y]
+                column_density_xdata[i_x * header['nr_pixel_y'] +
+                                     i_y] = column_density * 2.0 / 2.8
+                derived_magnetic_field_ydata[i_x * header['nr_pixel_y'] +
+                                             i_y] = derived_magnetic_field[i_x, i_y]
+                reference_magnetic_field_ydata[i_x * header['nr_pixel_y'] +
+                                               i_y] = reference_magnetic_field[i_x, i_y]
 
         def plot_mass_to_flux_line(_plot):
             tmp_xdata = np.logspace(18, 26)
@@ -749,9 +846,10 @@ class CustomPlots:
                 tmp_ydata.append(factor * tmp_xdata[i])
             _plot.plot_line(xdata=tmp_xdata, ydata=tmp_ydata,
                             label=r'$\left(\frac{B_\mathsf{LOS}}{\si{\micro G}}\right) = '
-                                  + str(round(factor * 1e21, 1)) + '\times 10^{-21} ' + r'\left(\frac{N_\mathsf{'
-                                                                                        r'H_2}}{\mathsf{cm^{'
-                                                                                        r'-2}}}\right)$',
+                                  + str(round(factor * 1e21, 1)) +
+                            '\times 10^{-21} ' + r'\left(\frac{N_\mathsf{'
+                            r'H_2}}{\mathsf{cm^{'
+                            r'-2}}}\right)$',
                             color=_plot.colorpalette[2],
                             linestyle='--', log='xy')
 
@@ -786,23 +884,28 @@ class CustomPlots:
         from sys import stdout
         self.file_io.init_plot_output('mag_field_total_to_los')
         # Read velocity channel data
-        tbldata, header = self.file_io.read_vel_maps('vel_channel_maps_species_0001_line_0001')
+        tbldata, header = self.file_io.read_vel_maps(
+            'vel_channel_maps_species_0001_line_0001')
         # Get gas module
         gas_chooser = GasChooser(self.file_io, self.parse_args)
         gas = gas_chooser.get_module_from_name(header['species_name'])
         # Calculate velocity width of a channel
-        vel_channel_width = 2. * header['max_velocity'] / (header['nr_channels'] - 1)
+        vel_channel_width = 2. * \
+            header['max_velocity'] / (header['nr_channels'] - 1)
         # Initialise output arrays for the derived and reference magnetic field strength
-        derived_magnetic_field = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
-        reference_magnetic_field = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
+        derived_magnetic_field = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
+        reference_magnetic_field = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
         # Initialise data for LOS and total magnetic field strengths
-        total_magnetic_field = np.zeros(header['nr_pixel_x'] * header['nr_pixel_y'])
+        total_magnetic_field = np.zeros(
+            header['nr_pixel_x'] * header['nr_pixel_y'])
         # Initialise data for LOS and total magnetic field strengths
         for i_x in range(header['nr_pixel_x']):
             for i_y in range(header['nr_pixel_y']):
                 stdout.write('--- Calculate magnetic field strength for each pixel: ' +
                              str(int(100. * (i_x * header['nr_pixel_y'] + i_y + 1) /
-                             (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
+                                     (header['nr_pixel_x'] * header['nr_pixel_y']))) + ' % \r')
                 stdout.flush()
                 # Calculate velocity shift by comparing I and V profiles
                 velocity_shift = self.math.velocity_shift_from_profile(
@@ -811,12 +914,16 @@ class CustomPlots:
                 derived_magnetic_field[i_x, i_y] = gas.shift_2_mag(velocity_shift, header['frequency'],
                                                                    header['i_transition']) * 1e10
                 # Channel number 0 contains the LOS magnetic field strength of the model
-                reference_magnetic_field[i_x * header['nr_pixel_y'] + i_y] = tbldata[4, 0, i_x, i_y] * 1e10
+                reference_magnetic_field[i_x * header['nr_pixel_y'] +
+                                         i_y] = tbldata[4, 0, i_x, i_y] * 1e10
                 # Channel number 1 contains the total magnetic field strength of the model
-                total_magnetic_field[i_x * header['nr_pixel_y'] + i_y] = tbldata[4, 1, i_x, i_y] * 1e10
+                total_magnetic_field[i_x * header['nr_pixel_y'] +
+                                     i_y] = tbldata[4, 1, i_x, i_y] * 1e10
 
-        mean_total_derived = np.asscalar(np.mean(np.divide(total_magnetic_field, derived_magnetic_field)))
-        mean_total_reference = np.asscalar(np.mean(np.divide(total_magnetic_field, reference_magnetic_field)))
+        mean_total_derived = np.asscalar(
+            np.mean(np.divide(total_magnetic_field, derived_magnetic_field)))
+        mean_total_reference = np.asscalar(
+            np.mean(np.divide(total_magnetic_field, reference_magnetic_field)))
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, extent=[0, 100, None, None], with_cbar=False,
@@ -846,17 +953,21 @@ class CustomPlots:
         """Plot schematic illustration of two Zeeman split spectral lines
         with either low or high magnetic field strengths.
         """
-        self.file_io.init_plot_output('derive_mag_field_spectrum_1', path=self.file_io.path['model'])
-        simulation_names = ['illustration_low_mag_field', 'illustration_very_high_mag_field']
+        self.file_io.init_plot_output(
+            'derive_mag_field_spectrum_1', path=self.file_io.path['model'])
+        simulation_names = ['illustration_low_mag_field',
+                            'illustration_very_high_mag_field']
         max_value = 1.
         for i_mag_field in range(2):
             # Create Matplotlib figure
             plot = Plot(self.model, self.parse_args, xlabel=r'$\mathsf{Frequency}$', ylabel=r'$\mathsf{Flux}$',
                         extent=[-3., 3., None, None], with_cbar=False)
             # Set paths of each simulation
-            self.file_io.set_path_from_str('plot', 'cube_test', simulation_names[i_mag_field], 'line')
+            self.file_io.set_path_from_str(
+                'plot', 'cube_test', simulation_names[i_mag_field], 'line')
             # Read spectrum data
-            tbldata = self.file_io.read_data_file('line_spectrum_species_0001_line_0002.det', skip_header=21)
+            tbldata = self.file_io.read_data_file(
+                'line_spectrum_species_0001_line_0002.det', skip_header=21)
             tmp_xdata = np.multiply(tbldata[:, 0], 1e-3)
             tmp_ydata = tbldata[:, 1]
             if i_mag_field == 0:
@@ -878,7 +989,8 @@ class CustomPlots:
                 tmp_ydata_sm = tmp_ydata_sp.copy()
 
                 n = len(tmp_ydata[:])
-                max_value_sigma = np.max(tbldata[:, 4]) / np.max(tmp_ydata[0:int(n / 2.5)])
+                max_value_sigma = np.max(
+                    tbldata[:, 4]) / np.max(tmp_ydata[0:int(n / 2.5)])
 
                 tmp_ydata_sp[np.where(tmp_ydata_sp < 0.)] = 0.
                 tmp_ydata_sp /= max_value_sigma
@@ -906,20 +1018,25 @@ class CustomPlots:
         """Plot schematic illustration of two Zeeman split spectral lines
         with either low or high magnetic field strengths.
         """
-        self.file_io.init_plot_output('derive_mag_field_spectrum_2', path=self.file_io.path['model'])
-        simulation_names = ['illustration_low_mag_field', 'illustration_high_mag_field']
+        self.file_io.init_plot_output(
+            'derive_mag_field_spectrum_2', path=self.file_io.path['model'])
+        simulation_names = ['illustration_low_mag_field',
+                            'illustration_high_mag_field']
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, with_cbar=False,
-                    xlabel=[r'$\mathsf{Geschwindigkeit}$', r'$\mathsf{Geschwindigkeit}$'],
+                    xlabel=[r'$\mathsf{Geschwindigkeit}$',
+                            r'$\mathsf{Geschwindigkeit}$'],
                     ylabel=[r'$\mathsf{Strahlungsfluss}$', r'$\mathsf{Strahlungsfluss}$'], nr_x_images=2, nr_y_images=2,
                     extent=[-2.5, 2.5, None, None], language='german')
 
         for i_mag_field in range(2):
             # Set paths of each simulation
-            self.file_io.set_path_from_str('plot', 'cube_test', simulation_names[i_mag_field], 'line')
+            self.file_io.set_path_from_str(
+                'plot', 'cube_test', simulation_names[i_mag_field], 'line')
             # Read spectrum data
-            tbldata = self.file_io.read_data_file('line_spectrum_species_0001_line_0001.det', skip_header=21)
+            tbldata = self.file_io.read_data_file(
+                'line_spectrum_species_0001_line_0001.det', skip_header=21)
 
             for i_quantity in range(0, 4, 3):
                 tmp_xdata = np.multiply(tbldata[:, 0], 1e-3)
@@ -967,9 +1084,11 @@ class CustomPlots:
                                            color=plot.colorpalette[2])
                 # Plot the legend
                 if int(i_quantity / 3) * 2 + i_mag_field in [0, 1]:
-                    plot.plot_legend(ax_index=int(i_quantity / 3) * 2 + i_mag_field, loc='upper right')
+                    plot.plot_legend(ax_index=int(i_quantity / 3)
+                                     * 2 + i_mag_field, loc='upper right')
                 else:
-                    plot.plot_legend(ax_index=int(i_quantity / 3) * 2 + i_mag_field)
+                    plot.plot_legend(ax_index=int(
+                        i_quantity / 3) * 2 + i_mag_field)
         plot.axarr[0].set_ylim([-0.25, 1.25])
         plot.axarr[1].set_ylim([-0.25, 1.25])
         # Save figure to pdf file or print it on screen
@@ -986,12 +1105,14 @@ class CustomPlots:
                 for zoom in [1]:
                     for subpixel in [0, 3]:
                         simulation_fits_filename = str(pixel) + '_pixel_' + str(subpixel) + '_subpixel_' \
-                                                   + str(theta) + '_theta_' + str(zoom) + '_zoom.fits'
+                            + str(theta) + '_theta_' + str(zoom) + '_zoom.fits'
                         # Read raytrace results from file
-                        raytrace_data, header = self.file_io.read_emission_map(simulation_fits_filename)
+                        raytrace_data, header = self.file_io.read_emission_map(
+                            simulation_fits_filename)
                         # Take data for current quantity
                         tbldata.append(raytrace_data[0, :, :])
-                    max_value.append(max(np.max(tbldata[-1]), np.max(tbldata[-2])))
+                    max_value.append(
+                        max(np.max(tbldata[-1]), np.max(tbldata[-2])))
                     tbldata.append(abs(np.subtract(tbldata[-1], tbldata[-2])))
                     # tbldata.append(abs(100. * np.divide(np.subtract(tbldata[-1], tbldata[-2]),
                     #                                     np.add(tbldata[-1], tbldata[-2]))))
@@ -1002,7 +1123,8 @@ class CustomPlots:
             if i_data % 3 == 2:
                 cbar_label = r'$\Delta$' + self.file_io.get_quantity_labels(0)
                 # r'$\Delta F/F\ [\si{\percent}]$'
-                plot.plot_imshow(tbldata[i_data], cbar_label=cbar_label, vmin=0, extend='neither')
+                plot.plot_imshow(
+                    tbldata[i_data], cbar_label=cbar_label, vmin=0, extend='neither')
             else:
                 cbar_label = self.file_io.get_quantity_labels(0)
                 plot.plot_imshow(tbldata[i_data], cbar_label=cbar_label, vmax=max_value[int(i_data / 3)], vmin=0.,
@@ -1017,22 +1139,27 @@ class CustomPlots:
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
         # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('polaris_mcfost_sed', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'polaris_mcfost_sed', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{I}\ [\si{Jy}]$', with_cbar=False)
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
         # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution
         # plot.plot_line(ray_header['wavelengths'], ray_data[0, :], log='xy', label=r'$\mathsf{POLARIS\ thermal\ emission}$')
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
         # Read raytrace results from file
-        mc_data, mc_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        mc_data, mc_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution (direct)
         # plot.plot_line(mc_header['wavelengths'], mc_data[6, :], log='xy', label=r'$\mathsf{POLARIS\ direct\ starlight}$')
         # Plot spectral energy distribution (scattered)
@@ -1045,11 +1172,13 @@ class CustomPlots:
             if i_wl - offset >= ray_header['nr_wavelengths']:
                 break
             elif i_wl >= mc_header['nr_wavelengths']:
-                wavelengths_total.append(ray_header['wavelengths'][i_wl - offset])
+                wavelengths_total.append(
+                    ray_header['wavelengths'][i_wl - offset])
                 quantity_total.append(ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
                 wavelengths_total.append(ray_header['wavelengths'][i_wl])
-                quantity_total.append(mc_data[0, i_wl] + ray_data[0, i_wl - offset])
+                quantity_total.append(
+                    mc_data[0, i_wl] + ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
                 offset += 1
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
@@ -1096,7 +1225,8 @@ class CustomPlots:
         # Plot the legend
         plot.plot_legend()
         # adapt limits
-        plot.set_limits(limits=[None, None, 1e-10, np.max(quantity_total) * 1e1])
+        plot.set_limits(limits=[None, None, 1e-10,
+                                np.max(quantity_total) * 1e1])
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -1107,15 +1237,18 @@ class CustomPlots:
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
         # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('polaris_mcfost_dust', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'polaris_mcfost_dust', path=self.file_io.path['simulation'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\mathit{\kappa}\ [\si{m^2/kg}]$', with_cbar=False)
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
         # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution
         # plot.plot_line(ray_header['wavelengths'], ray_data[0, :], log='xy', label=r'$\mathsf{POLARIS\ thermal\ emission}$')
 
@@ -1128,7 +1261,8 @@ class CustomPlots:
                        label=r'$\mathsf{MCFOST\ kappa}$')
 
         avg_grain_mass = 4.06951e-18  # 5.55238e-20
-        polaris_kappa = np.genfromtxt(self.file_io.path['results'] + 'dust_mixture.dat', skip_header=30)
+        polaris_kappa = np.genfromtxt(
+            self.file_io.path['results'] + 'dust_mixture.dat', skip_header=30)
         plot.plot_line(polaris_kappa[:, 0], polaris_kappa[:, 1] / avg_grain_mass, log='xy', linestyle='-',
                        label=r'$\mathsf{POLARIS\ kappa}$')
 
@@ -1143,9 +1277,11 @@ class CustomPlots:
         """Plot Raytrace or Monte-Carlo results as map from POLARIS simulations.
         """
         # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('gg_tau_planet_emission_map', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'gg_tau_planet_emission_map', path=self.file_io.path['simulation'])
         # Read raytrace results from file
-        map_data, header = self.file_io.read_emission_map('polaris_detector_nr0001')
+        map_data, header = self.file_io.read_emission_map(
+            'polaris_detector_nr0001')
         # Create one plot per component of the simulation
         if self.parse_args.simulation_type == 'dust':
             quantity_list = [0, 6]
@@ -1160,7 +1296,8 @@ class CustomPlots:
                 if wl not in [5.55047321e-06, 7.6522007e-06, 1.05497637e-05, 1.30681353e-05,
                               1.61876774e-05, 2.0051897e-05, 2.23172626e-05]:
                     continue
-                map_title = r'$\lambda=\SI{' + str(self.math.latex_float(wl * 1e6)) + '}{\micro\metre}$'
+                map_title = r'$\lambda=\SI{' + \
+                    str(self.math.latex_float(wl * 1e6)) + '}{\micro\metre}$'
                 # Take data for current quantity
                 tbldata = map_data[i_quantity, i_wl, :, :]
                 # skip zero content plots
@@ -1172,9 +1309,10 @@ class CustomPlots:
                 plot.plot_title(map_title)
                 if i_quantity == 0:
                     plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True, norm='LogNorm',
-                                 vmin=contrast_factor * np.max(tbldata), vmax=np.max(tbldata), extend='min')
+                                     vmin=contrast_factor * np.max(tbldata), vmax=np.max(tbldata), extend='min')
                 elif i_quantity == 6:
-                    plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True)
+                    plot.plot_imshow(
+                        tbldata, cbar_label=cbar_label, set_bad_to_min=True)
                 # Save figure to pdf file or print it on screen
                 plot.save_figure(self.file_io)
 
@@ -1192,20 +1330,27 @@ class CustomPlots:
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
         # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution
-        plot.plot_line(ray_header['wavelengths'], ray_data[i_quantity, :], label=r'$\mathsf{thermal\ emission}$')
+        plot.plot_line(ray_header['wavelengths'], ray_data[i_quantity,
+                                                           :], label=r'$\mathsf{thermal\ emission}$')
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
         # Read raytrace results from file
-        mc_data, mc_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        mc_data, mc_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution (direct)
-        plot.plot_line(mc_header['wavelengths'], mc_data[6, :], label=r'$\mathsf{direct\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[6, :],
+                       label=r'$\mathsf{direct\ starlight}$')
         # Plot spectral energy distribution (scattered)
-        plot.plot_line(mc_header['wavelengths'], mc_data[7, :], label=r'$\mathsf{scattered\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[7, :],
+                       label=r'$\mathsf{scattered\ starlight}$')
         wavelengths_total = []
         quantity_total = []
         offset = 0
@@ -1213,11 +1358,13 @@ class CustomPlots:
             if i_wl - offset >= ray_header['nr_wavelengths']:
                 break
             elif i_wl >= mc_header['nr_wavelengths']:
-                wavelengths_total.append(ray_header['wavelengths'][i_wl - offset])
+                wavelengths_total.append(
+                    ray_header['wavelengths'][i_wl - offset])
                 quantity_total.append(ray_data[i_quantity, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
-                quantity_total.append(mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
+                quantity_total.append(
+                    mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
                 offset += 1
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
@@ -1227,7 +1374,8 @@ class CustomPlots:
                        label=r'$\mathsf{total\ SED}$')
         # Fit SED with polfit
         from scipy.interpolate import interp1d
-        f = interp1d(np.array(wavelengths_total), np.array(quantity_total), kind='cubic')
+        f = interp1d(np.array(wavelengths_total),
+                     np.array(quantity_total), kind='cubic')
         wl_array = np.multiply(np.array([3.5, 4.5, 5.6, 7.7, 10.5]), 1e-6)
         x = np.linspace(wavelengths_total[0], wavelengths_total[-1], 100)
         plot.plot_line(x, f(x), linestyle=':')
@@ -1249,11 +1397,12 @@ class CustomPlots:
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         for i in [1, 6, 8]:
             sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr' +
-                str(i).zfill(4) + '_sed')
+                                                                 str(i).zfill(4) + '_sed')
             # Create pdf file if show_plot is not chosen
             self.file_io.init_plot_output('polaris_detector_compare_sed')
             # Plot spectral energy distribution
-            plot.plot_line(header['wavelengths'], sed_data[0, :], log='xy', marker='.')
+            plot.plot_line(header['wavelengths'],
+                           sed_data[0, :], log='xy', marker='.')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -1266,16 +1415,17 @@ class CustomPlots:
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=r'$\frac{\mathit{P}_\mathsf{l}}{\tau}\ [\%]$', with_cbar=False)
-        sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        sed_data, header, _ = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Create pdf file if show_plot is not chosen
         self.file_io.init_plot_output('polaris_detector_p_over_tau')
         # Plot spectral energy distribution
         p_over_l = np.divide(sed_data[5, :], sed_data[6, :])
         plot.plot_line(header['wavelengths'], p_over_l, log='xy', marker='.')
-        plot.plot_line([0.55e-6, 0.55e-6], [p_over_l.min(), p_over_l.max()], log='xy', marker='.')
+        plot.plot_line([0.55e-6, 0.55e-6], [p_over_l.min(),
+                                            p_over_l.max()], log='xy', marker='.')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
-
 
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
@@ -1297,12 +1447,14 @@ class CustomPlots:
         """Plot midplane data from POLARIS simulations (from MHD simulations).
         """
         # Set vector size to match with 2048 x 2048 pixel sized image
-        self.file_io.init_plot_output('talk_bordeaux_midplane_cuts', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'talk_bordeaux_midplane_cuts', path=self.file_io.path['simulation'])
         visualization_input_list = ['input_dust_number_density_xy']
         # For each item in visualization_input_list create a separate figure
         for visualization_input in visualization_input_list:
             # Read midplane data including a vector field
-            tbldata, header, vec_field_data = self.file_io.read_midplane_file(visualization_input)
+            tbldata, header, vec_field_data = self.file_io.read_midplane_file(
+                visualization_input)
             if tbldata is not None and vec_field_data is not None:
                 # Update the axes label to fit the axes used in the midplane file
                 if 'xy' in visualization_input:
@@ -1315,22 +1467,28 @@ class CustomPlots:
                     raise ValueError(
                         'The chosen midplane file has no valid cut through a plane (xy, xz, yz?)!')
                 # Create Matplotlib figure
-                plot = Plot(self.model, self.parse_args, label_plane=label_plane, ax_unit='au')
+                plot = Plot(self.model, self.parse_args,
+                            label_plane=label_plane, ax_unit='au')
                 # Limit data to reasonable values
                 tbldata[np.where(tbldata <= 1e-30)] = 0
                 # Plot midplane data depending on quantity derived from filename
-                self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data)
+                self.basic_plots.plot_midplane_map_base(
+                    visualization_input, plot, tbldata, vec_field_data)
                 # Load stellar source to get position of the binary stars
                 from modules.source import SourceChooser
-                stellar_source_chooser = SourceChooser(self.model, self.file_io, self.parse_args)
-                stellar_source = stellar_source_chooser.get_module_from_name('gg_tau_binary')
+                stellar_source_chooser = SourceChooser(
+                    self.model, self.file_io, self.parse_args)
+                stellar_source = stellar_source_chooser.get_module_from_name(
+                    'gg_tau_binary')
                 # Plot position of binary stars (with conversion from m to au)
                 stellar_source.tmp_parameter['position_star'][0] = np.divide(stellar_source.tmp_parameter['position_star'][0],
-                                                                        self.math.const['au'])
-                plot.plot_text(stellar_source.tmp_parameter['position_star'][0], r'$+$')
+                                                                             self.math.const['au'])
+                plot.plot_text(
+                    stellar_source.tmp_parameter['position_star'][0], r'$+$')
                 stellar_source.tmp_parameter['position_star'][1] = np.divide(stellar_source.tmp_parameter['position_star'][1],
-                                                                        self.math.const['au'])
-                plot.plot_text(stellar_source.tmp_parameter['position_star'][1], r'$+$')
+                                                                             self.math.const['au'])
+                plot.plot_text(
+                    stellar_source.tmp_parameter['position_star'][1], r'$+$')
                 # Save figure to pdf file or print it on screen
                 plot.save_figure(self.file_io)
 
@@ -1348,21 +1506,27 @@ class CustomPlots:
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
         # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution
         plot.plot_line(ray_header['wavelengths'], ray_data[i_quantity, :], log='y',
                        label=r'$\mathsf{thermal\ emission}$')
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
         # Read raytrace results from file
-        mc_data, mc_header = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        mc_data, mc_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Plot spectral energy distribution (direct)
-        plot.plot_line(mc_header['wavelengths'], mc_data[6, :], log='y', label=r'$\mathsf{direct\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[6, :],
+                       log='y', label=r'$\mathsf{direct\ starlight}$')
         # Plot spectral energy distribution (scattered)
-        plot.plot_line(mc_header['wavelengths'], mc_data[7, :], log='y', label=r'$\mathsf{scattered\ starlight}$')
+        plot.plot_line(mc_header['wavelengths'], mc_data[7, :],
+                       log='y', label=r'$\mathsf{scattered\ starlight}$')
         wavelengths_total = []
         quantity_total = []
         offset = 0
@@ -1370,11 +1534,13 @@ class CustomPlots:
             if i_wl - offset >= ray_header['nr_wavelengths']:
                 break
             elif i_wl >= mc_header['nr_wavelengths']:
-                wavelengths_total.append(ray_header['wavelengths'][i_wl - offset])
+                wavelengths_total.append(
+                    ray_header['wavelengths'][i_wl - offset])
                 quantity_total.append(ray_data[i_quantity, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
-                quantity_total.append(mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
+                quantity_total.append(
+                    mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
             elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
                 offset += 1
                 wavelengths_total.append(mc_header['wavelengths'][i_wl])
@@ -1384,10 +1550,12 @@ class CustomPlots:
                        label=r'$\mathsf{total\ SED}$')
 
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
         # Plot vizier data
         from astropy.io.votable import parse_single_table
-        table = parse_single_table(self.file_io.path['results'] + 'vizier_votable.vot')
+        table = parse_single_table(
+            self.file_io.path['results'] + 'vizier_votable.vot')
         data_flux = table.array['sed_flux']
         data_flux_error = table.array['sed_eflux'].filled(0)
         data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
@@ -1404,31 +1572,39 @@ class CustomPlots:
         """Plot zoom in midplane of density distribution of GG Tau disk
         """
         # Set paths of each simulation
-        self.file_io.set_path_from_str('plot', 'gg_tau_disk', 'three_disks', 'temp')
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', 'no_inclination', 'temp')
         # Set output filename
-        self.file_io.init_plot_output('zoom_in_gg_tau_disk', path=self.file_io.path['simulation'])
+        self.file_io.init_plot_output(
+            'zoom_in_gg_tau_disk', path=self.file_io.path['simulation'])
         # Set midplane type
         visualization_input = 'input_dust_mass_density_xy'
         # Read midplane data (main image)
-        [tbldata, vec_field_data], _, _ = self.file_io.read_midplane_file(visualization_input)
+        [tbldata, vec_field_data], _, _ = self.file_io.read_midplane_file(visualization_input,
+                                                                          filename='input_midplane_full.fits')
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, label_plane='xy', ax_unit='au', cmap_scaling=['log'])
+        plot = Plot(self.model, self.parse_args, label_plane='xy',
+                    ax_unit='au', cmap_scaling=['log'])
         # Plot midplane data depending on quantity derived from filename
-        self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data, 
-            vmin=1e-14, set_bad_to_min=True)
+        self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data,
+                                                vmin=1e-14, set_bad_to_min=True)
         # Read midplane data (zoomed image, changes extent of self.model)
-        [tbldata_zoom, vec_field_data_zoom], _, _ = self.file_io.read_midplane_file(visualization_input, filename='input_midplane_zoom.fits')
+        [tbldata_zoom, vec_field_data_zoom], _, _ = self.file_io.read_midplane_file(
+            visualization_input, filename='input_midplane_zoom.fits')
         # Create zoom plot (set model to provide extent of zoomed image)
-        plot.create_zoom_axis(model=self.model, zoom_factor=4)
+        plot.create_zoom_axis(model=self.model, zoom_factor=3.5)
         # Plot zoomed image
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata_zoom, vec_field_data_zoom,
-            ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True)
+                                                ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True)
         # Load stellar source to get position of the binary stars
         from modules.source import SourceChooser
-        stellar_source_chooser = SourceChooser(self.model, self.file_io, self.parse_args)
-        stellar_source = stellar_source_chooser.get_module_from_name('gg_tau_stars')
+        stellar_source_chooser = SourceChooser(
+            self.model, self.file_io, self.parse_args)
+        stellar_source = stellar_source_chooser.get_module_from_name(
+            'gg_tau_stars')
         # Plot position of binary stars (with conversion from m to au)
         for position in stellar_source.tmp_parameter['position_star']:
-            plot.plot_text(np.divide(position[0:2], self.math.const['au']), r'$\star$', ax_index=0, color='yellow', fontsize=8)
+            plot.plot_text(np.divide(
+                position[0:2], self.math.const['au']), r'$\boldsymbol{\star}$', ax_index=0, color='red', fontsize=8)
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)

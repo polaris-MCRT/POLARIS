@@ -50,7 +50,8 @@ class ModelChooser:
         if self.parse_args.model_name in self.model_dict.keys():
             model = self.model_dict[self.parse_args.model_name]()
         elif self.parse_args.model_name is not None:
-            raise ValueError('Model name not known! You can add a new model in model.py.')
+            raise ValueError(
+                'Model name not known! You can add a new model in model.py.')
         else:
             model = self.model_dict['default']()
         # Set user input variables
@@ -58,17 +59,22 @@ class ModelChooser:
             if self.parse_args.grid_type is not None:
                 model.parameter['grid_type'] = self.parse_args.grid_type
             if self.parse_args.gas_mass is not None:
-                model.parameter['gas_mass'] = self.math.parse(self.parse_args.gas_mass, 'mass')
+                model.parameter['gas_mass'] = self.math.parse(
+                    self.parse_args.gas_mass, 'mass')
             if self.parse_args.sidelength is not None:
-                model.octree_parameter['sidelength'] = self.math.parse(self.parse_args.sidelength, 'length')
+                model.octree_parameter['sidelength'] = self.math.parse(
+                    self.parse_args.sidelength, 'length')
             if self.parse_args.max_tree_level is not None:
                 model.octree_parameter['max_tree_level'] = self.parse_args.max_tree_level
             if self.parse_args.inner_radius is not None:
-                model.parameter['inner_radius'] = self.math.parse(self.parse_args.inner_radius, 'length')
+                model.parameter['inner_radius'] = self.math.parse(
+                    self.parse_args.inner_radius, 'length')
             if self.parse_args.outer_radius is not None:
-                model.parameter['outer_radius'] = self.math.parse(self.parse_args.outer_radius, 'length')
+                model.parameter['outer_radius'] = self.math.parse(
+                    self.parse_args.outer_radius, 'length')
             if self.parse_args.z_max is not None:
-                model.cylindrical_parameter['z_max'] = self.math.parse(self.parse_args.z_max, 'length')
+                model.cylindrical_parameter['z_max'] = self.math.parse(
+                    self.parse_args.z_max, 'length')
             if self.parse_args.n_r is not None:
                 model.spherical_parameter['n_r'] = self.parse_args.n_r
                 model.cylindrical_parameter['n_r'] = self.parse_args.n_r
@@ -95,7 +101,8 @@ class ModelChooser:
             model.update_parameter(self.parse_args.extra_parameter)
         # Set the grid extent if global extent is set
         if model.parameter['grid_type'] == 'octree' and model.parameter['outer_radius'] is not None:
-            model.octree_parameter['sidelength'] = 2. * model.parameter['outer_radius']
+            model.octree_parameter['sidelength'] = 2. * \
+                model.parameter['outer_radius']
         elif model.parameter['grid_type'] == 'spherical':
             if model.parameter['inner_radius'] is not None:
                 model.spherical_parameter['inner_radius'] = model.parameter['inner_radius']
@@ -124,10 +131,14 @@ class ModelChooser:
             model.tmp_parameter['radius_x_m'], 'arcsec', model.parameter['distance'])
         model.tmp_parameter['radius_y_arcsec'] = self.math.length_conv(
             model.tmp_parameter['radius_y_m'], 'arcsec', model.parameter['distance'])
-        model.tmp_parameter['radius_x_pc'] = self.math.length_conv(model.tmp_parameter['radius_x_m'], 'pc')
-        model.tmp_parameter['radius_y_pc'] = self.math.length_conv(model.tmp_parameter['radius_y_m'], 'pc')
-        model.tmp_parameter['radius_x_au'] = self.math.length_conv(model.tmp_parameter['radius_x_m'], 'au')
-        model.tmp_parameter['radius_y_au'] = self.math.length_conv(model.tmp_parameter['radius_y_m'], 'au')
+        model.tmp_parameter['radius_x_pc'] = self.math.length_conv(
+            model.tmp_parameter['radius_x_m'], 'pc')
+        model.tmp_parameter['radius_y_pc'] = self.math.length_conv(
+            model.tmp_parameter['radius_y_m'], 'pc')
+        model.tmp_parameter['radius_x_au'] = self.math.length_conv(
+            model.tmp_parameter['radius_x_m'], 'au')
+        model.tmp_parameter['radius_y_au'] = self.math.length_conv(
+            model.tmp_parameter['radius_y_m'], 'au')
         model.tmp_parameter['radius_x_ae'] = model.tmp_parameter['radius_x_au']
         model.tmp_parameter['radius_y_ae'] = model.tmp_parameter['radius_y_au']
         return model
@@ -174,7 +185,7 @@ class Disk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
-        self.parameter['ref_scale_height'] = 10.  * self.math.const['au']
+        self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
 
@@ -184,10 +195,12 @@ class Disk(Model):
         # Use extra parameter to vary the disk structure
         if extra_parameter is not None:
             if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(extra_parameter[1], 'length')
+                self.parameter['ref_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
+                self.parameter['ref_scale_height'] = self.math.parse(
+                    extra_parameter[1], 'length')
                 self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3])    
+                self.parameter['beta'] = float(extra_parameter[3])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -197,11 +210,11 @@ class Disk(Model):
             float: Gas density at a given position.
         """
         gas_density = self.math.default_disk_density(self.position,
-                inner_radius=self.parameter['inner_radius'],
-                outer_radius=self.parameter['outer_radius'],
-                ref_radius=self.parameter['ref_radius'], 
-                ref_scale_height=self.parameter['ref_scale_height'],
-                alpha=self.parameter['alpha'], beta=self.parameter['beta'])
+                                                     inner_radius=self.parameter['inner_radius'],
+                                                     outer_radius=self.parameter['outer_radius'],
+                                                     ref_radius=self.parameter['ref_radius'],
+                                                     ref_scale_height=self.parameter['ref_scale_height'],
+                                                     alpha=self.parameter['alpha'], beta=self.parameter['beta'])
         return gas_density
 
     def scale_height(self, radius):
@@ -214,11 +227,10 @@ class Disk(Model):
             float: Scale height.
         """
         scale_height = self.math.default_disk_scale_height(radius,
-            ref_radius=self.parameter['ref_radius'], 
-            ref_scale_height=self.parameter['ref_scale_height'],
-            beta=self.parameter['beta'])
+                                                           ref_radius=self.parameter['ref_radius'],
+                                                           ref_scale_height=self.parameter['ref_scale_height'],
+                                                           beta=self.parameter['beta'])
         return scale_height
-        
 
     def gas_temperature(self):
         """Calculates the gas temperature at a given position.
@@ -305,8 +317,8 @@ class Sphere(Model):
             float: Gas density at a given position.
         """
         gas_density = self.math.sphere_density(self.position,
-            outer_radius=self.parameter['outer_radius'],
-            inner_radius=self.parameter['inner_radius'])
+                                               outer_radius=self.parameter['outer_radius'],
+                                               inner_radius=self.parameter['inner_radius'])
         return gas_density
 
     def magnetic_field(self):
@@ -316,7 +328,8 @@ class Sphere(Model):
             List[float, float, float]: Magnetic field strength at the given
             position.
         """
-        magnetic_field = self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+        magnetic_field = self.math.simple_mag_field(
+            mag_field_strength=1e-10, axis='z')
         #magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
         return magnetic_field
 
@@ -339,7 +352,7 @@ class BokGlobule(Model):
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1.0 * self.math.const['au']
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
-        self.spherical_parameter['n_ph'] = 1#01
+        self.spherical_parameter['n_ph'] = 1  # 01
         self.octree_parameter['sidelength'] = 3e4 * self.math.const['au']
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
@@ -353,12 +366,13 @@ class BokGlobule(Model):
         """
         if self.parameter['grid_type'] == 'octree':
             gas_density = self.math.bonor_ebert_density(self.position,
-                outer_radius=0.5 * self.octree_parameter['sidelength'],
-                truncation_radius=1e3 * self.math.const['au'])
+                                                        outer_radius=0.5 *
+                                                        self.octree_parameter['sidelength'],
+                                                        truncation_radius=1e3 * self.math.const['au'])
         elif self.parameter['grid_type'] == 'spherical':
             gas_density = self.math.bonor_ebert_density(self.position,
-                outer_radius=self.spherical_parameter['outer_radius'],
-                truncation_radius=1e3 * self.math.const['au'])
+                                                        outer_radius=self.spherical_parameter['outer_radius'],
+                                                        truncation_radius=1e3 * self.math.const['au'])
         return gas_density
 
     def magnetic_field(self):
@@ -371,7 +385,8 @@ class BokGlobule(Model):
         #                                               rel_strength=0.3)
         # magnetic_field = self.math.disturbed_mag_field_2(
         # mag_field_strength=134e-10, main_axis='z', max_angle=20)
-        magnetic_field = self.math.simple_mag_field(mag_field_strength=134e-10, axis='z')
+        magnetic_field = self.math.simple_mag_field(
+            mag_field_strength=134e-10, axis='z')
         return magnetic_field
 
     def dust_temperature(self):

@@ -9,6 +9,8 @@ from modules.base import Model
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_model_dict(dictionary):
     model_dict = {
         'cube': Cube,
@@ -40,7 +42,7 @@ class CustomModel(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100.0 * self.math.const['au']
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
-        # Define which other choise are default for this model
+        # Define which other choice are default for this model
         self.parameter['background_source'] = 'bg_plane'
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
@@ -48,11 +50,10 @@ class CustomModel(Model):
         self.parameter['detector'] = 'cartesian'
 
     def update_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters and update 
+        """Use this function to set model parameter with the extra parameters and update
         disk parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file
-
 
     def gas_density_distribution(self):
         """Define here your routine to calculate the density at a given position
@@ -63,7 +64,8 @@ class CustomModel(Model):
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
-                dust_temperature(self), velocity_field(self), magnetic_field(self),
+                dust_temperature(self), velocity_field(
+                    self), magnetic_field(self),
                 dust_id(self), dust_min_size(self), dust_max_size(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
@@ -93,8 +95,10 @@ class Cube(Model):
 
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
-        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']  # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['outer_radius'] = 100.0 * self.math.const['au']  # 0.5 * self.math.const['au']
+        # 2.8e-14 * self.math.const['M_sun']
+        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
+        self.parameter['outer_radius'] = 100.0 * \
+            self.math.const['au']  # 0.5 * self.math.const['au']
         self.parameter['stellar_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
@@ -123,10 +127,11 @@ class Cube(Model):
         Returns:
             float: Gas density at a given position.
         """
-        #gas_density = self.math.bonor_ebert_density(self.position, outer_radius=self.parameter['outer_radius'],
+        # gas_density = self.math.bonor_ebert_density(self.position, outer_radius=self.parameter['outer_radius'],
         #                                        truncation_radius=1 * self.math.const['au'])
-        gas_density = self.math.random_density_distribution(self.position, d_exp=2)
-        #gas_density = 1.0
+        gas_density = self.math.random_density_distribution(
+            self.position, d_exp=2)
+        # gas_density = 1.0
         return gas_density
 
     def magnetic_field(self):
@@ -137,6 +142,7 @@ class Cube(Model):
             position.
         """
         return self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+
 
 class Galaxy(Model):
     """A galaxy model.
@@ -179,7 +185,7 @@ class TestModel(Model):
         self.spherical_parameter['n_th'] = 91
         self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
-        #self.parameter['gas_mass'] = [[1.22138e-07 * self.math.const['M_sun']],
+        # self.parameter['gas_mass'] = [[1.22138e-07 * self.math.const['M_sun']],
         #                              [8.77862e-07 * self.math.const['M_sun']]]
         self.parameter['gas_mass'] = [[1e-6 * self.math.const['M_sun']],
                                       [1e-5 * self.math.const['M_sun']]]
@@ -196,12 +202,13 @@ class TestModel(Model):
             float: Gas density at a given position.
         """
         gas_density1 = self.math.sphere_density(self.position,
-            inner_radius=self.parameter['inner_radius'],
-            outer_radius=self.parameter['outer_radius'])
-        gas_density2 = self.math.sphere_density(self.position,
-            inner_radius=100. * self.parameter['inner_radius'],
-            outer_radius=self.parameter['outer_radius'])
-        #return [[gas_density1], [gas_density2]]
+                                                inner_radius=self.parameter['inner_radius'],
+                                                outer_radius=self.parameter['outer_radius'])
+        # gas_density2 = self.math.sphere_density(self.position,
+        #                                         inner_radius=100. *
+        #                                         self.parameter['inner_radius'],
+        #                                         outer_radius=self.parameter['outer_radius'])
+        # return [[gas_density1], [gas_density2]]
         if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
             return [[gas_density1], [0]]
         else:
@@ -259,7 +266,7 @@ class Filament(Model):
         self.parameter['outer_radius'] = 10 * self.math.const['pc']
         self.parameter['gas_mass'] = 100.0 * self.math.const['M_sun']
         self.parameter['detector'] = 'cartesian'
-        #self.parameter['stellar_source'] = 't_tauri'
+        # self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -269,9 +276,8 @@ class Filament(Model):
         Returns:
             float: Gas density at a given position.
         """
-        density = np.exp(-abs(self.position[0]) / self.math.const['pc']) 
+        density = np.exp(-abs(self.position[0]) / self.math.const['pc'])
         return density
-
 
 
 class MhdFlock(Model):
@@ -325,44 +331,74 @@ class GGTauDisk(Model):
         # ----------------------------------------------
         # ------ Set parameters of the disk model ------
         # ----------------------------------------------
+        # Cite: distance (Bertout et al. 1999)
         self.parameter['distance'] = 140. * self.math.const['pc']
         self.parameter['grid_type'] = 'cylindrical'
         # ------ With circumstellar disks -----
-        self.parameter['gas_mass'] = np.array([[1.e-3, 1.e-5, 1.e-5, 1.3e-1]]) * self.math.const['M_sun']
+        self.parameter['gas_mass'] = np.array(
+            [[1.e-3, 1.e-5, 1.e-5, 1.3e-1]]) * self.math.const['M_sun']
         # ---- Without circumstellar disks ----
-        #self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
+        # self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
         # -------------------------------------
         self.parameter['stellar_source'] = 'gg_tau_stars'
+        # Cite: larger grains in cb disk (McCabe et al. 2002)
         self.parameter['dust_composition'] = 'multi_sil'
         self.parameter['detector'] = 'gg_tau'
         self.parameter['variable_dust'] = True
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
+        self.parameter['outer_radius'] = 280. * self.math.const['au']
         # ------ With circumstellar disks -----
-        self.parameter['inner_radius'] = 10. * self.math.const['au']
+        self.parameter['inner_radius'] = 15. * self.math.const['au']
         # ---- Without circumstellar disks ----
-        #self.parameter['inner_radius'] = 180. * self.math.const['au'] 
+        # self.parameter['inner_radius'] = 180. * self.math.const['au']
         # -------------------------------------
         # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab12 = self.angle_Aa + np.pi
         # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
-        self.a_Aab = 36. / 2. * self.math.const['au']
-        self.a_Ab12 = 4.5 / 2. * self.math.const['au']
+        # Cite: separation Aa and Ab (White et al. 1999)
+        self.a_Aab = 44. / 2. * self.math.const['au']
+        self.a_Ab12 = 5. / 2. * self.math.const['au']
         # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
-        self.inclination_Aa = 30.0 / 180. * np.pi
-        self.inclination_Ab12 = 30.0 / 180. * np.pi
-        self.inclination_rotation_axis = [1, 0, 0]
+        self.inclination_Aa = 0 / 180. * np.pi
+        self.inclination_Ab12 = 0 / 180. * np.pi
+        self.inclination_rotation_axis = [
+            np.cos(25 / 180. * np.pi),
+            np.sin(25 / 180. * np.pi),
+            0
+        ]
+        # Vertical shift of the disks
+        self.vertical_shift_Aa = 0
+        self.vertical_shift_Ab12 = 0
+
+        # ------ Conversion of position angles -----
+        # pos = [
+        #     np.sin(-25 / 180. * np.pi),
+        #     np.cos(-24.9 / 180. * np.pi),
+        #     0
+        # ]
+        # rot_pos = self.math.rotate_coord_system(pos,
+        #     rotation_axis=[
+        #         np.sin(277. / 180. * np.pi),
+        #         np.cos(277. / 180. * np.pi),
+        #         0
+        #     ],
+        #     rotation_angle=37. / 180. * np.pi)
+        # print(np.arctan2(rot_pos[0], rot_pos[1]) / np.pi  * 180.)
+
         # Extend of the circumstellar disks around the stars
         self.inner_radius = 0.15 * self.math.const['au']
         self.outer_radius_Aa = 7. * self.math.const['au']
         self.outer_radius_Ab12 = 2. * self.math.const['au']
         # Parameter of the circumbinary disk
-        self.ref_scale_height = 20. * self.math.const['au']  # 32. * self.math.const['au']
+        # Cite: scale height (McCabe et al. 2002)
+        # Range: 16 AU, 21 AU, 26 AU, 31 AU
+        self.ref_scale_height = 21. * self.math.const['au']
         self.ref_radius = 180. * self.math.const['au']
         self.beta = 1.05
         self.surf_dens_exp = -1.7
@@ -372,25 +408,48 @@ class GGTauDisk(Model):
         # ----------------------------------------------
         self.cylindrical_parameter['n_z'] = 251
         self.cylindrical_parameter['sf_r'] = 0  # Custom radial cell borders
-        self.cylindrical_parameter['sf_ph'] = -1  # Custom number of phi-cells per ring
-        self.cylindrical_parameter['sf_z'] = -1  # Custom width of z-cell borders per ring
+        # Custom number of phi-cells per ring
+        self.cylindrical_parameter['sf_ph'] = -1
+        # Custom width of z-cell borders per ring
+        self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
-        r_list_cs_disks = np.linspace(10., 25., 150)
-        r_list_cb_disk = self.math.exp_list(180., 300., 50, 1.03)
+        r_list_cs_disks = np.linspace(15., 30., 150)
+        r_list_cb_disk = self.math.exp_list(180., 280., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         # ------ With circumstellar disks -----
-        self.cylindrical_parameter['radius_list'] = np.multiply(full_r_list, self.math.const['au'])
+        self.cylindrical_parameter['radius_list'] = np.multiply(
+            full_r_list, self.math.const['au'])
         # ---- Without circumstellar disks ----
-        #self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
+        # self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
         # -------------------------------------
         # Phi cells
         n_ph_list_1 = [600] * 150
         n_ph_list_2 = [180] * 51
         # ------ With circumstellar disks -----
-        self.cylindrical_parameter['n_ph'] = np.hstack((n_ph_list_1, n_ph_list_2)).ravel()
+        self.cylindrical_parameter['n_ph'] = np.hstack(
+            (n_ph_list_1, n_ph_list_2)).ravel()
         # ---- Without circumstellar disks ----
-        #self.cylindrical_parameter['n_ph'] = n_ph_list_2
+        # self.cylindrical_parameter['n_ph'] = n_ph_list_2
         # -------------------------------------
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 2:
+                # Range: 16 AU, 21 AU, 26 AU, 31 AU
+                self.ref_scale_height = float(
+                    extra_parameter[0]) * self.math.const['au']
+                # self.inclination_Aa = -float(extra_parameter[1]) / 180. * np.pi
+                # self.inclination_Ab12 = - \
+                #    float(extra_parameter[1]) / 180. * np.pi
+                self.vertical_shift_Aa = float(
+                    extra_parameter[1]) * self.math.const['au']
+                self.vertical_shift_Ab12 = -float(
+                    extra_parameter[1]) * self.math.const['au']
+            else:
+                raise ValueError('Wrong number of extra parameters!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -405,53 +464,54 @@ class GGTauDisk(Model):
         if self.a_Aab - self.outer_radius_Aa <= radius_cy <= self.a_Aab + self.outer_radius_Aa:
             # Add inclination
             pos_Aa = self.math.rotate_coord_system([
-                    self.position[0], 
-                    self.position[1] - self.a_Aab * np.sin(self.angle_Aa), 
-                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
+                self.position[0],
+                self.position[1] - self.a_Aab * np.sin(self.angle_Aa),
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Aa
+            ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
-                inner_radius=self.inner_radius)
+                                                             inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disk
             disk_density_Aa = 0.
 
         # --- GG Tau Ab1 and Ab2
-        if self.a_Aab - self.a_Ab12 - self.outer_radius_Ab12 <= radius_cy <=  self.a_Aab + self.a_Ab12 + self.outer_radius_Ab12:
+        if self.a_Aab - self.a_Ab12 - self.outer_radius_Ab12 <= radius_cy <= self.a_Aab + self.a_Ab12 + self.outer_radius_Ab12:
             # --- GG Tau Ab1
             # Add inclination
             pos_Ab1 = self.math.rotate_coord_system([
-                    self.position[0] + self.a_Ab12, 
-                    self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
-                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
+                self.position[0] + self.a_Ab12,
+                self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
+            ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius)
+                                                              inner_radius=self.inner_radius)
 
             # --- GG Tau Ab2
             # Add inclination
             pos_Ab2 = self.math.rotate_coord_system([
-                    self.position[0] - self.a_Ab12, 
-                    self.position[1] - self.a_Aab * np.sin(self.angle_Ab12), 
-                    self.position[2] + self.a_Aab * np.sin(self.orbit_inclination)
-                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
+                self.position[0] - self.a_Ab12,
+                self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
+                self.position[2] + self.a_Aab * np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
+            ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
             # Calculate the density
             disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
-                inner_radius=self.inner_radius)
+                                                              inner_radius=self.inner_radius)
         else:
             # Set to zero outside of the disks
             disk_density_Ab1 = 0.
-            disk_density_Ab2 = 0.  
+            disk_density_Ab2 = 0.
 
-        if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
+        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
             # Calculate the density
             disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
-                inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height,
-                ref_radius=self.ref_radius, surface_dens_exp=self.surf_dens_exp, beta=self.beta)
+                                                          inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height,
+                                                          ref_radius=self.ref_radius, surface_dens_exp=self.surf_dens_exp, beta=self.beta)
             # Add exponential decay ath the inner border
             if radius_cy < 190. * self.math.const['au']:
-                disk_density *= np.exp(-0.5 * ((190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
+                disk_density *= np.exp(-0.5 * (
+                    (190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
         else:
             # Set to zero outside of the disk
             disk_density = 0.
@@ -460,7 +520,7 @@ class GGTauDisk(Model):
         # ------ With circumstellar disks -----
         return [[disk_density_Aa, disk_density_Ab1, disk_density_Ab2, disk_density]]
         # ---- Without circumstellar disks ----
-        #return disk_density
+        # return disk_density
         # -------------------------------------
 
     def dust_id(self):
@@ -474,7 +534,7 @@ class GGTauDisk(Model):
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
 
-        if 180. * self.math.const['au'] <= radius_cy <=  260. * self.math.const['au']:
+        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
             dust_id = 1
         else:
             dust_id = 0
@@ -490,11 +550,10 @@ class GGTauDisk(Model):
             float: Scale height.
         """
         if(radius <= self.a_Aab + self.outer_radius_Aa):
-            scale_height = 0.3 * self.math.const['au']
+            scale_height = 2.0 * self.math.const['au']
         else:
-            scale_height = self.math.default_disk_scale_height(radius,
-                ref_radius=180. * self.math.const['au'], 
-                ref_scale_height=32. * self.math.const['au'], beta=self.beta)
+            scale_height = self.math.default_disk_scale_height(
+                radius, ref_radius=self.ref_radius, ref_scale_height=self.ref_scale_height, beta=self.beta)
         return scale_height
 
 
@@ -522,7 +581,7 @@ class HD97048(Model):
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 0
         self.cylindrical_parameter['radius_list'] = np.logspace(
-            np.log10(self.parameter['inner_radius']), 
+            np.log10(self.parameter['inner_radius']),
             np.log10(self.parameter['outer_radius']),
             self.cylindrical_parameter['n_r']
         )
@@ -537,31 +596,32 @@ class HD97048(Model):
         # Use multiple dust compositionas depending on the region in the grid
         self.parameter['variable_dust'] = True
         self.use_cont = False
-        
+
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use the continuum or ring version of the model and set PAH to silicate ration
         if len(extra_parameter) == 1:
             self.use_cont = bool(int(extra_parameter[0]))
-            
+
         # Radial cell border list
-        list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']), 
-            np.log10(2.6 * self.math.const['au']), 50)
+        # list_inner_disk = np.logspace(np.log10(0.3 * self.math.const['au']),
+        #                              np.log10(2.6 * self.math.const['au']), 50)
 
         # Set the gas density
         if self.use_cont:
             self.parameter['gas_mass'] = np.array([
-                    [1e-4, 4e-3, 5e-3, 1e-1, 0], 
-                    [0, 0, 0, 0, 0.2 * 1e-3],
-                    [0, 0, 0, 0, 0.8 * 1e-3]
-                ]) * self.math.const['M_sun']
+                [1e-4, 4e-3, 5e-3, 1e-1, 0],
+                [0, 0, 0, 0, 0.2 * 1e-3],
+                [0, 0, 0, 0, 0.8 * 1e-3]
+            ]) * self.math.const['M_sun']
         else:
             mf_pah = 1e-3
             self.parameter['gas_mass'] = np.array([
-                    [1e-4, (1 - mf_pah) * 4e-3, (1 - mf_pah) * 5e-3, (1 - mf_pah) * 1e-1], 
-                    [0, mf_pah * 4e-3, mf_pah * 5e-3, mf_pah * 1e-1]
-                ]) * self.math.const['M_sun']
+                [1e-4, (1 - mf_pah) * 4e-3, (1 - mf_pah)
+                 * 5e-3, (1 - mf_pah) * 1e-1],
+                [0, mf_pah * 4e-3, mf_pah * 5e-3, mf_pah * 1e-1]
+            ]) * self.math.const['M_sun']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -574,11 +634,14 @@ class HD97048(Model):
         real_zero = True
         # INNER DISK
         inner_disk = self.math.default_disk_density(self.position,
-            beta=1.0, surface_dens_exp=-1.0,
-            inner_radius=0.3 * self.math.const['au'],
-            outer_radius=2.6 * self.math.const['au'], 
-            ref_scale_height=5. * self.math.const['au'], 
-            ref_radius=100. * self.math.const['au'], real_zero=real_zero)
+                                                    beta=1.0, surface_dens_exp=-1.0,
+                                                    inner_radius=0.3 *
+                                                    self.math.const['au'],
+                                                    outer_radius=2.6 *
+                                                    self.math.const['au'],
+                                                    ref_scale_height=5. *
+                                                    self.math.const['au'],
+                                                    ref_radius=100. * self.math.const['au'], real_zero=real_zero)
         # RINGS
         beta = 1.26
         surf_dens_exp = -0.5
@@ -586,32 +649,40 @@ class HD97048(Model):
         ref_scale_height = 12. * self.math.const['au']
         # RING #1
         ring_1 = self.math.default_disk_density(self.position,
-            beta=beta, surface_dens_exp=surf_dens_exp,
-            inner_radius=41. * self.math.const['au'],
-            outer_radius=51. * self.math.const['au'],
-            ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
+                                                beta=beta, surface_dens_exp=surf_dens_exp,
+                                                inner_radius=41. *
+                                                self.math.const['au'],
+                                                outer_radius=51. *
+                                                self.math.const['au'],
+                                                ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
         # RING #2
         ring_2 = self.math.default_disk_density(self.position,
-            beta=beta, surface_dens_exp=surf_dens_exp,
-            inner_radius=155. * self.math.const['au'],
-            outer_radius=165. * self.math.const['au'],
-            ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
+                                                beta=beta, surface_dens_exp=surf_dens_exp,
+                                                inner_radius=155. *
+                                                self.math.const['au'],
+                                                outer_radius=165. *
+                                                self.math.const['au'],
+                                                ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
         # RING #3
         ring_3 = self.math.default_disk_density(self.position,
-            beta=beta, surface_dens_exp=surf_dens_exp, tappered_gamma=-0.0,
-            inner_radius=269. * self.math.const['au'],
-            outer_radius=400. * self.math.const['au'],
-            ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
+                                                beta=beta, surface_dens_exp=surf_dens_exp, tappered_gamma=-0.0,
+                                                inner_radius=269. *
+                                                self.math.const['au'],
+                                                outer_radius=400. *
+                                                self.math.const['au'],
+                                                ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
         # PAH continuum
         if self.use_cont:
             pah_cont = self.math.default_disk_density(self.position,
-                beta=beta, surface_dens_exp=surf_dens_exp,
-                inner_radius=41 * self.math.const['au'],
-                outer_radius=400 * self.math.const['au'], 
-                ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
-            return [[inner_disk, ring_1, ring_2, ring_3, 0], 
+                                                      beta=beta, surface_dens_exp=surf_dens_exp,
+                                                      inner_radius=41 *
+                                                      self.math.const['au'],
+                                                      outer_radius=400 *
+                                                      self.math.const['au'],
+                                                      ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
+            return [[inner_disk, ring_1, ring_2, ring_3, 0],
                     [0, 0, 0, 0, pah_cont],
-                    [0, 0, 0, 0, pah_cont],]
+                    [0, 0, 0, 0, pah_cont], ]
         return [[inner_disk, ring_1, ring_2, ring_3], [0, ring_1, ring_2, ring_3]]
 
     def scale_height(self, radius):
@@ -625,12 +696,14 @@ class HD97048(Model):
         """
         if(0.3 * self.math.const['au'] <= radius <= 2.6 * self.math.const['au']):
             scale_height = self.math.default_disk_scale_height(radius,
-                ref_radius=100. * self.math.const['au'], 
-                ref_scale_height=5. * self.math.const['au'], beta=1.)
+                                                               ref_radius=100. *
+                                                               self.math.const['au'],
+                                                               ref_scale_height=5. * self.math.const['au'], beta=1.)
         else:
             scale_height = self.math.default_disk_scale_height(radius,
-                ref_radius=100. * self.math.const['au'], 
-                ref_scale_height=12. * self.math.const['au'], beta=1.26)
+                                                               ref_radius=100. *
+                                                               self.math.const['au'],
+                                                               ref_scale_height=12. * self.math.const['au'], beta=1.26)
         return scale_height
 
 
@@ -650,28 +723,23 @@ class ThemisDisk(Model):
         #: Set parameters of the disk model
         self.parameter['distance'] = 109.0 * self.math.const['pc']
         # --- Adjusted for the 1. thomas model ---
-        self.parameter['gas_mass'] = np.array([[0.17e-03], [0.63e-04], [0.255e-03], [0.255e-03]]) 
+        self.parameter['gas_mass'] = np.array(
+            [[0.17e-03], [0.63e-04], [0.255e-03], [0.255e-03]])
         # ---
         # Calc mass_Fraction out of themis density
-        self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+        self.parameter['gas_mass'] *= 1e-2 * \
+            self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'])
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['inner_radius'] = 0.1 * self.math.const['au']
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        self.parameter['inner_radius'] = 0.2 * self.math.const['au']
+        self.parameter['outer_radius'] = 350. * self.math.const['au']
         # Define the used sources, dust composition and gas species
         self.parameter['stellar_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'themis'
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
-        # In the case of a spherical grid
-        self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 181
-        self.spherical_parameter['n_ph'] = 1
-        self.spherical_parameter['sf_r'] = 1.03
-        # sf_th = 1 is sinus; sf_th > 1 is exp with step width sf_th; rest is linear
-        self.spherical_parameter['sf_th'] = 1.0
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 100
-        self.cylindrical_parameter['n_z'] = 181
+        self.cylindrical_parameter['n_z'] = 142
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = 1.03
         # sf_z = -1 is using scale height; sf_z = 1 is sinus;
@@ -679,11 +747,13 @@ class ThemisDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
-        self.parameter['ref_scale_height'] = 10.  * self.math.const['au']
+        self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
         # Enable multiple density distributions
         self.parameter['variable_dust'] = True
+        # Init new parameter
+        self.parameter['model_number'] = 0
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -691,22 +761,36 @@ class ThemisDisk(Model):
         # Use extra parameter to vary the disk structure
         if extra_parameter is not None:
             if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(extra_parameter[1], 'length')
+                self.parameter['ref_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
+                self.parameter['ref_scale_height'] = self.math.parse(
+                    extra_parameter[1], 'length')
                 self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3]) 
-            # Change mass ratios depending on the chosen model
-            if len(extra_parameter) == 1:
-                model_number = int(extra_parameter[0])
-                if model_number == 1:
-                    self.parameter['gas_mass'] = np.array([[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3]]) 
-                elif model_number == 2:
-                    self.parameter['gas_mass'] = np.array([[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]]) 
-                elif model_number == 3:
-                    self.parameter['gas_mass'] = np.array([[0.8e-4], [0.63e-3], [0.255e-2], [0.255e-2]]) 
-                self.parameter['mass_fraction'] = self.parameter['gas_mass'].sum()
+                self.parameter['beta'] = float(extra_parameter[3])
+            elif len(extra_parameter) == 1:
+                # Change mass ratios depending on the chosen model
+                self.parameter['model_number'] = int(extra_parameter[0])
+                if self.parameter['model_number'] == 1:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3]])
+                elif self.parameter['model_number'] == 2:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-4], [0.63e-4], [0.255e-3], [0.255e-3]])
+                elif self.parameter['model_number'] == 3:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.8e-4], [0.63e-3], [0.255e-2], [0.255e-2]])
+                elif self.parameter['model_number'] in [4, 5]:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
+                    if self.parameter['model_number'] == 5:
+                        self.tmp_parameter['ignored_gas_density'] = np.zeros(
+                            (4, 1))
+                self.parameter['mass_fraction'] = np.sum(
+                    self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
-                self.parameter['gas_mass'] *= 1e-2 * self.math.const['M_sun'] / self.parameter['gas_mass'].sum()
+                self.parameter['gas_mass'] *= 1e-2 * \
+                    self.math.const['M_sun'] / \
+                    np.sum(self.parameter['gas_mass'])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -716,12 +800,26 @@ class ThemisDisk(Model):
             float: Gas density at a given position.
         """
         gas_density = self.math.default_disk_density(self.position,
-                inner_radius=self.parameter['inner_radius'],
-                outer_radius=self.parameter['outer_radius'],
-                ref_radius=self.parameter['ref_radius'], 
-                ref_scale_height=self.parameter['ref_scale_height'],
-                alpha=self.parameter['alpha'], beta=self.parameter['beta'])
-        return np.ones((4, 1)) * gas_density
+                                                     inner_radius=self.parameter['inner_radius'],
+                                                     outer_radius=self.parameter['outer_radius'],
+                                                     ref_radius=self.parameter['ref_radius'],
+                                                     ref_scale_height=self.parameter['ref_scale_height'],
+                                                     alpha=self.parameter['alpha'], beta=self.parameter['beta'])
+        density_list = np.ones((4, 1)) * gas_density
+        if self.parameter['model_number'] == 5:
+            # Calculate cylindrical radius
+            radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+
+            # Set density of larger grains to zero to create a gap
+            if 5 * self.math.const['au'] <= radius_cy <= 20 * self.math.const['au']:
+                # Add negatively to take it into account for normalization
+                # Same as material which was in a disk with the total disk mass but is
+                # for instance accreted on a planet or star
+                self.tmp_parameter['ignored_gas_density'][1:,
+                                                          0] -= density_list[1:, 0] * self.volume
+                density_list[1:, 0] = 0.
+
+        return density_list
 
     def scale_height(self, radius):
         """Calculates the scale height at a certain position.
@@ -733,9 +831,9 @@ class ThemisDisk(Model):
             float: Scale height.
         """
         scale_height = self.math.default_disk_scale_height(radius,
-            ref_radius=self.parameter['ref_radius'], 
-            ref_scale_height=self.parameter['ref_scale_height'],
-            beta=self.parameter['beta'])
+                                                           ref_radius=self.parameter['ref_radius'],
+                                                           ref_scale_height=self.parameter['ref_scale_height'],
+                                                           beta=self.parameter['beta'])
         return scale_height
 
 
@@ -754,7 +852,8 @@ class MultiDisk(Model):
 
         #: Set parameters of the disk model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
-        self.parameter['gas_mass'] = np.array([[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
+        self.parameter['gas_mass'] = np.array(
+            [[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1. * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
@@ -779,7 +878,7 @@ class MultiDisk(Model):
         self.cylindrical_parameter['sf_z'] = 1.0
         # Default disk parameter
         self.ref_radius = 100. * self.math.const['au']
-        self.ref_scale_height = 10.  * self.math.const['au']
+        self.ref_scale_height = 10. * self.math.const['au']
         self.parameter['variable_dust'] = True
 
     def gas_density_distribution(self):
@@ -790,6 +889,6 @@ class MultiDisk(Model):
             float: Gas density at a given position.
         """
         gas_density = self.math.default_disk_density(self.position,
-                inner_radius=self.parameter['inner_radius'],
-                outer_radius=self.parameter['outer_radius'])
+                                                     inner_radius=self.parameter['inner_radius'],
+                                                     outer_radius=self.parameter['outer_radius'])
         return [[gas_density], [gas_density]]

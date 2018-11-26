@@ -132,6 +132,8 @@ public:
         rot_angle1 = 0;
         rot_angle2 = 0;
 
+        nr_rad_field_comp = 1;
+
         plt_gas_dens=false;
         plt_dust_dens=false;
         plt_gas_temp=false;
@@ -313,6 +315,8 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
+
+        nr_rad_field_comp = 1;
 
         plt_gas_dens=false;
         plt_dust_dens=false;
@@ -733,6 +737,48 @@ public:
     {
         cell_basic * cell = pp->getPositionCell();
         return getRadiationField(cell, wID);
+    }
+
+    double getRadiationFieldX(cell_basic * cell, uint wID)
+    {
+        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        if(data_pos_rx_list.empty())
+            return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
+        return cell->getData(data_pos_rx_list[wID]);
+    }
+
+    double getRadiationFieldX(photon_package * pp, uint wID)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getRadiationFieldX(cell, wID);
+    }
+
+    double getRadiationFieldY(cell_basic * cell, uint wID)
+    {
+        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        if(data_pos_ry_list.empty())
+            return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
+        return cell->getData(data_pos_ry_list[wID]);
+    }
+
+    double getRadiationFieldY(photon_package * pp, uint wID)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getRadiationFieldY(cell, wID);
+    }
+
+    double getRadiationFieldZ(cell_basic * cell, uint wID)
+    {
+        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        if(data_pos_rz_list.empty())
+            return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
+        return cell->getData(data_pos_rz_list[wID]);
+    }
+
+    double getRadiationFieldZ(photon_package * pp, uint wID)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getRadiationFieldZ(cell, wID);
     }
 
     void getRadiationField(photon_package * pp, uint w, double & us, Vector3D & e_dir)
@@ -1575,8 +1621,32 @@ public:
             if(plt_amax)
                 buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
             if(plt_rad_field)
-                for(uint wID = 0; wID < WL_STEPS; wID++)
-                    buffer_rad_field[i_cell][wID] = getRadiationField(pp, wID);
+                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                {
+                    for(int wID = 0; wID < WL_STEPS; wID++)
+                    {
+                        double val = 0;
+                        switch(i_comp)
+                        {
+                            default:
+                                val = getRadiationField(pp, wID);
+                                break;
+
+                            case 1:
+                                val = getRadiationFieldX(pp, wID);
+                                break;
+
+                            case 2:
+                                val = getRadiationFieldY(pp, wID);
+                                break;
+
+                            case 3:
+                                val = getRadiationFieldZ(pp, wID);
+                                break;
+                        }
+                        buffer_rad_field[i_cell][wID][i_comp] = val;
+                    }
+                }                        
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = getGZero(pp);
             if(plt_n_th)
@@ -1646,8 +1716,9 @@ public:
             if(plt_amax)
                 buffer_dust_amax[i_cell] = 0;
             if(plt_rad_field)
-                for(uint wID = 0; wID < WL_STEPS; wID++)
-                    buffer_rad_field[i_cell][wID] = 0;
+                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                    for(uint wID = 0; wID < WL_STEPS; wID++)
+                        buffer_rad_field[i_cell][wID][i_comp] = 0;
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = 0;
             if(plt_n_th)
@@ -3311,6 +3382,8 @@ protected:
     uint data_pos_g_max;
     uint data_pos_p;
 
+    uint nr_rad_field_comp;
+
     uilist data_pos_rx_list;
     uilist data_pos_ry_list;
     uilist data_pos_rz_list;
@@ -3375,7 +3448,7 @@ protected:
     double * buffer_dust_mixture;
     double * buffer_dust_amin;
     double * buffer_dust_amax;
-    double ** buffer_rad_field;
+    double *** buffer_rad_field;
     double * buffer_g_zero;
     double * buffer_n_th;
     double * buffer_T_e;

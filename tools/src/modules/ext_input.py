@@ -51,6 +51,7 @@ class ExtChooser:
             ext_name = self.model.parameter['external_input_name']
         else:
             return None
-        ext_input = self.ext_input_dict[ext_name](self.file_io, self.parse_args)
+        ext_input = self.ext_input_dict[ext_name](
+            self.file_io, self.parse_args)
         ext_input.init_data()
         return ext_input

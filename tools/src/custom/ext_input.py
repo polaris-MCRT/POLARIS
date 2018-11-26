@@ -7,6 +7,8 @@ from modules.base import ExternalInput
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
 """
+
+
 def update_ext_input_dict(dictionary):
     ext_input_dict = {
         'mflock': MarioFlock,
@@ -36,7 +38,6 @@ class CustomInput(ExternalInput):
         """
         # Save the data in this list
         self.data = [1.0]
-
 
     def gas_density_distribution(self):
         """Define here your routine to get the density at a given position
@@ -167,10 +168,11 @@ class MarioFlock(ExternalInput):
         bp = np.reshape(bin_array, (n3, n2, n1))
 
         # Give information to user
-        print('--- Read external grid data with index =', model_index, 'finished!')
+        print('--- Read external grid data with index =',
+              model_index, 'finished!')
 
         self.data = ((radius * unit_length, theta, phi), rho.T * unit_dens,
-                vr / cs, vt / cs, vp / cs, br * unit_mag, bt * unit_mag, bp * unit_mag)
+                     vr / cs, vt / cs, vp / cs, br * unit_mag, bt * unit_mag, bp * unit_mag)
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

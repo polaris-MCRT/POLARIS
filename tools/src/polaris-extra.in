@@ -44,7 +44,7 @@ conv_args.add_argument('--convert_cdms', dest='cdms_index', default=None, type=s
 
 visual_args = parser.add_argument_group('visualization')
 visual_args.add_argument('--info', dest='dust_composition', default=None, type=str,
-                       help='prints possible wavelengths and dust grain sizes for a chosen dust composition.')
+                         help='prints possible wavelengths and dust grain sizes for a chosen dust composition.')
 
 parser_options = parser.parse_args()
 
@@ -77,7 +77,8 @@ class ExtraRoutines:
 
         # Get file input/output module
         from modules.file import FileIO
-        self.file_io = FileIO(self.model, self.server, parse_args, '@POLARIS@', 'extra')
+        self.file_io = FileIO(self.model, self.server,
+                              parse_args, '@POLARIS@', 'extra')
 
         # Get gas creator module
         from modules.create_gas import GasCreator
@@ -93,7 +94,8 @@ class ExtraRoutines:
         # Get dust module
         from modules.dust import DustChooser
         dust_chooser = DustChooser(self.file_io, self.parse_args, self.model)
-        self.dust = dust_chooser.get_module_from_name(self.parse_args.dust_name, user_input=False)
+        self.dust = dust_chooser.get_module_from_name(
+            self.parse_args.dust_name, user_input=False)
         self.dust.create_catalog()
 
     def visual_dust_catalog(self):
@@ -101,7 +103,7 @@ class ExtraRoutines:
         from modules.dust import DustChooser
         dust_chooser = DustChooser(self.file_io, self.parse_args)
         self.dust = dust_chooser.get_module_from_name(self.parse_args.dust_composition,
-            user_input=False)
+                                                      user_input=False)
         self.dust.print_info(microns=True)
 
 
@@ -133,4 +135,5 @@ if __name__ == '__main__':
         extra_routines.visual_dust_catalog()
         print('--- Show dust component info finished!')
     else:
-        raise ValueError('No valid execution of polaris-extra found (Try --help for usage)!')
+        raise ValueError(
+            'No valid execution of polaris-extra found (Try --help for usage)!')

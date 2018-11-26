@@ -2675,7 +2675,7 @@ public:
     {
         dlist::iterator it = find(wavelength_list_det.begin(), wavelength_list_det.end(), wavelength);
         if(it != wavelength_list_det.end())
-            return wavelength_list_det.begin() - it;
+            return it - wavelength_list_det.begin();
         else
             return MAX_UINT;
     }
