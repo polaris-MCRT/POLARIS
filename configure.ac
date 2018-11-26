@@ -1,4 +1,4 @@
-AC_INIT([polaris], [4.02.00])
+AC_INIT([polaris], [4.02])
 AM_INIT_AUTOMAKE
 
 AC_LANG(C++)
