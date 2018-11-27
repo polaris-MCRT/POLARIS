@@ -1739,7 +1739,7 @@ public:
     {
         cout << "-> Dust mixture " << i_mixture + 1 << "/" << nr_of_mixtures << ", ";
         if(!is_mixture)
-            cout << "component " << i_component + 1 << "/" << nr_of_components << ", ";
+            cout << "component " << i_component + 1 << "/" << nr_of_components << " ";
     }
 
     bool getScatLoaded()

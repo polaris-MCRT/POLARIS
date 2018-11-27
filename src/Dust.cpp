@@ -92,7 +92,7 @@ void CDustComponent::initScatteringMatrixArray()
 #pragma omp critical
                 {
                     printIDs();
-                    cout << "-> allocating memory: " << percentage << " [%]                      \r";
+                    cout << "- allocating memory: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -188,7 +188,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
         {
             char_counter++;
             printIDs();
-            cout << "reading dust parameters file: " << ru[(uint) char_counter % 4] << "             \r";
+            cout << "- reading dust parameters file: " << ru[(uint) char_counter % 4] << "             \r";
         }
 
         // Format the text file line
@@ -584,7 +584,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
         {
             char_counter++;
             printIDs();
-            cout << "reading dust parameters file: " << ru[(uint) char_counter % 4] << "             \r";
+            cout << "- reading dust parameters file: " << ru[(uint) char_counter % 4] << "             \r";
         }
 
         // Format the text file line
@@ -780,7 +780,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     #pragma omp critical
                 {
                     printIDs();
-                    cout << " - calculating Mie-scattering: " << percentage << " [%]                      \r";
+                    cout << "- calculating Mie-scattering: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -1033,7 +1033,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 #pragma omp critical
                     {
                         printIDs();
-                        cout << " - allocating memory: " << percentage << " [%]                      \r";
+                        cout << "- allocating memory: " << percentage << " [%]                      \r";
                         last_percentage = percentage;
                     }
                 }
@@ -1114,7 +1114,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 #pragma omp critical
                 {
                     printIDs();
-                    cout << " - loading matrices: " << percentage << " [%]                      \r";
+                    cout << "- loading matrices: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -2084,7 +2084,7 @@ void CDustComponent::preCalcAbsorptionRates()
             if(per_counter % 2 == 0)
             {
                 printIDs();
-                cout << "-> Pre-calculation of absorption rates: "
+                cout << "- pre-calculation of absorption rates: "
                     << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " [%]                         \r";
             }
         }
@@ -2170,7 +2170,7 @@ void CDustComponent::preCalcMieScatteringProb()
             if(per_counter % 2 == 0)
             {
                 printIDs();
-                cout << "-> Pre-calculation of Mie probabilities: "
+                cout << "- pre-calculation of Mie probabilities: "
                     << 100.0 * float(per_counter) / float(nr_of_dust_species - 1) << " [%]                         \r";
             }
         }
@@ -2237,7 +2237,7 @@ void CDustComponent::preCalcWaveProb()
             if(per_counter % 10 == 0)
             {
                 printIDs();
-                cout << "precalculation of wavelength-probabilities: "
+                cout << "- precalculation of wavelength-probabilities: "
 			<< 100.0 * float(per_counter) / float(nr_of_temperatures - 1) << " [%]           \r";
             }
         }
@@ -2279,7 +2279,7 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
 
         // Show progress
         printIDs();
-        cout << "Pre-calculation of Planck functions: "
+        cout << "- pre-calculation of Planck functions: "
             << 100.0 * float(w) / float(nr_of_wavelength) << "                                \r";
 
         // Set each entry of tab_planck with the corresponding Planck function values
@@ -2518,7 +2518,7 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
 
     // Show progress
     printIDs();
-    cout << "mixing average cross sections\r";
+    cout << "- mixing average cross sections\r";
 
     // Mix optical properties of the dust grains
     for(uint w = 0; w < nr_of_wavelength; w++)
@@ -2541,7 +2541,7 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
     {
         // Show progress
         printIDs();
-        cout << "mixing Qtrq and HG g                         \r";
+        cout << "- mixing Qtrq and HG g                         \r";
 
         // Init variables
         double tmpHGgX, tmpQtrqX;
