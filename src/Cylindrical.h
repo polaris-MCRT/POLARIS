@@ -175,7 +175,7 @@ public:
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for cylindrical grid file : " <<
+                cout << "Cleaning memory for cylindrical grid file: " <<
                         float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
@@ -318,7 +318,7 @@ public:
     {
         if(max_cells == 0)
         {
-            cout << "ERROR: Cylindrical grid contains no cells!" << endl;
+            cout << "\nERROR: Cylindrical grid contains no cells!" << endl;
             cout << "       Cell list cannot be created!" << endl;
             return false;
         }
@@ -327,13 +327,13 @@ public:
         ulong pos_counter = 0;
 
         cout << CLR_LINE;
-        cout << "-> Creating cell list    : 0 %           \r" << flush;
+        cout << "-> Creating cell list    : 0 [%]           \r" << flush;
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             cout << "-> Creating cell list     : "
                     << 100.0 * float(i_r) / float(N_r)
-                    << " %        \r" << flush;
+                    << " [%]        \r" << flush;
 
             for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
             {
@@ -442,7 +442,7 @@ public:
     {
         line_counter = 0;
         char_counter = 0;
-        cout << "Final cleanup                                : done" << endl;
+        cout << "Final cleanup                          : done" << endl;
     }
 
     void printParameters();

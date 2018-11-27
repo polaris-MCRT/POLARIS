@@ -9,7 +9,7 @@ double CSynchrotron::Gamma(double x)
     //However, this case shouldn't happen anyway for any power law index 2<p<3.
     if (x <= 0.0)
     {
-        cout << "ERROR: Gamma(0)                                            \n";
+        cout << "\nERROR: Gamma(0)                                            \n";
         return 0;
     }
 
@@ -62,7 +62,7 @@ double CSynchrotron::Gamma(double x)
     // However, this shouldn't happen anyway for any power law index 2<p<3.
     if (x > 171.624)
     {
-        cout << "ERROR: Gamma(171.624)                                      \n";
+        cout << "\nERROR: Gamma(171.624)                                      \n";
         return 0;
     }
 

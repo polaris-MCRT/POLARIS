@@ -187,7 +187,7 @@ private:
                 break;
 
             default:
-                //cout << "ERROR: BesselK_"<<n<<" is not defined                           \n";
+                //cout << "\nERROR: BesselK_"<<n<<" is not defined                           \n";
                 return 0;
         }
 
@@ -497,7 +497,7 @@ private:
     {
         double sign = 1;
 
-        //sign correcton for Stokes V parameter according to Pandya 2016
+        //sign correcton for Stokes V parameters according to Pandya 2016
         if(cos_theta != 0)
             sign = cos_theta / fabs(cos_theta);
 

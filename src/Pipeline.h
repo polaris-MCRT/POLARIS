@@ -50,7 +50,7 @@ public:
     {
         return true;
     };
-    //bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameter & param, bool plot, uint itID);
+    //bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters & param, bool plot, uint itID);
 
     bool createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas = 0);
 
@@ -101,7 +101,7 @@ public:
 
             if(!createPath(path))
             {
-                cout << "ERROR: Failed to create output folder for data!" << endl;
+                cout << "\nERROR: Failed to create output folder for data!" << endl;
                 cout << path << std::endl;
                 return false;
             }
@@ -109,21 +109,21 @@ public:
 
         if(!createPath(path))
         {
-            cout << "ERROR: Failed to create output folder(s)!" << endl;
+            cout << "\nERROR: Failed to create output folder(s)!" << endl;
             cout << path << std::endl;
             return false;
         }
 
         if(!createPath(path_data))
         {
-            cout << "ERROR: Failed to create output folder for data!" << endl;
+            cout << "\nERROR: Failed to create output folder for data!" << endl;
             cout << path_data << std::endl;
             return false;
         }
 
         if(!createPath(path_plot))
         {
-            cout << "ERROR: Failed to create output folder for plots!" << endl;
+            cout << "\nERROR: Failed to create output folder for plots!" << endl;
             cout << path_plot << std::endl;
             return false;
         }
@@ -161,9 +161,9 @@ public:
 
     void printPathParameters(parameters & param)
     {
-        cout << "- Path grid file : " << param.getPathGrid() << endl;
-        cout << "- Path output    : " << param.getPathOutput() << endl;
-        cout << "- Nr. of threads : " << param.getNrOfThreads() << endl;
+        cout << "- Path grid file   : " << param.getPathGrid() << endl;
+        cout << "- Path output      : " << param.getPathOutput() << endl;
+        cout << "- Number of threads: " << param.getNrOfThreads() << endl;
     }
 
     void printPlotParameters(parameters & param, bool input_output=false)
@@ -230,7 +230,7 @@ public:
     {
         if(param.getNrOfSources() > 0 || param.isRaytracing())
         {
-            cout << "Defined radiation sources" << endl;
+            cout << "Defined radiation source(s)" << endl;
 
             if(param.getNrOfPointSources() > 0 &&
                     (!param.isRaytracing() || param.getScatteringToRay()))
@@ -256,13 +256,13 @@ public:
         {
             cout << "Monte-Carlo parameter" << endl;
             if(param.getNrOfDustMCDetectors() > 0)
-                cout << "- Nr. of detectors      : " << param.getNrOfDustMCDetectors() << endl;
+                cout << "- Number of detectors      : " << param.getNrOfDustMCDetectors() << endl;
         }
         else
         {
             cout << "Raytrace parameter" << endl;
             if(param.getNrOfDustRayDetectors() > 0)
-                cout << "- Nr. of detectors      : " << param.getNrOfDustRayDetectors() << endl;
+                cout << "- Number of detectors      : " << param.getNrOfDustRayDetectors() << endl;
             param.printRTGridDescription();
             cout << "- Start, Stop           : " << param.getStart() + 1
                 << ", " << param.getStop() + 1 << endl;

@@ -16,7 +16,7 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing gnuplot vectors: "
+            cout << "-> Writing Gnuplot vectors: "
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -218,7 +218,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Writing gnuplot grid file: " << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << " -> Writing Gnuplot grid file: " << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
         stringstream buffer;
@@ -403,7 +403,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     if(bin_reader.fail())
     {
-        cout << "ERROR: Can not load octree grid file:" << endl;
+        cout << "\nERROR: Cannot load octree grid file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -468,7 +468,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     if(cube_length <= 0)
     {
-        cout << "ERROR: Octree cube length must be larger than zero!" << endl;
+        cout << "\nERROR: Octree cube length must be larger than zero!" << endl;
         return false;
     }
 
@@ -490,7 +490,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if(line_counter % 5000 == 0)
         {
             char_counter++;
-            cout << "-> Loading octree grid file : "
+            cout << "-> Loading octree grid file:"
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -516,7 +516,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
             if(uint(cell_oc_pos->getData(data_pos_id)) < 0 ||
                 uint(cell_oc_pos->getData(data_pos_id)) > param.getMaxDustComponentChoice())
             {
-                cout << "ERROR: Dust ID in grid exceeds maximum number of dust choices available!" << endl;
+                cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available! " << endl;
                 return false;
             }
 
@@ -618,7 +618,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     if(max_cells == 0)
     {
-        cout << "ERROR: No cells in octree grid file:" << endl;
+        cout << "\nERROR: No cells in octree grid file:" << endl;
         cout << filename << "\n" << endl;
         return false;
     }
@@ -627,7 +627,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_len += tmp_data_offset;
 
     cout << CLR_LINE;
-    //cout << "Loading octree grid file             : done" << endl;
+    cout << "- Loading octree grid file             : done" << endl;
+
     return true;
 }
 
@@ -642,7 +643,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
     if(cell_oc_root == 0)
     {
-        cout << "Error: Can't plot octree to:" << endl;
+        cout << "\nERROR: Cannot plot octree to:" << endl;
         cout << path;
         cout << "No tree loaded!" << endl;
         return false;
@@ -650,24 +651,24 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
     if(max_level < maxGridLines)
     {
-        cout << "WARNING: Nr. of max. grid level is higher than max. tree level!" << endl;
+        cout << "\nWARNING: Number of max. grid level is higher than max. tree level!" << endl;
         maxGridLines = uint(max_level);
         return false;
     }
 
     if(cell_oc_root->getChildren() == 0)
     {
-        cout << "Error: Can't plot octree to:" << endl;
+        cout << "\nERROR: Cannot plot octree to:" << endl;
         cout << path;
-        cout << "Wrong ammount of tree level!" << endl;
+        cout << "Wrong amount of tree level!" << endl;
         return false;
     }
 
     if(max_cells == 0)
     {
-        cout << "Error: Can't plot octree to:" << endl;
+        cout << "\nERROR: Cannot plot octree to:" << endl;
         cout << path;
-        cout << "Not enough tree cells available!" << endl;
+        cout << "Not enough tree cells available! " << endl;
         return false;
     }
 
@@ -735,7 +736,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
     if(point_fields[0].fail())
     {
-        cout << "ERROR: Can't write to " << grid_filename << endl;
+        cout << "\nERROR: Cannot write to:\n " << grid_filename << endl;
         return false;
     }
 
@@ -745,7 +746,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << dens_gas_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << dens_gas_filename << endl;
             return false;
         }
     }
@@ -756,7 +757,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[2].fail())
         {
-            cout << "ERROR: Can't write to " << dens_dust_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << dens_dust_filename << endl;
             return false;
         }
     }
@@ -767,7 +768,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[3].fail())
         {
-            cout << "ERROR: Can't write to " << temp_gas_filename
+            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename
                     << endl;
             return false;
         }
@@ -779,7 +780,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[4].fail())
         {
-            cout << "ERROR: Can't write to " << temp_dust_filename
+            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename
                     << endl;
             return false;
         }
@@ -791,7 +792,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[5].fail())
         {
-            cout << "ERROR: Can't write to " << rat_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << rat_filename << endl;
             return false;
         }
     }
@@ -802,7 +803,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[6].fail())
         {
-            cout << "ERROR: Can't write to " << delta_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << delta_filename << endl;
             return false;
         }
     }
@@ -813,7 +814,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[7].fail())
         {
-            cout << "ERROR: Can't write to " << larm_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << larm_filename << endl;
             return false;
         }
     }
@@ -824,7 +825,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[8].fail())
         {
-            cout << "ERROR: Can't write to " << mach_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << mach_filename << endl;
             return false;
         }
     }
@@ -835,7 +836,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(vec_fields[0].fail())
         {
-            cout << "ERROR: Can't write to " << mag_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << mag_filename << endl;
             return false;
         }
     }
@@ -846,7 +847,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(vec_fields[1].fail())
         {
-            cout << "ERROR: Can't write to " << vel_filename << endl;
+            cout << "\nERROR: Cannot write to:\n " << vel_filename << endl;
             return false;
         }
     }
@@ -1213,7 +1214,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         vec_fields[pos].close();
 
     cout << CLR_LINE;
-    cout << "- Writing of gnuplot files      : done" << endl;
+    cout << "- Writing of Gnuplot files             : done" << endl;
     return true;
 }
 
@@ -1221,7 +1222,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 {
     if(cell_oc_root == 0)
     {
-        cout << "ERROR: Cannot save octree grid file to:" << endl;
+        cout << "\nERROR: Cannot save octree grid file to:" << endl;
         cout << filename;
         cout << "No tree loaded!" << endl;
         return false;
@@ -1229,7 +1230,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     if(cell_oc_root->getChildren() == 0)
     {
-        cout << "ERROR: Cannot save octree grid file to:" << endl;
+        cout << "\nERROR: Cannot save octree grid file to:" << endl;
         cout << filename;
         cout << "Octree has to be refined at least to level 1!" << endl;
         return false;
@@ -1237,9 +1238,9 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     if(max_cells == 0)
     {
-        cout << "ERROR: Cannot save octree grid file to:" << endl;
+        cout << "\nERROR: Cannot save octree grid file to:" << endl;
         cout << filename;
-        cout << "No cells available!" << endl;
+        cout << "No cells available! " << endl;
         return false;
     }
 
@@ -1251,7 +1252,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     if(bin_writer.fail())
     {
-        cout << "ERROR: Cannot open octree grid file:" << endl;
+        cout << "\nERROR: Cannot open octree grid file:" << endl;
         cout << filename;
         return false;
     }
@@ -1272,7 +1273,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
     }
     else
     {
-        cout << "Error: Can't save octree grid file to:" << endl;
+        cout << "\nERROR: Cannot save octree grid file to:" << endl;
         cout << filename;
         cout << "An octree grid requires an ID of " << GRID_ID_OCT << "!" << endl;
         return false;
@@ -1284,7 +1285,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     bin_writer.close();
     cout << CLR_LINE;
-    cout << "- Writing octree grid file      : done" << endl;
+    cout << "- Writing octree grid file             : done" << endl;
 
     return true;
 }
@@ -1332,14 +1333,14 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
 void CGridOcTree::printParameters()
 {
     if(max_cells == 0)
-        cout << "Error: No octree grid parameters available!" << endl;
+        cout << "\nERROR: No octree grid parameters available! " << endl;
     else
     {
         ulong tmp_cells = ulong(pow(double(8), double(max_level)));
         cout << CLR_LINE;
         cout << "OcTree parameters (ID: " << getDataID() << "; data len.: " << getDataOffset() << "; level: " << max_level << ")" << endl;
         cout << SEP_LINE;
-        cout << "- Nr. of OcTree cells           : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
+        cout << "- Number of OcTree cells           : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
 
         printPhysicalParameters();
         cout << SEP_LINE;
@@ -1419,7 +1420,7 @@ void CGridOcTree::createNextLevel(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " - Creating artificial tree : "
+            cout << " - Creating artificial tree: "
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 
@@ -1950,7 +1951,7 @@ void CGridOcTree::clear(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Final cleanup : "
+            cout << " -> Final cleanup: "
                     << ru[(unsigned int) char_counter % 4] << "              \r";
         }
         
@@ -2070,9 +2071,9 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
             per_counter++;
 
             if(j % 10 == 0)
-                cout << " -> Reading input data        [ "
+                cout << " -> Reading input data: "
                     << 100.0 * float(per_counter) / float(nx * nx)
-                << " % ]              \r";
+                << " [%]                \r";
 
             for(uint k = 0; k < nx; k++)
             {
@@ -2164,9 +2165,9 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
 
         if(treelevel_counter % 10000 == 0)
         {
-            cout << "Creating tree ["
+            cout << "Creating tree: "
                     << float(100.0 * treelevel_counter) / max_cells
-                    << " % ]                          \r";
+                    << " [%]                          \r";
         }
 
         p_x = int(px * scale_factor);

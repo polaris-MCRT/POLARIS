@@ -217,7 +217,7 @@ public:
     bool createCellList()
     {
         cout << CLR_LINE;
-        cout << "- Creating of cell list         : done          \n" << flush;
+        cout << "- Creating of cell list                : done          \n" << flush;
         return true;
     }
 

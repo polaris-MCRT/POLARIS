@@ -1035,7 +1035,7 @@ public:
         }
         else
         {
-            cout << "ERROR: Minimum grain size must be smaller than" 
+            cout << "\nERROR: Minimum grain size must be smaller than" 
                 << a_eff[nr_of_dust_species - 1] << "!        " << endl;
             return false;
         }
@@ -1052,7 +1052,7 @@ public:
         }
         else
         {
-            cout << "ERROR: Maximum grain size must be larger than " 
+            cout << "\nERROR: Maximum grain size must be larger than " 
                 << a_eff[0] << "!        " << endl;
             return false;
         }
@@ -1060,7 +1060,7 @@ public:
         // If the minimum grain size is larger than the maximum, no calculation possible
         if(a_min_global > a_max_global)
         {
-            cout << "ERROR: Minimum grain size (" << a_min_global <<
+            cout << "\nERROR: Minimum grain size (" << a_min_global <<
                 ") must be smaller than maximum grain size (" << a_max_global << ")!" << endl;
             return false;
         }
@@ -1957,7 +1957,7 @@ public:
 
     string getPhaseFunctionStr()
     {
-        string str_res = "ERROR: Phase function is undefined!\n";
+        string str_res = "\nERROR: Phase function is undefined!\n";
         if(mixed_component != 0)
         {
             switch(mixed_component[0].getPhaseFunctionID())
@@ -2191,7 +2191,7 @@ public:
         if (it != wavelength_list.end())
             return distance(wavelength_list.begin(), it);
 
-        cout << "HINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
+        cout << "\nHINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
         return 0;
     }
 

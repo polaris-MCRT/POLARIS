@@ -34,7 +34,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
         {
 #pragma omp critical
             {
-                cout << "- Calculating LTE level population  : " << percentage << " [%]               \r";
+                cout << "-> Calculating LTE level population  : " << percentage << " [%]               \r";
                 last_percentage = percentage;
             }
         }
@@ -111,7 +111,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         {
 #pragma omp critical
             {
-                cout << "- Calculating FEP level population  : "
+                cout << "-> Calculating FEP level population  : "
                         << last_percentage << " [%]                       \r";
                 last_percentage = percentage;
             }
@@ -137,7 +137,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
                     sum_p += tmp_lvl_pop[i];
                 else
                 {
-                    cout << "Warning, level population element not greater than zero!" << endl;
+                    cout << "WARNING: Level population element not greater than zero!" << endl;
                     no_error = false;
                 }
             }
@@ -210,7 +210,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         {
 #pragma omp critical
             {
-                cout << "- Calculating LVG level population : "
+                cout << "-> Calculating LVG level population : "
                         << last_percentage << " [%]                       \r";
                 last_percentage = percentage;
             }
@@ -275,7 +275,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
                     sum_p += new_pop[j];
                 else
                 {
-                    cout << "Warning, level population element not greater than zero!" << endl;
+                    cout << "WARNING: Level population element not greater than zero!" << endl;
                     cout << new_pop[j] << endl;
                     no_error = false;
                 }
@@ -298,7 +298,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
             }
         }
         if(i_iter == MAX_LVG_ITERATIONS)
-            cout << "Warning: maximum iteration needed in cell: " << i_cell << endl;
+            cout << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
 
         for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
         {
@@ -622,7 +622,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open gas_species catalog:" << endl;
+        cout << "\nERROR: Cannot open gas_species catalog:" << endl;
         cout << _filename << endl;
         return false;
     }
@@ -667,7 +667,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
             molecular_weight = values[0];
@@ -676,7 +676,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
             nr_of_energy_levels = uint(values[0]);
@@ -689,7 +689,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() < 4)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -706,7 +706,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
             nr_of_total_transitions = uint(values[0]);
@@ -726,7 +726,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 6)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -762,7 +762,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
             nr_of_col_partner = uint(values[0]);
@@ -793,7 +793,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values[0] > 3 || values[0] < 1)
             {
-                cout << "ERROR: Line " << line_counter
+                cout << "\nERROR: Line " << line_counter
                     << " wrong orientation of H2 collision partner (gas species file)!" << endl;
                 return false;
             }
@@ -803,7 +803,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -823,7 +823,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -838,7 +838,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != uint(nr_of_col_temp[i_col_partner]))
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -851,7 +851,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != uint(nr_of_col_temp[i_col_partner] + 3))
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
                 return false;
             }
 
@@ -868,7 +868,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values[0] > 3 || values[0] < 1)
             {
-                cout << "ERROR: Line " << line_counter
+                cout << "\nERROR: Line " << line_counter
                     << " wrong orientation of H2 collision partner (gas species file)!" << endl;
                 return false;
             }
@@ -932,7 +932,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open Zeeman splitting catalog:" << endl;
+        cout << "\nERROR: Cannot open Zeeman splitting catalog:" << endl;
         cout << _filename << endl;
         return false;
     }
@@ -970,7 +970,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             gas_species_radius = values[0];
@@ -979,7 +979,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             nr_zeeman_transitions = uint(values[0]);
@@ -988,7 +988,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             bool not_unique = false;
@@ -1013,7 +1013,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1024,7 +1024,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1035,7 +1035,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1048,7 +1048,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1098,7 +1098,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1110,7 +1110,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1123,7 +1123,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
@@ -1135,7 +1135,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             if(values.size() != 1)
             {
-                cout << "ERROR: Line " << line_counter << " wrong ammount of numbers (Zeeman file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
             bool not_unique = false;
@@ -1164,7 +1164,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         if(lande_upper[i_line] == 0)
         {
             cout << SEP_LINE;
-            cout << "ERROR: For transition number " << uint(getTransition(i_line) + 1)
+            cout << "\nERROR: For transition number " << uint(getTransition(i_line) + 1)
                 << " exists no Zeeman splitting data" << endl;
             return false;
         }
@@ -1229,7 +1229,7 @@ bool CGasMixture::createGasSpecies(parameters & param)
                 single_species[i_species].getLevelPopType() == POP_LVG) &&
                 single_species[i_species].getNrCollisionPartner() == 0)
         {
-            cout << "ERROR: FEP and LVG level population approximations require a gas parameter file \n"
+            cout << "\nERROR: FEP and LVG level population approximations require a gas parameters file \n"
                 "       with collisional data (e.g. from Leiden Atomic and Molecular Database)" << endl;
             return false;
         }
@@ -1268,7 +1268,7 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
 void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
 {
     cout << CLR_LINE;
-    cout << "Gas parameter                             " << endl;
+    cout << "Gas parameters                             " << endl;
     cout << SEP_LINE;
     cout << "- Velocity field                : ";
     if(getKeplerStarMass() > 0)
@@ -1289,7 +1289,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
 
         if(single_species[i_species].getNrOfTransitions() == 0)
         {
-            cout << "WARNING: No spectral lines selected!" << endl;
+            cout << "\nWARNING: No spectral lines selected!" << endl;
             return;
         }
 
@@ -1310,7 +1310,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             }
         }
         cout << "- Line transition(s)            : " << transition_str.str() << endl;
-        cout << "- Nr. of velocity channels      : " << vel_channels_str.str() << endl;
+        cout << "- Number of velocity channels      : " << vel_channels_str.str() << endl;
         cout << "- Velocity limit(s)             : " << max_vel_str.str() << " [m/s]" << endl;
         cout << "- Level population              : ";
         uint lvl_pop_type = getLevelPopType(i_species);
@@ -1326,7 +1326,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                 cout << "LVG" << endl;
                 break;
             default:
-                cout << "ERROR: UNKNOWN!" << endl;
+                cout << "\nERROR: UNKNOWN!" << endl;
         }
 
         if(getZeemanSplitting(i_species) == true)
@@ -1374,7 +1374,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             if(getZeemanSplitting(i_species) == true)
             {
                 cout << CLR_LINE;
-                cout << "Zeeman splitting parameter                " << endl;
+                cout << "Zeeman splitting parameters                " << endl;
                 cout << "- Lande factor of upper level   : " << getLandeUpper(i_species, i_line) << endl;
                 cout << "- Lande factor of lower level   : " << getLandeLower(i_species, i_line) << endl;
                 cout << "- Sublevels in upper level      : " << getNrSublevelsUpper(i_species, i_line) << endl;

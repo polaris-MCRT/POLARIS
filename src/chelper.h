@@ -1375,7 +1375,7 @@ public:
             midplane_3d_param.push_back(z_max);
         }
         else
-            cout << "HINT: Multiple 3D midplane plot commands found. The first command will be considered!";
+            cout << "\nHINT: Multiple 3D midplane plot commands found. The first command will be considered!";
     }
 
     void setInpMidDataPoints(uint val)
@@ -1513,7 +1513,7 @@ public:
     void updateSIConvLength(double val)
     {
         if(conv_l_in_SI != 1 && val != 1)
-            cout << "HINT: <conv_len> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_len> may be used multiple times!" << endl
                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_l_in_SI *= val;
     }
@@ -1521,7 +1521,7 @@ public:
     void updateSIConvDH(double val)
     {
         if(conv_dH_in_SI != 1 && val != 1)
-            cout << "HINT: <conv_dens> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_dens> may be used multiple times!" << endl
                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_dH_in_SI *= val;
     }
@@ -1529,7 +1529,7 @@ public:
     void updateSIConvBField(double val)
     {
         if(conv_B_in_SI != 1 && val != 1)
-            cout << "HINT: <conv_mag> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_mag> may be used multiple times!" << endl
                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_B_in_SI *= val;
     }
@@ -1537,7 +1537,7 @@ public:
     void updateSIConvVField(double val)
     {
         if(conv_V_in_SI != 1 && val != 1)
-            cout << "HINT: <conv_vel> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_vel> may be used multiple times!" << endl
                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_V_in_SI *= val;
     }
@@ -2158,7 +2158,7 @@ public:
 
     void printRTGridDescription()
     {
-        cout << "- background grid shape : " << rt_grid_description << endl;
+        cout << "- background grid shape: " << rt_grid_description << endl;
     }
 
     double getAcceptanceAngle()

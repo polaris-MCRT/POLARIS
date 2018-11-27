@@ -17,13 +17,13 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model!" << endl;
+        cout << "\nERROR: No dust model!" << endl;
         return false;
     }
 
@@ -31,7 +31,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 
     if(dust_ray_detectors.size() == 0)
     {
-        cout << "ERROR: No sequence defined!" << endl;
+        cout << "\nERROR: No sequence defined!" << endl;
         return false;
     }
 
@@ -48,7 +48,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 
         if(nr_source > sources_ray.size())
         {
-            cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount (" << sources_ray.size()
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount (" << sources_ray.size()
                     << ") of defined sources!" << endl;
             return false;
         }
@@ -56,7 +56,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
         if(detector_id == DET_POLAR &&
                 grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
             return false;
         }
     }
@@ -73,13 +73,13 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model!" << endl;
+        cout << "\nERROR: No dust model!" << endl;
         return false;
     }
 
@@ -87,7 +87,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 
     if(sync_ray_detectors.size() == 0)
     {
-        cout << "ERROR: No sequence defined!" << endl;
+        cout << "\nERROR: No sequence defined!" << endl;
         return false;
     }
 
@@ -104,7 +104,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 
         if(nr_source > sources_ray.size())
         {
-            cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount ("
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
                 << sources_ray.size() << ") of defined sources!" << endl;
             return false;
         }
@@ -112,7 +112,7 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
         if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH &&
                 grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
             return false;
         }
     }
@@ -131,19 +131,19 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "ERROR: No dust model defined!" << endl;
+        cout << "\nERROR: No dust model defined!" << endl;
         return false;
     }
 
     if(gas == 0)
     {
-        cout << "ERROR: No gas model loaded!" << endl;
+        cout << "\nERROR: No gas model loaded!" << endl;
         return false;
     }
 
@@ -154,7 +154,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 
     if(nrOfGasSpecies == 0)
     {
-        cout << "ERROR: No gas species transition defined!" << endl;
+        cout << "\nERROR: No gas species transition defined!" << endl;
         return false;
     }
 
@@ -170,7 +170,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 
             if(nr_source > sources_ray.size())
             {
-                cout << "ERROR: ID of source (" << nr_source << ") larger than max. amount ("
+                cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
                     << sources_ray.size() << ") of defined sources!" << endl;
                 return false;
             }
@@ -178,7 +178,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
             if(detector_id == DET_POLAR &&
                 grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
             {
-                cout << "ERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+                cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
                 return false;
             }
         }
@@ -196,13 +196,13 @@ bool CRadiativeTransfer::initiateOPIATE(parameters & param)
 {
     if(grid == 0)
     {
-        cout << "ERROR: No Grid loaded!" << endl;
+        cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
     if(dust == 0)
     {
-        cout << "Hint: No dust model defined!" << endl;
+        cout << "\nHINT: No dust model defined!" << endl;
         return false;
     }
 
@@ -285,17 +285,17 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         switch(command)
         {
             case CMD_TEMP_RAT:
-                cout << "-> MC temp. and RAT distribution: [ 0 % ], max. temp. " 
+                cout << "-> MC temp. and RAT distribution: 0 [%], max. temp. " 
                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                 break;
             
             case CMD_TEMP:
-                cout << "-> MC temp. distribution: [ 0 % ], max. temp. " 
+                cout << "-> MC temp. distribution: 0 [%], max. temp. " 
                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                 break;
 
             default:
-                cout << "-> MC radiation field: [ 0 % ]      \r" << flush;
+                cout << "-> MC radiation field: 0 [%]      \r" << flush;
                 break;
         }
         // A loop for each wavelength
@@ -323,17 +323,17 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         switch(command)
                         {
                             case CMD_TEMP_RAT:
-                                cout << "-> MC temp. and RAT distribution: [ " << percentage << " % ], max. temp. "
+                                cout << "-> MC temp. and RAT distribution: " << percentage << " [%], max. temp. "
                                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                                 break;
                             
                             case CMD_TEMP:
-                                cout << "-> MC temp. distribution: [ " << percentage << " % ], max. temp. "
+                                cout << "-> MC temp. distribution: " << percentage << " [%], max. temp. "
                                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                                 break;
 
                             default:
-                                cout << "-> MC radiation field: [ " << percentage << " % ]      \r" << flush;
+                                cout << "-> MC radiation field: " << percentage << " [%]      \r" << flush;
                                 break;
                         }
                         last_percentage = percentage;
@@ -582,8 +582,8 @@ bool CRadiativeTransfer::setTemperatureDistribution()
         {
             per_counter++;
             if(per_counter % 5000 == 0)
-                cout << "-> Estimating of temperatures: [ " << 100.0 * float(per_counter) / float(max_cells)
-                << " % ] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
+                cout << "-> Estimating of temperatures: " << 100.0 * float(per_counter) / float(max_cells)
+                << " [%] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
         }
     }
 
@@ -621,13 +621,13 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         // each chosen wavelength of the chosen source
         for(uint wID = 0; wID < nr_of_wavelength; wID++)
         {
-            // Init source parameter for scattering maps
+            // Init source parameters for scattering maps
             if(!tm_source->initSource(wID))
                 continue;
 
             // Init progress visualization
             cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                    << " [m], photons: " << nr_of_photons << ") [ 0 % ]   \r" << flush;
+                    << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
 
             // Init counter and percentage to show progress
             per_counter = 0;
@@ -669,7 +669,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 #pragma omp critical
                     {
                         cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                                << " [m], photons: " << nr_of_photons << ") [ " << percentage << " % ]   \r" << flush;
+                                << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -992,7 +992,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         if(peel_off && tm_source->getStringID() == "dust source")
         {
             cout << CLR_LINE;
-            cout << "HINT: MC simulations with dust source and peel-off include only the scattered radiation.\n"
+            cout << "\nHINT: MC simulations with dust source and peel-off include only the scattered radiation.\n"
                     << "Add results from Raytracing simulations for full dust emission!" << endl;
         }
     }
@@ -1025,7 +1025,7 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
     ulong max_cells = grid->getMaxDataCells();
     ulong pos_counter = 0;
 
-    cout << "-> Converting emissivities: 0 %        \r" << flush;
+    cout << "-> Converting emissivities: 0 [%]        \r" << flush;
 
 #pragma omp parallel for
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1047,13 +1047,13 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
             {
                 cout << "-> Converting emissivities: "
                         << 100.0 * float(pos_counter) / float(max_cells)
-                        << " %       \r";
+                        << " [%]       \r";
             }
         }
     }
 
     cout << CLR_LINE;
-    cout << "- Converting emissivities       : done" << endl;
+    //cout << "- Converting emissivities             : done" << endl;
 }
 
 void CRadiativeTransfer::calcAlignedRadii()
@@ -1064,7 +1064,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     float last_percentage = 0;
 
     cout << CLR_LINE;
-    cout << " -> Calc. RAT dust alig. radius: 0.0 %  (min: 0 [m]; max: 0 [m])        \r" << flush;
+    cout << " -> Calc. RAT dust alig. radius: 0.0 [%]  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1080,8 +1080,8 @@ void CRadiativeTransfer::calcAlignedRadii()
         {
 #pragma omp critical
             {
-                cout << " -> Calc. RAT dust alig. radius: ["
-                    << 100.0 * float(per_counter) / float(max_cells) << " % ] (min: "
+                cout << " -> Calc. RAT dust alig. radius: "
+                    << 100.0 * float(per_counter) / float(max_cells) << " [%] (min: "
                         << dust->getMinAlignedRadius() << " [m]; max: "
                         << dust->getMaxAlignedRadius() << " [m])" << "          \r";
                 last_percentage = percentage;
@@ -1103,7 +1103,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
     ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
-    cout << "-> Calculation of final temperatures : [ 0.00 % ]                        \r";
+    cout << "-> Calculation of final temperatures : 0.0[%]                        \r";
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1122,8 +1122,8 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         {
 #pragma omp critical
             {
-                cout << "-> Calculation of final temperatures : [ " << 100.0 * float(per_counter) / float(max_cells)
-                        << " % ]          \r";
+                cout << "-> Calculation of final temperatures : " << 100.0 * float(per_counter) / float(max_cells)
+                        << " [%]              \r";
 
                 last_percentage = percentage;
             }
@@ -1146,7 +1146,7 @@ void CRadiativeTransfer::calcStochasticHeating()
     ulong max_cells = grid->getMaxDataCells();
 
     cout << CLR_LINE;
-    cout << "-> Calculation of stochastic heating: [ 0.00 % ]    \r" << flush;
+    cout << "-> Calculation of stochastic heating: 0.0[%]    \r" << flush;
 
 #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -1163,15 +1163,15 @@ void CRadiativeTransfer::calcStochasticHeating()
         {
 #pragma omp critical
             {
-                cout << "-> Calculation of stochastic heating: [ "
-                        << 100.0 * float(per_counter) / float(max_cells) << " % ]          \r" << flush;
+                cout << "-> Calculation of stochastic heating: "
+                        << 100.0 * float(per_counter) / float(max_cells) << " [%]          \r" << flush;
                 last_percentage = percentage;
             }
         }
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of stochastic heating: done" << endl;
+    cout << "- Calculation of stochastic heating    : done" << endl;
 }
 
 double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
@@ -1279,7 +1279,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             // Show information about the current detector
             cout << CLR_LINE;
             cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: "
-                    << sID + 1 << ") [ 0.0 % ]   \r" << flush;
+                    << sID + 1 << ") 0.0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1303,9 +1303,9 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
-                                << ", source: " << sID + 1 << ") [ "
+                                << ", source: " << sID + 1 << ")  "
                                 << float(100.0 * float(per_counter) / float(per_max))
-                                << " % ]       \r" << flush;
+                                << " [%]         \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1314,7 +1314,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             // Show final progress
             cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
                     << ", source: " << sID + 1
-                    << ") [ 100 % ]       \r" << flush;
+                    << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1331,7 +1331,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing synchrotron map: done" << endl;
+    cout << "- Raytracing synchrotron map           : done" << endl;
 
     return true;
 }
@@ -1499,7 +1499,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 #pragma omp critical
                             {
                                 cout << CLR_LINE;
-                                cout << "WARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                cout << "\nWARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                 cout << "         Skipping entire cell!" << endl << flush;
                             }
                             break;
@@ -1513,14 +1513,14 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 #pragma omp critical
                                 {
                                     cout << CLR_LINE;
-                                    cout << "WARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                    cout << "\nWARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
                                     cout << "         Switching to approximate solver!" << endl << flush;
                                 }                            
                             }
                         
                         }
                         
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
                         StokesVector * RK_k_cr = new StokesVector[6];
                         StokesVector * RK_k_ca = new StokesVector[6];
@@ -1539,7 +1539,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                                 scalar_product_ca += (RK_k_ca[i] * RK_a(i, k));
                             }
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k_cr[k] = alpha_cr * (scalar_product_cr * cell_d_l + WMap_cr.S(i_wave)) + S_em_cr;
                             RK_k_ca[k] = alpha_ca * (scalar_product_ca * cell_d_l + WMap_ca.S(i_wave)) + S_em_ca;
@@ -1798,7 +1798,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             // Show information about the current detector
             cout << CLR_LINE;
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: "
-                << sID + 1 << ") [ 0 % ]   \r" << flush;
+                << sID + 1 << ") 0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1822,8 +1822,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                            << ", source: " << sID + 1 << ") [ "
-                            << percentage << " % ]       \r" << flush;
+                            << ", source: " << sID + 1 << ") "
+                            << percentage << " [%]       \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1835,7 +1835,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Show final progress
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                    << ", source: " << sID + 1 << ") [ 100 % ]       \r" << flush;
+                    << ", source: " << sID + 1 << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1857,7 +1857,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing dust map           : done" << endl;
+    cout << "- Raytracing dust map                  : done" << endl;
 
     return true;
 }
@@ -2029,11 +2029,11 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter > MAX_SOLVER_STEPS)
                         {
-                            cout << "WARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
                             break;
                         }
 
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
@@ -2048,7 +2048,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                             for(uint i = 0; i < 6; i++)
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k[k] = alpha_dust * (scalar_product * cell_d_l + WMap.S(i_wave)) + S_dust;
                         }
@@ -2254,7 +2254,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         // Calculate the level populations for each cell
         if(!gas->calcLevelPopulation(grid, i_species))
         {
-            cout << "Error: Level population cannot be calculated!";
+            cout << "\nERROR: Level population cannot be calculated!";
             return false;
         }
 
@@ -2305,7 +2305,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             uint nr_velocity_channels = tracer->getNrSpectralBins();
             if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 5)
             {
-                cout << "ERROR: The magnetic field information requires at least 5 channels\n"
+                cout << "\nERROR: The magnetic field information requires at least 5 channels\n"
                     << "    for simulations with Zeeman splitting" << endl;
                 return false;
             }
@@ -2318,7 +2318,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
             cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1
-                << ", line " << i_line + 1 << " of " << nr_of_transitions << " [0.00 %]  \r" << flush;
+                << ", line " << i_line + 1 << " of " << nr_of_transitions << " 0.0[%]  \r" << flush;
 
             uint per_max = tracer->getNpix();
 
@@ -2346,7 +2346,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
-                            << i_line + 1 << " of " << nr_of_transitions << " [" << percentage << " %]    \r" << flush;
+                            << i_line + 1 << " of " << nr_of_transitions << " " << percentage << " [%]      \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -2366,7 +2366,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     }
 
     cout << CLR_LINE;
-    cout << "- Raytracing Channel Maps  : done" << endl;
+    cout << "- Raytracing Channel Maps              : done" << endl;
 
     return true;
 }
@@ -2556,11 +2556,11 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter > MAX_SOLVER_STEPS)
                         {
-                            cout << "WARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
                             break;
                         }
 
-                        // Init Runge-Kutta parameter and set it to zero
+                        // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
@@ -2620,7 +2620,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                             for(uint i = 0; i <= k; i++)
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
-                            // Calculate new Runge-Kutta parameter as the result of the
+                            // Calculate new Runge-Kutta parameters as the result of the
                             // radiative transfer equation at the Runge-Kutta sub positions
                             RK_k[k] = alpha_ges * (scalar_product * cell_d_l + CHMap.S(vch)) + S_ges;
                         }

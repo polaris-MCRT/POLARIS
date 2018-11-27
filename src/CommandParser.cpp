@@ -24,7 +24,7 @@ dlist CCommandParser::parseDataString(string data)
 
         if(start == string::npos)
         {
-            cout << "ERROR: Missing \"(\" in line " << line_counter
+            cout << "\nERROR: Missing \"(\" in line " << line_counter
                     << "!\nColor bar set to default." << endl;
             res.clear();
             return res;
@@ -32,7 +32,7 @@ dlist CCommandParser::parseDataString(string data)
 
         if(stop == string::npos)
         {
-            cout << "ERROR: Missing \")\" in line " << line_counter
+            cout << "\nERROR: Missing \")\" in line " << line_counter
                     << "!\nColor bar set to default.";
             res.clear();
             return res;
@@ -40,7 +40,7 @@ dlist CCommandParser::parseDataString(string data)
 
         if(stop - start == 1)
         {
-            cout << "ERROR: No color values between (...) in line "
+            cout << "\nERROR: No color values between (...) in line "
                     << line_counter << "!\nColor bar set to default." << endl;
             res.clear();
             return res;
@@ -60,7 +60,7 @@ dlist CCommandParser::parseDataString(string data)
 
         if(ccount != 3 || col.size() == 0)
         {
-            cout << "ERROR: False amount of values between (...)  in line "
+            cout << "\nERROR: False amount of values between (...)  in line "
                     << line_counter << "!\nColor bar set to default." << endl;
             res.clear();
             return res;
@@ -71,7 +71,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res.size() < 8)
     {
-        cout << "ERROR: At least two colors are required  in line "
+        cout << "\nERROR: At least two colors are required in line "
                 << line_counter << "!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -79,7 +79,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res.size() % 4 != 0)
     {
-        cout << "ERROR: False number of values between (...)  in line "
+        cout << "\nERROR: False number of values between (...)  in line "
                 << line_counter << "!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -87,7 +87,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res[0] != 0)
     {
-        cout << "ERROR: First position  in line " << line_counter
+        cout << "\nERROR: First position in line " << line_counter
                 << " has to be 0!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -95,7 +95,7 @@ dlist CCommandParser::parseDataString(string data)
 
     if(res[res.size() - 4] != 1)
     {
-        cout << "ERROR: Last position  in line " << line_counter
+        cout << "\nERROR: Last position in line " << line_counter
                 << " has to be 1!\nColor bar set to default." << endl;
         res.clear();
         return res;
@@ -107,7 +107,7 @@ dlist CCommandParser::parseDataString(string data)
         {
             if(res[i] < 0 || res[i] > 1)
             {
-                cout << "ERROR: Position in color bar  in line " << line_counter
+                cout << "\nERROR: Position in color bar  in line " << line_counter
                         << " has to be between 0 and 1!\nColor bar set to default." << endl;
                 res.clear();
                 return res;
@@ -115,7 +115,7 @@ dlist CCommandParser::parseDataString(string data)
 
             if(res[i] <= tmp_val)
             {
-                cout << "ERROR: Position values  in line " << line_counter
+                cout << "\nERROR: Position values in line " << line_counter
                         << " have to be in ascending order!\nColor bar set to default." << endl;
                 res.clear();
                 return res;
@@ -127,7 +127,7 @@ dlist CCommandParser::parseDataString(string data)
         {
             if(res[i] < 0 || res[i] > 255)
             {
-                cout << "ERROR: Color values  in line " << line_counter
+                cout << "\nERROR: Color values in line " << line_counter
                         << " have to be between 0 and 255!\nColor bar set to default." << endl;
                 res.clear();
                 return res;
@@ -312,7 +312,7 @@ bool CCommandParser::parse()
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open file: " << cmd_filename
+        cout << "\nERROR: Cannot open file:\n" << cmd_filename
                 << endl;
         return false;
     }
@@ -347,7 +347,7 @@ bool CCommandParser::parse()
 
         if(command.c_str()[0] != '<')
         {
-            cout << ">> WARNING: Unknown command " << command << " in line "
+            cout << "\nWARNING: Unknown command " << command << " in line "
                     << line_counter << "!" << endl;
             continue;
         }
@@ -356,14 +356,14 @@ bool CCommandParser::parse()
         {
             if(task_id == -id_tsk)
             {
-                cout << ">> EROOR: Closing tag \"</task>\" is missing in line "
+                cout << "\nERROR: Closing tag \"</task>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
 
             if(task_id == -id_cmn)
             {
-                cout << ">> EROOR: Closing tag \"</common>\" is missing in line "
+                cout << "\nERROR: Closing tag \"</common>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
@@ -390,7 +390,7 @@ bool CCommandParser::parse()
         {
             if(task_id != -id_tsk)
             {
-                cout << ">> EROOR: Opening tag \"<task>\" is missing in line "
+                cout << "\nERROR: Opening tag \"<task>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
@@ -404,14 +404,14 @@ bool CCommandParser::parse()
         {
             if(task_id == -id_tsk)
             {
-                cout << ">> EROOR: Closing tag \"</task>\" is missing in line "
+                cout << "\nERROR: Closing tag \"</task>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
 
             if(task_id == -id_cmn)
             {
-                cout << ">> EROOR: Closing tag \"</common>\" is missing in line "
+                cout << "\nERROR: Closing tag \"</common>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
@@ -425,7 +425,7 @@ bool CCommandParser::parse()
         {
             if(task_id != -id_cmn)
             {
-                cout << ">> EROOR: Opening tag \"<common>\" is missing in line "
+                cout << "\nERROR: Opening tag \"<common>\" is missing in line "
                         << line_counter << "!" << endl;
                 return false;
             }
@@ -511,14 +511,14 @@ bool CCommandParser::parse()
 
             if(command.c_str()[0] != '<')
             {
-                cout << ">> WARNING: Unknown command " << command << " in line "
+                cout << "\nWARNING: Unknown command " << command << " in line "
                         << line_counter << "!" << endl;
                 continue;
             }
 
             if(!parseLine(param, command, line, i))
             {
-                cout << ">> WARNING: Unknown command " << command << " in line "
+                cout << "\nWARNING: Unknown command " << command << " in line "
                         << line_counter << "!" << endl;
                 continue;
             }
@@ -549,14 +549,14 @@ bool CCommandParser::parse()
                 if(stop > map_max - 1)
                 {
                     stop = map_max - 1;
-                    cout << "WARNING: <stop> value larger than number of raytracing detectors!" << endl;
+                    cout << "\nWARNING: <stop> value larger than number of raytracing detectors!" << endl;
                     cout << " Value set to " << stop + 1 << "." << endl;
                 }
 
                 if(start > map_max - 1)
                 {
                     start = 0;
-                    cout << "WARNING: <start> value larger than number of raytracing detectors!" << endl;
+                    cout << "\nWARNING: <start> value larger than number of raytracing detectors!" << endl;
                     cout << " Value set to 1." << endl;
                 }
 
@@ -586,14 +586,14 @@ bool CCommandParser::parse()
                 if(stop > map_max - 1)
                 {
                     stop = map_max - 1;
-                    cout << "WARNING: <stop> value larger than number of raytracing detectors!" << endl;
+                    cout << "\nWARNING: <stop> value larger than number of raytracing detectors!" << endl;
                     cout << " Value set to " << stop + 1 << "." << endl;
                 }
 
                 if(start > map_max - 1)
                 {
                     start = 0;
-                    cout << "WARNING: <start> value larger than number of raytracing detectors!" << endl;
+                    cout << "\nWARNING: <start> value larger than number of raytracing detectors!" << endl;
                     cout << " Value set to 1." << endl;
                 }
 
@@ -623,14 +623,14 @@ bool CCommandParser::parse()
                 if(stop > map_max - 1)
                 {
                     stop = map_max - 1;
-                    cout << "WARNING: <stop> value larger than number of gas species!" << endl;
+                    cout << "\nWARNING: <stop> value larger than number of gas species!" << endl;
                     cout << " Value set to " << stop + 1 << "." << endl;
                 }
 
                 if(start > map_max - 1)
                 {
                     start = 0;
-                    cout << "WARNING: <start> value larger than number of gas species!" << endl;
+                    cout << "\nWARNING: <start> value larger than number of gas species!" << endl;
                     cout << " Value set to 1." << endl;
                 }
                 break;
@@ -744,7 +744,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return true;
         }
 
-        cout << "ERROR: Command can not be recognized!" << endl;
+        cout << "\nERROR: Command cannot be recognized!" << endl;
         return false;
     }
 
@@ -782,7 +782,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return true;
         }
 
-        cout << "ERROR: Phase function can not be recognized!" << endl;
+        cout << "\nERROR: Phase function cannot be recognized!" << endl;
         return false;
     }
 
@@ -884,7 +884,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         // HINT: +1 because the gas species id is not saved in the gas_species list!
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
-            cout << "ERROR: Nr.of parameter in line detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in line detector could not be recognized!" << endl;
             return false;
         }
 
@@ -941,7 +941,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
-            cout << "ERROR: Nr.of parameter in healpix line detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in healpix line detector could not be recognized!" << endl;
             return false;
         }
 
@@ -1027,7 +1027,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
-            cout << "ERROR: Nr.of parameter in polar line detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in polar line detector could not be recognized!" << endl;
             return false;
         }
 
@@ -1127,7 +1127,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         // HINT: +1 because the gas species id is not saved in the gas_species list!
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
-            cout << "ERROR: Nr.of parameter in line detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in line detector could not be recognized!" << endl;
             return false;
         }
 
@@ -1202,18 +1202,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1236,19 +1236,19 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(nr_of_sides.size() != 1)
         {
-            cout << "ERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(nr_of_sides[0] <= 0)
         {
-            cout << "ERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(!CMathFunctions::isPowerOfTwo(int(nr_of_sides[0])))
         {
-            cout << "ERROR: Number of sides must be a power of two!" << endl;
+            cout << "\nERROR: Number of sides must be a power of two!" << endl;
             return false;
         }
 
@@ -1272,18 +1272,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1362,18 +1362,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in polar raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in polar raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1448,18 +1448,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1508,18 +1508,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_MC_DET)
         {
-            cout << "ERROR: Number of pixel in Monte-Carlo detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of pixel in Monte-Carlo detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1594,18 +1594,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1628,19 +1628,19 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(nr_of_sides.size() != 1)
         {
-            cout << "ERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(nr_of_sides[0] <= 0)
         {
-            cout << "ERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of sides in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(!CMathFunctions::isPowerOfTwo(int(nr_of_sides[0])))
         {
-            cout << "ERROR: Number of sides must be a power of two!" << endl;
+            cout << "\nERROR: Number of sides must be a power of two!" << endl;
             return false;
         }
 
@@ -1664,18 +1664,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in healpix raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in healpix raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1754,18 +1754,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in polar raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in polar raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1840,18 +1840,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(values.size() != NR_OF_RAY_DET)
         {
-            cout << "ERROR: Nr.of parameter in raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of parameters in raytracing detector could not be recognized!" << endl;
             return false;
         }
 
         if(values[2] < 1)
         {
-            cout << "ERROR: Number of wavelengths needs to be at least 1!" << endl;
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
             return false;
         }
         else if(values[2] > 1 && values[0] == values[1])
         {
-            cout << "ERROR: Minimum and maximum wavelength cannot be the "
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
                 << "same if the number of wavelengths is larger than 1!" << endl;
             return false;
         }
@@ -1912,7 +1912,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->addGasSpecies(gas_species_path, zeeman_path, values);
         else
         {
-            cout << "ERROR: False amount of paramater for gas species line transfer in line "
+            cout << "\nERROR: False amount of parameters for gas species line transfer in line "
                 << line_counter << "!" << endl;
             return false;
         }
@@ -1928,7 +1928,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(nr_of_photons <= 0)
         {
-            cout << "ERROR: Nr. of star photons could not be recognized!" << endl;
+            cout << "\nERROR: Number of star photons could not be recognized!" << endl;
             return false;
         }
 
@@ -1945,7 +1945,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
             else
             {
-                cout << "ERROR: False amount of paramater for source star in line "
+                cout << "\nERROR: False amount of parameters for source star in line "
                     << line_counter << "!" << endl;
                 return false;
             }
@@ -1959,7 +1959,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
             else if(values.size() != NR_OF_POINT_SOURCES - 1)
             {
-                cout << "ERROR: False amount of paramater for source star in line "
+                cout << "\nERROR: False amount of parameters for source star in line "
                     << line_counter << "!" << endl;
                 return false;
             }
@@ -1968,12 +1968,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         double P_l = sqrt(pow(values[5], 2) + pow(values[6], 2));
         if(P_l > 1.0)
         {
-            cout << "ERROR: Chosen polarization of source star is larger than 1!" << endl;
+            cout << "\nERROR: Chosen polarization of source star is larger than 1!" << endl;
             return false;
         }
         else if(P_l < 0)
         {
-            cout << "HINT: Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
+            cout << "\nHINT: Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
             values[5] = 0;
             values[6] = 0;
         }
@@ -1992,7 +1992,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(nr_of_photons <= 0)
         {
-            cout << "ERROR: Nr. of star photons could not be recognized!" << endl;
+            cout << "\nERROR: Number of star photons could not be recognized!" << endl;
             return false;
         }
 
@@ -2009,7 +2009,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
             else
             {
-                cout << "ERROR: False amount of paramater for source starfield in line "
+                cout << "\nERROR: False amount of parameters for source starfield in line "
                     << line_counter << "!" << endl;
                 return false;
             }
@@ -2023,7 +2023,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
             else if(values.size() != NR_OF_DIFF_SOURCES - 1)
             {
-                cout << "ERROR: False amount of paramater for source starfield in line "
+                cout << "\nERROR: False amount of parameters for source starfield in line "
                     << line_counter << "!" << endl;
                 return false;
             }
@@ -2033,12 +2033,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         double P_l = sqrt(pow(values[6], 2) + pow(values[7], 2));
         if(P_l > 1.0)
         {
-            cout << "ERROR: Chosen polarization of source star is larger than 1!" << endl;
+            cout << "\nERROR: Chosen polarization of source star is larger than 1!" << endl;
             return false;
         }
         else if(P_l < 0)
         {
-            cout << "HINT: Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
+            cout << "\nHINT: Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
             values[6] = 0;
             values[7] = 0;
         }
@@ -2055,7 +2055,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(nr_of_photons <= 0)
         {
-            cout << "ERROR: Nr. of point source photons could not be recognized!" << endl;
+            cout << "\nERROR: Number of point source photons could not be recognized!" << endl;
             return false;
         }
 
@@ -2084,7 +2084,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                     }
                     else
                     {
-                        cout << "ERROR: Can not detect path for background parameter file in line: ";
+                        cout << "\nERROR: Cannot detect path for background parameters file in line: ";
                         cout << line_counter << endl;
                         return false;
                     }
@@ -2101,7 +2101,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(values.size() != 3)
         {
             cout
-                    << "ERROR: Values for first axis are not a vector!" << endl;
+                    << "\nERROR: Values for first axis are not a vector!" << endl;
             return false;
         }
 
@@ -2117,7 +2117,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(values.size() != 3)
         {
             cout
-                    << "ERROR: Values for second axis are not a vector!" << endl;
+                    << "\nERROR: Values for second axis are not a vector!" << endl;
             return false;
         }
 
@@ -2298,7 +2298,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                 nr_size_parameter += 14;
             else
             {
-                cout << "Error: Dust size distribution keyword not known!" << endl;
+                cout << "\nERROR: Dust size distribution keyword not known!" << endl;
                 return false;
             }
         }
@@ -2337,7 +2337,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else
         {
-            cout << "WARNING: False parameter set for dust component in line "
+            cout << "\nWARNING: False parameters set for dust component in line "
                 << line_counter << "!" << endl;
             return false;
         }
@@ -2420,7 +2420,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(value<0)
         {
-            cout << "WARNING: Negative conversion factors are no longer supported!" << endl;
+            cout << "\nWARNING: Negative conversion factors are no longer supported!" << endl;
             cout << "         Grid must always contain number densities" << endl;
             value=-value;
         }
@@ -2447,7 +2447,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(conv<0)
         {
-            cout << "WARNING: Negative conversion factor are no longer allowed!" << endl;
+            cout << "\nWARNING: Negative conversion factor are no longer allowed!" << endl;
             cout << "         The grid can only contain number densities.                    \n" << endl;
             conv=abs(conv);
         }
@@ -2467,7 +2467,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(atob(atoi(data.c_str())))
             param->setMRW(true);
 
-        cout << "WARNING: MRW currently unavailable!" << endl;
+        cout << "\nWARNING: MRW currently unavailable! " << endl;
 
         return true;
     }
@@ -2477,7 +2477,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(atob(atoi(data.c_str())))
             param->setPDA(true);
 
-        cout << "WARNING: PDA currently unavailable!" << endl;
+        cout << "\nWARNING: PDA currently unavailable! " << endl;
 
         return true;
     }
@@ -2559,7 +2559,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else
         {
-            cout << "Error: For stochastic heating, a non negative dust grain size limit needs to be chosen!" << endl;
+            cout << "\nERROR: For stochastic heating, a non-negative dust grain size limit needs to be chosen!" << endl;
             return false;
         }
     }
@@ -2574,7 +2574,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         else
         {
             cout
-                    << "ERROR: Nr.of dust photons could not be recognized!" << endl;
+                    << "\nERROR: Number of dust photons could not be recognized!" << endl;
             return false;
         }
 
@@ -2591,7 +2591,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         else
         {
             cout
-                    << "ERROR: Nr.of ISRF photons could not be recognized!" << endl;
+                    << "\nERROR: Number of ISRF photons could not be recognized!" << endl;
             return false;
         }
 
@@ -2602,7 +2602,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         else
         {
             cout
-                    << "ERROR: Path of ISRF SED path could not be recognized!" << endl;
+                    << "\nERROR: Path of ISRF SED path could not be recognized!" << endl;
             return false;
         }
 
@@ -2648,14 +2648,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(tr > max_t)
         {
             tr = max_t;
-            cout << ">> WARNING: Max. nr. of threads is : " << max_t
+            cout << "\nWARNING: Max. nr. of threads is:  " << max_t
                     << endl;
         }
 
         if(tr <= 0)
         {
             tr = 1;
-            cout << ">> WARNING: Max. nr. of threads is set to: " << 1
+            cout << "\nWARNING: Max. nr. of threads is set to: " << 1
                     << endl;
         }
 
@@ -2721,7 +2721,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         {
             if(values[2] > values[3])
             {
-               cout << ">> ERROR: z_min is larger than z_max for 3D midplane creation!" << endl;
+               cout << "\nERROR: z_min is larger than z_max for 3D midplane creation!" << endl;
                 return false; 
             }
             z_min = values[2];
@@ -2729,14 +2729,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         if(values.size() > 4 || values.size() == 0)
         {
-            cout << ">> ERROR: Nr.of parameter for 3D midplane files in line "
+            cout << "\nERROR: Number of parameters for 3D midplane files in line "
                     << line_counter << "could not be recognized!" << endl;
             return false;
         }
 
         if(plane > 3 || plane < 0)
         {
-            cout << ">> EROOR: Wrong plane for 3D midplane files in line "
+            cout << "\nERROR: Wrong plane for 3D midplane files in line "
                     << line_counter << "!" << endl;
             return false;
         }
@@ -2825,18 +2825,18 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
     {
         if(nr_of_pixel.size() != 1)
         {
-            cout << "ERROR: Number of sides in healpix "
+            cout << "\nERROR: Number of sides in healpix "
                 << "line detector could not be recognized!" << endl;
             return false;
         }
         if(nr_of_pixel[0] <= 0)
         {
-            cout << "ERROR: Number of sides in healpix line detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of sides in healpix line detector could not be recognized!" << endl;
             return false;
         }
         if(!CMathFunctions::isPowerOfTwo(int(nr_of_pixel[0])))
         {
-            cout << "ERROR: Number of sides must be a power of two!" << endl;
+            cout << "\nERROR: Number of sides must be a power of two!" << endl;
             return false;
         }
         values.push_back(uint(nr_of_pixel[0]));
@@ -2858,14 +2858,14 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         }
         else
         {
-            cout << "ERROR: Number of pixel in Raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of pixel in Raytracing detector could not be recognized!" << endl;
             return false;
         }
         for(int i = 0; i < nr_of_pixel.size(); i++)
         {
             if(nr_of_pixel[i] <= 0)
             {
-                cout << "ERROR: Number of pixel in Raytracing detector could not be recognized!" << endl;
+                cout << "\nERROR: Number of pixel in Raytracing detector could not be recognized!" << endl;
                 return false;
             }
         }
@@ -2879,14 +2879,14 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     {
         if(nr_of_channels[0] <= 0)
         {
-            cout << "ERROR: Number of velocity channels in Raytracing detector could not be recognized!" << endl;
+            cout << "\nERROR: Number of velocity channels in Raytracing detector could not be recognized!" << endl;
             return false;
         }
         values.push_back(uint(nr_of_channels[0]));
     }
     else
     {
-        cout << "ERROR: Number of velocity channels in Raytracing detector could not be recognized!" << endl;
+        cout << "\nERROR: Number of velocity channels in Raytracing detector could not be recognized!" << endl;
         return false;
     }
     return true;

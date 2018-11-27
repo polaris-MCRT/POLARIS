@@ -222,7 +222,7 @@ public:
     {
         if(max_cells == 0)
         {
-            cout << "ERROR: OcTree grid contains no cells!" << endl;
+            cout << "\nERROR: OcTree grid contains no cells!" << endl;
             cout << "       Cell list cannot be created!" << endl;
             return false;
         }
@@ -231,7 +231,7 @@ public:
         ulong pos_counter = 0;
         goToRoot();
         cout << CLR_LINE;
-        cout << "-> Creating cell list    : 0 %           \r";
+        cout << "-> Creating cell list    : 0 [%]           \r";
 
         while(nextLowLevelCell())
         {
@@ -242,14 +242,14 @@ public:
             cell_list[pos_counter] = (cell_basic*) cell_oc_pos;
 
             pos_counter++;
-            if(pos_counter % 5500 == 0)
+            if(pos_counter % 15000 == 0)
                 cout << "-> Creating cell list     : "
                     << 100.0 * float(pos_counter) / float(max_cells)
-                << " %        \r" << flush;
+                << " [%]        \r" << flush;
         }
 
         cout << CLR_LINE;
-        //cout << "- Creating cell list            : done          \n" << flush;
+        cout << "- Creating cell list                   : done          \n" << flush;
         return true;
     }
 

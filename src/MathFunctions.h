@@ -139,7 +139,7 @@ public:
 #ifdef DEBUG
         if(x == 0)
         {
-            cout << "ERROR: Spline was not initiated!" << endl;
+            cout << "\nERROR: Spline was not initiated!" << endl;
             return;
         }
 #endif
@@ -165,7 +165,7 @@ public:
 #ifdef DEBUG
         if(x == 0)
         {
-            cout << "ERROR: Spline was not initiated!" << endl;
+            cout << "\nERROR: Spline was not initiated!" << endl;
             return;
         }
 #endif
@@ -206,7 +206,7 @@ public:
         for(uint i = 0; i < N; i++)
         {
             //if((x[i + 1] - x[i]) == 0.0)
-            //    cout << "ERROR: Spline broken!" << endl;
+            //    cout << "\nERROR: Spline broken!" << endl;
             u[i] = x[i + 1] - x[i];
         }
 
@@ -288,7 +288,7 @@ public:
 
             if(u[i] == 0)
             {
-                cout << "ERROR:  Identical values in x[" << i << "] and x[" << i + 1 << "]!\n                        ";
+                cout << "\nERROR:  Identical values in x[" << i << "] and x[" << i + 1 << "]!\n                        ";
                 cout << u[i] << "        Try smaller step sizes in Spline. \n                        ";
                 u[i] = 1;
             }
@@ -578,7 +578,7 @@ public:
 #ifdef DEBUG
         if(x == 0)
         {
-            cout << "ERROR: Linear interpolation was not initiated!" << endl;
+            cout << "\nERROR: Linear interpolation was not initiated!" << endl;
             return;
         }
 #endif
@@ -705,7 +705,7 @@ public:
 #ifdef DEBUG
         if(x == 0)
         {
-            cout << "ERROR: Spline was not initiated!" << endl;
+            cout << "\nERROR: Spline was not initiated!" << endl;
             return;
         }
 #endif
@@ -750,7 +750,7 @@ namespace
     inline prob_list operator-(prob_list & list1, prob_list & list2)
     {
         if (list1.size() != list2.size())
-            cout << "ERROR: Propability lists have different lengths!";
+            cout << "\nERROR: Probability lists have different lengths!";
         prob_list diff_list(list1.size());
 
         for(uint i = 0; i < list1.size(); i++)
@@ -2478,7 +2478,7 @@ public:
         long nmx = fmax(xstop, abs(cxy)) + 15;
 
         if (nmx >= NMXX) {
-            cout << "ERROR: Failure in Mie-scattering calculation (NMX = " 
+            cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " 
                 << nmx << " >= NMXX = " << NMXX << ")" << endl;
             return;
         }

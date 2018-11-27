@@ -61,7 +61,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 
         cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
                 << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -100,7 +100,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open spectrum file: \n" << filename << "  \n" << endl;
+        cout << "\nERROR: Cannot open spectrum file: \n" << filename << "  \n" << endl;
         return false;
     }
 
@@ -115,7 +115,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
 
         if(value.size() != 4 && value.size() != 2)
         {
-            cout << "ERROR: In spectrum file : " << filename << endl;
+            cout << "\nERROR: In spectrum file:\n" << filename << endl;
             cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
             return false;
         }
@@ -258,7 +258,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
         cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
                 << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << "%" << endl;
+                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]           " << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -299,7 +299,7 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open spectrum file: \n" << filename << "  \n" << endl;
+        cout << "\nERROR: Cannot open spectrum file: \n" << filename << "  \n" << endl;
         return false;
     }
 
@@ -314,7 +314,7 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 
         if(value.size() != 4 && value.size() != 2)
         {
-            cout << "ERROR: In spectrum file : " << filename << endl;
+            cout << "\nERROR: In spectrum file:\n" << filename << endl;
             cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
             return false;
         }
@@ -446,7 +446,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     else
     {
         cout << CLR_LINE;
-        cout << "Initiating variable background source: 0 %       \r";
+	cout << "Initiating variable background source: 0.0 [%]          \r";
 
         for(uint p = 0; p < max_len; p++)
         {
@@ -478,7 +478,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
             if(p % 500 == 0)
                 cout << "Initiating variable background source: "
-                    << 100 * float(p) / float(max_len) << " %       \r";
+                    << 100 * float(p) / float(max_len) << " [%]       \r";
         }
 
         if(use_energy_density)
@@ -512,7 +512,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open file: " << filename << endl;
+        cout << "\nERROR: Cannot open file:\n" << filename << endl;
         return false;
     }
 
@@ -534,7 +534,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
         {
             if(value.size() != 1)
             {
-                cout << "ERROR: Wrong amount of values in : " << filename << endl;
+                cout << "\nERROR: Wrong amount of values in:\n " << filename << endl;
                 cout << "1 value expected in line " << line_counter + 5 << " !" << endl;
                 return false;
             }
@@ -552,7 +552,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
         {
             if(line_counter > (int) max_len)
             {
-                cout << "ERROR: To many background values in : " << filename << endl;
+                cout << "\nERROR: To many background values in : " << filename << endl;
                 cout << max_len << " lines expected!" << endl;
                 return false;
             }
@@ -567,7 +567,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
             }
             else
             {
-                cout << "ERROR: To in file : " << filename << endl;
+                cout << "\nERROR: File : " << filename << endl;
                 cout << " 5 values in line " << line_counter + 1 << " expected!" << endl;
                 return false;
             }
@@ -576,7 +576,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
 
     if(line_counter + 1 < (int) max_len)
     {
-        cout << "ERROR: Not enough background values in : " << filename << endl;
+        cout << "\nERROR: Not enough background values in : " << filename << endl;
         cout << max_len << " lines expected!" << endl;
         return false;
     }
@@ -687,7 +687,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
 
     if(reader.fail())
     {
-        cout << "ERROR: Can not open file: " << filename << endl;
+        cout << "\nERROR: Cannot open file: " << filename << endl;
         return false;
     }
 
@@ -709,7 +709,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
         {
             if(value.size() != 3)
             {
-                cout << "ERROR: In ISRF file : " << filename << endl;
+                cout << "\nERROR: In ISRF file:\n" << filename << endl;
                 cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
                 return false;
             }
@@ -735,7 +735,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
             }
             else
             {
-                cout << "ERROR: In ISRF file : " << filename << endl;
+                cout << "\nERROR: In ISRF file:\n" << filename << endl;
                 cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
                 return false;
             }
@@ -796,7 +796,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 {
     if(!use_energy_density)
     {
-        cout << "ERROR: The dust source for radiation field calculation "
+        cout << "\nERROR: The dust source for radiation field calculation "
             << "can only be used with energy density!" << endl;
         return false;
     }
@@ -839,8 +839,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             {
 #pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: [ " 
-                        << percentage << " % ]\r" << flush;
+                    cout << "-> Calculate prob. distribution for dust source: " 
+                        << percentage << " [%]\r" << flush;
                     last_percentage = percentage;
                 }
             }
