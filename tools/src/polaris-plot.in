@@ -228,15 +228,7 @@ class PlotRoutines:
         elif plot_data_type == 'healpix':
             self.file_io.init_plot_output('emission_healpix_map_detector_nr' + str(self.detector_index).zfill(4))
         # Define title and amount of components per map
-        if self.parse_args.simulation_type == 'dust_mc':
-            emission_types = r'$\mathsf{Monte-Carlo\ (scattering)}$'
-        elif self.parse_args.simulation_type == 'dust_full':
-            emission_types = r'$\mathsf{MC+raytracing\ (total\ emission)}$'
-        elif self.parse_args.simulation_type == 'dust' or 'dust_' in self.parse_args.simulation_type:
-            emission_types = r'$\mathsf{raytracing\ (thermal\ emission)}$'
-        else:
-            raise ValueError('Emission map cannot be created with the simulation type: ' +
-                             self.parse_args.simulation_type)
+        emission_types = r'$\mathsf{' + header['emission_type'].replace(' ', '\ ') + '}$'
         # Set stop_index to maximum number of wavelengths
         if self.stop_index is None or self.stop_index > int(header['nr_wavelengths']):
             self.stop_index = int(header['nr_wavelengths'])

@@ -370,6 +370,7 @@ class FileIO:
         header_dict = dict(
             wavelengths=[],
             ID=hdulist[hdu_index].header['ID'],
+            emission_type=hdulist[hdu_index].header['ETYPE'],
             simulation_type='dust' if 'thermal' in hdulist[hdu_index].header['ETYPE'] else 'dust_mc',
         )
         if plot_data_type == 'healpix':
