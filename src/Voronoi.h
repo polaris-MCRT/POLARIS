@@ -174,6 +174,29 @@ public:
         cout << CLR_LINE << flush;
     }
 
+    
+    bool isInside(Vector3D & pos)
+    {
+        double l_min = -0.5 * max_len;
+        double l_max = 0.5 * max_len;
+
+        if(pos.X() < l_min)
+            return false;
+        if(pos.Y() < l_min)
+            return false;
+        if(pos.Z() < l_min)
+            return false;
+
+        if(pos.X() > l_max)
+            return false;
+        if(pos.Y() > l_max)
+            return false;
+        if(pos.Z() > l_max)
+            return false;
+
+        return true;
+    }
+        
     bool writeGNUPlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
