@@ -256,13 +256,13 @@ public:
         {
             cout << "Monte-Carlo parameter" << endl;
             if(param.getNrOfDustMCDetectors() > 0)
-                cout << "- Number of detectors      : " << param.getNrOfDustMCDetectors() << endl;
+                cout << "- Number of detectors   : " << param.getNrOfDustMCDetectors() << endl;
         }
         else
         {
             cout << "Raytrace parameter" << endl;
             if(param.getNrOfDustRayDetectors() > 0)
-                cout << "- Number of detectors      : " << param.getNrOfDustRayDetectors() << endl;
+                cout << "- Number of detectors   : " << param.getNrOfDustRayDetectors() << endl;
             param.printRTGridDescription();
             cout << "- Start, Stop           : " << param.getStart() + 1
                 << ", " << param.getStop() + 1 << endl;

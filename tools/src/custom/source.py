@@ -169,10 +169,10 @@ class GGTauStars(StellarSource):
             'temperature': [self.T_Aa, self.T_Ab1, self.T_Ab2],
             'luminosity': [self.L_Aa, self.L_Ab1, self.L_Ab2],
             'position_star': [[-1.0, self.a_Aab * self.math.const['au'] * np.sin(self.angle_Aa), 0.],
-                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) +
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) -
                                self.a_Ab12 * self.math.const['au'],
                                self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.],
-                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) -
+                              [self.a_Aab * self.math.const['au'] * np.cos(self.angle_Ab) +
                                self.a_Ab12 * self.math.const['au'],
                                self.a_Aab * self.math.const['au'] * np.sin(self.angle_Ab), 0.]]
         }

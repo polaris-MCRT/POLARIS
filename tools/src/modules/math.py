@@ -1163,7 +1163,7 @@ class Math:
 
     @staticmethod
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
-                             ref_radius=100. * 149597870700.0, alpha=1.625, beta=1.125, tappered_gamma=None,
+                             ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tappered_gamma=None,
                              surface_dens_exp=None, real_zero=True):
         """Shakura and Sunyaev disk density profile.
 

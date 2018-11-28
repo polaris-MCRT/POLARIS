@@ -186,7 +186,7 @@ class Disk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 1.625
+        self.parameter['alpha'] = 2.625
         self.parameter['beta'] = 1.125
 
     def update_parameter(self, extra_parameter):
