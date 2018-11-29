@@ -743,7 +743,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                        if(interactions > MAX_INTERACTION)
                         {
                             if(ph_i == 0)
                                 kill_counter++;
@@ -860,6 +860,13 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Save photon position to adjust it if necessary
                         old_pos = pp->getPosition();
+
+                        if(pp->getStokesVector().I() < 1e-200)
+                        {
+                            if(ph_i == 0)
+                                kill_counter++;
+                            break;
+                        }
                     }
 
                     // If peel-off is not used, use classic Monte-Carlo method
