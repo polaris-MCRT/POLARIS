@@ -442,14 +442,16 @@ class GGTauDisk(Model):
 
         if extra_parameter is not None:
             if len(extra_parameter) == 3:
-                if extra_parameter[0]:
+                if bool(int(extra_parameter[0])):
                     self.disk_Aa = True
-                if extra_parameter[1]:
+                if bool(int(extra_parameter[1])):
                     self.disk_Ab1 = True
-                if extra_parameter[2]:
+                if bool(int(extra_parameter[2])):
                     self.disk_Ab2 = True
             else:
                 raise ValueError('Wrong number of extra parameters!')
+            print(self.disk_Aa, self.disk_Ab1, self.disk_Ab2)
+            raise ValueError('End!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
