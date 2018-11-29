@@ -450,8 +450,6 @@ class GGTauDisk(Model):
                     self.disk_Ab2 = True
             else:
                 raise ValueError('Wrong number of extra parameters!')
-            print(self.disk_Aa, self.disk_Ab1, self.disk_Ab2)
-            raise ValueError('End!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
