@@ -169,7 +169,8 @@ class GridRoutines:
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+        tmp_file = open(
+            self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         # Write header of the grid file
         grid.write_header(
             grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
@@ -191,24 +192,27 @@ class GridRoutines:
                 # Close the temporary grid file
                 tmp_file.close()
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename)
+                os.remove(self.file_io.path['model'] +
+                          'tmp_' + self.parse_args.grid_filename)
                 # Close the final grid file
                 grid_file.close()
             elif np.shape(self.model.parameter['gas_mass']) == np.shape(grid.total_gas_mass):
                 # Update the relation between the regions in the grid (gas)
                 if self.model.parameter['gas_mass'] is not None:
+                    tmp_gas_mass = np.subtract(
+                        grid.total_gas_mass, self.model.tmp_parameter['ignored_gas_density'])
                     self.model.tmp_parameter['relative_gas_densities'] = np.divide(
-                        self.model.parameter['gas_mass'], np.subtract(
-                            grid.total_gas_mass, self.model.tmp_parameter['ignored_gas_density']),
+                        self.model.parameter['gas_mass'], tmp_gas_mass,
                         out=np.zeros_like(self.model.parameter['gas_mass']),
-                        where=self.model.parameter['gas_mass'] != 0)
+                        where=tmp_gas_mass != 0)
                 # Update the relation between the regions in the grid  (dust)
                 if self.model.parameter['dust_mass'] is not None:
+                    tmp_dust_mass = np.subtract(
+                        grid.total_dust_mass, self.model.tmp_parameter['ignored_dust_density'])
                     self.model.tmp_parameter['relative_dust_densities'] = np.divide(
-                        self.model.parameter['dust_mass'], np.subtract(
-                            grid.total_dust_mass, self.model.tmp_parameter['ignored_dust_density']),
-                        out=np.zeros_like(self.model.parameter['gas_mass']),
-                        where=self.model.parameter['gas_mass'] != 0)
+                        self.model.parameter['dust_mass'], tmp_dust_mass,
+                        out=np.zeros_like(self.model.parameter['dust_mass']),
+                        where=tmp_dust_mass != 0)
                 #: Init grid
                 if self.model.parameter['grid_type'] == 'octree':
                     grid = OcTree(self.model, self.ext_input,
@@ -230,7 +234,8 @@ class GridRoutines:
                 # Create the grid
                 grid.create_grid(grid_file, root)
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename)
+                os.remove(self.file_io.path['model'] +
+                          'tmp_' + self.parse_args.grid_filename)
                 # Close the temporary grid file
                 grid_file.close()
             else:
@@ -264,7 +269,8 @@ class GridRoutines:
         from modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+        tmp_file = open(
+            self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         #: Final grid file
         grid_file = open(
             self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
@@ -290,7 +296,8 @@ class GridRoutines:
         from modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
         #: Temporary tree file
-        tmp_file = open(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+        tmp_file = open(
+            self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         #: Final grid file
         grid_file = open(
             self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
