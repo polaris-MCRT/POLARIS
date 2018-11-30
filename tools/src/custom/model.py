@@ -512,7 +512,8 @@ class GGTauDisk(Model):
             disk_density_Ab1 = 0.
             disk_density_Ab2 = 0.
 
-        if self.disk_Aa and 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
+        # --- GG Tau A CB disk
+        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
             # Calculate the density
             disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
                                                           inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height,
