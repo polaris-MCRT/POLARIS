@@ -490,7 +490,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if(line_counter % 5000 == 0)
         {
             char_counter++;
-            cout << "-> Loading octree grid file:"
+            cout << "-> Loading octree grid file: "
                     << ru[(unsigned int) char_counter % 4] << "           \r";
         }
 

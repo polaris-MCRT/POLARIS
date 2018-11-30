@@ -428,7 +428,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading cylindrical grid file:"
+            cout << "-> Loading cylindrical grid file: "
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }

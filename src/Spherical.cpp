@@ -292,7 +292,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading spherical grid file:"
+            cout << "-> Loading spherical grid file: "
                     << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
