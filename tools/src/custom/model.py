@@ -349,7 +349,7 @@ class GGTauDisk(Model):
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
         # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
-        self.parameter['outer_radius'] = 280. * self.math.const['au']
+        self.parameter['outer_radius'] = 260. * self.math.const['au']
         # ------ With circumstellar disks -----
         self.parameter['inner_radius'] = 15. * self.math.const['au']
         # ---- Without circumstellar disks ----
