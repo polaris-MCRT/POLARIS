@@ -414,7 +414,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
         r_list_cs_disks = np.linspace(15., 30., 150)
-        r_list_cb_disk = self.math.exp_list(180., 280., 50, 1.03)
+        r_list_cb_disk = self.math.exp_list(180., 260., 50, 1.03)
         full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
         # ------ With circumstellar disks -----
         self.cylindrical_parameter['radius_list'] = np.multiply(
