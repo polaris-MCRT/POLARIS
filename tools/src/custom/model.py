@@ -560,7 +560,7 @@ class GGTauDisk(Model):
             float: Scale height.
         """
         if(radius <= self.a_Aab + self.outer_radius_Aa):
-            scale_height = 2.0 * self.math.const['au']
+            scale_height = 0.3 * self.math.const['au']
         else:
             scale_height = self.math.default_disk_scale_height(
                 radius, ref_radius=self.ref_radius, ref_scale_height=self.ref_scale_height, beta=self.beta)
