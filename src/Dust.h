@@ -682,7 +682,7 @@ public:
     {
         double * HGg = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            HGg[a] = a_eff_1_5[a] * getHGg(a, w);
+            HGg[a] = a_eff_3_5[a] * getHGg(a, w);
         double res = PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min_global, a_max_global);
         delete[] HGg;

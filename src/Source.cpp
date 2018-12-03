@@ -13,7 +13,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-            << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
+            << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
     }
     else
     {
@@ -211,7 +211,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-            << " [L_sun], photons per wavelength: " << nr_of_photons << endl;
+            << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
     else
     {
         // Init variables
@@ -659,10 +659,10 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     cout << CLR_LINE << flush;
     if(use_energy_density)
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
-            << nr_of_photons << " photons per wavelength" << endl;
+            << nr_of_photons << " photons per wavelength" << "      " << endl;
     else
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
-            << nr_of_photons << " photons" << endl;
+            << nr_of_photons << " photons" << "      " << endl;
     cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
 
     delete[] star_emi;
@@ -864,7 +864,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 
     // Show information
     cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " 
-        << nr_of_photons << endl;
+        << nr_of_photons << "      " << endl;
 
     return true;
 }

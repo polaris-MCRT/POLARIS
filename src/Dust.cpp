@@ -1746,13 +1746,13 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Add Gnuplot commands to file
     g_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
-        cross_writer << "set log x" << endl;
+        g_writer << "set log x" << endl;
     g_writer << "set log y" << endl;
     g_writer << "set grid" << endl;
     g_writer << "unset key" << endl;
     if(nr_of_wavelength > 1)
         g_writer << "set xrange[" << wavelength_list[wavelength_offset] 
-        << ":" << wavelength_list[wavelength_offset] << "]" << endl;
+        << ":" << wavelength_list.back() << "]" << endl;
     g_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;
