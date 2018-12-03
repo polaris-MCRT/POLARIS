@@ -375,7 +375,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                    if(interactions > MAX_INTERACTION)
                     {
                         kill_counter++;
                         break;
@@ -453,6 +453,13 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         // Remove the traveled distance from optical depth
                         end_tau -= tmp_tau;
                     }
+
+                    if(pp->getStokesVector().I() < 1e-200)
+                    {
+                        kill_counter++;
+                        break;
+                    }
+
                     // Save photon position to adjust it if necessary
                     old_pos = pp->getPosition();
                 }
