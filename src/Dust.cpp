@@ -4128,8 +4128,9 @@ void CDustComponent::miesca(photon_package * pp, uint a, double albedo)
     addUpMatrices(mat_sca, a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I())
-            * (-mat_sca(0, 1) / mat_sca(0, 0));
+    if(tmp_stokes.I() > 0)
+        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I())
+                * (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;

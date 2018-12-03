@@ -441,7 +441,6 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                                     break;
                             }
                         }
-
                         // Calculate new optical depth for next interaction
                         end_tau = -log(1.0 - pp->getRND());
                     }
@@ -453,13 +452,6 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         // Remove the traveled distance from optical depth
                         end_tau -= tmp_tau;
                     }
-
-                    if(pp->getStokesVector().I() < 1e-200)
-                    {
-                        kill_counter++;
-                        break;
-                    }
-
                     // Save photon position to adjust it if necessary
                     old_pos = pp->getPosition();
                 }
@@ -864,16 +856,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Remove the traveled distance from optical depth
                             end_tau -= tmp_tau;
                         }
-
                         // Save photon position to adjust it if necessary
                         old_pos = pp->getPosition();
-
-                        if(pp->getStokesVector().I() < 1e-200)
-                        {
-                            if(ph_i == 0)
-                                kill_counter++;
-                            break;
-                        }
                     }
 
                     // If peel-off is not used, use classic Monte-Carlo method
