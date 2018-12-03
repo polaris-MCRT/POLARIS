@@ -17,9 +17,9 @@ class Plot:
     """
 
     def __init__(self, model, parse_args, image_type='image', nr_x_images=1, nr_y_images=1,
-            xlabel='', ylabel='', zlabel='', extent=None, limits=None, title='', ax_unit=None,
-            label_plane='xy', zoom_factor=None, zoom_x_factor=None, zoom_y_factor=None, with_cbar=True,
-            cmap_scaling=None, scale_axis_log=False, labelpad=None, language='english', size_x=6, size_y=4.5):
+                 xlabel='', ylabel='', zlabel='', extent=None, limits=None, title='', ax_unit=None,
+                 label_plane='xy', zoom_factor=None, zoom_x_factor=None, zoom_y_factor=None, with_cbar=True,
+                 cmap_scaling=None, scale_axis_log=False, labelpad=None, language='english', size_x=6, size_y=4.5):
         """Initialisation of plot parameters.
 
         Args:
@@ -120,7 +120,7 @@ class Plot:
 
         # Set the style (Latex font)
         self.set_style(font=parse_args.font, font_size_env=parse_args.font_size_env,
-            gray_background=parse_args.gray_background)
+                       gray_background=parse_args.gray_background)
 
         ''' ########################################
         ######  Creating the plots/subplots!  ######
@@ -139,11 +139,11 @@ class Plot:
                                            np.power(nr_y_images, 0.7) * size_y))
             if self.with_cbar:
                 self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(nr_y_images, nr_x_images),
-                    axes_pad=0.1, cbar_mode='single', cbar_location='right', cbar_pad=0.1,
-                    cbar_size=str(4.5 / np.sqrt(nr_x_images)) + '%')
+                                        axes_pad=0.1, cbar_mode='single', cbar_location='right', cbar_pad=0.1,
+                                        cbar_size=str(4.5 / np.sqrt(nr_x_images)) + '%')
             else:
-                self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(nr_y_images, nr_x_images),
-                axes_pad=0.05)
+                self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(
+                    nr_y_images, nr_x_images), axes_pad=0.05, aspect=False)
         elif image_type == 'projection_3d':
             # One 3D plot
             # noinspection PyUnresolvedReferences
@@ -167,8 +167,8 @@ class Plot:
         ''' ############################################
         ######  Creating plot labels and extent!  ######
         ############################################ '''
-        self.update_all(extent, limits, model, label_plane, 
-            nr_x_images, nr_y_images, xlabel, ylabel, zlabel, language, labelpad)
+        self.update_all(extent, limits, model, label_plane,
+                        nr_x_images, nr_y_images, xlabel, ylabel, zlabel, language, labelpad)
 
         ''' #######################################
         ######  Set various other settings!  ######
@@ -223,9 +223,10 @@ class Plot:
         if gray_background:
             plt.rcParams['savefig.facecolor'] = '#FAFAFA'
         # Change plot style
-        #plt.style.use(['seaborn-dark'])
+        # plt.style.use(['seaborn-dark'])
         # Use Latex, specify the  Latex font and load siunitx
-        preamble = [r'\usepackage[retain-zero-exponent=true, load=accepted, alsoload=astro]{siunitx}']
+        preamble = [
+            r'\usepackage[retain-zero-exponent=true, load=accepted, alsoload=astro]{siunitx}']
         if font == 'fira':
             preamble.append(r'\usepackage[sfdefault,scaled=.85]{FiraSans}')
             preamble.append(r'\usepackage{newtxsf}')
@@ -261,8 +262,8 @@ class Plot:
                 self.ax_list[i_ax].ticklabel_format(useLocale=True)
         mpl.rc('text.latex', preamble=preamble)
 
-    def update_label(self, extent=None, label_plane=None, nr_x_images=1, nr_y_images=1, 
-            xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
+    def update_label(self, extent=None, label_plane=None, nr_x_images=1, nr_y_images=1,
+                     xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
         """Creates labels based on the chosen model.
 
         Args:
@@ -309,19 +310,24 @@ class Plot:
                     else:
                         ax_unit_str = r'arb.\ units'
                 else:
-                    raise ValueError('Error Axis label for 3D plot cannot be set correctly!')
-                self.ax_list[0].set_xlabel(r'$\Delta x\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[0])
-                self.ax_list[0].set_ylabel(r'$\Delta y\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[1])
-                self.ax_list[0].set_zlabel(r'$\Delta z\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[2])
+                    raise ValueError(
+                        'Error Axis label for 3D plot cannot be set correctly!')
+                self.ax_list[0].set_xlabel(
+                    r'$\Delta x\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[0])
+                self.ax_list[0].set_ylabel(
+                    r'$\Delta y\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[1])
+                self.ax_list[0].set_zlabel(
+                    r'$\Delta z\ [\mathsf{' + ax_unit_str + '}]$', labelpad=labelpad[2])
         elif self.image_type in ['image', 'animation'] and nr_x_images == 1 and nr_y_images == 1:
             if xlabel != '' and ylabel != '':
                 pass
             elif self.ax_unit is not None:
                 xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                    nr_x_images, nr_y_images, label_plane, language)
+                                                                        nr_x_images, nr_y_images, label_plane, language)
             else:
                 # If not enough labels are defined, raise error
-                raise ValueError('Error: ax_unit ist not set, but xlabel and ylabel neither!')
+                raise ValueError(
+                    'Error: ax_unit ist not set, but xlabel and ylabel neither!')
             # Set labels of the axes of the subplot
             for ax_index in range(len(self.ax_list)):
                 self.ax_list[ax_index].set_xlabel(xlabel)
@@ -332,10 +338,11 @@ class Plot:
                     pass
                 elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, language)
+                                                                            nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
-                    raise ValueError('Error: The plot needs a list of ' + nr_y_images + ' ylabels and one xlabel!')
+                    raise ValueError(
+                        'Error: The plot needs a list of ' + nr_y_images + ' ylabels and one xlabel!')
                 # Set labels of the axes of the subplots
                 for ax_index in range(len(self.ax_list)):
                     if ax_index == nr_y_images - 1:
@@ -346,11 +353,11 @@ class Plot:
                     pass
                 elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, language)
+                                                                            nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_y plot needs a list of ' +
-                        nr_x_images + ' xlabels and one ylabel!')
+                                     nr_x_images + ' xlabels and one ylabel!')
                 # Set labels of the axes of the subplots
                 for ax_index in range(len(self.ax_list)):
                     if ax_index == 0:
@@ -361,19 +368,21 @@ class Plot:
                     pass
                 elif self.ax_unit is not None:
                     xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                        nr_x_images, nr_y_images, label_plane, language)
+                                                                            nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_both plot needs a list of ' +
-                        nr_x_images + ' xlabels and ' + nr_y_images + ' ylabels!')
+                                     nr_x_images + ' xlabels and ' + nr_y_images + ' ylabels!')
                 # Set labels of the axes of the subplots
                 for ax_index in range(len(self.ax_list)):
                     if ax_index % nr_x_images == 0:
-                        self.ax_list[ax_index].set_ylabel(ylabel[int(ax_index / nr_x_images)])
+                        self.ax_list[ax_index].set_ylabel(
+                            ylabel[int(ax_index / nr_x_images)])
                         if int(ax_index / nr_x_images) == nr_y_images - 1:
                             self.ax_list[ax_index].set_xlabel(xlabel[0])
                     elif ax_index > (nr_x_images * nr_y_images) - nr_x_images:
-                        self.ax_list[ax_index].set_xlabel(xlabel[int(ax_index - (nr_x_images * nr_y_images) + nr_x_images)])
+                        self.ax_list[ax_index].set_xlabel(
+                            xlabel[int(ax_index - (nr_x_images * nr_y_images) + nr_x_images)])
         elif self.image_type == 'healpix':
             # Nothing needed here
             None
@@ -381,7 +390,7 @@ class Plot:
             raise ValueError('Error: image_type is not known!')
         # Return which axes where automatically set
         return automatic_axes
-            
+
     def create_axis_label(self, xlabel, ylabel, nr_x_images, nr_y_images, label_plane, language):
         """Create axis label from auto label format.
 
@@ -464,9 +473,11 @@ class Plot:
         if extent is not None:
             self.extent = extent
             if 'x' in automatic_axes:
-                self.extent[0:2] = self.math.length_conv(extent[0:2], self.ax_unit)
+                self.extent[0:2] = self.math.length_conv(
+                    extent[0:2], self.ax_unit)
             if 'y' in automatic_axes:
-                self.extent[2:4] = self.math.length_conv(extent[2:4], self.ax_unit)
+                self.extent[2:4] = self.math.length_conv(
+                    extent[2:4], self.ax_unit)
         elif self.ax_unit is not None:
             if self.ax_unit == 'arb_units':
                 # Arbitrary units should go from -1 to 1.
@@ -485,7 +496,8 @@ class Plot:
                 radius_x = model.tmp_parameter['radius_x_' + self.ax_unit]
                 radius_y = model.tmp_parameter['radius_y_' + self.ax_unit]
                 if self.image_type == 'projection_3d':
-                    self.extent = [-radius_x, radius_x, -radius_x, radius_x, -radius_x, radius_x]
+                    self.extent = [-radius_x, radius_x, -
+                                   radius_x, radius_x, -radius_x, radius_x]
                 elif automatic_axes == 'xy':
                     self.extent = [-radius_x, radius_x, -radius_y, radius_y]
                 elif automatic_axes == 'x':
@@ -495,7 +507,8 @@ class Plot:
                 elif automatic_axes is None:
                     self.extent = [None, None, None, None]
             else:
-                raise ValueError('Without defined model, the update of the extent is not possible!')
+                raise ValueError(
+                    'Without defined model, the update of the extent is not possible!')
         else:
             if self.image_type == 'projection_3d':
                 self.extent = [None, None, None, None, None, None]
@@ -516,19 +529,22 @@ class Plot:
             self.limits = [None, None, None, None]
             for i_limits in range(len(self.extent)):
                 if self.extent[i_limits] is None:
-                    raise ValueError('Without a defined extent, no zoom factor can be applied!')
+                    raise ValueError(
+                        'Without a defined extent, no zoom factor can be applied!')
                 else:
                     if i_limits in [0, 1] and self.zoom_x_factor is not None:
-                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_x_factor
+                        self.limits[i_limits] = self.extent[i_limits] / \
+                            self.zoom_x_factor
                     elif i_limits in [2, 3] and self.zoom_y_factor is not None:
-                        self.limits[i_limits] = self.extent[i_limits] / self.zoom_y_factor
+                        self.limits[i_limits] = self.extent[i_limits] / \
+                            self.zoom_y_factor
         elif limits is not None:
             self.limits = limits
         else:
             self.limits = None
 
-    def update_all(self, extent=None, limits=None, model=None, label_plane=None, 
-            nr_x_images=1, nr_y_images=1, xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
+    def update_all(self, extent=None, limits=None, model=None, label_plane=None,
+                   nr_x_images=1, nr_y_images=1, xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
         """Creates labels based on the chosen model.
 
         Args:
@@ -550,8 +566,8 @@ class Plot:
             language (str): Language for decimal separation.
         """
         # Update the labels of the image
-        automatic_axes = self.update_label(extent, label_plane, nr_x_images, nr_y_images, 
-            xlabel, ylabel, zlabel, labelpad, language)
+        automatic_axes = self.update_label(extent, label_plane, nr_x_images, nr_y_images,
+                                           xlabel, ylabel, zlabel, labelpad, language)
         # Update the extent of the image
         self.update_extent(extent, model, automatic_axes)
         # Update the limits of the image
@@ -600,17 +616,18 @@ class Plot:
         from mpl_toolkits.axes_grid1.inset_locator import mark_inset
         # Create sub axis
         self.ax_list = np.hstack([self.ax_list,
-            zoomed_inset_axes(self.ax_list[ax_index], zoom_factor, loc=loc)]).ravel()
+                                  zoomed_inset_axes(self.ax_list[ax_index], zoom_factor, loc=loc)]).ravel()
         # Update the extent of the zoomed image
         self.update_extent(extent, model, automatic_axes='xy')
         # Reomove ticks from zoom region
         self.remove_ticks(-1)
         # draw a bbox of the region of the inset axes in the parent axes and
         # connecting lines between the bbox and the inset axes area
-        mark_inset(self.ax_list[ax_index], self.ax_list[-1], loc1=2, loc2=4, fc="none", ec="0.5")
+        mark_inset(self.ax_list[ax_index], self.ax_list[-1],
+                   loc1=2, loc2=4, fc="none", ec="0.5")
 
     def plot_line(self, xdata, ydata, ax_index=0, log=None, step=False,
-        fill_between=False, no_ticks=False, no_grid=False, **args):
+                  fill_between=False, no_ticks=False, no_grid=False, **args):
         """Plot 2D line from xdata and ydata.
 
         Args:
@@ -639,7 +656,8 @@ class Plot:
             plot_func = self.ax_list[ax_index].step
             args['where'] = 'mid'
             if fill_between:
-                self.ax_list[ax_index].fill_between(xdata, ydata, step='mid', alpha=0.4)
+                self.ax_list[ax_index].fill_between(
+                    xdata, ydata, step='mid', alpha=0.4)
         elif log == 'xy':
             plot_func = self.ax_list[ax_index].loglog
         elif log == 'x':
@@ -650,9 +668,11 @@ class Plot:
             plot_func = self.ax_list[ax_index].plot
 
         if fill_between and step:
-            self.ax_list[ax_index].fill_between(xdata, ydata, alpha=0.4, step='mid', color='grey')
+            self.ax_list[ax_index].fill_between(
+                xdata, ydata, alpha=0.4, step='mid', color='grey')
         elif fill_between:
-            self.ax_list[ax_index].fill_between(xdata, ydata, alpha=0.4, color='grey')
+            self.ax_list[ax_index].fill_between(
+                xdata, ydata, alpha=0.4, color='grey')
 
         # Plot the 2D line data
         plot_func(xdata, ydata, **args)
@@ -687,9 +707,10 @@ class Plot:
         # Plot the histogram
         if color is not None:
             self.ax_list[ax_index].hist(data, label=label, bins=hist_bins, log=log, histtype=hist_type, color=color,
-                                      range=bin_range)
+                                        range=bin_range)
         else:
-            self.ax_list[ax_index].hist(data, label=label, bins=hist_bins, log=log, histtype=hist_type, range=bin_range)
+            self.ax_list[ax_index].hist(
+                data, label=label, bins=hist_bins, log=log, histtype=hist_type, range=bin_range)
 
     def plot_bar(self, left, height, width=0.8, bottom=None, ax_index=0, orientation='vertical', align='center',
                  label='', color=None, edgecolor=None, alpha=1.0):
@@ -710,10 +731,10 @@ class Plot:
         """
         # Plot the bars
         self.ax_list[ax_index].bar(left, height, width=width, bottom=bottom, orientation=orientation, align=align,
-                                 edgecolor=edgecolor, alpha=alpha, label=label, color=color)
+                                   edgecolor=edgecolor, alpha=alpha, label=label, color=color)
 
     def plot_pcolor(self, X, Y, tbldata, ax_index=0, cbar_label='', plot_cbar=True, extend=None, norm='Normalize',
-            cmap=None, vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
+                    cmap=None, vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
         """Plot 3D data in 2D colorcoded form.
 
         Args:
@@ -781,7 +802,8 @@ class Plot:
         elif norm is 'SymLogNorm' and linthresh is not None:
             norm = SymLogNorm(linthresh=linthresh, vmin=vmin, vmax=vmax)
         else:
-            raise AttributeError('The chosen norm for imshow plot is not found or linthresh is not set!')
+            raise AttributeError(
+                'The chosen norm for imshow plot is not found or linthresh is not set!')
 
         # Add colorbar extend if extend is set
         if self.extend is not None:
@@ -803,15 +825,17 @@ class Plot:
             colormap.set_bad(colormap(0))
 
         # Plot 2D color plot
-        self.image = self.ax_list[ax_index].pcolor(X, Y, tbldata, cmap=colormap, norm=norm)
+        self.image = self.ax_list[ax_index].pcolor(
+            X, Y, tbldata, cmap=colormap, norm=norm)
 
         # Plot colorbar is chosen
         if self.with_cbar and plot_cbar:
-            self.plot_colorbar(ax_index=ax_index, label=cbar_label, extend=extend)
+            self.plot_colorbar(ax_index=ax_index,
+                               label=cbar_label, extend=extend)
 
     def plot_imshow(self, tbldata, ax_index=0, cbar_label='', plot_cbar=True, extend=None, norm='Normalize',
-            cmap=None, interpolation='nearest', origin='lower', extent=None, aspect='auto',
-            vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
+                    cmap=None, interpolation='nearest', origin='lower', extent=None, aspect='auto',
+                    vmin=None, vmax=None, linthresh=None, gamma=None, set_bad_to_min=False):
         """Plot 3D data in 2D colorcoded form.
 
         Args:
@@ -882,7 +906,8 @@ class Plot:
         elif norm is 'SymLogNorm' and linthresh is not None:
             norm = SymLogNorm(linthresh=linthresh, vmin=vmin, vmax=vmax)
         else:
-            raise AttributeError('The chosen norm for imshow plot is not found or linthresh is not set!')
+            raise AttributeError(
+                'The chosen norm for imshow plot is not found or linthresh is not set!')
 
         # Add colorbar extend if extend is set
         if self.extend is not None:
@@ -899,11 +924,11 @@ class Plot:
                 extend = 'neither'
 
         # Change colormap bad values to lowest values
-        if '_half' in self.cmap:  
+        if '_half' in self.cmap:
             colormap = self.truncate_colormap(
-                plt.get_cmap(self.cmap.replace('_half', '')) , 0.0, 0.5)
+                plt.get_cmap(self.cmap.replace('_half', '')), 0.0, 0.5)
         else:
-            colormap = plt.get_cmap(self.cmap)  
+            colormap = plt.get_cmap(self.cmap)
         if set_bad_to_min or self.bad_to_min:
             colormap.set_bad(colormap(0))
 
@@ -912,13 +937,14 @@ class Plot:
                                                    origin=origin, extent=extent, aspect=aspect)
         # Plot colorbar is chosen
         if self.with_cbar and plot_cbar:
-            self.plot_colorbar(ax_index=ax_index, label=cbar_label, extend=extend)
+            self.plot_colorbar(ax_index=ax_index,
+                               label=cbar_label, extend=extend)
         # Add imshow plot to list for animation
         if self.image_type == 'animation':
             self.animation_images.append(self.image)
 
-    def plot_healpix(self, wmap_map, ax_index=0, cbar_label='', plot_cbar=True, 
-            norm=None, cmap=None, extent=None, vmin=None, vmax=None, title='', set_bad_to_min=False):
+    def plot_healpix(self, wmap_map, ax_index=0, cbar_label='', plot_cbar=True,
+                     norm=None, cmap=None, extent=None, vmin=None, vmax=None, title='', set_bad_to_min=False):
         """Plot healpix data in various ways.
 
         Args:
@@ -936,7 +962,7 @@ class Plot:
             set_bad_to_min (bool): Set the bad color to the color of the
                 minimum value of the colorbar.
         """
-        #Load healpy module
+        # Load healpy module
         import healpy as hp
 
         # Set preset extent if not set by this function
@@ -983,7 +1009,7 @@ class Plot:
 
         # Plot 2D color plot
         self.image = hp.mollview(wmap_map, unit=cbar_label, title=title, min=vmin, xsize=xsize,
-            max=vmax, norm=norm, cbar=(self.with_cbar and plot_cbar), cmap=colormap, format=r'$\SI{%1.2e}{}$')
+                                 max=vmax, norm=norm, cbar=(self.with_cbar and plot_cbar), cmap=colormap, format=r'$\SI{%1.2e}{}$')
 
     def plot_quiver(self, vec_field_data, index=None, ax_index=0, units='width', scale_units='width', width=0.004,
                     headwidth=0., headlength=0., headaxislength=0., pivot='middle', color=None, cmap=None,
@@ -1034,7 +1060,8 @@ class Plot:
             elif 'rz' in self.label_plane:
                 index = [0, 2]
             else:
-                raise ValueError('Error: index of the vector field components for the arrows are not set!')
+                raise ValueError(
+                    'Error: index of the vector field components for the arrows are not set!')
 
         #: int: Number of pixel in one direction
         bins = len(vec_field_data[:, 0, 0])
@@ -1054,7 +1081,8 @@ class Plot:
 
         # If extent is not set, the quiver plot cannot be generated
         if any(self.extent[i] is None for i in range(4)):
-            raise ValueError('Quiver plot cannot be generated without image extent!')
+            raise ValueError(
+                'Quiver plot cannot be generated without image extent!')
         #: float: distance between two pixel on the x-axis.
         dx = self.extent[1] - self.extent[0]
         #: float: distance between two pixel on the y-axis.
@@ -1063,9 +1091,11 @@ class Plot:
         for i_x in range(bins):
             for i_y in range(bins):
                 # Set the x-axis positions
-                x[i_x, i_y] = float(self.extent[0]) + 1 / bins * (i_x + 0.5) * dx
+                x[i_x, i_y] = float(self.extent[0]) + 1 / \
+                    bins * (i_x + 0.5) * dx
                 # Set the y-axis positions
-                y[i_x, i_y] = float(self.extent[2]) + 1 / bins * (i_y + 0.5) * dy
+                y[i_x, i_y] = float(self.extent[2]) + 1 / \
+                    bins * (i_y + 0.5) * dy
                 # Set the vector component in the x-direction
                 vx[i_x, i_y] = vec_field_data[i_x, i_y, index[0]]
                 # Set the vector component in the y-direction
@@ -1128,14 +1158,14 @@ class Plot:
         # Plot the vector field with a constant color or with a colormap
         if color is not None:
             quiver_image = self.ax_list[ax_index].quiver(x, y, vx, vy, units=units, scale=scale, width=width,
-                                                       scale_units=scale_units, headwidth=headwidth,
-                                                       headlength=headlength, headaxislength=headaxislength,
-                                                       pivot=pivot, color=color)
+                                                         scale_units=scale_units, headwidth=headwidth,
+                                                         headlength=headlength, headaxislength=headaxislength,
+                                                         pivot=pivot, color=color)
         else:
             quiver_image = self.ax_list[ax_index].quiver(x, y, vx, vy, z, units=units, scale=scale, width=width,
-                                                       scale_units=scale_units, headwidth=headwidth,
-                                                       headlength=headlength, headaxislength=headaxislength,
-                                                       pivot=pivot, cmap=colormap)
+                                                         scale_units=scale_units, headwidth=headwidth,
+                                                         headlength=headlength, headaxislength=headaxislength,
+                                                         pivot=pivot, cmap=colormap)
         # Add quiver plot to list for animation
         if self.image_type == 'animation':
             self.animation_images.append(quiver_image)
@@ -1175,10 +1205,13 @@ class Plot:
         if round_lvl == 0:
             text = r'$\SI{' + str(int(max_pol_degree)) + r'}{\percent}$'
         else:
-            text = r'$\SI{' + str(round(max_pol_degree, round_lvl)) + r'}{\percent}$'
+            text = r'$\SI{' + str(round(max_pol_degree,
+                                        round_lvl)) + r'}{\percent}$'
         # Plot the text
-        self.plot_text(text_pos, text, color=color, verticalalignment='bottom', ax_index=ax_index, zorder=1)
-        self.text.set_bbox(dict(facecolor='black', alpha=0.8, edgecolor='black'))
+        self.plot_text(text_pos, text, color=color,
+                       verticalalignment='bottom', ax_index=ax_index, zorder=1)
+        self.text.set_bbox(
+            dict(facecolor='black', alpha=0.8, edgecolor='black'))
         # Plot the line
         self.plot_line([line_pos[0] - (length / 2.), line_pos[0] + (length / 2.)], [line_pos[1], line_pos[1]],
                        log='never', color=color, ax_index=ax_index, zorder=2, no_grid=True)
@@ -1221,31 +1254,36 @@ class Plot:
         if xaxis is not None and yaxis is not None:
             if colors is not None:
                 contour = self.ax_list[ax_index].contour(xaxis, yaxis, tbldata.T, origin=origin,
-                                                       interpolation=interpolation, linestyles=linestyles,
-                                                       levels=levels, colors=colors)
+                                                         interpolation=interpolation, linestyles=linestyles,
+                                                         levels=levels, colors=colors)
             else:
                 contour = self.ax_list[ax_index].contour(xaxis, yaxis, tbldata.T, origin=origin,
-                                                       interpolation=interpolation, linestyles=linestyles,
-                                                       levels=levels, cmap=self.cmap)
+                                                         interpolation=interpolation, linestyles=linestyles,
+                                                         levels=levels, cmap=self.cmap)
         else:
             if colors is not None:
                 contour = self.ax_list[ax_index].contour(tbldata.T, origin=origin, interpolation=interpolation,
-                                                       linestyles=linestyles, extent=extent, levels=levels,
-                                                       colors=colors)
+                                                         linestyles=linestyles, extent=extent, levels=levels,
+                                                         colors=colors)
             else:
                 contour = self.ax_list[ax_index].contour(tbldata.T, origin=origin, interpolation=interpolation,
-                    linestyles=linestyles, extent=extent, levels=levels, cmap=self.cmap)
+                                                         linestyles=linestyles, extent=extent, levels=levels, cmap=self.cmap)
 
         if label_type == 'percentage':
-            plt.clabel(contour, inline=1, fmt=r'$\SI{%1.0f}{\percent}$', fontsize=fontsize)
+            plt.clabel(contour, inline=1,
+                       fmt=r'$\SI{%1.0f}{\percent}$', fontsize=fontsize)
         elif label_type == 'percentage_1_decimal':
-            plt.clabel(contour, inline=1, fmt=r'$\SI{%1.1f}{\percent}$', fontsize=fontsize)
+            plt.clabel(contour, inline=1,
+                       fmt=r'$\SI{%1.1f}{\percent}$', fontsize=fontsize)
         elif label_type == '0_decimal':
-            plt.clabel(contour, inline=1, fmt=r'$\SI{%1.0f}{}$', fontsize=fontsize)
+            plt.clabel(contour, inline=1,
+                       fmt=r'$\SI{%1.0f}{}$', fontsize=fontsize)
         elif label_type == 'tau':
-            plt.clabel(contour, inline=1, fmt=r'$\tau=%1.0f$', fontsize=fontsize)
+            plt.clabel(contour, inline=1,
+                       fmt=r'$\tau=%1.0f$', fontsize=fontsize)
         elif label_type == 'tau_1_decimal':
-            plt.clabel(contour, inline=1, fmt=r'$\tau=%1.1f$', fontsize=fontsize)
+            plt.clabel(contour, inline=1,
+                       fmt=r'$\tau=%1.1f$', fontsize=fontsize)
         elif label_type == 'default':
             plt.clabel(contour, inline=1, fontsize=fontsize)
 
@@ -1275,10 +1313,10 @@ class Plot:
             raise AttributeError('3D plot environment is needed!')
         if color is not None:
             self.ax_list[ax_index].plot_surface(xmesh, ymesh, zmesh, rstride=rstride, cstride=cstride, alpha=alpha,
-                                              color=color)
+                                                color=color)
         else:
             self.ax_list[ax_index].plot_surface(xmesh, ymesh, zmesh, rstride=rstride, cstride=cstride, alpha=alpha,
-                                              cmap=self.cmap)
+                                                cmap=self.cmap)
 
     def plot_quiver_3d(self, xmesh, ymesh, zmesh, u, v, w, ax_index=0, length=10, pivot='middle', color='white',
                        arrow_length_ratio=0.6):
@@ -1300,10 +1338,10 @@ class Plot:
         if self.image_type != 'projection_3d':
             raise AttributeError('3D plot environment is needed!')
         self.ax_list[ax_index].quiver3D(xmesh, ymesh, zmesh, u, v, w, length=length, pivot=pivot, color=color,
-                                      arrow_length_ratio=arrow_length_ratio)
+                                        arrow_length_ratio=arrow_length_ratio)
 
     def plot_text(self, text_pos, text, ax_index=0, color='k', relative_position=False,
-            horizontalalignment='center', verticalalignment='center', zdir=(0, 0, 1), **args):
+                  horizontalalignment='center', verticalalignment='center', zdir=(0, 0, 1), **args):
         """Plot text in the image.
 
         Args:
@@ -1321,18 +1359,20 @@ class Plot:
         """
         # Calculate relative positions inside the image if chosen
         if relative_position:
-            text_pos[0] = text_pos[0] * (self.extent[1] - self.extent[0]) + self.extent[0]
-            text_pos[1] = text_pos[1] * (self.extent[3] - self.extent[2]) + self.extent[2]
+            text_pos[0] = text_pos[0] * \
+                (self.extent[1] - self.extent[0]) + self.extent[0]
+            text_pos[1] = text_pos[1] * \
+                (self.extent[3] - self.extent[2]) + self.extent[2]
         # Plot text
         if self.image_type == 'projection_3d':
             self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text_pos[2], text, zdir, color=color,
-                                      horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
-                                      **args)
+                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
+                                                    **args)
         else:
             # Plot the text object
             self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, color=color,
-                                      horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
-                                      **args)
+                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
+                                                    **args)
 
     def plot_rectangle(self, pos, width, height, ax_index=0, facecolor=None, edgecolor='none', alpha=0.1, hatch=None):
         """Plot rectangle in the image.
@@ -1348,7 +1388,7 @@ class Plot:
             hatch (str): symbols to fill rectangle
         """
         self.ax_list[ax_index].add_patch(patches.Rectangle(pos, width, height, facecolor=facecolor,
-                                                         edgecolor=edgecolor, alpha=alpha, hatch=hatch))
+                                                           edgecolor=edgecolor, alpha=alpha, hatch=hatch))
 
     def plot_title(self, text, ax_index=0):
         """Plot title on top of an image.
@@ -1373,7 +1413,7 @@ class Plot:
             color (str): Color of the arrow.
         """
         self.ax_list[ax_index].arrow(arrow_origin[0], arrow_origin[1], arrow_offset[0], arrow_offset[1],
-                                   head_width=head_width, head_length=head_length, width=width, fc=color, ec=color)
+                                     head_width=head_width, head_length=head_length, width=width, fc=color, ec=color)
 
     def plot_annotate(self, text, pos, text_pos, ax_index=0, color=None, ha='center', va='center'):
         """Plot an arrow in the image.
@@ -1388,9 +1428,9 @@ class Plot:
             va (str): Vertical alignment.
         """
         self.ax_list[ax_index].annotate(text, xy=pos, xytext=text_pos, color=color,
-                                      arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
-                                                      arrowstyle="-|>", color=color, shrinkA=4),
-                                      horizontalalignment=ha, verticalalignment=va)
+                                        arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
+                                                        arrowstyle="-|>", color=color, shrinkA=4),
+                                        horizontalalignment=ha, verticalalignment=va)
 
     def plot_double_arrow(self, arrow_origin, arrow_offset, ax_index=0, color='black'):
         """Plot an arrow in the image.
@@ -1402,8 +1442,8 @@ class Plot:
             color (str): Color of the double arrow.
         """
         self.ax_list[ax_index].annotate('', xy=arrow_origin, xytext=(np.add(arrow_origin, arrow_offset)),
-                                      arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
-                                                      facecolor=color, edgecolor=color, arrowstyle='<->'))
+                                        arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
+                                                        facecolor=color, edgecolor=color, arrowstyle='<->'))
 
     def plot_colorbar(self, ax_index=0, label='', extend='neither'):
         """Plot colorbar that includes the colors of an image.
@@ -1417,7 +1457,8 @@ class Plot:
                 If both is true ('both').
         """
         # Plot the colorbar
-        cbar = plt.colorbar(self.image, cax=self.ax_list[ax_index].cax, extend=extend)
+        cbar = plt.colorbar(
+            self.image, cax=self.ax_list[ax_index].cax, extend=extend)
         # Set label of the colorbar
         cbar.set_label(label)
 
@@ -1432,7 +1473,8 @@ class Plot:
             n (int): Number of values.
         """
         new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
-            'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+            'trunc({n},{a:.2f},{b:.2f})'.format(
+                n=cmap.name, a=minval, b=maxval),
             cmap(np.linspace(minval, maxval, n)))
         return new_cmap
 
@@ -1448,9 +1490,11 @@ class Plot:
         """
         # Plot the legend
         if bbox_to_anchor is not None:
-            self.ax_list[ax_index].legend(loc=loc, ncol=ncol, fancybox=fancybox, bbox_to_anchor=bbox_to_anchor)
+            self.ax_list[ax_index].legend(
+                loc=loc, ncol=ncol, fancybox=fancybox, bbox_to_anchor=bbox_to_anchor)
         else:
-            self.ax_list[ax_index].legend(loc=loc, ncol=ncol, fancybox=fancybox)
+            self.ax_list[ax_index].legend(
+                loc=loc, ncol=ncol, fancybox=fancybox)
 
     def check_ticks(self):
         """Check if ticks are overlapping for vel_channel plot.
@@ -1536,15 +1580,18 @@ class Plot:
             plt.show()
         elif file_io.plot_output == 'pdf':
             if file_io.pdf_file_instance is None:
-                raise ValueError('Output file was not initialized! (custom plot?)')
+                raise ValueError(
+                    'Output file was not initialized! (custom plot?)')
             # Save image to pdf file with tight bboxes to save additional white space
             # plt.tight_layout()
-            plt.savefig(file_io.pdf_file_instance, format='pdf', bbox_inches=bbox_inches, dpi=300)
+            plt.savefig(file_io.pdf_file_instance, format='pdf',
+                        bbox_inches=bbox_inches, dpi=300)
         elif file_io.plot_output == 'tex':
             # Save image as latex tikz command file
             file_io.add_output_image()
             plt.savefig(file_io.plot_output_filename, format='pgf')
         else:
-            raise ValueError('Output type for plots not known! (' + file_io.plot_output + ')')
+            raise ValueError(
+                'Output type for plots not known! (' + file_io.plot_output + ')')
         # Close Matplotlib figure
         plt.close()

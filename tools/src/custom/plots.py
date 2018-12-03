@@ -1610,6 +1610,44 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
     def plot_1006002(self):
+        """Plot GG Tau A SED comparison
+        """
+        # Set data input to Jy/px to calculate the total flux
+        if self.parse_args.cmap_unit is None:
+            self.file_io.cmap_unit = 'total'
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', 'no_inclination', 'dust')
+        # Set output filename
+        self.file_io.init_plot_output(
+            'gg_tau_A_sed_comparison', path=self.file_io.path['simulation'])
+        # Read raytrace results from file
+        sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        # Init wavelengths
+        wavelengths = header['wavelengths']
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
+                    ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
+        quantity = sed_data[0, :]
+        # Plot spectral energy distribution
+        plot.plot_line(wavelengths, quantity, log='xy', marker='.')
+        # Plot vizier data
+        from astropy.io.votable import parse_single_table
+        table = parse_single_table(
+            self.file_io.path['model'] + 'vizier_votable.vot')
+        data_flux = table.array['sed_flux']
+        data_flux_error = table.array['sed_eflux'].filled(0)
+        data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
+        # Plot total spectral energy distribution
+        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='purple',
+                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
+
+        # Plot the legend
+        plot.plot_legend()
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1006003(self):
         """Plot two times 6 images with differnet configurations for GG Tau A.
         """
         def cropND(img, bounding):
