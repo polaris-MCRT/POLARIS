@@ -378,7 +378,7 @@ public:
         clear(cell_oc_root);
         cell_oc_root = 0;
         cell_oc_pos = 0;
-        cout << "Final cleanup                                :  done" << endl;
+        cout << "Final cleanup                                : done" << endl;
     }
 
     void goNextLevelDown(photon_package * pp)

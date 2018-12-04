@@ -732,14 +732,11 @@ public:
 
     uint getNrOfStochasticSizes()
     {
-        uint nr_stochastic_sizes = MAX_UINT;
+        uint nr_stochastic_sizes = 0;
         if(stochastic_heating_max_size > 0)
-        {
-            nr_stochastic_sizes = 0;
             for(uint a = 0; a < nr_of_dust_species; a++)
                 if(a_eff[a] <= stochastic_heating_max_size)
                     nr_stochastic_sizes++;
-        }
         return nr_stochastic_sizes;
     }
 
@@ -1322,10 +1319,8 @@ public:
 
     double getTabPlanck(uint w, double temp)
     {
-        double pl = tab_planck[w].getValue(temp);
-        if(pl < 1e-200)
-            pl = 0;
-        return pl;
+        double pl = tab_planck[w].getValue(max(TEMP_MIN, temp));
+        return max(1e-200, pl);
     }
 
     double getAbsRate(CGridBasic * grid, cell_basic * cell, uint a, bool use_energy_density)
@@ -2688,7 +2683,10 @@ public:
         if(mixed_component != 0)
         {
             uint i_mixture = getEmittingMixture(grid, pp);
-            return mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
+            if(grid->useDustChoice())
+                return mixed_component[i_mixture].getCellEmission(grid, pp, 0);
+            else
+                return mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
         }
         return 0;
     }

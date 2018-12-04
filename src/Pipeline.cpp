@@ -1466,7 +1466,7 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of final properties:   done" << endl;
+    cout << "- Calculation of final properties: done" << endl;
 
     uint bins = param.getInpMidDataPoints();
     double max_len = grid->getMaxLength();

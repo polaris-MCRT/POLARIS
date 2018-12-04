@@ -1340,7 +1340,7 @@ void CGridOcTree::printParameters()
         cout << CLR_LINE;
         cout << "OcTree parameters (ID: " << getDataID() << "; data len.: " << getDataOffset() << "; level: " << max_level << ")" << endl;
         cout << SEP_LINE;
-        cout << "- Number of OcTree cells           : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
+        cout << "- Number of OcTree cells        : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
 
         printPhysicalParameters();
         cout << SEP_LINE;

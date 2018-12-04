@@ -301,7 +301,7 @@ public:
         }
 
         cout << CLR_LINE;
-        cout << "Final cleanup                                :  done     \n";
+        cout << "Final cleanup                                : done     \n";
     }
 
     void printParameters();

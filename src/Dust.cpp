@@ -780,7 +780,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     #pragma omp critical
                 {
                     printIDs();
-                    cout << "- calculating Mie-scattering: " << percentage << " [%]                      \r";
+                    cout << "- calculating optical properties: " << percentage << " [%]                      \r";
                     last_percentage = percentage;
                 }
             }
@@ -3071,6 +3071,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
             // Calculate temperature from absorption rate
             temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
+            cout << a << TAB << i_density << TAB << temp[a] << endl;
 
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
@@ -3088,6 +3089,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
             {
                 // Set dust temperature in grid
                 grid->setDustTemperature(cell, i_density, a, temp[a]);
+                cout << "B\n";
 
                 // Update min and max temperatures for visualization
                 if(temp[a] > max_temp)
@@ -3101,7 +3103,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
         }
         else
         {
-            // Set absorpion rate to zero
+            // Set absorption rate to zero
             abs_rate[a] = 0;
             temp[a] = 0;
         }
@@ -3136,6 +3138,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
     // Set average dust temperature in grid
     grid->setDustTemperature(cell, i_density, max(double(TEMP_MIN), avg_temp));
+    cout << avg_temp << endl;
 
     // Update min and max temperatures for visualization
     if(avg_temp > max_temp)
@@ -4128,9 +4131,8 @@ void CDustComponent::miesca(photon_package * pp, uint a, double albedo)
     addUpMatrices(mat_sca, a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() > 0)
-        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I())
-                * (-mat_sca(0, 1) / mat_sca(0, 0));
+    PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I())
+            * (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;

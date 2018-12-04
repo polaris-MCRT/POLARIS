@@ -2152,14 +2152,14 @@ public:
         if(multi_temperature_entries > nr_densities && 
                 data_pos_dt_list.size() == multi_temperature_entries)
             return TEMP_FULL;
-        else if(data_pos_dt_list.size() == stochastic_temperature_entries)
-            return TEMP_STOCH;
         else if(data_pos_dt_list.size() == nr_densities)
             return TEMP_EFF;
         else if(data_pos_dt_list.size() == 1)
             return TEMP_SINGLE;
         else if(data_pos_dt_list.size() == 0)
             return TEMP_EMPTY;
+        else if(data_pos_dt_list.size() == stochastic_temperature_entries)
+            return TEMP_STOCH;
         else
             return MAX_UINT;
     }

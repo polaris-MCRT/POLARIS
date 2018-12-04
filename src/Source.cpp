@@ -803,18 +803,18 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 
     // Init variables
     ulong nr_of_cells = grid->getMaxDataCells();
+    ulong nr_of_wavelengths = getNrOfWavelength();
     photon_package * pp = new photon_package();
-    cell_prob = new prob_list[getNrOfWavelength()];
-    total_energy = new double[getNrOfWavelength()];
-    uint max_counter = getNrOfWavelength() * nr_of_cells;
+    cell_prob = new prob_list[nr_of_wavelengths];
+    total_energy = new double[nr_of_wavelengths];
+    uint max_counter = nr_of_wavelengths * nr_of_cells;
     uint per_counter = 0;
     float last_percentage = 0;
 
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
-#pragma omp parallel for
-    for(uint w = 0; w < getNrOfWavelength(); w++)
+    for(uint w = 0; w < nr_of_wavelengths; w++)
     {
         // Init variables
         cell_prob[w].resize(nr_of_cells + 1);
@@ -826,6 +826,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         total_energy[w] = 0;
         cell_prob[w].setValue(0, total_energy[w]);
 
+#pragma omp parallel for schedule(dynamic)
         for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
         {
             // Increase counter used to show progress
@@ -840,7 +841,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
 #pragma omp critical
                 {
                     cout << "-> Calculate prob. distribution for dust source: " 
-                        << percentage << " [%]\r" << flush;
+                        << percentage << " [%]    \r" << flush;
                     last_percentage = percentage;
                 }
             }

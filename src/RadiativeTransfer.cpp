@@ -475,15 +475,15 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     switch(command)
     {
         case CMD_TEMP_RAT:
-            cout << "- MC calc. of temperatures and RATs :   done                                " << endl;
+            cout << "- MC calc. of temperatures and RATs : done                                " << endl;
             break;
         
         case CMD_TEMP:
-            cout << "- MC calculation of temperatures    :   done                                " << endl;
+            cout << "- MC calculation of temperatures    : done                                " << endl;
             break;
 
         default:
-            cout << "- MC calculation of radiation field :   done                                " << endl;
+            cout << "- MC calculation of radiation field : done                                " << endl;
             break;
     }
     return true;
@@ -588,7 +588,7 @@ bool CRadiativeTransfer::setTemperatureDistribution()
 
     cout << CLR_LINE;
     cout << " " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << endl;
-    cout << "- Estimation of final temperatures:   done" << endl;
+    cout << "- Estimation of final temperatures: done" << endl;
     return true;
 }
 
@@ -1088,7 +1088,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of aligned radii      :   done" << endl;
+    cout << "- Calculation of aligned radii      : done" << endl;
     cout << "    aligned radii [" << float(dust->getMinAlignedRadius())
             << ", " << float(dust->getMaxAlignedRadius()) << "] [m]" << endl;
 }
@@ -1129,7 +1129,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
     }
 
     cout << CLR_LINE;
-    cout << "- Calculation of final temperatures :   done" << endl;
+    cout << "- Calculation of final temperatures : done" << endl;
 }
 
 void CRadiativeTransfer::calcStochasticHeating()

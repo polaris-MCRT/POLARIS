@@ -466,7 +466,7 @@ public:
     {
         line_counter = 0;
         char_counter = 0;
-        cout << "Final cleanup                                :  done" << endl;
+        cout << "Final cleanup                                : done" << endl;
     }
 
     void printParameters();
