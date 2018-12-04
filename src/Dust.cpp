@@ -3071,7 +3071,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
             // Calculate temperature from absorption rate
             temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
-            cout << a << TAB << i_density << TAB << temp[a] << endl;
 
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
