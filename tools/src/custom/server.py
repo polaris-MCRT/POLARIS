@@ -99,7 +99,7 @@ class HerschelServer(Server):
         Server.__init__(self, parse_args)
 
         self.parameter['node_name'] = 'glx-herschel'
-        self.parameter['address'] = 'glx-herschel.ias.u-psud.fr:~/'
+        self.parameter['address'] = 'herschel_proxy:~/'
         self.parameter['server_polaris_dir'] = 'polaris/'
         self.parameter['queue_system'] = None
 

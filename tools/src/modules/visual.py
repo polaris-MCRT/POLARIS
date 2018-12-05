@@ -1522,6 +1522,15 @@ class Plot:
             if 'y' in axis.lower():
                 self.ax_list[ax_index].set_yticks([])
 
+    def remove_axes(self, ax_index=None):
+        """ Remove the axes of a plot.
+        """
+        if ax_index is None:
+            for ax in self.ax_list:
+                ax.set_visible(False)
+        else:
+            self.ax_list[ax_index].set_visible(False)
+
     @staticmethod
     def make_tight_layout():
         """Make plot layout tight.

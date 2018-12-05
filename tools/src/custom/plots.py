@@ -1622,7 +1622,8 @@ class CustomPlots:
         self.file_io.init_plot_output(
             'gg_tau_A_sed_comparison', path=self.file_io.path['simulation'])
         # Read raytrace results from file
-        sed_data, header, _ = self.file_io.read_emission_sed('polaris_detector_nr0001_sed')
+        sed_data, header, _ = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
         # Init wavelengths
         wavelengths = header['wavelengths']
         # Create Matplotlib figure
@@ -1648,7 +1649,7 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
     def plot_1006003(self):
-        """Plot two times 6 images with differnet configurations for GG Tau A.
+        """Plot two times 6 polarized intensity emission maps with differnet configurations for GG Tau A.
         """
         def cropND(img, bounding):
             import operator
@@ -1658,22 +1659,27 @@ class CustomPlots:
             return img[slices]
         # Import libraries
         from astropy.io import fits
-        from scipy.ndimage.interpolation import zoom 
+        from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 5  # First detector
+        detector_index = 3
         i_quantity = 4
         configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
-                             'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'no_circumstellar_disks']
+                             'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
+        configuration_descr = ['no circumstellar disks', 'disk around Aa', 'disk around Ab1',
+                               'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
+                               'disks around Ab1 and Ab2', 'disks around all stars']
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.03
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # Define output pdf
-        self.file_io.init_plot_output('2x3_emission_map_plot', path=self.file_io.path['model'])
+        self.file_io.init_plot_output(
+            '2x2x3_PI_emission_map', path=self.file_io.path['model'])
         # Create two 2x3 plots
         for i_plot in range(2):
             # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, nr_x_images=2, nr_y_images=3)
+            plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                        nr_x_images=2, nr_y_images=3)
             for i_subplot in range(6):
                 if i_subplot >= 2:
                     # Set paths of each simulation
@@ -1684,14 +1690,68 @@ class CustomPlots:
                         'polaris_detector_nr' + str(detector_index).zfill(4))
                     # Take data for current quantity
                     tbldata = plot_data[i_quantity, 0, :, :]
-                elif i_subplot == 0:
-                    hdulist = fits.open('/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
+                    # Plot map description
+                    plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                                   text=r'$\text{' +
+                                   configuration_descr[i_subplot -
+                                                       2 + i_plot * 4] + r'}$',
+                                   horizontalalignment='left', verticalalignment='top',
+                                   ax_index=i_subplot, color='white')
+                elif i_subplot in [0, 1]:
+                    hdulist = fits.open(
+                        '/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
                     tbldata = cropND(hdulist[0].data.T, (400, 400)) / 1e8
-                elif i_subplot == 1:
-                    hdulist = fits.open('/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
-                    tbldata = cropND(hdulist[0].data.T, (400, 400)) / 1e8
+                plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
+                                 norm='LogNorm', vmin=5e-9, vmax=1e-4, cmap='magma', extend='neither')
+                # Hide second observation plot
+                plot.remove_axes(ax_index=1)
+            # Save figure to pdf file or print it on screen
+            plot.save_figure(self.file_io)
+
+    def plot_1006004(self):
+        """Plot two times 4 intensity emission maps with differnet configurations for GG Tau A.
+        """
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 3
+        i_quantity = 0
+        configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
+                             'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
+        configuration_descr = ['no circumstellar disks', 'disk around Aa', 'disk around Ab1',
+                               'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
+                               'disks around Ab1 and Ab2', 'disks around all stars']
+        # Set beam size (in arcsec)
+        self.file_io.beam_size = 0.03
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            '2x2x2_I_emission_map', path=self.file_io.path['model'])
+        # Create two 2x3 plots
+        for i_plot in range(2):
+            # Create Matplotlib figure
+            plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                        nr_x_images=2, nr_y_images=2)
+            for i_subplot in range(4):
+                # Set paths of each simulation
+                self.file_io.set_path_from_str(
+                    'plot', 'gg_tau_disk', configuration_lst[i_subplot + i_plot * 4], 'dust')
+                # Create pdf file if show_plot is not chosen and read map data from file
+                plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                    'polaris_detector_nr' + str(detector_index).zfill(4))
+                # Take data for current quantity
+                tbldata = plot_data[i_quantity, 0, :, :]
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                    norm='LogNorm', vmin=5e-9, vmax=1e-4, cmap='magma')
+                                 norm='LogNorm', vmin=1e-7, vmax=1e-2, extend='neither')
+                # Plot map description
+                plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                               text=r'$\text{' +
+                               configuration_descr[i_subplot +
+                                                   i_plot * 4] + r'}$',
+                               horizontalalignment='left', verticalalignment='top',
+                               ax_index=i_subplot, color='white')
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
