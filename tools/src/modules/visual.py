@@ -712,6 +712,20 @@ class Plot:
             self.ax_list[ax_index].hist(
                 data, label=label, bins=hist_bins, log=log, histtype=hist_type, range=bin_range)
 
+    def plot_marker(self, marker_pos, marker, ax_index=0, **args):
+        """Plot a marker at a certain position.
+
+        Args:
+            text_pos (List[float, float]): List with the 2D marker position.
+            marker (str): Marker symbol.
+            ax_index (int): Index of subplot image.
+            markersize (float): Size of the marker.
+        """
+        if len(marker_pos) != 2:
+            raise ValueError('Marker position of plot_marker has to consist of only 2 values!')
+
+        self.ax_list[ax_index].plot(marker_pos[0], marker_pos[1], marker=marker, **args)
+
     def plot_bar(self, left, height, width=0.8, bottom=None, ax_index=0, orientation='vertical', align='center',
                  label='', color=None, edgecolor=None, alpha=1.0):
         """Plot single bars.

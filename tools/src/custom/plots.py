@@ -1573,10 +1573,10 @@ class CustomPlots:
         """
         # Set paths of each simulation
         self.file_io.set_path_from_str(
-            'plot', 'gg_tau_disk', 'no_inclination', 'temp')
+            'plot', 'gg_tau_disk', 'default', 'temp')
         # Set output filename
         self.file_io.init_plot_output(
-            'zoom_in_gg_tau_disk', path=self.file_io.path['simulation'])
+            'zoom_in_gg_tau_disk', path=self.file_io.path['model'])
         # Set midplane type
         visualization_input = 'input_dust_mass_density_xy'
         # Read midplane data (main image)
@@ -1587,7 +1587,7 @@ class CustomPlots:
                     ax_unit='au', cmap_scaling=['log'])
         # Plot midplane data depending on quantity derived from filename
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data,
-                                                vmin=1e-14, set_bad_to_min=True)
+                                                vmin=1e-14, set_bad_to_min=True, cmap='inferno')
         # Read midplane data (zoomed image, changes extent of self.model)
         [tbldata_zoom, vec_field_data_zoom], _, _ = self.file_io.read_midplane_file(
             visualization_input, filename='input_midplane_zoom.fits')
@@ -1595,7 +1595,7 @@ class CustomPlots:
         plot.create_zoom_axis(model=self.model, zoom_factor=3.5)
         # Plot zoomed image
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata_zoom, vec_field_data_zoom,
-                                                ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True)
+                                                ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True, cmap='inferno')
         # Load stellar source to get position of the binary stars
         from modules.source import SourceChooser
         stellar_source_chooser = SourceChooser(
@@ -1603,9 +1603,21 @@ class CustomPlots:
         stellar_source = stellar_source_chooser.get_module_from_name(
             'gg_tau_stars')
         # Plot position of binary stars (with conversion from m to au)
-        for position in stellar_source.tmp_parameter['position_star']:
-            plot.plot_text(np.divide(
-                position[0:2], self.math.const['au']), r'$\boldsymbol{\star}$', ax_index=0, color='red', fontsize=8)
+        star_descr = ['Aa', 'Ab1', 'Ab2']
+        for i_star, position in enumerate(stellar_source.tmp_parameter['position_star']):
+            #plot.plot_marker(
+            #    np.divide(position[0:2], self.math.const['au']),
+            #    "*", ax_index=0, color='white', markersize=12)
+            if i_star == 0:
+                offset = [0, 10]
+            elif i_star == 1:
+                offset = [-10, 0]
+            elif i_star == 2:
+                offset = [10, 0]
+            plot.plot_text(
+                np.add(np.divide(position[0:2],
+                                 self.math.const['au']), offset),
+                text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -1642,7 +1654,6 @@ class CustomPlots:
         # Plot total spectral energy distribution
         plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='purple',
                        alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
-
         # Plot the legend
         plot.plot_legend()
         # Save figure to pdf file or print it on screen
@@ -1661,7 +1672,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 3
+        detector_index = 100
         i_quantity = 4
         configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
                              'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
@@ -1715,7 +1726,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 3
+        detector_index = 100
         i_quantity = 0
         configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
                              'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
