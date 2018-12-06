@@ -3088,7 +3088,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
             {
                 // Set dust temperature in grid
                 grid->setDustTemperature(cell, i_density, a, temp[a]);
-                cout << "B\n";
 
                 // Update min and max temperatures for visualization
                 if(temp[a] > max_temp)
@@ -3137,7 +3136,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
 
     // Set average dust temperature in grid
     grid->setDustTemperature(cell, i_density, max(double(TEMP_MIN), avg_temp));
-    cout << avg_temp << endl;
 
     // Update min and max temperatures for visualization
     if(avg_temp > max_temp)
