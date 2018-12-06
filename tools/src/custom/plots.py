@@ -1680,7 +1680,7 @@ class CustomPlots:
                                'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
                                'disks around Ab1 and Ab2', 'disks around all stars']
         # Set beam size (in arcsec)
-        self.file_io.beam_size = 0.03
+        self.file_io.beam_size = 0.07
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # Define output pdf
@@ -1711,9 +1711,9 @@ class CustomPlots:
                 elif i_subplot in [0, 1]:
                     hdulist = fits.open(
                         '/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
-                    tbldata = cropND(hdulist[0].data.T, (400, 400)) / 1e8
+                    tbldata = cropND(hdulist[0].data.T, (400, 400)) / 3e7
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=5e-9, vmax=1e-4, cmap='magma', extend='neither')
+                                 norm='LogNorm', vmin=2e-7, vmax=1e-4, cmap='magma', extend='neither')
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
@@ -1734,7 +1734,7 @@ class CustomPlots:
                                'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
                                'disks around Ab1 and Ab2', 'disks around all stars']
         # Set beam size (in arcsec)
-        self.file_io.beam_size = 0.03
+        self.file_io.beam_size = 0.05
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # Define output pdf
@@ -1756,7 +1756,7 @@ class CustomPlots:
                 tbldata = plot_data[i_quantity, 0, :, :]
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=1e-7, vmax=1e-2, extend='neither')
+                                 norm='LogNorm', vmin=3e-6, vmax=1e-1, extend='neither')
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
