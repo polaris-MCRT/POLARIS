@@ -2286,7 +2286,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_p;  
 
     cout << CLR_LINE;
-    cout << "- Writing of midplane files            : done" << endl;
+    cout << "- Writing of midplane files     : done" << endl;
 
     return res;
 }

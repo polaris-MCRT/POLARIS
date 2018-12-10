@@ -1756,7 +1756,7 @@ class CustomPlots:
                 tbldata = plot_data[i_quantity, 0, :, :]
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=3e-6, vmax=1e-1, extend='neither')
+                                 norm='LogNorm', vmin=1e-6, vmax=1e-1, extend='neither')
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +

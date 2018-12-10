@@ -844,6 +844,11 @@ public:
         return phase_pdf[a][w].getValue(theta);
     }
 
+    double getScatteredFractionMie(uint a, uint w, uint sth)
+    {
+        return phase_pdf[a][w].getValue(sth);
+    }
+
     void scatter(CGridBasic * grid, photon_package * pp, double albedo = 0)
     {
         switch(phID)

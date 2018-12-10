@@ -1327,7 +1327,7 @@ void CGridSpherical::printParameters()
                 << ")" << endl;
         cout << SEP_LINE;
 
-        cout << "- Number of spherical cells        : " << max_cells << endl;
+        cout << "- Number of spherical cells     : " << max_cells << endl;
         printPhysicalParameters();
         cout << SEP_LINE;
     }

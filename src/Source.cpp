@@ -925,7 +925,7 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd);
+    ulong i_cell = cell_prob[w].getIndex(rnd) + 1;
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));

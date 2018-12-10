@@ -260,7 +260,6 @@ class CmdPolaris:
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
         cmd_file.write('\t<peel_off>\t\t' + str(int(peel_off)) + '\n')

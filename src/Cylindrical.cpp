@@ -1193,7 +1193,7 @@ void CGridCylindrical::printParameters()
             cout << ", Nz: " << N_z << ")" << endl;
         cout << SEP_LINE;
 
-        cout << "- Number of cylindrical cells      : " << max_cells << endl;
+        cout << "- Number of cylindrical cells   : " << max_cells << endl;
 
         printPhysicalParameters();
         cout << SEP_LINE;
