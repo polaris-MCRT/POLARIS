@@ -229,7 +229,7 @@ public:
         return false;
     }
 
-    double calcStepWidth(StokesVector & stokes_new, StokesVector & stokes_new2, double cell_d_l,
+    void calcStepWidth(StokesVector & stokes_new, StokesVector & stokes_new2, double cell_d_l,
         double & epsi, double & dz_new)
     {
         epsi = 2.0;
