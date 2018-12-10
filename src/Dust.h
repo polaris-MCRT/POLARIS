@@ -849,21 +849,21 @@ public:
         return phase_pdf[a][w].getValue(sth);
     }
 
-    void scatter(CGridBasic * grid, photon_package * pp, double albedo = 0)
+    void scatter(CGridBasic * grid, photon_package * pp, bool adjust_stokes = false)
     {
         switch(phID)
         {
             case PH_HG:
             {
                 uint a = getInteractingDust(grid, pp, CROSS_SCA);
-                henyeygreen(pp, a, albedo);
+                henyeygreen(pp, a, adjust_stokes);
                 break;
             }
 
             case PH_MIE:
             {
                 uint a = getInteractingDust(grid, pp, CROSS_SCA);
-                miesca(pp, a, albedo);
+                miesca(pp, a, adjust_stokes);
                 break;
             }
 
@@ -871,9 +871,10 @@ public:
                 pp->calcRandomDirection();
                 pp->updateCoordSystem();
 
-                if(albedo > 0)
+                if(adjust_stokes > 0)
                 {
                     StokesVector S = pp->getStokesVector();
+                    double albedo = getCscaMean(grid, pp) / getCextMean(grid, pp);
                     S *= albedo / PIx4;
                     pp->setStokesVector(S);
                 }
@@ -1779,8 +1780,8 @@ public:
 
     void preCalcEffProperties(parameters & param);
 
-    void henyeygreen(photon_package * pp, uint a, double albedo = 0);
-    void miesca(photon_package * pp, uint a, double albedo = 0);
+    void henyeygreen(photon_package * pp, uint a, bool adjust_stokes = false);
+    void miesca(photon_package * pp, uint a, bool adjust_stokes = false);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
     void preCalcAbsorptionRates();
@@ -2606,12 +2607,12 @@ public:
         return 0;
     }
 
-    void scatter(CGridBasic * grid, photon_package * pp, double albedo = 0)
+    void scatter(CGridBasic * grid, photon_package * pp, bool adjust_stokes = false)
     {       
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp);
-            mixed_component[i_mixture].scatter(grid, pp, albedo);
+            mixed_component[i_mixture].scatter(grid, pp, adjust_stokes);
         }
     }
 
@@ -2672,13 +2673,13 @@ public:
     }
 
     photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp,
-            Vector3D obs_ex, Vector3D dir_obs, double albedo)
+            Vector3D obs_ex, Vector3D dir_obs)
     {
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp);
             uint a = mixed_component[i_mixture].getInteractingDust(grid, pp, CROSS_SCA);
-            return mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs, albedo);
+            return mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs);
         }
         return photon_package();
     }
