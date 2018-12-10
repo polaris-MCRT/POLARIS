@@ -1639,7 +1639,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
 
                             if(epsi==0)
                             {
-				dz_new=0.01*len;
+				                dz_new=0.01*len;
                             }
                         }
 
@@ -1938,7 +1938,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
             double dens_gas = grid->getGasNumberDensity(pp);
             double dens_dust = dust->getNumberDensity(grid, pp);
 
-            // If the dust denscalcPolity is far too low, skip the current cell
+            // If the dust density is far too low, skip the current cell
             if(dens_dust >= 1e-200)
             {
                 // Init dust matrix
@@ -2071,13 +2071,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
 
                         // Calculate the difference between the results with two
                         // different precisions to see if smaller steps are needed
-                        double epsi = 2.0, dz_new = 0.9 * cell_d_l;
-                        if(stokes_new.I() >= 0 && stokes_new2.I() >= 0)
-                        {
-                            epsi = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
-                            // If the step needs to be smaller, calculate a new one
-                            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-                        }
+                        double epsi, dz_new;
+                        calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
 
                         // Is a smaller step width needed
                         if(epsi <= 1.0)
@@ -2640,14 +2635,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
 
                         // Calculate the difference between the results with two
                         // different precisions to see if smaller steps are needed
-                        double epsi = 2.0, dz_new = 0.9 * cell_d_l;
-                        if(stokes_new.I() >= 0 && stokes_new2.I() >= 0)
-                        {
-                            epsi = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
-                            // If the step needs to be smaller, calculate a new one
-                            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-                        }
-
+                        double epsi, dz_new;
+                        calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
+                        
                         // Is a smaller step width needed
                         if(epsi <= 1.0)
                         {
