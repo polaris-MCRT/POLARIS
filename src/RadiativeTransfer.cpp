@@ -369,7 +369,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 uint interactions = 0;
 
                 // Init variables
-                double albedo, tmp_tau, len, dens;
+                double tmp_tau, len, dens;
 
                 // Transfer photon through grid
                 while(grid->next(pp))
@@ -419,7 +419,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                             // Calculate albedo and check if absorption or
                             // scattering occurs
-                            albedo = Csca / Cext;
+                            double albedo = Csca / Cext;
 
                             if(pp->getRND() < albedo)
                             {
@@ -731,7 +731,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // Init variables
                     uint interactions = 0;
-                    double albedo, tmp_tau;
+                    double tmp_tau;
                     double len, dens;
 
                     // Save photon position to adjust it if necessary
@@ -802,9 +802,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                 // Calculate the dust scattering cross section (for random alignment)
                                 Csca = dust->getCscaMean(grid, pp);
 
-                                // Calculate albedo and check how much will be scattered
-                                albedo = Csca / Cext;
-
                                 // If peel-off is used, add flux to the detector
                                 if(peel_off)
                                 {
@@ -820,7 +817,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             // Create an escaping photon into the direction
                                             // of the detector
                                             photon_package tmp_pp = dust->getEscapePhoton(grid, pp,
-                                                detector[d].getEX(), detector[d].getDirection(), albedo);
+                                                detector[d].getEX(), detector[d].getDirection());
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
@@ -846,7 +843,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             }
 
                             // Perform scattering interaction into a new direction
-                            dust->scatter(grid, pp, albedo);
+                            dust->scatter(grid, pp, true);
 
                             // Calculate new optical depth for next interaction
                             end_tau = -log(1.0 - pp->getRND());

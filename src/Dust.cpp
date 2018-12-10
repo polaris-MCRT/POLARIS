@@ -3834,12 +3834,12 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid, photon_package * pp
 }
 
 photon_package CDustComponent::getEscapePhoton(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs, double albedo)
+        Vector3D obs_ex, Vector3D dir_obs)
 {
     switch(phID)
     {
         case PH_MIE:
-            return getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, albedo);
+            return getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs);
 
         default:
         {
@@ -3865,7 +3865,7 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid, photon_package
             StokesVector tmp_stokes = pp->getStokesVector();
 
             // Reduce the photon package Stokes vector by albedo and scattering fraction
-            tmp_stokes *= scattered_fraction * albedo;
+            tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
             // Init temporary photon package
             photon_package pp_res;
@@ -3906,7 +3906,7 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid, photon_package
 }
 
 photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs, double albedo)
+        Vector3D obs_ex, Vector3D dir_obs)
 {
     // Init variables
     double len, dens, Cext, phi_fraction = 1, tau_obs = 0;
@@ -3965,7 +3965,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid, photon_pack
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
 
     // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    tmp_stokes *= theta_fraction * phi_fraction * albedo;
+    tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
     // Backup Stokes vector
     double stokes_1_bak = tmp_stokes.I();
@@ -4055,7 +4055,7 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     return total_energy;
 }
 
-void CDustComponent::henyeygreen(photon_package * pp, uint a, double albedo)
+void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes)
 {
     // Init variables
     double cos_theta, theta, phi;
@@ -4099,16 +4099,16 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, double albedo)
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
 
-    if(albedo > 0)
+    if(adjust_stokes)
     {
         StokesVector tmp_stokes = pp->getStokesVector();
         double theta_fraction = getScatteredFraction(w, a, theta);
-        tmp_stokes *= theta_fraction * albedo;
+        tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
         pp->setStokesVector(tmp_stokes);
     }
 }
 
-void CDustComponent::miesca(photon_package * pp, uint a, double albedo)
+void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 {
     // Init variables
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
@@ -4206,9 +4206,9 @@ void CDustComponent::miesca(photon_package * pp, uint a, double albedo)
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
 
-    if(albedo > 0)
+    if(adjust_stokes)
     {
-        tmp_stokes *= albedo;
+        tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
         double i_1 = tmp_stokes.I();
         tmp_stokes.rot(phi);

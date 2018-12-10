@@ -1832,9 +1832,9 @@ public:
     long double * getStochasticProbability(uint a, spline & abs_rate_per_wl);
 
     photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs, double albedo);
+        Vector3D obs_ex, Vector3D dir_obs);
     photon_package getEscapePhotonMie(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs, double albedo);
+        Vector3D obs_ex, Vector3D dir_obs);
     double getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density);
 
 private:
