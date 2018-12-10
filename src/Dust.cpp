@@ -1772,7 +1772,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // ------------------------------------------------------
 
-    if(phID == PH_MIE)
+    if(phID == PH_MIE && is_mixture)
     {
         // Init text file writer for scattering matrix
         ofstream scat_writer(path_scat.c_str());
