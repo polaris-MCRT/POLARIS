@@ -375,7 +375,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions > MAX_INTERACTION)
+                    if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
                     {
                         kill_counter++;
                         break;
@@ -742,7 +742,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions > MAX_INTERACTION)
+                        if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
                         {
                             if(ph_i == 0)
                                 kill_counter++;
