@@ -729,7 +729,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
     }
 
-    cout << "- Creating dust MC detectors           : done" << endl;
+    cout << "- Creating dust MC detectors    : done" << endl;
     return detector;
 }
 
