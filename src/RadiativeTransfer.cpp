@@ -1852,7 +1852,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing dust map                  : done" << endl;
+    cout << "- Raytracing dust map           : done" << endl;
 
     return true;
 }
