@@ -375,7 +375,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                    if(interactions >= MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
                     {
                         kill_counter++;
                         break;
@@ -742,7 +742,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions > MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                        if(interactions >= MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
                         {
                             if(ph_i == 0)
                                 kill_counter++;
@@ -859,7 +859,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions < MAX_INTERACTION)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToLastInteraction();
@@ -2022,7 +2022,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                         kill_counter++;
 
                         // If too many sub steps are needed, kill the photon
-                        if(kill_counter > MAX_SOLVER_STEPS)
+                        if(kill_counter >= MAX_SOLVER_STEPS)
                         {
                             cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
                             break;
@@ -2544,7 +2544,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                         kill_counter++;
 
                         // If too many sub steps are needed, kill the photon
-                        if(kill_counter > MAX_SOLVER_STEPS)
+                        if(kill_counter >= MAX_SOLVER_STEPS)
                         {
                             cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
                             break;
