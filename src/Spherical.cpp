@@ -1167,7 +1167,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing spherical grid file          : done" << endl;
+    cout << "- Writing spherical grid file   : done" << endl;
 
     return true;
 }

@@ -2596,13 +2596,15 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
 
         str = seperateString(data);
+        dlist values = parseValues(data);
 
         if(str.size() > 0)
             param->setISRFPath(str);
+        else if(values.size() == 1)
+            param->setISRFStength(values[0]);
         else
         {
-            cout
-                    << "\nERROR: Path of ISRF SED path could not be recognized!" << endl;
+            cout << "\nERROR: Path of ISRF SED path could not be recognized!" << endl;
             return false;
         }
 

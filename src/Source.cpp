@@ -632,39 +632,42 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     sidelength = grid->getMaxLength();
 
     cout << CLR_LINE << flush;
-
     cout << "-> Initiating interstellar radiation field          \r" << flush;
 
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
-        double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1]
-        double sp_energy = pl * PI * 3 * pow(sidelength, 2); //[W m^-1] energy per second an wavelength
+        double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1 sr^-1]
+        double sp_energy = pl * PIx2 * PI * 3 * pow(sidelength, 2); //[W m^-1] energy per second an wavelength
         star_emi[w] = sp_energy;
     }
 
     L = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
 
-    double fr, sum = 0;
-    lam_pf.resize(getNrOfWavelength());
-
-    for(uint w = 0; w < getNrOfWavelength(); w++)
-    {
-        if(w > 0)
-            sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] + 0.5 *
-                (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
-
-        fr = sum / L;
-        lam_pf.setValue(w, fr, double(w));
-    }
-    cout << CLR_LINE << flush;
     if(use_energy_density)
+    {
+        // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
             << nr_of_photons << " photons per wavelength" << "      " << endl;
+        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
+    }
     else
-        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
-            << nr_of_photons << " photons" << "      " << endl;
-    cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
+    {
+        double fr, sum = 0;
+        lam_pf.resize(getNrOfWavelength());
 
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            if(w > 0)
+                sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] + 0.5 *
+                    (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
+
+            fr = sum / L;
+            lam_pf.setValue(w, fr, double(w));
+        }
+        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
+                << nr_of_photons << " photons" << "      " << endl;
+        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
+    }
     delete[] star_emi;
     return true;
 }
@@ -761,8 +764,8 @@ void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     if(pp->getWavelengthID() != MAX_UINT)
     {
         wID = pp->getWavelengthID();
-        double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1]
-        energy = pl * PI * 3 * pow(sidelength, 2) / nr_photons; //[W m^-1] energy per second an wavelength
+        double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
+        energy = pl * PIx2 * PI * 3 *pow(sidelength, 2) / nr_photons; //[W m^-1] energy per second an wavelength
     }
     else
     {

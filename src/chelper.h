@@ -535,6 +535,9 @@ public:
         f_highJ = 0.25;
         f_cor = 0.6;
         adjTgas = 0;
+        isrf_strength = 0;
+        
+        isrf_path = "";
 
         max_subpixel_lvl = 1;
         midplane_zoom = 1;
@@ -963,6 +966,11 @@ public:
         return write_g_zero;
     }
 
+    double getISRFStrength()
+    {
+        return isrf_strength;
+    }
+
     string getISRFPath()
     {
         return isrf_path;
@@ -1214,6 +1222,11 @@ public:
     void setISRFPath(string val)
     {
         isrf_path = val;
+    }
+
+    void setISRFStength(double val)
+    {
+        isrf_strength = val;
     }
 
     void setNrOfISRFPhotons(long val)
@@ -2436,6 +2449,7 @@ private:
     double f_highJ;
     double f_cor;
     double adjTgas;
+    double isrf_strength;
 
     long nr_ofISRFPhotons;
     long nr_ofDustPhotons;

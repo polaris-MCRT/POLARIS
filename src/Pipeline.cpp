@@ -890,12 +890,17 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             CSourceBasic * tmp_source = new CSourceISRF();
 
             cout << "-> Creating ISRF source list             \r" << flush;
-
-            if(!tmp_source->setParameterFromFile(param, grid, dust, 0))
+            
+            if(param.getISRFPath() != "")
             {
-                cout << "\nERROR: Interstellar radiation field undefined! \n" << flush;
-                sources_mc.clear();
+                if(!tmp_source->setParameterFromFile(param, grid, dust, 0))
+                {
+                    cout << "\nERROR: Interstellar radiation field undefined! \n" << flush;
+                    sources_mc.clear();
+                }
             }
+            else
+                tmp_source->setParameter(param, grid, dust, 0);
 
             sources_mc.push_back(tmp_source);
         }

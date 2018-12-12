@@ -1032,7 +1032,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     delete pp;
 
-    cout << "- Writing lines                        : done" << endl;
+    cout << "- Writing lines                 : done" << endl;
     return true;
 }
 

@@ -430,6 +430,21 @@ public:
 
     bool setParameterFromFile(parameters & param, uint p);
 
+    void setParameter(parameters & param, uint p)
+    {
+        nr_of_photons = param.getNrOfISRFPhotons();
+        double strength = param.getISRFStrength();
+
+        sp_ext.resize(getNrOfWavelength());
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            double rad_field = CMathFunctions::mathis_isrf(wavelength_list[w]);
+            sp_ext.setValue(w, wavelength_list[w], strength * rad_field);
+        }
+
+        sp_ext.createSpline();
+    }
+
     void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
 
 private:
