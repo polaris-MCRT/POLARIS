@@ -377,8 +377,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     max_len = 2 * Rmax;
     //min_len = listR[1] - listR[0];
 
-    cout << CLR_LINE;
-    cout << "- Loading spherical grid file          : done" << endl;
+    //cout << CLR_LINE;
+    //cout << "- Loading spherical grid file          : done" << endl;
 	
 
     return true;

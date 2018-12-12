@@ -369,8 +369,8 @@ public:
 
         cell_list[pos_counter] = (cell_basic*) center_cell;
 
-        cout << CLR_LINE;
-        cout << "- Creating of cell list                : done          \n" << flush;
+        //cout << CLR_LINE;
+        //cout << "- Creating of cell list                : done          \n" << flush;
         return true;
     }
 

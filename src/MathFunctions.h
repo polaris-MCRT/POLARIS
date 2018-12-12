@@ -2666,7 +2666,7 @@ public:
         {
             double rn = double(num - n);
             dcomplex s1 = (rn + 1) * s_tmp;
-            ru[num - n] = s1 - dcomplex(1, 0) / (ru[num - n] + s1);
+            ru[num - n] = s1 - dcomplex(1, 0) / (ru[num - n + 1] + s1);
         }
 
         // initialize term counter        

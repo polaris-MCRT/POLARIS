@@ -1326,7 +1326,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing synchrotron map           : done" << endl;
+    cout << "- Raytracing synchrotron map    : done" << endl;
 
     return true;
 }
@@ -2309,8 +2309,8 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
-            cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1
-                << ", line " << i_line + 1 << " of " << nr_of_transitions << " 0.0[%]  \r" << flush;
+            cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1
+                << ", line " << i_line + 1 << " of " << nr_of_transitions << ": 0.0[%]  \r" << flush;
 
             uint per_max = tracer->getNpix();
 
@@ -2337,8 +2337,8 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Ch.Maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
-                            << i_line + 1 << " of " << nr_of_transitions << " " << percentage << " [%]      \r" << flush;
+                        cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
+                            << i_line + 1 << " of " << nr_of_transitions << ": " << percentage << " [%]      \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -2358,7 +2358,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     }
 
     cout << CLR_LINE;
-    cout << "- Raytracing Channel Maps              : done" << endl;
+    cout << "- Raytracing channel maps       : done" << endl;
 
     return true;
 }

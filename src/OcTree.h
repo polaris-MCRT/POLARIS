@@ -248,8 +248,8 @@ public:
                 << " [%]        \r" << flush;
         }
 
-        cout << CLR_LINE;
-        cout << "- Creating cell list                   : done          \n" << flush;
+        //cout << CLR_LINE;
+        //cout << "- Creating cell list                   : done          \n" << flush;
         return true;
     }
 

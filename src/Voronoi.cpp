@@ -223,8 +223,8 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_len += tmp_data_offset;
     data_offset += tmp_data_offset;
 
-    cout << CLR_LINE;
-    cout << "- Loading Voronoi grid file            : done       \n";
+    //cout << CLR_LINE;
+    //cout << "- Loading Voronoi grid file            : done       \n";
 
     return true;
 }

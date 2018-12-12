@@ -1310,7 +1310,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             }
         }
         cout << "- Line transition(s)            : " << transition_str.str() << endl;
-        cout << "- Number of velocity channels      : " << vel_channels_str.str() << endl;
+        cout << "- Number of velocity channels   : " << vel_channels_str.str() << endl;
         cout << "- Velocity limit(s)             : " << max_vel_str.str() << " [m/s]" << endl;
         cout << "- Level population              : ";
         uint lvl_pop_type = getLevelPopType(i_species);

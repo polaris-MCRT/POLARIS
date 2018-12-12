@@ -626,8 +626,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_offset += tmp_data_offset;
     data_len += tmp_data_offset;
 
-    cout << CLR_LINE;
-    cout << "- Loading octree grid file             : done" << endl;
+    //cout << CLR_LINE;
+    //cout << "- Loading octree grid file             : done" << endl;
 
     return true;
 }
