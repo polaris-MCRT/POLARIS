@@ -760,6 +760,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     uint per_counter = 0;
     float last_percentage = 0;
 
+    // Init error check
+    bool error = false;
+
     // Init maximum counter value
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
@@ -768,6 +771,10 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     {
         for(uint w = 0; w < nr_of_wavelength; w++)
         {   
+            // Skip everything else if error was found
+            if(error)
+                continue;
+
             // Increase counter used to show progress
             per_counter++;
 
@@ -777,7 +784,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-    #pragma omp critical
+#pragma omp critical
                 {
                     printIDs();
                     cout << "- calculating optical properties: " << percentage << " [%]                      \r";
@@ -800,12 +807,13 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
 
                 // Set size index and refractive index as complex number
                 double x = 2.0 * PI * a_eff[a] / wavelength_list[w];   
-                fcomplex refractive_index = fcomplex(refractive_index_real.getValue(wavelength_list[w]), 
+                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w]), 
                     refractive_index_imag.getValue(wavelength_list[w]));
 
                 // Calculate Mie-scattering
-                CMathFunctions::calcBHMie(x, refractive_index,
-                    Qext1[a][w], Qabs1[a][w], Qsca1[a][w], HGg[a][w], S11, S12, S33, S34);
+                if(!CMathFunctions::calcWVMie(x, refractive_index, Qext1[a][w], Qabs1[a][w], 
+                        Qsca1[a][w], HGg[a][w], S11, S12, S33, S34))
+                    error = true;
 
                 // Set missing Efficiencies for other axis
                 Qext2[a][w] = Qext1[a][w];
@@ -852,6 +860,11 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     // Set that the scattering matrix was successfully read
     scat_loaded = true;
 
+    if(error)
+    {
+        cout << "ERROR: Problem with optical properties calculation" << endl;
+        return false;
+    }
     return true;
 }
 

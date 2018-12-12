@@ -24,7 +24,7 @@ using namespace std;
 #define PIsq 1.7724538509055158819194275565678     // sqrt(PI)
 #define PI2 1.5707963267948965579989817342721      // PI / 2
 #define PI4 0.7853981633974482789994908671361      // PI / 4
-#define invPI2 0.6366197723675813824328884038550   // PI / 2
+#define invPI2 0.6366197723675813824328884038550   // 2 / PI
 #define PIx2 6.2831853071795862319959269370884     // 2 * PI
 #define PIx4 12.566370614359172463991853874177     // 4 * PI
 #define PI4x3 2.3561944901923448369984726014081    // 3 * PI / 4
@@ -237,8 +237,9 @@ using namespace std;
 #define MIE_SIZE_STEPS 100
 // Number of angles for scattering between 0° and 90°
 #define NANG 91
-#define NMXX 1000000
-#define CXONE complex<float>(1.0, 0.0)
+#define MAX_MIE_ITERATIONS 100000
+#define MIN_MIE_SIZE_PARAM 1e-6
+#define MIE_ACCURACY 1e-20
 
 // Projections for midplane files
 #define PROJ_XY 1
@@ -286,3 +287,4 @@ typedef vector<ushort> uslist;
 typedef vector<int> ilist;
 typedef vector<string> strlist;
 typedef complex<float> fcomplex;
+typedef complex<double> dcomplex;

@@ -2440,36 +2440,36 @@ public:
         return c;
     }
 
+/*
     static void calcBHMie(double x, fcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
-        /*Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
-        to calculate scattering and absorption by a homogenous isotropic
-        sphere.
+        // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
+        // to calculate scattering and absorption by a homogenous isotropic
+        // sphere.
 
-        Comment:
-            NANG = number of angles between 0 and 90 degrees
-                    (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
+        // Comment:
+        //     NANG = number of angles between 0 and 90 degrees
+        //             (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
 
-        Given:
-            X = 2*pi*a/lambda
-            REFREL = (complex refractive index of sphere) / (real index of medium)
+        // Given:
+        //     X = 2*pi*a/lambda
+        //     REFREL = (complex refractive index of sphere) / (real index of medium)
 
-        Returns:
-            S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
-                                      scattering E perpendicular to scattering plane)
-            S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
-                                      scattering E parallel to scattering plane)
-            QEXT = C_ext/pi*a**2 = efficiency factor for extinction
-            QSCA = C_sca/pi*a**2 = efficiency factor for scattering
-            QBACK = 4*pi*(dC_sca/domega)/pi*a**2
-                = backscattering efficiency
-            GSCA = <cos(theta)> for scattering
+        // Returns:
+        //     S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
+        //                               scattering E perpendicular to scattering plane)
+        //     S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
+        //                               scattering E parallel to scattering plane)
+        //     QEXT = C_ext/pi*a**2 = efficiency factor for extinction
+        //     QSCA = C_sca/pi*a**2 = efficiency factor for scattering
+        //     QBACK = 4*pi*(dC_sca/domega)/pi*a**2
+        //         = backscattering efficiency
+        //     GSCA = <cos(theta)> for scattering
     
-        Original program taken from Bohren and Huffman (1983), Appendix A
-        Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
-        in order to compute <cos(theta)>
-        */
+        // Original program taken from Bohren and Huffman (1983), Appendix A
+        // Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
+        // in order to compute <cos(theta)>
     {
         fcomplex cxy = fcomplex(x, 0) * refractive_index;
 
@@ -2477,9 +2477,9 @@ public:
         float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
         long nmx = fmax(xstop, abs(cxy)) + 15;
 
-        if (nmx >= NMXX) {
+        if (nmx >= MAX_MIE_ITERATIONS) {
             cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " 
-                << nmx << " >= NMXX = " << NMXX << ")" << endl;
+                << nmx << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" << endl;
             return;
         }
         
@@ -2490,7 +2490,7 @@ public:
 
         // Logarithmic derivative D(J) calculated by downward recurrence
         // beginning with initial value (0., 0.) at J=NMX
-        fcomplex cxd[NMXX];
+        fcomplex cxd[MAX_MIE_ITERATIONS];
         cxd[nmx] = fcomplex(0, 0);
 
         fcomplex cxtemp;
@@ -2498,7 +2498,7 @@ public:
         {
             float rn = float(nmx - n);
             cxd[nmx - (n + 1)] = fcomplex(rn, 0) / cxy - 
-                CXONE / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
+                fcomplex(1.0, 0.0) / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
         }
 
         float pi[NANG], pi0[NANG], pi1[NANG];
@@ -2624,6 +2624,270 @@ public:
         }
 
         return;
+    }
+*/
+
+    static bool calcWVMie(double x, dcomplex refractive_index, 
+            double &qext, double &qabs, double &qsca, double &gsca,
+            double *S11, double *S12, double *S33, double *S34)
+        /*Wolf & Voshchinnikov calculation of optical properties of spherical grains.
+        */
+    {        
+        // Step width
+        double dang = PI2 / float(NANG - 1);
+        double factor = 1e250;
+
+        if(x <= MIN_MIE_SIZE_PARAM)
+            return false;
+
+        double ax = 1 / x;
+        double b  = 2 *  pow(ax, 2);
+        dcomplex ss(0, 0);
+        dcomplex s3(0, -1);
+        double an = 3;
+        
+        // choice of number for subroutine aa [Loskutov (1971)]
+        double y = abs(refractive_index) * x;
+        uint num = uint(1.25 * y + 15.5);
+        if(y < 1)
+            num = 7.5 * y + 9.0;
+        else if(y > 100 && y < 50000)
+            num = 1.0625 * y + 28.5;
+        else if (y >= 50000)
+            num = 1.005 * y + 50.5;
+        
+        if(num > MAX_MIE_ITERATIONS)
+            return false;
+
+        // logarithmic derivative to Bessel function (complex argument)
+        dcomplex ru[num + 1];
+        dcomplex s_tmp = ax / refractive_index;
+        ru[num] = dcomplex(num + 1, 0) * s_tmp;
+        for(uint n = 1; n <= num - 1; n++)
+        {
+            double rn = double(num - n);
+            dcomplex s1 = (rn + 1) * s_tmp;
+            ru[num - n] = s1 - dcomplex(1, 0) / (ru[num - n] + s1);
+        }
+
+        // initialize term counter        
+        uint iterm = 1;
+        
+        // Bessel functions
+        double ass = sqrt(PI2 * ax);
+        double w1 = invPI2 * ax;
+        double Si = sin(x) / x;
+        double Co = cos(x) / x;
+        
+        // n=0
+        double besJ0 = Si / ass;
+        double besY0 = -Co / ass;
+        uint iu0 = 0;
+        
+        // n=1
+        double besJ1 = (Si * ax - Co) / ass;
+        double besY1 = (-Co * ax - Si) / ass;
+        uint iu1 = 0;
+        uint iu2 = 0;
+        
+        // Mie coefficients (first term)
+        dcomplex s, s1, s2, ra0, rb0;
+
+        // coefficient a_1
+        s  = ru[iterm] / refractive_index + ax;
+        s1 = s * besJ1 - besJ0;
+        s2 = s * besY1 - besY0;
+        ra0 = s1 / (s1 - s3 * s2);
+        
+        // coefficient b_1
+        s   = ru[iterm] * refractive_index + ax;
+        s1  = s * besJ1 - besJ0;
+        s2  = s * besY1 - besY0;
+        rb0 = s1 / (s1 - s3 * s2);
+        
+        // efficiency factors (first term)
+        dcomplex r = -1.5 * (ra0 - rb0);
+        qext = an * real(ra0 + rb0);
+        qsca = an * (norm(ra0) + norm(rb0));
+        
+        // first term (iterm=1)
+        dlist dAMU(NANG), dPI0(NANG), dPI1(NANG);
+        for(uint iang = 0; iang < NANG; iang++)
+        {
+            dAMU[iang]   = cos(double(iang) * dang);
+                
+            dPI0[iang] = 0;
+            dPI1[iang] = 1;
+        }
+            
+        uint NN = 2 * NANG - 1;
+        dcomplex SM1[NN], SM2[NN]; 
+        for(uint iang = 0; iang < NN; iang++)
+        {
+            SM1[iang] = dcomplex(0, 0);
+            SM2[iang] = dcomplex(0, 0);
+        }       
+        
+        double r_iterm = double(iterm), P, T;
+        double FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
+        dlist dPI(NANG), dTAU(NANG);
+        for(uint iang = 0; iang < NANG; iang++)
+        {
+            uint iang2 = 2 * NANG - 1 - iang;
+                
+            dPI[iang]  = dPI1[iang];
+            dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
+                
+            P = pow(-1, iterm - 1);
+            SM1[iang]  = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
+                
+            T = pow(-1, iterm);
+            SM2[iang] = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
+                
+            if(iang != iang2)
+            {
+                SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
+                SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
+            }
+        }
+            
+        iterm++;
+        r_iterm = double(iterm);    
+        for(uint iang = 0; iang < NANG; iang++)
+        {
+            dPI1[iang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[iang] * dPI[iang];
+            dPI1[iang] = dPI1[iang] - r_iterm * dPI0[iang] / (r_iterm - 1);
+            dPI0[iang] = dPI[iang];
+        }
+        
+        double z = -1, besY2, besJ2, an2, qq;
+        dcomplex ra1, rb1, rr;
+        while(true)
+        {
+            an  = an + 2;
+            an2 = an - 2;
+            
+            // Bessel functions
+            if(iu1 == iu0)
+                besY2 = an2 * ax * besY1 - besY0;
+            else
+                besY2 = an2 * ax * besY1 - besY0 / factor;
+
+            if(abs(besY2) > 1e200)
+            {
+                besY2 = besY2 / factor;
+                iu2   = iu1 + 1;
+            }
+            
+            // rbrunngraeber 10/14: Changed from besJ2 = (w1 + besY2 * besJ1) / besY1, 
+            // because besY2*besJ1 could become very large (1e300) for large grain sizes, besY2/besY1 is about 1
+            // animated by fkirchschlager
+            besJ2 = besY2 / besY1;
+            besJ2 = w1 / besY1 + besJ2 * besJ1;
+            
+            // Mie coefficients
+            r_iterm = double(iterm);
+
+            dcomplex ru_tmp(0, 0);
+            if(iterm <= num)
+                ru_tmp = ru[iterm];
+            
+            s = ru_tmp / refractive_index + r_iterm * ax;
+            s1  = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
+            s2  = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
+            ra1 = s1 / (s1 - s3 * s2);                        // coefficient a_n, (n=iterm)
+            
+            s = ru_tmp * refractive_index + r_iterm * ax;
+            s1  = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
+            s2  = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
+            rb1 = s1 / (s1 - s3 * s2);                        // coefficient b_n, (n=iterm)
+            
+            // efficiency factors
+            z  = -z;
+            rr = z * (iterm + 0.5) * (ra1 - rb1);
+            r  = r + rr;
+            ss = ss + (iterm - 1) * (iterm + 1) / iterm * real(ra0 * conj(ra1) + rb0 * conj(rb1)) +
+                an2 / iterm / (iterm - 1) * (ra0 * conj(rb0));
+            qq = an * real(ra1 + rb1);
+            qext = qext + qq;
+            qsca = qsca + an * (norm(ra1) + norm(rb1));
+
+            // leaving-the-loop with error criterion
+            if(isnan(qext))
+                return false;
+            
+            // leaving-the-loop criterion
+            if(abs(qq / qext) < MIE_ACCURACY)
+                break;
+            
+            // Bessel functions
+            besJ0 = besJ1;
+            besJ1 = besJ2;
+            besY0 = besY1;
+            besY1 = besY2;
+            iu0   = iu1;
+            iu1   = iu2;
+            ra0   = ra1;
+            rb0   = rb1;
+
+            // terms iterm=2,...
+            r_iterm = double(iterm);
+            FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
+            for(uint iang = 0; iang < NANG; iang++)
+            {
+                uint iang2 = 2 * NANG - iang;
+                    
+                dPI[iang]  = dPI1[iang];
+                dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
+                    
+                P = pow(-1, r_iterm - 1);
+                SM1[iang]  = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
+                    
+                T = pow(-1, r_iterm);
+                SM2[iang]  = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
+                    
+                if(iang != iang2)
+                {
+                    SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
+                    SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
+                }
+            }
+                
+            iterm++;
+            r_iterm = double(iterm);
+            for(uint iang = 0; iang < NANG; iang++)
+            {
+                dPI1[iang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[iang] * dPI[iang];
+                dPI1[iang] = dPI1[iang] - r_iterm * dPI0[iang] / (r_iterm - 1);
+                dPI0[iang] = dPI[iang];
+            }
+
+            if(iterm == MAX_MIE_ITERATIONS)
+                return false;
+        }
+        
+        // efficiency factors (final calculations)
+        qext = b * qext;
+        qsca = b * qsca;
+        //qback = 2 * b * r * conj(r);
+        double qpr = qext - 2 * b * real(ss);
+        qabs = qext - qsca;
+        gsca = (qext - qpr) / qsca;
+
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            S11[j] = 0.5 * (abs(SM2[j]) * abs(SM2[j]) + abs(SM1[j]) * abs(SM1[j]));
+            S12[j] = 0.5 * (abs(SM2[j]) * abs(SM2[j]) - abs(SM1[j]) * abs(SM1[j]));
+            S33[j] = real(SM2[j] * conj(SM1[j]));
+            S34[j] = imag(SM2[j] * conj(SM1[j]));
+        }
+
+        return true;
+    }
+
+        static inline int factorial(int n)
+    {
+        return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
     }
 
     int IDUM;
