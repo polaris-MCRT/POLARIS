@@ -237,7 +237,7 @@ using namespace std;
 #define MIE_SIZE_STEPS 100
 // Number of angles for scattering between 0° and 90°
 #define NANG 91
-#define MAX_MIE_ITERATIONS 100000
+#define MAX_MIE_ITERATIONS 1000000
 #define MIN_MIE_SIZE_PARAM 1e-6
 #define MIE_ACCURACY 1e-20
 

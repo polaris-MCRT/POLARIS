@@ -1545,7 +1545,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set format x \"%.1te%02T\"" << endl;
     cross_writer << "set format y \"%.1te%02T\"" << endl;
     cross_writer << "set ylabel \'C_{avg} [m^{-2}]\'" << endl;
-    cross_writer << "set xlabel \'{/Symbol l} [{/Symbol m}m]\'" << endl;
+    cross_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
     cross_writer << "set title \"" << gnu_title << "\"" << endl;
     cross_writer << "plot \'-\' with " << plot_sign << " title \'C_{ext,x}\' lc rgb \"#0000F0\","
         << "\'-\' with " << plot_sign << " title \'C_{ext,y}\' lc rgb \"#000090\","
@@ -1644,7 +1644,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set format x \"%.1te%02T\"" << endl;
     diff_writer << "set format y \"%.1te%02T\"" << endl;
     diff_writer << "set ylabel \'C_{avg} [m^{-2}]\'" << endl;
-    diff_writer << "set xlabel \'{/Symbol l} [{/Symbol m}m]\'" << endl;
+    diff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
     diff_writer << "set title \"" << gnu_title << "\"" << endl;
     diff_writer << "plot \'-\' with " << plot_sign << " title \'|dC_{ext}| (Cpol)\' lc rgb \"#0000FF\","
         << "\'-\' with " << plot_sign << " title \'|dC_{abd}|\'  lc rgb \"#FF0000\","
@@ -1770,7 +1770,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set format x \"%.1te%02T\"" << endl;
     g_writer << "set format y \"%.1te%02T\"" << endl;
     g_writer << "set ylabel \'|g_{avg}|'" << endl;
-    g_writer << "set xlabel \'{/Symbol l} [{/Symbol m}m]\'" << endl;
+    g_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
     g_writer << "set title \"" << gnu_title << "\"" << endl;
     g_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 

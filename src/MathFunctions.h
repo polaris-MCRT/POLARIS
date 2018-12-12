@@ -2441,7 +2441,7 @@ public:
     }
 
 /*
-    static void calcBHMie(double x, fcomplex refractive_index, 
+    static bool calcBHMie(double x, fcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
         // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
@@ -2480,7 +2480,7 @@ public:
         if (nmx >= MAX_MIE_ITERATIONS) {
             cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " 
                 << nmx << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" << endl;
-            return;
+            return false;
         }
         
         float amu[NANG];
@@ -2623,15 +2623,14 @@ public:
             S34[j] = imag(cxs2[j] * conj(cxs1[j]));
         }
 
-        return;
+        return true;
     }
 */
 
     static bool calcWVMie(double x, dcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
-        /*Wolf & Voshchinnikov calculation of optical properties of spherical grains.
-        */
+        //Wolf & Voshchinnikov calculation of optical properties of spherical grains.
     {        
         // Step width
         double dang = PI2 / float(NANG - 1);
