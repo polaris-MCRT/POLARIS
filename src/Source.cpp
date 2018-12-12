@@ -668,7 +668,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     }
 
     if(g_zero > 0)
-        cout << "    G_0 (Mathis ISRF): " << g_zero << endl;
+        cout << "    G_0: " << g_zero <<  " (see Mathis et al. 1983)" << endl;
     else
         cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
 
