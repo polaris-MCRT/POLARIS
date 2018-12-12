@@ -648,7 +648,6 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
             << nr_of_photons << " photons per wavelength" << "      " << endl;
-        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
     }
     else
     {
@@ -666,9 +665,15 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
         }
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
                 << nr_of_photons << " photons" << "      " << endl;
-        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
     }
+
+    if(g_zero > 0)
+        cout << "    G_0 (Mathis ISRF): " << g_zero << endl;
+    else
+        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
+
     delete[] star_emi;
+    
     return true;
 }
 

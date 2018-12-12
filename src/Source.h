@@ -404,6 +404,7 @@ public:
         init = false;
         kill_count = 0;
         sidelength = 0;
+        g_zero = 0;
 
         grid = 0;
 
@@ -433,13 +434,13 @@ public:
     void setParameter(parameters & param, uint p)
     {
         nr_of_photons = param.getNrOfISRFPhotons();
-        double strength = param.getISRFStrength();
+        g_zero = param.getISRFGZero();
 
         sp_ext.resize(getNrOfWavelength());
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
             double rad_field = CMathFunctions::mathis_isrf(wavelength_list[w]);
-            sp_ext.setValue(w, wavelength_list[w], strength * rad_field);
+            sp_ext.setValue(w, wavelength_list[w], g_zero * rad_field);
         }
 
         sp_ext.createSpline();
@@ -453,7 +454,7 @@ private:
     int kill_count;
     bool init;
     double c_q, c_u, c_v;
-    double sidelength;
+    double sidelength, g_zero;
     double * c_w, *c_f;
 };
 

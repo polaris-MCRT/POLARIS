@@ -535,7 +535,7 @@ public:
         f_highJ = 0.25;
         f_cor = 0.6;
         adjTgas = 0;
-        isrf_strength = 0;
+        isrf_g_zero = 0;
         
         isrf_path = "";
 
@@ -966,9 +966,9 @@ public:
         return write_g_zero;
     }
 
-    double getISRFStrength()
+    double getISRFGZero()
     {
-        return isrf_strength;
+        return isrf_g_zero;
     }
 
     string getISRFPath()
@@ -1224,9 +1224,9 @@ public:
         isrf_path = val;
     }
 
-    void setISRFStength(double val)
+    void setISRFGZero(double val)
     {
-        isrf_strength = val;
+        isrf_g_zero = val;
     }
 
     void setNrOfISRFPhotons(long val)
@@ -2449,7 +2449,7 @@ private:
     double f_highJ;
     double f_cor;
     double adjTgas;
-    double isrf_strength;
+    double isrf_g_zero;
 
     long nr_ofISRFPhotons;
     long nr_ofDustPhotons;
