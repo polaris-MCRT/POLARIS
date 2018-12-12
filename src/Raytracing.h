@@ -60,18 +60,20 @@ public:
     {
     }
 
-    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path)
+    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
+        string path, uint _alignment)
     {
         return false;
     }
 
-    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path, Vector3D n1, Vector3D n2)
+    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
+        string path, Vector3D n1, Vector3D n2, uint _alignment)
     {
         return false;
     }
 
     virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length,
-            string path, uint max_subpixel_lvl, Vector3D n1, Vector3D n2)
+            string path, uint max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
     {
         return false;
     }
@@ -446,8 +448,8 @@ public:
     {
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path,
-        uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
+        string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
     {
         rt_detector_shape = DET_PLANE;
 
@@ -490,8 +492,9 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, sidelength_x, sidelength_y,
-            map_shift_x, map_shift_y, distance, lam_min, lam_max, nr_spectral_bins);
+        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, 
+            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
+            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -542,7 +545,8 @@ public:
         setDetCoordSystem(n1, n2);
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, lam_min, lam_max, nr_spectral_bins, nr_extra);
+            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
+            lam_min, lam_max, nr_spectral_bins, nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -592,8 +596,9 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, sidelength_x, sidelength_y,
-            map_shift_x, map_shift_y, distance, i_trans, nr_spectral_bins, max_velocity);
+        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, 
+            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, i_trans, 
+            nr_spectral_bins, max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -738,7 +743,8 @@ public:
         npix = 12 * nside * nside;
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path)
+    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
+        string path, uint _alignment)
     {
         rt_detector_shape = DET_SPHER;
 
@@ -779,7 +785,8 @@ public:
         Vector3D spectral_offset = det_pos.getSphericalCoord();
         spectral_offset_long = spectral_offset.Phi();
 
-        detector = new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins);
+        detector = new CDetector(path, npix, 1, det_pos, max_length, 
+            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
         detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
 
         return true;
@@ -826,7 +833,8 @@ public:
         Vector3D spectral_offset = det_pos.getSphericalCoord();
         spectral_offset_long = spectral_offset.Phi();
 
-        detector = new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, nr_extra);
+        detector = new CDetector(path, npix, 1, det_pos, max_length, 
+            lam_min, lam_max, nr_spectral_bins, nr_extra);
         detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
 
         return true;
@@ -1240,7 +1248,7 @@ public:
     }
 
     bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length,
-            string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+        string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
     {
         rt_detector_shape = DET_POLAR;
 
@@ -1284,7 +1292,8 @@ public:
         initTmpStokes();
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0.0, 0.0, distance, lam_min, lam_max, nr_spectral_bins);
+            sidelength_x, sidelength_y, 0.0, 0.0, distance, 
+            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1335,7 +1344,8 @@ public:
         initTmpStokes();
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0.0, 0.0, distance, lam_min, lam_max, nr_spectral_bins, nr_extra);
+            sidelength_x, sidelength_y, 0.0, 0.0, distance, 
+            lam_min, lam_max, nr_spectral_bins, nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1386,7 +1396,7 @@ public:
         initTmpStokes();
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0.0, 0.0, distance, i_trans, nr_spectral_bins, max_velocity);
+            sidelength_x, sidelength_y, 0, 0, distance, i_trans, nr_spectral_bins, max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1726,8 +1736,8 @@ public:
     {
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path,
-            Vector3D n1, Vector3D n2)
+    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
+        string path, Vector3D n1, Vector3D n2, uint _alignment)
     {
         rt_detector_shape = DET_SLICE;
 
@@ -1769,7 +1779,8 @@ public:
         setDetCoordSystem(n1, n2);
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, lam_min, lam_max, nr_spectral_bins);
+            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
+            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1818,7 +1829,8 @@ public:
         setDetCoordSystem(n1, n2);
 
         detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, lam_min, lam_max, nr_spectral_bins, nr_extra);
+            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
+            lam_min, lam_max, nr_spectral_bins, nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;

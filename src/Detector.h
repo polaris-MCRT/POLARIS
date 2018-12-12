@@ -67,13 +67,15 @@ public:
         channel_width = 0;
 
         cos_acceptance_angle = 0;
+        alignment = ALIG_RND;
     }
 
     // Detector for dust and synchrotron
     // Plane detector
     CDetector(uint _detector_id, string _path, uint _bins_x, uint _bins_y, uint _id, double _sidelength_x,
         double _sidelength_y, double _map_shift_x, double _map_shift_y, double _distance,
-        double _l_min, double _l_max, uint _nr_of_spectral_bins, uint nr_extra = 1)
+        double _l_min, double _l_max, uint _nr_of_spectral_bins, uint nr_extra, 
+        uint _alignment = ALIG_RND)
     {
         detector_id = _detector_id;
 
@@ -100,6 +102,7 @@ public:
         channel_width = 0;
         i_trans = 0;
         cos_acceptance_angle = 0;
+        alignment = _alignment;
 
         distance = _distance;
 
@@ -145,7 +148,8 @@ public:
 
     // Spherical detector
     CDetector(string _path, uint _bins, uint _id, Vector3D obs_pos, double _sidelength,
-        double _l_min, double _l_max, uint _nr_of_spectral_bins, uint nr_extra = 1)
+        double _l_min, double _l_max, uint _nr_of_spectral_bins, uint nr_extra, 
+        uint _alignment = ALIG_RND)
     {
         detector_id = DET_SPHER;
 
@@ -174,6 +178,7 @@ public:
         channel_width = 0;
         i_trans = 0;
         cos_acceptance_angle = 0;
+        alignment = _alignment;
 
         lam_min = _l_min;
         lam_max = _l_max;
@@ -865,6 +870,9 @@ public:
         pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
         pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
         pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+        string alignment_descr = getAlignmentDescription();
+        if(alignment_descr != "")
+            pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
 
         cout << CLR_LINE << flush;
         return true;
@@ -996,6 +1004,9 @@ public:
             pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
         }
         pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+        string alignment_descr = getAlignmentDescription();
+        if(alignment_descr != "")
+            pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
 
         cout << CLR_LINE << flush;
        
@@ -1163,6 +1174,10 @@ public:
         newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
         newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+        string alignment_descr = getAlignmentDescription();
+        if(alignment_descr != "")
+            pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
+
         cout << CLR_LINE << flush;
         return true;
     }
@@ -2726,6 +2741,45 @@ public:
         }
     }
 
+    string getAlignmentDescription()
+    {
+        string alignment_string = "";       
+        
+        if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
+            alignment_string += "INTERNAL";
+        if((alignment & ALIG_PA) == ALIG_PA)
+        {
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "PA";
+        }
+        if((alignment & ALIG_IDG) == ALIG_IDG)
+        {
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "IDG";
+        }
+        if((alignment & ALIG_RAT) == ALIG_RAT)
+        {
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "RAT";
+        }
+        if((alignment & ALIG_GOLD) == ALIG_GOLD)
+        {            
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "GOLD";
+        }
+        if((alignment & ALIG_KRAT) == ALIG_KRAT)
+        {
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "KRAT";
+        }
+        return alignment_string;
+    }
+
 private:
     double cos_acceptance_angle;
     double rot_angle1, rot_angle2, distance;
@@ -2743,6 +2797,7 @@ private:
     uint nr_of_spectral_bins;
     uint nr_velocity_channels;
     uint i_trans;
+    uint alignment;
     Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV, *matrixT, *matrixS;
     double *sedI, *sedQ, *sedU, *sedV, *sedT;
     dlist wavelength_list_det;

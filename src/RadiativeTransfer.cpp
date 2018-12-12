@@ -1754,26 +1754,28 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 case DET_PLANE:
                     tracer = new CRaytracingCartesian(grid);
                     if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput,
-                            param.getMaxSubpixelLvl(), axis1, axis2))
+                            param.getMaxSubpixelLvl(), axis1, axis2, param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput))
+                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, 
+                        pathOutput, param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_POLAR:
                     tracer = new CRaytracingPolar(grid);
                     if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput,
-                            param.getMaxSubpixelLvl(), axis1, axis2))
+                            param.getMaxSubpixelLvl(), axis1, axis2, param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_SLICE:
                     tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput, axis1, axis2))
+                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, 
+                        pathOutput, axis1, axis2, param.getAlignmentMechanism()))
                         return false;
                     break;
             }
