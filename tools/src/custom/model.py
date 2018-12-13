@@ -348,19 +348,15 @@ class GGTauDisk(Model):
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
-        # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
-        self.parameter['outer_radius'] = 260. * self.math.const['au']
-        # ------ With circumstellar disks -----
-        self.parameter['inner_radius'] = 15. * self.math.const['au']
-        # ---- Without circumstellar disks ----
-        # self.parameter['inner_radius'] = 180. * self.math.const['au']
-        # -------------------------------------
         # Position angle of the stars (Ab12 is Ab1 and Ab2)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab12 = self.angle_Aa + np.pi
         # Half-major axis of the stars (Ab12 is Ab1 and Ab2)
         # Cite: separation Aa and Ab (White et al. 1999)
-        self.a_Aab = 44. / 2. * self.math.const['au']
+        rot_angle_2 = 25. + 7.
+        self.a_Aab = 36. / 2. * self.math.const['au'] * np.sqrt(
+            (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 + 
+            np.sin(rot_angle_2 / 180 * np.pi)**2) 
         self.a_Ab12 = 5. / 2. * self.math.const['au']
         # Inclination of the GG Tau Aa and Ab12 orbits
         self.orbit_inclination = 0.0 / 180. * np.pi
@@ -413,15 +409,19 @@ class GGTauDisk(Model):
         # Custom width of z-cell borders per ring
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
-        r_list_cs_disks = np.linspace(15., 30., 150)
-        r_list_cb_disk = self.math.exp_list(180., 260., 50, 1.03)
-        full_r_list = np.hstack((r_list_cs_disks, 140, r_list_cb_disk)).ravel()
+        r_list_cs_disks = np.linspace(self.a_Aab / 2. - 8. * self.math.const['au'], 
+            self.a_Aab / 2. - 8. * self.math.const['au'], 150)
+        r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'], 
+            260. * self.math.const['au'], 50, 1.03)
         # ------ With circumstellar disks -----
-        self.cylindrical_parameter['radius_list'] = np.multiply(
-            full_r_list, self.math.const['au'])
+        self.cylindrical_parameter['radius_list'] =  np.hstack(
+            (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
         # ---- Without circumstellar disks ----
         # self.cylindrical_parameter['radius_list'] = np.multiply(r_list_cb_disk, self.math.const['au'])
         # -------------------------------------
+        # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
+        self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+        self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
         # Phi cells
         n_ph_list_1 = [600] * 150
         n_ph_list_2 = [180] * 51

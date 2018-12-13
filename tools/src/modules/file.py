@@ -1352,16 +1352,17 @@ class FileIO:
         #         i_r += 1
         return cut_position, cut_data
 
-    def create_radial_profile(self, tbldata, radial_parameter, N_r=100, sub_pixel=4):
-        """"Calculates azimuthally average radial profiles through map data depending on radial_parameters
+    def create_radial_profile(self, tbldata, radial_parameter, N_r=100, subpixel=4):
+        """"Calculates azimuthally averaged radial profiles through map data 
+        depending on radial_parameters.
 
         Args:
             tbldata: A 3D array with a size of n x nr_of_pixel x nr_of_pixel.
                 (n is number of quantities/wavlelengths/frequencies...)
-            radial_parameter (List[float, float, float]): The radial parameter.
+            radial_parameter (List[float, float]): The radial parameter.
                 (center position x and y)
             N_r (int): Number of positions along the radial profile.
-            sub_pixel (int): define the mount of subpixel per axis.
+            subpixel (int): define the mount of subpixel per axis.
 
         Returns:
             List, List: Position and Radial profile data as 1D array and nD array.
@@ -1379,21 +1380,21 @@ class FileIO:
         nr_pixel_x = tbldata.shape[-2]
         nr_pixel_y = tbldata.shape[-1]
         # Update subpixel, if too small
-        while sub_pixel * nr_pixel_x < 2 * N_r * np.sqrt(2):
-            sub_pixel += 1
+        while subpixel * nr_pixel_x < 2 * N_r * np.sqrt(2):
+            subpixel += 1
         radial_position = np.linspace(0, max_len, N_r)
         radial_number = np.zeros(N_r)
         radial_data = np.zeros(np.shape(tbldata)[0:-2] + (N_r,))
-        for i_x in range(sub_pixel * nr_pixel_x):
-            for i_y in range(sub_pixel * nr_pixel_y):
+        for i_x in range(subpixel * nr_pixel_x):
+            for i_y in range(subpixel * nr_pixel_y):
                 index = [i_x, i_y]
                 pos = np.subtract(np.multiply(np.divide(np.add(index, 0.5),
-                    [sub_pixel * nr_pixel_x, sub_pixel * nr_pixel_y]),
+                    [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
                     [sidelength_x, sidelength_y]),
                     np.divide([sidelength_x, sidelength_y], 2.))
                 pos_r = np.linalg.norm(np.subtract(pos, center_pos))
                 i_r = int(pos_r / max_len * (N_r - 1))
-                radial_data[..., i_r] += tbldata[..., int(i_x / float(sub_pixel)), int(i_y / float(sub_pixel))]
+                radial_data[..., i_r] += tbldata[..., int(i_x / float(subpixel)), int(i_y / float(subpixel))]
                 radial_number[i_r] += 1
         # Normalization
         for i_r in range(N_r):
@@ -1402,6 +1403,67 @@ class FileIO:
             else:
                 radial_data[..., i_r] = 0.
         return radial_position, radial_data
+
+    def create_azimuthal_profile(self, tbldata, azimuthal_parameter, N_ph=100, subpixel=4):
+        """"Calculates radially averaged azimuthal profiles through map data 
+        depending on azimuthal_parameter.
+
+        Args:
+            tbldata: A 3D array with a size of n x nr_of_pixel x nr_of_pixel.
+                (n is number of quantities/wavlelengths/frequencies...)
+            azimuthal_parameter (List[float, float, float, float]): The azimuthal parameter.
+                (center position x and y, inclination, inclination position angle, min and max radius of ring)
+            N_ph (int): Number of positions along the azimuthal profile.
+            subpixel (int): define the mount of subpixel per axis.
+
+        Returns:
+            List, List: Position and azimuthal profile data as 1D array and nD array.
+        """
+        # Get cut parameter
+        center_pos = azimuthal_parameter[0:2]
+        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.parse_args.ax_unit]
+        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.parse_args.ax_unit]
+        # Define function to consider inclination
+        def inc(pos):
+            i = azimuthal_parameter[2]
+            inc_PA = azimuthal_parameter[3]
+            inc_axis = [np.cos(inc_PA), np.sin(inc_PA)]
+            if i < np.pi / 2. and i > -np.pi / 2.:
+                return pos * ([np.sin(inc_PA)**2, np.cos(inc_PA)**2] + 
+                    [np.cos(inc_PA)**2, np.sin(inc_PA)**2] / np.cos(i))
+            else:
+                return pos
+        # Convert input limits to used unit
+        R_min = self.math.length_conv(azimuthal_parameter[4], self.parse_args.ax_unit)
+        R_max = self.math.length_conv(azimuthal_parameter[5], self.parse_args.ax_unit)
+        # Get number of axes not used for the pixel
+        #nr_offset_index = len(tbldata.shape) - 2
+        # Get number of pixel per axis
+        nr_pixel_x = tbldata.shape[-2]
+        nr_pixel_y = tbldata.shape[-1]
+        azimuthal_position = np.linspace(0, 2. * np.pi, N_ph)
+        azimuthal_number = np.zeros(N_ph)
+        azimuthal_data = np.zeros(np.shape(tbldata)[0:-2] + (N_ph,))
+        for i_x in range(subpixel * nr_pixel_x):
+            for i_y in range(subpixel * nr_pixel_y):
+                index = [i_x, i_y]
+                pos = np.subtract(np.multiply(np.divide(np.add(index, 0.5),
+                    [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
+                    [sidelength_x, sidelength_y]),
+                    np.divide([sidelength_x, sidelength_y], 2.))
+                real_pos = inc(np.subtract(pos, center_pos))
+                if(R_min < np.linalg.norm(real_pos) < R_max):
+                    pos_ph = np.arctan2(real_pos[1], real_pos[0])
+                    i_ph = int(pos_ph / (2. * np.pi) * (N_ph - 1))
+                    azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)), int(i_y / float(subpixel))]
+                    azimuthal_number[i_ph] += 1
+        # Normalization
+        for i_ph in range(N_ph):
+            if azimuthal_number[i_ph] > 0:
+                azimuthal_data[..., i_ph] /= azimuthal_number[i_ph]
+            else:
+                azimuthal_data[..., i_ph] = 0.
+        return azimuthal_position, azimuthal_data
 
     # ------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------

@@ -1605,7 +1605,7 @@ class CustomPlots:
         # Plot position of binary stars (with conversion from m to au)
         star_descr = ['Aa', 'Ab1', 'Ab2']
         for i_star, position in enumerate(stellar_source.tmp_parameter['position_star']):
-            #plot.plot_marker(
+            # plot.plot_marker(
             #    np.divide(position[0:2], self.math.const['au']),
             #    "*", ax_index=0, color='white', markersize=12)
             if i_star == 0:
@@ -1766,3 +1766,76 @@ class CustomPlots:
                                ax_index=i_subplot, color='white')
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
+
+    def plot_1006005(self):
+        """Plot GG Tau A emission maps for different inclination axis.
+        """
+        # Import libraries
+        from astropy.io import fits
+        # Set some variables
+        detector_index = 1
+        i_quantity = 0
+        # Set beam size (in arcsec)
+        self.file_io.beam_size = 0.05
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'position_angle_analysis', path=self.file_io.path['model'])
+        # Create a plot for each position angle
+        for PA in range(-20, 75, 5):
+            # Set paths of each simulation
+            self.file_io.set_path_from_str(
+                'plot', 'gg_tau_disk', 'position_angle_' + str(PA), 'dust')
+            # Create pdf file if show_plot is not chosen and read map data from file
+            plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                'polaris_detector_nr' + str(detector_index).zfill(4))
+            # Create Matplotlib figure
+            plot = Plot(self.model, self.parse_args, ax_unit='arcsec')
+            # Take data for current quantity
+            tbldata = plot_data[i_quantity, 0, :, :]
+            # Plot imshow
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True,
+                             norm='LogNorm', vmin=1e-6, vmax=1e-1, extend='neither')
+            # Plot map description
+            plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                           text=r'$\text{PA}=\SI{' + str(PA) + '}{\degree}$',   
+                           horizontalalignment='left', verticalalignment='top', color='white')
+            # Save figure to pdf file or print it on screen
+            plot.save_figure(self.file_io)
+
+    def plot_1006006(self):
+        """Plot GG Tau A azimuthal brightness distribution.
+        """
+        # Import libraries
+        from astropy.io import fits
+        # Set some variables
+        detector_index = 1
+        i_quantity = 0
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', 'no_circumstellar_disks', 'dust')
+        # Define output pdf
+        self.file_io.init_plot_output('azimuthal_brightness_distribution')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        # Create radially average
+        # d azimuthal profile
+        inclination = -37.0 / 180. * np.pi
+        inc_PA = (360. - 270. + 7.) / 180. * np.pi
+        R_min = 180. * self.math.const['au']   
+        R_max = 260. * self.math.const['au']
+        azimuthal_parameter = [0, 0, inclination, inc_PA, R_min, R_max]
+        position, data = self.file_io.create_azimuthal_profile(plot_data[i_quantity, 0, ...], azimuthal_parameter, subpixel=1)
+        # Angle to degree
+        position *= 180. / np.pi
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, with_cbar=False, xlabel=r'$\theta\ [\si{\degree}]$', 
+                    ylabel=cbar_label, limits=[position[0], position[-1], None, None])
+        # Plot cut/radial profile
+        plot.plot_line(position, data, log='y')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)

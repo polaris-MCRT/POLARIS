@@ -134,8 +134,8 @@ class GGTauDetector(Detector):
         # Cite: position angle of Aa and Ab (Yang et al. 2017)
         self.parameter['rot_angle_2'] = 25.
         # Cite: rotation axis of inclination (Yang et al. 2017)
-        PA = (360. - 277.) / 180. * np.pi
-        self.parameter['rot_axis_1'] = [np.sin(PA), np.cos(PA), 0]
+        inc_PA = (360. - 270. + 7.) / 180. * np.pi  # (360. - 270. + 7.)
+        self.parameter['rot_axis_1'] = [np.sin(inc_PA), np.cos(inc_PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]
         self.parameter['nr_pixel_x'] = 512
         self.parameter['nr_pixel_y'] = 512
