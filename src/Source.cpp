@@ -637,7 +637,9 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
         double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1 sr^-1]
-        double sp_energy = pl * PIx2 * PI * 3 * pow(sidelength, 2); //[W m^-1] energy per second an wavelength
+        double sp_energy = pl * PI * 3 * pow(sidelength, 2);
+        if(g_zero > 0)
+            sp_energy *= PIx2; //[W m^-1] energy per second an wavelength
         star_emi[w] = sp_energy;
     }
 
@@ -770,7 +772,9 @@ void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     {
         wID = pp->getWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
-        energy = pl * PIx2 * PI * 3 *pow(sidelength, 2) / nr_photons; //[W m^-1] energy per second an wavelength
+        double energy = pl * PIx2 * PI * 3 *pow(sidelength, 2) / nr_photons;
+        if(g_zero > 0)
+            energy *= PIx2; //[W m^-1] energy per second an wavelength
     }
     else
     {
