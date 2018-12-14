@@ -823,10 +823,10 @@ class ThemisDisk(Model):
         if self.parameter['model_number'] in [5, 6]:
             # Get limits for the models
             if self.parameter['model_number'] == 5:
-                r_min = 2.
+                r_min = 5.
                 r_max = 20.
             elif self.parameter['model_number'] == 6:
-                r_min = 5.
+                r_min = 2.
                 r_max = 20.
             # Calculate cylindrical radius
             radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
