@@ -795,6 +795,10 @@ class ThemisDisk(Model):
                     if self.parameter['model_number'] == 5:
                         self.tmp_parameter['ignored_gas_density'] = np.zeros(
                             (4, 1))
+                elif self.parameter['model_number'] == 6:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
+                    self.tmp_parameter['ignored_gas_density'] = np.zeros((4, 1))
                 self.parameter['mass_fraction'] = np.sum(
                     self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
@@ -816,17 +820,23 @@ class ThemisDisk(Model):
                                                      ref_scale_height=self.parameter['ref_scale_height'],
                                                      alpha=self.parameter['alpha'], beta=self.parameter['beta'])
         density_list = np.ones((4, 1)) * gas_density
-        if self.parameter['model_number'] == 5:
+        if self.parameter['model_number'] in [5, 6]:
+            # Get limits for the models
+            if self.parameter['model_number'] == 5:
+                r_min = 2.
+                r_max = 20.
+            elif self.parameter['model_number'] == 6:
+                r_min = 5.
+                r_max = 20.
             # Calculate cylindrical radius
             radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
-
             # Set density of larger grains to zero to create a gap
-            if 5 * self.math.const['au'] <= radius_cy <= 20 * self.math.const['au']:
+            if r_min * self.math.const['au'] <= radius_cy <= r_max * self.math.const['au']:
                 # Add negatively to take it into account for normalization
                 # Same as material which was in a disk with the total disk mass but is
                 # for instance accreted on a planet or star
-                self.tmp_parameter['ignored_gas_density'][1:,
-                                                          0] -= density_list[1:, 0] * self.volume
+                self.tmp_parameter['ignored_gas_density'][1:, 0] -= \
+                    density_list[1:, 0] * self.volume
                 density_list[1:, 0] = 0.
 
         return density_list

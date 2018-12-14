@@ -14,7 +14,7 @@ class FileIO:
     """
 
     def __init__(self, model, server, parse_args, polaris_dir, tool_type, beam_size=None,
-                 cmap_unit='arcsec', vec_field_size=16):
+                 cmap_unit='arcsec', vec_field_size=16, ax_unit=None):
         """Initialisation of the input/output parameters.
 
         Args:
@@ -77,6 +77,12 @@ class FileIO:
                 self.cmap_unit = parse_args.cmap_unit
             else:
                 self.cmap_unit = cmap_unit
+            if parse_args.ax_unit is not None:
+                self.ax_unit = parse_args.ax_unit
+            elif ax_unit is None:
+                self.ax_unit = 'au'
+            else:
+                self.ax_unit = ax_unit
 
         #: dict: Dictionary with all paths for POLARIS
         self.path = {}
@@ -1312,8 +1318,8 @@ class FileIO:
             n_width = int(cut_parameter[4])
         else:
             raise ValueError('Cut parameter have to be the cut angle and optionally the cut center positions!')
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.parse_args.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.parse_args.ax_unit]
+        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Calc maximum length in map
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
@@ -1369,8 +1375,8 @@ class FileIO:
         """
         # Get cut parameter
         center_pos = radial_parameter[0:2]
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.parse_args.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.parse_args.ax_unit]
+        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Calc maximum length in map
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
@@ -1404,7 +1410,7 @@ class FileIO:
                 radial_data[..., i_r] = 0.
         return radial_position, radial_data
 
-    def create_azimuthal_profile(self, tbldata, azimuthal_parameter, N_ph=100, subpixel=4):
+    def create_azimuthal_profile(self, tbldata, azimuthal_parameter, N_ph=180, subpixel=4):
         """"Calculates radially averaged azimuthal profiles through map data 
         depending on azimuthal_parameter.
 
@@ -1421,23 +1427,11 @@ class FileIO:
         """
         # Get cut parameter
         center_pos = azimuthal_parameter[0:2]
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.parse_args.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.parse_args.ax_unit]
-        # Define function to consider inclination
-        def inc(pos):
-            i = azimuthal_parameter[2]
-            inc_PA = azimuthal_parameter[3]
-            inc_axis = [np.cos(inc_PA), np.sin(inc_PA)]
-            if i < np.pi / 2. and i > -np.pi / 2.:
-                return pos * ([np.sin(inc_PA)**2, np.cos(inc_PA)**2] + 
-                    [np.cos(inc_PA)**2, np.sin(inc_PA)**2] / np.cos(i))
-            else:
-                return pos
+        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Convert input limits to used unit
-        R_min = self.math.length_conv(azimuthal_parameter[4], self.parse_args.ax_unit)
-        R_max = self.math.length_conv(azimuthal_parameter[5], self.parse_args.ax_unit)
-        # Get number of axes not used for the pixel
-        #nr_offset_index = len(tbldata.shape) - 2
+        R_min = self.math.length_conv(azimuthal_parameter[4], self.ax_unit)
+        R_max = self.math.length_conv(azimuthal_parameter[5], self.ax_unit)
         # Get number of pixel per axis
         nr_pixel_x = tbldata.shape[-2]
         nr_pixel_y = tbldata.shape[-1]
@@ -1451,12 +1445,18 @@ class FileIO:
                     [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
                     [sidelength_x, sidelength_y]),
                     np.divide([sidelength_x, sidelength_y], 2.))
-                real_pos = inc(np.subtract(pos, center_pos))
-                if(R_min < np.linalg.norm(real_pos) < R_max):
-                    pos_ph = np.arctan2(real_pos[1], real_pos[0])
-                    i_ph = int(pos_ph / (2. * np.pi) * (N_ph - 1))
-                    azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)), int(i_y / float(subpixel))]
+                real_pos = self.math.apply_inclination(
+                    pos=np.subtract(pos, center_pos),
+                    inclination=azimuthal_parameter[2],
+                    inc_PA=azimuthal_parameter[3], 
+                    inc_offset=azimuthal_parameter[6], inv=True)
+                if(R_min <= np.linalg.norm(real_pos) <= R_max):
+                    pos_ph = np.arctan2(-real_pos[1], real_pos[0])
+                    i_ph = int((pos_ph + np.pi) / (2. * np.pi) * N_ph)
+                    azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)), 
+                        int(i_y / float(subpixel))]
                     azimuthal_number[i_ph] += 1
+
         # Normalization
         for i_ph in range(N_ph):
             if azimuthal_number[i_ph] > 0:

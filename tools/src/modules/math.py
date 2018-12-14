@@ -479,6 +479,22 @@ class Math:
         return res ** (1. / 4.)
 
     @staticmethod
+    def apply_inclination(pos, inclination, inc_PA, inc_offset=0, inv=False):
+        """Calculate ellipse caused by inclination.
+        """
+        inc_offset *= np.linalg.norm(pos)
+        dir_inc = [np.cos(inc_PA), np.sin(inc_PA)]
+        dir_perp = [-np.sin(inc_PA), np.cos(inc_PA)]
+        if not inv:
+            return np.multiply(np.dot(pos, dir_perp), dir_perp) + \
+                np.multiply(np.dot(pos, dir_inc) * np.cos(inclination), dir_inc) + \
+                np.multiply(inc_offset, dir_inc) 
+        else:
+            shifted_pos = pos - np.multiply(inc_offset, dir_inc) 
+            return np.multiply(np.dot(shifted_pos, dir_perp), dir_perp) + \
+                np.multiply(np.dot(shifted_pos, dir_inc) / np.cos(inclination), dir_inc)
+
+    @staticmethod
     def tbldata_2_radial_profile(tbldata, bins=50):
         """Calculates a radial brightness profile from 2D array.
 

@@ -68,6 +68,10 @@ class Plot:
         # Set plot parameter from user input
         if parse_args.ax_unit is not None:
             self.ax_unit = parse_args.ax_unit
+        elif ax_unit is None:
+            self.ax_unit = 'au'
+        else:
+            self.ax_unit = ax_unit
         if parse_args.zoom_factor is not None:
             self.zoom_x_factor = parse_args.zoom_factor
             self.zoom_y_factor = parse_args.zoom_factor

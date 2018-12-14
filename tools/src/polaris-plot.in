@@ -188,9 +188,6 @@ class PlotRoutines:
         from modules.math import Math
         self.math = Math()
 
-        # Set the default axis unit to consider it also in the file_io class
-        if parse_args.ax_unit is None:
-            parse_args.ax_unit = 'au'
         if parse_args.nr_of_vel_map_plots is not None:
             self.nr_of_vel_map_plots = parse_args.nr_of_vel_map_plots
         else:

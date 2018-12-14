@@ -146,7 +146,7 @@ class CustomPlots:
             vmax = max(vmax, np.max(tbldata_i[np.nonzero(tbldata_i)]))
         for i_data in range(len(tbldata_i_list)):
             # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, ax_unit='au')
+            plot = Plot(self.model, self.parse_args)
             plot.plot_title(
                 r'$\mathsf{Max\ level\ of\ subpixel}=' + str(i_data) + '$')
             # Plot chosen quantity to velocity map
@@ -195,7 +195,7 @@ class CustomPlots:
                     continue
                 # Create Matplotlib figure
                 plot = Plot(self.model, self.parse_args,
-                            ax_unit='au', title=map_title)
+                            title=map_title)
                 if i_quantity is 0:
                     # Intensity plot
                     plot.plot_imshow(tbldata, cbar_label=cbar_label)
@@ -592,7 +592,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    zoom_factor=zoom_factor, ax_unit='au')
+                    zoom_factor=zoom_factor)
         # Plot quantity to velocity map
         plot.plot_imshow(derived_magnetic_field, cbar_label=r'$B_\mathsf{LOS}\ [\si{\micro G}]$', cmap='coolwarm',
                          vmin=-
@@ -604,7 +604,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    zoom_factor=zoom_factor, ax_unit='au')
+                    zoom_factor=zoom_factor)
         # Plot quantity to velocity map
         plot.plot_imshow(reference_magnetic_field, cbar_label=r'$B_\mathsf{LOS}\ [\si{\micro G}]$', cmap='coolwarm',
                          vmin=-
@@ -616,7 +616,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    zoom_factor=zoom_factor, ax_unit='au')
+                    zoom_factor=zoom_factor)
         # Plot quantity to velocity map
         plot.plot_imshow(magnetic_field_difference, cbar_label=r'$\Delta B_\mathsf{LOS}\ [\si{\micro G}]$',
                          cmap='coolwarm', vmin=-np.asscalar(np.nanmax(np.abs(magnetic_field_difference))),
@@ -626,7 +626,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    zoom_factor=zoom_factor, ax_unit='au')
+                    zoom_factor=zoom_factor)
         # Plot quantity to velocity map
         plot.plot_imshow(magnetic_field_rel_difference,
                          cbar_label=r'$\Delta B_\mathsf{LOS}/B_\mathsf{LOS}\ [\si{\percent}]$',
@@ -640,7 +640,7 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args,
-                    zoom_factor=zoom_factor, ax_unit='au')
+                    zoom_factor=zoom_factor)
         # Plot quantity to velocity map (optional extend='max', vmin=0., vmax=10.)
         plot.plot_imshow(abs_magnetic_field_rel_difference,
                          cbar_label=r'$|\Delta B_\mathsf{LOS}|/B_\mathsf{LOS}\ [\si{\percent}]$')
@@ -1118,7 +1118,7 @@ class CustomPlots:
                     #                                     np.add(tbldata[-1], tbldata[-2]))))
         for i_data in range(len(tbldata)):
             # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, ax_unit='au')
+            plot = Plot(self.model, self.parse_args)
             # Take colorbar label from quantity id
             if i_data % 3 == 2:
                 cbar_label = r'$\Delta$' + self.file_io.get_quantity_labels(0)
@@ -1304,7 +1304,7 @@ class CustomPlots:
                 if not tbldata.any():
                     continue
                 # Create Matplotlib figure
-                plot = Plot(self.model, self.parse_args, ax_unit='au')
+                plot = Plot(self.model, self.parse_args)
                 # Show title to know the wavelength
                 plot.plot_title(map_title)
                 if i_quantity == 0:
@@ -1468,7 +1468,7 @@ class CustomPlots:
                         'The chosen midplane file has no valid cut through a plane (xy, xz, yz?)!')
                 # Create Matplotlib figure
                 plot = Plot(self.model, self.parse_args,
-                            label_plane=label_plane, ax_unit='au')
+                            label_plane=label_plane)
                 # Limit data to reasonable values
                 tbldata[np.where(tbldata <= 1e-30)] = 0
                 # Plot midplane data depending on quantity derived from filename
@@ -1584,7 +1584,7 @@ class CustomPlots:
                                                                           filename='input_midplane_full.fits')
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, label_plane='xy',
-                    ax_unit='au', cmap_scaling=['log'])
+                    cmap_scaling=['log'])
         # Plot midplane data depending on quantity derived from filename
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata, vec_field_data,
                                                 vmin=1e-14, set_bad_to_min=True, cmap='inferno')
@@ -1822,20 +1822,43 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen and read map data from file
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
             'polaris_detector_nr' + str(detector_index).zfill(4))
-        # Create radially average
-        # d azimuthal profile
+        # Create radially averaged azimuthal profile
         inclination = -37.0 / 180. * np.pi
         inc_PA = (360. - 270. + 7.) / 180. * np.pi
-        R_min = 180. * self.math.const['au']   
-        R_max = 260. * self.math.const['au']
-        azimuthal_parameter = [0, 0, inclination, inc_PA, R_min, R_max]
-        position, data = self.file_io.create_azimuthal_profile(plot_data[i_quantity, 0, ...], azimuthal_parameter, subpixel=1)
+        inc_offset = -0.2
+        R_min = 180.  # AU
+        R_max = 260.  # AU      
+        angles = np.linspace(0, 2*np.pi, 1000)
+        data = np.zeros((len(angles), 2))
+        for i in range(len(angles)):
+            data[i, :] = self.math.apply_inclination(
+                pos=[np.cos(angles[i]), np.sin(angles[i])],
+                inclination=inclination, inc_PA=inc_PA, inc_offset=inc_offset)
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, limits=[-R_max, R_max, -R_max, R_max])
+        # Take data for current quantity
+        tbldata = plot_data[i_quantity, 0, :, :]
+        # Plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True,
+                         norm='LogNorm', vmin=1e-4, vmax=1e-2, extend='neither')
+        plot.plot_line(R_min * data[:, 0], R_min * data[:, 1], no_grid=True, color='white')
+        plot.plot_line(R_max * data[:, 0], R_max * data[:, 1], no_grid=True, color='white')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+        # Set azimuthal parameters
+        azimuthal_parameter = [0, 0, inclination, inc_PA, 
+            R_min * self.math.const['au'], R_max * self.math.const['au'], inc_offset]
+        # Get radially averaged azimuthal brightness profile
+        position, data = self.file_io.create_azimuthal_profile(
+            plot_data[i_quantity, 0, ...], azimuthal_parameter, subpixel=4, N_ph=90)
         # Angle to degree
         position *= 180. / np.pi
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, with_cbar=False, xlabel=r'$\theta\ [\si{\degree}]$', 
+        plot = Plot(self.model, self.parse_args, with_cbar=False, 
+                    xlabel=r'$\theta\ [\si{\degree}]$',
                     ylabel=cbar_label, limits=[position[0], position[-1], None, None])
         # Plot cut/radial profile
         plot.plot_line(position, data, log='y')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
+        
