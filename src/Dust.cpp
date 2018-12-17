@@ -3159,6 +3159,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
         min_temp = avg_temp;
 }
 
+
+
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
 {
     // Calculate the aligned radii only for cells with a density not zero
@@ -3221,8 +3223,16 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             // Thermal angular momentum
             double J_th = sqrt(I_p * con_kB * T_gas);
 
-            // Init pointer arrays
-            double *arr_product = new double[nr_of_wavelength];
+            // Init. pointer arrays
+            double * arr_product = new double[nr_of_wavelength];
+            double * dFIR = new double[nr_of_wavelength];
+            double * du = new double[nr_of_wavelength];
+            
+            // Drag by gas 
+            double tau_gas = 3. / (4 * PIsq) * I_p / 
+                    (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
+            
+            //cout << wavelength_list[0] << " "  << wavelength_list[nr_of_wavelength-1] << endl; 
             
             for(uint w = 0; w < nr_of_wavelength; w++)
             {
@@ -3247,36 +3257,38 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double gamma = en_dir.length() / arr_en_dens;
 
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
-                arr_en_dens /= double(vol * con_c);                
+                arr_en_dens /= double(vol * con_c);   
                 
-                // drag by thermal emission
-                double FIR = 1e30;  // 1.40e10 * pow(arr_en_dens, 2./3.) / (a_eff[a] * n_g * T_gas);
-                
-                // Drag by gas 
-                double tau_gas = 3. / (4 * PIsq) * I_p / 
-                    (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
-
-                // Combine gas drag and FIR
-                double tau_drag = 1. / (1. / tau_gas + 1. / FIR);
+                du[w]=arr_en_dens;
                 
                 // Radiative torque efficiency as a power-law
-                double Qr = 0.4 / (1 + pow(wavelength_list[w] / (2.0 * a_eff[a]), 3));
+                double Qr = 0.4 / pow(wavelength_list[w] / a_eff[a], 3);
                 
-                //if(wavelength_list[w] < 2.0 * a_eff[a])
-                //    Qr = 0.4;
+                if(wavelength_list[w] < 2.0 * a_eff[a])
+                    Qr = 0.4;
                 
                 Qr *= abs(cos(theta));
                 
                 //Qr=getQrat(a, w, 0.0);
-                arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * 
-                    tau_drag / J_th * gamma * PI * pow(a_eff[a], 2);
+                arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr
+                        * gamma * PI * pow(a_eff[a], 2);
             }
 
-            // Perform integration
+            // Perform integration for total radiation field
+            double u = CMathFunctions::integ(wavelength_list, du, 0, nr_of_wavelength - 1);
+            
+            // drag by thermal emission
+            double FIR  = 1.40e10 * pow(u, 2./3.) / (a_eff[a] * n_g * sqrt(T_gas));
+            
+            //double FIR = CMathFunctions::integ(wavelength_list, dFIR, 0, nr_of_wavelength - 1);
             double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
-
+                        
+            double tau_drag = tau_gas/(1. + FIR);
+            omega_frac*=tau_drag / J_th;
+            
             // Delete pointer array
             delete[] arr_product;
+            delete[] dFIR;
 
             if(omega_frac >= SUPERTHERMAL_LIMIT)
             {
@@ -3318,6 +3330,10 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     if(a_alig > max_a_alig)
         max_a_alig = a_alig;
 }
+
+
+
+
 
 double CDustComponent::calcGoldReductionFactor(Vector3D & v, Vector3D & B)
 {

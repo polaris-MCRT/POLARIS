@@ -772,7 +772,7 @@ void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     {
         wID = pp->getWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
-        double energy = pl * PIx2 * PI * 3 *pow(sidelength, 2) / nr_photons;
+        energy = pl * PIx2 * PI * 3 *pow(sidelength, 2) / nr_photons;
         if(g_zero > 0)
             energy *= PIx2; //[W m^-1] energy per second an wavelength
     }
