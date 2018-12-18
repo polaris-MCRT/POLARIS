@@ -761,26 +761,18 @@ class HD169142(Model):
         """
         # Use extra parameter to vary the disk structure
         if extra_parameter is not None:
-            if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(
-                    extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(
-                    extra_parameter[1], 'length')
-                self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3])
-            elif len(extra_parameter) == 1:
+            if len(extra_parameter) == 1:
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
-                    self.tmp_parameter['ignored_gas_density'] = np.zeros(
-                        (4, 1))
+                    #self.tmp_parameter['ignored_gas_density'] = np.zeros(
+                    #    (4, 1))
                 self.parameter['mass_fraction'] = np.sum(
                     self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
-                self.parameter['gas_mass'] *= 7.9099e-7 * \
-                    self.math.const['M_sun'] / \
+                self.parameter['gas_mass'] *= 7.9099e-7 * self.math.const['M_sun'] / \
                     np.sum(self.parameter['gas_mass'])
 
     def gas_density_distribution(self):
@@ -791,12 +783,12 @@ class HD169142(Model):
             float: Gas density at a given position.
         """
         if self.parameter['model_number'] == 1:
-            r_min = 5.
-            r_max = 50.
+            r_min = 5. * self.math.const['au']
+            r_max = 50. * self.math.const['au']
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         # Set density according to region
-        if radius_cy <= r_min * self.math.const['au']:
+        if radius_cy <= r_min:
             gas_density = self.math.default_disk_density(
                 self.position,
                 inner_radius=self.parameter['inner_radius'],
@@ -805,7 +797,7 @@ class HD169142(Model):
                 ref_scale_height=0.0346 * self.math.const['au'],
                 column_dens_exp=1.3764, beta=0.7950
             )
-        elif r_max * self.math.const['au'] <= radius_cy:
+        elif r_max <= radius_cy:
             gas_density = self.math.default_disk_density(
                 self.position,
                 inner_radius=self.parameter['inner_radius'],
@@ -835,26 +827,24 @@ class HD169142(Model):
             float: Scale height.
         """
         if self.parameter['model_number'] == 1:
-            r_min = 5.
-            r_max = 50.
-        # Calculate cylindrical radius
-        radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+            r_min = 5. * self.math.const['au']
+            r_max = 50. * self.math.const['au']
         # Set density according to region
-        if radius_cy <= r_min * self.math.const['au']:
+        if radius <= r_min:
             scale_height = self.math.default_disk_scale_height(
-                radius_cy, ref_radius=1. * self.math.const['au'],
+                radius, ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
-        elif r_max * self.math.const['au'] <= radius_cy:
+        elif r_max <= radius:
             scale_height = self.math.default_disk_scale_height(
-                radius_cy, ref_radius=100. * self.math.const['au'],
+                radius, ref_radius=100. * self.math.const['au'],
                 ref_scale_height=9.6157 * self.math.const['au'],
                 beta=1.0683
             )
         else:
             scale_height = self.math.default_disk_scale_height(
-                radius_cy, ref_radius=1. * self.math.const['au'],
+                radius, ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
