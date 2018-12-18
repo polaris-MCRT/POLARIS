@@ -113,6 +113,7 @@ class Grid:
         """
         # Set the position to an arbitrary value to check get_density functions
         self.data.position = [0,0,0]
+        self.data.volume = 0.
 
         # Check for errors
         try:

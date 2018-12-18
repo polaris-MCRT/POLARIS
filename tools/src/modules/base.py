@@ -627,6 +627,9 @@ class Model:
             'ignored_dust_density': 0,
         }
 
+        self.position = None
+        self.volume = None
+
     def init_position(self, node, cell_IDs=None):
         """Initialise the grid position to calculate the necessary cell data.
 
