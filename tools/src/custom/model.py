@@ -842,7 +842,7 @@ class HD169142(Model):
         # Set density according to region
         if radius_cy <= r_min * self.math.const['au']:
             scale_height = self.math.default_disk_scale_height(
-                radius_cy, < ref_radius=1. * self.math.const['au'],
+                radius_cy, ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
