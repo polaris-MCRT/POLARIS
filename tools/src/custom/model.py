@@ -771,7 +771,7 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    self.parameter['gas_mass'] = np.array([[1], [0.7733e-2])
+                    self.parameter['gas_mass'] = np.array([[1], [0.7733e-2]])
                     self.tmp_parameter['ignored_gas_density'] = np.zeros((2, 1))
                 #self.parameter['mass_fraction'] = np.sum(
                 #    self.parameter['gas_mass'])
