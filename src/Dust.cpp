@@ -3225,7 +3225,6 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
             // Init. pointer arrays
             double * arr_product = new double[nr_of_wavelength];
-            double * dFIR = new double[nr_of_wavelength];
             double * du = new double[nr_of_wavelength];
             
             // Drag by gas 
@@ -3288,7 +3287,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             
             // Delete pointer array
             delete[] arr_product;
-            delete[] dFIR;
+            delete[] du;
 
             if(omega_frac >= SUPERTHERMAL_LIMIT)
             {
