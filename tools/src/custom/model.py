@@ -776,7 +776,8 @@ class HD169142(Model):
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                     self.tmp_parameter['ignored_gas_density'] = np.zeros(
                         (4, 1))
-                self.parameter['mass_fraction'] = np.sum(self.parameter['gas_mass'])
+                self.parameter['mass_fraction'] = np.sum(
+                    self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 7.9099e-7 * \
                     self.math.const['M_sun'] / \
@@ -841,22 +842,19 @@ class HD169142(Model):
         # Set density according to region
         if radius_cy <= r_min * self.math.const['au']:
             scale_height = self.math.default_disk_scale_height(
-                self.position,
-                ref_radius=1. * self.math.const['au'],
+                radius_cy, < ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
         elif r_max * self.math.const['au'] <= radius_cy:
             scale_height = self.math.default_disk_scale_height(
-                self.position,
-                ref_radius=100. * self.math.const['au'],
+                radius_cy, ref_radius=100. * self.math.const['au'],
                 ref_scale_height=9.6157 * self.math.const['au'],
                 beta=1.0683
             )
         else:
             scale_height = self.math.default_disk_scale_height(
-                self.position,
-                ref_radius=1. * self.math.const['au'],
+                radius_cy, ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
