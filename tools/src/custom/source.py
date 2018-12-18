@@ -14,7 +14,7 @@ def update_sources_dict(dictionary):
         'f_type': FType,
         'gg_tau_stars': GGTauStars,
         'hd97048': HD97048,
-        'line': Line,
+        'hd169142': HD169142,
         'custom': CustomStar,
     }
     dictionary.update(sources_dict)
@@ -225,8 +225,8 @@ class HD97048(StellarSource):
         self.parameter['nr_photons'] = 1e6
 
 
-class Line(StellarSource):
-    """A line of stars
+class HD169142(StellarSource):
+    """Change this to the star you want to use.
     """
 
     def __init__(self, file_io, parse_args):
@@ -237,41 +237,11 @@ class Line(StellarSource):
         """
         StellarSource.__init__(self, file_io, parse_args)
 
-        # Effective temperature of the star [K]
-        self.parameter['temperature'] = 4000
-        # Radius of the star [R_sun]
-        self.parameter['radius'] = 0.9 * self.math.const['R_sun']
-        # Mass of the star [M_sun] (for Keplerian rotation)
-        self.parameter['mass'] = 0.7 * self.math.const['M_sun']
-        # Number of photons if no number is chosen via --photons
-        self.parameter['nr_photons'] = 1e5
-
-    def get_command(self):
-        new_command_line = str()
+        # Position of the star [m, m, m]
         self.parameter['position'] = [0, 0, 0]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 10 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -10 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 20 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -20 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 30 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -30 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 40 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -40 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 50 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -50 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, 60 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        self.parameter['position'] = [0, 0, -60 * self.math.const['au']]
-        new_command_line += self.get_command_line()
-        return new_command_line
+        # Effective temperature of the star [K]
+        self.parameter['temperature'] = 7800.
+        # Radius of the star [R_sun]
+        self.parameter['luminosity'] = 9.8 * self.math.const['L_sun']
+        # Number of photons if no number is chosen via --photons
+        self.parameter['nr_photons'] = 1e6

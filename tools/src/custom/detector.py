@@ -14,7 +14,7 @@ def update_detector_dict(dictionary):
     detector_dict = {
         'gg_tau': GGTauDetector,
         'hd97048': HD97048Detector,
-        'thomas': ThomasDetector,
+        'hd169142': HD169142Detector,
         'custom': CustomDetector,
     }
     dictionary.update(detector_dict)
@@ -164,6 +164,29 @@ class HD97048Detector(Detector):
         self.parameter['rot_angle_1'] = 0.
         # Rotation angle around the second rotation axis
         self.parameter['rot_angle_2'] = 43.
+        # Number of pixel per axis of the detector
+        self.parameter['nr_pixel_x'] = 201
+        self.parameter['nr_pixel_y'] = 201
+        # Wavelengths
+        self.parameter['wavelength_list'] = np.array([1.25, 8.6, 17.8]) * 1e-6
+
+
+class HD169142Detector(Detector):
+    """Change this to the detector you want to use.
+    """
+
+    def __init__(self, model, parse_args):
+        """Initialisation of the detector configuration.
+
+        Args:
+            model: Handles the model space including various
+                quantities such as the density distribution.
+        """
+        Detector.__init__(self, model, parse_args)
+        # Rotation angle around the first rotation axis
+        self.parameter['rot_angle_1'] = 0.
+        # Rotation angle around the second rotation axis
+        self.parameter['rot_angle_2'] = 13.
         # Number of pixel per axis of the detector
         self.parameter['nr_pixel_x'] = 201
         self.parameter['nr_pixel_y'] = 201

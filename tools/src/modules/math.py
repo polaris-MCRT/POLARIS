@@ -1180,7 +1180,7 @@ class Math:
     @staticmethod
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
                              ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tappered_gamma=None,
-                             surface_dens_exp=None, real_zero=True):
+                             column_dens_exp=None, real_zero=True):
         """Shakura and Sunyaev disk density profile.
 
         Args:
@@ -1191,7 +1191,7 @@ class Math:
             ref_radius (float): Reference radius.
             alpha (float): Exponent for radial density decrease.
             beta (float): Exponent for disk flaring.
-            surface_dens_exp (float): If set, calculate alpha from the surface density exponent.
+            column_dens_exp (float): If set, calculate alpha from the surface density exponent.
             real_zero (bool): No minimum value for the density.
 
         Returns:
@@ -1200,8 +1200,8 @@ class Math:
         #: float: Cylindrical radius
         radius_cy = np.sqrt(position[0] ** 2 + position[1] ** 2)
         if outer_radius >= radius_cy >= inner_radius:
-            if surface_dens_exp is not None:
-                alpha = beta - surface_dens_exp
+            if column_dens_exp is not None:
+                alpha = beta - column_dens_exp
             #: float: Vertical height
             vert_height = abs(position[2])
             #: float: Vertical scale height
