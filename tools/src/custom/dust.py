@@ -273,6 +273,11 @@ class OlivinePAH(Dust):
         new_command_line = str()
         # First dust choice is the full themis model
         dust = self.dust_chooser.get_module_from_name('olivine')
+        # For HD169142
+        dust.parameter['size_parameter'] = [-3.7]
+        dust.parameter['amin'] = 0.04637e-6
+        dust.parameter['amax'] = 6506.4e-6
+        # ---
         dust.parameter['choice_id'] = 0
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('pah_ion')

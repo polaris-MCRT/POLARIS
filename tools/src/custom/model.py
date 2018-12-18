@@ -755,6 +755,10 @@ class HD169142(Model):
         self.parameter['variable_dust'] = True
         # Init new parameter
         self.parameter['model_number'] = 0
+        self.parameter['r_gap_in'] = 0
+        self.parameter['r_gap_out'] = 0
+        # Mass fraction
+        self.parameter['mass_fraction'] = 0.01
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -762,16 +766,16 @@ class HD169142(Model):
         # Use extra parameter to vary the disk structure
         if extra_parameter is not None:
             if len(extra_parameter) == 1:
+                self.parameter['r_gap_in'] = 5. * self.math.const['au']
+                self.parameter['r_gap_out'] = 21.6442 * self.math.const['au']
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    self.parameter['gas_mass'] = np.array(
-                        [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
-                    #self.tmp_parameter['ignored_gas_density'] = np.zeros(
-                    #    (4, 1))
-                self.parameter['mass_fraction'] = np.sum(
-                    self.parameter['gas_mass'])
-                print('--mass_fraction', self.parameter['mass_fraction'])
+                    self.parameter['gas_mass'] = np.array([[1], [0.7733e-2])
+                    self.tmp_parameter['ignored_gas_density'] = np.zeros((2, 1))
+                #self.parameter['mass_fraction'] = np.sum(
+                #    self.parameter['gas_mass'])
+                #print('--mass_fraction', self.parameter['mass_fraction'])
                 self.parameter['gas_mass'] *= 7.9099e-7 * self.math.const['M_sun'] / \
                     np.sum(self.parameter['gas_mass'])
 
@@ -782,39 +786,38 @@ class HD169142(Model):
         Returns:
             float: Gas density at a given position.
         """
-        if self.parameter['model_number'] == 1:
-            r_min = 5. * self.math.const['au']
-            r_max = 50. * self.math.const['au']
+        density_list = np.ones((2, 1))
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         # Set density according to region
-        if radius_cy <= r_min:
+        if radius_cy <= self.parameter['r_gap_in']:
             gas_density = self.math.default_disk_density(
                 self.position,
                 inner_radius=self.parameter['inner_radius'],
                 outer_radius=self.parameter['outer_radius'],
                 ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
-                column_dens_exp=1.3764, beta=0.7950
+                column_dens_exp=-1.3764, beta=0.7950
             )
-        elif r_max <= radius_cy:
+            density_list[:, 0] = gas_density
+            # Add negatively to take it into account for normalization
+            # Same as material which was in a disk with the total disk mass but is
+            # for instance accreted on a planet or star
+            self.tmp_parameter['ignored_gas_density'][1:, 0] -= \
+                density_list[1:, 0] * self.volume
+            density_list[1:, 0] = 0.
+        elif self.parameter['r_gap_out'] <= radius_cy:
             gas_density = self.math.default_disk_density(
                 self.position,
                 inner_radius=self.parameter['inner_radius'],
                 outer_radius=self.parameter['outer_radius'],
                 ref_radius=100. * self.math.const['au'],
                 ref_scale_height=9.6157 * self.math.const['au'],
-                column_dens_exp=1., beta=1.0683
+                column_dens_exp=-1., beta=1.0683
             )
+            density_list[:, 0] = gas_density
         else:
-            gas_density = 0.
-        density_list = np.ones((4, 1)) * gas_density
-        # Add negatively to take it into account for normalization
-        # Same as material which was in a disk with the total disk mass but is
-        # for instance accreted on a planet or star
-        # self.tmp_parameter['ignored_gas_density'][1:, 0] -= \
-        #    density_list[1:, 0] * self.volume
-        #density_list[1:, 0] = 0.
+            density_list[:, 0] = 0.
         return density_list
 
     def scale_height(self, radius):
@@ -826,17 +829,14 @@ class HD169142(Model):
         Returns:
             float: Scale height.
         """
-        if self.parameter['model_number'] == 1:
-            r_min = 5. * self.math.const['au']
-            r_max = 50. * self.math.const['au']
         # Set density according to region
-        if radius <= r_min:
+        if radius <= self.parameter['r_gap_in']:
             scale_height = self.math.default_disk_scale_height(
                 radius, ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
-        elif r_max <= radius:
+        elif self.parameter['r_gap_out'] <= radius:
             scale_height = self.math.default_disk_scale_height(
                 radius, ref_radius=100. * self.math.const['au'],
                 ref_scale_height=9.6157 * self.math.const['au'],
