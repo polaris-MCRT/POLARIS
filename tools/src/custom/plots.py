@@ -1810,13 +1810,10 @@ class CustomPlots:
         # Import libraries
         from astropy.io import fits
         # Set some variables
-        detector_index = 1
+        detector_index = 100
         i_quantity = 0
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
-        # Set paths of each simulation
-        self.file_io.set_path_from_str(
-            'plot', 'gg_tau_disk', 'no_circumstellar_disks', 'dust')
         # Define output pdf
         self.file_io.init_plot_output('azimuthal_brightness_distribution')
         # Create pdf file if show_plot is not chosen and read map data from file
@@ -1826,7 +1823,7 @@ class CustomPlots:
         inclination = -37.0 / 180. * np.pi
         inc_PA = (360. - 270. + 7.) / 180. * np.pi
         inc_offset = -0.2
-        R_min = 180.  # AU
+        R_min = 170.  # AU
         R_max = 260.  # AU      
         angles = np.linspace(0, 2*np.pi, 1000)
         data = np.zeros((len(angles), 2))
@@ -1840,9 +1837,10 @@ class CustomPlots:
         tbldata = plot_data[i_quantity, 0, :, :]
         # Plot imshow
         plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True,
-                         norm='LogNorm', vmin=1e-4, vmax=1e-2, extend='neither')
+                         norm='LogNorm', vmin=5e-4, vmax=1e-2, extend='neither')
         plot.plot_line(R_min * data[:, 0], R_min * data[:, 1], no_grid=True, color='white')
         plot.plot_line(R_max * data[:, 0], R_max * data[:, 1], no_grid=True, color='white')
+        plot.plot_line([R_min, R_max], [0, 0], no_grid=True, color='white')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
         # Set azimuthal parameters

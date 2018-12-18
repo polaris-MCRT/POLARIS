@@ -1451,7 +1451,7 @@ class FileIO:
                     inc_PA=azimuthal_parameter[3], 
                     inc_offset=azimuthal_parameter[6], inv=True)
                 if(R_min <= np.linalg.norm(real_pos) <= R_max):
-                    pos_ph = np.arctan2(-real_pos[1], real_pos[0])
+                    pos_ph = np.arctan2(-real_pos[1], -real_pos[0])
                     i_ph = int((pos_ph + np.pi) / (2. * np.pi) * N_ph)
                     azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)), 
                         int(i_y / float(subpixel))]
