@@ -1702,18 +1702,19 @@ class CustomPlots:
                     # Take data for current quantity
                     tbldata = plot_data[i_quantity, 0, :, :]
                     # Plot map description
-                    plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
-                                   text=r'$\text{' +
-                                   configuration_descr[i_subplot -
-                                                       2 + i_plot * 4] + r'}$',
-                                   horizontalalignment='left', verticalalignment='top',
-                                   ax_index=i_subplot, color='white')
+                    plot.plot_text(
+                        text_pos=[0.03, 0.97], relative_position=True,
+                        text=r'$\text{' +
+                        configuration_descr[i_subplot -
+                                            2 + i_plot * 4] + r'}$',
+                        horizontalalignment='left', verticalalignment='top', ax_index=i_subplot, color='white'
+                    )
                 elif i_subplot in [0, 1]:
                     hdulist = fits.open(
                         '/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
                     tbldata = cropND(hdulist[0].data.T, (400, 400)) / 3e7
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=2e-7, vmax=1e-4, cmap='magma', extend='neither')
+                                 norm='LogNorm', vmin=5e-8, vmax=1e-5, cmap='magma')
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
@@ -1756,7 +1757,7 @@ class CustomPlots:
                 tbldata = plot_data[i_quantity, 0, :, :]
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=1e-6, vmax=1e-1, extend='neither')
+                                 norm='LogNorm', vmin=5e-7, vmax=1e-4)
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
@@ -1799,7 +1800,7 @@ class CustomPlots:
                              norm='LogNorm', vmin=1e-6, vmax=1e-1, extend='neither')
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
-                           text=r'$\text{PA}=\SI{' + str(PA) + '}{\degree}$',   
+                           text=r'$\text{PA}=\SI{' + str(PA) + '}{\degree}$',
                            horizontalalignment='left', verticalalignment='top', color='white')
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
@@ -1824,7 +1825,7 @@ class CustomPlots:
         inc_PA = (360. - 270. + 7.) / 180. * np.pi
         inc_offset = -0.2
         R_min = 170.  # AU
-        R_max = 260.  # AU      
+        R_max = 260.  # AU
         angles = np.linspace(0, 2*np.pi, 1000)
         data = np.zeros((len(angles), 2))
         for i in range(len(angles)):
@@ -1832,31 +1833,33 @@ class CustomPlots:
                 pos=[np.cos(angles[i]), np.sin(angles[i])],
                 inclination=inclination, inc_PA=inc_PA, inc_offset=inc_offset)
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, limits=[-R_max, R_max, -R_max, R_max])
+        plot = Plot(self.model, self.parse_args,
+                    limits=[-R_max, R_max, -R_max, R_max])
         # Take data for current quantity
         tbldata = plot_data[i_quantity, 0, :, :]
         # Plot imshow
         plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True,
                          norm='LogNorm', vmin=5e-4, vmax=1e-2, extend='neither')
-        plot.plot_line(R_min * data[:, 0], R_min * data[:, 1], no_grid=True, color='white')
-        plot.plot_line(R_max * data[:, 0], R_max * data[:, 1], no_grid=True, color='white')
+        plot.plot_line(R_min * data[:, 0], R_min *
+                       data[:, 1], no_grid=True, color='white')
+        plot.plot_line(R_max * data[:, 0], R_max *
+                       data[:, 1], no_grid=True, color='white')
         plot.plot_line([R_min, R_max], [0, 0], no_grid=True, color='white')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
         # Set azimuthal parameters
-        azimuthal_parameter = [0, 0, inclination, inc_PA, 
-            R_min * self.math.const['au'], R_max * self.math.const['au'], inc_offset]
+        azimuthal_parameter = [0, 0, inclination, inc_PA,
+                               R_min * self.math.const['au'], R_max * self.math.const['au'], inc_offset]
         # Get radially averaged azimuthal brightness profile
         position, data = self.file_io.create_azimuthal_profile(
             plot_data[i_quantity, 0, ...], azimuthal_parameter, subpixel=4, N_ph=90)
         # Angle to degree
         position *= 180. / np.pi
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, with_cbar=False, 
+        plot = Plot(self.model, self.parse_args, with_cbar=False,
                     xlabel=r'$\theta\ [\si{\degree}]$',
                     ylabel=cbar_label, limits=[position[0], position[-1], None, None])
         # Plot cut/radial profile
         plot.plot_line(position, data, log='y')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
-        

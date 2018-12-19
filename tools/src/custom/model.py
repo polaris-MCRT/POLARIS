@@ -736,7 +736,7 @@ class HD169142(Model):
         self.parameter['outer_radius'] = 244.8 * self.math.const['au']
         # Define the used sources, dust composition and gas species
         self.parameter['stellar_source'] = 'hd169142'
-        self.parameter['dust_composition'] = 'themis'
+        self.parameter['dust_composition'] = 'olivine_pah'
         self.parameter['detector'] = 'hd169142'
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 100
@@ -771,13 +771,9 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    self.parameter['gas_mass'] = np.array([[1], [0.7733e-2]])
-                    self.tmp_parameter['ignored_gas_density'] = np.zeros((2, 1))
-                #self.parameter['mass_fraction'] = np.sum(
-                #    self.parameter['gas_mass'])
-                #print('--mass_fraction', self.parameter['mass_fraction'])
-                self.parameter['gas_mass'] *= 7.9099e-7 * self.math.const['M_sun'] / \
-                    np.sum(self.parameter['gas_mass'])
+                    self.parameter['gas_mass'] = np.array(
+                        [[7.9099e-7, 5.8142e-3], [0., 0.7733e-2 * 5.8142e-3]]) * \
+                        self.math.const['M_sun']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -786,7 +782,8 @@ class HD169142(Model):
         Returns:
             float: Gas density at a given position.
         """
-        density_list = np.ones((2, 1))
+        # Init density 2D list
+        density_list = np.zeros((2, 2))
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         # Set density according to region
@@ -800,12 +797,6 @@ class HD169142(Model):
                 column_dens_exp=-1.3764, beta=0.7950
             )
             density_list[:, 0] = gas_density
-            # Add negatively to take it into account for normalization
-            # Same as material which was in a disk with the total disk mass but is
-            # for instance accreted on a planet or star
-            self.tmp_parameter['ignored_gas_density'][1:, 0] -= \
-                density_list[1:, 0] * self.volume
-            density_list[1:, 0] = 0.
         elif self.parameter['r_gap_out'] <= radius_cy:
             gas_density = self.math.default_disk_density(
                 self.position,
@@ -815,9 +806,7 @@ class HD169142(Model):
                 ref_scale_height=9.6157 * self.math.const['au'],
                 column_dens_exp=-1., beta=1.0683
             )
-            density_list[:, 0] = gas_density
-        else:
-            density_list[:, 0] = 0.
+            density_list[:, 1] = gas_density
         return density_list
 
     def scale_height(self, radius):
