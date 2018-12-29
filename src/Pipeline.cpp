@@ -47,7 +47,7 @@ bool CPipeline::Init(int argc, char** argv)
     }
     cout << SEP_LINE;
 
-    /*if(argc != 2)
+    if(argc != 2)
     {
         cout << "\nERROR: Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -58,7 +58,7 @@ bool CPipeline::Init(int argc, char** argv)
     CCommandParser parser(argv[1]); /**/
 
     //CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
-    CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
+    //CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
 
     if(!parser.parse())
     {
