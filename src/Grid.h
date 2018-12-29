@@ -155,6 +155,9 @@ public:
         plt_g_min=false;
         plt_g_max=false;
         plt_p=false;
+        
+        plt_avg_dir=false;
+        plt_avg_th=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -186,6 +189,9 @@ public:
         buffer_g_min=0;
         buffer_g_max=0;
         buffer_p=0; 
+        
+        buffer_avg_dir=0; 
+        buffer_avg_th=0; 
 
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10); 
@@ -315,6 +321,9 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
+        
+        data_pos_avg_th = MAX_UINT;
+        data_pos_avg_dir = MAX_UINT;
 
         nr_rad_field_comp = 1;
 
@@ -339,6 +348,9 @@ public:
         plt_g_min=false;
         plt_g_max=false;
         plt_p=false;
+        
+        plt_avg_dir=false;
+        plt_avg_th=false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -370,6 +382,9 @@ public:
         buffer_g_min=0;
         buffer_g_max=0;
         buffer_p=0; 
+        
+        buffer_avg_dir=0; 
+        buffer_avg_th=0;         
     }
 
     double getTurbulentVelocity(cell_basic * cell)
@@ -1002,7 +1017,19 @@ public:
         if(data_pos_p!=MAX_UINT)
             cell->setData(data_pos_p, p);
     }
-
+    
+    void setAvgTheta(cell_basic * cell, double phi)
+    {
+        if(data_pos_avg_th!=MAX_UINT)
+            cell->setData(data_pos_avg_th, phi);
+    }
+    
+    void setAvgDir(cell_basic * cell, double dir)
+    {
+        if(data_pos_avg_dir!=MAX_UINT)
+            cell->setData(data_pos_avg_dir, dir);
+    }
+    
     void setDustChoiceID(cell_basic * cell, uint dust_id)
     {
         if(data_pos_id != MAX_UINT)
@@ -1372,6 +1399,39 @@ public:
 
         return 0;
     }
+    
+    double getAvgTheta(photon_package * pp)
+    {
+        if(data_pos_avg_th!=MAX_UINT)
+            return pp->getPositionCell()->getData(data_pos_avg_th);
+
+        return 0;
+    }
+    
+    double getAvgDir(photon_package * pp)
+    {
+        if(data_pos_avg_dir!=MAX_UINT)
+            return pp->getPositionCell()->getData(data_pos_avg_dir);
+
+        return 0;
+    }
+    
+    double getAvgTheta(cell_basic * cell)
+    {
+        if(data_pos_avg_th!=MAX_UINT)
+            return cell->getData(data_pos_avg_th);
+
+        return 0;
+    }
+    
+    double getAvgDir(cell_basic * cell)
+    {
+        if(data_pos_avg_dir!=MAX_UINT)
+            return cell->getData(data_pos_avg_dir);
+
+        return 0;
+    }
+    
 
     double getDustTemperature(cell_basic * cell, uint i_density, uint a)
     {
@@ -1661,6 +1721,10 @@ public:
                 buffer_g_max[i_cell]=getGammaMax(pp);
             if(plt_p)
                 buffer_p[i_cell]=getPowerLawIndex(pp); 
+            if(plt_avg_dir)
+                buffer_avg_dir[i_cell]=getAvgDir(pp); 
+            if(plt_avg_th)
+                buffer_avg_th[i_cell]=getAvgTheta(pp);
         }
         else
         {
@@ -1732,7 +1796,11 @@ public:
             if(plt_g_max)
                 buffer_g_max[i_cell]=0;
             if(plt_p)
-                buffer_p[i_cell]=0; 
+                buffer_p[i_cell]=0;    
+            if(plt_avg_dir)
+                buffer_avg_dir[i_cell]=0; 
+            if(plt_avg_th)
+                buffer_avg_dir[i_cell]=0;
         }
         delete pp;
     }
@@ -2457,8 +2525,27 @@ public:
 
                     data_pos_p = i;
                     break;
+                    
+                case GRIDavg_dir:
+                    if(data_pos_avg_dir != MAX_UINT)
+                    {
+                        cout << "\nERROR: Grid ID " << GRIDavg_dir << " can be set only once!" << endl;
+                        return false;
+                    }
 
+                    data_pos_avg_dir = i;
+                    break;    
 
+                case GRIDavg_th:
+                    if(data_pos_avg_th != MAX_UINT)
+                    {
+                        cout << "\nERROR: Grid ID " << GRIDavg_th << " can be set only once!" << endl;
+                        return false;
+                    }
+
+                    data_pos_avg_th = i;
+                    break;    
+                    
                 case GRIDratio:
                     nrOfDensRatios++;
                     break;
@@ -2871,6 +2958,24 @@ public:
             tmp_data_offset++;
             // cout << "Create entries for RAT alignment     : done" << endl;
         }
+        
+        if(data_pos_avg_dir == MAX_UINT)
+        {
+            data_pos_avg_dir = data_offset + tmp_data_offset;
+            data_ids.push_back(GRIDavg_dir);
+            tmp_data_offset++;
+            // cout << "Create entries for RAT alignment     : done" << endl;
+        }
+        
+        if(data_pos_avg_th == MAX_UINT)
+        {
+            data_pos_avg_th = data_offset + tmp_data_offset;
+            data_ids.push_back(GRIDavg_th);
+            tmp_data_offset++;
+            // cout << "Create entries for RAT alignment     : done" << endl;
+        }
+        
+        
 
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
@@ -3388,6 +3493,9 @@ protected:
     uilist data_pos_ry_list;
     uilist data_pos_rz_list;
     uilist data_pos_rf_list;
+    
+    uint data_pos_avg_th;
+    uint data_pos_avg_dir;
 
     double turbulent_velocity;
 
@@ -3418,6 +3526,9 @@ protected:
     bool plt_g_min;
     bool plt_g_max;
     bool plt_p;
+    
+    bool plt_avg_dir;
+    bool plt_avg_th;
 
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
@@ -3456,6 +3567,9 @@ protected:
     double * buffer_g_min;
     double * buffer_g_max;
     double * buffer_p;
+    
+    double * buffer_avg_th;
+    double * buffer_avg_dir;
 };
 
 #endif

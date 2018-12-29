@@ -1577,6 +1577,22 @@ public:
 
         return res;
     }
+    
+    //for debugging reasons only
+    static inline double integ1(dlist x, double * y, uint xlow, uint xup)
+    {
+        double res = 0;
+        if(xlow != xup)
+            for(uint i = xlow + 1; i <= xup; i++)
+            {
+                res += (x[i] - x[i - 1]) * y[i - 1]
+                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                
+                cout << i << " " << res << " " << x[i] << " " << y[i] << endl;
+            }
+
+        return res;
+    }
 
     static inline double integ(dlist & x, dlist & y, uint xlow, uint xup)
     {

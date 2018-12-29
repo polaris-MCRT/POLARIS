@@ -113,6 +113,9 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
+        
+        data_pos_avg_th = MAX_UINT;
+        data_pos_avg_dir = MAX_UINT;
 
         pos_GasSpecRatios = 0;
         pos_OpiateIDS = 0;
@@ -137,6 +140,9 @@ public:
         plt_g_min = false;
         plt_g_max = false;
         plt_p = false;
+        
+        plt_avg_dir=false;
+        plt_avg_th=false;
 
         total_volume = 0;
         cell_volume = 0;
