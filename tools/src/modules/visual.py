@@ -648,10 +648,12 @@ class Plot:
         # Get user input for log
         if self.x_scaling == 'log' and self.y_scaling == 'log':
             log = 'xy'
-        elif self.x_scaling == 'log':
+        elif self.x_scaling == 'log' and self.y_scaling == 'linear':
             log = 'x'
-        elif self.y_scaling == 'log':
+        elif self.y_scaling == 'log' and self.x_scaling == 'linear':
             log = 'y'
+        elif self.x_scaling == 'linear' and self.y_scaling == 'linear':
+            log = None
 
         # Choose plot method depending on the log scaling
         if 'yerr' in args.keys() or 'xerr' in args.keys():

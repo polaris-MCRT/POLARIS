@@ -15,6 +15,7 @@ def update_detector_dict(dictionary):
         'gg_tau': GGTauDetector,
         'hd97048': HD97048Detector,
         'hd169142': HD169142Detector,
+        'thomas': ThomasDetector,
         'custom': CustomDetector,
     }
     dictionary.update(detector_dict)

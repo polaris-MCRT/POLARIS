@@ -1627,23 +1627,47 @@ class CustomPlots:
         # Set data input to Jy/px to calculate the total flux
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
-        # Set paths of each simulation
-        self.file_io.set_path_from_str(
-            'plot', 'gg_tau_disk', 'no_inclination', 'dust')
         # Set output filename
         self.file_io.init_plot_output(
-            'gg_tau_A_sed_comparison', path=self.file_io.path['simulation'])
-        # Read raytrace results from file
-        sed_data, header, _ = self.file_io.read_emission_sed(
-            'polaris_detector_nr0001_sed')
-        # Init wavelengths
-        wavelengths = header['wavelengths']
+            'sed_comparison', path=self.file_io.path['model'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
-        quantity = sed_data[0, :]
-        # Plot spectral energy distribution
-        plot.plot_line(wavelengths, quantity, log='xy', marker='.')
+        # Different model configurations
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default'
+        ]
+        model_descr = [
+            'no circumstellar disks',
+            'disk around Aa',
+            'disk around Ab1',
+            'disk around Ab2',
+            'disks around Aa and Ab1',
+            'disks around Aa and Ab2',
+            'disks around Ab1 and Ab2',
+            'disks around all stars'
+        ]
+        # Loop over model configurations
+        for i_model, model_name in enumerate(model_list):
+            # Set paths of each simulation
+            self.file_io.set_path_from_str(
+                'plot', 'gg_tau_disk', model_name, 'dust')
+            # Read raytrace results from file
+            sed_data, header, _ = self.file_io.read_emission_sed(
+                'polaris_detector_nr0001_sed')
+            # Init wavelengths and fluxes
+            wavelengths = header['wavelengths']
+            quantity = sed_data[0, :]
+            # Plot spectral energy distribution
+            plot.plot_line(wavelengths, quantity, log='xy', marker='.',
+                           label=r'$\text{' + model_descr[i_model] + r'}$')
         # Plot vizier data
         from astropy.io.votable import parse_single_table
         table = parse_single_table(
@@ -1652,7 +1676,7 @@ class CustomPlots:
         data_flux_error = table.array['sed_eflux'].filled(0)
         data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
         # Plot total spectral energy distribution
-        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='purple',
+        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='magenta',
                        alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
         # Plot the legend
         plot.plot_legend()
@@ -1674,11 +1698,26 @@ class CustomPlots:
         # Set some variables
         detector_index = 100
         i_quantity = 4
-        configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
-                             'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
-        configuration_descr = ['no circumstellar disks', 'disk around Aa', 'disk around Ab1',
-                               'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
-                               'disks around Ab1 and Ab2', 'disks around all stars']
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default'
+        ]
+        model_descr = [
+            'no circumstellar disks',
+            'disk around Aa',
+            'disk around Ab1',
+            'disk around Ab2',
+            'disks around Aa and Ab1',
+            'disks around Aa and Ab2',
+            'disks around Ab1 and Ab2',
+            'disks around all stars'
+        ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.07
         # Take colorbar label from quantity id
@@ -1695,7 +1734,7 @@ class CustomPlots:
                 if i_subplot >= 2:
                     # Set paths of each simulation
                     self.file_io.set_path_from_str(
-                        'plot', 'gg_tau_disk', configuration_lst[i_subplot - 2 + i_plot * 4], 'dust')
+                        'plot', 'gg_tau_disk', model_list[i_subplot - 2 + i_plot * 4], 'dust')
                     # Create pdf file if show_plot is not chosen and read map data from file
                     plot_data, header, plot_data_type = self.file_io.read_emission_map(
                         'polaris_detector_nr' + str(detector_index).zfill(4))
@@ -1705,7 +1744,7 @@ class CustomPlots:
                     plot.plot_text(
                         text_pos=[0.03, 0.97], relative_position=True,
                         text=r'$\text{' +
-                        configuration_descr[i_subplot -
+                        model_descr[i_subplot -
                                             2 + i_plot * 4] + r'}$',
                         horizontalalignment='left', verticalalignment='top', ax_index=i_subplot, color='white'
                     )
@@ -1729,11 +1768,26 @@ class CustomPlots:
         # Set some variables
         detector_index = 100
         i_quantity = 0
-        configuration_lst = ['no_circumstellar_disks', 'only_Aa', 'only_Ab1',
-                             'only_Ab2', 'only_Aa_Ab1', 'only_Aa_Ab2', 'only_Ab1_Ab2', 'default']
-        configuration_descr = ['no circumstellar disks', 'disk around Aa', 'disk around Ab1',
-                               'disk around Ab2', 'disks around Aa and Ab1', 'disks around Aa and Ab2',
-                               'disks around Ab1 and Ab2', 'disks around all stars']
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default'
+        ]
+        model_descr = [
+            'no circumstellar disks',
+            'disk around Aa',
+            'disk around Ab1',
+            'disk around Ab2',
+            'disks around Aa and Ab1',
+            'disks around Aa and Ab2',
+            'disks around Ab1 and Ab2',
+            'disks around all stars'
+        ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
         # Take colorbar label from quantity id
@@ -1749,7 +1803,7 @@ class CustomPlots:
             for i_subplot in range(4):
                 # Set paths of each simulation
                 self.file_io.set_path_from_str(
-                    'plot', 'gg_tau_disk', configuration_lst[i_subplot + i_plot * 4], 'dust')
+                    'plot', 'gg_tau_disk', model_list[i_subplot + i_plot * 4], 'dust')
                 # Create pdf file if show_plot is not chosen and read map data from file
                 plot_data, header, plot_data_type = self.file_io.read_emission_map(
                     'polaris_detector_nr' + str(detector_index).zfill(4))
@@ -1761,7 +1815,7 @@ class CustomPlots:
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
-                               configuration_descr[i_subplot +
+                               model_descr[i_subplot +
                                                    i_plot * 4] + r'}$',
                                horizontalalignment='left', verticalalignment='top',
                                ax_index=i_subplot, color='white')
