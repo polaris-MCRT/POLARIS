@@ -689,6 +689,86 @@ public:
         return res;
     }
 
+    // ------------------------------------------------------------------------------
+    // ----------- Efficiencies for wavelength mixed with global limits -----------
+    // ------------------------------------------------------------------------------
+    double getQext1(uint w)
+    {
+        double * Qext1 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qext1[a] = a_eff_3_5[a] * getQext1(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qext1, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qext1;
+        return res;
+    }
+
+    double getQext2(uint w)
+    {
+        double * Qext2 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qext2[a] = a_eff_3_5[a] * getQext2(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qext2, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qext2;
+        return res;
+    }
+
+    double getQabs1(uint w)
+    {
+        double * Qabs1 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qabs1[a] = a_eff_3_5[a] * getQabs1(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qabs1, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qabs1;
+        return res;
+    }
+
+    double getQabs2(uint w)
+    {
+        double * Qabs2 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qabs2[a] = a_eff_3_5[a] * getQabs2(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qabs2, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qabs2;
+        return res;
+    }
+
+    double getQsca1(uint w)
+    {
+        double * Qsca1 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qsca1[a] = a_eff_3_5[a] * getQsca1(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qsca1, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qsca1;
+        return res;
+    }
+
+    double getQsca2(uint w)
+    {
+        double * Qsca2 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qsca2[a] = a_eff_3_5[a] * getQsca2(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qsca2, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qsca2;
+        return res;
+    }
+
+    double getQcirc(uint w)
+    {
+        double * Qcirc = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            Qcirc[a] = a_eff_3_5[a] * getQcirc(a, w);
+        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+            CMathFunctions::integ_dust_size(a_eff, Qcirc, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] Qcirc;
+        return res;
+    }
+
     // ---------------------------------------------------------------------------
     // ---------------------------------------------------------------------------
 

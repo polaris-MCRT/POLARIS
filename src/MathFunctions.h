@@ -2630,7 +2630,7 @@ public:
     static bool calcWVMie(double x, dcomplex refractive_index, 
             double &qext, double &qabs, double &qsca, double &gsca,
             double *S11, double *S12, double *S33, double *S34)
-        //Wolf & Voshchinnikov calculation of optical properties of spherical grains.
+        //Wolf & Voshchinnikov approximation of optical properties for spherical grains.
     {        
         // Step width
         double dang = PI2 / float(NANG - 1);
@@ -2655,8 +2655,12 @@ public:
         else if (y >= 50000)
             num = 1.005 * y + 50.5;
         
-        if(num > MAX_MIE_ITERATIONS)
+        if(num >= MAX_MIE_ITERATIONS - 1)
+        {
             return false;
+            //return calcGeometricOptics(x, refractive_index, qext, qabs, 
+            //    qabs, gsca, S11, S12, S33, S34);
+        }
 
         // logarithmic derivative to Bessel function (complex argument)
         dcomplex ru[num + 1];
@@ -2763,6 +2767,8 @@ public:
         dcomplex ra1, rb1, rr;
         while(true)
         {
+            //if(iterm % 1000 == 0)
+            //    cout << x << TAB << iterm << endl;
             an  = an + 2;
             an2 = an - 2;
             
@@ -2884,7 +2890,72 @@ public:
         return true;
     }
 
-        static inline int factorial(int n)
+    static inline bool calcGeometricOptics(double x, dcomplex refractive_index, 
+            double &qext, double &qabs, double &qsca, double &gsca,
+            double *S11, double *S12, double *S33, double *S34)
+    {
+        // Efficiency for extinction is 2 in the limit of x>>1
+        qext = 2.0;
+        // Scattering Henyey-Greenstein g for Draine and Lee silicates
+        gsca = 9.23e-1;   
+
+        // Set variables
+        double res = 0;
+        uint nr_angles = 5000;
+        double d_ang = PI2 / double(nr_angles - 1);
+        
+        // Calculate from 0 to PI/2
+        for(uint i = 0; i < nr_angles; i++)
+        {
+            if(i == 0 || i == nr_angles - 1)
+                res = res + calcReflectionCoefficients(refractive_index, d_ang * double(i)) * d_ang;
+            else
+                res = res + 0.5 * calcReflectionCoefficients(refractive_index, d_ang * double(i)) * d_ang;
+        }
+
+        // Set scattering efficiency
+        qsca = 1 + 2 * res;
+
+        // Set absorption efficiency
+        qabs = qext - qsca;
+
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            if(j == 0)
+            {
+                S11[j] = 1.0;
+                S33[j] = 1.0;
+            }
+            else
+            {
+                S11[j] = 0.0;
+                S33[j] = 0.0;
+            }
+            S12[j] = 0;
+            S34[j] = 0;
+        }
+
+        return true;
+    }
+
+    static inline double calcReflectionCoefficients(dcomplex refractive_index, double theta)
+    {
+        dcomplex sin_theta = sin(theta) / refractive_index;
+        dcomplex cos_theta = sqrt(dcomplex(1, 0) - (sin_theta * sin_theta));
+        // r for E parallel to plane
+        dcomplex rpll = (cos_theta - refractive_index * cos(theta)) /
+            (cos_theta + refractive_index * cos(theta));
+
+        // r for E perp. to plane
+        dcomplex rper = (cos(theta)- refractive_index * cos_theta) / 
+            (cos(theta) + refractive_index * cos_theta);
+        
+        //  R = ½(|rpll|²+|rper|²)
+        double res = (norm(rpll) + norm(rper)) / 2.0;
+        return res * sin(theta) * cos(theta);
+    }
+
+    static inline int factorial(int n)
     {
         return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
     }

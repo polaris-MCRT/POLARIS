@@ -140,7 +140,7 @@ class GGTauStars(StellarSource):
         # ------ Half-major axis of the stars -----
         # Cite: separations (White et al. 1999)
         rot_angle_2 = 25. + 15.
-        self.a_Aab = 36. / 2. * self.math.const['au'] * np.sqrt(
+        self.a_Aab = 36. / 2. * np.sqrt(
             (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 + 
             np.sin(rot_angle_2 / 180 * np.pi)**2) 
         self.a_Ab12 = 5. / 2.

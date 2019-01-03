@@ -770,7 +770,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         for(uint w = 0; w < nr_of_wavelength; w++)
-        {   
+        {
             // Skip everything else if error was found
             if(error)
                 continue;
@@ -1394,7 +1394,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     char str_frac_end[1024];
 
     // Init strings for various filenames/titles
-    string path_cross, path_diff, path_g, path_scat, str_title, gnu_title, plot_sign = "points";
+    string path_cross, path_eff, path_diff, path_g;
+    string path_scat, str_title, gnu_title, plot_sign = "points";
 
     // Check if enough points to draw lines
     if(nr_of_wavelength > 1)
@@ -1428,6 +1429,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         gnu_title = "#Dust mixture ";
         gnu_title += str_mix_ID_end;
         gnu_title += "\n";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.plt";
         path_diff = path_plot +  "dust_mixture_" + str_mix_ID_end + "_diff.plt";
         path_data += "dust_mixture_";
@@ -1477,6 +1479,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         str_title += str_frac_end;
         gnu_title = str_title;
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
@@ -1595,6 +1598,116 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // ------------------------------------------------------
 
+    // Init text file writer for cross-sections
+    ofstream eff_writer(path_eff.c_str());
+
+    // Error message if the write does not work
+    if(eff_writer.fail())
+    {
+        cout << "\nERROR: Cannot write to:\n" << path_eff << endl;
+        return false;
+    }
+
+    // Init plot limits
+    double Qmin = 1e100, Qmax = -1e100;
+
+    // Find min and max values over the wavelength (checks only Cext1 and Cabs1)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+    {
+        if(getQext1(i) < Qmin && getQext1(i) > 0)
+            Qmin = getQext1(i);
+        if(getQabs1(i) < Qmin && getQabs1(i) > 0)
+            Qmin = getQabs1(i);
+        if(getQsca1(i) < Qmin && getQsca1(i) > 0)
+            Qmin = getQsca1(i);
+        if(getQext2(i) < Qmin && getQext2(i) > 0)
+            Qmin = getQext2(i);
+        if(getQabs2(i) < Qmin && getQabs2(i) > 0)
+            Qmin = getQabs2(i);
+        if(getQsca2(i) < Qmin && getQsca2(i) > 0)
+            Qmin = getQsca2(i);
+
+        if(getQext1(i) > Qmax)
+            Qmax = getQext1(i);
+        if(getQabs1(i) > Qmax)
+            Qmax = getQabs1(i);
+        if(getQsca1(i) > Qmax)
+            Qmax = getQsca1(i);
+        if(getQext2(i) > Qmax)
+            Qmax = getQext2(i);
+        if(getQabs2(i) > Qmax)
+            Qmax = getQabs2(i);
+        if(getQsca2(i) > Qmax)
+            Qmax = getQsca2(i);
+    }
+
+    // Add a bit more space for good visualization
+    Qmin *= 0.9;
+    Qmax *= 1.10;
+
+    // Add Gnuplot commands to file
+    eff_writer << "reset" << endl;
+    if(nr_of_wavelength > 1)
+        eff_writer << "set log x" << endl;
+    eff_writer << "set log y" << endl;
+    eff_writer << "set grid" << endl;
+    if(nr_of_wavelength > 1)
+        eff_writer << "set xrange[" << wavelength_list[wavelength_offset] << ":" 
+        << wavelength_list.back() << "]" << endl;
+    eff_writer << "set yrange[" << Qmin << ":" << Qmax << "]" << endl;
+    eff_writer << "set format x \"%.1te%02T\"" << endl;
+    eff_writer << "set format y \"%.1te%02T\"" << endl;
+    eff_writer << "set ylabel \'Q_{avg}\'" << endl;
+    eff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
+    eff_writer << "set title \"" << gnu_title << "\"" << endl;
+    eff_writer << "plot \'-\' with " << plot_sign << " title \'Q_{ext,x}\' lc rgb \"#0000F0\","
+        << "\'-\' with " << plot_sign << " title \'Q_{ext,y}\' lc rgb \"#000090\","
+        << "\'-\' with " << plot_sign << " title \'Q_{abs,x}\' lc rgb \"#FF0000\","
+        << "\'-\' with " << plot_sign << " title \'Q_{abs,y}\' lc rgb \"#900000\","
+        << "\'-\' with " << plot_sign << " title \'Q_{sca,x}\' lc rgb \"#FFFF00\","
+        << "\'-\' with " << plot_sign << " title \'Q_{sca,y}\' lc rgb \"#909000\"" << endl;
+
+    // Add Cext1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQext1(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQext1(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Add Cext2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQext2(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQext2(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Add Cabs1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQabs1(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQabs1(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Add Cabs2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQabs2(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQabs2(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Add Csca1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQsca1(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQsca1(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Add Csca2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getQsca2(i) > 0)
+            eff_writer << wavelength_list[i] << "\t" << getQsca2(i) << endl;
+    eff_writer << "e" << endl;
+
+    // Close text file writer
+    eff_writer.close();
+
+    // ------------------------------------------------------
+
     // Init text file writer for cross-section differences
     ofstream diff_writer(path_diff.c_str());
 
@@ -1634,7 +1747,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     // Add Gnuplot commands to file
     diff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
-        cross_writer << "set log x" << endl;
+        diff_writer << "set log x" << endl;
     diff_writer << "set log y" << endl;
     diff_writer << "set grid" << endl;
     if(nr_of_wavelength > 1)

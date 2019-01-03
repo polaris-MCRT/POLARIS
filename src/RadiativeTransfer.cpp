@@ -2197,7 +2197,6 @@ void CRadiativeTransfer::calcStellarEmission()
             mult *= exp(-tau_obs) / (4.0 * PI);
             mult *= tracer->getDistanceFactor(source_pos);
 
-
             // Update the photon package with the multi Stokes vectors
             pp->setMultiStokesVector(WMap.S(i_wave) * mult, i_wave);
         }
