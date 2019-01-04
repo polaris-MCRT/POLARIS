@@ -124,15 +124,15 @@ class GGTauStars(StellarSource):
 
         # ------ Luminosities -----
         # Cite: luminosity of Aa (White et al. 1999)
-        #self.L_Aa = 0.84 * self.math.const['L_sun']
+        self.L_Aa = 0.84 * self.math.const['L_sun']
         # Cite: luminosity of Aa (Hartigan et al. 2003)
-        self.L_Aa = (0.38 + 0.122) * self.math.const['L_sun']
+        #self.L_Aa = (0.38 + 0.122) * self.math.const['L_sun']
         # Cite: luminosity of Aa (White et al. 1999 and Di Folco et al. 2014)
-        #self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
-        #self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
+        self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
+        self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
         # Cite: luminosity of Aa (Hartigan et al. 2003 and Di Folco et al. 2014)
-        self.L_Ab1 = 0.89 * (0.2 + 0.079) * self.math.const['L_sun']
-        self.L_Ab2 = (1 - 0.89) * (0.2 + 0.079) * self.math.const['L_sun']
+        #self.L_Ab1 = 0.89 * (0.2 + 0.079) * self.math.const['L_sun']
+        #self.L_Ab2 = (1 - 0.89) * (0.2 + 0.079) * self.math.const['L_sun']
         # Cite:
         self.L_planet = 1e-1 * \
             (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']

@@ -1633,6 +1633,17 @@ class CustomPlots:
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
                     ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
+        # Plot vizier data
+        from astropy.io.votable import parse_single_table
+        table = parse_single_table(
+            self.file_io.path['model'] + 'vizier_votable.vot')
+        data_flux = table.array['sed_flux']
+        data_flux_error = table.array['sed_eflux'].filled(0)
+        data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
+        # Plot total spectral energy distribution
+        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy',
+                       linestyle='none', marker='.', color='black',
+                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
         # Different model configurations
         model_list = [
             'no_circumstellar_disks',
@@ -1666,20 +1677,10 @@ class CustomPlots:
             wavelengths = header['wavelengths']
             quantity = sed_data[0, :]
             # Plot spectral energy distribution
-            plot.plot_line(wavelengths, quantity, log='xy', marker='.',
+            plot.plot_line(wavelengths, quantity, log='xy',
                            label=r'$\text{' + model_descr[i_model] + r'}$')
-        # Plot vizier data
-        from astropy.io.votable import parse_single_table
-        table = parse_single_table(
-            self.file_io.path['model'] + 'vizier_votable.vot')
-        data_flux = table.array['sed_flux']
-        data_flux_error = table.array['sed_eflux'].filled(0)
-        data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
-        # Plot total spectral energy distribution
-        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='magenta',
-                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
         # Plot the legend
-        plot.plot_legend()
+        plot.plot_legend(loc=4)
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -1745,7 +1746,7 @@ class CustomPlots:
                         text_pos=[0.03, 0.97], relative_position=True,
                         text=r'$\text{' +
                         model_descr[i_subplot -
-                                            2 + i_plot * 4] + r'}$',
+                                    2 + i_plot * 4] + r'}$',
                         horizontalalignment='left', verticalalignment='top', ax_index=i_subplot, color='white'
                     )
                 elif i_subplot in [0, 1]:
@@ -1816,7 +1817,7 @@ class CustomPlots:
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
                                model_descr[i_subplot +
-                                                   i_plot * 4] + r'}$',
+                                           i_plot * 4] + r'}$',
                                horizontalalignment='left', verticalalignment='top',
                                ax_index=i_subplot, color='white')
             # Save figure to pdf file or print it on screen
