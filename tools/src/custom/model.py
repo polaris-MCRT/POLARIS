@@ -363,7 +363,8 @@ class GGTauDisk(Model):
         self.orbit_inclination = 0.0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
         self.inclination_Aa = 0 / 180. * np.pi
-        self.inclination_Ab12 = 0 / 180. * np.pi
+        self.inclination_Ab1 = 0 / 180. * np.pi
+        self.inclination_Ab2 = 90. / 180. * np.pi
         self.inclination_rotation_axis = [
             np.cos(25 / 180. * np.pi),
             np.sin(25 / 180. * np.pi),
@@ -487,7 +488,7 @@ class GGTauDisk(Model):
                     self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
                     self.position[2] + self.a_Aab *
                     np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
-                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
+                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab1)
                 # Calculate the density
                 disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
                                                                   inner_radius=self.inner_radius)
@@ -502,7 +503,7 @@ class GGTauDisk(Model):
                     self.position[1] - self.a_Aab * np.sin(self.angle_Ab12),
                     self.position[2] + self.a_Aab *
                     np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
-                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab12)
+                ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab2)
                 # Calculate the density
                 disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
                                                                   inner_radius=self.inner_radius)
