@@ -412,7 +412,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
         r_list_cs_disks = np.linspace(self.a_Aab / 2. - 8. * self.math.const['au'],
-                                      self.a_Aab / 2. - 8. * self.math.const['au'], 150)
+                                      self.a_Aab / 2. + 8. * self.math.const['au'], 150)
         r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                             260. * self.math.const['au'], 50, 1.03)
         # ------ With circumstellar disks -----
@@ -772,9 +772,17 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    self.parameter['gas_mass'] = np.array(
-                        [[7.9099e-7, 5.8142e-3], [0., 0.7733e-2 * 5.8142e-3]]) * \
-                        self.math.const['M_sun']
+                    print('HERE!')
+                    self.parameter['gas_mass'] = np.array([
+                        [0, 0.17e-3], 
+                        [0.63e-3, 0.63e-3], 
+                        [0.255e-2, 0.255e-2], 
+                        [0.255e-2, 0.255e-2]
+                        ])
+                    # [7.9099e-7, 5.8142e-3] * self.math.const['M_sun']
+                    #self.parameter['gas_mass'] = np.array(
+                    #    [[7.9099e-7, 5.8142e-3], [0., 0.7733e-2 * 5.8142e-3]]) * \
+                    #    self.math.const['M_sun']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -989,7 +997,8 @@ class MultiDisk(Model):
         #: Set parameters of the disk model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['gas_mass'] = np.array(
-            [[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
+            [[0.67], [0.33]]) * 1e-4 * self.math.const['M_sun']
+            # [[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1. * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
@@ -1028,3 +1037,12 @@ class MultiDisk(Model):
                                                      inner_radius=self.parameter['inner_radius'],
                                                      outer_radius=self.parameter['outer_radius'])
         return [[gas_density], [gas_density]]
+
+    def dust_temperature(self):
+        """Calculates the dust temperature at a given position.
+
+        Returns:
+            float: Dust temperature at a given position.
+        """
+        dust_temperature = 20.
+        return dust_temperature
