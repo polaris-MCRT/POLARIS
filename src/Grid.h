@@ -909,10 +909,13 @@ public:
 
     void setDustTemperature(cell_basic * cell, uint i_density, uint a, double temp)
     {
-        uint id = a + nr_densities;
-        for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
-        cell->setData(data_pos_dt_list[id], temp);
+        if(data_pos_dt_list.size() > 0)
+        {
+            uint id = a + nr_densities;
+            for(uint i = 0; i < i_density; i++)
+                id += size_skip[i];
+            cell->setData(data_pos_dt_list[id], temp);
+        }
     }
 
     void setDustTemperature(cell_basic * cell, uint i_density, double temp)
@@ -1021,7 +1024,12 @@ public:
 
     double getQBOffset(cell_basic * cell, uint i_density)
     {
-        return cell->getData(data_pos_dt_list[i_density]);
+        if(data_pos_dt_list.size() == 1)
+            return cell->getData(data_pos_dt_list[0]);
+        else if(data_pos_dt_list.size() > 1)
+            return cell->getData(data_pos_dt_list[i_density]);
+        else
+            return 0;
     }
 
     double getQBOffset(photon_package * pp, uint i_density)
@@ -1032,10 +1040,15 @@ public:
 
     double getQBOffset(cell_basic * cell, uint i_density, uint a)
     {
-        uint id = a + nr_densities;
-        for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
-        return cell->getData(data_pos_dt_list[id]);
+        if(data_pos_dt_list.size() > 0)
+        {
+            uint id = a + nr_densities;
+            for(uint i = 0; i < i_density; i++)
+                id += size_skip[i];
+            return cell->getData(data_pos_dt_list[id]);
+        }
+        else
+            return 0;
     }
 
     double getQBOffset(photon_package * pp, uint i_density, uint a)
@@ -1046,15 +1059,21 @@ public:
 
     void setQBOffset(cell_basic * cell, uint i_density, uint a, double temp)
     {
-        uint id = a + nr_densities;
-        for(uint i = 0; i < i_density; i++)
-            id += size_skip[i];
-        cell->setData(data_pos_dt_list[id], temp);
+        if(data_pos_dt_list.size() > 0)
+        {
+            uint id = a + nr_densities;
+            for(uint i = 0; i < i_density; i++)
+                id += size_skip[i];
+            cell->setData(data_pos_dt_list[id], temp);
+        }
     }
 
     void setQBOffset(cell_basic * cell, uint i_density, double temp)
     {
-        cell->setData(data_pos_dt_list[i_density], temp);
+        if(data_pos_dt_list.size() == 1)
+            cell->setData(data_pos_dt_list[0], temp);
+        else if(data_pos_dt_list.size() > 1)
+            cell->setData(data_pos_dt_list[i_density], temp);
     }
 
     double getAlignedRadius(cell_basic *cell)
@@ -1394,7 +1413,10 @@ public:
 
     double getDustTemperature(cell_basic * cell, uint i_density)
     {
-        if(data_pos_dt_list.size() > 0)
+
+        if(data_pos_dt_list.size() == 1)
+            return cell->getData(data_pos_dt_list[0]);
+        else if(data_pos_dt_list.size() > 1)
             return cell->getData(data_pos_dt_list[i_density]);
         else
             return 0;
@@ -2878,7 +2900,7 @@ public:
             cout << "       No RAT calculation possible." << endl;
             return MAX_UINT;
         }
-        else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
+        else if(getTemperatureFieldInformation() == MAX_UINT)
         {
             cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No RAT calculation possible." << endl;
@@ -2921,7 +2943,7 @@ public:
             cout << "       No dust emission possible." << endl;
             return MAX_UINT;
         }
-        else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
+        else if(getTemperatureFieldInformation() == MAX_UINT)
         {
             cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No dust emission possible." << endl;
@@ -3083,7 +3105,7 @@ public:
             cout << "       No FORCE calculation possible." << endl;
             return MAX_UINT;
         }
-        else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
+        else if(getTemperatureFieldInformation() == MAX_UINT)
         {
             cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No FORCE calculation possible." << endl;
@@ -3110,7 +3132,7 @@ public:
                 cout << "       No line transfer including dust emission possible." << endl;
                 return MAX_UINT;
             }
-            else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
+            else if(getTemperatureFieldInformation() == MAX_UINT)
             {
                 cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
                 cout << "       No line transfer including dust emission possible." << endl;
@@ -3179,7 +3201,7 @@ public:
             cout << "       No LOS analysis with aligned dust grains possible." << endl;
             return MAX_UINT;
         }
-        else if(getTemperatureFieldInformation() == MAX_UINT || getTemperatureFieldInformation() == TEMP_SINGLE)
+        else if(getTemperatureFieldInformation() == MAX_UINT)
         {
             cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
             cout << "       No LOS analysis with aligned dust grains possible." << endl;

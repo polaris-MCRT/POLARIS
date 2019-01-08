@@ -1200,6 +1200,11 @@ public:
         return a_min_global;
     }
 
+    void setSizeMin(double val)
+    {
+        a_min_global = val;
+    }
+
     double getSizeMax(CGridBasic * grid, cell_basic * cell)
     {
         double a_max = grid->getMaxGrainRadius(cell);
@@ -1217,6 +1222,11 @@ public:
     double getSizeMax()
     {
         return a_max_global;
+    }
+
+    void setSizeMax(double val)
+    {
+        a_max_global = val;
     }
 
     bool sizeIndexUsed(uint a, double a_min, double a_max)
@@ -1888,7 +1898,8 @@ public:
     void initCalorimetry();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
-    bool readDustRefractiveIndexFile(parameters & param, uint dust_component_choice);
+    bool readDustRefractiveIndexFile(parameters & param, uint dust_component_choice,
+        double a_min_mixture, double a_max_mixture);
     bool readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat);
     bool readCalorimetryFile(parameters & param, uint dust_component_choice);
 
@@ -2733,8 +2744,9 @@ public:
             size_fraction[i_comp] = new double[nr_of_dust_species];
             for(int a = 0; a < nr_of_dust_species; a++)
                 if(single_component[i_comp].sizeIndexUsed(a))
-                    size_fraction[i_comp][a] = single_component[i_comp].getFraction() * 
-                        single_component[i_comp].getEffectiveRadius3_5(a) / weight;
+                    size_fraction[i_comp][a] = single_component[i_comp].getFraction() *
+                        single_component[i_comp].getEffectiveRadius3_5(a) / 
+                        (weight * single_component[i_comp].getMaterialDensity());
         }
 
         // Normalization

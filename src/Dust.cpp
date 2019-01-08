@@ -145,10 +145,6 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
 {
     // Get Path to dust parameters file
     string path = param.getDustPath(dust_component_choice);
-    
-    // Read refractive index and use Mie theory to get optical properties
-    if(path.find(".nk") != std::string::npos)
-        return readDustRefractiveIndexFile(param, dust_component_choice);
 
     // Init variables
     CCommandParser ps;
@@ -444,7 +440,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
-            if(sizeIndexUsed(a, a_min_global, a_max_global))
+            if(sizeIndexUsed(a))
             {
                 // Calculate the difference between two incident angles
                 double d_ang;
@@ -534,7 +530,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     return true;
 }
 
-bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_component_choice)
+bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_component_choice,
+        double a_min_mixture, double a_max_mixture)
 {
     // Init variables
     CCommandParser ps;
@@ -551,11 +548,14 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
     double a_max = param.getSizeMax(dust_component_choice);
 
     // Set number of grain sizes for Mie-theory (1 if only one grain size is used)
-    if(a_min == a_max)
+    if(a_min_mixture == a_max_mixture)
         nr_of_dust_species = 1;
     else
         nr_of_dust_species = MIE_SIZE_STEPS; 
     values_aeff.resize(nr_of_dust_species);
+
+    // Init dust grain sizes
+    CMathFunctions::LogList(a_min_mixture, a_max_mixture, values_aeff, 10);
 
     // Get Path to dust parameters file
     string path = param.getDustPath(dust_component_choice);
@@ -663,9 +663,6 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
                 a_eff_1_5 = new double[nr_of_dust_species];
                 a_eff_3_5 = new double[nr_of_dust_species];
                 mass = new double[nr_of_dust_species];
-                
-                // Init dust grain sizes
-                CMathFunctions::LogList(a_min, a_max, values_aeff, 10);
 
                 // Calculate the grain size distribution
                 calcSizeDistribution(values_aeff, mass);
@@ -796,7 +793,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param, uint dust_c
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
-            if(sizeIndexUsed(a, a_min_global, a_max_global))
+            if(sizeIndexUsed(a))
             {
                 // Init variables and pointer arrays
                 double *S11, *S12, *S33, *S34;
@@ -1164,7 +1161,7 @@ bool CDustComponent::readScatteringMatrices(string path, uint nr_of_wavelength_d
 #pragma omp parallel for
     for(int a = 0; a < nr_of_dust_species; a++)
     {
-        if(sizeIndexUsed(a, a_min_global, a_max_global))
+        if(sizeIndexUsed(a))
         {
             for(int inc = 0; inc < nr_of_incident_angles; inc++)
             {
@@ -1937,7 +1934,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                 double * S12_tmp = new double[nr_of_dust_species];
                 for(uint a = 0; a < nr_of_dust_species; a++)
                 {
-                    if(sizeIndexUsed(a, a_min_global, a_max_global))
+                    if(sizeIndexUsed(a))
                     {
                         double Csca_tmp = getCscaMean(a, w);
                         sum += Csca_tmp;
@@ -2127,7 +2124,7 @@ void CDustComponent::preCalcEffProperties(parameters & param)
         // Add relative amount of dust grains in each size bin
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
-            if(sizeIndexUsed(a, a_min_global, a_max_global))
+            if(sizeIndexUsed(a))
             {
                 amount[a] = a_eff_3_5[a];
                 amount_abs[a] = a_eff_3_5[a] * getCabsMean(a, w);
@@ -2605,8 +2602,8 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
             // Mix size distribution with their relative fraction
-            a_eff_3_5[a] += size_fraction[a] * comp->getEffectiveRadius3_5(a);
-            a_eff_1_5[a] += size_fraction[a] * comp->getEffectiveRadius1_5(a);
+            a_eff_3_5[a] += size_fraction[a];
+            a_eff_1_5[a] += size_fraction[a] * comp->getEffectiveRadius_2(a);
             mass[a] += size_fraction[a] * comp->getMass(a);
         }
     }
@@ -2993,7 +2990,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid, cell_basic * cell, uint 
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+    if(grid->getTemperatureFieldInformation() == TEMP_EFF || grid->getTemperatureFieldInformation() == TEMP_SINGLE)
     {
         // Get weight from current grain size distribution
         weight = getWeight(a_min, a_max);
@@ -3040,7 +3037,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid, cell_basic * cell, uint 
         }
     }
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+    if(grid->getTemperatureFieldInformation() == TEMP_EFF || grid->getTemperatureFieldInformation() == TEMP_SINGLE)
     {
         // Get average absorption rate via interpolation
         double avg_qb_offset = 1 / weight * CMathFunctions::integ_dust_size(a_eff, qb_offset,
@@ -3107,7 +3104,8 @@ double CDustComponent::updateDustTemperature(CGridBasic * grid, photon_package *
     {
         if(grid->getTemperatureFieldInformation() == TEMP_FULL)
             abs_rate+= grid->getQBOffset(pp, i_density, a);
-        else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+        else if(grid->getTemperatureFieldInformation() == TEMP_EFF || 
+                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
             abs_rate += grid->getQBOffset(pp, i_density);
     }
 
@@ -3193,7 +3191,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
             {
                 if(grid->getTemperatureFieldInformation() == TEMP_FULL)
                     abs_rate[a] += grid->getQBOffset(cell, i_density, a);
-                else if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+                else if(grid->getTemperatureFieldInformation() == TEMP_EFF || 
+                        grid->getTemperatureFieldInformation() == TEMP_SINGLE)
                     abs_rate[a] += grid->getQBOffset(cell, i_density);
             }
 
@@ -3205,7 +3204,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
                 if(temp[a] >= getSublimationTemperature())
                     temp[a] = 0;
 
-            if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+            if(grid->getTemperatureFieldInformation() == TEMP_EFF || 
+                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
             {
                 // Multiply with the amount of dust grains in the current bin for integration
                 abs_rate[a] *= a_eff_3_5[a];
@@ -3236,7 +3236,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid, cell_basic * cell,
     }
 
     double avg_temp;
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF)
+    if(grid->getTemperatureFieldInformation() == TEMP_EFF || grid->getTemperatureFieldInformation() == TEMP_SINGLE)
     {
         // Get average absorption rate via interpolation
         double avg_abs_rate = 1 / weight * CMathFunctions::integ_dust_size(a_eff, abs_rate,
@@ -4392,7 +4392,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
     for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
     {
         // Init the sum of the current dust composition
-        double sum = 0;;
+        double sum = 0;
 
         // Set up the relation between dust_i_mixture and the "real" dust index used in this code.
         uilist unique_components;
@@ -4409,10 +4409,35 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
                 unique_components.push_back(i_comp);
             }
 
+        // Init the minimum and maximum grain size limits of the dust mixture
+        double a_min_mixture = 1e200, a_max_mixture = 0;
+
+        // Find the minimum and maximum grain size limits of the dust mixture
+        for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+        {
+            // Get the global id of the current dust component
+            uint dust_component_choice = unique_components[i_comp];
+
+            // Get min and max grain sizes of the dust component
+            double a_min = param.getSizeMin(dust_component_choice);
+            double a_max = param.getSizeMax(dust_component_choice);
+
+            // Use the highes a_max and lowest a_min of the components
+            if(a_min_mixture > a_min)
+                a_min_mixture = a_min;
+            if(a_max_mixture < a_max)
+                a_max_mixture = a_max;
+        }
+
+        // Set the minimum and maximum grain size limits of the dust mixture
+        mixed_component[i_mixture].setSizeMin(a_min_mixture);
+        mixed_component[i_mixture].setSizeMax(a_max_mixture);
+
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
+            // Get the global id of the current dust component
             uint dust_component_choice = unique_components[i_comp];
 
             // Set the ID and number of the components
@@ -4425,11 +4450,11 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get size distribution parameters
             string size_keyword = param.getDustSizeKeyword(dust_component_choice);
-            single_component[i_comp].setSizeParameter(size_keyword, param.getDustSizeParameter(dust_component_choice));
+            single_component[i_comp].setSizeParameter(size_keyword, 
+                param.getDustSizeParameter(dust_component_choice));
 
             // Get material density and similar user defined parameters
-            double mat_dens = param.getMaterialDensity(i_comp);
-            single_component[i_comp].setMaterialDensity(mat_dens);
+            single_component[i_comp].setMaterialDensity(param.getMaterialDensity(i_comp));
             single_component[i_comp].setFHighJ(param.getFHighJ());
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
@@ -4439,9 +4464,23 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             // Get global wavelength grid
             single_component[i_comp].setWavelengthList(wavelength_list, wavelength_offset);
 
-            // Read the dust catalog file for each dust component (including scatter matrix)
-            if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
+            // Get Path to dust parameters file
+            string path = param.getDustPath(dust_component_choice);
+
+            // Read dust input data (refractive index or optical properties)
+            if(path.find(".nk") != std::string::npos)
+            {
+                // Read refractive index and use Mie theory to get optical properties
+                if(!single_component[i_comp].readDustRefractiveIndexFile(param, dust_component_choice, 
+                        a_min_mixture, a_max_mixture))
                     return false;
+            }
+            else
+            {
+                // Read the dust catalog file for each dust component (including scatter matrix)
+                if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
+                    return false;
+            }
 
             // Read the calorimetric file for each dust component
             if(param.getStochasticHeatingMaxSize() > single_component[i_comp].getSizeMin())
@@ -4537,6 +4576,11 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
             if(param.getStochasticHeatingMaxSize() > 0)
                 cout << "                            calculate stochastic heating up to grain size of "
                     << param.getStochasticHeatingMaxSize() << " [m]" << endl;
+        }
+        else if(grid->getTemperatureFieldInformation() == TEMP_SINGLE)
+        {
+            cout << "temperature for effective grain size found in grid" << endl;
+            cout << "                            single temperature for all density distributions!" << endl;
         }
         else
             cout << "not available (This should not happen!)" << endl;
