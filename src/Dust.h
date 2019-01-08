@@ -1905,7 +1905,7 @@ public:
 
     bool writeComponent(string path_data, string path_plot);
     bool calcSizeDistribution(dlist values, double * mass);
-    bool add(double * size_fraction, CDustComponent * comp);
+    bool add(double ** size_fraction, CDustComponent * comp);
 
     uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS);
 
@@ -2733,20 +2733,23 @@ public:
         component.setIDs(i_comp, nr_of_components, i_mixture, nr_of_mixtures);
     }
 
-    double ** getSizeFractions()
+    double *** getSizeFractions()
     {
         // Calculate relative amounts of grains at each grain size bin
         uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
-        double ** size_fraction = new double*[nr_of_components];
+        double *** size_fraction = new double**[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
             double weight = single_component[i_comp].getWeight();
-            size_fraction[i_comp] = new double[nr_of_dust_species];
+            size_fraction[i_comp] = new double*[nr_of_dust_species];
             for(int a = 0; a < nr_of_dust_species; a++)
+            {
+                size_fraction[i_comp][a] = new double[2];
                 if(single_component[i_comp].sizeIndexUsed(a))
-                    size_fraction[i_comp][a] = single_component[i_comp].getFraction() *
+                    size_fraction[i_comp][a][0] = single_component[i_comp].getFraction() *
                         single_component[i_comp].getEffectiveRadius3_5(a) / 
                         (weight * single_component[i_comp].getMaterialDensity());
+            }
         }
 
         // Normalization
@@ -2755,12 +2758,12 @@ public:
             // Calulcate the sum for each size bin
             double sum = 0;
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-                sum += size_fraction[i_comp][a];
+                sum += size_fraction[i_comp][a][0];
 
-            // Normalize each value
+            // Normalize each value (second column)
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-                size_fraction[i_comp][a] /= sum;
-        }
+                size_fraction[i_comp][a][1] = size_fraction[i_comp][a][0] / sum;
+        } 
         return size_fraction;
     }
 

@@ -2525,7 +2525,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     return true;
 }
 
-bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
+bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
 {   
     // Get global min and max grain sizes
     double a_min = comp->getSizeMin();
@@ -2602,9 +2602,9 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
             // Mix size distribution with their relative fraction
-            a_eff_3_5[a] += size_fraction[a];
-            a_eff_1_5[a] += size_fraction[a] * comp->getEffectiveRadius_2(a);
-            mass[a] += size_fraction[a] * comp->getMass(a);
+            a_eff_3_5[a] += size_fraction[a][0];
+            a_eff_1_5[a] += size_fraction[a][0] * comp->getEffectiveRadius_2(a);
+            mass[a] += size_fraction[a][1] * comp->getMass(a);
         }
     }
 
@@ -2629,7 +2629,7 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
                     for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         for(uint sth = 0; sth < nr_of_scat_theta; sth++)
                             for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                                sca_mat[a][w][inc][sph][sth][mat] += size_fraction[a] *
+                                sca_mat[a][w][inc][sph][sth][mat] += size_fraction[a][1] *
                                     comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
     }
 
@@ -2638,7 +2638,7 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
         // Mix enthalpy for mixture
         for(int a = 0; a < nr_of_dust_species; a++)
             for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
-                enthalpy[a][t] += size_fraction[a] * comp->getEnthalpy(a, t);
+                enthalpy[a][t] += size_fraction[a][1] * comp->getEnthalpy(a, t);
     }
 
     // Show progress
@@ -2651,14 +2651,14 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
             // Add optical properties on top of the mixture ones
-            addQext1(a, w, size_fraction[a] * comp->getQext1(a, w));
-            addQext2(a, w, size_fraction[a] * comp->getQext2(a, w));
-            addQabs1(a, w, size_fraction[a] * comp->getQabs1(a, w));
-            addQabs2(a, w, size_fraction[a] * comp->getQabs2(a, w));
-            addQsca1(a, w, size_fraction[a] * comp->getQsca1(a, w));
-            addQsca2(a, w, size_fraction[a] * comp->getQsca2(a, w));
-            addQcirc(a, w, size_fraction[a] * comp->getQcirc(a, w));
-            addHGg(a, w, size_fraction[a] * comp->getHGg(a, w));
+            addQext1(a, w, size_fraction[a][1] * comp->getQext1(a, w));
+            addQext2(a, w, size_fraction[a][1] * comp->getQext2(a, w));
+            addQabs1(a, w, size_fraction[a][1] * comp->getQabs1(a, w));
+            addQabs2(a, w, size_fraction[a][1] * comp->getQabs2(a, w));
+            addQsca1(a, w, size_fraction[a][1] * comp->getQsca1(a, w));
+            addQsca2(a, w, size_fraction[a][1] * comp->getQsca2(a, w));
+            addQcirc(a, w, size_fraction[a][1] * comp->getQcirc(a, w));
+            addHGg(a, w, size_fraction[a][1] * comp->getHGg(a, w));
         }
     }
 
@@ -2691,8 +2691,10 @@ bool CDustComponent::add(double * size_fraction, CDustComponent * comp)
                     comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
 
                     // Add the values on top of the mixture Qtrq and Henyey-Greenstein g factor
-                    Qtrq[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpQtrqY);
-                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a] * tmpHGgY);
+                    Qtrq[i].addValue(i_inc, i_inc * d_ang, 
+                        size_fraction[a][1] * tmpQtrqY);
+                    HG_g_factor[i].addValue(i_inc, i_inc * d_ang, 
+                        size_fraction[a][1] * tmpHGgY);
                 }
             }
         }
@@ -4740,7 +4742,7 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     mixed_component[i_mixture].setCalorimetryLoaded(true);
 
     // Get Relative fractions for each size bin
-    double ** size_fraction = getSizeFractions();
+    double *** size_fraction = getSizeFractions();
 
     // Get common parameters grid
     uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
@@ -4782,6 +4784,15 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     // Pre-calculate various quantities
     if(!preCalcDustProperties(param, i_mixture))
         return false;
+
+    // Delete pointer arrays
+    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+    {
+        for(int a = 0; a < nr_of_dust_species; a++)
+            delete[] size_fraction[i_comp][a];
+        delete[] size_fraction[i_comp];
+    }
+    delete[] size_fraction;
 
     return true;
 }
