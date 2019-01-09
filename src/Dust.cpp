@@ -2701,8 +2701,9 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
     }
 
     // Mix various parameters
+    // Have to be mixed for each grain size in the future!
+    //material_density += comp->getFraction() * comp->getMaterialDensity();
     aspect_ratio += comp->getFraction() * comp->getAspectRatio();
-    material_density += comp->getFraction() * comp->getMaterialDensity();
     delta_rat += comp->getFraction() * comp->getDeltaRat();
     gold_g_factor += comp->getFraction() * comp->getGoldFactor();
 
@@ -3295,9 +3296,6 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     // Aspect ratio of the grain
     double s = getAspectRatio();
     
-    // Density of the grain material
-    double rho = getMaterialDensity();
-    
     // alpha_1 ~ delta
     double alpha_1 = 1;//getDeltaRat();
 
@@ -3331,9 +3329,9 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             // Minor and major axis
             double a_minor = a_eff[a] * pow(s, 2./3.);
             double a_major = a_eff[a] * pow(s, -1./3.);
-            
+
             // Moment of inertia along a_1
-            double I_p = 8. * PI / 15. * rho * a_minor * pow(a_major, 4);
+            double I_p = 8. * PI / 15. * getMaterialDensity(a) * a_minor * pow(a_major, 4);
             
             // Thermal angular momentum
             double J_th = sqrt(I_p * con_kB * T_gas);
@@ -4785,13 +4783,7 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     if(!preCalcDustProperties(param, i_mixture))
         return false;
 
-    // Delete pointer arrays
-    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-    {
-        for(int a = 0; a < nr_of_dust_species; a++)
-            delete[] size_fraction[i_comp][a];
-        delete[] size_fraction[i_comp];
-    }
+    // Delete pointer array
     delete[] size_fraction;
 
     return true;

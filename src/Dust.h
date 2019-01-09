@@ -790,6 +790,25 @@ public:
         return weight;
     }
 
+    double getMassWeight()
+    {
+        // Init pointer array of relative mass of each dust grain size bin
+        double * rel_mass = new double[nr_of_dust_species];
+
+        // Set the relative mass of each dust grain size bin
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_mass[a] = a_eff_3_5[a] * mass[a];
+
+        // Calculate the average mass of the dust grains in the current cell
+        double mass_weight = CMathFunctions::integ_dust_size(a_eff, rel_mass,
+            nr_of_dust_species, a_min_global, a_max_global);
+
+        // Delete pointer array
+        delete[] rel_mass;
+
+        return mass_weight;
+    }
+
     double getGoldFactor()
     {
         return gold_g_factor;
@@ -1760,9 +1779,15 @@ public:
         return mass[a];
     }
 
-    double getMaterialDensity()
+    /*double getMaterialDensity()
     {
         return material_density;
+    }*/
+
+    double getMaterialDensity(uint a)
+    {
+        double volume = 4.0 / 3.0 * PI * a_eff[a] * a_eff[a] * a_eff[a];
+        return mass[a] / volume;
     }
 
     double getFHighJ()
@@ -2735,35 +2760,41 @@ public:
 
     double *** getSizeFractions()
     {
-        // Calculate relative amounts of grains at each grain size bin
+        // Get number of dust size bins
         uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
+
+        // Init pointer array
         double *** size_fraction = new double**[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
-            double weight = single_component[i_comp].getWeight();
             size_fraction[i_comp] = new double*[nr_of_dust_species];
-            for(int a = 0; a < nr_of_dust_species; a++)
-            {
+            for(uint a = 0; a < nr_of_dust_species; a++)
                 size_fraction[i_comp][a] = new double[2];
-                if(single_component[i_comp].sizeIndexUsed(a))
-                    size_fraction[i_comp][a][0] = single_component[i_comp].getFraction() *
-                        single_component[i_comp].getEffectiveRadius3_5(a) / 
-                        (weight * single_component[i_comp].getMaterialDensity());
-            }
         }
 
-        // Normalization
-        for(int a = 0; a < nr_of_dust_species; a++)
+        // Put the mass weights into relation to each other
+        double ref_mass_weight = single_component[0].getMassWeight() / single_component[0].getFraction();
+        for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+        {
+            double mass_weight_ratio = ref_mass_weight * 
+                single_component[i_comp].getFraction() / single_component[i_comp].getMassWeight();   
+
+            // First column is the updated size distribution
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                size_fraction[i_comp][a][0] = mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
+        }
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
         {
             // Calulcate the sum for each size bin
             double sum = 0;
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
                 sum += size_fraction[i_comp][a][0];
 
-            // Normalize each value (second column)
+            // Second column is the mixing ration between the dust components
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
                 size_fraction[i_comp][a][1] = size_fraction[i_comp][a][0] / sum;
-        } 
+        }
         return size_fraction;
     }
 

@@ -129,7 +129,7 @@ class TestRoutines:
                   self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/template.cmd > ' +
                   self.file_io.path['testing'] + 'test_' + str(self.test_index) + '/POLARIS.cmd')
 
-    def get_result(self, quantity, comparison_mode='avg_rel_diff'):
+    def get_result(self, quantity, comparison_mode='avg_rel_diff', limit_override=None):
         """Perform a simulation with POLARIS and compare it with the
         comparison_mode to preexisting results of a certain quantity.
 
@@ -186,7 +186,11 @@ class TestRoutines:
         result /= len(self.results_files[quantity])
         print('--- Test case (' + str(self.test_index) +
               '): Average difference = ' + str(result) + ' %')
-        self.check(result, self.limit_dict[quantity])
+        if limit_override is not None:
+            limit = limit_override
+        else:
+            limit = self.limit_dict[quantity]
+        self.check(result, limit)
 
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
@@ -395,6 +399,11 @@ class TestRoutines:
         """Perform test simulation to check raytracing (incl. scattering calc before raytracing, cylindrical grid).
         """
         self.get_result('emission_map')
+
+    def test_1008001(self):
+        """Perform test simulation to check that multiple dust components are mixed correctly.
+        """
+        self.get_result('emission_map', limit_override=2)
 
 
 if __name__ == '__main__':
