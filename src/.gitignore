@@ -7,3 +7,5 @@ polaris
 Makefile
 Makefile.in
 typedefs.h.bak
+
+default.clang-format
