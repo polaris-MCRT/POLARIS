@@ -755,7 +755,7 @@ class HD169142(Model):
         # Enable multiple density distributions
         self.parameter['variable_dust'] = True
         # Init new parameter
-        self.parameter['model_number'] = 0
+        self.parameter['model_number'] = None
         self.parameter['r_gap_in'] = 0
         self.parameter['r_gap_out'] = 0
         # Mass fraction
@@ -772,17 +772,23 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    print('HERE!')
                     self.parameter['gas_mass'] = np.array([
-                        [0, 0.17e-3], 
-                        [0.63e-3, 0.63e-3], 
-                        [0.255e-2, 0.255e-2], 
+                        [7.9099e-7, 5.8142e-3], 
+                        [0., 0.7733e-2 * 5.8142e-3]
+                        ]) * self.math.const['M_sun']
+                elif self.parameter['model_number'] == 2:
+                    self.parameter['gas_mass'] = np.array([
+                        [0, 0.17e-3],
+                        [0.63e-3, 0.63e-3],
+                        [0.255e-2, 0.255e-2],
                         [0.255e-2, 0.255e-2]
-                        ])
-                    # [7.9099e-7, 5.8142e-3] * self.math.const['M_sun']
-                    #self.parameter['gas_mass'] = np.array(
-                    #    [[7.9099e-7, 5.8142e-3], [0., 0.7733e-2 * 5.8142e-3]]) * \
-                    #    self.math.const['M_sun']
+                    ])
+                    self.parameter['gas_mass'][:, 0] *= 7.9099e-7 * \
+                        self.math.const['M_sun'] * \
+                        self.parameter['gas_mass'][:, 0].sum()
+                    self.parameter['gas_mass'][:, 1] *= 5.8142e-3 * \
+                        self.math.const['M_sun'] * \
+                        self.parameter['gas_mass'][:, 1].sum()
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -793,6 +799,9 @@ class HD169142(Model):
         """
         # Init density 2D list
         density_list = np.zeros((2, 2))
+        if self.parameter['model_number'] is not None:
+            if self.parameter['model_number'] == 2:
+                density_list = np.zeros((4, 2))
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         # Set density according to region
@@ -998,7 +1007,7 @@ class MultiDisk(Model):
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['gas_mass'] = np.array(
             [[0.67], [0.33]]) * 1e-4 * self.math.const['M_sun']
-            # [[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
+        # [[1e-2], [1e-2 * 1e-3]]) * self.math.const['M_sun']
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1. * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
