@@ -411,8 +411,8 @@ class GGTauDisk(Model):
         # Custom width of z-cell borders per ring
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
-        r_list_cs_disks = np.linspace(self.a_Aab / 2. - 8. * self.math.const['au'],
-                                      self.a_Aab / 2. + 8. * self.math.const['au'], 150)
+        r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                      self.a_Aab + 8. * self.math.const['au'], 150)
         r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                             260. * self.math.const['au'], 50, 1.03)
         # ------ With circumstellar disks -----
