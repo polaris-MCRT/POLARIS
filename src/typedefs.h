@@ -178,6 +178,9 @@ using namespace std;
 #define GRIDradz 32
 #define GRIDrad 33
 
+#define GRIDavg_th 34
+#define GRIDavg_dir 35
+
 #define minGRID GRIDgas_dens
 #define maxGRID GRIDrad
 

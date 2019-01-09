@@ -57,8 +57,8 @@ bool CPipeline::Init(int argc, char** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/voronoi/cmd_file");
-    //CCommandParser parser("/home/s0reissl/polaris projects/Basti/cmds_temp");
+    //CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
+    //CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
 
     if(!parser.parse())
     {
@@ -267,9 +267,10 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 
     rad.calcMonteCarloRadiationField(param.getCommand(), 
         use_energy_density, false); //(param.getCommand() == CMD_RAT));
-        
+
     if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
+
     if(param.isRatSimulation())
         rad.calcAlignedRadii();
 
