@@ -287,7 +287,7 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef long long llong;
 typedef vector<double> dlist;
-typedef map<uint, vector<double>> maplist;
+typedef map<uint, vector<double> > maplist;
 typedef vector<uchar> clist;
 typedef vector<uint> uilist;
 typedef vector<ushort> uslist;

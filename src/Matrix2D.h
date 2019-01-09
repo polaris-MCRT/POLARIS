@@ -4,7 +4,7 @@
 // row    -> m (zeile)
 // column |  n (spalte)
 
-typedef vector<vector<vector<double>>> Matrix3D;
+typedef vector<vector<vector<double> > > Matrix3D;
 
 #ifndef MATRIX2D
 #define MATRIX2D
