@@ -773,9 +773,9 @@ class HD169142(Model):
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
                     self.parameter['gas_mass'] = np.array([
-                        [7.9099e-7, 5.8142e-3], 
+                        [7.9099e-7, 5.8142e-3],
                         [0., 0.7733e-2 * 5.8142e-3]
-                        ]) * self.math.const['M_sun']
+                    ]) * self.math.const['M_sun']
                 elif self.parameter['model_number'] == 2:
                     self.parameter['gas_mass'] = np.array([
                         [0, 0.17e-3],
