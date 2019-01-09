@@ -1,25 +1,24 @@
-#include "typedefs.h"
 #include "chelper.h"
+#include "typedefs.h"
 #include <cmath>
 
 #ifndef SYNCHROTRON_H
 #define SYNCHROTRON_H
 
-//redefine some natural constants in cgs
-#define syn_me   9.1093826e-28  //electron mass      [g]
-#define syn_e    4.80320680e-10 //electron charge    [Statcoulomb]
-#define syn_h    6.6260693e-27  //Planck constant    [erg/s]
-#define syn_kB   1.380662e-16   //Boltzmann constant [erg/K]
-#define syn_c    2.99792458e10  //speed of light     [m/s]
+// redefine some natural constants in cgs
+#define syn_me 9.1093826e-28 // electron mass      [g]
+#define syn_e 4.80320680e-10 // electron charge    [Statcoulomb]
+#define syn_h 6.6260693e-27  // Planck constant    [erg/s]
+#define syn_kB 1.380662e-16  // Boltzmann constant [erg/K]
+#define syn_c 2.99792458e10  // speed of light     [m/s]
 
-//conversion factor 1/cm -> 1/m
-#define syn_SI   100.0
+// conversion factor 1/cm -> 1/m
+#define syn_SI 100.0
 
-//container class for the parameters of sync. RT
+// container class for the parameters of sync. RT
 class syn_param
 {
-public:
-
+  public:
     syn_param()
     {
         j_I = 0;
@@ -34,7 +33,14 @@ public:
         kappa_V = 0;
     }
 
-    syn_param(double _j_I, double _j_Q, double _j_V, double _alpha_I, double _alpha_Q, double _alpha_V, double _kappa_Q, double _kappa_V)
+    syn_param(double _j_I,
+              double _j_Q,
+              double _j_V,
+              double _alpha_I,
+              double _alpha_Q,
+              double _alpha_V,
+              double _kappa_Q,
+              double _kappa_V)
     {
         j_I = _j_I;
         j_Q = _j_Q;
@@ -47,12 +53,17 @@ public:
         kappa_Q = _kappa_Q;
         kappa_V = _kappa_V;
     }
-    
+
     syn_param operator+(const syn_param & rhs)
     {
-        return syn_param(j_I + rhs.j_I, j_Q + rhs.j_Q, j_V + rhs.j_V,
-                alpha_I + rhs.alpha_I, alpha_Q + rhs.alpha_Q, alpha_V + rhs.alpha_V,
-                kappa_Q + rhs.kappa_Q, kappa_V+ rhs.kappa_V);
+        return syn_param(j_I + rhs.j_I,
+                         j_Q + rhs.j_Q,
+                         j_V + rhs.j_V,
+                         alpha_I + rhs.alpha_I,
+                         alpha_Q + rhs.alpha_Q,
+                         alpha_V + rhs.alpha_V,
+                         kappa_Q + rhs.kappa_Q,
+                         kappa_V + rhs.kappa_V);
     }
 
     //(back) conversion into SI
@@ -70,7 +81,7 @@ public:
         kappa_V *= syn_SI;
     }
 
-    //generate matrix for synchrotron RT
+    // generate matrix for synchrotron RT
     Matrix2D getSyncMatrix()
     {
         //------------------------------------------------------
@@ -92,10 +103,10 @@ public:
         cont_matrix.setValue(3, 0, alpha_V);
 
         cont_matrix.setValue(2, 3, kappa_Q);
-        cont_matrix.setValue(3, 2,-kappa_Q);
+        cont_matrix.setValue(3, 2, -kappa_Q);
 
         cont_matrix.setValue(1, 2, kappa_V);
-        cont_matrix.setValue(2, 1,-kappa_V);
+        cont_matrix.setValue(2, 1, -kappa_V);
 
         return cont_matrix;
     }
@@ -112,12 +123,10 @@ public:
     double kappa_V;
 };
 
-
-//class for the physics of sync. RT
+// class for the physics of sync. RT
 class CSynchrotron
 {
-public:
-
+  public:
     CSynchrotron()
     {
         initGamma();
@@ -145,13 +154,18 @@ public:
         }
     };
 
-    //calculation of sync. coefficients on the basis of approximation functions (taken from Pandya 2016 and Dexter 2016)
+    // calculation of sync. coefficients on the basis of approximation functions (taken
+    // from Pandya 2016 and Dexter 2016)
     syn_param get_Thermal_Parameter(double n_e, double T_e, double l, double B, double theta);
-    syn_param get_Power_Law_Parameter(double n_e, double l, double B, double theta, double g_min, double g_max, double p);
+    syn_param get_Power_Law_Parameter(double n_e,
+                                      double l,
+                                      double B,
+                                      double theta,
+                                      double g_min,
+                                      double g_max,
+                                      double p);
 
-    
-
-private:
+  private:
     // Gamma numerator coefficients for approximation over the interval (1,2)
     double * p;
 
@@ -167,7 +181,7 @@ private:
     spline BesselK_0;
     spline BesselK_1;
     spline BesselK_2;
-    
+
     double BesselK(uint n, double x)
     {
         double res = 0;
@@ -187,14 +201,14 @@ private:
                 break;
 
             default:
-                //cout << "\nERROR: BesselK_"<<n<<" is not defined                           \n";
+                // cout << "\nERROR: BesselK_"<<n<<" is not defined \n";
                 return 0;
         }
 
         return pow(10.0, res);
     }
 
-    //initiate Gamma coefficients
+    // initiate Gamma coefficients
     void initGamma()
     {
         p = new double[8];
@@ -232,7 +246,7 @@ private:
         halfLogTwoPi = 0.91893853320467274178032973640562;
     }
 
-    //initiate Bessel points for spline interpolation
+    // initiate Bessel points for spline interpolation
     void initBesselK()
     {
         uint size = 68;
@@ -454,65 +468,67 @@ private:
 
     double LogGamma(double x);
     double Gamma(double x);
-    
-    
+
     // additional correction function for alpha_V (see Reissl et al. 2018)
     double corr(double theta)
     {
-        if(theta>PI2)
-            theta=PI-theta;
-    
-        if(theta<0.803425)
-            return 0.99142 + 0.00748*pow(theta,(11./2.));
-        
-        return 0.99191 +  0.00127/sin(0.00475 + theta);
+        if(theta > PI2)
+            theta = PI - theta;
+
+        if(theta < 0.803425)
+            return 0.99142 + 0.00748 * pow(theta, (11. / 2.));
+
+        return 0.99191 + 0.00127 / sin(0.00475 + theta);
     }
 
     double Gamma_I_p(double g_min, double g_max, double p)
     {
-        return Gamma((3.0 * p - 1.0) / 12.0) * Gamma((3.0 * p + 19.) / 12.) / (2.0 * (p + 1.)*(pow(g_min, 1.0 - p) - pow(g_max, 1. - p)));
+        return Gamma((3.0 * p - 1.0) / 12.0) * Gamma((3.0 * p + 19.) / 12.) /
+               (2.0 * (p + 1.) * (pow(g_min, 1.0 - p) - pow(g_max, 1. - p)));
     }
 
     double Gamma_A_p(double g_min, double g_max, double p)
     {
-        return Gamma((3. * p + 2.) / 12.) * Gamma((3. * p + 22.) / 12.) / (4. * (pow(g_min, 1. - p) - pow(g_max, 1. - p)));
+        return Gamma((3. * p + 2.) / 12.) * Gamma((3. * p + 22.) / 12.) /
+               (4. * (pow(g_min, 1. - p) - pow(g_max, 1. - p)));
     }
 
     double getI_Q_p(double p)
     {
-        return(-(p + 1.0) / (p + 7.0 / 3.0));
+        return (-(p + 1.0) / (p + 7.0 / 3.0));
     }
 
     double getI_V_p(double p, double tan_theta)
     {
-        return(171.0 / 250.0)*pow(p, 49.0 / 100.0) / tan_theta;
+        return (171.0 / 250.0) * pow(p, 49.0 / 100.0) / tan_theta;
     }
 
     double getA_Q_p(double p)
     {
-        return(-pow((17. / 500.) * p - 43. / 1250., 43. / 500.));
+        return (-pow((17. / 500.) * p - 43. / 1250., 43. / 500.));
     }
 
     double getA_V_p(double p, double sin_theta, double cos_theta)
     {
         double sign = 1;
 
-        //sign correcton for Stokes V parameters according to Pandya 2016
+        // sign correcton for Stokes V parameters according to Pandya 2016
         if(cos_theta != 0)
             sign = cos_theta / fabs(cos_theta);
 
-        return sign * (pow((71. / 100.) * p + 22. / 625., 197. / 500.)) * pow((31. / 10.) * pow(sin_theta, -48. / 25) - 31. / 10., 64. / 125.);
+        return sign * (pow((71. / 100.) * p + 22. / 625., 197. / 500.)) *
+               pow((31. / 10.) * pow(sin_theta, -48. / 25) - 31. / 10., 64. / 125.);
     }
 
     double getK_Q_th(double x)
     {
         // Correction factor according to  Dexter (2016)
-        double corr = (.011 * exp(-x / 47.2) - pow(2., (-1.0 / 3.0)) / pow(3.0, (23. / 6.0))
-                * PI * 1.0e4 * pow(x, (-8.0 / 3.0)))
-                * (0.5 + 0.5 * tanh((log(x) - log(120.0)) / 0.1));
+        double corr = (.011 * exp(-x / 47.2) -
+                       pow(2., (-1.0 / 3.0)) / pow(3.0, (23. / 6.0)) * PI * 1.0e4 * pow(x, (-8.0 / 3.0))) *
+                      (0.5 + 0.5 * tanh((log(x) - log(120.0)) / 0.1));
 
-        return 2.011 * exp(-pow(x, 1.035) / 4.7) - cos(x / 2.)
-                * exp(-pow(x, 1.2) / 2.73) - .011 * exp(-x / 47.2) + corr;
+        return 2.011 * exp(-pow(x, 1.035) / 4.7) - cos(x / 2.) * exp(-pow(x, 1.2) / 2.73) -
+               .011 * exp(-x / 47.2) + corr;
     }
 
     double getK_V_th(double x)
@@ -526,7 +542,7 @@ private:
         double term2 = sqrt(x) + pow(2.0, 11.0 / 12.0) * pow(x, 1. / 6.);
         term2 *= term2;
         double term3 = exp(-pow(x, 1. / 3.));
-        return term1 * term2*term3;
+        return term1 * term2 * term3;
     }
 
     double getI_Q_th(double x, double Theta)

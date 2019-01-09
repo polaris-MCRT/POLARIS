@@ -1,15 +1,14 @@
-#include "typedefs.h"
-#include "Vector.h"
-#include "chelper.h"
-#include "MathFunctions.h"
 #include "Grid.h"
+#include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Vector.h"
+#include "chelper.h"
+#include "typedefs.h"
 
-class CGridCylindrical: public CGridBasic
+class CGridCylindrical : public CGridBasic
 {
-public:
-
+  public:
     CGridCylindrical(void)
     {
         basic_path = 0;
@@ -83,9 +82,9 @@ public:
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
 
-        //data_pos_gd = MAX_UINT;
-        //data_pos_dd = MAX_UINT;
-        //data_pos_td = MAX_UINT;
+        // data_pos_gd = MAX_UINT;
+        // data_pos_dd = MAX_UINT;
+        // data_pos_td = MAX_UINT;
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
         data_pos_my = MAX_UINT;
@@ -113,7 +112,7 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
-        
+
         data_pos_avg_th = MAX_UINT;
         data_pos_avg_dir = MAX_UINT;
 
@@ -140,9 +139,9 @@ public:
         plt_g_min = false;
         plt_g_max = false;
         plt_p = false;
-        
-        plt_avg_dir=false;
-        plt_avg_th=false;
+
+        plt_avg_dir = false;
+        plt_avg_th = false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -181,8 +180,8 @@ public:
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for cylindrical grid file: " <<
-                        float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+                cout << "Cleaning memory for cylindrical grid file: "
+                     << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
                 {
@@ -255,7 +254,7 @@ public:
     Vector3D getCenter(cell_basic * cell)
     {
         Vector3D center;
-        cell_cyl * tmp_cell = (cell_cyl *) cell;
+        cell_cyl * tmp_cell = (cell_cyl *)cell;
 
         if(tmp_cell->getRID() == MAX_UINT)
         {
@@ -337,15 +336,14 @@ public:
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            cout << "-> Creating cell list     : "
-                    << 100.0 * float(i_r) / float(N_r)
-                    << " [%]        \r" << flush;
+            cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " [%]        \r"
+                 << flush;
 
             for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
             {
                 for(uint i_z = 0; i_z < N_z; i_z++)
                 {
-                    cell_list[pos_counter] = (cell_basic*) grid_cells[i_r][i_ph][i_z];
+                    cell_list[pos_counter] = (cell_basic *)grid_cells[i_r][i_ph][i_z];
                     pos_counter++;
                 }
             }
@@ -353,18 +351,18 @@ public:
 
         for(uint i_z = 0; i_z < N_z; i_z++)
         {
-            cell_list[pos_counter] = (cell_basic*) center_cells[i_z];
+            cell_list[pos_counter] = (cell_basic *)center_cells[i_z];
             pos_counter++;
         }
 
         cout << CLR_LINE;
-        //cout << "- Creating of cell list         : done          \n" << flush;
+        // cout << "- Creating of cell list         : done          \n" << flush;
         return true;
     }
 
     double getVolume(cell_basic * cell)
     {
-        cell_cyl * cell_pos = (cell_cyl*) cell;
+        cell_cyl * cell_pos = (cell_cyl *)cell;
 
         double volume = 0;
 
@@ -383,7 +381,7 @@ public:
             double z1 = listZ[cell_pos->getRID()][cell_pos->getZID()];
             double z2 = listZ[cell_pos->getRID()][cell_pos->getZID() + 1];
 
-            volume = 0.5 * (ph2 - ph1)* (r2 * r2 - r1 * r1)* (z2 - z1);
+            volume = 0.5 * (ph2 - ph1) * (r2 * r2 - r1 * r1) * (z2 - z1);
         }
 
         return volume;
@@ -395,15 +393,15 @@ public:
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv=false)
+    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv = false)
     {
-        cell_cyl * cell_pos = (cell_cyl*) pp->getPositionCell();
+        cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
         double phi = pp->getPosition().getPhiCoord();
 
         double phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
             phi_center = 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
-                listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
+                                listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
 
         double dph = phi_center - phi;
         if(inv)
@@ -453,8 +451,12 @@ public:
 
     void printParameters();
 
-    bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
-            dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
+    bool getPolarRTGridParameter(double max_len,
+                                 double pixel_width,
+                                 uint max_subpixel_lvl,
+                                 dlist & _listR,
+                                 uint & N_polar_r,
+                                 uint *& N_polar_ph)
     {
         uint subpixel_multiplier = pow(2, max_subpixel_lvl);
 
@@ -497,15 +499,16 @@ public:
         N_polar_ph = new uint[N_polar_r];
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
         {
-            N_polar_ph[i_r] = min(uint(subpixel_multiplier * 360.0), 
-                uint(ceil(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]))));
-            //cout << N_polar_ph[i_r] << TAB << N_polar_r << TAB << _listR[i_r] / con_AU << endl;
+            N_polar_ph[i_r] = min(uint(subpixel_multiplier * 360.0),
+                                  uint(ceil(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]))));
+            // cout << N_polar_ph[i_r] << TAB << N_polar_r << TAB << _listR[i_r] / con_AU
+            // << endl;
         }
-        
+
         return true;
     }
 
-private:
+  private:
     double Rmin, Rmax, Zmax;
     uint N_r, N_z;
     uint * N_ph;
@@ -520,7 +523,7 @@ private:
 
     bool isInside(Vector3D & pos, cell_basic * _cell)
     {
-        cell_cyl * cell = (cell_cyl *) _cell;
+        cell_cyl * cell = (cell_cyl *)_cell;
 
         Vector3D tmp_pos = pos.getSphericalCoord();
 
@@ -588,7 +591,7 @@ private:
     void setRndPositionInCell(photon_package * pp)
     {
         Vector3D pos;
-        cell_cyl * tmp_cell = (cell_cyl *) pp->getPositionCell();
+        cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();
         double r1, r2, ph1, ph2, z1, z2;
 
         double rnd_r = pp->getRND();
@@ -619,9 +622,8 @@ private:
         double sin_ph = sin(ph1 + rnd_ph * (ph2 - ph1));
         double cos_ph = cos(ph1 + rnd_ph * (ph2 - ph1));
 
-        pos = (pow(pow(r1, 2) + rnd_r * (pow(r2, 2) - pow(r1, 2)), 1.0 / 2.0)
-                * Vector3D(cos_ph, sin_ph, 0))
-                + Vector3D(0, 0, z1 + rnd_z * (z2 - z1));
+        pos = (pow(pow(r1, 2) + rnd_r * (pow(r2, 2) - pow(r1, 2)), 1.0 / 2.0) * Vector3D(cos_ph, sin_ph, 0)) +
+              Vector3D(0, 0, z1 + rnd_z * (z2 - z1));
 
         pp->setPosition(pos);
     }

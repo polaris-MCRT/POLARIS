@@ -1,6 +1,6 @@
 #pragma once
-#include "typedefs.h"
 #include "chelper.h"
+#include "typedefs.h"
 
 #ifndef COMMANDPARSER
 #define COMMANDPARSER
@@ -9,12 +9,11 @@
 #define id_cmn 2
 
 typedef vector<parameters> parameter_list;
-//int counter=0;
+// int counter=0;
 
 class CCommandParser
 {
-public:
-
+  public:
     CCommandParser(void)
     {
         cmd_filename = "";
@@ -39,29 +38,27 @@ public:
     }
 
     ~CCommandParser(void)
-    {
-    }
+    {}
 
     parameter_list getParameterList()
     {
         return param_list;
     }
 
-
-    bool checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_as_pixel=false);
+    bool checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_as_pixel = false);
     bool checkVelChannels(dlist & values, dlist nr_of_channels);
 
     dlist parseValues(string & str);
-    void formatLine(string &line);
+    void formatLine(string & line);
     bool parse();
     bool parseLine(parameters * param, string cmd, string data, uint id);
     dlist parseDataString(string data);
     string seperateString(string & str);
 
-private:
+  private:
     int tag;
     string cmd_filename;
-    //parameter param;
+    // parameter param;
     uint line_counter;
     parameter_list param_list;
 

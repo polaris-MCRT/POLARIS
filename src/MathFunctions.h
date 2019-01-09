@@ -1,18 +1,17 @@
 #pragma once
-#include "typedefs.h"
+#include "Faddeeva.hh"
 #include "Matrix2D.h"
 #include "Stokes.h"
-#include "Faddeeva.hh"
-#include <limits>
+#include "typedefs.h"
 #include <complex>
+#include <limits>
 
 #ifndef CMATHFUNCTIONS
 #define CMATHFUNCTIONS
 
 class spline
 {
-public:
-
+  public:
     spline()
     {
         N = 0;
@@ -205,7 +204,7 @@ public:
 
         for(uint i = 0; i < N; i++)
         {
-            //if((x[i + 1] - x[i]) == 0.0)
+            // if((x[i + 1] - x[i]) == 0.0)
             //    cout << "\nERROR: Spline broken!" << endl;
             u[i] = x[i + 1] - x[i];
         }
@@ -288,13 +287,17 @@ public:
 
             if(u[i] == 0)
             {
-                cout << "\nERROR:  Identical values in x[" << i << "] and x[" << i + 1 << "]!\n                        ";
-                cout << u[i] << "        Try smaller step sizes in Spline. \n                        ";
+                cout << "\nERROR:  Identical values in x[" << i << "] and x[" << i + 1
+                     << "]!\n                        ";
+                cout << u[i]
+                     << "        Try smaller step sizes in Spline. \n                    "
+                        "    ";
                 u[i] = 1;
             }
 
             w[i] = 6.0 * ((y[i + 1] - y[i]) / u[i] - (y[i] - y[i - 1]) / u[i - 1]);
-            //cout << i << " x:" << x[i] << " y:" << y[i]<< " d:" << d[i] << " u:" << u[i] << " w:" << w[i] << endl;
+            // cout << i << " x:" << x[i] << " y:" << y[i]<< " d:" << d[i] << " u:" <<
+            // u[i] << " w:" << w[i] << endl;
         }
 
         for(uint i = 1; i < N - 1; i++)
@@ -302,7 +305,7 @@ public:
             w[i + 1] -= w[i] * u[i] / d[i];
             d[i + 1] -= u[i] * u[i] / d[i];
 
-            //cout << i << " " << w[i] << " " << d[i] << endl;
+            // cout << i << " " << w[i] << " " << d[i] << endl;
         }
 
         for(uint i = N - 1; i > 0; i--)
@@ -378,12 +381,12 @@ public:
         double t = (v - x[min]) / (u[min]);
 
         return t * y[min + 1] + (1 - t) * y[min] +
-            u[min] * u[min] * (f(t) * p[min + 1] + f(1 - t) * p[min]) / 6.0;
+               u[min] * u[min] * (f(t) * p[min + 1] + f(1 - t) * p[min]) / 6.0;
     }
 
     double getLimitedValue(double v, double limit)
     {
-        double t; //int i=1;
+        double t; // int i=1;
         unsigned int min_ID = 0, max_ID = N;
 
         if(v < x[0] || v > x[N])
@@ -416,15 +419,13 @@ public:
             max_val = max(y[min_ID], y[min_ID + 1]);
         }
 
-        //double lim_min = limit*min_val;
+        // double lim_min = limit*min_val;
         double lim_max = (1 + limit) * max_val;
-
 
         t = (v - x[min_ID]) / (u[min_ID]);
 
-        double res = t * y[min_ID + 1] + (1 - t) * y[min_ID]
-                + u[min_ID] * u[min_ID] * (f(t) * p[min_ID + 1] + f(1 - t) * p[min_ID])
-                / 6.0;
+        double res = t * y[min_ID + 1] + (1 - t) * y[min_ID] +
+                     u[min_ID] * u[min_ID] * (f(t) * p[min_ID + 1] + f(1 - t) * p[min_ID]) / 6.0;
 
         double diff, lim_f;
 
@@ -505,7 +506,7 @@ public:
         return y[i];
     }
 
-private:
+  private:
     uint N;
     double * d;
     double * u;
@@ -517,11 +518,9 @@ private:
     dlist dx, dy;
 };
 
-
 class interp
 {
-public:
-
+  public:
     interp()
     {
         N = 0;
@@ -642,21 +641,19 @@ public:
                 }
             }
         }
-        
+
         return 0;
     }
 
-private:
+  private:
     uint N;
     double * x;
     double * y;
 };
 
-
 class prob_list
 {
-public:
-
+  public:
     prob_list()
     {
         N = 0;
@@ -740,39 +737,38 @@ public:
             resize(N + 1);
     }
 
-private:
+  private:
     uint N;
     double * x;
 };
 
 namespace
 {
-    inline prob_list operator-(prob_list & list1, prob_list & list2)
-    {
-        if (list1.size() != list2.size())
-            cout << "\nERROR: Probability lists have different lengths!";
-        prob_list diff_list(list1.size());
+inline prob_list operator-(prob_list & list1, prob_list & list2)
+{
+    if(list1.size() != list2.size())
+        cout << "\nERROR: Probability lists have different lengths!";
+    prob_list diff_list(list1.size());
 
-        for(uint i = 0; i < list1.size(); i++)
-            diff_list.setValue(i, list1.X(i) - list2.X(i));
+    for(uint i = 0; i < list1.size(); i++)
+        diff_list.setValue(i, list1.X(i) - list2.X(i));
 
-        return diff_list;
-    }
+    return diff_list;
+}
 
-    inline spline operator*(double val, spline & spline2)
-    {
-        spline res_spline(spline2.size());
+inline spline operator*(double val, spline & spline2)
+{
+    spline res_spline(spline2.size());
 
-        for(uint i = 0; i < spline2.size(); i++)
-            res_spline.setValue(i, spline2.getX(i), spline2.getY(i) * val);
-        return res_spline;
-    }
+    for(uint i = 0; i < spline2.size(); i++)
+        res_spline.setValue(i, spline2.getX(i), spline2.getY(i) * val);
+    return res_spline;
+}
 }
 
 class CMathFunctions
 {
-public:
-
+  public:
     CMathFunctions(void)
     {
         b = 0;
@@ -802,8 +798,7 @@ public:
 
     void initSEDStatistics(uint _nr_ofSeq);
 
-    bool writeSEDStatistics(string path, bool fin, Vector3D axis1,
-            Vector3D axis2);
+    bool writeSEDStatistics(string path, bool fin, Vector3D axis1, Vector3D axis2);
 
     ~CMathFunctions(void)
     {
@@ -823,7 +818,7 @@ public:
 
     static inline bool isPowerOfTwo(int num)
     {
-        return ((num &(num - 1)) == 0);
+        return ((num & (num - 1)) == 0);
     }
 
     static inline Vector3D SolveEqSys(Matrix2D & inA, Vector3D b)
@@ -861,9 +856,9 @@ public:
             a[i - 1] = sum / A(i - 1, i - 1);
         }
 
-        //res.setX(a[0]);
-        //res.setY(a[1]);
-        //res.setZ(a[2]);
+        // res.setX(a[0]);
+        // res.setY(a[1]);
+        // res.setZ(a[2]);
 
         delete[] a;
         return res;
@@ -893,7 +888,6 @@ public:
 
                 b[i] = b[i] - b[k] * x;
             }
-
         }
 
         // Resubstitution
@@ -938,7 +932,6 @@ public:
 
                 b[i] = b[i] - b[k] * x;
             }
-
         }
 
         // Resubstitution
@@ -955,7 +948,7 @@ public:
             b[i] = sum / A(i, i);
         }
 
-        //return b;
+        // return b;
     }
 
     static inline double BE_Mass(double r, double rho0, double rc)
@@ -975,14 +968,17 @@ public:
             {
                 A(i - 1, k - 1) = A(i - 1, k - 1) / A(k - 1, k - 1);
                 for(uint j = k + 1; j <= M; j++)
-                    A(i - 1, j - 1) = A(i - 1, j - 1)
-                    - A(i - 1, k - 1) * A(j - 1, k - 1);
+                    A(i - 1, j - 1) = A(i - 1, j - 1) - A(i - 1, k - 1) * A(j - 1, k - 1);
             }
         }
     }
 
-    void setHeader(uint pos, uint seqID, uint sourceID, double wavelength,
-            double _rot_angle1, double _rot_angle2)
+    void setHeader(uint pos,
+                   uint seqID,
+                   uint sourceID,
+                   double wavelength,
+                   double _rot_angle1,
+                   double _rot_angle2)
     {
         stat_data(pos, 0) = double(seqID) + 1;
         stat_data(pos, 1) = double(sourceID) + 1;
@@ -1001,8 +997,7 @@ public:
 
         stat_data(pos, 5)++;
 
-        stat_data
-                (pos, 7) += st.I();
+        stat_data(pos, 7) += st.I();
         if(stat_data(pos, 8) > st.I())
             stat_data(pos, 8) = st.I();
         if(stat_data(pos, 9) < st.I())
@@ -1237,14 +1232,13 @@ public:
         return min;
     }
 
-    static inline double interpolate(double x_min, double x_max,
-            double y_min, double y_max, double x_ipol)
+    static inline double interpolate(double x_min, double x_max, double y_min, double y_max, double x_ipol)
     {
         double ipol2_result;
         if(x_min == x_max)
             ipol2_result = y_min;
         else
-            ipol2_result = (y_max - y_min)*(x_ipol - x_min) / (x_max - x_min) + y_min;
+            ipol2_result = (y_max - y_min) * (x_ipol - x_min) / (x_max - x_min) + y_min;
 
         return ipol2_result;
     }
@@ -1266,7 +1260,7 @@ public:
         double d = 0;
 
         if(N == 2)
-            return((mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]));
+            return ((mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]));
         else
         {
             double submat[5][5];
@@ -1301,7 +1295,7 @@ public:
         double d = 0;
 
         if(N == 2)
-            return((mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]));
+            return ((mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]));
         else
         {
             double submat[4][4];
@@ -1330,8 +1324,7 @@ public:
         return d;
     }
 
-    static inline Vector3D calcKeplerianVelocity(Vector3D pos,
-            double stellar_mass)
+    static inline Vector3D calcKeplerianVelocity(Vector3D pos, double stellar_mass)
     {
         Vector3D velo;
 
@@ -1345,8 +1338,7 @@ public:
         return velo;
     }
 
-    static inline double getClosestLinePoint(Vector3D line_start,
-            Vector3D line_end, Vector3D point)
+    static inline double getClosestLinePoint(Vector3D line_start, Vector3D line_end, Vector3D point)
     {
         Vector3D line_diff = line_end - line_start;
         double line_length_sq = pow(line_diff.length(), 2);
@@ -1404,7 +1396,7 @@ public:
         return false;
     }
 
-    static inline double generateGaussianNoise(const double &variance)
+    static inline double generateGaussianNoise(const double & variance)
     {
         static bool hasSpare = false;
         static double rand1, rand2;
@@ -1417,11 +1409,11 @@ public:
 
         hasSpare = true;
 
-        rand1 = rand() / ((double) RAND_MAX);
+        rand1 = rand() / ((double)RAND_MAX);
         if(rand1 < 1e-100)
             rand1 = 1e-100;
         rand1 = -2 * log(rand1);
-        rand2 = (rand() / ((double) RAND_MAX)) * PIx2;
+        rand2 = (rand() / ((double)RAND_MAX)) * PIx2;
 
         return sqrt(variance * rand1) * cos(rand2);
     }
@@ -1560,8 +1552,7 @@ public:
         if(xlow != xup)
         {
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
         }
 
         return res;
@@ -1572,22 +1563,20 @@ public:
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
 
         return res;
     }
-    
-    //for debugging reasons only
+
+    // for debugging reasons only
     static inline double integ1(dlist x, double * y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
             {
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
-                
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+
                 cout << i << " " << res << " " << x[i] << " " << y[i] << endl;
             }
 
@@ -1599,8 +1588,7 @@ public:
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
 
         return res;
     }
@@ -1610,8 +1598,7 @@ public:
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
 
         return res;
     }
@@ -1621,8 +1608,7 @@ public:
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
 
         return res;
     }
@@ -1632,14 +1618,16 @@ public:
         double res = 0;
         if(xlow != xup)
             for(uint i = xlow + 1; i <= xup; i++)
-                res += (x[i] - x[i - 1]) * y[i - 1]
-                    + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
 
         return res;
     }
 
-    static inline double integ_dust_size(const double * a_eff, const double * quantity,
-        uint nr_of_dust_species, double a_min, double a_max)
+    static inline double integ_dust_size(const double * a_eff,
+                                         const double * quantity,
+                                         uint nr_of_dust_species,
+                                         double a_min,
+                                         double a_max)
     {
         double res = 0;
         double dx, y0, m;
@@ -1647,7 +1635,7 @@ public:
         // If maximum grain size is smaller than the minimum grain size -> return zero
         if(a_max < a_min)
             return res;
-    
+
         // Return the quantity value if only one size is used
         if(nr_of_dust_species == 1)
             return quantity[0];
@@ -1785,8 +1773,7 @@ public:
         return vel / sqrt(con_kB * Tg / (mu * m_H));
     }
 
-    static inline double calc_larm_limit(double B, double Td, double Tg,
-            double ng, double s, double larm_f)
+    static inline double calc_larm_limit(double B, double Td, double Tg, double ng, double s, double larm_f)
     {
         double den = 1.0 * ng * Td * sqrt(Tg);
 
@@ -1798,22 +1785,21 @@ public:
 
     static inline double planck(double l, double T)
     {
-        return(2.0 * con_h * con_c * con_c) / ((l * l * l * l * l) *
-            (exp((con_h * con_c) / (l * con_kB * T)) - 1));
+        return (2.0 * con_h * con_c * con_c) /
+               ((l * l * l * l * l) * (exp((con_h * con_c) / (l * con_kB * T)) - 1));
     }
 
     static inline double planck_hz(double f, double T)
     {
 
-        return(2.0 * con_h * f * f * f)
-                / ((con_c * con_c) * (exp((con_h * f) / (con_kB * T)) - 1));
+        return (2.0 * con_h * f * f * f) / ((con_c * con_c) * (exp((con_h * f) / (con_kB * T)) - 1));
     }
 
     static inline double dplanck_dT(double l, double T)
     {
         double ex = exp((con_h * con_c) / (l * con_kB * T));
-        ex = (2.0 * con_c * con_c * con_c * ex * con_h * con_h)
-                / ((ex - 1) * (ex - 1) * con_kB * l * l * l * l * l * l * T * T);
+        ex = (2.0 * con_c * con_c * con_c * ex * con_h * con_h) /
+             ((ex - 1) * (ex - 1) * con_kB * l * l * l * l * l * l * T * T);
 
         if(ex != ex)
             return 0;
@@ -1830,10 +1816,9 @@ public:
         else if(wavelength >= 0.134e-6 && wavelength < 0.25e-6)
             return 0.0566 * pow((wavelength * 1e6), -1.6678);
         else if(wavelength >= 0.25e-6)
-            return 1e-14 * planck(wavelength, 7500.0) + 
-                1e-13 * planck(wavelength, 4000.0) + 
-                4e-13 * planck(wavelength, 3000.0);
-        
+            return 1e-14 * planck(wavelength, 7500.0) + 1e-13 * planck(wavelength, 4000.0) +
+                   4e-13 * planck(wavelength, 3000.0);
+
         return 0;
     }
 
@@ -2053,7 +2038,10 @@ public:
         return 0;
     }
 
-    static inline Matrix2D getRotationMatrix(double cos_phi, double sin_phi, double cos_theta, double sin_theta)
+    static inline Matrix2D getRotationMatrix(double cos_phi,
+                                             double sin_phi,
+                                             double cos_theta,
+                                             double sin_theta)
     {
         Matrix2D D;
         D.resize(3, 3);
@@ -2079,8 +2067,11 @@ public:
         return atan3(cos_angle_1, cos_angle_2);
     }
 
-    static inline Matrix2D getPropMatrixASigmaP(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixASigmaP(double cos_theta,
+                                                double sin_theta,
+                                                double cos_2_phi,
+                                                double sin_2_phi,
+                                                double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
@@ -2097,8 +2088,11 @@ public:
         return propMatrix;
     }
 
-    static inline Matrix2D getPropMatrixASigmaM(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixASigmaM(double cos_theta,
+                                                double sin_theta,
+                                                double cos_2_phi,
+                                                double sin_2_phi,
+                                                double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
@@ -2115,8 +2109,11 @@ public:
         return propMatrix;
     }
 
-    static inline Matrix2D getPropMatrixAPi(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixAPi(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(0, 0, sin_theta * sin_theta * mult);
@@ -2131,8 +2128,11 @@ public:
         return propMatrix;
     }
 
-    static inline Matrix2D getPropMatrixBSigmaP(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixBSigmaP(double cos_theta,
+                                                double sin_theta,
+                                                double cos_2_phi,
+                                                double sin_2_phi,
+                                                double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(1, 2, -2 * cos_theta * mult);
@@ -2145,8 +2145,11 @@ public:
         return propMatrix;
     }
 
-    static inline Matrix2D getPropMatrixBSigmaM(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixBSigmaM(double cos_theta,
+                                                double sin_theta,
+                                                double cos_2_phi,
+                                                double sin_2_phi,
+                                                double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(1, 2, +2 * cos_theta * mult);
@@ -2159,8 +2162,11 @@ public:
         return propMatrix;
     }
 
-    static inline Matrix2D getPropMatrixBPi(double cos_theta, double sin_theta,
-            double cos_2_phi, double sin_2_phi, double mult)
+    static inline Matrix2D getPropMatrixBPi(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult)
     {
         Matrix2D propMatrix(4, 4);
         propMatrix.addValue(1, 3, -sin_2_phi * sin_theta * sin_theta * mult);
@@ -2171,10 +2177,9 @@ public:
         return propMatrix;
     }
 
-    static inline Vector3D interpVector(Vector3D y_1, Vector3D y_2, double x_1,
-            double x_2)
+    static inline Vector3D interpVector(Vector3D y_1, Vector3D y_2, double x_1, double x_2)
     {
-        return(y_2 - y_1) / (x_2 - x_1);
+        return (y_2 - y_1) / (x_2 - x_1);
     }
 
     static inline double lum2Jy(double intensity, double wavelength, double distance)
@@ -2182,9 +2187,9 @@ public:
         if(abs(intensity) < 1e-47)
             return 0;
 
-        double freq = con_c / wavelength; // [s^-1]
+        double freq = con_c / wavelength;             // [s^-1]
         double L = intensity * con_c / (freq * freq); // [W Hz^-1 sr^-1]
-        return L * 1.0e+26 / (distance * distance); // [Jy]
+        return L * 1.0e+26 / (distance * distance);   // [Jy]
     }
 
     static inline void lum2Jy(class StokesVector & S, double wavelength, double distance)
@@ -2280,10 +2285,10 @@ public:
 
     static inline void gauss(Matrix2D & inA, double * b, double * res, uint n)
     {
-        //int n = inb.size();
+        // int n = inb.size();
         double x, sum;
         Matrix2D A = inA;
-        //dlist res;
+        // dlist res;
 
         /*b[0] = inb.X();
         b[1] = inb.Y();
@@ -2303,12 +2308,11 @@ public:
 
                 b[i] = b[i] - b[k] * x;
             }
-
         }
 
         // Resubstitution
 
-        //res.resize(n);
+        // res.resize(n);
         b[n - 1] = b[n - 1] / A(n - 1, n - 1);
         for(int i = int(n) - 2; i >= 0; i--)
         {
@@ -2324,7 +2328,7 @@ public:
         }
 
         res[n - 1] = b[n - 1];
-        //return res;
+        // return res;
     }
 
     static inline dlist gauss_solver(Matrix2D & A, uint n, dlist & b)
@@ -2404,17 +2408,19 @@ public:
         return x;
     }
 
-    static inline double fmodulo(double v1, double v2) {
+    static inline double fmodulo(double v1, double v2)
+    {
         /*! Returns the remainder of the division \a v1/v2.
         The result is non-negative.
         \a v1 can be positive or negative; \a v2 must be positive. */
-        if (v1 >= 0)
+        if(v1 >= 0)
             return (v1 < v2) ? v1 : fmod(v1, v2);
         double tmp = fmod(v1, v2) + v2;
         return (tmp == v2) ? 0. : tmp;
     }
 
-    static inline int imodulo(int v1, int v2) {
+    static inline int imodulo(int v1, int v2)
+    {
         /*! Returns the remainder of the division \a v1/v2.
         The result is non-negative.
         \a v1 can be positive or negative; \a v2 must be positive. */
@@ -2433,11 +2439,12 @@ public:
         {
             x = fabs(real(z));
             y = fabs(imag(z));
-            if (x >= y) {
+            if(x >= y)
+            {
                 r = y / x;
                 w = sqrt(x) * sqrt(0.5 * (1.0 + sqrt(1.0 + r * r)));
-            } 
-            else 
+            }
+            else
             {
                 r = x / y;
                 w = sqrt(y) * sqrt(0.5 * (r + sqrt(1.0 + r * r)));
@@ -2456,198 +2463,196 @@ public:
         return c;
     }
 
-/*
-    static bool calcBHMie(double x, fcomplex refractive_index, 
-            double &qext, double &qabs, double &qsca, double &gsca,
-            double *S11, double *S12, double *S33, double *S34)
-        // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
-        // to calculate scattering and absorption by a homogenous isotropic
-        // sphere.
+    /*
+        static bool calcBHMie(double x, fcomplex refractive_index,
+                double &qext, double &qabs, double &qsca, double &gsca,
+                double *S11, double *S12, double *S33, double *S34)
+            // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
+            // to calculate scattering and absorption by a homogenous isotropic
+            // sphere.
 
-        // Comment:
-        //     NANG = number of angles between 0 and 90 degrees
-        //             (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
+            // Comment:
+            //     NANG = number of angles between 0 and 90 degrees
+            //             (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
 
-        // Given:
-        //     X = 2*pi*a/lambda
-        //     REFREL = (complex refractive index of sphere) / (real index of medium)
+            // Given:
+            //     X = 2*pi*a/lambda
+            //     REFREL = (complex refractive index of sphere) / (real index of medium)
 
-        // Returns:
-        //     S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
-        //                               scattering E perpendicular to scattering plane)
-        //     S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
-        //                               scattering E parallel to scattering plane)
-        //     QEXT = C_ext/pi*a**2 = efficiency factor for extinction
-        //     QSCA = C_sca/pi*a**2 = efficiency factor for scattering
-        //     QBACK = 4*pi*(dC_sca/domega)/pi*a**2
-        //         = backscattering efficiency
-        //     GSCA = <cos(theta)> for scattering
-    
-        // Original program taken from Bohren and Huffman (1983), Appendix A
-        // Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
-        // in order to compute <cos(theta)>
-    {
-        fcomplex cxy = fcomplex(x, 0) * refractive_index;
+            // Returns:
+            //     S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
+            //                               scattering E perpendicular to scattering
+       plane)
+            //     S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
+            //                               scattering E parallel to scattering plane)
+            //     QEXT = C_ext/pi*a**2 = efficiency factor for extinction
+            //     QSCA = C_sca/pi*a**2 = efficiency factor for scattering
+            //     QBACK = 4*pi*(dC_sca/domega)/pi*a**2
+            //         = backscattering efficiency
+            //     GSCA = <cos(theta)> for scattering
 
-        // Series expansion terminated after XSTOP terms
-        float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
-        long nmx = fmax(xstop, abs(cxy)) + 15;
-
-        if (nmx >= MAX_MIE_ITERATIONS) {
-            cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " 
-                << nmx << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" << endl;
-            return false;
-        }
-        
-        float amu[NANG];
-        float dang = 0.5 * PI / float(NANG - 1);
-        for (int j = 0; j < NANG; j++)
-            amu[j] = cos(float(j) * dang);
-
-        // Logarithmic derivative D(J) calculated by downward recurrence
-        // beginning with initial value (0., 0.) at J=NMX
-        fcomplex cxd[MAX_MIE_ITERATIONS];
-        cxd[nmx] = fcomplex(0, 0);
-
-        fcomplex cxtemp;
-        for(long n = 0; n < nmx - 1; n++)
+            // Original program taken from Bohren and Huffman (1983), Appendix A
+            // Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
+            // in order to compute <cos(theta)>
         {
-            float rn = float(nmx - n);
-            cxd[nmx - (n + 1)] = fcomplex(rn, 0) / cxy - 
-                fcomplex(1.0, 0.0) / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
-        }
+            fcomplex cxy = fcomplex(x, 0) * refractive_index;
 
-        float pi[NANG], pi0[NANG], pi1[NANG];
-        for(int j = 0; j < NANG; j++)
-        {
-            pi0[j] = 0.0;
-            pi1[j] = 1.0;
-        }
+            // Series expansion terminated after XSTOP terms
+            float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
+            long nmx = fmax(xstop, abs(cxy)) + 15;
 
-        fcomplex cxs1[2 * NANG - 1], cxs2[2 * NANG - 1];
-        for(int j = 0; j < 2 * NANG - 1; j++)
-        {
-            cxs1[j] = fcomplex(0, 0);
-            cxs2[j] = fcomplex(0, 0);
-        }
-
-        // Riccati-Bessel functions with real argument X calculated by upward recurrence
-        double dn, psi; 
-        double psi0 = cos(x);
-        double psi1 = sin(x);
-        float rn, fn, apsi, chi;
-        float chi0 = -sin(x);
-        float chi1 = cos(x);
-        float apsi0 = psi0;
-        float apsi1 = psi1;
-        float tau[NANG];
-        qsca = 0.0;
-        gsca = 0.0;
-        fcomplex cxxi;
-        fcomplex cxxi0 = fcomplex(apsi0, -chi0);
-        fcomplex cxxi1 = fcomplex(apsi1, -chi1);
-        fcomplex cxan, cxan1, cxbn, cxbn1;
-
-        for (long n = 1; n <= long(xstop); n++)
-        {
-            dn = n;
-            rn = n;
-            fn = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
-            psi = (2.0 * dn - 1.0) * psi1 / x - psi0;
-            apsi = psi;
-            chi = (2.0 * rn - 1.0) * chi1 / x - chi0;
-            cxxi = fcomplex(apsi, -chi);
-
-            // Store previous values of AN and BN for use in computation of g=<cos(theta)>
-            if(n > 1)
-            {
-                cxan1 = cxan;
-                cxbn1 = cxbn;
+            if (nmx >= MAX_MIE_ITERATIONS) {
+                cout << "\nERROR: Failure in Mie-scattering calculation (NMX = "
+                    << nmx << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" <<
+       endl; return false;
             }
 
-            // Compute AN and BN
-            cxan = (cxd[n] / refractive_index + fcomplex(rn / x, 0)) * 
-                fcomplex(apsi, 0) - fcomplex(apsi1, 0);
-            cxan = cxan / ((cxd[n] / refractive_index + fcomplex(rn / x, 0)) * 
-                cxxi - cxxi1);
-            cxbn = (refractive_index * cxd[n] + fcomplex(rn / x, 0)) * 
-                fcomplex(apsi, 0) - fcomplex(apsi1, 0);
-            cxbn = cxbn / ((refractive_index * cxd[n] + fcomplex(rn / x, 0)) * 
-                cxxi - cxxi1);
+            float amu[NANG];
+            float dang = 0.5 * PI / float(NANG - 1);
+            for (int j = 0; j < NANG; j++)
+                amu[j] = cos(float(j) * dang);
 
-            // Augment sums for *qsca and g=<cos(theta)>
-            qsca = qsca + (2.0 * rn + 1.0) * (abs(cxan) * 
-                abs(cxan) + abs(cxbn) * abs(cxbn)); 
-            gsca = gsca + ((2.0 * rn + 1.0) / (rn * (rn + 1.0))) * 
-                (real(cxan) * real(cxbn) + imag(cxan) * imag(cxbn)); 
+            // Logarithmic derivative D(J) calculated by downward recurrence
+            // beginning with initial value (0., 0.) at J=NMX
+            fcomplex cxd[MAX_MIE_ITERATIONS];
+            cxd[nmx] = fcomplex(0, 0);
 
-            if (n > 1)
-                gsca = gsca + ((rn-1.) * (rn + 1.0) / rn) * (
-                    real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) + 
-                    real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
-            
+            fcomplex cxtemp;
+            for(long n = 0; n < nmx - 1; n++)
+            {
+                float rn = float(nmx - n);
+                cxd[nmx - (n + 1)] = fcomplex(rn, 0) / cxy -
+                    fcomplex(1.0, 0.0) / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
+            }
+
+            float pi[NANG], pi0[NANG], pi1[NANG];
             for(int j = 0; j < NANG; j++)
             {
-                int jj = 2 * NANG - 1 - j;
-                pi[j] = pi1[j];
-                tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
+                pi0[j] = 0.0;
+                pi1[j] = 1.0;
+            }
 
-                float p = pow(-1.0, n - 1);
-                cxs1[j] = cxs1[j] + (fcomplex(fn, 0) * 
-                    (cxan * fcomplex(pi[j], 0) + cxbn * fcomplex(tau[j], 0)));
+            fcomplex cxs1[2 * NANG - 1], cxs2[2 * NANG - 1];
+            for(int j = 0; j < 2 * NANG - 1; j++)
+            {
+                cxs1[j] = fcomplex(0, 0);
+                cxs2[j] = fcomplex(0, 0);
+            }
 
-                float t = pow(-1.0, n);
-                cxs2[j] = cxs2[j] + fcomplex(fn, 0) * 
-                    (cxan * fcomplex(tau[j], 0) + cxbn * fcomplex(pi[j], 0));
+            // Riccati-Bessel functions with real argument X calculated by upward
+       recurrence double dn, psi; double psi0 = cos(x); double psi1 = sin(x); float rn,
+       fn, apsi, chi; float chi0 = -sin(x); float chi1 = cos(x); float apsi0 = psi0; float
+       apsi1 = psi1; float tau[NANG]; qsca = 0.0; gsca = 0.0; fcomplex cxxi; fcomplex
+       cxxi0 = fcomplex(apsi0, -chi0); fcomplex cxxi1 = fcomplex(apsi1, -chi1); fcomplex
+       cxan, cxan1, cxbn, cxbn1;
 
-                if (j != jj)
+            for (long n = 1; n <= long(xstop); n++)
+            {
+                dn = n;
+                rn = n;
+                fn = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
+                psi = (2.0 * dn - 1.0) * psi1 / x - psi0;
+                apsi = psi;
+                chi = (2.0 * rn - 1.0) * chi1 / x - chi0;
+                cxxi = fcomplex(apsi, -chi);
+
+                // Store previous values of AN and BN for use in computation of
+       g=<cos(theta)> if(n > 1)
                 {
-                    cxs1[jj] = cxs1[jj] + fcomplex(fn, 0) * 
-                        (cxan * fcomplex(pi[j] * p, 0) + cxbn * fcomplex(tau[j] * t, 0));
-                    cxs2[jj] = cxs2[jj] + fcomplex(fn, 0) * 
-                        (cxan * fcomplex(tau[j] * t, 0) + cxbn * fcomplex(pi[j] * p, 0));
+                    cxan1 = cxan;
+                    cxbn1 = cxbn;
+                }
+
+                // Compute AN and BN
+                cxan = (cxd[n] / refractive_index + fcomplex(rn / x, 0)) *
+                    fcomplex(apsi, 0) - fcomplex(apsi1, 0);
+                cxan = cxan / ((cxd[n] / refractive_index + fcomplex(rn / x, 0)) *
+                    cxxi - cxxi1);
+                cxbn = (refractive_index * cxd[n] + fcomplex(rn / x, 0)) *
+                    fcomplex(apsi, 0) - fcomplex(apsi1, 0);
+                cxbn = cxbn / ((refractive_index * cxd[n] + fcomplex(rn / x, 0)) *
+                    cxxi - cxxi1);
+
+                // Augment sums for *qsca and g=<cos(theta)>
+                qsca = qsca + (2.0 * rn + 1.0) * (abs(cxan) *
+                    abs(cxan) + abs(cxbn) * abs(cxbn));
+                gsca = gsca + ((2.0 * rn + 1.0) / (rn * (rn + 1.0))) *
+                    (real(cxan) * real(cxbn) + imag(cxan) * imag(cxbn));
+
+                if (n > 1)
+                    gsca = gsca + ((rn-1.) * (rn + 1.0) / rn) * (
+                        real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) +
+                        real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
+
+                for(int j = 0; j < NANG; j++)
+                {
+                    int jj = 2 * NANG - 1 - j;
+                    pi[j] = pi1[j];
+                    tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
+
+                    float p = pow(-1.0, n - 1);
+                    cxs1[j] = cxs1[j] + (fcomplex(fn, 0) *
+                        (cxan * fcomplex(pi[j], 0) + cxbn * fcomplex(tau[j], 0)));
+
+                    float t = pow(-1.0, n);
+                    cxs2[j] = cxs2[j] + fcomplex(fn, 0) *
+                        (cxan * fcomplex(tau[j], 0) + cxbn * fcomplex(pi[j], 0));
+
+                    if (j != jj)
+                    {
+                        cxs1[jj] = cxs1[jj] + fcomplex(fn, 0) *
+                            (cxan * fcomplex(pi[j] * p, 0) + cxbn * fcomplex(tau[j] * t,
+       0)); cxs2[jj] = cxs2[jj] + fcomplex(fn, 0) * (cxan * fcomplex(tau[j] * t, 0) + cxbn
+       * fcomplex(pi[j] * p, 0));
+                    }
+                }
+
+                psi0 = psi1;
+                psi1 = psi;
+                apsi1 = psi1;
+                chi0 = chi1;
+                chi1 = chi;
+                cxxi1 = fcomplex(apsi1, -chi1);
+
+                // For each angle J, compute pi_n+1 from PI = pi_n , PI0 = pi_n-1
+                for (int j = 0; j < NANG; j++)
+                {
+                    pi1[j] = ((2.0 * rn + 1.0) * amu[j] * pi[j] - (rn + 1.0) * pi0[j]) /
+       rn; pi0[j] = pi[j];
                 }
             }
 
-            psi0 = psi1;
-            psi1 = psi;
-            apsi1 = psi1;
-            chi0 = chi1;
-            chi1 = chi;
-            cxxi1 = fcomplex(apsi1, -chi1);
+            // Have summed sufficient terms. Now compute *qsca,*qext,*qback,and *gsca
+            gsca = 2.0 * gsca / qsca;
+            qsca = (2.0 / (x * x)) * qsca;
+            qext = (4.0 / (x * x)) * real(cxs1[0]);
+            qabs = qext - qsca;
+            //*qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
 
-            // For each angle J, compute pi_n+1 from PI = pi_n , PI0 = pi_n-1
-            for (int j = 0; j < NANG; j++) 
+            for(int j = 0; j < 2 * NANG - 1; j++)
             {
-                pi1[j] = ((2.0 * rn + 1.0) * amu[j] * pi[j] - (rn + 1.0) * pi0[j]) / rn;
-                pi0[j] = pi[j];
+                S11[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) + abs(cxs1[j]) *
+       abs(cxs1[j])); S12[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) - abs(cxs1[j]) *
+       abs(cxs1[j])); S33[j] = real(cxs2[j] * conj(cxs1[j])); S34[j] = imag(cxs2[j] *
+       conj(cxs1[j]));
             }
+
+            return true;
         }
+    */
 
-        // Have summed sufficient terms. Now compute *qsca,*qext,*qback,and *gsca
-        gsca = 2.0 * gsca / qsca;
-        qsca = (2.0 / (x * x)) * qsca;
-        qext = (4.0 / (x * x)) * real(cxs1[0]);
-        qabs = qext - qsca;
-        //*qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
-
-        for(int j = 0; j < 2 * NANG - 1; j++)
-        {
-            S11[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) + abs(cxs1[j]) * abs(cxs1[j]));
-            S12[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) - abs(cxs1[j]) * abs(cxs1[j]));
-            S33[j] = real(cxs2[j] * conj(cxs1[j]));
-            S34[j] = imag(cxs2[j] * conj(cxs1[j]));
-        }
-
-        return true;
-    }
-*/
-
-    static bool calcWVMie(double x, dcomplex refractive_index, 
-            double &qext, double &qabs, double &qsca, double &gsca,
-            double *S11, double *S12, double *S33, double *S34)
-        //Wolf & Voshchinnikov approximation of optical properties for spherical grains.
-    {        
+    static bool calcWVMie(double x,
+                          dcomplex refractive_index,
+                          double & qext,
+                          double & qabs,
+                          double & qsca,
+                          double & gsca,
+                          double * S11,
+                          double * S12,
+                          double * S33,
+                          double * S34)
+    // Wolf & Voshchinnikov approximation of optical properties for spherical grains.
+    {
         // Step width
         double dang = PI2 / float(NANG - 1);
         double factor = 1e250;
@@ -2656,11 +2661,11 @@ public:
             return false;
 
         double ax = 1 / x;
-        double b  = 2 *  pow(ax, 2);
+        double b = 2 * pow(ax, 2);
         dcomplex ss(0, 0);
         dcomplex s3(0, -1);
         double an = 3;
-        
+
         // choice of number for subroutine aa [Loskutov (1971)]
         double y = abs(refractive_index) * x;
         uint num = uint(1.25 * y + 15.5);
@@ -2668,13 +2673,13 @@ public:
             num = 7.5 * y + 9.0;
         else if(y > 100 && y < 50000)
             num = 1.0625 * y + 28.5;
-        else if (y >= 50000)
+        else if(y >= 50000)
             num = 1.005 * y + 50.5;
-        
+
         if(num >= MAX_MIE_ITERATIONS - 1)
         {
             return false;
-            //return calcGeometricOptics(x, refractive_index, qext, qabs, 
+            // return calcGeometricOptics(x, refractive_index, qext, qabs,
             //    qabs, gsca, S11, S12, S33, S34);
         }
 
@@ -2689,105 +2694,105 @@ public:
             ru[num - n] = s1 - dcomplex(1, 0) / (ru[num - n + 1] + s1);
         }
 
-        // initialize term counter        
+        // initialize term counter
         uint iterm = 1;
-        
+
         // Bessel functions
         double ass = sqrt(PI2 * ax);
         double w1 = invPI2 * ax;
         double Si = sin(x) / x;
         double Co = cos(x) / x;
-        
+
         // n=0
         double besJ0 = Si / ass;
         double besY0 = -Co / ass;
         uint iu0 = 0;
-        
+
         // n=1
         double besJ1 = (Si * ax - Co) / ass;
         double besY1 = (-Co * ax - Si) / ass;
         uint iu1 = 0;
         uint iu2 = 0;
-        
+
         // Mie coefficients (first term)
         dcomplex s, s1, s2, ra0, rb0;
 
         // coefficient a_1
-        s  = ru[iterm] / refractive_index + ax;
+        s = ru[iterm] / refractive_index + ax;
         s1 = s * besJ1 - besJ0;
         s2 = s * besY1 - besY0;
         ra0 = s1 / (s1 - s3 * s2);
-        
+
         // coefficient b_1
-        s   = ru[iterm] * refractive_index + ax;
-        s1  = s * besJ1 - besJ0;
-        s2  = s * besY1 - besY0;
+        s = ru[iterm] * refractive_index + ax;
+        s1 = s * besJ1 - besJ0;
+        s2 = s * besY1 - besY0;
         rb0 = s1 / (s1 - s3 * s2);
-        
+
         // efficiency factors (first term)
         dcomplex r = -1.5 * (ra0 - rb0);
         qext = an * real(ra0 + rb0);
         qsca = an * (norm(ra0) + norm(rb0));
-        
+
         // first term (iterm=1)
         dlist dAMU(NANG), dPI0(NANG), dPI1(NANG);
         for(uint iang = 0; iang < NANG; iang++)
         {
-            dAMU[iang]   = cos(double(iang) * dang);
-                
+            dAMU[iang] = cos(double(iang) * dang);
+
             dPI0[iang] = 0;
             dPI1[iang] = 1;
         }
-            
+
         uint NN = 2 * NANG - 1;
-        dcomplex SM1[NN], SM2[NN]; 
+        dcomplex SM1[NN], SM2[NN];
         for(uint iang = 0; iang < NN; iang++)
         {
             SM1[iang] = dcomplex(0, 0);
             SM2[iang] = dcomplex(0, 0);
-        }       
-        
+        }
+
         double r_iterm = double(iterm), P, T;
         double FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
         dlist dPI(NANG), dTAU(NANG);
         for(uint iang = 0; iang < NANG; iang++)
         {
             uint iang2 = 2 * NANG - 1 - iang;
-                
-            dPI[iang]  = dPI1[iang];
+
+            dPI[iang] = dPI1[iang];
             dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
-                
+
             P = pow(-1, iterm - 1);
-            SM1[iang]  = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
-                
+            SM1[iang] = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
+
             T = pow(-1, iterm);
             SM2[iang] = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
-                
+
             if(iang != iang2)
             {
                 SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
                 SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
             }
         }
-            
+
         iterm++;
-        r_iterm = double(iterm);    
+        r_iterm = double(iterm);
         for(uint iang = 0; iang < NANG; iang++)
         {
             dPI1[iang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[iang] * dPI[iang];
             dPI1[iang] = dPI1[iang] - r_iterm * dPI0[iang] / (r_iterm - 1);
             dPI0[iang] = dPI[iang];
         }
-        
+
         double z = -1, besY2, besJ2, an2, qq;
         dcomplex ra1, rb1, rr;
         while(true)
         {
-            //if(iterm % 1000 == 0)
+            // if(iterm % 1000 == 0)
             //    cout << x << TAB << iterm << endl;
-            an  = an + 2;
+            an = an + 2;
             an2 = an - 2;
-            
+
             // Bessel functions
             if(iu1 == iu0)
                 besY2 = an2 * ax * besY1 - besY0;
@@ -2797,38 +2802,38 @@ public:
             if(abs(besY2) > 1e200)
             {
                 besY2 = besY2 / factor;
-                iu2   = iu1 + 1;
+                iu2 = iu1 + 1;
             }
-            
-            // rbrunngraeber 10/14: Changed from besJ2 = (w1 + besY2 * besJ1) / besY1, 
-            // because besY2*besJ1 could become very large (1e300) for large grain sizes, besY2/besY1 is about 1
-            // animated by fkirchschlager
+
+            // rbrunngraeber 10/14: Changed from besJ2 = (w1 + besY2 * besJ1) / besY1,
+            // because besY2*besJ1 could become very large (1e300) for large grain sizes,
+            // besY2/besY1 is about 1 animated by fkirchschlager
             besJ2 = besY2 / besY1;
             besJ2 = w1 / besY1 + besJ2 * besJ1;
-            
+
             // Mie coefficients
             r_iterm = double(iterm);
 
             dcomplex ru_tmp(0, 0);
             if(iterm <= num)
                 ru_tmp = ru[iterm];
-            
+
             s = ru_tmp / refractive_index + r_iterm * ax;
-            s1  = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
-            s2  = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
-            ra1 = s1 / (s1 - s3 * s2);                        // coefficient a_n, (n=iterm)
-            
+            s1 = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
+            s2 = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
+            ra1 = s1 / (s1 - s3 * s2); // coefficient a_n, (n=iterm)
+
             s = ru_tmp * refractive_index + r_iterm * ax;
-            s1  = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
-            s2  = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
-            rb1 = s1 / (s1 - s3 * s2);                        // coefficient b_n, (n=iterm)
-            
+            s1 = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
+            s2 = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
+            rb1 = s1 / (s1 - s3 * s2); // coefficient b_n, (n=iterm)
+
             // efficiency factors
-            z  = -z;
+            z = -z;
             rr = z * (iterm + 0.5) * (ra1 - rb1);
-            r  = r + rr;
+            r = r + rr;
             ss = ss + (iterm - 1) * (iterm + 1) / iterm * real(ra0 * conj(ra1) + rb0 * conj(rb1)) +
-                an2 / iterm / (iterm - 1) * (ra0 * conj(rb0));
+                 an2 / iterm / (iterm - 1) * (ra0 * conj(rb0));
             qq = an * real(ra1 + rb1);
             qext = qext + qq;
             qsca = qsca + an * (norm(ra1) + norm(rb1));
@@ -2836,20 +2841,20 @@ public:
             // leaving-the-loop with error criterion
             if(isnan(qext))
                 return false;
-            
+
             // leaving-the-loop criterion
             if(abs(qq / qext) < MIE_ACCURACY)
                 break;
-            
+
             // Bessel functions
             besJ0 = besJ1;
             besJ1 = besJ2;
             besY0 = besY1;
             besY1 = besY2;
-            iu0   = iu1;
-            iu1   = iu2;
-            ra0   = ra1;
-            rb0   = rb1;
+            iu0 = iu1;
+            iu1 = iu2;
+            ra0 = ra1;
+            rb0 = rb1;
 
             // terms iterm=2,...
             r_iterm = double(iterm);
@@ -2857,23 +2862,23 @@ public:
             for(uint iang = 0; iang < NANG; iang++)
             {
                 uint iang2 = 2 * NANG - iang;
-                    
-                dPI[iang]  = dPI1[iang];
+
+                dPI[iang] = dPI1[iang];
                 dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
-                    
+
                 P = pow(-1, r_iterm - 1);
-                SM1[iang]  = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
-                    
+                SM1[iang] = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
+
                 T = pow(-1, r_iterm);
-                SM2[iang]  = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
-                    
+                SM2[iang] = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
+
                 if(iang != iang2)
                 {
                     SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
                     SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
                 }
             }
-                
+
             iterm++;
             r_iterm = double(iterm);
             for(uint iang = 0; iang < NANG; iang++)
@@ -2886,11 +2891,11 @@ public:
             if(iterm == MAX_MIE_ITERATIONS)
                 return false;
         }
-        
+
         // efficiency factors (final calculations)
         qext = b * qext;
         qsca = b * qsca;
-        //qback = 2 * b * r * conj(r);
+        // qback = 2 * b * r * conj(r);
         double qpr = qext - 2 * b * real(ss);
         qabs = qext - qsca;
         gsca = (qext - qpr) / qsca;
@@ -2906,20 +2911,27 @@ public:
         return true;
     }
 
-    static inline bool calcGeometricOptics(double x, dcomplex refractive_index, 
-            double &qext, double &qabs, double &qsca, double &gsca,
-            double *S11, double *S12, double *S33, double *S34)
+    static inline bool calcGeometricOptics(double x,
+                                           dcomplex refractive_index,
+                                           double & qext,
+                                           double & qabs,
+                                           double & qsca,
+                                           double & gsca,
+                                           double * S11,
+                                           double * S12,
+                                           double * S33,
+                                           double * S34)
     {
         // Efficiency for extinction is 2 in the limit of x>>1
         qext = 2.0;
         // Scattering Henyey-Greenstein g for Draine and Lee silicates
-        gsca = 9.23e-1;   
+        gsca = 9.23e-1;
 
         // Set variables
         double res = 0;
         uint nr_angles = 5000;
         double d_ang = PI2 / double(nr_angles - 1);
-        
+
         // Calculate from 0 to PI/2
         for(uint i = 0; i < nr_angles; i++)
         {
@@ -2959,13 +2971,13 @@ public:
         dcomplex sin_theta = sin(theta) / refractive_index;
         dcomplex cos_theta = sqrt(dcomplex(1, 0) - (sin_theta * sin_theta));
         // r for E parallel to plane
-        dcomplex rpll = (cos_theta - refractive_index * cos(theta)) /
-            (cos_theta + refractive_index * cos(theta));
+        dcomplex rpll =
+            (cos_theta - refractive_index * cos(theta)) / (cos_theta + refractive_index * cos(theta));
 
         // r for E perp. to plane
-        dcomplex rper = (cos(theta)- refractive_index * cos_theta) / 
-            (cos(theta) + refractive_index * cos_theta);
-        
+        dcomplex rper =
+            (cos(theta) - refractive_index * cos_theta) / (cos(theta) + refractive_index * cos_theta);
+
         //  R = ½(|rpll|²+|rper|²)
         double res = (norm(rpll) + norm(rper)) / 2.0;
         return res * sin(theta) * cos(theta);
@@ -2977,13 +2989,14 @@ public:
     }
 
     int IDUM;
-private:
+
+  private:
     // statistics and SED
 
     Matrix2D stat_data;
     uint nr_ofSeq;
 
-    //random number generator
+    // random number generator
     double RM;
     int IY, IFF;
     int IR[98];
@@ -2992,7 +3005,7 @@ private:
     int IA;
     int IC;
 
-    //Chi squared
+    // Chi squared
 
     double * b;
     double * a;
@@ -3021,8 +3034,7 @@ private:
                 A(i - 1, k - 1) = A(i - 1, k - 1) / A(k - 1, k - 1);
 
                 for(uint j = k + 1; j <= M; j++)
-                    A(i - 1, j - 1) = A(i - 1, j - 1)
-                    - A(i - 1, k - 1) * A(j - 1, k - 1);
+                    A(i - 1, j - 1) = A(i - 1, j - 1) - A(i - 1, k - 1) * A(j - 1, k - 1);
             }
         }
     }
@@ -3099,7 +3111,6 @@ private:
 
         return Chi2;
     }
-
 };
 
 #endif

@@ -1,17 +1,17 @@
-#include "Stokes.h"
 #include "RadiativeTransfer.h"
 #include "CommandParser.h"
 #include "Detector.h"
-#include <limits>
+#include "Stokes.h"
 #include <complex>
+#include <limits>
 
 #define XAxis 10
 #define YAxis 20
 #define ZAxis 30
 
-#define FULL     1
-#define PARA     2
-#define ORTH     3
+#define FULL 1
+#define PARA 2
+#define ORTH 3
 
 bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 {
@@ -48,15 +48,16 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 
         if(nr_source > sources_ray.size())
         {
-            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount (" << sources_ray.size()
-                    << ") of defined sources!" << endl;
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
+                 << sources_ray.size() << ") of defined sources!" << endl;
             return false;
         }
 
-        if(detector_id == DET_POLAR &&
-                grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
+        if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and "
+                    "cylindrical grids!"
+                 << endl;
             return false;
         }
     }
@@ -105,14 +106,15 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
         if(nr_source > sources_ray.size())
         {
             cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
-                << sources_ray.size() << ") of defined sources!" << endl;
+                 << sources_ray.size() << ") of defined sources!" << endl;
             return false;
         }
 
-        if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH &&
-                grid->getDataID() != GRID_ID_CYL)
+        if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
         {
-            cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+            cout << "\nERROR: Polar RT grid can only be used with spherical and "
+                    "cylindrical grids!"
+                 << endl;
             return false;
         }
     }
@@ -171,14 +173,16 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
             if(nr_source > sources_ray.size())
             {
                 cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
-                    << sources_ray.size() << ") of defined sources!" << endl;
+                     << sources_ray.size() << ") of defined sources!" << endl;
                 return false;
             }
 
-            if(detector_id == DET_POLAR &&
-                grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
+            if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH &&
+               grid->getDataID() != GRID_ID_CYL)
             {
-                cout << "\nERROR: Polar RT grid can only be used with spherical and cylindrical grids!" << endl;
+                cout << "\nERROR: Polar RT grid can only be used with spherical and "
+                        "cylindrical grids!"
+                     << endl;
                 return false;
             }
         }
@@ -248,8 +252,9 @@ bool CRadiativeTransfer::doMRWStepBW(photon_package * pp)
     return true;
 }
 
-bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command, 
-        bool use_energy_density, bool disable_reemission)
+bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
+                                                      bool use_energy_density,
+                                                      bool disable_reemission)
 {
     // Init variables
     ullong nr_of_photons = 0;
@@ -285,20 +290,20 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         switch(command)
         {
             case CMD_TEMP_RAT:
-                cout << "-> MC temp. and RAT distribution: 0 [%], max. temp. " 
-                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                cout << "-> MC temp. and RAT distribution: 0 [%], max. temp. " << dust->getMaxDustTemp()
+                     << " [K]      \r" << flush;
                 break;
-            
+
             case CMD_TEMP:
-                cout << "-> MC temp. distribution: 0 [%], max. temp. " 
-                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                cout << "-> MC temp. distribution: 0 [%], max. temp. " << dust->getMaxDustTemp()
+                     << " [K]      \r" << flush;
                 break;
 
             default:
                 cout << "-> MC radiation field: 0 [%]      \r" << flush;
                 break;
         }
-        // A loop for each wavelength
+            // A loop for each wavelength
 #pragma omp parallel for schedule(dynamic) collapse(2)
         for(int wID = 0; wID < nr_used_wavelengths; wID++)
         {
@@ -323,13 +328,14 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         switch(command)
                         {
                             case CMD_TEMP_RAT:
-                                cout << "-> MC temp. and RAT distribution: " << percentage << " [%], max. temp. "
-                                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                                cout << "-> MC temp. and RAT distribution: " << percentage
+                                     << " [%], max. temp. " << dust->getMaxDustTemp() << " [K]      \r"
+                                     << flush;
                                 break;
-                            
+
                             case CMD_TEMP:
                                 cout << "-> MC temp. distribution: " << percentage << " [%], max. temp. "
-                                    << dust->getMaxDustTemp() << " [K]      \r" << flush;
+                                     << dust->getMaxDustTemp() << " [K]      \r" << flush;
                                 break;
 
                             default:
@@ -414,7 +420,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                         if(!doMRWStepBW(pp))
                         {
-                            // Calculate the dust scattering cross section (for random alignment)
+                            // Calculate the dust scattering cross section (for random
+                            // alignment)
                             Csca = dust->getCscaMean(grid, pp);
 
                             // Calculate albedo and check if absorption or
@@ -431,8 +438,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                             {
                                 // Calculate the temperature of the absorbing cell
                                 // and change the wavelength of the photon
-                                if(!disable_reemission && 
-                                    dust->adjustTempAndWavelengthBW(grid, pp, use_energy_density))
+                                if(!disable_reemission &&
+                                   dust->adjustTempAndWavelengthBW(grid, pp, use_energy_density))
                                 {
                                     // Send this photon into a new random direction
                                     pp->calcRandomDirection();
@@ -475,15 +482,21 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     switch(command)
     {
         case CMD_TEMP_RAT:
-            cout << "- MC calc. of temperatures and RATs : done                                " << endl;
+            cout << "- MC calc. of temperatures and RATs : done                          "
+                    "      "
+                 << endl;
             break;
-        
+
         case CMD_TEMP:
-            cout << "- MC calculation of temperatures    : done                                " << endl;
+            cout << "- MC calculation of temperatures    : done                          "
+                    "      "
+                 << endl;
             break;
 
         default:
-            cout << "- MC calculation of radiation field : done                                " << endl;
+            cout << "- MC calculation of radiation field : done                          "
+                    "      "
+                 << endl;
             break;
     }
     return true;
@@ -493,7 +506,6 @@ bool CRadiativeTransfer::setTemperatureDistribution()
 {
     ulong per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
-
 
     const double tol = 0.00001;
     const double GNewton = 0.0000000667;
@@ -513,21 +525,21 @@ bool CRadiativeTransfer::setTemperatureDistribution()
         int l = 0;
         double error = 0.0001;
 
-        double rho = dust->getNumberDensity(grid, cell)*1e-16; //dens_data[c];
-        double tdust = 1000; //grid->getGasTemperature(cell); //tdust_orig;
+        double rho = dust->getNumberDensity(grid, cell) * 1e-16; // dens_data[c];
+        double tdust = 1000; // grid->getGasTemperature(cell); //tdust_orig;
         double tdust_orig = grid->getGasTemperature(cell);
         double chi, tnew, tau, lambda_dust, det, eqfunc, kappa;
         double lambda_J = sqrt(pi * k_B * tdust_orig * muinv / (GNewton * rho));
 
         while((l < max_newton) && (error > tol))
         {
-            chi = 3.3 * pow(10., -26.)*(0.054833588 * tdust)*(0.054833588 * tdust) * rho*muinv;
+            chi = 3.3 * pow(10., -26.) * (0.054833588 * tdust) * (0.054833588 * tdust) * rho * muinv;
 
             if(tdust > 200.)
             {
                 if(tdust < 1500.)
                 {
-                    chi = 3.9688735 * pow(10., -24) * rho*muinv;
+                    chi = 3.9688735 * pow(10., -24) * rho * muinv;
                 }
                 else
                 {
@@ -535,11 +547,12 @@ bool CRadiativeTransfer::setTemperatureDistribution()
                 }
             }
 
-            kappa = min(chi, 1.0 / lambda_J)*6.8533297 * pow(10., 28.) / (rho * muinv);
+            kappa = min(chi, 1.0 / lambda_J) * 6.8533297 * pow(10., 28.) / (rho * muinv);
             lambda_dust = kappa * pow(tdust, 4.);
             tau = chi * lambda_J;
 
-            eqfunc = 3.9 * pow(10., 5.) + 0.63245552 * rho * muinv * (tdust_orig - tdust) * sqrt(tdust_orig) - lambda_dust;
+            eqfunc = 3.9 * pow(10., 5.) + 0.63245552 * rho * muinv * (tdust_orig - tdust) * sqrt(tdust_orig) -
+                     lambda_dust;
             if(tau > 1.0)
             {
                 det = -4.0 * lambda_dust / tdust - 0.63245552 * rho * muinv * sqrt(tdust_orig);
@@ -582,7 +595,7 @@ bool CRadiativeTransfer::setTemperatureDistribution()
             per_counter++;
             if(per_counter % 5000 == 0)
                 cout << "-> Estimating of temperatures: " << 100.0 * float(per_counter) / float(max_cells)
-                << " [%] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
+                     << " [%] " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << "        \r";
         }
     }
 
@@ -591,7 +604,6 @@ bool CRadiativeTransfer::setTemperatureDistribution()
     cout << "- Estimation of final temperatures: done" << endl;
     return true;
 }
-
 
 bool CRadiativeTransfer::calcPolMapsViaMC()
 {
@@ -626,7 +638,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Init progress visualization
             cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                    << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
+                 << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
 
             // Init counter and percentage to show progress
             per_counter = 0;
@@ -667,8 +679,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 {
 #pragma omp critical
                     {
-                        cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                                << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r" << flush;
+                        cout << "-> MC pol. maps (source ID: " << s + 1
+                             << ", wavelength: " << dust->getWavelength(wID)
+                             << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r"
+                             << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -710,7 +724,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Get tau for first interaction, if the interaction is forced
                             end_tau = getEscapeTauForced(rays);
 
-                            // If optical depth is exactly zero, send only one photon package as without enfsca
+                            // If optical depth is exactly zero, send only one photon
+                            // package as without enfsca
                             if(end_tau == 0)
                             {
                                 ph_max = 0;
@@ -759,7 +774,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             continue;
                         }
 
-                        // Calculate the dust absorption cross section (for random alignment)
+                        // Calculate the dust absorption cross section (for random
+                        // alignment)
                         Cext = dust->getCextMean(grid, pp);
 
                         // Get path length through current cell
@@ -799,7 +815,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                             if(!doMRWStepBWWithoutHeating(pp))
                             {
-                                // Calculate the dust scattering cross section (for random alignment)
+                                // Calculate the dust scattering cross section (for random
+                                // alignment)
                                 Csca = dust->getCscaMean(grid, pp);
 
                                 // If peel-off is used, add flux to the detector
@@ -809,23 +826,27 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     for(uint d = 0; d < nr_ofMCDetectors; d++)
                                     {
                                         // Get index of wavelength in current detector
-                                        uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+                                        uint wID_det =
+                                            detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
 
-                                        // Only calculate for detectors with the corresponding wavelengths
+                                        // Only calculate for detectors with the
+                                        // corresponding wavelengths
                                         if(wID_det != MAX_UINT)
                                         {
-                                            // Create an escaping photon into the direction
-                                            // of the detector
-                                            photon_package tmp_pp = dust->getEscapePhoton(grid, pp,
-                                                detector[d].getEX(), detector[d].getDirection());
+                                            // Create an escaping photon into the
+                                            // direction of the detector
+                                            photon_package tmp_pp = dust->getEscapePhoton(
+                                                grid, pp, detector[d].getEX(), detector[d].getDirection());
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
                                             CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
-                                                dust->getWavelength(wID), detector[d].getDistance());
+                                                                   dust->getWavelength(wID),
+                                                                   detector[d].getDistance());
 
                                             // Add the photon package to the detector
-                                            detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, SCATTERED_DUST);
+                                            detector[d].addToMonteCarloDetector(
+                                                &tmp_pp, wID_det, SCATTERED_DUST);
                                         }
                                     }
                                 }
@@ -870,7 +891,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Get index of wavelength in current detector
                             uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
 
-                            // Only calculate for detectors with the corresponding wavelengths
+                            // Only calculate for detectors with the corresponding
+                            // wavelengths
                             if(wID_det != MAX_UINT)
                             {
                                 // Get direction to the current detector
@@ -890,7 +912,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Get the angle to rotate the photon space into the
                                     // detector space
                                     double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                                            detector[d].getEX(), pp->getEX(), pp->getEY());
+                                        detector[d].getEX(), pp->getEX(), pp->getEY());
 
                                     // Rotate the Stokes vector
                                     pp->getStokesVector().rot(rot_angle_phot_obs);
@@ -902,7 +924,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Convert the flux into Jy and consider
                                     // the distance to the observer
                                     CMathFunctions::lum2Jy(pp->getStokesVector(),
-                                        dust->getWavelength(wID), detector[d].getDistance());
+                                                           dust->getWavelength(wID),
+                                                           detector[d].getDistance());
 
                                     if(interactions == 0)
                                     {
@@ -918,7 +941,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             }
                         }
                     }
-                    // Do not launch the secondary photon if the first one has not scattered
+                    // Do not launch the secondary photon if the first one has not
+                    // scattered
                     if(b_forced && interactions == 0 && ph_i == 0)
                         break;
                 }
@@ -959,7 +983,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Init a variable to save the optical depth
                         double tau_obs = 0;
 
-                        // Transport photon package through model to obtain the optical depth
+                        // Transport photon package through model to obtain the optical
+                        // depth
                         while(grid->next(&tmp_pp))
                         {
                             // Get necessary information about the current cell
@@ -971,12 +996,14 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             tau_obs += Cext * len * dens;
                         }
 
-                        // Calculate the source emission and reduce it by the optical depth
+                        // Calculate the source emission and reduce it by the optical
+                        // depth
                         tmp_pp.getStokesVector() *= long(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
 
-                        // Convert the flux into Jy and consider the distance to the observer
-                        CMathFunctions::lum2Jy(tmp_pp.getStokesVector(), dust->getWavelength(wID),
-                            detector[d].getDistance());
+                        // Convert the flux into Jy and consider the distance to the
+                        // observer
+                        CMathFunctions::lum2Jy(
+                            tmp_pp.getStokesVector(), dust->getWavelength(wID), detector[d].getDistance());
 
                         // Add the photon package to the detector
                         detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
@@ -987,16 +1014,19 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         if(peel_off && tm_source->getStringID() == "dust source")
         {
             cout << CLR_LINE;
-            cout << "\nHINT: MC simulations with dust source and peel-off include only the scattered radiation.\n"
-                    << "Add results from Raytracing simulations for full dust emission!" << endl;
+            cout << "\nHINT: MC simulations with dust source and peel-off include only "
+                    "the scattered radiation.\n"
+                 << "Add results from Raytracing simulations for full dust emission!" << endl;
         }
     }
 
     // Write results either as text or fits file
     for(uint d = 0; d < nr_ofMCDetectors; d++)
     {
-        if(!detector[d].writeMap(d, RESULTS_MC));
-        if(!detector[d].writeSed(d, RESULTS_MC));
+        if(!detector[d].writeMap(d, RESULTS_MC))
+            ;
+        if(!detector[d].writeSed(d, RESULTS_MC))
+            ;
     }
 
     // Format prints
@@ -1004,8 +1034,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     cout << SEP_LINE;
 
     if(mrw_step)
-        cout << "- MRW steps                           : " << mrw_counter
-            << endl;
+        cout << "- MRW steps                           : " << mrw_counter << endl;
 
     // Show amount of killed photons
     if(kill_counter > 0)
@@ -1040,15 +1069,14 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
         {
 #pragma omp critical
             {
-                cout << "-> Converting emissivities: "
-                        << 100.0 * float(pos_counter) / float(max_cells)
-                        << " [%]       \r";
+                cout << "-> Converting emissivities: " << 100.0 * float(pos_counter) / float(max_cells)
+                     << " [%]       \r";
             }
         }
     }
 
     cout << CLR_LINE;
-    //cout << "- Converting emissivities             : done" << endl;
+    // cout << "- Converting emissivities             : done" << endl;
 }
 
 void CRadiativeTransfer::calcAlignedRadii()
@@ -1075,10 +1103,10 @@ void CRadiativeTransfer::calcAlignedRadii()
         {
 #pragma omp critical
             {
-                cout << " -> Calc. RAT dust alig. radius: "
-                    << 100.0 * float(per_counter) / float(max_cells) << " [%] (min: "
-                        << dust->getMinAlignedRadius() << " [m]; max: "
-                        << dust->getMaxAlignedRadius() << " [m])" << "          \r";
+                cout << " -> Calc. RAT dust alig. radius: " << 100.0 * float(per_counter) / float(max_cells)
+                     << " [%] (min: " << dust->getMinAlignedRadius()
+                     << " [m]; max: " << dust->getMaxAlignedRadius() << " [m])"
+                     << "          \r";
                 last_percentage = percentage;
             }
         }
@@ -1086,8 +1114,8 @@ void CRadiativeTransfer::calcAlignedRadii()
 
     cout << CLR_LINE;
     cout << "- Calculation of aligned radii      : done" << endl;
-    cout << "    aligned radii [" << float(dust->getMinAlignedRadius())
-            << ", " << float(dust->getMaxAlignedRadius()) << "] [m]" << endl;
+    cout << "    aligned radii [" << float(dust->getMinAlignedRadius()) << ", "
+         << float(dust->getMaxAlignedRadius()) << "] [m]" << endl;
 }
 
 void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
@@ -1117,8 +1145,8 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         {
 #pragma omp critical
             {
-                cout << "-> Calculation of final temperatures : " << 100.0 * float(per_counter) / float(max_cells)
-                        << " [%]              \r";
+                cout << "-> Calculation of final temperatures : "
+                     << 100.0 * float(per_counter) / float(max_cells) << " [%]              \r";
 
                 last_percentage = percentage;
             }
@@ -1134,7 +1162,7 @@ void CRadiativeTransfer::calcStochasticHeating()
     uint per_counter = 0;
     float last_percentage = 0;
 
-    // Resize wavelength list for stochastic heating propabilities 
+    // Resize wavelength list for stochastic heating propabilities
     dlist wl_list(WL_STEPS);
     CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
 
@@ -1148,7 +1176,7 @@ void CRadiativeTransfer::calcStochasticHeating()
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
 
-        dust->calcStochasticHeatingPropabilities(grid, cell, wl_list);        
+        dust->calcStochasticHeatingPropabilities(grid, cell, wl_list);
 
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);
@@ -1159,7 +1187,7 @@ void CRadiativeTransfer::calcStochasticHeating()
 #pragma omp critical
             {
                 cout << "-> Calculation of stochastic heating: "
-                        << 100.0 * float(per_counter) / float(max_cells) << " [%]          \r" << flush;
+                     << 100.0 * float(per_counter) / float(max_cells) << " [%]          \r" << flush;
                 last_percentage = percentage;
             }
         }
@@ -1232,8 +1260,13 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             {
                 case DET_PLANE:
                     tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setSyncDetector(pos, sync_ray_detectors, max_length,
-                            pathOutput, param.getMaxSubpixelLvl(), axis1, axis2))
+                    if(!tracer->setSyncDetector(pos,
+                                                sync_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2))
                         return false;
                     break;
 
@@ -1245,15 +1278,20 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
                 case DET_POLAR:
                     tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setSyncDetector(pos, sync_ray_detectors, max_length,
-                            pathOutput, param.getMaxSubpixelLvl(), axis1, axis2))
+                    if(!tracer->setSyncDetector(pos,
+                                                sync_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2))
                         return false;
                     break;
 
                 case DET_SLICE:
                     tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setSyncDetector(pos, sync_ray_detectors, max_length,
-                            pathOutput, axis1, axis2))
+                    if(!tracer->setSyncDetector(
+                           pos, sync_ray_detectors, max_length, pathOutput, axis1, axis2))
                         return false;
                     break;
             }
@@ -1273,8 +1311,8 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
             // Show information about the current detector
             cout << CLR_LINE;
-            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: "
-                    << sID + 1 << ") 0.0 [%]   \r" << flush;
+            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+                 << ") 0.0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1298,18 +1336,17 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
-                                << ", source: " << sID + 1 << ")  "
-                                << float(100.0 * float(per_counter) / float(per_max))
-                                << " [%]         \r" << flush;
+                             << ", source: " << sID + 1 << ")  "
+                             << float(100.0 * float(per_counter) / float(per_max)) << " [%]         \r"
+                             << flush;
                         last_percentage = percentage;
                     }
                 }
             }
 
             // Show final progress
-            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
-                    << ", source: " << sID + 1
-                    << ") 100 [%]       \r" << flush;
+            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+                 << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1331,8 +1368,11 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
     return true;
 }
 
-void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source, double cx, double cy,
-        uint subpixel_lvl, int i_pix)
+void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
+                                               double cx,
+                                               double cy,
+                                               uint subpixel_lvl,
+                                               int i_pix)
 {
     bool subpixel = false;
 
@@ -1343,7 +1383,7 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source, double
     {
         // Init variables
         uint nr_used_wavelengths = tracer->getNrSpectralBins();
-        //cout << i_pix << endl;
+        // cout << i_pix << endl;
 
         // Create new photon package
         photon_package * pp1 = new photon_package();
@@ -1383,8 +1423,12 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source, double
     }
 }
 
-void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package * pp2,
-        CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl)
+void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
+                                          photon_package * pp2,
+                                          CSourceBasic * tmp_source,
+                                          double cx,
+                                          double cy,
+                                          uint subpixel_lvl)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -1406,7 +1450,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
         pp1->setWavelengthID(wID);
 
         // Set related index of the multi wavelength map to the wavelength ID
-      
+
         WMap_cr.setS(tmp_source->getStokesVector(pp1), i_wave);
 
         WMap_ca.setS(tmp_source->getStokesVector(pp1), i_wave);
@@ -1420,7 +1464,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
             double n_th = grid->getThermalElectronDensity(pp1);
             double T_e = grid->getElectronTemperature(pp1);
 
-            double n_cr =  grid->getCRElectronDensity(pp1);
+            double n_cr = grid->getCRElectronDensity(pp1);
             double g_min = grid->getGammaMin(pp1);
             double g_max = grid->getGammaMax(pp1);
             double pow_p = grid->getPowerLawIndex(pp1);
@@ -1446,8 +1490,9 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                     double wavelength = tracer->getWavelength(i_wave);
 
                     syn_param syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, wavelength, B, theta);
-                    syn_param syn_cr = synchrotron->get_Power_Law_Parameter(n_cr, wavelength, B, theta, g_min, g_max, pow_p);
-                    syn_param syn_ca = syn_cr+syn_th;
+                    syn_param syn_cr =
+                        synchrotron->get_Power_Law_Parameter(n_cr, wavelength, B, theta, g_min, g_max, pow_p);
+                    syn_param syn_ca = syn_cr + syn_th;
 
                     // Get matrixes with the absorption's and conversions
                     Matrix2D alpha_cr = -1 * syn_cr.getSyncMatrix();
@@ -1467,18 +1512,15 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                     Vector3D pos_xyz_cell = pp1->getPosition() - (len * dir_map_xyz);
 
                     // Set stokes vector with emission
-                    StokesVector S_em_cr(syn_cr.j_I , syn_cr.j_Q * cos_2ph ,
-                            syn_cr.j_Q * sin_2ph , syn_cr.j_V);
+                    StokesVector S_em_cr(syn_cr.j_I, syn_cr.j_Q * cos_2ph, syn_cr.j_Q * sin_2ph, syn_cr.j_V);
 
-                    StokesVector S_em_ca(syn_ca.j_I , syn_ca.j_Q * cos_2ph ,
-                            syn_ca.j_Q * sin_2ph , syn_ca.j_V);
+                    StokesVector S_em_ca(syn_ca.j_I, syn_ca.j_Q * cos_2ph, syn_ca.j_Q * sin_2ph, syn_ca.j_V);
 
-                    
                     // Initiating the kill counter
                     uint kill_counter = 0;
-                    
+
                     // Initiating the fail-save
-                    bool fail=false;
+                    bool fail = false;
 
                     // Make sub steps until cell is completely crossed
                     // If the error of a sub step is too high, make the step smaller
@@ -1487,34 +1529,36 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                         // Increase the kill counter
                         kill_counter++;
 
-                        
                         // If too many sub steps are needed, kill the photon
-                        if(kill_counter > 2.0*MAX_SOLVER_STEPS)
+                        if(kill_counter > 2.0 * MAX_SOLVER_STEPS)
                         {
 #pragma omp critical
                             {
                                 cout << CLR_LINE;
-                                cout << "\nWARNING: Solver steps > " << 2.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                cout << "\nWARNING: Solver steps > " << 2.0 * MAX_SOLVER_STEPS
+                                     << ". Too many steps!" << endl
+                                     << flush;
                                 cout << "         Skipping entire cell!" << endl << flush;
                             }
                             break;
                         }
-                        
-                        if(kill_counter > 1.0*MAX_SOLVER_STEPS)
+
+                        if(kill_counter > 1.0 * MAX_SOLVER_STEPS)
                         {
-                            if(fail==false)
+                            if(fail == false)
                             {
-                                fail=true;
+                                fail = true;
 #pragma omp critical
                                 {
                                     cout << CLR_LINE;
-                                    cout << "\nWARNING: Solver steps > " << 1.0*MAX_SOLVER_STEPS << ". Too many steps!" << endl << flush;
+                                    cout << "\nWARNING: Solver steps > " << 1.0 * MAX_SOLVER_STEPS
+                                         << ". Too many steps!" << endl
+                                         << flush;
                                     cout << "         Switching to approximate solver!" << endl << flush;
-                                }                            
+                                }
                             }
-                        
                         }
-                        
+
                         // Init Runge-Kutta parameters and set it to zero
                         // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
                         StokesVector * RK_k_cr = new StokesVector[6];
@@ -1535,9 +1579,12 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             }
 
                             // Calculate new Runge-Kutta parameters as the result of the
-                            // radiative transfer equation at the Runge-Kutta sub positions
-                            RK_k_cr[k] = alpha_cr * (scalar_product_cr * cell_d_l + WMap_cr.S(i_wave)) + S_em_cr;
-                            RK_k_ca[k] = alpha_ca * (scalar_product_ca * cell_d_l + WMap_ca.S(i_wave)) + S_em_ca;
+                            // radiative transfer equation at the Runge-Kutta sub
+                            // positions
+                            RK_k_cr[k] =
+                                alpha_cr * (scalar_product_cr * cell_d_l + WMap_cr.S(i_wave)) + S_em_cr;
+                            RK_k_ca[k] =
+                                alpha_ca * (scalar_product_ca * cell_d_l + WMap_ca.S(i_wave)) + S_em_ca;
                         }
 
                         // Init two temporary Stokes vectors
@@ -1560,7 +1607,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                                 stokes_new2_ca += (RK_k_ca[i] * cell_d_l) * RK_b2[i];
                             }
                         }
-                      
+
                         // Delete the Runge-Kutta pointer
                         delete[] RK_k_cr;
                         delete[] RK_k_ca;
@@ -1568,10 +1615,10 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                         // Calculate the difference between the results with two
                         // different precisions to see if smaller steps are needed
                         // (see Reissl)
-                        
+
                         double epsi, dz_new;
-                        if( stokes_new_cr.I() < 0 || stokes_new2_cr.I() < 0 ||
-                            stokes_new_ca.I() < 0 || stokes_new2_ca.I() < 0  )
+                        if(stokes_new_cr.I() < 0 || stokes_new2_cr.I() < 0 || stokes_new_ca.I() < 0 ||
+                           stokes_new2_ca.I() < 0)
                         {
                             epsi = 2.0;
                             dz_new = 0.0;
@@ -1579,67 +1626,68 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                         else
                         {
                             double epsi_cr = abs(stokes_new2_cr.I() - stokes_new_cr.I()) /
-                                    (rel_err * abs(stokes_new_cr.I()) + abs_err);
+                                             (rel_err * abs(stokes_new_cr.I()) + abs_err);
                             double epsi_ca = abs(stokes_new2_ca.I() - stokes_new_ca.I()) /
-                                    (rel_err * abs(stokes_new_ca.I()) + abs_err);
-                            
+                                             (rel_err * abs(stokes_new_ca.I()) + abs_err);
+
                             double epsi_Q = abs(abs(stokes_new2_ca.Q()) - abs(stokes_new_ca.Q())) /
-                                    (rel_err * abs(stokes_new_ca.Q()) + abs_err);
-                            
+                                            (rel_err * abs(stokes_new_ca.Q()) + abs_err);
+
                             double epsi_U = abs(abs(stokes_new2_ca.U()) - abs(stokes_new_ca.U())) /
-                                    (rel_err * abs(stokes_new_ca.U()) + abs_err);
-                            
+                                            (rel_err * abs(stokes_new_ca.U()) + abs_err);
+
                             double epsi_V = abs(abs(stokes_new2_ca.V()) - abs(stokes_new_ca.V())) /
-                                    (rel_err * abs(stokes_new_ca.V()) + abs_err);
-                            
+                                            (rel_err * abs(stokes_new_ca.V()) + abs_err);
+
                             double dz_new_cr = 0.9 * cell_d_l * pow(epsi_cr, -0.2);
                             double dz_new_ca = 0.9 * cell_d_l * pow(epsi_ca, -0.2);
-                            
+
                             double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);
                             double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
-                            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);                         
+                            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
 
                             // Do approximate solution
                             if(fail)
-                            {   
+                            {
                                 epsi = epsi_cr;
                                 dz_new = dz_new_cr;
-                                
-                                double j_Q=syn_ca.j_Q * cos_2ph;
-                                double j_U=syn_ca.j_Q * sin_2ph;
-                                double j_V=syn_ca.j_V;
-                                
-                                double k_Q=syn_ca.kappa_Q;
-                                double k_V=syn_ca.kappa_V;
-                                
-                                double k = sqrt(k_Q*k_Q+k_V*k_V);
-                                double k_2=k*k;
-                                double k_3=k*k*k;
-                                
-                                double rot_ang=k*cell_d_l;
-                                
-                                double Q=k_Q/k_2*(j_Q*k_Q+j_V*k_V)*cell_d_l;
-                                Q+=k_V/k_3*(j_V*k_Q+j_Q*k_V)*sin(rot_ang);
-                                Q-=j_U*k_V/k_2*(1.0-cos(rot_ang));
-                                        
-                                double U=(j_Q*k_V-j_V*k_Q)/k_2*(1.0-cos(rot_ang));
-                                U+=j_U/k*sin(rot_ang);
-                                
-                                double V=k_V/k_2*(j_Q*k_Q+j_V*k_V)*cell_d_l;
-                                V+=k_V/k_3*(j_Q*k_V+j_V*k_Q)*sin(rot_ang);
-                                V-=j_U*k_Q/k_2*(1.0-cos(rot_ang));
-                                
-                                stokes_new_ca=stokes_new_cr+StokesVector(0,Q,U,V);
+
+                                double j_Q = syn_ca.j_Q * cos_2ph;
+                                double j_U = syn_ca.j_Q * sin_2ph;
+                                double j_V = syn_ca.j_V;
+
+                                double k_Q = syn_ca.kappa_Q;
+                                double k_V = syn_ca.kappa_V;
+
+                                double k = sqrt(k_Q * k_Q + k_V * k_V);
+                                double k_2 = k * k;
+                                double k_3 = k * k * k;
+
+                                double rot_ang = k * cell_d_l;
+
+                                double Q = k_Q / k_2 * (j_Q * k_Q + j_V * k_V) * cell_d_l;
+                                Q += k_V / k_3 * (j_V * k_Q + j_Q * k_V) * sin(rot_ang);
+                                Q -= j_U * k_V / k_2 * (1.0 - cos(rot_ang));
+
+                                double U = (j_Q * k_V - j_V * k_Q) / k_2 * (1.0 - cos(rot_ang));
+                                U += j_U / k * sin(rot_ang);
+
+                                double V = k_V / k_2 * (j_Q * k_Q + j_V * k_V) * cell_d_l;
+                                V += k_V / k_3 * (j_Q * k_V + j_V * k_Q) * sin(rot_ang);
+                                V -= j_U * k_Q / k_2 * (1.0 - cos(rot_ang));
+
+                                stokes_new_ca = stokes_new_cr + StokesVector(0, Q, U, V);
                             }
                             else
                             {
                                 epsi = max(epsi_cr, max(epsi_ca, max(epsi_Q, max(epsi_U, epsi_V))));
-                                dz_new = min(dz_new_cr, min(dz_new_ca, min(dz_new_Q, min(dz_new_U, dz_new_V))));
+                                dz_new =
+                                    min(dz_new_cr, min(dz_new_ca, min(dz_new_Q, min(dz_new_U, dz_new_V))));
                             }
 
-                            if(epsi==0)
+                            if(epsi == 0)
                             {
-				                dz_new=0.01*len;
+                                dz_new = 0.01 * len;
                             }
                         }
 
@@ -1649,13 +1697,13 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             // Add additional data to stokes vector
                             stokes_new_cr.setT(WMap_cr.T(i_wave));
                             stokes_new_cr.setSp(WMap_cr.Sp(i_wave));
-                            
+
                             // Add the temporary Stokes vector to the total one
                             WMap_cr.setS(stokes_new_cr, i_wave);
-                            
-                            //tau is set to Farraday rotation*lambda^2
+
+                            // tau is set to Farraday rotation*lambda^2
                             WMap_cr.addT(syn_cr.kappa_V * cell_d_l, i_wave);
-                            
+
                             // Sp is set to the thermal electron column
                             WMap_cr.addSp(n_cr * cell_d_l, i_wave);
 
@@ -1664,10 +1712,10 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
                             stokes_new_ca.setSp(WMap_ca.Sp(i_wave));
 
                             WMap_ca.setS(stokes_new_ca, i_wave);
-                            
-                            //tau is set to Farraday rotation*lambda^2
+
+                            // tau is set to Farraday rotation*lambda^2
                             WMap_ca.addT(syn_ca.kappa_V * cell_d_l, i_wave);
-                            
+
                             // Sp is set to the CR electron column
                             WMap_ca.addSp(n_cr * cell_d_l, i_wave);
 
@@ -1701,8 +1749,8 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1, photon_package *
         // Get wavelength/frequency of the photon package
         double wavelength = tracer->getWavelength(i_wave);
         double frequency = con_c / wavelength;
-        double mult = 1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() *
-            con_c / (frequency * frequency);
+        double mult =
+            1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
 
         // Update the photon package with the multi Stokes vectors
 
@@ -1753,29 +1801,46 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             {
                 case DET_PLANE:
                     tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput,
-                            param.getMaxSubpixelLvl(), axis1, axis2, param.getAlignmentMechanism()))
+                    if(!tracer->setDustDetector(pos,
+                                                dust_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2,
+                                                param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, 
-                        pathOutput, param.getAlignmentMechanism()))
+                    if(!tracer->setDustDetector(
+                           pos, dust_ray_detectors, max_length, pathOutput, param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_POLAR:
                     tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, pathOutput,
-                            param.getMaxSubpixelLvl(), axis1, axis2, param.getAlignmentMechanism()))
+                    if(!tracer->setDustDetector(pos,
+                                                dust_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2,
+                                                param.getAlignmentMechanism()))
                         return false;
                     break;
 
                 case DET_SLICE:
                     tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setDustDetector(pos, dust_ray_detectors, max_length, 
-                        pathOutput, axis1, axis2, param.getAlignmentMechanism()))
+                    if(!tracer->setDustDetector(pos,
+                                                dust_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                axis1,
+                                                axis2,
+                                                param.getAlignmentMechanism()))
                         return false;
                     break;
             }
@@ -1794,8 +1859,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Show information about the current detector
             cout << CLR_LINE;
-            cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: "
-                << sID + 1 << ") 0 [%]   \r" << flush;
+            cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1 << ") 0 [%]   \r"
+                 << flush;
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -1818,9 +1883,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                            << ", source: " << sID + 1 << ") "
-                            << percentage << " [%]       \r" << flush;
+                        cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+                             << ") " << percentage << " [%]       \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -1831,8 +1895,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 calcStellarEmission();
 
             // Show final progress
-            cout << "-> Raytracing dust maps (Seq. " << i_det + 1
-                    << ", source: " << sID + 1 << ") 100 [%]       \r" << flush;
+            cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+                 << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
             if(!tracer->postProcessing())
@@ -1859,8 +1923,11 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     return true;
 }
 
-void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source, double cx, double cy,
-        uint subpixel_lvl, int i_pix)
+void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
+                                               double cx,
+                                               double cy,
+                                               uint subpixel_lvl,
+                                               int i_pix)
 {
     bool subpixel = false;
     photon_package * pp;
@@ -1906,8 +1973,11 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source, double
     }
 }
 
-void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tmp_source,
-        double cx, double cy, uint subpixel_lvl)
+void CRadiativeTransfer::getDustIntensity(photon_package * pp,
+                                          CSourceBasic * tmp_source,
+                                          double cx,
+                                          double cy,
+                                          uint subpixel_lvl)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -1957,14 +2027,15 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                 myfile.open(filename.c_str());
 
                 double corr_factor = 0;
-                if (pathOutput.find("_sil") != std::string::npos)
+                if(pathOutput.find("_sil") != std::string::npos)
                     corr_factor = 1.471288e-7;
-                else if (pathOutput.find("_gra") != std::string::npos)
+                else if(pathOutput.find("_gra") != std::string::npos)
                     corr_factor = 1.905816e-7;
-                else if (pathOutput.find("_pah") != std::string::npos)
+                else if(pathOutput.find("_pah") != std::string::npos)
                     corr_factor = 2.227433e-7;
 
-                myfile << "# nr_of wavelength = " << nr_used_wavelengths << ", corr_factor = " << corr_factor << endl;
+                myfile << "# nr_of wavelength = " << nr_used_wavelengths << ", corr_factor = " << corr_factor
+                       << endl;
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
                     // Get current wavelength
@@ -1978,8 +2049,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
 
                     StokesVector tmp_stokes = dust->calcEmissivitiesEmi(grid, pp);
                     myfile << wavelength << TAB << corr_factor * wavelength * tmp_stokes.I() << TAB
-                        << corr_factor * wavelength * tmp_stokes.Q() << TAB
-                        << corr_factor * wavelength * (tmp_stokes.I() + tmp_stokes.Q()) << endl;
+                           << corr_factor * wavelength * tmp_stokes.Q() << TAB
+                           << corr_factor * wavelength * (tmp_stokes.I() + tmp_stokes.Q()) << endl;
                 }
                 myfile.close();
                 break;
@@ -2026,12 +2097,14 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter >= MAX_SOLVER_STEPS)
                         {
-                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!"
+                                 << endl;
                             break;
                         }
 
                         // Init Runge-Kutta parameters and set it to zero
-                        // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                        // (see
+                        // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
                         // Calculate result of the radiative transfer equation at each
@@ -2046,7 +2119,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
                             // Calculate new Runge-Kutta parameters as the result of the
-                            // radiative transfer equation at the Runge-Kutta sub positions
+                            // radiative transfer equation at the Runge-Kutta sub
+                            // positions
                             RK_k[k] = alpha_dust * (scalar_product * cell_d_l + WMap.S(i_wave)) + S_dust;
                         }
 
@@ -2114,8 +2188,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp, CSourceBasic * tm
     {
         // Get frequency at background grid position
         double frequency = con_c / tracer->getWavelength(i_wave);
-        double mult = 1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() *
-            con_c / (frequency * frequency);
+        double mult =
+            1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
 
         if(WMap.S(i_wave).I() < 0)
             WMap.S(i_wave).setI(0);
@@ -2208,7 +2282,6 @@ void CRadiativeTransfer::calcStellarEmission()
     }
 }
 
-
 // -------------------------------------------
 // ------ Calculation of Line transfer -------
 // -------------------------------------------
@@ -2266,29 +2339,41 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             {
                 case DET_PLANE:
                     tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setLineDetector(pos, line_ray_detectors, pathOutput, max_length,
-                            param.getVelMaps(), param.getMaxSubpixelLvl(), axis1, axis2))
+                    if(!tracer->setLineDetector(pos,
+                                                line_ray_detectors,
+                                                pathOutput,
+                                                max_length,
+                                                param.getVelMaps(),
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2))
                         return false;
                     break;
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setLineDetector(pos, line_ray_detectors, pathOutput, max_length,
-                            param.getVelMaps()))
+                    if(!tracer->setLineDetector(
+                           pos, line_ray_detectors, pathOutput, max_length, param.getVelMaps()))
                         return false;
                     break;
 
                 case DET_POLAR:
                     tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setLineDetector(pos, line_ray_detectors, pathOutput, max_length,
-                            param.getVelMaps(), param.getMaxSubpixelLvl(), axis1, axis2))
+                    if(!tracer->setLineDetector(pos,
+                                                line_ray_detectors,
+                                                pathOutput,
+                                                max_length,
+                                                param.getVelMaps(),
+                                                param.getMaxSubpixelLvl(),
+                                                axis1,
+                                                axis2))
                         return false;
                     break;
 
                 case DET_SLICE:
                     tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setLineDetector(pos, line_ray_detectors, pathOutput, max_length,
-                            param.getVelMaps(), axis1, axis2))
+                    if(!tracer->setLineDetector(
+                           pos, line_ray_detectors, pathOutput, max_length, param.getVelMaps(), axis1, axis2))
                         return false;
                     break;
             }
@@ -2296,8 +2381,9 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             uint nr_velocity_channels = tracer->getNrSpectralBins();
             if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 5)
             {
-                cout << "\nERROR: The magnetic field information requires at least 5 channels\n"
-                    << "    for simulations with Zeeman splitting" << endl;
+                cout << "\nERROR: The magnetic field information requires at least 5 "
+                        "channels\n"
+                     << "    for simulations with Zeeman splitting" << endl;
                 return false;
             }
 
@@ -2308,8 +2394,8 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
-            cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1
-                << ", line " << i_line + 1 << " of " << nr_of_transitions << ": 0.0[%]  \r" << flush;
+            cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
+                 << i_line + 1 << " of " << nr_of_transitions << ": 0.0[%]  \r" << flush;
 
             uint per_max = tracer->getNpix();
 
@@ -2336,8 +2422,9 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
-                            << i_line + 1 << " of " << nr_of_transitions << ": " << percentage << " [%]      \r" << flush;
+                        cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1
+                             << ", line " << i_line + 1 << " of " << nr_of_transitions << ": " << percentage
+                             << " [%]      \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -2362,8 +2449,13 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     return true;
 }
 
-void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source, double cx,
-        double cy, const uint i_species, const uint i_line, uint subpixel_lvl, int i_pix)
+void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
+                                               double cx,
+                                               double cy,
+                                               const uint i_species,
+                                               const uint i_line,
+                                               uint subpixel_lvl,
+                                               int i_pix)
 {
     bool subpixel = false;
     photon_package * pp;
@@ -2402,7 +2494,8 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source, double
 
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getLinePixelIntensity(tmp_source, tmp_cx, tmp_cy, i_species, i_line, (subpixel_lvl + 1), i_pix);
+                getLinePixelIntensity(
+                    tmp_source, tmp_cx, tmp_cy, i_species, i_line, (subpixel_lvl + 1), i_pix);
             }
         }
     }
@@ -2412,8 +2505,13 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source, double
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tmp_source,
-        double cx, double cy, uint subpixel_lvl, const uint i_species, const uint i_line)
+void CRadiativeTransfer::getLineIntensity(photon_package * pp,
+                                          CSourceBasic * tmp_source,
+                                          double cx,
+                                          double cy,
+                                          uint subpixel_lvl,
+                                          const uint i_species,
+                                          const uint i_line)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -2457,8 +2555,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                 cell_basic * tmp_cell_pos = tmp_pp->getPositionCell();
                 Vector3D cell_center = grid->getCenter(tmp_cell_pos);
 
-                double length_on_line = CMathFunctions::getClosestLinePoint(pos_xyz_cell,
-                    tmp_pp->getPosition(), cell_center);
+                double length_on_line =
+                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, tmp_pp->getPosition(), cell_center);
                 double spline_x = length_on_line + rel_pos.length();
 
                 if((spline_x_old - spline_x) != 0.0)
@@ -2493,7 +2591,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
             // Get gas temperature from grid
             double temp_gas = grid->getGasTemperature(pp);
 
-            // Perform radiative transfer only if the temperature of the current species are not negligible
+            // Perform radiative transfer only if the temperature of the current species
+            // are not negligible
             if(temp_gas >= 1e-200)
             {
                 // Init matrices
@@ -2547,12 +2646,14 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                         // If too many sub steps are needed, kill the photon
                         if(kill_counter >= MAX_SOLVER_STEPS)
                         {
-                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
+                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps."
+                                 << endl;
                             break;
                         }
 
                         // Init Runge-Kutta parameters and set it to zero
-                        // (see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                        // (see
+                        // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
                         StokesVector * RK_k = new StokesVector[6];
 
                         // Calculate result of the radiative transfer equation at each
@@ -2567,8 +2668,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                             if(gas->getKeplerStarMass() > 0)
                             {
                                 // Get velocity from Kepler rotation
-                                velo_dir = CMathFunctions::calcKeplerianVelocity(pos,
-                                    gas->getKeplerStarMass()) * dir_map_xyz;
+                                velo_dir =
+                                    CMathFunctions::calcKeplerianVelocity(pos, gas->getKeplerStarMass()) *
+                                    dir_map_xyz;
                             }
                             else if(grid_has_vel_field)
                             {
@@ -2582,7 +2684,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                                     velo_dir = vel_field.getValue(rel_pos.length());
 
                                     // Old version without spline interpolation
-                                    // velo_dir = grid->getVelocityField(pp) * dir_map_xyz;
+                                    // velo_dir = grid->getVelocityField(pp) *
+                                    // dir_map_xyz;
                                 }
                             }
                             else
@@ -2590,9 +2693,16 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
 
                             velo_dir += obs_vel * dir_map_xyz;
 
-                            line_matrix = gas->getLineMatrix(grid, pp, i_species, i_line,
-                                tracer->getVelocityChannel(vch) - velo_dir,
-                                mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+                            line_matrix = gas->getLineMatrix(grid,
+                                                             pp,
+                                                             i_species,
+                                                             i_line,
+                                                             tracer->getVelocityChannel(vch) - velo_dir,
+                                                             mag_field,
+                                                             cos_theta,
+                                                             sin_theta,
+                                                             cos_2_phi,
+                                                             sin_2_phi);
 
                             // Combine the Stokes vectors from gas and dust
                             // for emission and extinction
@@ -2612,7 +2722,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                                 scalar_product += (RK_k[i] * RK_a(i, k));
 
                             // Calculate new Runge-Kutta parameters as the result of the
-                            // radiative transfer equation at the Runge-Kutta sub positions
+                            // radiative transfer equation at the Runge-Kutta sub
+                            // positions
                             RK_k[k] = alpha_ges * (scalar_product * cell_d_l + CHMap.S(vch)) + S_ges;
                         }
                         // Init two temporary Stokes vectors
@@ -2638,7 +2749,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                         // different precisions to see if smaller steps are needed
                         double epsi, dz_new;
                         calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
-                        
+
                         // Is a smaller step width needed
                         if(epsi <= 1.0)
                         {
@@ -2663,7 +2774,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
                                 double los_mag_strength = (dir_map_xyz * mag_field);
 
                                 // Magnetic field strength in the line-of-sight direction
-                                // weighted with the intensity increase of the current cell
+                                // weighted with the intensity increase of the current
+                                // cell
                                 double column_int_mag_field_los = los_mag_strength * column_flux;
 
                                 // Total magnetic field strength weighted with the
@@ -2681,8 +2793,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp, CSourceBasic * tm
 
                                 if(vch == 0)
                                 {
-                                    // Magnetic field strength in the line-of-sight direction
-                                    // weighted with the gas density of the current cell
+                                    // Magnetic field strength in the line-of-sight
+                                    // direction weighted with the gas density of the
+                                    // current cell
                                     double column_dens_mag_field_los = los_mag_strength * column_density;
 
                                     // Total magnetic field strength weighted with the

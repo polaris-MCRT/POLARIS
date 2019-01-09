@@ -1,19 +1,18 @@
 #pragma once
-#include "typedefs.h"
-#include "chelper.h"
-#include "Source.h"
+#include "CommandParser.h"
 #include "Detector.h"
 #include "Dust.h"
 #include "GasSpecies.h"
-#include "CommandParser.h"
+#include "Source.h"
+#include "chelper.h"
+#include "typedefs.h"
 
 #ifndef CPIPELINE
 #define CPIPELINE
 
 class CPipeline
 {
-public:
-
+  public:
     CPipeline(void)
     {
         begin = 0;
@@ -31,8 +30,7 @@ public:
     }
 
     ~CPipeline(void)
-    {
-    }
+    {}
 
     bool calcMonteCarloRadiationField(parameters & param);
     bool calcPolarizationMapsViaRayTracing(parameters & param);
@@ -44,19 +42,20 @@ public:
     bool assignDustMixture(parameters & param, CDustMixture * dust, CGridBasic * grid);
     bool assignGasSpecies(parameters & param, CGasMixture * gas, CGridBasic * grid);
 
-    //bool calcRadPressure(parameter & param);
+    // bool calcRadPressure(parameter & param);
 
     bool solveNextVelocityField(uint itID)
     {
         return true;
     };
-    //bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters & param, bool plot, uint itID);
+    // bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters &
+    // param, bool plot, uint itID);
 
     bool createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas = 0);
 
     void printParameters(parameters & param, uint max_id);
 
-    bool Init(int argc, char** argv);
+    bool Init(int argc, char ** argv);
     void Finish();
     void Error();
     void Run();
@@ -87,7 +86,8 @@ public:
 
             len = int(pos2 - pos1 + 1);
 
-            if(len < 0) break;
+            if(len < 0)
+                break;
 
             folder = path.substr(pos1 + 1, len - 2);
             path.erase(pos1 + 1, len - 1);
@@ -131,14 +131,15 @@ public:
         return true;
     }
 
-    bool assignGridType(CGridBasic * &grid, parameters & param);
+    bool assignGridType(CGridBasic *& grid, parameters & param);
 
     bool createPath(string path)
     {
         const char * tmp_path = path.c_str();
 #ifdef WINDOWS
         if(_access(tmp_path, 0) != 0)
-            if(_mkdir(tmp_path)) return false;
+            if(_mkdir(tmp_path))
+                return false;
 #else
         if(access(tmp_path, 0) != 0)
             if(mkdir(tmp_path, S_IRWXU | S_IRWXG | S_IRWXO))
@@ -166,10 +167,11 @@ public:
         cout << "- Number of threads: " << param.getNrOfThreads() << endl;
     }
 
-    void printPlotParameters(parameters & param, bool input_output=false)
+    void printPlotParameters(parameters & param, bool input_output = false)
     {
         if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() + param.getInpMidDataPoints() +
-                param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() > 0)
+               param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() >
+           0)
             cout << "Plot parameters" << endl;
 
         if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() != 0)
@@ -181,21 +183,23 @@ public:
 
         if(param.getInpMidDataPoints() != 0 && param.getOutMidDataPoints() != 0)
         {
-            cout << "- Midplane            (in,out) : " << param.getInpMidDataPoints()
-                    << ", " << param.getOutMidDataPoints() << " pixel" << endl;
+            cout << "- Midplane            (in,out) : " << param.getInpMidDataPoints() << ", "
+                 << param.getOutMidDataPoints() << " pixel" << endl;
         }
         else
         {
             if(param.getInpMidDataPoints() != 0)
-                cout << "- Midplane                (in) : " << param.getInpMidDataPoints() << " pixel" << endl;
+                cout << "- Midplane                (in) : " << param.getInpMidDataPoints() << " pixel"
+                     << endl;
 
             if(param.getOutMidDataPoints() != 0)
-                cout << "- Midplane               (out) : " << param.getOutMidDataPoints() << " pixel" << endl;
+                cout << "- Midplane               (out) : " << param.getOutMidDataPoints() << " pixel"
+                     << endl;
         }
 
         if(param.getInpAMIRAPoints() != 0 && param.getOutAMIRAPoints() != 0)
-            cout << "- Amira points (in,out)        : " << param.getInpAMIRAPoints()
-                << ", " << param.getOutAMIRAPoints() << " pixel" << endl;
+            cout << "- Amira points (in,out)        : " << param.getInpAMIRAPoints() << ", "
+                 << param.getOutAMIRAPoints() << " pixel" << endl;
         else
         {
             if(param.getInpAMIRAPoints() != 0)
@@ -226,14 +230,13 @@ public:
         }
     }
 
-    void printSourceParameters(parameters & param, bool show_dust=false)
+    void printSourceParameters(parameters & param, bool show_dust = false)
     {
         if(param.getNrOfSources() > 0 || param.isRaytracing())
         {
             cout << "Defined radiation source(s)" << endl;
 
-            if(param.getNrOfPointSources() > 0 &&
-                    (!param.isRaytracing() || param.getScatteringToRay()))
+            if(param.getNrOfPointSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
                 cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
             if(param.getNrOfDiffuseSources() > 0 && !param.isRaytracing())
@@ -250,7 +253,7 @@ public:
         }
     }
 
-    void printDetectorParameters(parameters & param, bool monte_carlo=false)
+    void printDetectorParameters(parameters & param, bool monte_carlo = false)
     {
         if(monte_carlo)
         {
@@ -264,58 +267,56 @@ public:
             if(param.getNrOfDustRayDetectors() > 0)
                 cout << "- Number of detectors   : " << param.getNrOfDustRayDetectors() << endl;
             param.printRTGridDescription();
-            cout << "- Start, Stop           : " << param.getStart() + 1
-                << ", " << param.getStop() + 1 << endl;
+            cout << "- Start, Stop           : " << param.getStart() + 1 << ", " << param.getStop() + 1
+                 << endl;
         }
-        cout << "- Observer distance [m] : " << param.getMinObserverDistance()
-            << " - " << param.getMaxObserverDistance() << endl;
+        cout << "- Observer distance [m] : " << param.getMinObserverDistance() << " - "
+             << param.getMaxObserverDistance() << endl;
         cout << "- Pixel in x-dir/nsides : " << param.getMinDetectorPixelX() << " (min) - "
-            << param.getMaxDetectorPixelX() << " (max)" << endl;
+             << param.getMaxDetectorPixelX() << " (max)" << endl;
         if(param.getMinDetectorPixelY() != 0 || param.getMaxDetectorPixelY() != 0)
             cout << "- Pixel in y-direction  : " << param.getMinDetectorPixelY() << " (min) - "
-                << param.getMaxDetectorPixelY() << " (max)" << endl;
+                 << param.getMaxDetectorPixelY() << " (max)" << endl;
         if(!monte_carlo)
             cout << "- Max subpixel level    : " << param.getMaxSubpixelLvl() << endl;
 
         if(param.getMaxSidelengthX() > 0)
         {
             cout << "- Sidelength X [m]      : " << param.getMinSidelengthX() << " (min) - "
-                    << param.getMaxSidelengthX() << " (max)" << endl;
+                 << param.getMaxSidelengthX() << " (max)" << endl;
             if(param.getUseGridSidelengthX())
                 cout << "  (some detectors are using the grid size)" << endl;
         }
-        else
-            if(param.getUseGridSidelengthX())
-                cout << "- Sidelength X [m]      : only the grid size is used" << endl;
+        else if(param.getUseGridSidelengthX())
+            cout << "- Sidelength X [m]      : only the grid size is used" << endl;
         if(param.getMaxSidelengthY() > 0)
         {
             cout << "- Sidelength Y [m]      : " << param.getMinSidelengthY() << " (min) - "
-                    << param.getMaxSidelengthY() << " (max)" << endl;
+                 << param.getMaxSidelengthY() << " (max)" << endl;
             if(param.getUseGridSidelengthY())
                 cout << "  (some detectors are using the grid size)" << endl;
         }
-        else
-            if(param.getUseGridSidelengthY())
-                cout << "- Sidelength Y [m]      : only the grid size is used" << endl;
+        else if(param.getUseGridSidelengthY())
+            cout << "- Sidelength Y [m]      : only the grid size is used" << endl;
 
         if(!monte_carlo)
         {
             if(param.getMaxMapShiftX() != 0)
                 cout << "- Map shift X [m]       : " << param.getMinMapShiftX() << " (min) - "
-                        << param.getMaxMapShiftX() << " (max)" << endl;
+                     << param.getMaxMapShiftX() << " (max)" << endl;
             if(param.getMaxMapShiftY() != 0)
                 cout << "- Map shift Y [m]       : " << param.getMinMapShiftY() << " (min) - "
-                        << param.getMaxMapShiftY() << " (max)" << endl;
+                     << param.getMaxMapShiftY() << " (max)" << endl;
         }
 
         cout << "- Rotation axis         : n1 = ";
         param.getAxis1().printValues();
         cout << ", angle [°] = " << param.getMinDetectorAngle1() << " (min) - "
-                << param.getMaxDetectorAngle1() << " (max)" << endl;
+             << param.getMaxDetectorAngle1() << " (max)" << endl;
         cout << "- Rotation axis         : n2 = ";
         param.getAxis2().printValues();
         cout << ", angle [°] = " << param.getMinDetectorAngle2() << " (min) - "
-                << param.getMaxDetectorAngle2() << " (max)" << endl;
+             << param.getMaxDetectorAngle2() << " (max)" << endl;
     }
 
     void printSynchrotronParameters(parameters & param)
@@ -331,8 +332,8 @@ public:
             double lam_min = sync_ray_detectors[i + 0];
             double lam_max = sync_ray_detectors[i + 1];
             uint lam_skip = uint(sync_ray_detectors[i + 2]);
-            cout << "    - Synchotron emission detector " << (pos + 1) << ": from wl = " << lam_min << " [m] to wl = "
-                << lam_max << " [m] with " << lam_skip << " step(s)" << endl;
+            cout << "    - Synchotron emission detector " << (pos + 1) << ": from wl = " << lam_min
+                 << " [m] to wl = " << lam_max << " [m] with " << lam_skip << " step(s)" << endl;
         }
     }
 
@@ -349,8 +350,8 @@ public:
 
     void checkScatteringToRay(parameters & param, CDustMixture * dust, CGridBasic * grid)
     {
-        // Check if either the radiation field is present or the radiation field can be calculated
-        // Otherwise, disable scattering added to the raytracing
+        // Check if either the radiation field is present or the radiation field can be
+        // calculated Otherwise, disable scattering added to the raytracing
         if(!grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 && !param.getDustSource())
             param.setScatteringToRay(false);
 
@@ -358,7 +359,7 @@ public:
         dust->setScatteringToRay(param.getScatteringToRay());
     }
 
-private:
+  private:
     bool writeSources(parameters & param, CGridBasic * grid);
     void createSourceLists(parameters & param, CDustMixture * dust, CGridBasic * grid);
     CDetector * createDetectorList(parameters & param, CDustMixture * dust, CGridBasic * grid);
@@ -371,7 +372,7 @@ private:
     parameter_list param_list;
     unsigned char ru[4];
 
-    //uint gria;
+    // uint gria;
 };
 
 #endif

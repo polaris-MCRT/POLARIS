@@ -1,17 +1,16 @@
 #pragma once
-#include "typedefs.h"
+#include "Dust.h"
+#include "Grid.h"
 #include "Vector.h"
 #include "chelper.h"
-#include "Grid.h"
-#include "Dust.h"
+#include "typedefs.h"
 
 #ifndef CSOURCE
 #define CSOURCE
 
 class CSourceBasic
 {
-public:
-
+  public:
     CSourceBasic(void)
     {
         L = 0;
@@ -32,8 +31,7 @@ public:
     }
 
     virtual ~CSourceBasic(void)
-    {
-    }
+    {}
 
     Vector3D getPosition()
     {
@@ -72,8 +70,7 @@ public:
     }
 
     virtual void setParameter(parameters & param, uint p)
-    {
-    }
+    {}
 
     bool setParameterFromFile(parameters & param, CGridBasic * _grid, CDustMixture * _dust, uint p)
     {
@@ -112,8 +109,7 @@ public:
     }
 
     virtual void clean()
-    {
-    }
+    {}
 
     string getStringID()
     {
@@ -131,12 +127,10 @@ public:
     }
 
     virtual void setSideLength(double val)
-    {
-    }
+    {}
 
-    virtual void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT)
-    {
-    }
+    virtual void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT)
+    {}
 
     virtual llong getNrOfPhotons()
     {
@@ -149,8 +143,7 @@ public:
     }
 
     virtual void setOrientation(Vector3D n1, Vector3D n2, double _theta, double _phi)
-    {
-    }
+    {}
 
     virtual StokesVector getStokesVector(photon_package * pp)
     {
@@ -162,7 +155,7 @@ public:
         return 1;
     }
 
-protected:
+  protected:
     CDustMixture * dust;
     CGridBasic * grid;
 
@@ -187,10 +180,9 @@ protected:
     string StringID;
 };
 
-class CSourceStar: public CSourceBasic
+class CSourceStar : public CSourceBasic
 {
-public:
-
+  public:
     CSourceStar()
     {
         pos = 0;
@@ -198,12 +190,11 @@ public:
     }
 
     ~CSourceStar()
-    {
-    }
+    {}
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -217,16 +208,15 @@ public:
         q = values[p + 5];
         u = values[p + 6];
 
-        nr_of_photons = (llong) values[p + NR_OF_POINT_SOURCES - 1];
+        nr_of_photons = (llong)values[p + NR_OF_POINT_SOURCES - 1];
 
         L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
     }
 };
 
-class CSourceStarField: public CSourceBasic
+class CSourceStarField : public CSourceBasic
 {
-public:
-
+  public:
     CSourceStarField(void)
     {
         pos = 0;
@@ -235,12 +225,11 @@ public:
     }
 
     ~CSourceStarField(void)
-    {
-    }
+    {}
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -260,14 +249,13 @@ public:
         L = R * T * T * T * T;
     }
 
-private:
+  private:
     double var;
 };
 
-class CSourceBackground: public CSourceBasic
+class CSourceBackground : public CSourceBasic
 {
-public:
-
+  public:
     CSourceBackground()
     {
         init = false;
@@ -377,7 +365,7 @@ public:
         ez.normalize();
     }
 
-private:
+  private:
     Matrix2D temp, f, q, u, v;
     Vector3D ex, ey, ez;
     uint bins;
@@ -395,10 +383,9 @@ private:
     double * L;
 };
 
-class CSourceISRF: public CSourceBasic
+class CSourceISRF : public CSourceBasic
 {
-public:
-
+  public:
     CSourceISRF()
     {
         init = false;
@@ -446,22 +433,21 @@ public:
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
 
-private:
+  private:
     Vector3D e, l;
 
     int kill_count;
     bool init;
     double c_q, c_u, c_v;
     double sidelength, g_zero;
-    double * c_w, *c_f;
+    double *c_w, *c_f;
 };
 
-class CSourceDust: public CSourceBasic
+class CSourceDust : public CSourceBasic
 {
-public:
-
+  public:
     CSourceDust(void)
     {
         total_energy = 0;
@@ -473,14 +459,14 @@ public:
     ~CSourceDust(void)
     {
         if(cell_prob != 0)
-            delete [] cell_prob;
+            delete[] cell_prob;
     }
 
     bool initSource(uint w);
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons=MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
 
     void setParameter(parameters & param, uint p)
     {
@@ -492,7 +478,7 @@ public:
         return nr_of_photons;
     }
 
-private:
+  private:
     double * total_energy;
     prob_list * cell_prob;
 };

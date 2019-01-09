@@ -1,7 +1,6 @@
 #include "MathFunctions.h"
 
-bool CMathFunctions::writeSEDStatistics(string path, bool fin, Vector3D axis1,
-        Vector3D axis2)
+bool CMathFunctions::writeSEDStatistics(string path, bool fin, Vector3D axis1, Vector3D axis2)
 {
     string data_path = path + "statistiscs.dat";
 
@@ -66,26 +65,33 @@ bool CMathFunctions::writeSEDStatistics(string path, bool fin, Vector3D axis1,
         if(stat_data(i, 27) == -1e200)
             stat_data(i, 27) = 0;
 
-        //stat_data(i, 3) *= 180.0 / PI;
-        //stat_data(i, 4) *= 180.0 / PI;
+        // stat_data(i, 3) *= 180.0 / PI;
+        // stat_data(i, 4) *= 180.0 / PI;
     }
 
-    data_writer << "#rot. axis: n1 = (" << axis1.X() << "," << axis1.Y() << ","
-            << axis1.Z() << "); ";
-    data_writer << "n2 = (" << axis2.X() << ", " << axis2.Y() << ", "
-            << axis2.Z() << ")" << endl;
+    data_writer << "#rot. axis: n1 = (" << axis1.X() << "," << axis1.Y() << "," << axis1.Z() << "); ";
+    data_writer << "n2 = (" << axis2.X() << ", " << axis2.Y() << ", " << axis2.Z() << ")" << endl;
 
     if(fin)
-        data_writer
-            << "#dust ray det. ID\tsource ID\twave [m]\tangle1 [deg]\tangle2 [deg]\tvalid pixel\tI_SED [Jy]\tI_mean [Jy]\tI_min  [Jy]\tI_max  [Jy]\tQ_mean [Jy]\tQ_min [Jy]\tQ_max [Jy]\tU_mean [Jy]\tU_min [Jy]\tU_max [Jy]\tV_mean [Jy]\tV_min [Jy]\tV_max [Jy]\ttau_mean\ttau_min\ttau_max\tPl_mean\tPl_min\tPl_max\tPc_mean\tPc_min\tPc_max" << endl;
+        data_writer << "#dust ray det. ID\tsource ID\twave [m]\tangle1 [deg]\tangle2 "
+                       "[deg]\tvalid pixel\tI_SED [Jy]\tI_mean [Jy]\tI_min  [Jy]\tI_max  "
+                       "[Jy]\tQ_mean [Jy]\tQ_min [Jy]\tQ_max [Jy]\tU_mean [Jy]\tU_min "
+                       "[Jy]\tU_max [Jy]\tV_mean [Jy]\tV_min [Jy]\tV_max "
+                       "[Jy]\ttau_mean\ttau_min\ttau_max\tPl_mean\tPl_min\tPl_max\tPc_"
+                       "mean\tPc_min\tPc_max"
+                    << endl;
     else
-        data_writer
-            << "#wave. ID\tdet. ID\twave [m]\tangle1 [deg]\tangle2 [deg]\tvalid pixel\tI_SED [Jy]\tI_mean [Jy]\tI_min  [Jy]\tI_max  [Jy]\tQ_mean [Jy]\tQ_min [Jy]\tQ_max [Jy]\tU_mean [Jy]\tU_min [Jy]\tU_max [Jy]\tV_mean [Jy]\tV_min [Jy]\tV_max [Jy]\ttau_mean\ttau_min\ttau_max\tPl_mean\tPl_min\tPl_max\tPc_mean\tPc_min\tPc_max" << endl;
+        data_writer << "#wave. ID\tdet. ID\twave [m]\tangle1 [deg]\tangle2 [deg]\tvalid "
+                       "pixel\tI_SED [Jy]\tI_mean [Jy]\tI_min  [Jy]\tI_max  [Jy]\tQ_mean "
+                       "[Jy]\tQ_min [Jy]\tQ_max [Jy]\tU_mean [Jy]\tU_min [Jy]\tU_max "
+                       "[Jy]\tV_mean [Jy]\tV_min [Jy]\tV_max "
+                       "[Jy]\ttau_mean\ttau_min\ttau_max\tPl_mean\tPl_min\tPl_max\tPc_"
+                       "mean\tPc_min\tPc_max"
+                    << endl;
 
     for(uint i = 0; i < nr_ofSeq; i++)
     {
-        cout << "-> Writing statistics file pos. " << i + 1 << " of "
-                << nr_ofSeq << "     \r";
+        cout << "-> Writing statistics file pos. " << i + 1 << " of " << nr_ofSeq << "     \r";
 
         for(uint j = 0; j < 28; j++)
         {

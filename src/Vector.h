@@ -1,13 +1,12 @@
-#include "typedefs.h"
 #include "Matrix2D.h"
+#include "typedefs.h"
 
 #ifndef CVECTOR3D
 #define CVECTOR3D
 
 class Vector3D
 {
-public:
-
+  public:
     Vector3D(void)
     {
         x = 0;
@@ -23,8 +22,7 @@ public:
     }
 
     ~Vector3D(void)
-    {
-    }
+    {}
 
     void printValues()
     {
@@ -45,7 +43,7 @@ public:
         _z = z;
     }
 
-    //Operators
+    // Operators
 
     Vector3D & operator=(const Vector3D & rhs)
     {
@@ -293,7 +291,7 @@ public:
         return Vector3D(-x, -y, -z);
     }
 
-    Vector3D& operator+=(const Vector3D & rhs)
+    Vector3D & operator+=(const Vector3D & rhs)
     {
         x += rhs.X();
         y += rhs.Y();
@@ -301,7 +299,7 @@ public:
         return *this;
     }
 
-    Vector3D& operator-=(const Vector3D & rhs)
+    Vector3D & operator-=(const Vector3D & rhs)
     {
         x -= rhs.X();
         y -= rhs.Y();
@@ -339,23 +337,23 @@ public:
 
     void operator*=(float v)
     {
-        x *= (double) v;
-        y *= (double) v;
-        z *= (double) v;
+        x *= (double)v;
+        y *= (double)v;
+        z *= (double)v;
     }
 
     void operator*=(int v)
     {
-        x *= (double) v;
-        y *= (double) v;
-        z *= (double) v;
+        x *= (double)v;
+        y *= (double)v;
+        z *= (double)v;
     }
 
     void operator*=(uint v)
     {
-        x *= (double) v;
-        y *= (double) v;
-        z *= (double) v;
+        x *= (double)v;
+        y *= (double)v;
+        z *= (double)v;
     }
 
     void operator/=(double v)
@@ -367,23 +365,23 @@ public:
 
     void operator/=(float v)
     {
-        x /= (double) v;
-        y /= (double) v;
-        z /= (double) v;
+        x /= (double)v;
+        y /= (double)v;
+        z /= (double)v;
     }
 
     void operator/=(int v)
     {
-        x /= (double) v;
-        y /= (double) v;
-        z /= (double) v;
+        x /= (double)v;
+        y /= (double)v;
+        z /= (double)v;
     }
 
     void operator/=(uint v)
     {
-        x /= (double) v;
-        y /= (double) v;
-        z /= (double) v;
+        x /= (double)v;
+        y /= (double)v;
+        z /= (double)v;
     }
 
     double length() const
@@ -393,16 +391,15 @@ public:
 
     double sq_length() const
     {
-        return(x * x + y * y + z * z);
+        return (x * x + y * y + z * z);
     }
 
-    double sqrel_length(Vector3D&c) const
+    double sqrel_length(Vector3D & c) const
     {
-        return(x - c.X()) * (x - c.X()) + (y - c.Y()) * (y - c.Y())
-                + (z - c.Z()) * (z - c.Z());
+        return (x - c.X()) * (x - c.X()) + (y - c.Y()) * (y - c.Y()) + (z - c.Z()) * (z - c.Z());
     }
 
-    //random direction according to http://mathworld.wolfram.com/SpherePointPicking.html
+    // random direction according to http://mathworld.wolfram.com/SpherePointPicking.html
 
     void rndDir(double r1, double r2)
     {
@@ -520,207 +517,203 @@ public:
         y = tx * s + ty * c;
     }
 
-private:
+  private:
     double x, y, z;
 };
 
 namespace
 {
 
-    double sign(double x)
-    {
-        if(x < 0)
-            return -1;
-        if(x > 0)
-            return 1;
+double sign(double x)
+{
+    if(x < 0)
+        return -1;
+    if(x > 0)
+        return 1;
 
+    return 0;
+}
+
+bool ctob(char c)
+{
+    if(c == '1')
+        return true;
+
+    return false;
+}
+
+double angle(double x, double y)
+{
+    if(x == 0 && y == 0)
         return 0;
-    }
 
-    bool ctob(char c)
+    if(x == 0)
     {
-        if(c == '1')
-            return true;
-
-        return false;
-    }
-
-    double angle(double x, double y)
-    {
-        if(x == 0 && y == 0)
-            return 0;
-
-        if(x == 0)
-        {
-            if(y >= 0)
-                return PI / 2.0;
-            else
-                return 3.0 * PI / 2.0;
-        }
-
-        double p = atan(abs(y) / abs(x));
-
-        if(y >= 0 && x < 0)
-            return PI - p;
-        if(y <= 0 && x < 0)
-            return PI + p;
-        if(y < 0 && x > 0)
-            return 2.0 * PI - p;
-
-        return p;
-    }
-
-    double atan3(double x, double y)
-    {
-        double angle = atan2(y, x);
-        if(angle > 0)
-            return angle;
+        if(y >= 0)
+            return PI / 2.0;
         else
-            return angle + PIx2;
+            return 3.0 * PI / 2.0;
     }
 
-    //inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};
+    double p = atan(abs(y) / abs(x));
 
-    inline Vector3D operator*(double val, const Vector3D& rhs)
-    {
-        return Vector3D(rhs.X() * val, rhs.Y() * val, rhs.Z() * val);
-    }
+    if(y >= 0 && x < 0)
+        return PI - p;
+    if(y <= 0 && x < 0)
+        return PI + p;
+    if(y < 0 && x > 0)
+        return 2.0 * PI - p;
 
-    inline Vector3D operator*(const Matrix2D & dM, const Vector3D& v)
-    {
-        Vector3D tmp;
+    return p;
+}
+
+double atan3(double x, double y)
+{
+    double angle = atan2(y, x);
+    if(angle > 0)
+        return angle;
+    else
+        return angle + PIx2;
+}
+
+// inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return
+// Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};
+
+inline Vector3D operator*(double val, const Vector3D & rhs)
+{
+    return Vector3D(rhs.X() * val, rhs.Y() * val, rhs.Z() * val);
+}
+
+inline Vector3D operator*(const Matrix2D & dM, const Vector3D & v)
+{
+    Vector3D tmp;
 
 #ifdef DEBUG
-        if(dM.col() != 3 || dM.row() != 3)
-            return tmp;
+    if(dM.col() != 3 || dM.row() != 3)
+        return tmp;
 #endif
 
-        tmp.setX(v.X() * dM(0, 0) + v.Y() * dM(0, 1) + v.Z() * dM(0, 2));
-        tmp.setY(v.X() * dM(1, 0) + v.Y() * dM(1, 1) + v.Z() * dM(1, 2));
-        tmp.setZ(v.X() * dM(2, 0) + v.Y() * dM(2, 1) + v.Z() * dM(2, 2));
+    tmp.setX(v.X() * dM(0, 0) + v.Y() * dM(0, 1) + v.Z() * dM(0, 2));
+    tmp.setY(v.X() * dM(1, 0) + v.Y() * dM(1, 1) + v.Z() * dM(1, 2));
+    tmp.setZ(v.X() * dM(2, 0) + v.Y() * dM(2, 1) + v.Z() * dM(2, 2));
 
-        return tmp;
-    }
+    return tmp;
+}
 
-    inline double operator*(const Vector3D& lhs, const Vector3D& rhs)
+inline double operator*(const Vector3D & lhs, const Vector3D & rhs)
+{
+    return lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z();
+}
+
+inline ostream & operator<<(ostream & out, const Vector3D & rhs)
+{
+    out << " x: " << rhs.X() << " y: " << rhs.Y() << " z: " << rhs.Z() << " length: " << rhs.length() << " ";
+
+    return out;
+}
+
+double getAngleTheta(Vector3D lhs, Vector3D rhs)
+{
+    if(rhs * lhs == 0.0)
+        return PI2;
+
+    double arg = (lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z()) / (lhs.length() * rhs.length());
+
+    if(arg < -1.0)
+        arg = -1.0;
+
+    if(arg > 1.0)
+        arg = 1.0;
+
+    return abs(acos(arg));
+    // return abs(0.5*PI-acos((lhs.X()*rhs.X()+lhs.Y()*rhs.Y()+lhs.Z()*rhs.Z())
+    //	/(lhs.length()*rhs.length()) ));
+}
+
+Vector3D projection(Vector3D v, Vector3D w)
+{
+    double tmp = w.sq_length();
+    tmp = (v * w) / tmp;
+
+    Vector3D res = tmp * w;
+    return res;
+}
+
+double getAnglePhi(Vector3D ex, Vector3D ey, Vector3D proj)
+{
+    Vector3D px, py;
+    double lx, ly, sx, sy;
+
+    px = (proj.X() * ex.X() + proj.Y() * ex.Y() + proj.Z() * ex.Z()) / ex.length() * ex;
+    py = (proj.X() * ey.X() + proj.Y() * ey.Y() + proj.Z() * ey.Z()) / ey.length() * ey;
+
+    if(0 == px.X() && 0 == ex.X())
     {
-        return lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z();
-    }
-
-    inline ostream& operator<<(ostream& out, const Vector3D & rhs)
-    {
-        out << " x: " << rhs.X() << " y: " << rhs.Y() << " z: " << rhs.Z()
-                << " length: " << rhs.length() << " ";
-
-        return out;
-    }
-
-    double getAngleTheta(Vector3D lhs, Vector3D rhs)
-    {
-        if(rhs * lhs == 0.0)
-            return PI2;
-
-        double arg = (lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z())
-                / (lhs.length() * rhs.length());
-
-        if(arg < -1.0)
-            arg = -1.0;
-
-        if(arg > 1.0)
-            arg = 1.0;
-
-        return abs(acos(arg));
-        //return abs(0.5*PI-acos((lhs.X()*rhs.X()+lhs.Y()*rhs.Y()+lhs.Z()*rhs.Z())
-        //	/(lhs.length()*rhs.length()) ));
-
-    }
-
-    Vector3D projection(Vector3D v, Vector3D w)
-    {
-        double tmp = w.sq_length();
-        tmp = (v * w) / tmp;
-
-        Vector3D res = tmp * w;
-        return res;
-    }
-
-    double getAnglePhi(Vector3D ex, Vector3D ey, Vector3D proj)
-    {
-        Vector3D px, py;
-        double lx, ly, sx, sy;
-
-        px = (proj.X() * ex.X() + proj.Y() * ex.Y() + proj.Z() * ex.Z())
-                / ex.length() * ex;
-        py = (proj.X() * ey.X() + proj.Y() * ey.Y() + proj.Z() * ey.Z())
-                / ey.length() * ey;
-
-        if(0 == px.X() && 0 == ex.X())
-        {
-            if(0 == px.Y() && 0 == ex.Y())
-                sx = sign(px.Z() / ex.Z());
-            else
-                sx = sign(px.Y() / ex.Y());
-        }
+        if(0 == px.Y() && 0 == ex.Y())
+            sx = sign(px.Z() / ex.Z());
         else
-            sx = sign(px.X() / ex.X());
-
-        if(0 == py.X() && 0 == ey.X())
-        {
-            if(0 == py.Y() && 0 == ey.Y())
-                sy = sign(py.Z() / ey.Z());
-            else
-                sy = sign(py.Y() / ey.Y());
-        }
-        else
-            sy = sign(py.X() / ey.X());
-
-        lx = sx * px.length();
-        ly = sy * py.length();
-
-        return angle(lx, ly);
+            sx = sign(px.Y() / ex.Y());
     }
+    else
+        sx = sign(px.X() / ex.X());
 
-    Vector3D cross(const Vector3D & vec1, const Vector3D & vec2)
+    if(0 == py.X() && 0 == ey.X())
     {
-        double ax = vec1.X(), bx = vec2.X();
-        double ay = vec1.Y(), by = vec2.Y();
-        double az = vec1.Z(), bz = vec2.Z();
-
-        return Vector3D(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);
-    }
-
-    double rot_sgn(Vector3D n, Vector3D o_d, Vector3D n_d)
-    {
-        Vector3D o = n.crossProduct(o_d);
-        double tmp = o.sq_length();
-
-        if(tmp == 0)
-            return 0;
-
-        tmp = (n_d.X() * o.X() + n_d.Y() * o.Y() + n_d.Z() * o.Z()) / tmp;
-        Vector3D op(tmp * o.X(), tmp * o.Y(), tmp * o.Z());
-
-        if(op.X() != 0)
-        {
-            return sign(o.X() / op.X());
-        }
+        if(0 == py.Y() && 0 == ey.Y())
+            sy = sign(py.Z() / ey.Z());
         else
-        {
-            if(op.Y() != 0)
-            {
-                return sign(o.Y() / op.Y());
-            }
-            else
-            {
-                if(op.Z() != 0)
-                {
-                    return sign(o.Z() / op.Z());
-                }
-            }
-        }
+            sy = sign(py.Y() / ey.Y());
+    }
+    else
+        sy = sign(py.X() / ey.X());
 
+    lx = sx * px.length();
+    ly = sy * py.length();
+
+    return angle(lx, ly);
+}
+
+Vector3D cross(const Vector3D & vec1, const Vector3D & vec2)
+{
+    double ax = vec1.X(), bx = vec2.X();
+    double ay = vec1.Y(), by = vec2.Y();
+    double az = vec1.Z(), bz = vec2.Z();
+
+    return Vector3D(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);
+}
+
+double rot_sgn(Vector3D n, Vector3D o_d, Vector3D n_d)
+{
+    Vector3D o = n.crossProduct(o_d);
+    double tmp = o.sq_length();
+
+    if(tmp == 0)
         return 0;
+
+    tmp = (n_d.X() * o.X() + n_d.Y() * o.Y() + n_d.Z() * o.Z()) / tmp;
+    Vector3D op(tmp * o.X(), tmp * o.Y(), tmp * o.Z());
+
+    if(op.X() != 0)
+    {
+        return sign(o.X() / op.X());
     }
+    else
+    {
+        if(op.Y() != 0)
+        {
+            return sign(o.Y() / op.Y());
+        }
+        else
+        {
+            if(op.Z() != 0)
+            {
+                return sign(o.Z() / op.Z());
+            }
+        }
+    }
+
+    return 0;
+}
 
 }
 

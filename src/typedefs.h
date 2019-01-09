@@ -1,14 +1,14 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <math.h>
-#include <time.h>
-#include <omp.h>
-#include <sstream>
-#include <map>
-#include <limits>
 #include <algorithm>
 #include <complex>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <math.h>
+#include <omp.h>
+#include <sstream>
+#include <time.h>
+#include <vector>
 using namespace std;
 
 // Header and Version of POLARIS
@@ -51,18 +51,19 @@ using namespace std;
 #define con_m_e 9.10938356e-31                     // Electron mass [kg]
 #define con_m_p 1.672621898e-27                    // Proton mass [kg]
 #define con_epsilon_0 8.854187817620389e-12        // Vacuum permittivity [F / m]
-#define con_eps con_h *con_c / (4.0 * PI)          // (h * c / (4 * PI))
+#define con_eps con_h * con_c / (4.0 * PI)         // (h * c / (4 * PI))
 
 #ifdef CAMPS_BENCHMARK
-// Part to perform Camps et. al (2015) benchmark (adjust definition below, if necessary!!!)
+// Part to perform Camps et. al (2015) benchmark (adjust definition below, if
+// necessary!!!)
 #define WL_MIN 1e-9
 #define WL_MAX 1e-2
 #define WL_STEPS 1201
 #else
 // Default parameters of the global wavelength grid
-#define WL_MIN             0.05e-6
-#define WL_MAX             2000.0e-6
-#define WL_STEPS           100
+#define WL_MIN 0.05e-6
+#define WL_MAX 2000.0e-6
+#define WL_STEPS 100
 #endif
 
 // Parameter for numerical limitations
@@ -99,18 +100,18 @@ using namespace std;
 #define TEMP_MAX 3000
 #define TEMP_STEP 1000
 
-//detector ids
+// detector ids
 #define DET_PLANE 0
 #define DET_POLAR 1
 #define DET_SPHER 2
 #define DET_SLICE 3
 
-//phase functions
+// phase functions
 #define PH_ISO 0
 #define PH_HG 1
 #define PH_MIE 2
 
-//Alignment mechanisms
+// Alignment mechanisms
 #define ALIG_RND 0
 #define ALIG_INTERNAL 1
 #define ALIG_PA 2
@@ -135,12 +136,12 @@ using namespace std;
 #define CMD_OPIATE 8
 #define CMD_SYNCHROTRON 9
 
-//PDA IDs
+// PDA IDs
 #define PDA_TEMP 0
 #define PDA_RAT 1
 #define PDA_PRES 2
 
-//grid data IDs
+// grid data IDs
 #define GRIDgas_dens 0
 #define GRIDdust_dens 1
 #define GRIDdust_temp 2
@@ -164,12 +165,12 @@ using namespace std;
 #define GRIDopiate 20
 #define GRIDdust_id 21
 
-#define GRIDn_th 22  //number density of thermal electrons
-#define GRIDT_e 23   //Temperature of thermal electrons
-#define GRIDn_cr 24  //number density of CR electrons
-#define GRIDg_min 25 //gamma min for power law distribution
-#define GRIDg_max 26 //gamma max for power law distribution
-#define GRIDp 27     //power law exponent
+#define GRIDn_th 22  // number density of thermal electrons
+#define GRIDT_e 23   // Temperature of thermal electrons
+#define GRIDn_cr 24  // number density of CR electrons
+#define GRIDg_min 25 // gamma min for power law distribution
+#define GRIDg_max 26 // gamma max for power law distribution
+#define GRIDp 27     // power law exponent
 
 #define GRIDgas_mdens 28
 #define GRIDdust_mdens 29
@@ -187,7 +188,7 @@ using namespace std;
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
 
-//grid types
+// grid types
 #define GRID_ID_OCT 20
 #define GRID_ID_SPH 30
 #define GRID_ID_CYL 40
@@ -249,13 +250,17 @@ using namespace std;
 #define PROJ_XZ 2
 #define PROJ_YZ 3
 
-#define SEP_LINE "*************************************************************************************\n"
-#define CLR_LINE "                                                                                     \r"
+#define SEP_LINE                                                                                             \
+    "**********************************************************************************"                     \
+    "***\n"
+#define CLR_LINE                                                                                             \
+    "                                                                                  "                     \
+    "   \r"
 #define TAB "\t"
 
 #ifdef WINDOWS
-#include <io.h>
 #include <direct.h>
+#include <io.h>
 #include <string>
 #include <windows.h>
 #define SEP "\\"
@@ -266,16 +271,15 @@ using namespace std;
 #include <stdlib.h>
 #include <string.h>
 //	#include <asm/io.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <stdio.h>
 #include <unistd.h>
 #define SEP "/"
 #define LINE_DELAY 5
 #endif
 
-//data types
+// data types
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned long long ullong;
@@ -283,7 +287,7 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef long long llong;
 typedef vector<double> dlist;
-typedef map<uint, vector<double> > maplist;
+typedef map<uint, vector<double>> maplist;
 typedef vector<uchar> clist;
 typedef vector<uint> uilist;
 typedef vector<ushort> uslist;

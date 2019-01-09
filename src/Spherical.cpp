@@ -1,7 +1,7 @@
-#include "typedefs.h"
 #include "Spherical.h"
-#include "MathFunctions.h"
 #include "CommandParser.h"
+#include "MathFunctions.h"
+#include "typedefs.h"
 #include <limits>
 
 bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
@@ -35,11 +35,11 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     char_counter = 0;
     float last_percentage = 0;
 
-    bin_reader.read((char*) &tmpID, 2);
-    bin_reader.read((char*) &tmpOffset, 2);
+    bin_reader.read((char *)&tmpID, 2);
+    bin_reader.read((char *)&tmpOffset, 2);
 
     dataID = tmpID;
-    data_offset = (uint) tmpOffset;
+    data_offset = (uint)tmpOffset;
     data_len = _data_len + data_offset;
 
     if(dataID == GRID_ID_SPH)
@@ -49,7 +49,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = 0;
-            bin_reader.read((char*) &tmp_ids, 2);
+            bin_reader.read((char *)&tmp_ids, 2);
             data_ids[i] = tmp_ids;
         }
 
@@ -58,7 +58,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     }
     else
     {
-        cout << "\nERROR: Cannot write to:\n A spherical grid requires an ID of \"" << GRID_ID_SPH << "\"!" << endl;
+        cout << "\nERROR: Cannot write to:\n A spherical grid requires an ID of \"" << GRID_ID_SPH << "\"!"
+             << endl;
         return false;
     }
 
@@ -66,17 +67,17 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     if(tmp_data_offset == MAX_UINT)
         return false;
 
-    bin_reader.read((char*) &Rmin, 8);
-    bin_reader.read((char*) &Rmax, 8);
-    bin_reader.read((char*) &N_r, 2);
-    bin_reader.read((char*) &N_ph, 2);
-    bin_reader.read((char*) &N_th, 2);
-    bin_reader.read((char*) &log_factorR, 8);
-    bin_reader.read((char*) &log_factorPh, 8);
-    bin_reader.read((char*) &log_factorTh, 8);
+    bin_reader.read((char *)&Rmin, 8);
+    bin_reader.read((char *)&Rmax, 8);
+    bin_reader.read((char *)&N_r, 2);
+    bin_reader.read((char *)&N_ph, 2);
+    bin_reader.read((char *)&N_th, 2);
+    bin_reader.read((char *)&log_factorR, 8);
+    bin_reader.read((char *)&log_factorPh, 8);
+    bin_reader.read((char *)&log_factorTh, 8);
 
     // Convert borders with conversion factors
-    min_len = Rmin;  
+    min_len = Rmin;
     Rmin *= conv_length_in_SI;
     Rmax *= conv_length_in_SI;
 
@@ -88,7 +89,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     // --------------------------------------
     // ---------- Radial-direction ----------
-    // -------------------------------------- 
+    // --------------------------------------
 
     // Init radial cell border
     listR = new double[N_r + 1];
@@ -104,7 +105,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         for(uint i_r = 1; i_r < N_r; i_r++)
         {
             // Read radial cell border position
-            bin_reader.read((char*) &listR[i_r], 8);
+            bin_reader.read((char *)&listR[i_r], 8);
 
             // Update radial position with conversion factors
             listR[i_r] *= conv_length_in_SI;
@@ -126,7 +127,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         CMathFunctions::LinearList(Rmin, Rmax, listR, N_r + 1);
     }
 
-     // -----------------------------------
+    // -----------------------------------
     // ---------- Phi-direction ----------
     // -----------------------------------
 
@@ -142,13 +143,13 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
         // Set the cell borders
         for(uint i_ph = 1; i_ph < N_ph; i_ph++)
-            bin_reader.read((char*) &listPh[i_ph], 8);
+            bin_reader.read((char *)&listPh[i_ph], 8);
     }
     else
     {
         // Linear width of the cells in phi direction
         CMathFunctions::LinearList(0, PIx2, listPh, N_ph + 1);
-    }     
+    }
 
     // -------------------------------------
     // ---------- Theta-direction ----------
@@ -159,9 +160,9 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         listTh[0] = 0;
         listTh[N_th] = PI;
 
-         // Read cell border in theta direction
+        // Read cell border in theta direction
         for(uint i_th = 1; i_th < N_th; i_th++)
-            bin_reader.read((char*) &listTh[i_th], 8);
+            bin_reader.read((char *)&listTh[i_th], 8);
     }
     else if(log_factorTh == 1.0)
     {
@@ -171,12 +172,12 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     else if(log_factorTh > 1.0)
     {
         // Exponentially increasing width of the cells in z-direction (symmetrically)
-        CMathFunctions::ExpListSym(0, PI, listTh, N_th + 1, log_factorTh);   
+        CMathFunctions::ExpListSym(0, PI, listTh, N_th + 1, log_factorTh);
     }
     else
     {
         // Linear width of the cells in theta direction
-        CMathFunctions::LinearList(0, PI, listTh, N_th + 1);   
+        CMathFunctions::LinearList(0, PI, listTh, N_th + 1);
     }
 
     // -----------------------------------------
@@ -184,35 +185,38 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     // -----------------------------------------
     if(Rmin <= 0)
     {
-        cout << "\nERROR: Cannot write to:\n Inner radius (Rmin = " << Rmin << ") must be larger than zero!" << endl;
+        cout << "\nERROR: Cannot write to:\n Inner radius (Rmin = " << Rmin << ") must be larger than zero!"
+             << endl;
         return false;
     }
 
     if(Rmax <= 0)
     {
-        cout << "\nERROR: Cannot write to:\n Outer radius (Rmax = " << Rmax << ") must be larger than zero!" << endl;
+        cout << "\nERROR: Cannot write to:\n Outer radius (Rmax = " << Rmax << ") must be larger than zero!"
+             << endl;
         return false;
     }
 
     if(Rmax <= Rmin)
     {
-        cout << "\nERROR: Cannot write to:\n Outer radius (Rmax = " << Rmax << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
+        cout << "\nERROR: Cannot write to:\n Outer radius (Rmax = " << Rmax
+             << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
         return false;
     }
 
     // Init grid cells
-    grid_cells = new cell_sp***[N_r];
+    grid_cells = new cell_sp ***[N_r];
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        grid_cells[i_r] = new cell_sp**[N_ph];
+        grid_cells[i_r] = new cell_sp **[N_ph];
 
-        cout << "Allocating memory for spherical grid cells: " <<
-                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+        cout << "Allocating memory for spherical grid cells: " << float(100.0 * double(i_r) / double(N_r))
+             << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {
-            grid_cells[i_r][i_ph] = new cell_sp*[N_th];
+            grid_cells[i_r][i_ph] = new cell_sp *[N_th];
 
             for(uint i_th = 0; i_th < N_th; i_th++)
             {
@@ -237,7 +241,9 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
             if(dr == 0)
             {
-                cout << "\nERROR: Cannot write to:\n No step size in r-direction of spherical grid!" << endl;
+                cout << "\nERROR: Cannot write to:\n No step size in r-direction of "
+                        "spherical grid!"
+                     << endl;
                 return false;
             }
 
@@ -255,7 +261,9 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
                 if(dph == 0)
                 {
-                    cout << "\nERROR: Cannot write to:\n No step size in phi-direction of spherical grid!" << endl;
+                    cout << "\nERROR: Cannot write to:\n No step size in phi-direction "
+                            "of spherical grid!"
+                         << endl;
                     return false;
                 }
 
@@ -273,9 +281,15 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
                 if(dth == 0)
                 {
-                    cout << "\nERROR: Cannot write to:\n No step size in theta-direction of spherical grid!" << endl
-                        << "\nHINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
-                        << "      Please look in the manual or use \"polaris-gen ... --update\"" << endl;
+                    cout << "\nERROR: Cannot write to:\n No step size in theta-direction "
+                            "of spherical grid!"
+                         << endl
+                         << "\nHINT: Update of POLARIS v4.02 includes variable phi "
+                            "spacing."
+                         << endl
+                         << "      Please look in the manual or use \"polaris-gen ... "
+                            "--update\""
+                         << endl;
                     return false;
                 }
 
@@ -292,8 +306,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading spherical grid file: "
-                    << percentage << " [%]      \r" << flush;
+            cout << "-> Loading spherical grid file: " << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
 
@@ -313,8 +326,6 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
             break;
 
         cell_sp * tmp_cell = 0;
-
-
 
         if(r_counter == N_r)
         {
@@ -341,17 +352,19 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
         for(uint i = 0; i < data_offset; i++)
         {
             double tmp_data1 = 0;
-            bin_reader.read((char*) &tmp_data1, 8);
-            //cout << tmp_data1 << " ";
+            bin_reader.read((char *)&tmp_data1, 8);
+            // cout << tmp_data1 << " ";
             tmp_cell->setData(i, tmp_data1);
         }
 
         updateVelocity(tmp_cell, param);
 
         if(uint(tmp_cell->getData(data_pos_id)) < 0 ||
-            uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
+           uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
         {
-            cout << "\nERROR: Cannot write to:\n Dust ID in grid exceeds maximum number of dust choices available! " << endl;
+            cout << "\nERROR: Cannot write to:\n Dust ID in grid exceeds maximum number "
+                    "of dust choices available! "
+                 << endl;
             return false;
         }
 
@@ -367,7 +380,9 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     if(max_cells != uint(line_counter))
     {
-        cout << "\nERROR: Cannot write to:\n Number of read in cells do not match the maximal number of expected cells!" << endl;
+        cout << "\nERROR: Cannot write to:\n Number of read in cells do not match the "
+                "maximal number of expected cells!"
+             << endl;
         return false;
     }
 
@@ -375,11 +390,10 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_offset += tmp_data_offset;
 
     max_len = 2 * Rmax;
-    //min_len = listR[1] - listR[0];
+    // min_len = listR[1] - listR[0];
 
-    //cout << CLR_LINE;
-    //cout << "- Loading spherical grid file          : done" << endl;
-	
+    // cout << CLR_LINE;
+    // cout << "- Loading spherical grid file          : done" << endl;
 
     return true;
 }
@@ -402,13 +416,16 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (data_pos_gd_list.size() > 0); // 1
-    plt_dust_dens = false; //param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
-    plt_gas_temp =  (data_pos_tg != MAX_UINT); // 3
+    plt_dust_dens = false;                    // param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
+    plt_gas_temp = (data_pos_tg != MAX_UINT); // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
-    plt_rat = (data_pos_aalg != MAX_UINT); // 5
-    plt_delta = false; //param.getPlot(plIDdelta) && (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 6
-    plt_larm = false; //param.getPlot(plIDlarm) && (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 7
-    plt_mach = false; //param.getPlot(plIDmach) && (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT); // 8
+    plt_rat = (data_pos_aalg != MAX_UINT);       // 5
+    plt_delta = false;                           // param.getPlot(plIDdelta) && (data_pos_tg != MAX_UINT) &&
+                       // (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 6
+    plt_larm = false; // param.getPlot(plIDlarm) && (data_pos_tg != MAX_UINT) &&
+                      // (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 7
+    plt_mach = false; // param.getPlot(plIDmach) && (data_pos_vx != MAX_UINT) &&
+                      // (data_pos_tg != MAX_UINT); // 8
 
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
@@ -497,8 +514,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[3].fail())
         {
-            cout << "\nERROR: Cannot write to:\n" << temp_gas_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n" << temp_gas_filename << endl;
             return false;
         }
     }
@@ -509,8 +525,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[4].fail())
         {
-            cout << "\nERROR: Cannot write to:\n" << temp_dust_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n" << temp_dust_filename << endl;
             return false;
         }
     }
@@ -584,7 +599,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     line_counter = 0;
     char_counter = 0;
 
-    //Grid boundaries
+    // Grid boundaries
     for(uint i_th = 0; i_th < N_th; i_th++)
     {
         double th = listTh[i_th];
@@ -595,28 +610,27 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             double tmp_dph = PIx2 / Nstep;
             Vector3D p1, p2, dist;
 
-            //inner sphere
-            p1 = Vector3D(Rmin, i_ph*tmp_dph, th);
+            // inner sphere
+            p1 = Vector3D(Rmin, i_ph * tmp_dph, th);
             p2 = Vector3D(Rmin, (i_ph + 1) * tmp_dph, th);
 
             p1.spher2cart();
             p2.spher2cart();
             dist = p2 - p1;
 
-            basic_grid_l0 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z())
-                    << " " << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
+            basic_grid_l0 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                          << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
 
-
-            //outer sphere
-            p1 = Vector3D(Rmax, i_ph*tmp_dph, th);
+            // outer sphere
+            p1 = Vector3D(Rmax, i_ph * tmp_dph, th);
             p2 = Vector3D(Rmax, (i_ph + 1) * tmp_dph, th);
 
             p1.spher2cart();
             p2.spher2cart();
             dist = p2 - p1;
 
-            basic_grid_l1 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z())
-                    << " " << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
+            basic_grid_l1 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                          << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
         }
     }
 
@@ -630,7 +644,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             double tmp_dth = PI / Nstep;
             Vector3D p1, p2, dist;
 
-            //inner sphere
+            // inner sphere
             p1 = Vector3D(Rmin, ph, i_th * tmp_dth);
             p2 = Vector3D(Rmin, ph, (i_th + 1) * tmp_dth);
 
@@ -638,10 +652,10 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             p2.spher2cart();
             dist = p2 - p1;
 
-            basic_grid_l0 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z())
-                    << " " << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
+            basic_grid_l0 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                          << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
 
-            //outer sphere
+            // outer sphere
             p1 = Vector3D(Rmax, ph, i_th * tmp_dth);
             p2 = Vector3D(Rmax, ph, (i_th + 1) * tmp_dth);
 
@@ -649,8 +663,8 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             p2.spher2cart();
             dist = p2 - p1;
 
-            basic_grid_l1 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z())
-                    << " " << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
+            basic_grid_l1 << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                          << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
         }
     }
 
@@ -680,16 +694,16 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     point_header << "set grid" << endl;
     point_header << "set nokey" << endl;
 
-    //0 spherical grid
+    // 0 spherical grid
     point_fields[0] << point_header.str();
     point_fields[0] << "set title \'3D spherical grid geometry\' font \'Arial,12\'" << endl;
     point_fields[0] << "set style arrow 3 nohead ls 1 lw 0.5 lc rgb 0x550066" << endl;
     point_fields[0] << "splot '-' with vectors as 3,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //1 gas density
+    // 1 gas density
     point_fields[1] << point_header.str();
     point_fields[1] << "set title \'3D gas number density distribution (min: " << min_gas_dens
-            << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[1] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[1] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1, 3 1 1 0)" << endl;
 
@@ -707,16 +721,15 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_dens / max_gas_dens > 0.9)
         min_gas_dens = 0.9 * max_gas_dens;
 
-    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":"
-            << log10(max_gas_dens) << "]" << endl;
+    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":" << log10(max_gas_dens) << "]" << endl;
     point_fields[1] << "set format cb \'%.02g\'" << endl;
 
     point_fields[1] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //2 dust density
+    // 2 dust density
     point_fields[2] << point_header.str();
     point_fields[2] << "set title \'3D gas number density distribution (min: " << min_dust_dens
-            << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[2] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[2] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1)" << endl;
 
@@ -734,19 +747,17 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_dens / max_dust_dens > 0.9)
         min_dust_dens = 0.9 * max_dust_dens;
 
-    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":"
-            << log10(max_dust_dens) << "]" << endl;
+    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":" << log10(max_dust_dens) << "]" << endl;
     point_fields[2] << "set format cb \'%.02g\'" << endl;
 
     point_fields[2] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //3 gas_temp
+    // 3 gas_temp
     point_fields[3] << point_header.str();
     point_fields[3] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[3] << "set title \'3D gas temperature distribution (min: "
-            << min_gas_temp << "[K]; max: " << max_gas_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[3] << "set title \'3D gas temperature distribution (min: " << min_gas_temp
+                    << "[K]; max: " << max_gas_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[3] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_gas_temp == 0 && max_gas_temp == 0)
@@ -758,20 +769,17 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_temp / max_gas_temp > 0.90)
         min_gas_temp = 0.9 * max_gas_temp;
 
-    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":"
-            << float(max_gas_temp) << "]" << endl;
+    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":" << float(max_gas_temp) << "]" << endl;
     point_fields[3] << "set format cb \'%.03g\'" << endl;
 
     point_fields[3] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //4 dust temp
+    // 4 dust temp
     point_fields[4] << point_header.str();
-    point_fields[4]
-            << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
+    point_fields[4] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[4] << "set title \'3D dust temperature distribution (min: "
-            << min_dust_temp << "[K]; max: " << max_dust_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[4] << "set title \'3D dust temperature distribution (min: " << min_dust_temp
+                    << "[K]; max: " << max_dust_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[4] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_dust_temp == 0 && max_dust_temp == 0)
@@ -783,20 +791,17 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_temp / max_dust_temp > 0.9)
         min_dust_temp = 0.9 * max_dust_temp;
 
-    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":"
-            << float(max_dust_temp) << "]" << endl;
+    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":" << float(max_dust_temp) << "]" << endl;
     point_fields[4] << "set format cb \'%.03g\'" << endl;
 
     point_fields[4] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //5 rat
+    // 5 rat
     point_fields[5] << point_header.str();
     point_fields[5] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[5] << "set title \'3D aligned radii distribution (min ID: "
-            << aalg_min << "; max ID: " << aalg_max
-            << ")\' font \'Arial,12\'" << endl;
-
+    point_fields[5] << "set title \'3D aligned radii distribution (min ID: " << aalg_min
+                    << "; max ID: " << aalg_max << ")\' font \'Arial,12\'" << endl;
 
     point_fields[5] << "set cblabel \'aligned radius ID\'" << endl;
 
@@ -832,7 +837,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     vec_header << "set grid" << endl;
     vec_header << "set nokey" << endl;
 
-    //0 mag
+    // 0 mag
     vec_fields[0] << vec_header.str();
     vec_fields[0] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -842,17 +847,19 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         max_mag = 2e-45;
     }
 
-    vec_fields[0]
-            << "set title \'3D mag. field distribution (min:" << log10(min_mag) << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
+    vec_fields[0] << "set title \'3D mag. field distribution (min:" << log10(min_mag)
+                  << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
 
     if(min_mag / max_mag > 0.9)
         min_mag = 0.9 * max_mag;
 
     vec_fields[0] << "set cbrange[" << log10(min_mag) << ":" << log10(max_mag) << "]" << endl;
     vec_fields[0] << "set format cb \'%.02g\'" << endl;
-    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
-    //1 vel
+    // 1 vel
     vec_fields[1] << vec_header.str();
     vec_fields[1] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -862,15 +869,17 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         max_vel = 1e-45;
     }
 
-    vec_fields[1]
-            << "set title \'3D vel. field directions (min:" << log10(min_vel) << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
+    vec_fields[1] << "set title \'3D vel. field directions (min:" << log10(min_vel)
+                  << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
 
     if(min_vel / max_vel > 0.9)
         min_vel = 0.9 * max_vel;
 
     vec_fields[1] << "set cbrange[" << float(log10(min_vel)) << ":" << float(log10(max_vel)) << "]" << endl;
     vec_fields[1] << "set format cb \'%.03g\'" << endl;
-    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
     if(plt_gas_dens)
         point_fields[0] << "0 0 0 " << 0.5 << " " << getGasDensity(center_cell) << endl;
@@ -904,29 +913,29 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                         double dens = getGasDensity(tmp_cell_pos);
 
                         if(dens > 0)
-                            point_fields[1] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                            << float(size) << " " << log10(dens) << endl;
+                            point_fields[1] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size)
+                                            << " " << log10(dens) << endl;
                     }
 
                     if(plt_gas_temp)
                     {
                         double Tg = getGasTemperature(tmp_cell_pos);
-                        point_fields[3] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                                << float(size) << " " << Tg << endl;
+                        point_fields[3] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
+                                        << Tg << endl;
                     }
 
                     if(plt_gas_temp)
                     {
                         double Td = getDustTemperature(tmp_cell_pos);
-                        point_fields[4] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                                << float(size) << " " << Td << endl;
+                        point_fields[4] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
+                                        << Td << endl;
                     }
 
                     if(plt_rat)
                     {
                         double a_alg = getAlignedRadius(tmp_cell_pos);
-                        point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " "
-                                << float(size) << " " << a_alg << endl;
+                        point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
+                                        << a_alg << endl;
                     }
                 }
 
@@ -946,11 +955,10 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                             my = 0.45 * min_len * size * my / b_len;
                             mz = 0.45 * min_len * size * mz / b_len;
 
-                            vec_fields[0]
-                                    << float(c.X() - mx) << " " << float(c.Y() - my) << " " << float(c.Z() - mz) << " "
-                                    << float(2.0 * mx) << " " << float(2.0 * my) << " " << float(2.0 * mz) << " "
-                                    << float(log10(b_len)) << endl;
-
+                            vec_fields[0] << float(c.X() - mx) << " " << float(c.Y() - my) << " "
+                                          << float(c.Z() - mz) << " " << float(2.0 * mx) << " "
+                                          << float(2.0 * my) << " " << float(2.0 * mz) << " "
+                                          << float(log10(b_len)) << endl;
                         }
                     }
 
@@ -968,10 +976,10 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                             vy = 0.45 * min_len * size * vy / v_len;
                             vz = 0.45 * min_len * size * vz / v_len;
 
-                            vec_fields[1]
-                                    << float(c.X() - vx) << " " << float(c.Y() - vy) << " " << float(c.Z() - vz) << " "
-                                    << float(2.0 * vx) << " " << float(2.0 * vy) << " " << float(2.0 * vz) << " "
-                                    << float(log10(v_len)) << endl;
+                            vec_fields[1] << float(c.X() - vx) << " " << float(c.Y() - vy) << " "
+                                          << float(c.Z() - vz) << " " << float(2.0 * vx) << " "
+                                          << float(2.0 * vy) << " " << float(2.0 * vz) << " "
+                                          << float(log10(v_len)) << endl;
                         }
                     }
                 }
@@ -981,7 +989,9 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
     for(uint pos = 1; pos < 6; pos++)
     {
-        point_fields[pos] << "\ne\n" << basic_grid_l0.str() << "\ne\n" << basic_grid_l1.str() << "\ne" << endl;
+        point_fields[pos] << "\ne\n"
+                          << basic_grid_l0.str() << "\ne\n"
+                          << basic_grid_l1.str() << "\ne" << endl;
     }
 
     for(uint pos = 0; pos < 2; pos++)
@@ -1004,16 +1014,15 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             for(uint i_ph = 0; i_ph < Nstep; i_ph++)
             {
                 double tmp_dph = PIx2 / Nstep;
-                Vector3D p1(r, i_ph*tmp_dph, th);
+                Vector3D p1(r, i_ph * tmp_dph, th);
                 Vector3D p2(r, (i_ph + 1) * tmp_dph, th);
 
                 p1.spher2cart();
                 p2.spher2cart();
                 Vector3D dist = p2 - p1;
 
-                buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                        << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                        << float(dist.Z()) << endl;
+                buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                       << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
             }
         }
     }
@@ -1041,9 +1050,8 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                 p2.spher2cart();
                 Vector3D dist = p2 - p1;
 
-                buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                        << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                        << float(dist.Z()) << endl;
+                buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                       << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
             }
         }
     }
@@ -1066,9 +1074,8 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
             p2.spher2cart();
             Vector3D dist = p2 - p1;
 
-            buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                    << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                    << float(dist.Z()) << endl;
+            buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " " << float(dist.X())
+                   << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
         }
     }
 
@@ -1103,15 +1110,15 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
         return false;
     }
 
-    bin_writer.write((char*) &id, 2);
-    bin_writer.write((char*) &data_size, 2);
+    bin_writer.write((char *)&id, 2);
+    bin_writer.write((char *)&data_size, 2);
 
     if(dataID == GRID_ID_SPH)
     {
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = data_ids[i];
-            bin_writer.write((char*) &tmp_ids, 2);
+            bin_writer.write((char *)&tmp_ids, 2);
         }
     }
     else
@@ -1122,28 +1129,28 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
         return false;
     }
 
-    bin_writer.write((char*) &Rmin, 8);
-    bin_writer.write((char*) &Rmax, 8);
-    bin_writer.write((char*) &N_r, 2);
-    bin_writer.write((char*) &N_ph, 2);
-    bin_writer.write((char*) &N_th, 2);
-    bin_writer.write((char*) &log_factorR, 8);
-    bin_writer.write((char*) &log_factorPh, 8);
-    bin_writer.write((char*) &log_factorTh, 8);
+    bin_writer.write((char *)&Rmin, 8);
+    bin_writer.write((char *)&Rmax, 8);
+    bin_writer.write((char *)&N_r, 2);
+    bin_writer.write((char *)&N_ph, 2);
+    bin_writer.write((char *)&N_th, 2);
+    bin_writer.write((char *)&log_factorR, 8);
+    bin_writer.write((char *)&log_factorPh, 8);
+    bin_writer.write((char *)&log_factorTh, 8);
     if(log_factorR == 0)
         for(uint i_r = 1; i_r < N_r; i_r++)
-            bin_writer.write((char*) &listR[i_r], 8);
+            bin_writer.write((char *)&listR[i_r], 8);
     if(log_factorPh == 0)
         for(uint i_ph = 1; i_ph < N_ph; i_ph++)
-            bin_writer.write((char*) &listPh[i_ph], 8);
+            bin_writer.write((char *)&listPh[i_ph], 8);
     if(log_factorTh == 0)
         for(uint i_th = 1; i_th < N_th; i_th++)
-            bin_writer.write((char*) &listTh[i_th], 8);
+            bin_writer.write((char *)&listTh[i_th], 8);
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        cout << "-> Writing binary spherical grid file: " <<
-                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+        cout << "-> Writing binary spherical grid file: " << float(100.0 * double(i_r) / double(N_r))
+             << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {
@@ -1152,7 +1159,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
                 for(uint i = 0; i < data_offset; i++)
                 {
                     double tmp_data = grid_cells[i_r][i_ph][i_th]->getData(i);
-                    bin_writer.write((char*) &tmp_data, 8);
+                    bin_writer.write((char *)&tmp_data, 8);
                 }
             }
         }
@@ -1161,7 +1168,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
     for(uint i = 0; i < data_offset; i++)
     {
         double tmp_data = center_cell->getData(i);
-        bin_writer.write((char*) &tmp_data, 8);
+        bin_writer.write((char *)&tmp_data, 8);
     }
 
     bin_writer.close();
@@ -1216,46 +1223,46 @@ bool CGridSpherical::createArtificialGrid(string path)
         return false;
     }
 
-    bin_writer.write((char*) &dataID, 2);
-    bin_writer.write((char*) &data_offset, 2);
+    bin_writer.write((char *)&dataID, 2);
+    bin_writer.write((char *)&data_offset, 2);
 
     ushort tmp_ids;
 
     tmp_ids = GRIDgas_dens;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDdust_temp;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDgas_temp;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDmx;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDmy;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDmz;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDvx;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDvy;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
     tmp_ids = GRIDvz;
-    bin_writer.write((char*) &tmp_ids, 2);
+    bin_writer.write((char *)&tmp_ids, 2);
 
-    bin_writer.write((char*) &Rmin, 8);
-    bin_writer.write((char*) &Rmax, 8);
-    bin_writer.write((char*) &N_r, 2);
-    bin_writer.write((char*) &N_ph, 2);
-    bin_writer.write((char*) &N_th, 2);
-    bin_writer.write((char*) &log_factorR, 8);
-    bin_writer.write((char*) &log_factorPh, 8);
-    bin_writer.write((char*) &log_factorTh, 8);
+    bin_writer.write((char *)&Rmin, 8);
+    bin_writer.write((char *)&Rmax, 8);
+    bin_writer.write((char *)&N_r, 2);
+    bin_writer.write((char *)&N_ph, 2);
+    bin_writer.write((char *)&N_th, 2);
+    bin_writer.write((char *)&log_factorR, 8);
+    bin_writer.write((char *)&log_factorPh, 8);
+    bin_writer.write((char *)&log_factorTh, 8);
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
@@ -1270,37 +1277,36 @@ bool CGridSpherical::createArtificialGrid(string path)
 
                 double tmp_data = 1.0 / double(i_r * i_r + 1);
 
-                bin_writer.write((char*) &tmp_data, 8);
+                bin_writer.write((char *)&tmp_data, 8);
 
                 tmp_data = 1;
-                bin_writer.write((char*) &tmp_data, 8);
+                bin_writer.write((char *)&tmp_data, 8);
 
                 tmp_data = i_ph + 10;
-                bin_writer.write((char*) &tmp_data, 8);
+                bin_writer.write((char *)&tmp_data, 8);
 
                 for(uint i = 3; i < 9; i++)
                 {
                     tmp_data = double(10);
-                    bin_writer.write((char*) &tmp_data, 8);
+                    bin_writer.write((char *)&tmp_data, 8);
                 }
-
             }
         }
     }
 
     double tmp_data = 1e-5;
-    bin_writer.write((char*) &tmp_data, 8);
+    bin_writer.write((char *)&tmp_data, 8);
 
     tmp_data = 1;
-    bin_writer.write((char*) &tmp_data, 8);
+    bin_writer.write((char *)&tmp_data, 8);
 
     tmp_data = 2;
-    bin_writer.write((char*) &tmp_data, 8);
+    bin_writer.write((char *)&tmp_data, 8);
 
     for(uint i = 3; i < 9; i++)
     {
         tmp_data = double(1);
-        bin_writer.write((char*) &tmp_data, 8);
+        bin_writer.write((char *)&tmp_data, 8);
     }
 
     bin_writer.close();
@@ -1319,12 +1325,8 @@ void CGridSpherical::printParameters()
     else
     {
         cout << CLR_LINE;
-        cout << "Spherical grid parameters (ID: " << getDataID()
-                << ", data len.: " << getDataOffset()
-                << ", Nr: " << N_r
-                << ", Nph: " << N_ph
-                << ", Nth: " << N_th
-                << ")" << endl;
+        cout << "Spherical grid parameters (ID: " << getDataID() << ", data len.: " << getDataOffset()
+             << ", Nr: " << N_r << ", Nph: " << N_ph << ", Nth: " << N_th << ")" << endl;
         cout << SEP_LINE;
 
         cout << "- Number of spherical cells     : " << max_cells << endl;
@@ -1367,7 +1369,7 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
 bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 {
     Vector3D v_n, v_a;
-    cell_sp * tmp_cell_pos = (cell_sp*) pp->getPositionCell();
+    cell_sp * tmp_cell_pos = (cell_sp *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
@@ -1379,9 +1381,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     if(tmp_cell_pos->getRID() == MAX_UINT)
     {
         A = 1;
-        B = 2 * p*d;
-        C = p.sq_length() - Rmin*Rmin;
-        dscr = B * B - 4 * A*C;
+        B = 2 * p * d;
+        C = p.sq_length() - Rmin * Rmin;
+        dscr = B * B - 4 * A * C;
 
         if(dscr >= 0)
         {
@@ -1436,9 +1438,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             {
                 case 1:
                     A = 1;
-                    B = 2 * p*d;
-                    C = p.sq_length() - r1*r1;
-                    dscr = B * B - 4 * A*C;
+                    B = 2 * p * d;
+                    C = p.sq_length() - r1 * r1;
+                    dscr = B * B - 4 * A * C;
 
                     if(dscr >= 0)
                     {
@@ -1458,9 +1460,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
                 case 2:
                     A = 1;
-                    B = 2 * p*d;
-                    C = p.sq_length() - r2*r2;
-                    dscr = B * B - 4 * A*C;
+                    B = 2 * p * d;
+                    C = p.sq_length() - r2 * r2;
+                    dscr = B * B - 4 * A * C;
 
                     if(dscr >= 0)
                     {
@@ -1480,9 +1482,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
                 case 3:
                     A = d.Z() * d.Z() - cos_th1_sq;
-                    B = d.Z() * p.Z() - cos_th1_sq * d*p;
+                    B = d.Z() * p.Z() - cos_th1_sq * d * p;
                     C = p.Z() * p.Z() - cos_th1_sq * p.sq_length();
-                    dscr = B*B - A*C;
+                    dscr = B * B - A * C;
 
                     if(dscr >= 0)
                     {
@@ -1502,9 +1504,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
                 case 4:
                     A = d.Z() * d.Z() - cos_th2_sq;
-                    B = d.Z() * p.Z() - cos_th2_sq * d*p;
+                    B = d.Z() * p.Z() - cos_th2_sq * d * p;
                     C = p.Z() * p.Z() - cos_th2_sq * p.sq_length();
-                    dscr = B*B - A*C;
+                    dscr = B * B - A * C;
 
                     if(dscr >= 0)
                     {
@@ -1524,7 +1526,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
                 case 5:
                     v_n = -Vector3D(-sin_ph1, cos_ph1, 0);
-                    v_a = r * Vector3D(sin_th*cos_ph1, sin_th*sin_ph1, cos_th);
+                    v_a = r * Vector3D(sin_th * cos_ph1, sin_th * sin_ph1, cos_th);
 
                     num = v_n * (p - v_a);
                     den = v_n * d;
@@ -1542,7 +1544,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
                 case 6:
                     v_n = Vector3D(-sin_ph2, cos_ph2, 0);
-                    v_a = r * Vector3D(sin_th*cos_ph2, sin_th*sin_ph2, cos_th);
+                    v_a = r * Vector3D(sin_th * cos_ph2, sin_th * sin_ph2, cos_th);
 
                     num = v_n * (p - v_a);
                     den = v_n * d;
@@ -1589,7 +1591,7 @@ bool CGridSpherical::updateShortestDistance(photon_package * pp)
     double loc_x_min, loc_x_max, loc_y_min, loc_y_max, loc_z_min, loc_z_max;
     bool found = false;
 
-    cell_oc * tmp_cell_pos = (cell_oc*) pp->getPositionCell();
+    cell_oc * tmp_cell_pos = (cell_oc *)pp->getPositionCell();
 
     tmp_pos = pp->getPosition();
 
@@ -1638,9 +1640,9 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     double min_length;
     uint try_counter = 0;
 
-    B = 2 * p*d;
-    C = p.sq_length() - Rmax*Rmax;
-    dscr = B * B - 4 * A*C;
+    B = 2 * p * d;
+    C = p.sq_length() - Rmax * Rmax;
+    dscr = B * B - 4 * A * C;
 
     if(dscr >= 0)
     {
@@ -1655,13 +1657,13 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
             l2 = 2e300;
 
         min_length = min(l1, l2);
-        pos = p + min_length*d;
+        pos = p + min_length * d;
 
         while(!isInside(pos))
         {
             min_length *= 1.00001;
 
-            pos = p + min_length*d;
+            pos = p + min_length * d;
 
             try_counter++;
 

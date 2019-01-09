@@ -1,12 +1,12 @@
 #include "GasSpecies.h"
 #include "CommandParser.h"
+#include "Grid.h"
 #include "MathFunctions.h"
 #include "typedefs.h"
-#include "Grid.h"
 
-#define TRANS_SIGMA_P  +1
-#define TRANS_PI       0
-#define TRANS_SIGMA_M  -1
+#define TRANS_SIGMA_P +1
+#define TRANS_PI 0
+#define TRANS_SIGMA_M -1
 
 // This function is based on
 // Mol3d: 3D line and dust continuum radiative transfer code
@@ -55,7 +55,8 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
             double sum = 0;
             for(uint i = 0; i < nr_of_energy_levels; i++)
             {
-                tmp_lvl_pop[i] = getGLevel(i) * exp(-con_h * getEnergylevel(i) * con_c * 100.0 / (con_kB * temp_gas));
+                tmp_lvl_pop[i] =
+                    getGLevel(i) * exp(-con_h * getEnergylevel(i) * con_c * 100.0 / (con_kB * temp_gas));
                 sum += tmp_lvl_pop[i];
             }
 
@@ -111,8 +112,8 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         {
 #pragma omp critical
             {
-                cout << "-> Calculating FEP level population  : "
-                        << last_percentage << " [%]                       \r";
+                cout << "-> Calculating FEP level population  : " << last_percentage
+                     << " [%]                       \r";
                 last_percentage = percentage;
             }
         }
@@ -210,8 +211,8 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         {
 #pragma omp critical
             {
-                cout << "-> Calculating LVG level population : "
-                        << last_percentage << " [%]                       \r";
+                cout << "-> Calculating LVG level population : " << last_percentage
+                     << " [%]                       \r";
                 last_percentage = percentage;
             }
         }
@@ -261,8 +262,13 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
                 old_pop[i] = new_pop[i];
 
             for(uint i_trans = 0; i_trans < nr_of_total_transitions; i_trans++)
-                J_mid[i_trans] = elem_LVG(grid, dens_species, new_pop,
-                    getGaussA(temp_gas, turbulent_velocity), L, J_ext[i_trans], i_trans);
+                J_mid[i_trans] = elem_LVG(grid,
+                                          dens_species,
+                                          new_pop,
+                                          getGaussA(temp_gas, turbulent_velocity),
+                                          L,
+                                          J_ext[i_trans],
+                                          i_trans);
 
             createMatrix(J_mid, A, b, final_col_para);
 
@@ -290,8 +296,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
 
             if(i_iter > 1)
             {
-                if(abs(new_pop[j] - old_pop[j]) /
-                        (old_pop[j] + numeric_limits<double>::epsilon()) < 1.0e-2)
+                if(abs(new_pop[j] - old_pop[j]) / (old_pop[j] + numeric_limits<double>::epsilon()) < 1.0e-2)
                 {
                     break;
                 }
@@ -311,13 +316,17 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
     return no_error;
 }
 
-
 // This function is based on
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-double CGasSpecies::elem_LVG(CGridBasic * grid, double dens_species, double * new_pop,
-        double gauss_a, double L, double J_ext, uint i_trans)
+double CGasSpecies::elem_LVG(CGridBasic * grid,
+                             double dens_species,
+                             double * new_pop,
+                             double gauss_a,
+                             double L,
+                             double J_ext,
+                             uint i_trans)
 {
     double lvl_pop_u = new_pop[getUpperTransition(i_trans)];
     double lvl_pop_l = new_pop[getLowerTransition(i_trans)];
@@ -327,8 +336,7 @@ double CGasSpecies::elem_LVG(CGridBasic * grid, double dens_species, double * ne
     double j, alpha, tau, beta, J_mid, S;
 
     j = dens_species * lvl_pop_u * Einst_A * gauss_a * con_eps / sqrt(PI);
-    alpha = dens_species * (lvl_pop_l * Einst_B_l - lvl_pop_u * Einst_B_u) *
-            gauss_a * con_eps / sqrt(PI);
+    alpha = dens_species * (lvl_pop_l * Einst_B_l - lvl_pop_u * Einst_B_u) * gauss_a * con_eps / sqrt(PI);
 
     if(alpha < 1e-20)
     {
@@ -421,13 +429,13 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_ga
 
         switch(getOrientation_H2(i_col_partner))
         {
-            case (FULL):
+            case(FULL):
                 dens = gas_number_density;
                 break;
-            case (PARA):
+            case(PARA):
                 dens = gas_number_density * 0.25;
                 break;
-            case (ORTH):
+            case(ORTH):
                 dens = gas_number_density * 0.75;
                 break;
         }
@@ -447,8 +455,8 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_ga
             {
                 for(uint i_col_temp = 1; i_col_temp < getNrCollisionTemps(i_col_partner); i_col_temp++)
                 {
-                    if(temp_gas < getCollisionTemp(i_col_partner, i_col_temp)
-                            && temp_gas >= getCollisionTemp(i_col_partner, i_col_temp - 1))
+                    if(temp_gas < getCollisionTemp(i_col_partner, i_col_temp) &&
+                       temp_gas >= getCollisionTemp(i_col_partner, i_col_temp - 1))
                     {
                         hi_i = i_col_temp - 1;
                         break;
@@ -458,23 +466,27 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_ga
 
             for(uint i_col_transition = 0; i_col_transition < nr_col_trans; i_col_transition++)
             {
-                double interp = CMathFunctions::interpolate(
-                        getCollisionTemp(i_col_partner, hi_i),
-                        getCollisionTemp(i_col_partner, hi_i + 1),
-                        getCollisionMatrix(i_col_partner, i_col_transition, hi_i),
-                        getCollisionMatrix(i_col_partner, i_col_transition, hi_i + 1),
-                        temp_gas);
+                double interp =
+                    CMathFunctions::interpolate(getCollisionTemp(i_col_partner, hi_i),
+                                                getCollisionTemp(i_col_partner, hi_i + 1),
+                                                getCollisionMatrix(i_col_partner, i_col_transition, hi_i),
+                                                getCollisionMatrix(i_col_partner, i_col_transition, hi_i + 1),
+                                                temp_gas);
 
                 if(interp > 0)
                 {
                     col_mtr_tmp_ul[i_col_transition] = interp * dens;
 
-                    col_mtr_tmp_lu[i_col_transition] = col_mtr_tmp_ul[i_col_transition] *
-                            getGLevel(getUpperCollision(i_col_partner, i_col_transition)) /
-                            getGLevel(getLowerCollision(i_col_partner, i_col_transition)) *
-                            exp(-con_h * (getEnergylevel(getUpperCollision(i_col_partner, i_col_transition)) *
-                            con_c * 100.0 - getEnergylevel(getLowerCollision(i_col_partner, i_col_transition)) *
-                            con_c * 100.0) / (con_kB * temp_gas));
+                    col_mtr_tmp_lu[i_col_transition] =
+                        col_mtr_tmp_ul[i_col_transition] *
+                        getGLevel(getUpperCollision(i_col_partner, i_col_transition)) /
+                        getGLevel(getLowerCollision(i_col_partner, i_col_transition)) *
+                        exp(-con_h *
+                            (getEnergylevel(getUpperCollision(i_col_partner, i_col_transition)) * con_c *
+                                 100.0 -
+                             getEnergylevel(getLowerCollision(i_col_partner, i_col_transition)) * con_c *
+                                 100.0) /
+                            (con_kB * temp_gas));
 
                     final_col_para(i_col_transition, 0) += col_mtr_tmp_ul[i_col_transition];
                     final_col_para(i_col_transition, 1) += col_mtr_tmp_lu[i_col_transition];
@@ -485,16 +497,17 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_ga
     return final_col_para;
 }
 
-StokesVector CGasSpecies::calcEmissivities(CGridBasic *grid, photon_package * pp, uint i_line)
+StokesVector CGasSpecies::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_line)
 {
     double gauss_a = grid->getGaussA(pp, i_line);
     uint i_trans = getTransition(i_line);
     // Calculate the optical depth of the gas particles and the dust grains
-    double alpha_gas = (grid->getLvlPopLower(pp, i_line) * getEinsteinBl(i_trans)
-        - grid->getLvlPopUpper(pp, i_line) * getEinsteinBu(i_trans)) * con_eps * gauss_a;
+    double alpha_gas = (grid->getLvlPopLower(pp, i_line) * getEinsteinBl(i_trans) -
+                        grid->getLvlPopUpper(pp, i_line) * getEinsteinBu(i_trans)) *
+                       con_eps * gauss_a;
 
-    return StokesVector(grid->getLvlPopUpper(pp, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a,
-        0, 0, 0, alpha_gas);
+    return StokesVector(
+        grid->getLvlPopUpper(pp, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a, 0, 0, 0, alpha_gas);
 }
 
 Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity)
@@ -507,8 +520,15 @@ Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp,
     return line_matrix;
 }
 
-Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic *grid, photon_package * pp, uint i_line, double velocity,
-        Vector3D mag_field, double cos_theta, double sin_theta, double cos_2_phi, double sin_2_phi)
+Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic * grid,
+                                               photon_package * pp,
+                                               uint i_line,
+                                               double velocity,
+                                               Vector3D mag_field,
+                                               double cos_theta,
+                                               double sin_theta,
+                                               double cos_2_phi,
+                                               double sin_2_phi)
 {
     // Init variables
     Matrix2D line_matrix(4, 4);
@@ -528,17 +548,19 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic *grid, photon_package 
     for(float i_sublvl_u = -getMaxMUpper(i_line); i_sublvl_u <= getMaxMUpper(i_line); i_sublvl_u++)
     {
         for(float i_sublvl_l = max(i_sublvl_u - 1, -getMaxMLower(i_line));
-                i_sublvl_l <= min(i_sublvl_u + 1, getMaxMLower(i_line)); i_sublvl_l++)
+            i_sublvl_l <= min(i_sublvl_u + 1, getMaxMLower(i_line));
+            i_sublvl_l++)
         {
             // Calculate the frequency shift in relation to the unshifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
             freq_shift = mag_field.length() * con_mb / con_h *
-                (i_sublvl_u * getLandeUpper(i_line) - i_sublvl_l * getLandeLower(i_line));
+                         (i_sublvl_u * getLandeUpper(i_line) - i_sublvl_l * getLandeLower(i_line));
 
             // Calculate the frequency value of the current velocity channel in
             // relation to the peak of the line function
-            f_doppler = CMathFunctions::Velo2Freq(velocity +
-                    CMathFunctions::Freq2Velo(freq_shift, frequency), frequency) / doppler_width;
+            f_doppler = CMathFunctions::Velo2Freq(velocity + CMathFunctions::Freq2Velo(freq_shift, frequency),
+                                                  frequency) /
+                        doppler_width;
 
             // Calculate the line function value at the frequency
             // of the current velocity channel
@@ -561,12 +583,12 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic *grid, photon_package 
                     line_strength = getLineStrengthSigmaP(i_line, i_sigma_p);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix += CMathFunctions::getPropMatrixASigmaP(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                    line_matrix += CMathFunctions::getPropMatrixASigmaP(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix += CMathFunctions::getPropMatrixBSigmaP(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                    line_matrix += CMathFunctions::getPropMatrixBSigmaP(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
 
                     // Increase the sigma_+ counter to circle through the line strengths
                     i_sigma_p++;
@@ -576,12 +598,12 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic *grid, photon_package 
                     line_strength = getLineStrengthPi(i_line, i_pi);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix += CMathFunctions::getPropMatrixAPi(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                    line_matrix += CMathFunctions::getPropMatrixAPi(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix += CMathFunctions::getPropMatrixBPi(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                    line_matrix += CMathFunctions::getPropMatrixBPi(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
 
                     // Increase the pi counter to circle through the line strengths
                     i_pi++;
@@ -591,12 +613,12 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic *grid, photon_package 
                     line_strength = getLineStrengthSigmaM(i_line, i_sigma_m);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix +=  CMathFunctions::getPropMatrixASigmaM(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                    line_matrix += CMathFunctions::getPropMatrixASigmaM(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix +=  CMathFunctions::getPropMatrixBSigmaM(cos_theta,
-                            sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                    line_matrix += CMathFunctions::getPropMatrixBSigmaM(
+                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
 
                     // Increase the sigma_- counter to circle through the line strengths
                     i_sigma_m++;
@@ -614,7 +636,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
     uint row_offset, i_col_partner, i_col_transition;
     CCommandParser ps;
     fstream reader(_filename.c_str());
-    unsigned char ru[4] = {'|', '/', '-', '\\'};
+    unsigned char ru[4] = { '|', '/', '-', '\\' };
     string line;
     dlist values;
 
@@ -644,7 +666,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             char_counter++;
             cout << "-> Reading gas species file nr. " << id << " of " << max << " : "
-                << ru[(uint) char_counter % 4] << "           \r";
+                 << ru[(uint)char_counter % 4] << "           \r";
         }
 
         ps.formatLine(line);
@@ -667,7 +689,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
             molecular_weight = values[0];
@@ -676,7 +699,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
             nr_of_energy_levels = uint(values[0]);
@@ -689,7 +713,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() < 4)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
@@ -706,7 +731,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
             nr_of_total_transitions = uint(values[0]);
@@ -721,12 +747,13 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             trans_einstB_u = new double[nr_of_total_transitions];
             trans_einstB_l = new double[nr_of_total_transitions];
         }
-        else if(cmd_counter < 5 + nr_of_energy_levels + nr_of_total_transitions
-                && cmd_counter > 4 + nr_of_energy_levels)
+        else if(cmd_counter < 5 + nr_of_energy_levels + nr_of_total_transitions &&
+                cmd_counter > 4 + nr_of_energy_levels)
         {
             if(values.size() != 6)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
@@ -750,11 +777,11 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             // E_u(K)
             trans_inneregy[pos_counter] = values[5];
 
-            trans_einstB_u[pos_counter] = values[3] * pow(con_c / (values[4] * 1e9), 2.0) /
-                (2.0 * con_h * (values[4] * 1e9));
+            trans_einstB_u[pos_counter] =
+                values[3] * pow(con_c / (values[4] * 1e9), 2.0) / (2.0 * con_h * (values[4] * 1e9));
 
-            trans_einstB_l[pos_counter] = g_level[int(values[1] - 1)] / g_level[int(values[2] - 1)]
-                    * trans_einstB_u[pos_counter];
+            trans_einstB_l[pos_counter] =
+                g_level[int(values[1] - 1)] / g_level[int(values[2] - 1)] * trans_einstB_u[pos_counter];
 
             pos_counter++;
         }
@@ -762,7 +789,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
             nr_of_col_partner = uint(values[0]);
@@ -771,9 +799,9 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             nr_of_col_temp = new int[nr_of_col_partner];
             orientation_H2 = new int[nr_of_col_partner];
 
-            collision_temp = new double*[nr_of_col_partner];
-            col_upper = new int*[nr_of_col_partner];
-            col_lower = new int*[nr_of_col_partner];
+            collision_temp = new double *[nr_of_col_partner];
+            col_upper = new int *[nr_of_col_partner];
+            col_lower = new int *[nr_of_col_partner];
 
             col_matrix = new double **[nr_of_col_partner];
 
@@ -794,7 +822,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             if(values[0] > 3 || values[0] < 1)
             {
                 cout << "\nERROR: Line " << line_counter
-                    << " wrong orientation of H2 collision partner (gas species file)!" << endl;
+                     << " wrong orientation of H2 collision partner (gas species file)!" << endl;
                 return false;
             }
             orientation_H2[i_col_partner] = int(values[0]);
@@ -803,14 +831,15 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
             nr_of_collision_transition[i_col_partner] = int(values[0]);
             col_upper[i_col_partner] = new int[int(values[0])];
             col_lower[i_col_partner] = new int[int(values[0])];
-            col_matrix[i_col_partner] = new double*[int(values[0])];
+            col_matrix[i_col_partner] = new double *[int(values[0])];
 
             for(uint i = 0; i < uint(values[0]); i++)
             {
@@ -823,7 +852,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != 1)
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
@@ -838,7 +868,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         {
             if(values.size() != uint(nr_of_col_temp[i_col_partner]))
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
@@ -846,12 +877,13 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
                 collision_temp[i_col_partner][i] = values[i];
         }
         else if(cmd_counter < 10 + nr_of_energy_levels + nr_of_total_transitions +
-                nr_of_collision_transition[i_col_partner] + row_offset &&
+                                  nr_of_collision_transition[i_col_partner] + row_offset &&
                 cmd_counter > 9 + nr_of_energy_levels + row_offset)
         {
             if(values.size() != uint(nr_of_col_temp[i_col_partner] + 3))
             {
-                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!" << endl;
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (gas species file)!"
+                     << endl;
                 return false;
             }
 
@@ -869,7 +901,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             if(values[0] > 3 || values[0] < 1)
             {
                 cout << "\nERROR: Line " << line_counter
-                    << " wrong orientation of H2 collision partner (gas species file)!" << endl;
+                     << " wrong orientation of H2 collision partner (gas species file)!" << endl;
                 return false;
             }
 
@@ -897,9 +929,9 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     uint sublevels_upper_nr = 0, sublevels_lower_nr = 0;
     uint offset_pi = 0, offset_sigma = 0;
 
-    line_strength_pi = new double*[nr_of_transitions];
-    line_strength_sigma_p = new double*[nr_of_transitions];
-    line_strength_sigma_m = new double*[nr_of_transitions];
+    line_strength_pi = new double *[nr_of_transitions];
+    line_strength_sigma_p = new double *[nr_of_transitions];
+    line_strength_sigma_m = new double *[nr_of_transitions];
 
     nr_pi_transitions = new int[nr_of_transitions];
     nr_sigma_transitions = new int[nr_of_transitions];
@@ -1059,7 +1091,8 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                     nr_pi_transitions[i_line] = min(nr_sublevels_upper[i_line], nr_sublevels_lower[i_line]);
 
                     if(nr_sublevels_upper[i_line] != nr_sublevels_lower[i_line])
-                        nr_sigma_transitions[i_line] = min(nr_sublevels_upper[i_line], nr_sublevels_lower[i_line]);
+                        nr_sigma_transitions[i_line] =
+                            min(nr_sublevels_upper[i_line], nr_sublevels_lower[i_line]);
                     else
                         nr_sigma_transitions[i_line] = nr_sublevels_upper[i_line] - 1;
 
@@ -1106,7 +1139,8 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                     line_strength_pi[i_line][i_pi_transition] = values[0];
             i_pi_transition++;
         }
-        else if(cmd_counter <= 8 + offset_pi + offset_sigma && cmd_counter > 8 + offset_pi && splitting_exist == true)
+        else if(cmd_counter <= 8 + offset_pi + offset_sigma && cmd_counter > 8 + offset_pi &&
+                splitting_exist == true)
         {
             if(values.size() != 1)
             {
@@ -1165,7 +1199,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         {
             cout << SEP_LINE;
             cout << "\nERROR: For transition number " << uint(getTransition(i_line) + 1)
-                << " exists no Zeeman splitting data" << endl;
+                 << " exists no Zeeman splitting data" << endl;
             return false;
         }
 
@@ -1225,12 +1259,15 @@ bool CGasMixture::createGasSpecies(parameters & param)
             if(!single_species[i_species].readZeemanParamaterFile(param.getZeemanCatalog(i_species)))
                 return false;
 
-        if((single_species[i_species].getLevelPopType() == POP_FEP || 
-                single_species[i_species].getLevelPopType() == POP_LVG) &&
-                single_species[i_species].getNrCollisionPartner() == 0)
+        if((single_species[i_species].getLevelPopType() == POP_FEP ||
+            single_species[i_species].getLevelPopType() == POP_LVG) &&
+           single_species[i_species].getNrCollisionPartner() == 0)
         {
-            cout << "\nERROR: FEP and LVG level population approximations require a gas parameters file \n"
-                "       with collisional data (e.g. from Leiden Atomic and Molecular Database)" << endl;
+            cout << "\nERROR: FEP and LVG level population approximations require a gas "
+                    "parameters file \n"
+                    "       with collisional data (e.g. from Leiden Atomic and Molecular "
+                    "Database)"
+                 << endl;
             return false;
         }
     }
@@ -1272,8 +1309,8 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
     cout << SEP_LINE;
     cout << "- Velocity field                : ";
     if(getKeplerStarMass() > 0)
-        cout << "kepler rotation, M_star: " << getKeplerStarMass()
-            << " [M_sun]\n" << "    HINT: only available with one central star" << endl;
+        cout << "kepler rotation, M_star: " << getKeplerStarMass() << " [M_sun]\n"
+             << "    HINT: only available with one central star" << endl;
     else
         cout << "velocity field of the grid is used" << endl;
     cout << "- Turbulent Velocity            : ";
@@ -1365,82 +1402,99 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             uint i_line = getUniqueTransitions(i_species, i);
 
             cout << SEP_LINE;
-            cout << "Line transition " << uint(getTransition(i_species, i_line) + 1)
-                << " (gas species " << (i_species + 1) << ")" << endl;
-            cout << "- Transition frequency          : "
-                << getTransitionFrequencyFromIndex(i_species, i_line) << " [Hz]" << endl;
+            cout << "Line transition " << uint(getTransition(i_species, i_line) + 1) << " (gas species "
+                 << (i_species + 1) << ")" << endl;
+            cout << "- Transition frequency          : " << getTransitionFrequencyFromIndex(i_species, i_line)
+                 << " [Hz]" << endl;
             cout << "- Transition wavelength         : "
-                    << (con_c / getTransitionFrequencyFromIndex(i_species, i_line)) << " [m]" << endl;
+                 << (con_c / getTransitionFrequencyFromIndex(i_species, i_line)) << " [m]" << endl;
             if(getZeemanSplitting(i_species) == true)
             {
                 cout << CLR_LINE;
                 cout << "Zeeman splitting parameters                " << endl;
                 cout << "- Lande factor of upper level   : " << getLandeUpper(i_species, i_line) << endl;
                 cout << "- Lande factor of lower level   : " << getLandeLower(i_species, i_line) << endl;
-                cout << "- Sublevels in upper level      : " << getNrSublevelsUpper(i_species, i_line) << endl;
-                cout << "- Sublevels in lower level      : " << getNrSublevelsLower(i_species, i_line) << endl;
+                cout << "- Sublevels in upper level      : " << getNrSublevelsUpper(i_species, i_line)
+                     << endl;
+                cout << "- Sublevels in lower level      : " << getNrSublevelsLower(i_species, i_line)
+                     << endl;
 
                 uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
 
                 cout << "- Sigma+ line strength\t\tm(upper)\t\tm(lower)" << endl;
                 for(float i_sublvl_u = -getMaxMUpper(i_species, i_line);
-                    i_sublvl_u <= getMaxMUpper(i_species, i_line); i_sublvl_u++)
+                    i_sublvl_u <= getMaxMUpper(i_species, i_line);
+                    i_sublvl_u++)
                 {
                     float i_sublvl_l = i_sublvl_u + 1;
                     if(abs(i_sublvl_l) <= getMaxMLower(i_species, i_line))
                     {
                         char LineStrengthTmp[16];
 #ifdef WINDOWS
-                        _snprintf_s(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthSigmaP(i_species, i_line, i_pi));
+                        _snprintf_s(LineStrengthTmp,
+                                    sizeof(LineStrengthTmp),
+                                    "%.3f",
+                                    getLineStrengthSigmaP(i_species, i_line, i_pi));
 #else
-                        snprintf(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthSigmaP(i_species, i_line, i_pi));
+                        snprintf(LineStrengthTmp,
+                                 sizeof(LineStrengthTmp),
+                                 "%.3f",
+                                 getLineStrengthSigmaP(i_species, i_line, i_pi));
 #endif
 
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u)
-                            << "\t\t\t   " << float(i_sublvl_l) << endl;
+                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u) << "\t\t\t   "
+                             << float(i_sublvl_l) << endl;
                         i_sigma_p++;
                     }
                 }
                 cout << "- Pi line strength\t\tm(upper)\t\tm(lower)" << endl;
                 for(float i_sublvl_u = -getMaxMUpper(i_species, i_line);
-                    i_sublvl_u <= getMaxMUpper(i_species, i_line); i_sublvl_u++)
+                    i_sublvl_u <= getMaxMUpper(i_species, i_line);
+                    i_sublvl_u++)
                 {
                     float i_sublvl_l = i_sublvl_u;
                     if(abs(i_sublvl_l) <= getMaxMLower(i_species, i_line))
                     {
                         char LineStrengthTmp[16];
 #ifdef WINDOWS
-                        _snprintf_s(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthPi(i_species, i_line, i_pi));
+                        _snprintf_s(LineStrengthTmp,
+                                    sizeof(LineStrengthTmp),
+                                    "%.3f",
+                                    getLineStrengthPi(i_species, i_line, i_pi));
 #else
-                        snprintf(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthPi(i_species, i_line, i_pi));
+                        snprintf(LineStrengthTmp,
+                                 sizeof(LineStrengthTmp),
+                                 "%.3f",
+                                 getLineStrengthPi(i_species, i_line, i_pi));
 #endif
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u)
-                            << "\t\t\t   " << float(i_sublvl_l) << endl;
+                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u) << "\t\t\t   "
+                             << float(i_sublvl_l) << endl;
                         i_pi++;
                     }
                 }
                 cout << "- Sigma- line strength\t\tm(upper)\t\tm(lower)" << endl;
                 for(float i_sublvl_u = -getMaxMUpper(i_species, i_line);
-                    i_sublvl_u <= getMaxMUpper(i_species, i_line); i_sublvl_u++)
+                    i_sublvl_u <= getMaxMUpper(i_species, i_line);
+                    i_sublvl_u++)
                 {
                     float i_sublvl_l = i_sublvl_u - 1;
                     if(abs(i_sublvl_l) <= getMaxMLower(i_species, i_line))
                     {
                         char LineStrengthTmp[16];
 #ifdef WINDOWS
-                        _snprintf_s(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthSigmaM(i_species, i_line, i_pi));
+                        _snprintf_s(LineStrengthTmp,
+                                    sizeof(LineStrengthTmp),
+                                    "%.3f",
+                                    getLineStrengthSigmaM(i_species, i_line, i_pi));
 #else
-                        snprintf(LineStrengthTmp, sizeof(LineStrengthTmp), "%.3f",
-                            getLineStrengthSigmaM(i_species, i_line, i_pi));
+                        snprintf(LineStrengthTmp,
+                                 sizeof(LineStrengthTmp),
+                                 "%.3f",
+                                 getLineStrengthSigmaM(i_species, i_line, i_pi));
 #endif
 
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u)
-                            << "\t\t\t   " << float(i_sublvl_l) << endl;
+                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u) << "\t\t\t   "
+                             << float(i_sublvl_l) << endl;
                         i_sigma_m++;
                     }
                 }

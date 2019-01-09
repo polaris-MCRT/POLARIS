@@ -7,8 +7,7 @@
 
 class CGridBasic
 {
-public:
-
+  public:
     CGridBasic()
     {
         basic_path = 0;
@@ -134,30 +133,30 @@ public:
 
         nr_rad_field_comp = 1;
 
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
-        plt_amin=false;
-        plt_amax=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
+        plt_amin = false;
+        plt_amax = false;
         plt_rad_field = false;
         plt_g_zero = false;
-        plt_n_th=false;
-        plt_T_e=false;
-        plt_n_cr=false;
-        plt_g_min=false;
-        plt_g_max=false;
-        plt_p=false;
-        
-        plt_avg_dir=false;
-        plt_avg_th=false;
+        plt_n_th = false;
+        plt_T_e = false;
+        plt_n_cr = false;
+        plt_g_min = false;
+        plt_g_max = false;
+        plt_p = false;
+
+        plt_avg_dir = false;
+        plt_avg_th = false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -183,18 +182,18 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
-        buffer_n_th=0;
-        buffer_T_e=0;
-        buffer_n_cr=0;
-        buffer_g_min=0;
-        buffer_g_max=0;
-        buffer_p=0; 
-        
-        buffer_avg_dir=0; 
-        buffer_avg_th=0; 
+        buffer_n_th = 0;
+        buffer_T_e = 0;
+        buffer_n_cr = 0;
+        buffer_g_min = 0;
+        buffer_g_max = 0;
+        buffer_p = 0;
+
+        buffer_avg_dir = 0;
+        buffer_avg_th = 0;
 
         wl_list.resize(WL_STEPS);
-        CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10); 
+        CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
     }
 
     virtual ~CGridBasic(void)
@@ -279,19 +278,19 @@ public:
         max_len = -1e300;
         min_len = 1e300;
 
-        min_n_th=1e300;
-        min_T_e=1e300;
-        min_n_cr=1e300;
-        min_g_min=1e300;
-        min_g_max=1e300;
-        min_p=1e300;
+        min_n_th = 1e300;
+        min_T_e = 1e300;
+        min_n_cr = 1e300;
+        min_g_min = 1e300;
+        min_g_max = 1e300;
+        min_p = 1e300;
 
-        max_n_th=-1e300;
-        max_T_e=-1e300;
-        max_n_cr=-1e300;
-        max_g_min=-1e300;
-        max_g_max=-1e300;
-        max_p=-1e300;
+        max_n_th = -1e300;
+        max_T_e = -1e300;
+        max_n_cr = -1e300;
+        max_g_min = -1e300;
+        max_g_max = -1e300;
+        max_p = -1e300;
 
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
@@ -321,36 +320,36 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
-        
+
         data_pos_avg_th = MAX_UINT;
         data_pos_avg_dir = MAX_UINT;
 
         nr_rad_field_comp = 1;
 
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
-        plt_amin=false;
-        plt_amax=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
+        plt_amin = false;
+        plt_amax = false;
         plt_rad_field = false;
         plt_g_zero = false;
-        plt_n_th=false;
-        plt_T_e=false;
-        plt_n_cr=false;
-        plt_g_min=false;
-        plt_g_max=false;
-        plt_p=false;
-        
-        plt_avg_dir=false;
-        plt_avg_th=false;
+        plt_n_th = false;
+        plt_T_e = false;
+        plt_n_cr = false;
+        plt_g_min = false;
+        plt_g_max = false;
+        plt_p = false;
+
+        plt_avg_dir = false;
+        plt_avg_th = false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -376,15 +375,15 @@ public:
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
         buffer_g_zero = 0;
-        buffer_n_th=0;
-        buffer_T_e=0;
-        buffer_n_cr=0;
-        buffer_g_min=0;
-        buffer_g_max=0;
-        buffer_p=0; 
-        
-        buffer_avg_dir=0; 
-        buffer_avg_th=0;         
+        buffer_n_th = 0;
+        buffer_T_e = 0;
+        buffer_n_cr = 0;
+        buffer_g_min = 0;
+        buffer_g_max = 0;
+        buffer_p = 0;
+
+        buffer_avg_dir = 0;
+        buffer_avg_th = 0;
     }
 
     double getTurbulentVelocity(cell_basic * cell)
@@ -437,14 +436,12 @@ public:
 
     bool hasVelocityField()
     {
-        return(data_pos_vx != MAX_UINT && data_pos_vy != MAX_UINT &&
-                data_pos_vz != MAX_UINT);
-
+        return (data_pos_vx != MAX_UINT && data_pos_vy != MAX_UINT && data_pos_vz != MAX_UINT);
     }
 
     bool hasTurbulentVelocity()
     {
-        return(data_pos_vt != MAX_UINT);
+        return (data_pos_vt != MAX_UINT);
     }
 
     virtual Vector3D getCenter(cell_basic * cell)
@@ -472,9 +469,7 @@ public:
         return max_data;
     }
 
-    virtual void printParameters()
-    {
-    };
+    virtual void printParameters(){};
 
     virtual bool goToNextCellBorder(photon_package * pp)
     {
@@ -516,8 +511,12 @@ public:
         cout << "grid: " << ex << ey << ez << endl;
     }
 
-    void getMagFieldOrientation(photon_package * pp, Vector3D & mag_field, double & cos_theta, double & sin_theta,
-            double & cos_2_phi, double & sin_2_phi)
+    void getMagFieldOrientation(photon_package * pp,
+                                Vector3D & mag_field,
+                                double & cos_theta,
+                                double & sin_theta,
+                                double & cos_2_phi,
+                                double & sin_2_phi)
     {
         // Get the magnetic field from grid
         mag_field = getMagField(pp);
@@ -539,8 +538,7 @@ public:
     }
 
     virtual void getLengths(uint bins, double & step_xy, double & off_xy)
-    {
-    }
+    {}
 
     virtual bool positionPhotonInGrid(photon_package * pp)
     {
@@ -557,8 +555,12 @@ public:
         return max_len;
     }
 
-    virtual bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
-            dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
+    virtual bool getPolarRTGridParameter(double max_len,
+                                         double pixel_width,
+                                         uint max_subpixel_lvl,
+                                         dlist & _listR,
+                                         uint & N_polar_r,
+                                         uint *& N_polar_ph)
     {
         return false;
     }
@@ -587,7 +589,7 @@ public:
         mass_fraction = param.getMassFraction();
     }
 
-    //overloaded functions
+    // overloaded functions
     virtual bool findMatchingCell(photon_package * pp)
     {
         return false;
@@ -603,8 +605,10 @@ public:
         max_data = data_offset + sz;
     }
 
-    void setDustInformation(uint _nr_mixtures, uint * _nr_dust_temp_sizes,
-            uint * _nr_stochastic_sizes, uint * _nr_stochastic_temps)
+    void setDustInformation(uint _nr_mixtures,
+                            uint * _nr_dust_temp_sizes,
+                            uint * _nr_stochastic_sizes,
+                            uint * _nr_stochastic_temps)
     {
         nr_mixtures = _nr_mixtures;
         nr_dust_temp_sizes = _nr_dust_temp_sizes;
@@ -680,7 +684,7 @@ public:
         // To perform Camps et. al (2015) benchmark.
         double res = 0, wavelength = wl_list[wID], mult = 1.0e6;
         res = mult * CMathFunctions::mathis_isrf(wavelength);
-        //res = 2.99e-14 * CMathFunctions::planck(wl_list[wID], 9000.0);
+        // res = 2.99e-14 * CMathFunctions::planck(wl_list[wID], 9000.0);
         return PIx4 * res * getVolume(cell);
 #else
         if(spec_length_as_vector)
@@ -711,7 +715,7 @@ public:
 #pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
         {
-            cell_basic * cell =  cell_list[c_i];
+            cell_basic * cell = cell_list[c_i];
             double inv_vol = 1 / getVolume(cell);
             for(uint wID = 0; wID < WL_STEPS; wID++)
             {
@@ -738,10 +742,11 @@ public:
         // To perform Camps et. al (2015) benchmark.
         double res = 0, wavelength = wl_list[wID], mult = 1e6;
         res = mult * CMathFunctions::mathis_isrf(wavelength);
-        //res = 2.99e-14 * CMathFunctions::planck(wl_list[wID], 9000.0);
+        // res = 2.99e-14 * CMathFunctions::planck(wl_list[wID], 9000.0);
         return PIx4 * res;
 #else
-        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        // If the radiation field is needed after temp calculation, use the SpecLength
+        // instead
         if(data_pos_rf_list.empty())
             return getSpecLength(cell, wID) / getVolume(cell);
         return cell->getData(data_pos_rf_list[wID]);
@@ -756,7 +761,8 @@ public:
 
     double getRadiationFieldX(cell_basic * cell, uint wID)
     {
-        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        // If the radiation field is needed after temp calculation, use the SpecLength
+        // instead
         if(data_pos_rx_list.empty())
             return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
         return cell->getData(data_pos_rx_list[wID]);
@@ -770,7 +776,8 @@ public:
 
     double getRadiationFieldY(cell_basic * cell, uint wID)
     {
-        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        // If the radiation field is needed after temp calculation, use the SpecLength
+        // instead
         if(data_pos_ry_list.empty())
             return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
         return cell->getData(data_pos_ry_list[wID]);
@@ -784,7 +791,8 @@ public:
 
     double getRadiationFieldZ(cell_basic * cell, uint wID)
     {
-        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        // If the radiation field is needed after temp calculation, use the SpecLength
+        // instead
         if(data_pos_rz_list.empty())
             return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
         return cell->getData(data_pos_rz_list[wID]);
@@ -847,14 +855,26 @@ public:
         uint wID2 = wID1 + 1;
 
         // Interpolate radiation field strength and direction
-        us = CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
-                cell->getData(data_pos_rf_list[wID1]), cell->getData(data_pos_rf_list[wID2]), wavelength);
-        tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
-                cell->getData(data_pos_rx_list[wID1]), cell->getData(data_pos_rx_list[wID2]), wavelength));
-        tmp_dir.setY(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
-                cell->getData(data_pos_ry_list[wID1]), cell->getData(data_pos_ry_list[wID2]), wavelength));
-        tmp_dir.setZ(CMathFunctions::interpolate(wl_list[wID1], wl_list[wID2],
-                cell->getData(data_pos_rz_list[wID1]), cell->getData(data_pos_rz_list[wID2]), wavelength));
+        us = CMathFunctions::interpolate(wl_list[wID1],
+                                         wl_list[wID2],
+                                         cell->getData(data_pos_rf_list[wID1]),
+                                         cell->getData(data_pos_rf_list[wID2]),
+                                         wavelength);
+        tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1],
+                                                 wl_list[wID2],
+                                                 cell->getData(data_pos_rx_list[wID1]),
+                                                 cell->getData(data_pos_rx_list[wID2]),
+                                                 wavelength));
+        tmp_dir.setY(CMathFunctions::interpolate(wl_list[wID1],
+                                                 wl_list[wID2],
+                                                 cell->getData(data_pos_ry_list[wID1]),
+                                                 cell->getData(data_pos_ry_list[wID2]),
+                                                 wavelength));
+        tmp_dir.setZ(CMathFunctions::interpolate(wl_list[wID1],
+                                                 wl_list[wID2],
+                                                 cell->getData(data_pos_rz_list[wID1]),
+                                                 cell->getData(data_pos_rz_list[wID2]),
+                                                 wavelength));
 
         // Rotate vector to cell center
         e_dir = rotateToCenter(pp, tmp_dir, true);
@@ -869,13 +889,13 @@ public:
         const double wl1 = 9.1165e-08, wl2 = 2.06640e-07;
         double g_zero;
 
-        // If the radiation field is needed after temp calculation, use the SpecLength instead
+        // If the radiation field is needed after temp calculation, use the SpecLength
+        // instead
         dlist rad_field(WL_STEPS);
         for(uint wID = 0; wID < WL_STEPS; wID++)
             rad_field[wID] = getRadiationField(cell, wID);
 
-        g_zero = max(0.0, CMathFunctions::full_integ(wl_list, 
-            rad_field, wl1, wl2) / 1.7836e-06);
+        g_zero = max(0.0, CMathFunctions::full_integ(wl_list, rad_field, wl1, wl2) / 1.7836e-06);
         return g_zero;
     }
 
@@ -987,52 +1007,52 @@ public:
 
     void setElectronTemperature(cell_basic * cell, double temp)
     {
-        if(data_pos_T_e!=MAX_UINT)
+        if(data_pos_T_e != MAX_UINT)
             cell->setData(data_pos_T_e, temp);
     }
-        
+
     void setThermalElectronDensity(cell_basic * cell, double dens)
     {
-        if(data_pos_n_th!=MAX_UINT)
+        if(data_pos_n_th != MAX_UINT)
             cell->setData(data_pos_n_th, dens);
     }
 
     void setCRElectronDensity(cell_basic * cell, double dens)
     {
-        if(data_pos_n_cr!=MAX_UINT)
+        if(data_pos_n_cr != MAX_UINT)
             cell->setData(data_pos_n_cr, dens);
     }
 
     void setGammaMin(cell_basic * cell, double g_min)
     {
-        if(data_pos_g_min!=MAX_UINT)
+        if(data_pos_g_min != MAX_UINT)
             cell->setData(data_pos_g_min, g_min);
     }
 
     void setGammaMax(cell_basic * cell, double g_max)
     {
-        if(data_pos_g_max!=MAX_UINT)
+        if(data_pos_g_max != MAX_UINT)
             cell->setData(data_pos_g_max, g_max);
     }
 
     void setPowerLawIndex(cell_basic * cell, double p)
     {
-        if(data_pos_p!=MAX_UINT)
+        if(data_pos_p != MAX_UINT)
             cell->setData(data_pos_p, p);
     }
-    
+
     void setAvgTheta(cell_basic * cell, double phi)
     {
-        if(data_pos_avg_th!=MAX_UINT)
+        if(data_pos_avg_th != MAX_UINT)
             cell->setData(data_pos_avg_th, phi);
     }
-    
+
     void setAvgDir(cell_basic * cell, double dir)
     {
-        if(data_pos_avg_dir!=MAX_UINT)
+        if(data_pos_avg_dir != MAX_UINT)
             cell->setData(data_pos_avg_dir, dir);
     }
-    
+
     void setDustChoiceID(cell_basic * cell, uint dust_id)
     {
         if(data_pos_id != MAX_UINT)
@@ -1103,7 +1123,7 @@ public:
             cell->setData(data_pos_dt_list[i_density], temp);
     }
 
-    double getAlignedRadius(cell_basic *cell)
+    double getAlignedRadius(cell_basic * cell)
     {
         return cell->getData(data_pos_aalg);
     }
@@ -1119,7 +1139,7 @@ public:
         cell->setData(data_pos_aalg, _a_alg);
     }
 
-    double getMinGrainRadius(cell_basic *cell)
+    double getMinGrainRadius(cell_basic * cell)
     {
         if(data_pos_amin != MAX_UINT)
             return cell->getData(data_pos_amin);
@@ -1132,7 +1152,7 @@ public:
         return getMinGrainRadius(cell);
     }
 
-    double getMaxGrainRadius(cell_basic *cell)
+    double getMaxGrainRadius(cell_basic * cell)
     {
         if(data_pos_amax != MAX_UINT)
             return cell->getData(data_pos_amax);
@@ -1218,18 +1238,22 @@ public:
         data_pos_aalg = pos;
     }
 
-    void setLvlPopLower(cell_basic *cell, uint i_line, double lvl_lower)
+    void setLvlPopLower(cell_basic * cell, uint i_line, double lvl_lower)
     {
         cell->setData(data_offset + 6 * i_line, lvl_lower);
     }
 
-    void setLvlPopUpper(cell_basic *cell, uint i_line, double lvl_upper)
+    void setLvlPopUpper(cell_basic * cell, uint i_line, double lvl_upper)
     {
         cell->setData(data_offset + 6 * i_line + 1, lvl_upper);
     }
 
-    void setLineBroadening(cell_basic *cell, uint i_line,
-            double gauss_a, double Gamma, double doppler_width, double voigt_a)
+    void setLineBroadening(cell_basic * cell,
+                           uint i_line,
+                           double gauss_a,
+                           double Gamma,
+                           double doppler_width,
+                           double voigt_a)
     {
         cell->setData(data_offset + 6 * i_line + 2, gauss_a);
         cell->setData(data_offset + 6 * i_line + 3, Gamma);
@@ -1349,7 +1373,7 @@ public:
 
     double getElectronTemperature(photon_package * pp)
     {
-        if(data_pos_T_e!=MAX_UINT)
+        if(data_pos_T_e != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_T_e);
 
         return 0;
@@ -1357,7 +1381,7 @@ public:
 
     double getElectronTemperature(cell_basic * cell)
     {
-        if(data_pos_T_e!=MAX_UINT)
+        if(data_pos_T_e != MAX_UINT)
             return cell->getData(data_pos_T_e);
 
         return 0;
@@ -1365,7 +1389,7 @@ public:
 
     double getThermalElectronDensity(photon_package * pp)
     {
-        if(data_pos_n_th!=MAX_UINT)
+        if(data_pos_n_th != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_n_th);
 
         return 0;
@@ -1373,7 +1397,7 @@ public:
 
     double getThermalElectronDensity(cell_basic * cell)
     {
-        if(data_pos_n_th!=MAX_UINT)
+        if(data_pos_n_th != MAX_UINT)
             return cell->getData(data_pos_n_th);
 
         return 0;
@@ -1381,7 +1405,7 @@ public:
 
     double getCRElectronDensity(photon_package * pp)
     {
-        if(data_pos_n_cr!=MAX_UINT)
+        if(data_pos_n_cr != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_n_cr);
 
         return 0;
@@ -1389,7 +1413,7 @@ public:
 
     double getCRElectronDensity(cell_basic * cell)
     {
-        if(data_pos_n_cr!=MAX_UINT)
+        if(data_pos_n_cr != MAX_UINT)
             return cell->getData(data_pos_n_cr);
 
         return 0;
@@ -1397,7 +1421,7 @@ public:
 
     double getGammaMin(photon_package * pp)
     {
-        if(data_pos_g_min!=MAX_UINT)
+        if(data_pos_g_min != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_g_min);
 
         return 0;
@@ -1405,7 +1429,7 @@ public:
 
     double getGammaMax(photon_package * pp)
     {
-        if(data_pos_g_max!=MAX_UINT)
+        if(data_pos_g_max != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_g_max);
 
         return 0;
@@ -1413,44 +1437,43 @@ public:
 
     double getPowerLawIndex(photon_package * pp)
     {
-        if(data_pos_p!=MAX_UINT)
+        if(data_pos_p != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_p);
 
         return 0;
     }
-    
+
     double getAvgTheta(photon_package * pp)
     {
-        if(data_pos_avg_th!=MAX_UINT)
+        if(data_pos_avg_th != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_avg_th);
 
         return 0;
     }
-    
+
     double getAvgDir(photon_package * pp)
     {
-        if(data_pos_avg_dir!=MAX_UINT)
+        if(data_pos_avg_dir != MAX_UINT)
             return pp->getPositionCell()->getData(data_pos_avg_dir);
 
         return 0;
     }
-    
+
     double getAvgTheta(cell_basic * cell)
     {
-        if(data_pos_avg_th!=MAX_UINT)
+        if(data_pos_avg_th != MAX_UINT)
             return cell->getData(data_pos_avg_th);
 
         return 0;
     }
-    
+
     double getAvgDir(cell_basic * cell)
     {
-        if(data_pos_avg_dir!=MAX_UINT)
+        if(data_pos_avg_dir != MAX_UINT)
             return cell->getData(data_pos_avg_dir);
 
         return 0;
     }
-    
 
     double getDustTemperature(cell_basic * cell, uint i_density, uint a)
     {
@@ -1532,9 +1555,18 @@ public:
         return cell->getData(data_pos_tg);
     }
 
-    void setPlaneParameter(uint plane_index, double xy_step, double off_xy, 
-        double z_step, double off_z, double shift_z,
-        int j, int k, int l, double & tx, double & ty, double & tz)
+    void setPlaneParameter(uint plane_index,
+                           double xy_step,
+                           double off_xy,
+                           double z_step,
+                           double off_z,
+                           double shift_z,
+                           int j,
+                           int k,
+                           int l,
+                           double & tx,
+                           double & ty,
+                           double & tz)
     {
         switch(plane_index)
         {
@@ -1615,7 +1647,7 @@ public:
 
             default:
                 break;
-        }        
+        }
     }
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
@@ -1686,7 +1718,7 @@ public:
                 double Td = getDustTemperature(pp);
                 double Tg = getGasTemperature(pp);
                 double dens = getGasDensity(pp);
-                double a_limit = CMathFunctions::calc_larm_limit(field, Td, Tg, dens, 0.5,4.1e-19);
+                double a_limit = CMathFunctions::calc_larm_limit(field, Td, Tg, dens, 0.5, 4.1e-19);
                 buffer_larm[i_cell] = a_limit;
             }
             if(plt_mach)
@@ -1703,7 +1735,7 @@ public:
             if(plt_amax)
                 buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
             if(plt_rad_field)
-                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
                     for(int wID = 0; wID < WL_STEPS; wID++)
                     {
@@ -1728,25 +1760,25 @@ public:
                         }
                         buffer_rad_field[i_cell][wID][i_comp] = val;
                     }
-                }                        
+                }
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = getGZero(pp);
             if(plt_n_th)
-                buffer_n_th[i_cell]=getThermalElectronDensity(pp);
+                buffer_n_th[i_cell] = getThermalElectronDensity(pp);
             if(plt_T_e)
-                buffer_T_e[i_cell]=getElectronTemperature(pp);
+                buffer_T_e[i_cell] = getElectronTemperature(pp);
             if(plt_n_cr)
-                buffer_n_cr[i_cell]=getCRElectronDensity(pp);
+                buffer_n_cr[i_cell] = getCRElectronDensity(pp);
             if(plt_g_min)
-                buffer_g_min[i_cell]=getGammaMin(pp);
+                buffer_g_min[i_cell] = getGammaMin(pp);
             if(plt_g_max)
-                buffer_g_max[i_cell]=getGammaMax(pp);
+                buffer_g_max[i_cell] = getGammaMax(pp);
             if(plt_p)
-                buffer_p[i_cell]=getPowerLawIndex(pp); 
+                buffer_p[i_cell] = getPowerLawIndex(pp);
             if(plt_avg_dir)
-                buffer_avg_dir[i_cell]=getAvgDir(pp); 
+                buffer_avg_dir[i_cell] = getAvgDir(pp);
             if(plt_avg_th)
-                buffer_avg_th[i_cell]=getAvgTheta(pp);
+                buffer_avg_th[i_cell] = getAvgTheta(pp);
         }
         else
         {
@@ -1802,35 +1834,35 @@ public:
             if(plt_amax)
                 buffer_dust_amax[i_cell] = 0;
             if(plt_rad_field)
-                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(uint wID = 0; wID < WL_STEPS; wID++)
                         buffer_rad_field[i_cell][wID][i_comp] = 0;
             if(plt_g_zero)
                 buffer_g_zero[i_cell] = 0;
             if(plt_n_th)
-                buffer_n_th[i_cell]=0;
+                buffer_n_th[i_cell] = 0;
             if(plt_T_e)
-                buffer_T_e[i_cell]=0;
+                buffer_T_e[i_cell] = 0;
             if(plt_n_cr)
-                buffer_n_cr[i_cell]=0;
+                buffer_n_cr[i_cell] = 0;
             if(plt_g_min)
-                buffer_g_min[i_cell]=0;
+                buffer_g_min[i_cell] = 0;
             if(plt_g_max)
-                buffer_g_max[i_cell]=0;
+                buffer_g_max[i_cell] = 0;
             if(plt_p)
-                buffer_p[i_cell]=0;    
+                buffer_p[i_cell] = 0;
             if(plt_avg_dir)
-                buffer_avg_dir[i_cell]=0; 
+                buffer_avg_dir[i_cell] = 0;
             if(plt_avg_th)
-                buffer_avg_dir[i_cell]=0;
+                buffer_avg_dir[i_cell] = 0;
         }
         delete pp;
     }
 
     bool writeSpecialLines(string path);
     bool writeAMIRAFiles(string path, parameters & param, uint bins);
-    bool writeMidplaneFits(string data_path, parameters & param, uint bins, bool all=false);
-    bool writeMidplaneFits1(string data_path, parameters & param, uint bins, bool all=false);
+    bool writeMidplaneFits(string data_path, parameters & param, uint bins, bool all = false);
+    bool writeMidplaneFits1(string data_path, parameters & param, uint bins, bool all = false);
 
     void updateMidplaneString(char * str_1, char * str_2, uint counter)
     {
@@ -2109,26 +2141,20 @@ public:
     Vector3D getVelocityField(photon_package * pp)
     {
         return Vector3D(pp->getPositionCell()->getData(data_pos_vx),
-            pp->getPositionCell()->getData(data_pos_vy),
-            pp->getPositionCell()->getData(data_pos_vz));
+                        pp->getPositionCell()->getData(data_pos_vy),
+                        pp->getPositionCell()->getData(data_pos_vz));
     }
 
     Vector3D getVelocityField(cell_basic * cell)
     {
-        return Vector3D(cell->getData(data_pos_vx),
-                cell->getData(data_pos_vy),
-                cell->getData(data_pos_vz));
+        return Vector3D(cell->getData(data_pos_vx), cell->getData(data_pos_vy), cell->getData(data_pos_vz));
     }
 
     virtual void setCrossSections(cross_sections & cs)
-    {
-
-    }
+    {}
 
     virtual void setID(uint id)
-    {
-
-    }
+    {}
 
     double getCellAbundance(photon_package * pp, uint id)
     {
@@ -2163,8 +2189,8 @@ public:
     Vector3D getMagField(photon_package * pp)
     {
         return Vector3D(pp->getPositionCell()->getData(data_pos_mx),
-            pp->getPositionCell()->getData(data_pos_my),
-            pp->getPositionCell()->getData(data_pos_mz));
+                        pp->getPositionCell()->getData(data_pos_my),
+                        pp->getPositionCell()->getData(data_pos_mz));
     }
 
     void setMagField(cell_basic * cell, const Vector3D & mag)
@@ -2211,8 +2237,8 @@ public:
 
     bool getRadiationFieldAvailable()
     {
-        if(data_pos_rx_list.empty() || data_pos_ry_list.empty() ||
-                data_pos_rz_list.empty() || data_pos_rf_list.empty())
+        if(data_pos_rx_list.empty() || data_pos_ry_list.empty() || data_pos_rz_list.empty() ||
+           data_pos_rf_list.empty())
             return false;
         return true;
     }
@@ -2239,8 +2265,7 @@ public:
     uint getTemperatureFieldInformation()
     {
         // Check which kind of temperature calculation the grid supports
-        if(multi_temperature_entries > nr_densities && 
-                data_pos_dt_list.size() == multi_temperature_entries)
+        if(multi_temperature_entries > nr_densities && data_pos_dt_list.size() == multi_temperature_entries)
             return TEMP_FULL;
         else if(data_pos_dt_list.size() == nr_densities)
             return TEMP_EFF;
@@ -2267,12 +2292,16 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot "
+                                    "be combined!"
+                                 << endl;
                             return false;
                         }
                         if(gas_is_mass_density == true)
                         {
-                            cout << "\nERROR: Gas number densities cannot be combined with gas mass densities!" << endl;
+                            cout << "\nERROR: Gas number densities cannot be combined "
+                                    "with gas mass densities!"
+                                 << endl;
                             return false;
                         }
                     }
@@ -2285,12 +2314,16 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot "
+                                    "be combined!"
+                                 << endl;
                             return false;
                         }
                         if(gas_is_mass_density == false)
                         {
-                            cout << "\nERROR: Gas mass densities cannot be combined with gas number densities!" << endl;
+                            cout << "\nERROR: Gas mass densities cannot be combined with "
+                                    "gas number densities!"
+                                 << endl;
                             return false;
                         }
                     }
@@ -2303,12 +2336,16 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot "
+                                    "be combined!"
+                                 << endl;
                             return false;
                         }
                         if(dust_is_mass_density == true)
                         {
-                            cout << "\nERROR: Dust number densities cannot be combined with dust mass densities!" << endl;
+                            cout << "\nERROR: Dust number densities cannot be combined "
+                                    "with dust mass densities!"
+                                 << endl;
                             return false;
                         }
                     }
@@ -2321,12 +2358,16 @@ public:
                     {
                         if(data_pos_id != MAX_UINT)
                         {
-                            cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                            cout << "\nERROR: Multiple densities and dust choices cannot "
+                                    "be combined!"
+                                 << endl;
                             return false;
                         }
                         if(dust_is_mass_density == false)
                         {
-                            cout << "\nERROR: Dust mass densities cannot be combined with dust number densities!" << endl;
+                            cout << "\nERROR: Dust mass densities cannot be combined "
+                                    "with dust number densities!"
+                                 << endl;
                             return false;
                         }
                     }
@@ -2528,7 +2569,7 @@ public:
                     data_pos_g_min = i;
                     break;
 
-                 case GRIDg_max:
+                case GRIDg_max:
                     if(data_pos_g_max != MAX_UINT)
                     {
                         cout << "\nERROR: Grid ID " << GRIDg_max << " can be set only once!" << endl;
@@ -2547,7 +2588,7 @@ public:
 
                     data_pos_p = i;
                     break;
-                    
+
                 case GRIDavg_dir:
                     if(data_pos_avg_dir != MAX_UINT)
                     {
@@ -2556,7 +2597,7 @@ public:
                     }
 
                     data_pos_avg_dir = i;
-                    break;    
+                    break;
 
                 case GRIDavg_th:
                     if(data_pos_avg_th != MAX_UINT)
@@ -2566,8 +2607,8 @@ public:
                     }
 
                     data_pos_avg_th = i;
-                    break;    
-                    
+                    break;
+
                 case GRIDratio:
                     nrOfDensRatios++;
                     break;
@@ -2579,7 +2620,9 @@ public:
                 case GRIDdust_id:
                     if(data_pos_gd_list.size() > 1 || data_pos_dd_list.size() > 1)
                     {
-                        cout << "\nERROR: Multiple densities and dust choices cannot be combined!" << endl;
+                        cout << "\nERROR: Multiple densities and dust choices cannot be "
+                                "combined!"
+                             << endl;
                         return false;
                     }
                     if(data_pos_id != MAX_UINT)
@@ -2609,7 +2652,8 @@ public:
 
                 default:
                     cout << "\nERROR: Unknown data IDs!" << endl;
-                    cout << "         IDs have to be between " << minGRID << " and " << maxGRID << "!" << endl;
+                    cout << "         IDs have to be between " << minGRID << " and " << maxGRID << "!"
+                         << endl;
                     return false;
             }
         }
@@ -2628,7 +2672,7 @@ public:
             if(data_ids[i] == GRIDratio)
             {
                 pos_GasSpecRatios[pos_counter] = i;
-                //cout << pos_counter << "\t" << pos_ration[pos_counter] << endl;
+                // cout << pos_counter << "\t" << pos_ration[pos_counter] << endl;
                 pos_counter++;
             }
         }
@@ -2641,7 +2685,7 @@ public:
             if(data_ids[i] == GRIDopiate)
             {
                 pos_OpiateIDS[pos_counter] = i;
-                //cout << pos_counter << "\t" << pos_ration[pos_counter] << endl;
+                // cout << pos_counter << "\t" << pos_ration[pos_counter] << endl;
                 pos_counter++;
             }
         }
@@ -2781,7 +2825,8 @@ public:
                 break;
 
             default:
-                cout << "\nERROR: Grid ID = " << dataID << " doesn't match any of the old octree IDs!" << endl;
+                cout << "\nERROR: Grid ID = " << dataID << " doesn't match any of the old octree IDs!"
+                     << endl;
                 cout << "       Cannot create a compatible octree!" << endl;
                 return false;
         }
@@ -2795,7 +2840,9 @@ public:
     {
         if(data_pos_n_th == MAX_UINT && data_pos_n_th == MAX_UINT)
         {
-            cout << "\nERROR: Neither thermal electrons nor CR electrons are defined in grid file!" << endl;
+            cout << "\nERROR: Neither thermal electrons nor CR electrons are defined in "
+                    "grid file!"
+                 << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
@@ -2836,7 +2883,9 @@ public:
             if(data_pos_T_e == MAX_UINT)
             {
                 cout << "\nWARNING: Grid contains no electron temperature component!" << endl;
-                cout << "         Electron temperature will be set to equal gas temperature!" << endl;
+                cout << "         Electron temperature will be set to equal gas "
+                        "temperature!"
+                     << endl;
                 data_pos_T_e = data_pos_tg;
             }
         }
@@ -2894,8 +2943,12 @@ public:
         uint extra_temp_entries = 0;
         if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "\nERROR: The grid does not include the correct information for temperature calculations" << endl;
-            cout << "       No dust temperature calculation possible (full_dust_temp or stochastic heating?)." << endl;
+            cout << "\nERROR: The grid does not include the correct information for "
+                    "temperature calculations"
+                 << endl;
+            cout << "       No dust temperature calculation possible (full_dust_temp or "
+                    "stochastic heating?)."
+                 << endl;
             return MAX_UINT;
         }
         else
@@ -2939,10 +2992,12 @@ public:
         }
 
         if(param.getSaveRadiationField())
-            if(data_pos_rx_list.size() != 0 || data_pos_ry_list.size() != 0 ||
-                    data_pos_rz_list.size() != 0 || data_pos_rf_list.size() != 0)
+            if(data_pos_rx_list.size() != 0 || data_pos_ry_list.size() != 0 || data_pos_rz_list.size() != 0 ||
+               data_pos_rf_list.size() != 0)
             {
-                cout << "\nERROR: The grid includes partial/broken information about a radiation field!" << endl;
+                cout << "\nERROR: The grid includes partial/broken information about a "
+                        "radiation field!"
+                     << endl;
                 cout << "       No dust temperature calculation possible." << endl;
                 return MAX_UINT;
             }
@@ -2954,7 +3009,7 @@ public:
                 data_pos_tg = data_offset + tmp_data_offset;
                 data_ids.push_back(GRIDgas_temp);
                 tmp_data_offset++;
-                //cout << "Create entries for gas temperature   : done" << endl;
+                // cout << "Create entries for gas temperature   : done" << endl;
             }
             else
             {
@@ -2964,7 +3019,9 @@ public:
                 tmp_data_offset++;
                 cout << SEP_LINE;
                 cout << "\nHINT: No gas temperature found in grid." << endl;
-                cout << "    Add entry and set gas temperature to dust temperature after calculation!" << endl;
+                cout << "    Add entry and set gas temperature to dust temperature after "
+                        "calculation!"
+                     << endl;
                 cout << SEP_LINE;
             }
         }
@@ -2980,7 +3037,7 @@ public:
             tmp_data_offset++;
             // cout << "Create entries for RAT alignment     : done" << endl;
         }
-        
+
         if(data_pos_avg_dir == MAX_UINT)
         {
             data_pos_avg_dir = data_offset + tmp_data_offset;
@@ -2988,7 +3045,7 @@ public:
             tmp_data_offset++;
             // cout << "Create entries for RAT alignment     : done" << endl;
         }
-        
+
         if(data_pos_avg_th == MAX_UINT)
         {
             data_pos_avg_th = data_offset + tmp_data_offset;
@@ -2996,8 +3053,6 @@ public:
             tmp_data_offset++;
             // cout << "Create entries for RAT alignment     : done" << endl;
         }
-        
-        
 
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
@@ -3007,7 +3062,9 @@ public:
         }
         else if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature "
+                    "calculations"
+                 << endl;
             cout << "       No RAT calculation possible." << endl;
             return MAX_UINT;
         }
@@ -3050,7 +3107,9 @@ public:
         }
         else if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature "
+                    "calculations"
+                 << endl;
             cout << "       No dust emission possible." << endl;
             return MAX_UINT;
         }
@@ -3062,18 +3121,22 @@ public:
         {
             if(data_pos_rf_list.size() != WL_STEPS)
             {
-               cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
-               cout << "       No dust emission with stochastic heating possible." << endl;
-               return MAX_UINT;
-           }
+                cout << "\nERROR: The grid includes partial/no information about a "
+                        "radiation field!"
+                     << endl;
+                cout << "       No dust emission with stochastic heating possible." << endl;
+                return MAX_UINT;
+            }
         }
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
-           cout << "       No dust emission possible." << endl;
-           return MAX_UINT;
-       }
+            cout << "\nERROR: The grid includes partial/no information about a radiation "
+                    "field!"
+                 << endl;
+            cout << "       No dust emission possible." << endl;
+            return MAX_UINT;
+        }
 
         if(param.getAlign() != 0 && !param.getAligPA())
         {
@@ -3144,25 +3207,33 @@ public:
             if(data_pos_tg == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no gas temperature!           " << endl;
-                cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
+                cout << "       No dust scattering calculations with aligned dust grains "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
             if(data_pos_mx == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no magnetic Bx component!     " << endl;
-                cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
+                cout << "       No dust scattering calculations with aligned dust grains "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
             if(data_pos_my == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no magnetic By component!     " << endl;
-                cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
+                cout << "       No dust scattering calculations with aligned dust grains "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
             if(data_pos_mz == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no magnetic Bz component!     " << endl;
-                cout << "       No dust scattering calculations with aligned dust grains possible." << endl;
+                cout << "       No dust scattering calculations with aligned dust grains "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
         }
@@ -3172,19 +3243,25 @@ public:
             if(data_pos_vx == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no velocity vx component!  " << endl;
-                cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
+                cout << "        No dust scattering calculations with GOLD alignment "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
             if(data_pos_vy == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no velocity vy component!  " << endl;
-                cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
+                cout << "        No dust scattering calculations with GOLD alignment "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
             if(data_pos_vz == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no velocity vz component!  " << endl;
-                cout << "        No dust scattering calculations with GOLD alignment possible." << endl;
+                cout << "        No dust scattering calculations with GOLD alignment "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
         }
@@ -3194,7 +3271,9 @@ public:
             if(data_pos_aalg == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no minimum alignment radius for RATs!" << endl;
-                cout << "        No dust scattering calculations with RAT alignment possible." << endl;
+                cout << "        No dust scattering calculations with RAT alignment "
+                        "possible."
+                     << endl;
                 return MAX_UINT;
             }
         }
@@ -3212,17 +3291,21 @@ public:
         }
         else if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature "
+                    "calculations"
+                 << endl;
             cout << "       No FORCE calculation possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
-           cout << "       No FORCE calculation possible." << endl;
-           return MAX_UINT;
-       }
+            cout << "\nERROR: The grid includes partial/no information about a radiation "
+                    "field!"
+                 << endl;
+            cout << "       No FORCE calculation possible." << endl;
+            return MAX_UINT;
+        }
 
         return 0;
     }
@@ -3239,7 +3322,9 @@ public:
             }
             else if(getTemperatureFieldInformation() == MAX_UINT)
             {
-                cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
+                cout << "\nERROR: The grid does not include the information for "
+                        "temperature calculations"
+                     << endl;
                 cout << "       No line transfer including dust emission possible." << endl;
                 return MAX_UINT;
             }
@@ -3308,17 +3393,21 @@ public:
         }
         else if(getTemperatureFieldInformation() == MAX_UINT)
         {
-            cout << "\nERROR: The grid does not include the information for temperature calculations" << endl;
+            cout << "\nERROR: The grid does not include the information for temperature "
+                    "calculations"
+                 << endl;
             cout << "       No LOS analysis with aligned dust grains possible." << endl;
             return MAX_UINT;
         }
 
         if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
         {
-           cout << "\nERROR: The grid includes partial/no information about a radiation field!" << endl;
-           cout << "       No LOS analysis with aligned dust grains possible." << endl;
-           return MAX_UINT;
-       }
+            cout << "\nERROR: The grid includes partial/no information about a radiation "
+                    "field!"
+                 << endl;
+            cout << "       No LOS analysis with aligned dust grains possible." << endl;
+            return MAX_UINT;
+        }
 
         if(param.getAlign() != 0 && !param.getAligPA())
         {
@@ -3372,8 +3461,8 @@ public:
         return 0;
     }
 
-protected:
-    //uint grid_type;
+  protected:
+    // uint grid_type;
     ulong max_cells;
     uint max_data;
     Vector3D meanBdir;
@@ -3515,7 +3604,7 @@ protected:
     uilist data_pos_ry_list;
     uilist data_pos_rz_list;
     uilist data_pos_rf_list;
-    
+
     uint data_pos_avg_th;
     uint data_pos_avg_dir;
 
@@ -3548,7 +3637,7 @@ protected:
     bool plt_g_min;
     bool plt_g_max;
     bool plt_p;
-    
+
     bool plt_avg_dir;
     bool plt_avg_th;
 
@@ -3589,7 +3678,7 @@ protected:
     double * buffer_g_min;
     double * buffer_g_max;
     double * buffer_p;
-    
+
     double * buffer_avg_th;
     double * buffer_avg_dir;
 };

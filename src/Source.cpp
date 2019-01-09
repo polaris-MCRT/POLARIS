@@ -1,6 +1,6 @@
 #include "Source.h"
-#include "Grid.h"
 #include "CommandParser.h"
+#include "Grid.h"
 #include "MathFunctions.h"
 
 bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
@@ -13,7 +13,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-            << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
     }
     else
     {
@@ -30,7 +30,8 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
             if(is_ext)
                 sp_energy = sp_ext.getValue(wavelength_list[w]);
             else
-                sp_energy = 4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
+                sp_energy =
+                    4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
 
             star_emi.push_back(sp_energy);
         }
@@ -39,7 +40,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
         L = tmp_luminosity;
 
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-            << " [L_sun], photons: " << nr_of_photons << endl;
+             << " [L_sun], photons: " << nr_of_photons << endl;
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
@@ -48,7 +49,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
         }
 
         max_flux *= ACC_SELECT_LEVEL;
-        
+
         for(uint w = 0; w < getNrOfWavelength(); w++)
             if(wavelength_list[w] * star_emi[w] < max_flux)
             {
@@ -59,9 +60,8 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
         diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
         diff_luminosity -= tmp_luminosity;
 
-        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
-                << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of " << getNrOfWavelength()
+             << ", neglected energy: " << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -211,7 +211,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-            << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
     else
     {
         // Init variables
@@ -236,7 +236,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
         L = tmp_luminosity;
 
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-            << " [L_sun], photons: " << nr_of_photons << endl;
+             << " [L_sun], photons: " << nr_of_photons << endl;
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
@@ -256,9 +256,9 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
         diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
         diff_luminosity -= tmp_luminosity;
 
-        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of "
-                << getNrOfWavelength() << ", neglected energy: "
-                << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]           " << endl;
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of " << getNrOfWavelength()
+             << ", neglected energy: " << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]           "
+             << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
@@ -428,9 +428,8 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
             if(w > 0)
-                sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1]
-                    + 0.5 * (wavelength_list[w] - wavelength_list[w - 1])
-                * (star_emi[w] - star_emi[w - 1]);
+                sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] +
+                       0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
 
             fr = sum / L[0];
             lam_pf[0].setValue(w, fr, double(w));
@@ -438,15 +437,15 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
         if(use_energy_density)
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
         else
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                << "with " << nr_of_photons << " photons per cell" << endl;
+                 << "with " << nr_of_photons << " photons per cell" << endl;
     }
     else
     {
         cout << CLR_LINE;
-	cout << "Initiating variable background source: 0.0 [%]          \r";
+        cout << "Initiating variable background source: 0.0 [%]          \r";
 
         for(uint p = 0; p < max_len; p++)
         {
@@ -468,29 +467,29 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
             for(uint w = 0; w < getNrOfWavelength(); w++)
             {
                 if(w > 0)
-                    sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1]
-                        + 0.5 * (wavelength_list[w] - wavelength_list[w - 1])
-                    * (star_emi[w] - star_emi[w - 1]);
+                    sum +=
+                        (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] +
+                        0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
 
                 fr = sum / L[p];
                 lam_pf[p].setValue(w, fr, double(w));
             }
 
             if(p % 500 == 0)
-                cout << "Initiating variable background source: "
-                    << 100 * float(p) / float(max_len) << " [%]       \r";
+                cout << "Initiating variable background source: " << 100 * float(p) / float(max_len)
+                     << " [%]       \r";
         }
 
         if(use_energy_density)
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
-                    << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
         else
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
-                    << "with " << nr_of_photons << " photons per cell" << endl;
+                 << "with " << nr_of_photons << " photons per cell" << endl;
     }
 
-    //temp.clear();
-    //f.clear();
+    // temp.clear();
+    // f.clear();
 
     delete[] star_emi;
     return true;
@@ -550,7 +549,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
         }
         else
         {
-            if(line_counter > (int) max_len)
+            if(line_counter > (int)max_len)
             {
                 cout << "\nERROR: To many background values in : " << filename << endl;
                 cout << max_len << " lines expected!" << endl;
@@ -574,7 +573,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
         }
     }
 
-    if(line_counter + 1 < (int) max_len)
+    if(line_counter + 1 < (int)max_len)
     {
         cout << "\nERROR: Not enough background values in : " << filename << endl;
         cout << max_len << " lines expected!" << endl;
@@ -616,7 +615,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
     }
 
     pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
-    I = F * pl; //[W m^-1] energy per second and wavelength
+    I = F * pl;                                           //[W m^-1] energy per second and wavelength
     Q *= I;
     U *= I;
     V *= I;
@@ -648,8 +647,9 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     if(use_energy_density)
     {
         // For using energy density, only the photon number is required
-        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
-            << nr_of_photons << " photons per wavelength" << "      " << endl;
+        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with " << nr_of_photons
+             << " photons per wavelength"
+             << "      " << endl;
     }
     else
     {
@@ -659,23 +659,24 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
             if(w > 0)
-                sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] + 0.5 *
-                    (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
+                sum += (wavelength_list[w] - wavelength_list[w - 1]) * star_emi[w - 1] +
+                       0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (star_emi[w] - star_emi[w - 1]);
 
             fr = sum / L;
             lam_pf.setValue(w, fr, double(w));
         }
-        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with "
-                << nr_of_photons << " photons" << "      " << endl;
+        cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with " << nr_of_photons
+             << " photons"
+             << "      " << endl;
     }
 
     if(g_zero > 0)
-        cout << "    G_0: " << g_zero <<  " (see Mathis et al. 1983)" << endl;
+        cout << "    G_0: " << g_zero << " (see Mathis et al. 1983)" << endl;
     else
         cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
 
     delete[] star_emi;
-    
+
     return true;
 }
 
@@ -741,7 +742,6 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
 
                 if(w_max < value[0])
                     w_max = value[0];
-
             }
             else
             {
@@ -809,7 +809,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     if(!use_energy_density)
     {
         cout << "\nERROR: The dust source for radiation field calculation "
-            << "can only be used with energy density!" << endl;
+             << "can only be used with energy density!" << endl;
         return false;
     }
 
@@ -852,8 +852,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             {
 #pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: " 
-                        << percentage << " [%]    \r" << flush;
+                    cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                         << flush;
                     last_percentage = percentage;
                 }
             }
@@ -876,8 +876,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     delete pp;
 
     // Show information
-    cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " 
-        << nr_of_photons << "      " << endl;
+    cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " << nr_of_photons
+         << "      " << endl;
 
     return true;
 }
@@ -928,10 +928,10 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photon
     pp->calcRandomDirection();
 
     if(nr_photons == MAX_UINT)
-        nr_photons = nr_of_photons; 
+        nr_photons = nr_of_photons;
 
     // Set wavelength of photon package
-    uint w = pp->getWavelengthID();  
+    uint w = pp->getWavelengthID();
 
     // Get random number
     double rnd = pp->getRND();

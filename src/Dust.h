@@ -1,16 +1,15 @@
 #pragma once
-#include "typedefs.h"
-#include "chelper.h"
-#include "Matrix2D.h"
 #include "Grid.h"
+#include "Matrix2D.h"
+#include "chelper.h"
+#include "typedefs.h"
 
 #ifndef CDUST
 #define CDUST
 
 class CDustComponent
 {
-public:
-
+  public:
     CDustComponent()
     {
         avg_scattering_frac = 0;
@@ -83,22 +82,22 @@ public:
         is_mixture = false;
 
         // Connection between mat_elem_counter and position in scattering matrix
-        elements[0] = int(1); // S11
-        elements[1] = int(2); // S12
-        elements[2] = int(0); // S13
-        elements[3] = int(0); // S14
-        elements[4] = int(2); // S21
-        elements[5] = int(1); // S22
-        elements[6] = int(0); // S23
-        elements[7] = int(0); // S24
-        elements[8] = int(0); // S31
-        elements[9] = int(0); // S32
-        elements[10] = int(3); // S33
-        elements[11] = int(4); // S34
-        elements[12] = int(0); // S41
-        elements[13] = int(0); // S42
+        elements[0] = int(1);   // S11
+        elements[1] = int(2);   // S12
+        elements[2] = int(0);   // S13
+        elements[3] = int(0);   // S14
+        elements[4] = int(2);   // S21
+        elements[5] = int(1);   // S22
+        elements[6] = int(0);   // S23
+        elements[7] = int(0);   // S24
+        elements[8] = int(0);   // S31
+        elements[9] = int(0);   // S32
+        elements[10] = int(3);  // S33
+        elements[11] = int(4);  // S34
+        elements[12] = int(0);  // S41
+        elements[13] = int(0);  // S42
         elements[14] = int(-4); // S43
-        elements[15] = int(3); // S44
+        elements[15] = int(3);  // S44
 
         i_component = 0;
         nr_of_components = 0;
@@ -287,7 +286,8 @@ public:
     }
 
     // ------------------------------------------------------------------------------------
-    // ----------- Add values to efficiencies for grain size and wavelength ---------------
+    // ----------- Add values to efficiencies for grain size and wavelength
+    // ---------------
     // ------------------------------------------------------------------------------------
     void addQext1(uint a, uint w, double val)
     {
@@ -389,7 +389,8 @@ public:
         double * Cext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min, a_max);
         delete[] Cext1;
         return res;
     }
@@ -413,7 +414,8 @@ public:
         double * Cext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min, a_max);
         delete[] Cext2;
         return res;
     }
@@ -437,7 +439,8 @@ public:
         double * Cabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min, a_max);
         delete[] Cabs1;
         return res;
     }
@@ -461,7 +464,8 @@ public:
         double * Cabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min, a_max);
         delete[] Cabs2;
         return res;
     }
@@ -485,7 +489,8 @@ public:
         double * Csca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min, a_max);
         delete[] Csca1;
         return res;
     }
@@ -509,7 +514,8 @@ public:
         double * Csca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min, a_max);
         delete[] Csca2;
         return res;
     }
@@ -533,7 +539,8 @@ public:
         double * Ccirc = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Ccirc[a] = a_eff_1_5[a] * getQcirc(a, w);
-        double res = PI / weight * CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
+        double res =
+            PI / weight * CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
         delete[] Ccirc;
         return res;
     }
@@ -557,7 +564,8 @@ public:
         double * HGg = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             HGg[a] = a_eff_3_5[a] * getHGg(a, w);
-        double res = 1 / weight * CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min, a_max);
+        double res =
+            1 / weight * CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min, a_max);
         delete[] HGg;
         return res;
     }
@@ -585,17 +593,17 @@ public:
     // -----------------------------------------------------------------------------
     double getCextMean(CGridBasic * grid, photon_package * pp)
     {
-        return(2.0 * getCext1(grid, pp) + getCext2(grid, pp)) / 3.0;
+        return (2.0 * getCext1(grid, pp) + getCext2(grid, pp)) / 3.0;
     }
 
     double getCabsMean(CGridBasic * grid, photon_package * pp)
     {
-        return(2.0 * getCabs1(grid, pp) + getCabs2(grid, pp)) / 3.0;
+        return (2.0 * getCabs1(grid, pp) + getCabs2(grid, pp)) / 3.0;
     }
 
     double getCscaMean(CGridBasic * grid, photon_package * pp)
     {
-        return(2.0 * getCsca1(grid, pp) + getCsca2(grid, pp)) / 3.0;
+        return (2.0 * getCsca1(grid, pp) + getCsca2(grid, pp)) / 3.0;
     }
 
     // ------------------------------------------------------------------------------
@@ -606,7 +614,8 @@ public:
         double * Cext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cext1;
         return res;
@@ -617,7 +626,8 @@ public:
         double * Cext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cext2;
         return res;
@@ -628,7 +638,8 @@ public:
         double * Cabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cabs1;
         return res;
@@ -639,7 +650,8 @@ public:
         double * Cabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cabs2;
         return res;
@@ -650,7 +662,8 @@ public:
         double * Csca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Csca1;
         return res;
@@ -661,7 +674,8 @@ public:
         double * Csca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Csca2;
         return res;
@@ -672,7 +686,8 @@ public:
         double * Ccirc = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Ccirc[a] = a_eff_1_5[a] * getQcirc(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Ccirc;
         return res;
@@ -683,7 +698,8 @@ public:
         double * HGg = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             HGg[a] = a_eff_3_5[a] * getHGg(a, w);
-        double res = PI / getWeight(a_min_global, a_max_global) *
+        double res =
+            PI / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min_global, a_max_global);
         delete[] HGg;
         return res;
@@ -697,7 +713,8 @@ public:
         double * Qext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qext1[a] = a_eff_3_5[a] * getQext1(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qext1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qext1;
         return res;
@@ -708,7 +725,8 @@ public:
         double * Qext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qext2[a] = a_eff_3_5[a] * getQext2(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qext2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qext2;
         return res;
@@ -719,7 +737,8 @@ public:
         double * Qabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qabs1[a] = a_eff_3_5[a] * getQabs1(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qabs1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qabs1;
         return res;
@@ -730,7 +749,8 @@ public:
         double * Qabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qabs2[a] = a_eff_3_5[a] * getQabs2(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qabs2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qabs2;
         return res;
@@ -741,7 +761,8 @@ public:
         double * Qsca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qsca1[a] = a_eff_3_5[a] * getQsca1(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qsca1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qsca1;
         return res;
@@ -752,7 +773,8 @@ public:
         double * Qsca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qsca2[a] = a_eff_3_5[a] * getQsca2(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qsca2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qsca2;
         return res;
@@ -763,7 +785,8 @@ public:
         double * Qcirc = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             Qcirc[a] = a_eff_3_5[a] * getQcirc(a, w);
-        double res = 1.0 / getWeight(a_min_global, a_max_global) *
+        double res =
+            1.0 / getWeight(a_min_global, a_max_global) *
             CMathFunctions::integ_dust_size(a_eff, Qcirc, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Qcirc;
         return res;
@@ -785,8 +808,8 @@ public:
 
     double getWeight()
     {
-        double weight = CMathFunctions::integ_dust_size(a_eff, a_eff_3_5, nr_of_dust_species, 
-            a_min_global, a_max_global);
+        double weight =
+            CMathFunctions::integ_dust_size(a_eff, a_eff_3_5, nr_of_dust_species, a_min_global, a_max_global);
         return weight;
     }
 
@@ -800,8 +823,8 @@ public:
             rel_mass[a] = a_eff_3_5[a] * mass[a];
 
         // Calculate the average mass of the dust grains in the current cell
-        double mass_weight = CMathFunctions::integ_dust_size(a_eff, rel_mass,
-            nr_of_dust_species, a_min_global, a_max_global);
+        double mass_weight =
+            CMathFunctions::integ_dust_size(a_eff, rel_mass, nr_of_dust_species, a_min_global, a_max_global);
 
         // Delete pointer array
         delete[] rel_mass;
@@ -1040,9 +1063,8 @@ public:
             conversion_factor *= grid->getMassFraction();
             conversion_factor /= avg_mass;
         }
-        else
-            if(grid->getDustIsMassDensity())
-                conversion_factor = 1 / avg_mass;
+        else if(grid->getDustIsMassDensity())
+            conversion_factor = 1 / avg_mass;
 
         return conversion_factor;
     }
@@ -1056,9 +1078,8 @@ public:
                 conversion_factor *= grid->getMu() * m_H;
             conversion_factor *= grid->getMassFraction();
         }
-        else
-            if(grid->getDustIsMassDensity())
-                conversion_factor *= getAvgMass(grid, cell);
+        else if(grid->getDustIsMassDensity())
+            conversion_factor *= getAvgMass(grid, cell);
 
         return conversion_factor;
     }
@@ -1137,8 +1158,8 @@ public:
         }
         else
         {
-            cout << "\nERROR: Minimum grain size must be smaller than" 
-                << a_eff[nr_of_dust_species - 1] << "!        " << endl;
+            cout << "\nERROR: Minimum grain size must be smaller than" << a_eff[nr_of_dust_species - 1]
+                 << "!        " << endl;
             return false;
         }
 
@@ -1154,16 +1175,15 @@ public:
         }
         else
         {
-            cout << "\nERROR: Maximum grain size must be larger than " 
-                << a_eff[0] << "!        " << endl;
+            cout << "\nERROR: Maximum grain size must be larger than " << a_eff[0] << "!        " << endl;
             return false;
         }
 
         // If the minimum grain size is larger than the maximum, no calculation possible
         if(a_min_global > a_max_global)
         {
-            cout << "\nERROR: Minimum grain size (" << a_min_global <<
-                ") must be smaller than maximum grain size (" << a_max_global << ")!" << endl;
+            cout << "\nERROR: Minimum grain size (" << a_min_global
+                 << ") must be smaller than maximum grain size (" << a_max_global << ")!" << endl;
             return false;
         }
 
@@ -1172,10 +1192,8 @@ public:
 
     double combinedRFactor(double R1, double R2, double R3)
     {
-        double res = (R1 + R2 + R3 + R1 * R2 + R1 * R3 + R2 * R3
-                + 3 * R1 * R2 * R3)
-                / (1 + 2 * R1 * R2 + 2 * R1 * R3 + 2 * R2 * R3
-                + 2 * R1 * R2 * R3);
+        double res = (R1 + R2 + R3 + R1 * R2 + R1 * R3 + R2 * R3 + 3 * R1 * R2 * R3) /
+                     (1 + 2 * R1 * R2 + 2 * R1 * R3 + 2 * R2 * R3 + 2 * R1 * R2 * R3);
 
         if(res > 1)
             res = 1;
@@ -1266,8 +1284,8 @@ public:
 
     bool sizeIndexUsed(uint a)
     {
-        if((a_eff[a] - a_min_global) > -a_min_global * 1e-5 
-                && (a_max_global - a_eff[a]) > -a_max_global * 1e-5)
+        if((a_eff[a] - a_min_global) > -a_min_global * 1e-5 &&
+           (a_max_global - a_eff[a]) > -a_max_global * 1e-5)
             return true;
         else
         {
@@ -1308,8 +1326,7 @@ public:
     double getInternalGOLD(double Td, double Tg, double vg)
     {
         double h = 2 / (1 + aspect_ratio * aspect_ratio);
-        double alpha = 0.5 / Td * (2 / h + 1)
-                * (0.5 * (Td + Tg) + mu * m_H * vg * vg / (6 * con_kB));
+        double alpha = 0.5 / Td * (2 / h + 1) * (0.5 * (Td + Tg) + mu * m_H * vg * vg / (6 * con_kB));
         double delta = h - 1;
 
         double x = alpha * delta;
@@ -1330,12 +1347,11 @@ public:
             res = 1e-5;
 
         return res;
-
     }
 
     double getInternalRAT()
     {
-        //x = delta, alpha = 1;
+        // x = delta, alpha = 1;
         double x = 2. / (1. + aspect_ratio * aspect_ratio) - 1.;
         if(x <= 1e-4)
             x = 1e-4;
@@ -1404,7 +1420,8 @@ public:
 
         for(uint t = 0; t < nr_of_temperatures; t++)
         {
-            // Calculate absorption cross-section times Planck function for each wavelength
+            // Calculate absorption cross-section times Planck function for each
+            // wavelength
             for(uint w = 0; w < nr_of_wavelength; w++)
                 tmpQB[w] = tmpCabs[w] * tab_planck[w].getValue(t);
 
@@ -1412,7 +1429,8 @@ public:
             double tmp_temp = tab_temp.getValue(t);
 
             // Calculate QB integrated over all wavelengths
-            tmp_tab_em.setValue(t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
+            tmp_tab_em.setValue(
+                t, CMathFunctions::integ(wavelength_list, tmpQB, 0, nr_of_wavelength - 1), tmp_temp);
         }
 
         // Delete multiple pointer
@@ -1447,9 +1465,9 @@ public:
 
         if(use_energy_density)
         {
-            double * sp_energy=new double[nr_of_wavelength];
+            double * sp_energy = new double[nr_of_wavelength];
             for(uint w = 0; w < nr_of_wavelength; w++)
-                sp_energy[w]=(grid->getSpecLength(cell, w) * getCabsMean(a, w));
+                sp_energy[w] = (grid->getSpecLength(cell, w) * getCabsMean(a, w));
             abs_rate = CMathFunctions::integ(wavelength_list, sp_energy, 0, nr_of_wavelength - 1);
 
             delete[] sp_energy;
@@ -1518,7 +1536,7 @@ public:
         return avg_scattering_frac[a][w].getValue(rnd);
     }
 
-    uint findSizeID(photon_package * pp, prob_list &  prob, double a_min, double a_max)
+    uint findSizeID(photon_package * pp, prob_list & prob, double a_min, double a_max)
     {
         uint a;
 
@@ -1531,7 +1549,8 @@ public:
             // Find the related grain size index
             a = prob.getIndex(rnd);
 
-            // If in case the size index is outside of the used grain sizes, pick another one
+            // If in case the size index is outside of the used grain sizes, pick another
+            // one
             if(sizeIndexUsed(a, a_min, a_max))
                 break;
         }
@@ -1559,8 +1578,8 @@ public:
             rel_mass[a] = a_eff_3_5[a] * mass[a];
 
         // Calculate the average mass of the dust grains in the current cell
-        double avg_mass = 1 / weight * CMathFunctions::integ_dust_size(a_eff, rel_mass,
-            nr_of_dust_species, a_min, a_max);
+        double avg_mass =
+            1 / weight * CMathFunctions::integ_dust_size(a_eff, rel_mass, nr_of_dust_species, a_min, a_max);
 
         // Delete pointer array
         delete[] rel_mass;
@@ -1581,8 +1600,9 @@ public:
             rel_mass[a] = a_eff_3_5[a] * mass[a];
 
         // Calculate the average mass of the dust grains in the current cell
-        double avg_mass = 1 / weight * CMathFunctions::integ_dust_size(a_eff, rel_mass,
-            nr_of_dust_species, a_min_global, a_max_global);
+        double avg_mass =
+            1 / weight *
+            CMathFunctions::integ_dust_size(a_eff, rel_mass, nr_of_dust_species, a_min_global, a_max_global);
 
         // Delete pointer array
         delete[] rel_mass;
@@ -1602,7 +1622,7 @@ public:
         double nr_hydrogen_atoms;
         if(nr_carbon_atoms <= 25)
             nr_hydrogen_atoms = floor(0.5 * nr_carbon_atoms + 0.5);
-        else if (nr_carbon_atoms <= 100)
+        else if(nr_carbon_atoms <= 100)
             nr_hydrogen_atoms = floor(2.5 * sqrt(nr_carbon_atoms) + 0.5);
         else
             nr_hydrogen_atoms = floor(0.25 * nr_carbon_atoms + 0.5);
@@ -1690,13 +1710,23 @@ public:
         // Fill the string with various parameters and format it
         char tmp_str[1024];
 #ifdef WINDOWS
-        sprintf_s(tmp_str, "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
-                comp->getStringID().c_str(), comp->getFraction(), comp->getDustSizeKeyword().c_str(),
-                comp->getDustSizeParameterString().c_str(), comp->getSizeMin(), comp->getSizeMax());
+        sprintf_s(tmp_str,
+                  "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                  comp->getStringID().c_str(),
+                  comp->getFraction(),
+                  comp->getDustSizeKeyword().c_str(),
+                  comp->getDustSizeParameterString().c_str(),
+                  comp->getSizeMin(),
+                  comp->getSizeMax());
 #else
-        sprintf(tmp_str, "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
-                comp->getStringID().c_str(), comp->getFraction(), comp->getDustSizeKeyword().c_str(),
-                comp->getDustSizeParameterString().c_str(), comp->getSizeMin(), comp->getSizeMax());
+        sprintf(tmp_str,
+                "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                comp->getStringID().c_str(),
+                comp->getFraction(),
+                comp->getDustSizeKeyword().c_str(),
+                comp->getDustSizeParameterString().c_str(),
+                comp->getSizeMin(),
+                comp->getSizeMax());
 #endif
 
         // Add formatted string to stream
@@ -1904,17 +1934,29 @@ public:
     void preCalcMieScatteringProb();
     void preCalcCalorimetry();
 
-    void convertTempInQB(CGridBasic * grid, cell_basic * cell, uint i_density,
-        double min_gas_density, bool use_gas_temp);
-    bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, uint i_density,
-        bool use_energy_density);
-    double updateDustTemperature(CGridBasic * grid, photon_package * pp,
-        uint i_density, uint a, bool use_energy_density);
+    void convertTempInQB(CGridBasic * grid,
+                         cell_basic * cell,
+                         uint i_density,
+                         double min_gas_density,
+                         bool use_gas_temp);
+    bool adjustTempAndWavelengthBW(CGridBasic * grid,
+                                   photon_package * pp,
+                                   uint i_density,
+                                   bool use_energy_density);
+    double updateDustTemperature(CGridBasic * grid,
+                                 photon_package * pp,
+                                 uint i_density,
+                                 uint a,
+                                 bool use_energy_density);
     void calcTemperature(CGridBasic * grid, cell_basic * cell, uint i_density, bool use_energy_density);
-    void calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, 
-        uint i_density, dlist & wavelength_list_full);
-    void calcStochasticHeatingTemperatures(CGridBasic * grid, cell_basic * cell, 
-        uint i_density, dlist & wavelength_list_full);
+    void calcStochasticHeatingPropabilities(CGridBasic * grid,
+                                            cell_basic * cell,
+                                            uint i_density,
+                                            dlist & wavelength_list_full);
+    void calcStochasticHeatingTemperatures(CGridBasic * grid,
+                                           cell_basic * cell,
+                                           uint i_density,
+                                           dlist & wavelength_list_full);
 
     void calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density);
 
@@ -1923,8 +1965,10 @@ public:
     void initCalorimetry();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
-    bool readDustRefractiveIndexFile(parameters & param, uint dust_component_choice,
-        double a_min_mixture, double a_max_mixture);
+    bool readDustRefractiveIndexFile(parameters & param,
+                                     uint dust_component_choice,
+                                     double a_min_mixture,
+                                     double a_max_mixture);
     bool readScatteringMatrices(string path, uint nr_of_wavelength_dustcat, dlist wavelength_list_dustcat);
     bool readCalorimetryFile(parameters & param, uint dust_component_choice);
 
@@ -1935,46 +1979,64 @@ public:
     uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS);
 
     void calcPACrossSections(uint a, uint w, cross_sections & cs, double theta);
-    void calcExtCrossSections(CGridBasic * grid, photon_package * pp, uint i_density,
-        double & avg_Cext, double & avg_Cpol, double & avg_Ccirc);
-    void calcCrossSections(CGridBasic * grid, photon_package * pp, uint i_density, uint a, cross_sections & cs);
+    void calcExtCrossSections(CGridBasic * grid,
+                              photon_package * pp,
+                              uint i_density,
+                              double & avg_Cext,
+                              double & avg_Cpol,
+                              double & avg_Ccirc);
+    void calcCrossSections(CGridBasic * grid,
+                           photon_package * pp,
+                           uint i_density,
+                           uint a,
+                           cross_sections & cs);
     double calcGoldReductionFactor(Vector3D & v, Vector3D & B);
 
     StokesVector calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density);
     double calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density);
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid, photon_package * pp, uint i_density,
-            double phi, double energy, Vector3D en_dir);
+    StokesVector calcEmissivitiesEmi(CGridBasic * grid,
+                                     photon_package * pp,
+                                     uint i_density,
+                                     double phi,
+                                     double energy,
+                                     Vector3D en_dir);
 
     double getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl);
     long double * getStochasticProbability(uint a, spline & abs_rate_per_wl);
 
-    photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs);
-    photon_package getEscapePhotonMie(CGridBasic * grid, photon_package * pp, uint a,
-        Vector3D obs_ex, Vector3D dir_obs);
+    photon_package getEscapePhoton(CGridBasic * grid,
+                                   photon_package * pp,
+                                   uint a,
+                                   Vector3D obs_ex,
+                                   Vector3D dir_obs);
+    photon_package getEscapePhotonMie(CGridBasic * grid,
+                                      photon_package * pp,
+                                      uint a,
+                                      Vector3D obs_ex,
+                                      Vector3D dir_obs);
     double getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density);
 
-private:
-    spline **avg_scattering_frac;
-    interp **phase_pdf;
+  private:
+    spline ** avg_scattering_frac;
+    interp ** phase_pdf;
 
     spline *HG_g_factor, *Qtrq;
-    spline *tab_planck;
-    spline *tab_em;
-    spline *tab_em_inv;
+    spline * tab_planck;
+    spline * tab_em;
+    spline * tab_em_inv;
     spline tab_temp, tab_em_eff;
 
-    prob_list *avg_planck_frac;
+    prob_list * avg_planck_frac;
     prob_list *dust_prob, *sca_prob, *abs_prob;
 
-    double ******sca_mat;
+    double ****** sca_mat;
     double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg;
-    double **enthalpy;
+    double ** enthalpy;
     double *a_eff, *a_eff_1_5, *a_eff_3_5, *a_eff_2;
-    double *calorimetry_temperatures;
-    double *mass;
+    double * calorimetry_temperatures;
+    double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
-    double *scattering_angles;
+    double * scattering_angles;
 
     string stringID;
     string size_keyword;
@@ -2029,8 +2091,7 @@ private:
 
 class CDustMixture
 {
-public:
-
+  public:
     CDustMixture(void)
     {
         single_component = 0;
@@ -2069,7 +2130,7 @@ public:
     {
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].preCalcEffProperties(param);
+                mixed_component[i_mixture].preCalcEffProperties(param);
     }
 
     string getPhaseFunctionStr()
@@ -2135,21 +2196,23 @@ public:
         }
     }
 
-    void calcStochasticHeatingPropabilities(CGridBasic * grid, cell_basic * cell, dlist & wavelength_list_full)
+    void calcStochasticHeatingPropabilities(CGridBasic * grid,
+                                            cell_basic * cell,
+                                            dlist & wavelength_list_full)
     {
         if(mixed_component != 0)
         {
             if(grid->useDustChoice())
             {
                 uint i_mixture = grid->getDustChoiceID(cell);
-                mixed_component[i_mixture].calcStochasticHeatingPropabilities(grid, cell, 
-                    0, wavelength_list_full);
+                mixed_component[i_mixture].calcStochasticHeatingPropabilities(
+                    grid, cell, 0, wavelength_list_full);
             }
             else
             {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].calcStochasticHeatingPropabilities(grid, cell, 
-                        i_mixture, wavelength_list_full);
+                    mixed_component[i_mixture].calcStochasticHeatingPropabilities(
+                        grid, cell, i_mixture, wavelength_list_full);
             }
         }
     }
@@ -2161,14 +2224,14 @@ public:
             if(grid->useDustChoice())
             {
                 uint i_mixture = grid->getDustChoiceID(cell);
-                mixed_component[i_mixture].calcStochasticHeatingTemperatures(grid, cell, 
-                    0, wavelength_list_full);
+                mixed_component[i_mixture].calcStochasticHeatingTemperatures(
+                    grid, cell, 0, wavelength_list_full);
             }
             else
             {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].calcStochasticHeatingTemperatures(grid, cell, 
-                        i_mixture, wavelength_list_full);
+                    mixed_component[i_mixture].calcStochasticHeatingTemperatures(
+                        grid, cell, i_mixture, wavelength_list_full);
             }
         }
     }
@@ -2186,7 +2249,7 @@ public:
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                     sum += mixed_component[i_mixture].getCextMean(grid, pp) *
-                        getRelativeDustNumberDensity(grid, pp, i_mixture);
+                           getRelativeDustNumberDensity(grid, pp, i_mixture);
         }
         return sum;
     }
@@ -2204,7 +2267,7 @@ public:
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                     sum += mixed_component[i_mixture].getCabsMean(grid, pp) *
-                        getRelativeDustNumberDensity(grid, pp, i_mixture);
+                           getRelativeDustNumberDensity(grid, pp, i_mixture);
         }
         return sum;
     }
@@ -2222,7 +2285,7 @@ public:
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                     sum += mixed_component[i_mixture].getCscaMean(grid, pp) *
-                        getRelativeDustNumberDensity(grid, pp, i_mixture);
+                           getRelativeDustNumberDensity(grid, pp, i_mixture);
         }
         return sum;
     }
@@ -2232,7 +2295,8 @@ public:
         if(mixed_component != 0)
         {
             uint i_mixture = getEmittingMixture(grid, pp);
-            return mixed_component[i_mixture].adjustTempAndWavelengthBW(grid, pp, i_mixture, use_energy_density);
+            return mixed_component[i_mixture].adjustTempAndWavelengthBW(
+                grid, pp, i_mixture, use_energy_density);
         }
         return false;
     }
@@ -2258,11 +2322,12 @@ public:
         wavelength_list.push_back(wavelength);
     }
 
-    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength, bool add_offset=false)
+    void addToWavelengthGrid(double lam_min, double lam_max, double nr_of_wavelength, bool add_offset = false)
     {
         dlist tmp_wavelength_list(nr_of_wavelength);
 
-        // Add the amount of added wavelength to the offset to skip them for writeComponent
+        // Add the amount of added wavelength to the offset to skip them for
+        // writeComponent
         if(add_offset && wavelength_list.size() == 0)
             wavelength_offset += nr_of_wavelength;
 
@@ -2276,7 +2341,7 @@ public:
 
     void finalizeWavelengthList()
     {
-        //sort(wavelength_list.begin(), wavelength_list.end());
+        // sort(wavelength_list.begin(), wavelength_list.end());
         wavelength_list.erase(unique(wavelength_list.begin(), wavelength_list.end()), wavelength_list.end());
 
         nr_of_wavelength = wavelength_list.size();
@@ -2305,7 +2370,7 @@ public:
     uint getWavelengthID(double wavelength)
     {
         dlist::iterator it = find(wavelength_list.begin(), wavelength_list.end(), wavelength);
-        if (it != wavelength_list.end())
+        if(it != wavelength_list.end())
             return distance(wavelength_list.begin(), it);
 
         cout << "\nHINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
@@ -2529,8 +2594,9 @@ public:
         if(mixed_component != 0)
         {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                sum += grid->getDustTemperature(cell, i_mixture) * getRelativeDustMassDensity(grid, cell, i_mixture);
-        }   
+                sum += grid->getDustTemperature(cell, i_mixture) *
+                       getRelativeDustMassDensity(grid, cell, i_mixture);
+        }
         return sum;
     }
 
@@ -2596,7 +2662,8 @@ public:
                 {
                     double tmpCext, tmpCpol, tmpCcirc;
                     double dens_dust = getNumberDensity(grid, pp, i_mixture);
-                    mixed_component[i_mixture].calcExtCrossSections(grid, pp, i_mixture, tmpCext, tmpCpol, tmpCcirc);
+                    mixed_component[i_mixture].calcExtCrossSections(
+                        grid, pp, i_mixture, tmpCext, tmpCpol, tmpCcirc);
                     Cext += tmpCext * dens_dust;
                     Cpol += tmpCpol * dens_dust;
                     Ccirc += tmpCcirc * dens_dust;
@@ -2633,7 +2700,7 @@ public:
             uint w = pp->getWavelengthID();
 
             // Get radiation field and calculate angle to the photon package direction
-            if(grid->getRadiationFieldAvailable())                
+            if(grid->getRadiationFieldAvailable())
                 grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
             else
                 grid->getRadiationField(pp, w, energy, en_dir);
@@ -2648,7 +2715,8 @@ public:
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, i_mixture, phi, energy, en_dir);
+                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesEmi(
+                        grid, pp, i_mixture, phi, energy, en_dir);
         }
         return tmp_stokes;
     }
@@ -2669,7 +2737,8 @@ public:
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    mixed_component[i_mixture].convertTempInQB(grid, cell, i_mixture, min_gas_density, use_gas_temp);
+                    mixed_component[i_mixture].convertTempInQB(
+                        grid, cell, i_mixture, min_gas_density, use_gas_temp);
         }
     }
 
@@ -2689,7 +2758,7 @@ public:
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
-                            mixed_component[i_mixture].getCscaMean(grid, pp) / getCscaMean(grid, pp);
+                          mixed_component[i_mixture].getCscaMean(grid, pp) / getCscaMean(grid, pp);
                     if(rnd > pb)
                         return i_mixture;
                 }
@@ -2714,7 +2783,7 @@ public:
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
-                            mixed_component[i_mixture].getCabsMean(grid, pp) / getCabsMean(grid, pp);
+                          mixed_component[i_mixture].getCabsMean(grid, pp) / getCabsMean(grid, pp);
                     if(rnd > pb)
                         return i_mixture;
                 }
@@ -2724,7 +2793,7 @@ public:
     }
 
     void scatter(CGridBasic * grid, photon_package * pp, bool adjust_stokes = false)
-    {       
+    {
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp);
@@ -2742,18 +2811,24 @@ public:
         {
             for(uint i_mixture = 0; i_mixture < nr_of_mixtures; i_mixture++)
             {
-                // Maximum amount of dust grain sizes for which the grid has to contain a temperature
-                nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);          
+                // Maximum amount of dust grain sizes for which the grid has to contain a
+                // temperature
+                nr_dust_temp_sizes[i_mixture] = getNrOfDustSpecies(i_mixture);
                 // Temperatures for which the griad has to contain propabilities
                 nr_stochastic_temps[i_mixture] = getNrOfCalorimetryTemperatures(i_mixture);
                 // Maximum amount of dust grain sizes affected by stochastic heating
                 nr_stochastic_sizes[i_mixture] = getNrOfStochasticSizes(i_mixture);
             }
         }
-        grid->setDustInformation(nr_of_mixtures, nr_dust_temp_sizes, nr_stochastic_sizes, nr_stochastic_temps);
+        grid->setDustInformation(
+            nr_of_mixtures, nr_dust_temp_sizes, nr_stochastic_sizes, nr_stochastic_temps);
     }
 
-    void setIDs(CDustComponent & component, uint i_comp, uint nr_of_components, uint i_mixture, uint nr_of_mixtures)
+    void setIDs(CDustComponent & component,
+                uint i_comp,
+                uint nr_of_components,
+                uint i_mixture,
+                uint nr_of_mixtures)
     {
         component.setIDs(i_comp, nr_of_components, i_mixture, nr_of_mixtures);
     }
@@ -2764,10 +2839,10 @@ public:
         uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
 
         // Init pointer array
-        double *** size_fraction = new double**[nr_of_components];
+        double *** size_fraction = new double **[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
-            size_fraction[i_comp] = new double*[nr_of_dust_species];
+            size_fraction[i_comp] = new double *[nr_of_dust_species];
             for(uint a = 0; a < nr_of_dust_species; a++)
                 size_fraction[i_comp][a] = new double[2];
         }
@@ -2776,12 +2851,13 @@ public:
         double ref_mass_weight = single_component[0].getMassWeight() / single_component[0].getFraction();
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
         {
-            double mass_weight_ratio = ref_mass_weight * 
-                single_component[i_comp].getFraction() / single_component[i_comp].getMassWeight();   
+            double mass_weight_ratio = ref_mass_weight * single_component[i_comp].getFraction() /
+                                       single_component[i_comp].getMassWeight();
 
             // First column is the updated size distribution
             for(uint a = 0; a < nr_of_dust_species; a++)
-                size_fraction[i_comp][a][0] = mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
+                size_fraction[i_comp][a][0] =
+                    mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
         }
 
         for(uint a = 0; a < nr_of_dust_species; a++)
@@ -2798,8 +2874,7 @@ public:
         return size_fraction;
     }
 
-    photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp,
-            Vector3D obs_ex, Vector3D dir_obs)
+    photon_package getEscapePhoton(CGridBasic * grid, photon_package * pp, Vector3D obs_ex, Vector3D dir_obs)
     {
         if(mixed_component != 0)
         {
@@ -2836,7 +2911,7 @@ public:
 
     void printParameter(parameters & param, CGridBasic * grid);
 
-private:
+  private:
     CDustComponent * single_component;
     CDustComponent * mixed_component;
 

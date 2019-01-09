@@ -1,16 +1,15 @@
 #pragma once
-#include "typedefs.h"
-#include "Vector.h"
-#include "chelper.h"
-#include "MathFunctions.h"
 #include "Grid.h"
+#include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Vector.h"
+#include "chelper.h"
+#include "typedefs.h"
 
-class CGridSpherical: public CGridBasic
+class CGridSpherical : public CGridBasic
 {
-public:
-
+  public:
     CGridSpherical(void)
     {
         basic_path = 0;
@@ -84,9 +83,9 @@ public:
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
 
-        //data_pos_gd = MAX_UINT;
-        //data_pos_dd = MAX_UINT;
-        //data_pos_td = MAX_UINT;
+        // data_pos_gd = MAX_UINT;
+        // data_pos_dd = MAX_UINT;
+        // data_pos_td = MAX_UINT;
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
         data_pos_my = MAX_UINT;
@@ -106,7 +105,6 @@ public:
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;
 
-
         data_pos_op = MAX_UINT;
 
         data_pos_n_th = MAX_UINT;
@@ -122,17 +120,17 @@ public:
         rot_angle1 = 0;
         rot_angle2 = 0;
 
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -162,7 +160,6 @@ public:
         rot_angle2 = 0;
 
         turbulent_velocity = 0;
-
     }
 
     ~CGridSpherical()
@@ -201,8 +198,8 @@ public:
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for spherical grid file: " <<
-                        float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+                cout << "Cleaning memory for spherical grid file: "
+                     << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph; i_ph++)
                 {
@@ -234,7 +231,7 @@ public:
     Vector3D getCenter(cell_basic * cell)
     {
         Vector3D center;
-        cell_sp * tmp_cell = (cell_sp *) cell;
+        cell_sp * tmp_cell = (cell_sp *)cell;
 
         if(tmp_cell->getRID() == MAX_UINT)
             return center;
@@ -251,7 +248,7 @@ public:
         double sin_ph = sin(ph + 0.5 * dph);
         double cos_ph = cos(ph + 0.5 * dph);
 
-        center = (r + 0.5 * dr) * Vector3D(sin_th*cos_ph, sin_th*sin_ph, cos_th);
+        center = (r + 0.5 * dr) * Vector3D(sin_th * cos_ph, sin_th * sin_ph, cos_th);
 
         return center;
     }
@@ -259,7 +256,7 @@ public:
     void setRndPositionInCell(photon_package * pp)
     {
         Vector3D pos;
-        cell_sp * tmp_cell = (cell_sp *) pp->getPositionCell();
+        cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
         double r1, r2, ph1, ph2, th1, th2;
 
         double rnd_r = pp->getRND();
@@ -290,8 +287,8 @@ public:
         double sin_ph = sin(ph1 + rnd_ph * (ph2 - ph1));
         double cos_ph = cos(ph1 + rnd_ph * (ph2 - ph1));
 
-        pos = pow(pow(r1, 3) + rnd_r * (pow(r2, 3) - pow(r1, 3)), 1.0 / 3.0)
-                * Vector3D(sin_th*cos_ph, sin_th*sin_ph, cos_th);
+        pos = pow(pow(r1, 3) + rnd_r * (pow(r2, 3) - pow(r1, 3)), 1.0 / 3.0) *
+              Vector3D(sin_th * cos_ph, sin_th * sin_ph, cos_th);
 
         pp->setPosition(pos);
     }
@@ -353,34 +350,33 @@ public:
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            cout << "-> Creating cell list     : "
-                    << 100.0 * float(i_r) / float(N_r)
-                    << " %        \r" << flush;
+            cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " %        \r"
+                 << flush;
 
             for(uint i_ph = 0; i_ph < N_ph; i_ph++)
             {
                 for(uint i_th = 0; i_th < N_th; i_th++)
                 {
-                    cell_list[pos_counter] = (cell_basic*) grid_cells[i_r][i_ph][i_th];
+                    cell_list[pos_counter] = (cell_basic *)grid_cells[i_r][i_ph][i_th];
                     pos_counter++;
                 }
             }
         }
 
-        cell_list[pos_counter] = (cell_basic*) center_cell;
+        cell_list[pos_counter] = (cell_basic *)center_cell;
 
-        //cout << CLR_LINE;
-        //cout << "- Creating of cell list                : done          \n" << flush;
+        // cout << CLR_LINE;
+        // cout << "- Creating of cell list                : done          \n" << flush;
         return true;
     }
 
     double getVolume(cell_basic * cell)
     {
-        cell_sp * cell_pos = (cell_sp*) cell;
+        cell_sp * cell_pos = (cell_sp *)cell;
 
         if(cell_pos->getRID() == MAX_UINT)
         {
-            return 4.0 / 3.0 * PI * Rmin * Rmin*Rmin;
+            return 4.0 / 3.0 * PI * Rmin * Rmin * Rmin;
         }
 
         double r1 = listR[cell_pos->getRID()];
@@ -390,7 +386,7 @@ public:
         double th1 = listTh[cell_pos->getThID()];
         double th2 = listTh[cell_pos->getThID() + 1];
 
-        double volume = (ph1 - ph2)*(r1 * r1 * r1 - r2 * r2 * r2)*(cos(th1) - cos(th2)) / 3.0;
+        double volume = (ph1 - ph2) * (r1 * r1 * r1 - r2 * r2 * r2) * (cos(th1) - cos(th2)) / 3.0;
 
         return volume;
     }
@@ -404,7 +400,7 @@ public:
 
     Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv)
     {
-        cell_sp * cell_pos = (cell_sp*) pp->getPositionCell();
+        cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
         Vector3D pos = pp->getPosition();
         pos.cart2spher();
 
@@ -471,8 +467,12 @@ public:
 
     void printParameters();
 
-        bool getPolarRTGridParameter(double max_len, double pixel_width, uint max_subpixel_lvl, 
-            dlist &_listR, uint &N_polar_r, uint * &N_polar_ph)
+    bool getPolarRTGridParameter(double max_len,
+                                 double pixel_width,
+                                 uint max_subpixel_lvl,
+                                 dlist & _listR,
+                                 uint & N_polar_r,
+                                 uint *& N_polar_ph)
     {
         uint subpixel_multiplier = pow(2, max_subpixel_lvl);
 
@@ -515,14 +515,14 @@ public:
         N_polar_ph = new uint[N_polar_r];
         for(uint i_r = 0; i_r < N_polar_r; i_r++)
         {
-            N_polar_ph[i_r] = min(uint(subpixel_multiplier * 360.0), 
-                uint(ceil(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]))));
+            N_polar_ph[i_r] = min(uint(subpixel_multiplier * 360.0),
+                                  uint(ceil(PIx2 * _listR[i_r + 1] / (_listR[i_r + 1] - _listR[i_r]))));
         }
-        
+
         return true;
     }
 
-private:
+  private:
     double Rmin, Rmax;
     uint N_r, N_ph, N_th;
     double log_factorR, log_factorPh, log_factorTh;
@@ -536,7 +536,7 @@ private:
 
     bool isInside(Vector3D & pos, cell_basic * _cell)
     {
-        cell_sp * cell = (cell_sp *) _cell;
+        cell_sp * cell = (cell_sp *)_cell;
 
         if(cell->getRID() == MAX_UINT)
         {
@@ -586,5 +586,4 @@ private:
     {
         return isInside(pos, pp->getPositionCell());
     }
-
 };

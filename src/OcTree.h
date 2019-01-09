@@ -1,16 +1,15 @@
 #pragma once
-#include "typedefs.h"
-#include "Vector.h"
-#include "chelper.h"
-#include "MathFunctions.h"
 #include "Grid.h"
+#include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Vector.h"
+#include "chelper.h"
+#include "typedefs.h"
 
-class CGridOcTree: public CGridBasic
+class CGridOcTree : public CGridBasic
 {
-public:
-
+  public:
     CGridOcTree(void)
     {
         basic_path = 0;
@@ -84,9 +83,9 @@ public:
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
 
-        //data_pos_gd = MAX_UINT;
-        //data_pos_dd = MAX_UINT;
-        //data_pos_td = MAX_UINT;
+        // data_pos_gd = MAX_UINT;
+        // data_pos_dd = MAX_UINT;
+        // data_pos_td = MAX_UINT;
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
         data_pos_my = MAX_UINT;
@@ -121,17 +120,17 @@ public:
         rot_angle1 = 0;
         rot_angle2 = 0;
 
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
 
         total_volume = 0;
         cell_volume = 0;
@@ -151,7 +150,7 @@ public:
         rot_angle2 = 0;
 
         turbulent_velocity = 0;
-            }
+    }
 
     ~CGridOcTree()
     {
@@ -169,7 +168,7 @@ public:
         cout << CLR_LINE;
     }
 
-    //begin IO functions
+    // begin IO functions
     bool writeGNUPlotFiles(string path, parameters & param);
 
     void goToRoot()
@@ -179,20 +178,19 @@ public:
 
     bool nextLowLevelCell();
     bool nextLowLevelCell(cell_basic * cell);
-    //end   IO functions
+    // end   IO functions
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
 
-    //void deleteSubCells(slist & source);
+    // void deleteSubCells(slist & source);
 
-    bool reduceBinrayFile(string in_filename, string out_filename,
-            uint tr_level);
+    bool reduceBinrayFile(string in_filename, string out_filename, uint tr_level);
     bool reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level);
 
     Vector3D getCenter(cell_basic * cell)
     {
         Vector3D center;
-        cell_oc * tmp_cell = (cell_oc *) cell;
+        cell_oc * tmp_cell = (cell_oc *)cell;
 
         center.setX(tmp_cell->getXmin() + 0.5 * tmp_cell->getLength());
         center.setY(tmp_cell->getYmin() + 0.5 * tmp_cell->getLength());
@@ -204,7 +202,7 @@ public:
     Vector3D getMidplaneCenter(cell_basic * cell)
     {
         Vector3D center;
-        cell_oc * tmp_cell = (cell_oc *) cell;
+        cell_oc * tmp_cell = (cell_oc *)cell;
 
         center.setX(tmp_cell->getXmin() + 0.5 * tmp_cell->getLength());
         center.setY(tmp_cell->getYmin() + 0.5 * tmp_cell->getLength());
@@ -235,21 +233,20 @@ public:
 
         while(nextLowLevelCell())
         {
-#pragma warning(suppress: 6386)
+#pragma warning(suppress : 6386)
             /*if(pos_counter>=2097152)
                 return true;*/
 
-            cell_list[pos_counter] = (cell_basic*) cell_oc_pos;
+            cell_list[pos_counter] = (cell_basic *)cell_oc_pos;
 
             pos_counter++;
             if(pos_counter % 15000 == 0)
-                cout << "-> Creating cell list     : "
-                    << 100.0 * float(pos_counter) / float(max_cells)
-                << " [%]        \r" << flush;
+                cout << "-> Creating cell list     : " << 100.0 * float(pos_counter) / float(max_cells)
+                     << " [%]        \r" << flush;
         }
 
-        //cout << CLR_LINE;
-        //cout << "- Creating cell list                   : done          \n" << flush;
+        // cout << CLR_LINE;
+        // cout << "- Creating cell list                   : done          \n" << flush;
         return true;
     }
 
@@ -257,12 +254,12 @@ public:
     {
         Vector3D pos = pp->getPosition();
 
-        if(pos.X() < cell_oc_root->getXmin() || pos.Y() < cell_oc_root->getYmin()
-                || pos.Z() < cell_oc_root->getZmin())
+        if(pos.X() < cell_oc_root->getXmin() || pos.Y() < cell_oc_root->getYmin() ||
+           pos.Z() < cell_oc_root->getZmin())
             return false;
 
-        if(pos.X() > cell_oc_root->getXmax() || pos.Y() > cell_oc_root->getYmax()
-                || pos.Z() > cell_oc_root->getZmax())
+        if(pos.X() > cell_oc_root->getXmax() || pos.Y() > cell_oc_root->getYmax() ||
+           pos.Z() > cell_oc_root->getZmax())
             return false;
 
         goNextLevelUp(pp);
@@ -286,8 +283,7 @@ public:
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {
-        step_xy = (cell_oc_root->getLength())
-                / double(bins);
+        step_xy = (cell_oc_root->getLength()) / double(bins);
 
         off_xy = step_xy / 2.0;
     }
@@ -302,20 +298,20 @@ public:
 
     double getVolume(cell_basic * cell)
     {
-        cell_oc * cell_pos = (cell_oc*) cell;
+        cell_oc * cell_pos = (cell_oc *)cell;
 
         double volume = cell_pos->getLength();
-        volume = volume * volume*volume;
+        volume = volume * volume * volume;
 
         return volume;
     }
 
     double getVolume(photon_package * pp)
     {
-        cell_oc * cell_pos = (cell_oc *) pp->getPositionCell();
+        cell_oc * cell_pos = (cell_oc *)pp->getPositionCell();
 
         double volume = cell_pos->getLength();
-        volume = volume * volume*volume;
+        volume = volume * volume * volume;
 
         return volume;
     }
@@ -352,9 +348,7 @@ public:
         return saveBinaryGridFile(filename, GRID_ID_OCT, data_offset);
     };
 
-
     bool loadGridFromBinrayFile(parameters & param, uint data_len);
-
 
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
@@ -365,11 +359,10 @@ public:
 
     double getPathLength(cell_basic * cell)
     {
-        return((cell_oc*) cell)->getLength();
+        return ((cell_oc *)cell)->getLength();
     }
 
-    void nextBinaryDataCell(ofstream & file_stream, cell_oc * cell,
-            uint data_size);
+    void nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uint data_size);
 
     void clear()
     {
@@ -384,7 +377,7 @@ public:
     void goNextLevelDown(photon_package * pp)
     {
         Vector3D pos = pp->getPosition();
-        cell_oc * cell_pos = (cell_oc*) pp->getPositionCell();
+        cell_oc * cell_pos = (cell_oc *)pp->getPositionCell();
 
         if(cell_pos->getChildren() != 0)
         {
@@ -393,38 +386,38 @@ public:
             double ymid = center.Y();
             double zmid = center.Z();
 
-            if(pos.Z() < zmid) //z 0 1 2 3
+            if(pos.Z() < zmid) // z 0 1 2 3
             {
-                if(pos.Y() < ymid) //y 0 1
+                if(pos.Y() < ymid) // y 0 1
                 {
-                    if(pos.X() < xmid) //x 0
+                    if(pos.X() < xmid) // x 0
                         cell_pos = cell_pos->getChild(0);
                     else
-                        //x 1
+                        // x 1
                         cell_pos = cell_pos->getChild(1);
                 }
-                else //y 2 3
+                else // y 2 3
                 {
-                    if(pos.X() < xmid) //x 2
+                    if(pos.X() < xmid) // x 2
                         cell_pos = cell_pos->getChild(2);
-                    else //x 3
+                    else // x 3
                         cell_pos = cell_pos->getChild(3);
                 }
             }
-            else //z 4 5 6 7
+            else // z 4 5 6 7
             {
-                if(pos.Y() < ymid) //y 4 5
+                if(pos.Y() < ymid) // y 4 5
                 {
-                    if(pos.X() < xmid) //x 4
+                    if(pos.X() < xmid) // x 4
                         cell_pos = cell_pos->getChild(4);
-                    else //x 5
+                    else // x 5
                         cell_pos = cell_pos->getChild(5);
                 }
-                else //y 6 7
+                else // y 6 7
                 {
-                    if(pos.X() < xmid) //x 6
+                    if(pos.X() < xmid) // x 6
                         cell_pos = cell_pos->getChild(6);
-                    else //x 7
+                    else // x 7
                         cell_pos = cell_pos->getChild(7);
                 }
             }
@@ -437,12 +430,24 @@ public:
             return;
     }
 
-    bool createTree(cell_oc * parent, double _x_min, double _y_min, double _z_min, double _length, uint _level);
+    bool createTree(cell_oc * parent,
+                    double _x_min,
+                    double _y_min,
+                    double _z_min,
+                    double _length,
+                    uint _level);
 
-    bool initiateTreeFromFile(uint _nx, uint _max_level, double _fa, double _length, string str_dens, string str_temp,
-            string str_magx, string str_magy, string str_magz);
+    bool initiateTreeFromFile(uint _nx,
+                              uint _max_level,
+                              double _fa,
+                              double _length,
+                              string str_dens,
+                              string str_temp,
+                              string str_magx,
+                              string str_magy,
+                              string str_magz);
 
-private:
+  private:
     void clear(cell_oc * cell);
     cell_oc * cell_oc_root;
     cell_oc * cell_oc_pos;
@@ -454,8 +459,8 @@ private:
     Matrix3D datmz;
 
     uint nx;
-    //uint ny;
-    //uint nz;
+    // uint ny;
+    // uint nz;
     double f_min;
     double f_max;
     double factor;
@@ -475,7 +480,7 @@ private:
     void goNextLevelUp(photon_package * pp)
     {
         Vector3D pos = pp->getPosition();
-        cell_oc * lcell_oc_pos = (cell_oc*) pp->getPositionCell();
+        cell_oc * lcell_oc_pos = (cell_oc *)pp->getPositionCell();
 
         if(lcell_oc_pos == 0)
             return;
@@ -498,7 +503,7 @@ private:
 
     bool isInside(Vector3D & pos, cell_basic * _cell)
     {
-        cell_oc * cell = (cell_oc*) _cell;
+        cell_oc * cell = (cell_oc *)_cell;
 
         if(cell->getXmin() > pos.X())
             return false;
@@ -508,7 +513,6 @@ private:
 
         if(cell->getZmin() > pos.Z())
             return false;
-
 
         if(cell->getXmax() < pos.X())
             return false;
@@ -524,12 +528,12 @@ private:
 
     bool isInside(Vector3D & pos)
     {
-        if(pos.X() < cell_oc_root->getXmin() || pos.Y() < cell_oc_root->getYmin()
-                || pos.Z() < cell_oc_root->getZmin())
+        if(pos.X() < cell_oc_root->getXmin() || pos.Y() < cell_oc_root->getYmin() ||
+           pos.Z() < cell_oc_root->getZmin())
             return false;
 
-        if(pos.X() > cell_oc_root->getXmax() || pos.Y() > cell_oc_root->getYmax()
-                || pos.Z() > cell_oc_root->getZmax())
+        if(pos.X() > cell_oc_root->getXmax() || pos.Y() > cell_oc_root->getYmax() ||
+           pos.Z() > cell_oc_root->getZmax())
             return false;
 
         return true;
@@ -537,13 +541,11 @@ private:
 
     bool isInside(photon_package * pp, Vector3D & pos)
     {
-        cell_oc * cell = (cell_oc *) pp->getPositionCell();
-        if(pos.X() < cell->getXmin() || pos.Y() < cell->getYmin()
-                || pos.Z() < cell->getZmin())
+        cell_oc * cell = (cell_oc *)pp->getPositionCell();
+        if(pos.X() < cell->getXmin() || pos.Y() < cell->getYmin() || pos.Z() < cell->getZmin())
             return false;
 
-        if(pos.X() > cell->getXmax() || pos.Y() > cell->getYmax()
-                || pos.Z() > cell->getZmax())
+        if(pos.X() > cell->getXmax() || pos.Y() > cell->getYmax() || pos.Z() > cell->getZmax())
             return false;
 
         return true;
@@ -552,7 +554,7 @@ private:
     void setRndPositionInCell(photon_package * pp)
     {
         Vector3D pos;
-        cell_oc * tmp_cell = (cell_oc *) pp->getPositionCell();
+        cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
         double x, dx, y, dy, z, dz;
 
         x = tmp_cell->getXmin();

@@ -1,7 +1,7 @@
-#include "typedefs.h"
 #include "Cylindrical.h"
-#include "MathFunctions.h"
 #include "CommandParser.h"
+#include "MathFunctions.h"
+#include "typedefs.h"
 #include <limits>
 
 bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len)
@@ -38,11 +38,11 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     char_counter = 0;
     float last_percentage = 0;
 
-    bin_reader.read((char*) &tmpID, 2);
-    bin_reader.read((char*) &tmpOffset, 2);
+    bin_reader.read((char *)&tmpID, 2);
+    bin_reader.read((char *)&tmpOffset, 2);
 
     dataID = tmpID;
-    data_offset = (uint) tmpOffset;
+    data_offset = (uint)tmpOffset;
     data_len = _data_len + data_offset;
 
     if(dataID == GRID_ID_CYL)
@@ -52,7 +52,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = 0;
-            bin_reader.read((char*) &tmp_ids, 2);
+            bin_reader.read((char *)&tmp_ids, 2);
             data_ids[i] = tmp_ids;
         }
 
@@ -69,24 +69,24 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     if(tmp_data_offset == MAX_UINT)
         return false;
 
-    bin_reader.read((char*) &Rmin, 8);
-    bin_reader.read((char*) &Rmax, 8);
-    bin_reader.read((char*) &Zmax, 8);
-    bin_reader.read((char*) &N_r, 2);
+    bin_reader.read((char *)&Rmin, 8);
+    bin_reader.read((char *)&Rmax, 8);
+    bin_reader.read((char *)&Zmax, 8);
+    bin_reader.read((char *)&N_r, 2);
 
     // Get global number of phi cells
     uint N_ph_tmp = 0;
-    bin_reader.read((char*) &N_ph_tmp, 2);
+    bin_reader.read((char *)&N_ph_tmp, 2);
 
     // Set number of phi cells in each ring
     N_ph = new uint[N_r];
     for(uint i_r = 0; i_r < N_r; i_r++)
         N_ph[i_r] = N_ph_tmp;
 
-    bin_reader.read((char*) &N_z, 2);
-    bin_reader.read((char*) &log_factorR, 8);
-    bin_reader.read((char*) &log_factorPh, 8);
-    bin_reader.read((char*) &log_factorZ, 8);
+    bin_reader.read((char *)&N_z, 2);
+    bin_reader.read((char *)&log_factorR, 8);
+    bin_reader.read((char *)&log_factorPh, 8);
+    bin_reader.read((char *)&log_factorZ, 8);
 
     // Convert limits with conversion factor
     Rmin *= conv_length_in_SI;
@@ -95,7 +95,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     // --------------------------------------
     // ---------- Radial-direction ----------
-    // -------------------------------------- 
+    // --------------------------------------
 
     // Init radial cell border
     listR = new double[N_r + 1];
@@ -111,7 +111,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         for(uint i_r = 1; i_r < N_r; i_r++)
         {
             // Read radial cell border position
-            bin_reader.read((char*) &listR[i_r], 8);
+            bin_reader.read((char *)&listR[i_r], 8);
 
             // Update radial position with conversion factors
             listR[i_r] *= conv_length_in_SI;
@@ -138,7 +138,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     // -----------------------------------
 
     // Init phi cell border
-    listPh = new double*[N_r];
+    listPh = new double *[N_r];
     if(log_factorPh == 0)
     {
         // Allow user defined phi list, if log_factorPh is zero
@@ -156,7 +156,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         {
             // Read cell border in z-direction
             double ph = 0;
-            bin_reader.read((char*) &ph, 8);
+            bin_reader.read((char *)&ph, 8);
 
             // Set the cell borders
             for(uint i_r = 0; i_r < N_r; i_r++)
@@ -165,15 +165,15 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     }
     else if(log_factorPh == -1.0)
     {
-         // Allow user defined z list based on a variable dz, if log_factorZ is -1
+        // Allow user defined z list based on a variable dz, if log_factorZ is -1
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             // Read number of phi cells in the current ring
-            bin_reader.read((char*) &N_ph[i_r], 2);
+            bin_reader.read((char *)&N_ph[i_r], 2);
 
             // Init 2D cell borders in z-direction
             listPh[i_r] = new double[N_ph[i_r] + 1];
-            CMathFunctions::LinearList(0, PIx2, listPh[i_r], N_ph[i_r] + 1);    
+            CMathFunctions::LinearList(0, PIx2, listPh[i_r], N_ph[i_r] + 1);
         }
     }
     else
@@ -184,14 +184,14 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
             listPh[i_r] = new double[N_ph[i_r] + 1];
             CMathFunctions::LinearList(0, PIx2, listPh[i_r], N_ph[i_r] + 1);
         }
-    }      
+    }
 
     // ---------------------------------
     // ---------- Z-direction ----------
     // ---------------------------------
 
     // Init z cell border
-    listZ = new double*[N_r];
+    listZ = new double *[N_r];
     if(log_factorZ == 0)
     {
         // Allow user defined z list, if log_factorZ is zero
@@ -209,7 +209,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         {
             // Read cell border in z-direction
             double z = 0;
-            bin_reader.read((char*) &z, 8);
+            bin_reader.read((char *)&z, 8);
 
             // Set the cell borders
             for(uint i_r = 0; i_r < N_r; i_r++)
@@ -221,7 +221,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
         // Add an empty cell at both ends
         N_z += 2;
 
-         // Allow user defined z list based on a variable dz, if log_factorZ is -1
+        // Allow user defined z list based on a variable dz, if log_factorZ is -1
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             // Init 2D cell borders in z-direction
@@ -230,10 +230,11 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
             // The global borders are already in the grid
             listZ[i_r][0] = -Zmax;
             listZ[i_r][N_z] = Zmax;
-            
-            // Read distance between two borders in z-direction for the current radius cell
+
+            // Read distance between two borders in z-direction for the current radius
+            // cell
             double dz = 0;
-            bin_reader.read((char*) &dz, 8);
+            bin_reader.read((char *)&dz, 8);
 
             // Calculate the maximum height up to which information is in the grid
             double local_zmax = (N_z - 2) / 2. * dz * conv_length_in_SI;
@@ -273,7 +274,7 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
             listZ[i_r] = new double[N_z + 1];
             CMathFunctions::LinearList(-Zmax, Zmax, listZ[i_r], N_z + 1);
         }
-    } 
+    }
 
     // -----------------------------------------
     // ---------- Check of the limits ----------
@@ -292,7 +293,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     if(Rmax <= Rmin)
     {
-        cout << "\nERROR: Outer radius (Rmax = " << Rmax << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
+        cout << "\nERROR: Outer radius (Rmax = " << Rmax
+             << ") must be larger than inner radius (Rmin = " << Rmin << ")!" << endl;
         return false;
     }
 
@@ -309,21 +311,21 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     }
 
     // Init grid cells
-    grid_cells = new cell_cyl***[N_r];
+    grid_cells = new cell_cyl ***[N_r];
 
     // Init center cells
-    center_cells = new cell_cyl*[N_z];
+    center_cells = new cell_cyl *[N_z];
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        grid_cells[i_r] = new cell_cyl**[N_ph[i_r]];
+        grid_cells[i_r] = new cell_cyl **[N_ph[i_r]];
 
-        cout << "Allocating memory for cylindrical grid cells: " <<
-                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+        cout << "Allocating memory for cylindrical grid cells: " << float(100.0 * double(i_r) / double(N_r))
+             << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
         {
-            grid_cells[i_r][i_ph] = new cell_cyl*[N_z];
+            grid_cells[i_r][i_ph] = new cell_cyl *[N_z];
 
             for(uint i_z = 0; i_z < N_z; i_z++)
             {
@@ -390,8 +392,12 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
                 if(dz == 0)
                 {
                     cout << "\nERROR: No step size in z-direction of cylindrical grid!" << endl
-                        << "\nHINT: Update of POLARIS v4.02 includes variable phi spacing." << endl
-                        << "      Please look in the manual or use \"polaris-gen ... --update\"" << endl;
+                         << "\nHINT: Update of POLARIS v4.02 includes variable phi "
+                            "spacing."
+                         << endl
+                         << "      Please look in the manual or use \"polaris-gen ... "
+                            "--update\""
+                         << endl;
                     return false;
                 }
 
@@ -420,16 +426,15 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
         if(z_counter == N_z && b_center == true)
             break;
-            
-         // Calculate percentage of total progress per source
+
+        // Calculate percentage of total progress per source
         float percentage = 100.0 * double(line_counter) / double(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading cylindrical grid file: "
-                    << percentage << " [%]      \r" << flush;
+            cout << "-> Loading cylindrical grid file: " << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
         }
 
@@ -459,16 +464,18 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
             for(uint i = 0; i < data_offset; i++)
             {
                 double tmp_data1 = 0;
-                bin_reader.read((char*) &tmp_data1, 8); 
+                bin_reader.read((char *)&tmp_data1, 8);
                 tmp_cell->setData(i, tmp_data1);
             }
 
         updateVelocity(tmp_cell, param);
 
         if(uint(tmp_cell->getData(data_pos_id)) < 0 ||
-            uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
+           uint(tmp_cell->getData(data_pos_id)) > param.getMaxDustComponentChoice())
         {
-            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available! " << endl;
+            cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices "
+                    "available! "
+                 << endl;
             return false;
         }
 
@@ -486,9 +493,11 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
 
     if(max_cells != uint(line_counter))
     {
-        cout << "\nERROR: Number of read in cells do not match the maximal number of expected cells!" << endl;
-        cout << "       Expected " << max_cells << " cells, but found " << uint(line_counter) 
-            << " cells in grid!" << endl;
+        cout << "\nERROR: Number of read in cells do not match the maximal number of "
+                "expected cells!"
+             << endl;
+        cout << "       Expected " << max_cells << " cells, but found " << uint(line_counter)
+             << " cells in grid!" << endl;
         return false;
     }
 
@@ -523,13 +532,13 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (data_pos_gd_list.size() > 0); // 1
-    plt_dust_dens = false; //param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
-    plt_gas_temp =  (data_pos_tg != MAX_UINT); // 3
-    plt_dust_temp = (!data_pos_dt_list.empty()); // 4
-    plt_rat = (data_pos_aalg != MAX_UINT); // 5
+    plt_dust_dens = false;                    // param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
+    plt_gas_temp = (data_pos_tg != MAX_UINT); // 3
+    plt_dust_temp = (!data_pos_dt_list.empty());                        // 4
+    plt_rat = (data_pos_aalg != MAX_UINT);                              // 5
     plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
-    plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 7
-    plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT); // 8
+    plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);  // && (data_pos_td != MAX_UINT); // 7
+    plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8
 
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
@@ -618,8 +627,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[3].fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename << endl;
             return false;
         }
     }
@@ -630,8 +638,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[4].fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename << endl;
             return false;
         }
     }
@@ -729,16 +736,16 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     point_header << "set grid" << endl;
     point_header << "set nokey" << endl;
 
-    //0 spherical grid
+    // 0 spherical grid
     point_fields[0] << point_header.str();
     point_fields[0] << "set title \'3D cylindrical grid geometry\' font \'Arial,12\'" << endl;
     point_fields[0] << "set style arrow 3 nohead ls 1 lw 0.5 lc rgb 0x550066" << endl;
     point_fields[0] << "splot '-' with vectors as 3,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //1 gas density
+    // 1 gas density
     point_fields[1] << point_header.str();
     point_fields[1] << "set title \'3D gas number density distribution (min: " << min_gas_dens
-            << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[1] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[1] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1, 3 1 1 0)" << endl;
 
@@ -756,16 +763,15 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_dens / max_gas_dens > 0.9)
         min_gas_dens = 0.9 * max_gas_dens;
 
-    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":"
-            << log10(max_gas_dens) << "]" << endl;
+    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":" << log10(max_gas_dens) << "]" << endl;
     point_fields[1] << "set format cb \'%.02g\'" << endl;
 
     point_fields[1] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //2 dust density
+    // 2 dust density
     point_fields[2] << point_header.str();
     point_fields[2] << "set title \'3D gas number density distribution (min: " << min_dust_dens
-            << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[2] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[2] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1)" << endl;
 
@@ -783,19 +789,17 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_dens / max_dust_dens > 0.9)
         min_dust_dens = 0.9 * max_dust_dens;
 
-    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":"
-            << log10(max_dust_dens) << "]" << endl;
+    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":" << log10(max_dust_dens) << "]" << endl;
     point_fields[2] << "set format cb \'%.02g\'" << endl;
 
     point_fields[2] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //3 gas_temp
+    // 3 gas_temp
     point_fields[3] << point_header.str();
     point_fields[3] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[3] << "set title \'3D gas temperature distribution (min: "
-            << min_gas_temp << "[K]; max: " << max_gas_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[3] << "set title \'3D gas temperature distribution (min: " << min_gas_temp
+                    << "[K]; max: " << max_gas_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[3] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_gas_temp == 0 && max_gas_temp == 0)
@@ -807,20 +811,17 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_temp / max_gas_temp > 0.90)
         min_gas_temp = 0.9 * max_gas_temp;
 
-    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":"
-            << float(max_gas_temp) << "]" << endl;
+    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":" << float(max_gas_temp) << "]" << endl;
     point_fields[3] << "set format cb \'%.03g\'" << endl;
 
     point_fields[3] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //4 dust temp
+    // 4 dust temp
     point_fields[4] << point_header.str();
-    point_fields[4]
-            << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
+    point_fields[4] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[4] << "set title \'3D dust temperature distribution (min: "
-            << min_dust_temp << "[K]; max: " << max_dust_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[4] << "set title \'3D dust temperature distribution (min: " << min_dust_temp
+                    << "[K]; max: " << max_dust_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[4] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_dust_temp == 0 && max_dust_temp == 0)
@@ -832,20 +833,17 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_temp / max_dust_temp > 0.9)
         min_dust_temp = 0.9 * max_dust_temp;
 
-    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":"
-            << float(max_dust_temp) << "]" << endl;
+    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":" << float(max_dust_temp) << "]" << endl;
     point_fields[4] << "set format cb \'%.03g\'" << endl;
 
     point_fields[4] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //5 rat
+    // 5 rat
     point_fields[5] << point_header.str();
     point_fields[5] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[5] << "set title \'3D aligned radii distribution (min ID: "
-            << aalg_min << "; max ID: " << aalg_max
-            << ")\' font \'Arial,12\'" << endl;
-
+    point_fields[5] << "set title \'3D aligned radii distribution (min ID: " << aalg_min
+                    << "; max ID: " << aalg_max << ")\' font \'Arial,12\'" << endl;
 
     point_fields[5] << "set cblabel \'aligned radius ID\'" << endl;
 
@@ -881,7 +879,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
     vec_header << "set grid" << endl;
     vec_header << "set nokey" << endl;
 
-    //0 mag
+    // 0 mag
     vec_fields[0] << vec_header.str();
     vec_fields[0] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -891,17 +889,19 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
         max_mag = 2e-45;
     }
 
-    vec_fields[0]
-            << "set title \'3D mag. field distribution (min:" << log10(min_mag) << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
+    vec_fields[0] << "set title \'3D mag. field distribution (min:" << log10(min_mag)
+                  << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
 
     if(min_mag / max_mag > 0.9)
         min_mag = 0.9 * max_mag;
 
     vec_fields[0] << "set cbrange[" << log10(min_mag) << ":" << log10(max_mag) << "]" << endl;
     vec_fields[0] << "set format cb \'%.02g\'" << endl;
-    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
-    //1 vel
+    // 1 vel
     vec_fields[1] << vec_header.str();
     vec_fields[1] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -911,19 +911,21 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
         max_vel = 1e-45;
     }
 
-    vec_fields[1]
-            << "set title \'3D vel. field directions (min:" << log10(min_vel) << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
+    vec_fields[1] << "set title \'3D vel. field directions (min:" << log10(min_vel)
+                  << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
 
     if(min_vel / max_vel > 0.9)
         min_vel = 0.9 * max_vel;
 
     vec_fields[1] << "set cbrange[" << float(log10(min_vel)) << ":" << float(log10(max_vel)) << "]" << endl;
     vec_fields[1] << "set format cb \'%.03g\'" << endl;
-    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
     for(uint pos = 0; pos < 8; pos++)
     {
-        //point_fields[pos] << "\ne" << endl;
+        // point_fields[pos] << "\ne" << endl;
     }
 
     for(uint pos = 0; pos < 2; pos++)
@@ -943,26 +945,25 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
             if(i_r == N_r)
                 z = listZ[N_r - 1][i_z];
             else
-                z = listZ[i_r][i_z];            
+                z = listZ[i_r][i_z];
 
             double Nstep = double(int(15 + 25.0 * double(i_r) / double(N_r) + 0.5));
             double tmp_dph = PIx2 / Nstep;
 
             for(uint i_ph = 0; i_ph < Nstep; i_ph++)
             {
-                Vector3D p1(r, tmp_dph*i_ph, z);
+                Vector3D p1(r, tmp_dph * i_ph, z);
                 Vector3D p2(r, tmp_dph * (i_ph + 1), z);
 
                 p1.cyl2cart();
                 p2.cyl2cart();
                 Vector3D dist = p2 - p1;
 
-                buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                        << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                        << float(dist.Z()) << endl;
+                buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " "
+                       << float(dist.X()) << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
             }
         }
-    }/**/
+    } /**/
 
     for(uint pos = 0; pos < 8; pos++)
     {
@@ -982,7 +983,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
         for(uint i_ph = 0; i_ph <= N_ph[i_r]; i_ph++)
         {
             double r = listR[i_r];
-            double ph = i_ph*dPh;
+            double ph = i_ph * dPh;
 
             Vector3D p1(r, ph, -Zmax);
             Vector3D p2(r, ph, Zmax);
@@ -991,11 +992,9 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
             p2.cyl2cart();
             Vector3D dist = p2 - p1;
 
-            buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                    << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                    << float(dist.Z()) << endl;
+            buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " " << float(dist.X())
+                   << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
         }
-
     }
 
     for(uint pos = 0; pos < 8; pos++)
@@ -1015,7 +1014,7 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
         {
             double zmin = listZ[0][i_z];
             double zmax = listZ[N_r - 1][i_z];
-            double ph = i_ph*dPh;
+            double ph = i_ph * dPh;
 
             Vector3D p1(Rmin, ph, zmin);
             Vector3D p2(Rmax, ph, zmax);
@@ -1024,18 +1023,15 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
             p2.cyl2cart();
             Vector3D dist = p2 - p1;
 
-            buffer << float(p1.X()) << " " << float(p1.Y()) << " "
-                    << float(p1.Z()) << " " << float(dist.X()) << " " << float(dist.Y()) << " "
-                    << float(dist.Z()) << endl;
+            buffer << float(p1.X()) << " " << float(p1.Y()) << " " << float(p1.Z()) << " " << float(dist.X())
+                   << " " << float(dist.Y()) << " " << float(dist.Z()) << endl;
         }
-
     }
 
     for(uint pos = 0; pos < 8; pos++)
     {
         point_fields[pos] << buffer.str();
     }
-
 
     for(uint pos = 0; pos < 8; pos++)
         point_fields[pos].close();
@@ -1067,15 +1063,15 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
         return false;
     }
 
-    bin_writer.write((char*) &id, 2);
-    bin_writer.write((char*) &data_size, 2);
+    bin_writer.write((char *)&id, 2);
+    bin_writer.write((char *)&data_size, 2);
 
     if(dataID == GRID_ID_CYL)
     {
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = data_ids[i];
-            bin_writer.write((char*) &tmp_ids, 2);
+            bin_writer.write((char *)&tmp_ids, 2);
         }
     }
     else
@@ -1086,45 +1082,45 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
         return false;
     }
 
-    bin_writer.write((char*) &Rmin, 8);
-    bin_writer.write((char*) &Rmax, 8);
-    bin_writer.write((char*) &Zmax, 8);
-    bin_writer.write((char*) &N_r, 2);
-    bin_writer.write((char*) &N_ph[0], 2);
+    bin_writer.write((char *)&Rmin, 8);
+    bin_writer.write((char *)&Rmax, 8);
+    bin_writer.write((char *)&Zmax, 8);
+    bin_writer.write((char *)&N_r, 2);
+    bin_writer.write((char *)&N_ph[0], 2);
     if(log_factorZ == -1)
     {
         // Write N_z - 2 to take empty cells out
         uint tmp_N_z = N_z - 2;
-        bin_writer.write((char*) &tmp_N_z, 2);
+        bin_writer.write((char *)&tmp_N_z, 2);
     }
     else
-        bin_writer.write((char*) &N_z, 2);
-    bin_writer.write((char*) &log_factorR, 8);
-    bin_writer.write((char*) &log_factorPh, 8);
-    bin_writer.write((char*) &log_factorZ, 8);
+        bin_writer.write((char *)&N_z, 2);
+    bin_writer.write((char *)&log_factorR, 8);
+    bin_writer.write((char *)&log_factorPh, 8);
+    bin_writer.write((char *)&log_factorZ, 8);
     if(log_factorR == 0)
         for(uint i_r = 1; i_r < N_r; i_r++)
-            bin_writer.write((char*) &listR[i_r], 8);
+            bin_writer.write((char *)&listR[i_r], 8);
     if(log_factorPh == 0)
         for(uint i_ph = 1; i_ph < N_ph[0]; i_ph++)
-            bin_writer.write((char*) &listPh[0][i_ph], 8);
+            bin_writer.write((char *)&listPh[0][i_ph], 8);
     else if(log_factorPh == -1)
         for(uint i_r = 0; i_r < N_r; i_r++)
-            bin_writer.write((char*) &N_ph[i_r], 2);
+            bin_writer.write((char *)&N_ph[i_r], 2);
     if(log_factorZ == 0)
         for(uint i_th = 1; i_th < N_z; i_th++)
-            bin_writer.write((char*) &listZ[0][i_th], 8);
+            bin_writer.write((char *)&listZ[0][i_th], 8);
     else if(log_factorZ == -1)
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
             double dz = listZ[i_r][2] - listZ[i_r][1];
-            bin_writer.write((char*) &dz, 8);
+            bin_writer.write((char *)&dz, 8);
         }
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        cout << "-> Writing cylindrical grid file: " <<
-                float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+        cout << "-> Writing cylindrical grid file: " << float(100.0 * double(i_r) / double(N_r)) << "      \r"
+             << flush;
 
         for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
         {
@@ -1135,7 +1131,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
                     for(uint i = 0; i < data_offset; i++)
                     {
                         double tmp_data = grid_cells[i_r][i_ph][i_z]->getData(i);
-                        bin_writer.write((char*) &tmp_data, 8);
+                        bin_writer.write((char *)&tmp_data, 8);
                     }
                 }
             }
@@ -1149,7 +1145,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
             for(uint i = 0; i < data_offset; i++)
             {
                 double tmp_data = center_cells[i_z]->getData(i);
-                bin_writer.write((char*) &tmp_data, 8);
+                bin_writer.write((char *)&tmp_data, 8);
             }
         }
     }
@@ -1169,9 +1165,9 @@ void CGridCylindrical::printParameters()
     else
     {
         cout << CLR_LINE;
-        cout << "Cylindrical grid parameters (ID: " << getDataID()
-                << ", data len.: " << getDataOffset() << ", Nr: " << N_r;
-        if (log_factorPh == -1)
+        cout << "Cylindrical grid parameters (ID: " << getDataID() << ", data len.: " << getDataOffset()
+             << ", Nr: " << N_r;
+        if(log_factorPh == -1)
         {
             uint min_phi = MAX_UINT;
             uint max_phi = 0;
@@ -1187,7 +1183,7 @@ void CGridCylindrical::printParameters()
         else
             cout << ", Nph: " << N_ph[0];
 
-        if (log_factorZ == -1)
+        if(log_factorZ == -1)
             cout << ", Nz: " << N_z - 2 << ")" << endl;
         else
             cout << ", Nz: " << N_z << ")" << endl;
@@ -1235,7 +1231,7 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
 bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 {
     Vector3D v_n, v_a;
-    cell_cyl * tmp_cell_pos = (cell_cyl*) pp->getPositionCell();
+    cell_cyl * tmp_cell_pos = (cell_cyl *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
@@ -1255,9 +1251,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             {
                 case 1:
                     B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                    C = p.X() * p.X() + p.Y() * p.Y() - Rmin*Rmin;
+                    C = p.X() * p.X() + p.Y() * p.Y() - Rmin * Rmin;
                     A = d.X() * d.X() + d.Y() * d.Y();
-                    dscr = B * B - 4 * A*C;
+                    dscr = B * B - 4 * A * C;
 
                     if(dscr >= 0)
                     {
@@ -1354,7 +1350,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         B = 2 * (p.X() * d.X() + p.Y() * d.Y());
                         C = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
-                        dscr = B * B - 4 * A*C;
+                        dscr = B * B - 4 * A * C;
 
                         if(dscr >= 0)
                         {
@@ -1379,7 +1375,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                     {
                         B = 2 * (p.X() * d.X() + p.Y() * d.Y());
                         C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
-                        dscr = B * B - 4 * A*C;
+                        dscr = B * B - 4 * A * C;
 
                         if(dscr >= 0)
                         {
@@ -1431,7 +1427,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                             length = 2e300;
                     }
                     else
-                        length = 2e300;   
+                        length = 2e300;
                     break;
 
                 case 5:
@@ -1501,7 +1497,7 @@ bool CGridCylindrical::updateShortestDistance(photon_package * pp)
     //    double loc_x_min, loc_x_max, loc_y_min, loc_y_max, loc_z_min, loc_z_max;
     bool found = false;
 
-    cell_oc * tmp_cell_pos = (cell_oc*) pp->getPositionCell();
+    cell_oc * tmp_cell_pos = (cell_oc *)pp->getPositionCell();
 
     tmp_pos = pp->getPosition();
 
@@ -1556,9 +1552,9 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
         {
             case 1:
                 B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                C = p.X() * p.X() + p.Y() * p.Y() - Rmax*Rmax;
+                C = p.X() * p.X() + p.Y() * p.Y() - Rmax * Rmax;
                 A = d.X() * d.X() + d.Y() * d.Y();
-                dscr = B * B - 4 * A*C;
+                dscr = B * B - 4 * A * C;
 
                 if(dscr >= 0 && A > 0)
                 {
@@ -1589,7 +1585,6 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
                     if(length > 0)
                         min_length = length;
-
                 }
                 break;
 
@@ -1611,7 +1606,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
         }
 
         min_length *= 1.00001;
-        new_pos = p + min_length*d;
+        new_pos = p + min_length * d;
 
         if(isInside(new_pos))
         {

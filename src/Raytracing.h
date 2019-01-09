@@ -1,20 +1,18 @@
 #pragma once
-#include "typedefs.h"
-#include "Vector.h"
-#include "Stokes.h"
-#include "Grid.h"
-#include "Matrix2D.h"
-#include "MathFunctions.h"
 #include "GasSpecies.h"
+#include "Grid.h"
+#include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Stokes.h"
+#include "Vector.h"
+#include "typedefs.h"
 
 #ifndef RAYTRACING
 #define RAYTRACING
 
-
 class CRaytracingBasic
 {
-public:
-
+  public:
     CRaytracingBasic()
     {
         rt_detector_shape = 0;
@@ -57,63 +55,98 @@ public:
     }
 
     virtual ~CRaytracingBasic(void)
-    {
-    }
+    {}
 
-    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
-        string path, uint _alignment)
-    {
-        return false;
-    }
-
-    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
-        string path, Vector3D n1, Vector3D n2, uint _alignment)
+    virtual bool setDustDetector(uint pos,
+                                 dlist dust_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 uint _alignment)
     {
         return false;
     }
 
-    virtual bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length,
-            string path, uint max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
+    virtual bool setDustDetector(uint pos,
+                                 dlist dust_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 Vector3D n1,
+                                 Vector3D n2,
+                                 uint _alignment)
     {
         return false;
     }
 
-    //synchrotron detectors
-
-    virtual bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length,
-             string path)
+    virtual bool setDustDetector(uint pos,
+                                 dlist dust_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 uint max_subpixel_lvl,
+                                 Vector3D n1,
+                                 Vector3D n2,
+                                 uint _alignment)
     {
         return false;
     }
 
-    virtual bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length,
-             string path, Vector3D n1, Vector3D n2)
+    // synchrotron detectors
+
+    virtual bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length, string path)
     {
         return false;
     }
 
-    virtual bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length,
-             string path, uint max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    virtual bool setSyncDetector(uint pos,
+                                 dlist sync_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 Vector3D n1,
+                                 Vector3D n2)
+    {
+        return false;
+    }
+
+    virtual bool setSyncDetector(uint pos,
+                                 dlist sync_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 uint max_subpixel_lvl,
+                                 Vector3D n1,
+                                 Vector3D n2)
     {
         return false;
     }
 
     // end synchrotron
 
-    virtual bool setLineDetector(uint pos, dlist line_ray_detectors, string path,
-            double _max_length, bool _vel_maps)
+    virtual bool setLineDetector(uint pos,
+                                 dlist line_ray_detectors,
+                                 string path,
+                                 double _max_length,
+                                 bool _vel_maps)
     {
         return false;
     }
 
-    virtual bool setLineDetector(uint pos, dlist line_ray_detectors, string path,
-            double _max_length, bool _vel_maps, Vector3D n1, Vector3D n2)
+    virtual bool setLineDetector(uint pos,
+                                 dlist line_ray_detectors,
+                                 string path,
+                                 double _max_length,
+                                 bool _vel_maps,
+                                 Vector3D n1,
+                                 Vector3D n2)
     {
         return false;
     }
 
-    virtual bool setLineDetector(uint pos, dlist line_ray_detectors, string path,
-            double _max_length, bool _vel_maps, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    virtual bool setLineDetector(uint pos,
+                                 dlist line_ray_detectors,
+                                 string path,
+                                 double _max_length,
+                                 bool _vel_maps,
+                                 uint _max_subpixel_lvl,
+                                 Vector3D n1,
+                                 Vector3D n2)
     {
         return false;
     }
@@ -185,7 +218,7 @@ public:
         pp->setEZ(ez);
     }
 
-    virtual bool getRelPosition(int i_pix, double &cx, double &cy)
+    virtual bool getRelPosition(int i_pix, double & cx, double & cy)
     {
         return getRelPositionMap(i_pix, cx, cy);
     }
@@ -214,7 +247,7 @@ public:
             off_len_y = int(0.5 * (map_pixel_y - 1));
     }
 
-    bool getRelPositionMap(int i_pix, double &cx, double &cy)
+    bool getRelPositionMap(int i_pix, double & cx, double & cy)
     {
         int y = (i_pix % map_pixel_y);
         int x = i_pix / map_pixel_y - off_len_x;
@@ -224,7 +257,7 @@ public:
             cx = x * step_x;
         else
         {
-            if(x>-1)
+            if(x > -1)
                 x++;
 
             cx = x * step_x - CMathFunctions::sgn(x) * off_x;
@@ -235,7 +268,7 @@ public:
             cy = y * step_y;
         else
         {
-            if(y>-1)
+            if(y > -1)
                 y++;
 
             cy = y * step_y - CMathFunctions::sgn(y) * off_y;
@@ -280,12 +313,14 @@ public:
         return proj_length + getDistance();
     }
 
-    virtual void addToDetector(photon_package * pp, int i_pix, bool direct=false, uint spectral_offset=0)
-    {
-    }
+    virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
+    {}
 
-    virtual void addToDetector(photon_package * pp1, photon_package * pp2, photon_package * pp3,
-        int i_pix, bool direct=false)
+    virtual void addToDetector(photon_package * pp1,
+                               photon_package * pp2,
+                               photon_package * pp3,
+                               int i_pix,
+                               bool direct = false)
     {
         // pos was only traced of first photon package
         pp2->setPosition(pp1->getPosition());
@@ -302,8 +337,7 @@ public:
     }
 
     virtual void setObserverPosition(Vector3D pos)
-    {
-    }
+    {}
 
     virtual bool postProcessing()
     {
@@ -360,13 +394,9 @@ public:
     }
 
     virtual void getDetectorData(dlist & C, dlist & T)
-    {
+    {}
 
-    }
-
-    virtual void setPosition(Vector3D pos)
-    {
-    };
+    virtual void setPosition(Vector3D pos){};
 
     virtual bool isNotAtCenter(photon_package * pp, double cx, double cy)
     {
@@ -378,8 +408,13 @@ public:
         return Vector3D(0, 0, 0);
     }
 
-    virtual void getSubPixelCoordinates(uint subpixel_lvl, double cx, double cy, int i_sub_x,
-            int i_sub_y, double &subpix_cx, double &subpix_cy)
+    virtual void getSubPixelCoordinates(uint subpixel_lvl,
+                                        double cx,
+                                        double cy,
+                                        int i_sub_x,
+                                        int i_sub_y,
+                                        double & subpix_cx,
+                                        double & subpix_cy)
     {
         subpix_cx = cx;
         subpix_cy = cy;
@@ -410,8 +445,7 @@ public:
         return detector->getVelocityChannel(vch);
     }
 
-protected:
-
+  protected:
     uint rt_detector_shape;
     uint dID, sID;
     uint map_pixel_x, map_pixel_y;
@@ -434,22 +468,25 @@ protected:
     Vector3D ex, ey, ez;
 };
 
-
-class CRaytracingCartesian: public CRaytracingBasic
+class CRaytracingCartesian : public CRaytracingBasic
 {
-public:
-
+  public:
     CRaytracingCartesian(CGridBasic * _grid)
     {
         grid = _grid;
     }
 
     ~CRaytracingCartesian(void)
-    {
-    }
+    {}
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
-        string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
+    bool setDustDetector(uint pos,
+                         dlist dust_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2,
+                         uint _alignment)
     {
         rt_detector_shape = DET_PLANE;
 
@@ -492,16 +529,33 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, 
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
-            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 1,
+                                 _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length, string path,
-            uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    bool setSyncDetector(uint pos,
+                         dlist sync_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_PLANE;
 
@@ -544,16 +598,33 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
-            lam_min, lam_max, nr_spectral_bins, nr_extra);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setLineDetector(uint pos, dlist line_ray_detectors, string path, double _max_length,
-            bool _vel_maps, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    bool setLineDetector(uint pos,
+                         dlist line_ray_detectors,
+                         string path,
+                         double _max_length,
+                         bool _vel_maps,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_PLANE;
         vel_maps = _vel_maps;
@@ -596,16 +667,31 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, 
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, i_trans, 
-            nr_spectral_bins, max_velocity);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 i_trans,
+                                 nr_spectral_bins,
+                                 max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    void getSubPixelCoordinates(uint subpixel_lvl, double cx, double cy, int i_sub_x,
-            int i_sub_y, double &subpix_cx, double &subpix_cy)
+    void getSubPixelCoordinates(uint subpixel_lvl,
+                                double cx,
+                                double cy,
+                                int i_sub_x,
+                                int i_sub_y,
+                                double & subpix_cx,
+                                double & subpix_cy)
     {
         double subpixel_fraction_1D = pow(2.0, -double(subpixel_lvl + 1));
         subpix_cx = cx + i_sub_x * off_x * subpixel_fraction_1D;
@@ -622,7 +708,8 @@ public:
             // Init sum of indices
             ulong ID_sum_1 = 0;
 
-            // Create new photon package with wavelength index wID and position it in model
+            // Create new photon package with wavelength index wID and position it in
+            // model
             photon_package * pp = new photon_package();
 
             preparePhoton(pp, cx, cy);
@@ -649,7 +736,8 @@ public:
                     double tmp_cx, tmp_cy;
                     getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
 
-                    // Create new photon package with wavelength index wID and position it in model
+                    // Create new photon package with wavelength index wID and position it
+                    // in model
                     photon_package * pp = new photon_package();
 
                     preparePhoton(pp, tmp_cx, tmp_cy);
@@ -680,7 +768,7 @@ public:
         return subpixel;
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct=false, uint spectral_offset=0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
     {
         pp->setDetectorProjection();
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
@@ -704,11 +792,9 @@ public:
     }
 };
 
-
-class CRaytracingHealPix: public CRaytracingBasic
+class CRaytracingHealPix : public CRaytracingBasic
 {
-public:
-
+  public:
     CRaytracingHealPix(CGridBasic * _grid)
     {
         nside = 1;
@@ -734,8 +820,7 @@ public:
     }
 
     ~CRaytracingHealPix(void)
-    {
-    }
+    {}
 
     CRaytracingHealPix(int _nside)
     {
@@ -743,8 +828,7 @@ public:
         npix = 12 * nside * nside;
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
-        string path, uint _alignment)
+    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path, uint _alignment)
     {
         rt_detector_shape = DET_SPHER;
 
@@ -774,7 +858,7 @@ public:
 
         nside = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 1]);
 
-        npix = 12 * nside*nside;
+        npix = 12 * nside * nside;
 
         det_pos.setX(sx);
         det_pos.setY(sy);
@@ -785,8 +869,8 @@ public:
         Vector3D spectral_offset = det_pos.getSphericalCoord();
         spectral_offset_long = spectral_offset.Phi();
 
-        detector = new CDetector(path, npix, 1, det_pos, max_length, 
-            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
+        detector = new CDetector(
+            path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, 1, _alignment);
         detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
 
         return true;
@@ -822,7 +906,7 @@ public:
 
         nside = uint(sync_ray_detectors[pos + NR_OF_RAY_DET - 1]);
 
-        npix = 12 * nside*nside;
+        npix = 12 * nside * nside;
 
         det_pos.setX(sx);
         det_pos.setY(sy);
@@ -833,8 +917,8 @@ public:
         Vector3D spectral_offset = det_pos.getSphericalCoord();
         spectral_offset_long = spectral_offset.Phi();
 
-        detector = new CDetector(path, npix, 1, det_pos, max_length, 
-            lam_min, lam_max, nr_spectral_bins, nr_extra);
+        detector =
+            new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, nr_extra);
         detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
 
         return true;
@@ -877,7 +961,7 @@ public:
         nr_spectral_bins = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 1]);
         nr_extra = 1;
 
-        npix = 12 * nside*nside;
+        npix = 12 * nside * nside;
 
         max_length = _max_length * 10;
 
@@ -926,7 +1010,7 @@ public:
         Vector3D ph_pos = pp->getPosition();
         Vector3D new_dir = det_pos - ph_pos;
 
-        double lam = ph_dir*new_dir;
+        double lam = ph_dir * new_dir;
 
         if(lam <= 0)
             return false;
@@ -970,7 +1054,7 @@ public:
         tmp_ez.normalize();
 
         double theta = acos(tmp_ez.Z());
-        double phi = atan3(tmp_ez.X(), tmp_ez.Y()) - PI -atan3(det_pos.X(), det_pos.Y());
+        double phi = atan3(tmp_ez.X(), tmp_ez.Y()) - PI - atan3(det_pos.X(), det_pos.Y());
 
         tmp_ey.setX(cos(theta) * cos(phi));
         tmp_ey.setY(cos(theta) * sin(phi));
@@ -1009,7 +1093,7 @@ public:
         det_pos.setZ(sz);
     }
 
-    bool getRelPosition(int i_pix, double &cx, double &cy)
+    bool getRelPosition(int i_pix, double & cx, double & cy)
     {
         pix2ang_ring(i_pix, &cx, &cy);
 
@@ -1040,7 +1124,7 @@ public:
         return diff.length();
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct=false, uint spectral_offset=0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
     {
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
         {
@@ -1050,7 +1134,7 @@ public:
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
                 pp->getMultiStokesVector(i_spectral) *= getMinArea();
-            
+
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(pp, i_pix, spectral_offset);
             detector->addToRaytracingSedDetector(pp, spectral_offset);
@@ -1058,7 +1142,7 @@ public:
     }
 
     bool writeDustResults(uint ray_result_type)
-    {        
+    {
         if(!detector->writeHealMaps(dID, ray_result_type))
             return false;
 
@@ -1098,27 +1182,26 @@ public:
         sz = pos.Z();
     }
 
-    void pix2ang_ring(int i_pix, double *theta, double *phi)
+    void pix2ang_ring(int i_pix, double * theta, double * phi)
     {
         double z;
         pix2ang_ring_z_phi(nside, i_pix, &z, phi);
         *theta = acos(z);
     }
 
-    void ang2ring_ring(double theta, double phi, int *i_pix)
+    void ang2ring_ring(double theta, double phi, int * i_pix)
     {
         double z = cos(theta);
         ang2pix_ring_z_phi(nside, z, phi, i_pix);
     }
 
-private:
-
+  private:
     static int isqrt(int v)
     {
-        return(int) (sqrt(v + 0.5));
+        return (int)(sqrt(v + 0.5));
     }
 
-    static void pix2ang_ring_z_phi(int nside_, int pix, double *z, double *phi)
+    static void pix2ang_ring_z_phi(int nside_, int pix, double * z, double * phi)
     {
         long ncap_ = nside_ * (nside_ - 1) * 2;
         long npix_ = 12 * nside_ * nside_;
@@ -1138,7 +1221,7 @@ private:
             int iring = ip / (4 * nside_) + nside_; /* counted from North pole */
             int iphi = ip % (4 * nside_) + 1;
             /* 1 if iring+nside is odd, 1/2 otherwise */
-            double fodd = ((iring + nside_)&1) ? 1 : 0.5;
+            double fodd = ((iring + nside_) & 1) ? 1 : 0.5;
 
             int nl2 = 2 * nside_;
             *z = (nl2 - iring) * fact1_;
@@ -1155,41 +1238,41 @@ private:
         }
     }
 
-    static void ang2pix_ring_z_phi(int nside_, double z, double phi, int *pix)
+    static void ang2pix_ring_z_phi(int nside_, double z, double phi, int * pix)
     {
         long ncap_ = nside_ * (nside_ - 1) * 2;
         long npix_ = 12 * nside_ * nside_;
         double za = abs(z);
         double tt = CMathFunctions::fmodulo(phi, PIx2) * invPI2; // in [0,4)
-        if (za <= TWOTHIRD) // Equatorial region
+        if(za <= TWOTHIRD)                                       // Equatorial region
         {
             double temp1 = nside_ * (0.5 + tt);
             double temp2 = nside_ * z * 0.75;
-            int jp = (int) (temp1 - temp2); /* index of  ascending edge line */
-            int jm = (int) (temp1 + temp2); /* index of descending edge line */
+            int jp = (int)(temp1 - temp2); /* index of  ascending edge line */
+            int jm = (int)(temp1 + temp2); /* index of descending edge line */
 
             /* ring number counted from z=2/3 */
             int ir = nside_ + 1 + jp - jm; /* in {1,2n+1} */
-            int kshift = 1 - (ir & 1); /* kshift=1 if ir even, 0 otherwise */
+            int kshift = 1 - (ir & 1);     /* kshift=1 if ir even, 0 otherwise */
 
             int ip = (jp + jm - nside_ + kshift + 1) / 2; /* in {0,4n-1} */
             ip = CMathFunctions::imodulo(ip, 4 * nside_);
 
             *pix = nside_ * (nside_ - 1) * 2 + (ir - 1) * 4 * nside_ + ip;
         }
-        else  // North & South polar caps
+        else // North & South polar caps
         {
-            double tp = tt - (int) (tt);
+            double tp = tt - (int)(tt);
             double tmp = nside_ * sqrt(3 * (1 - za));
 
-            int jp = (int) (tp * tmp); /* increasing edge line index */
-            int jm = (int) ((1.0 - tp) * tmp); /* decreasing edge line index */
+            int jp = (int)(tp * tmp);         /* increasing edge line index */
+            int jm = (int)((1.0 - tp) * tmp); /* decreasing edge line index */
 
-            int ir = jp + jm + 1; /* ring number counted from the closest pole */
-            int ip = (int) (tt * ir); /* in {0,4*ir-1} */
+            int ir = jp + jm + 1;    /* ring number counted from the closest pole */
+            int ip = (int)(tt * ir); /* in {0,4*ir-1} */
             ip = CMathFunctions::imodulo(ip, 4 * ir);
 
-            if (z>0)
+            if(z > 0)
                 *pix = 2 * ir * (ir - 1) + ip;
             else
                 *pix = 12 * nside_ * nside_ - 2 * ir * (ir + 1) + ip;
@@ -1213,11 +1296,9 @@ private:
     long npix;
 };
 
-
-class CRaytracingPolar: public CRaytracingBasic
+class CRaytracingPolar : public CRaytracingBasic
 {
-public:
-
+  public:
     CRaytracingPolar(CGridBasic * _grid)
     {
         npix_ph = 0;
@@ -1247,8 +1328,14 @@ public:
         }
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length,
-        string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2, uint _alignment)
+    bool setDustDetector(uint pos,
+                         dlist dust_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2,
+                         uint _alignment)
     {
         rt_detector_shape = DET_POLAR;
 
@@ -1291,16 +1378,33 @@ public:
 
         initTmpStokes();
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0.0, 0.0, distance, 
-            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 0.0,
+                                 0.0,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 1,
+                                 _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length,
-            string path, uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    bool setSyncDetector(uint pos,
+                         dlist sync_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_POLAR;
 
@@ -1343,16 +1447,33 @@ public:
 
         initTmpStokes();
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0.0, 0.0, distance, 
-            lam_min, lam_max, nr_spectral_bins, nr_extra);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 0.0,
+                                 0.0,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setLineDetector(uint pos, dlist line_ray_detectors, string path, double _max_length, bool _vel_maps,
-            uint _max_subpixel_lvl, Vector3D n1, Vector3D n2)
+    bool setLineDetector(uint pos,
+                         dlist line_ray_detectors,
+                         string path,
+                         double _max_length,
+                         bool _vel_maps,
+                         uint _max_subpixel_lvl,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_POLAR;
         vel_maps = _vel_maps;
@@ -1395,8 +1516,19 @@ public:
 
         initTmpStokes();
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, 0, 0, distance, i_trans, nr_spectral_bins, max_velocity);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 0,
+                                 0,
+                                 distance,
+                                 i_trans,
+                                 nr_spectral_bins,
+                                 max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1408,7 +1540,8 @@ public:
         double max_len = 0.5 * sqrt(sidelength_x * sidelength_x + sidelength_y * sidelength_y);
         if(!grid->getPolarRTGridParameter(max_len, pixel_width, max_subpixel_lvl, listR, npix_r, npix_ph))
         {
-            cout << "\nERROR: Polar detector can only be used with spherical or cylindrical grids!";
+            cout << "\nERROR: Polar detector can only be used with spherical or "
+                    "cylindrical grids!";
             return false;
         }
 
@@ -1421,14 +1554,20 @@ public:
             // Add the amount of phi cells in the current ring to the total amount
             npix_total += npix_ph[i_r];
         }
-        
+
         npix_total++;
 
         if(npix_total > MAX_RT_RAYS)
         {
-            cout << "\nHINT: Very high amount of rays required for DUST EMISSION simulation with polar raytracing grid!" << endl
-                << "      Problem: The simulation may take a long time to process all rays." << endl
-                << "      Solutions: Decrease max subpixel level or use the cartesian raytracing grid." << endl;
+            cout << "\nHINT: Very high amount of rays required for DUST EMISSION "
+                    "simulation with polar raytracing grid!"
+                 << endl
+                 << "      Problem: The simulation may take a long time to process all "
+                    "rays."
+                 << endl
+                 << "      Solutions: Decrease max subpixel level or use the cartesian "
+                    "raytracing grid."
+                 << endl;
         }
 
         return true;
@@ -1436,19 +1575,19 @@ public:
 
     void initTmpStokes()
     {
-        tmpStokes = new StokesVector ** [nr_extra * nr_spectral_bins];
+        tmpStokes = new StokesVector **[nr_extra * nr_spectral_bins];
         for(uint i_spectral = 0; i_spectral < nr_extra * nr_spectral_bins; i_spectral++)
         {
-            tmpStokes[i_spectral] = new StokesVector * [npix_r + 1];
+            tmpStokes[i_spectral] = new StokesVector *[npix_r + 1];
             for(uint i_r = 0; i_r < npix_r; i_r++)
                 tmpStokes[i_spectral][i_r] = new StokesVector[npix_ph[i_r]];
-                
+
             // Add center pixel
             tmpStokes[i_spectral][npix_r] = new StokesVector[1];
         }
     }
 
-    bool getRelPosition(int i_pix, double &cx, double &cy)
+    bool getRelPosition(int i_pix, double & cx, double & cy)
     {
         // Return (0,0) coordinate, if central pixel
         if(i_pix == npix_total - 1)
@@ -1474,7 +1613,7 @@ public:
         return true;
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct=false, uint spectral_offset=0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
     {
         if(direct)
         {
@@ -1487,7 +1626,7 @@ public:
                 // Add photon Stokes vector to detector
                 detector->addToRaytracingDetector(pp, spectral_offset);
                 detector->addToRaytracingSedDetector(pp, spectral_offset);
-            }  
+            }
         }
         else
         {
@@ -1536,16 +1675,16 @@ public:
             per_counter++;
 
             // Calculate percentage of total progress per source
-            float percentage = 100.0 * float(per_counter) /
-                float(map_pixel_x * map_pixel_y * nr_spectral_bins);
+            float percentage =
+                100.0 * float(per_counter) / float(map_pixel_x * map_pixel_y * nr_spectral_bins);
 
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
 #pragma omp critical
                 {
-                    cout << "-> Interpolating from polar grid to detector map: "
-                        << percentage << " [%]            \r" << flush;
+                    cout << "-> Interpolating from polar grid to detector map: " << percentage
+                         << " [%]            \r" << flush;
                     last_percentage = percentage;
                 }
             }
@@ -1632,7 +1771,8 @@ public:
 
                 if(rID1 == npix_r - 1)
                 {
-                    // If outside of last ring center interpolate only from one side (leave stokes empty)
+                    // If outside of last ring center interpolate only from one side
+                    // (leave stokes empty)
                     Q1 = tmpStokes[i_spectral][rID1][phID1];
                     Q2 = tmpStokes[i_spectral][rID1][phID2];
                     Q3.clear();
@@ -1649,7 +1789,7 @@ public:
 
                 // Calculate relative position factors
                 double t = (pos.R() - r1) / (r2 - r1);
-                double s = (pos.Phi() - p1 - (p3 - p1)*t) / (p2 + (p4 - p2)*t - p1 - (p3 - p1)*t);
+                double s = (pos.Phi() - p1 - (p3 - p1) * t) / (p2 + (p4 - p2) * t - p1 - (p3 - p1) * t);
 
                 // Do 2D linear interpolation
                 double stokes_I = CMathFunctions::getPolarInterp(t, s, Q1.I(), Q2.I(), Q3.I(), Q4.I());
@@ -1660,7 +1800,8 @@ public:
                 double stokes_Sp = CMathFunctions::getPolarInterp(t, s, Q1.Sp(), Q2.Sp(), Q3.Sp(), Q4.Sp());
 
                 // Add pixel value to photon_package
-                StokesVector res_stokes = StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
+                StokesVector res_stokes =
+                    StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
                 pp->setMultiStokesVector(res_stokes * getMinArea(), i_spectral);
                 // Transport pixel value to detector
                 detector->addToRaytracingDetector(pp, 0);
@@ -1678,9 +1819,8 @@ public:
         return npix_total;
     }
 
-private:
-
-    void getCoordinateIDs(int i_pix, int &rID, int &phID)
+  private:
+    void getCoordinateIDs(int i_pix, int & rID, int & phID)
     {
         rID = 0;
         phID = 0;
@@ -1714,30 +1854,32 @@ private:
         double r2 = listR[rID + 1];
 
         return PI * (r2 * r2 - r1 * r1) / npix_ph[rID];
-    }    
+    }
 
     dlist listR;
     uint * npix_ph;
     uint npix_r, npix_total;
-    StokesVector ***tmpStokes;
+    StokesVector *** tmpStokes;
 };
 
-
-class CRaytracingSlice: public CRaytracingBasic
+class CRaytracingSlice : public CRaytracingBasic
 {
-public:
-
+  public:
     CRaytracingSlice(CGridBasic * _grid)
     {
         grid = _grid;
     }
 
     ~CRaytracingSlice(void)
-    {
-    }
+    {}
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, 
-        string path, Vector3D n1, Vector3D n2, uint _alignment)
+    bool setDustDetector(uint pos,
+                         dlist dust_ray_detectors,
+                         double _max_length,
+                         string path,
+                         Vector3D n1,
+                         Vector3D n2,
+                         uint _alignment)
     {
         rt_detector_shape = DET_SLICE;
 
@@ -1778,16 +1920,32 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
-            lam_min, lam_max, nr_spectral_bins, 1, _alignment);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 1,
+                                 _alignment);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length,
-            string path, Vector3D n1, Vector3D n2)
+    bool setSyncDetector(uint pos,
+                         dlist sync_ray_detectors,
+                         double _max_length,
+                         string path,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_SLICE;
 
@@ -1828,16 +1986,32 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID,
-            sidelength_x, sidelength_y, map_shift_x, map_shift_y, distance, 
-            lam_min, lam_max, nr_spectral_bins, nr_extra);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 lam_min,
+                                 lam_max,
+                                 nr_spectral_bins,
+                                 nr_extra);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
     }
 
-    bool setLineDetector(uint pos, dlist line_ray_detectors, string path, double _max_length,
-            bool _vel_maps, Vector3D n1, Vector3D n2)
+    bool setLineDetector(uint pos,
+                         dlist line_ray_detectors,
+                         string path,
+                         double _max_length,
+                         bool _vel_maps,
+                         Vector3D n1,
+                         Vector3D n2)
     {
         rt_detector_shape = DET_SLICE;
         vel_maps = _vel_maps;
@@ -1877,8 +2051,19 @@ public:
 
         setDetCoordSystem(n1, n2);
 
-        detector = new CDetector(rt_detector_shape, path, map_pixel_x, map_pixel_y, dID, sidelength_x,
-            sidelength_y, map_shift_x, map_shift_y, distance, i_trans, nr_spectral_bins, max_velocity);
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 i_trans,
+                                 nr_spectral_bins,
+                                 max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
         return true;
@@ -1900,7 +2085,7 @@ public:
         pp->setPosition(Vector3D(cx, cy, 0));
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct=false, uint spectral_offset=0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
     {
         resetPhotonPosition(pp, i_pix);
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)

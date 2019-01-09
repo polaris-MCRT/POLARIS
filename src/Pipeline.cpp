@@ -1,17 +1,16 @@
 #include "Pipeline.h"
-#include "Grid.h"
-#include "OcTree.h"
-#include "Spherical.h"
+#include "CommandParser.h"
 #include "Cylindrical.h"
-#include "RadiativeTransfer.h"
 #include "Dust.h"
 #include "GasSpecies.h"
+#include "Grid.h"
+#include "OcTree.h"
+#include "RadiativeTransfer.h"
 #include "Source.h"
-#include "CommandParser.h"
+#include "Spherical.h"
 #include "Voronoi.h"
 
-
-bool CPipeline::Init(int argc, char** argv)
+bool CPipeline::Init(int argc, char ** argv)
 {
     end = 0, len = 0;
     begin = omp_get_wtime();
@@ -57,8 +56,8 @@ bool CPipeline::Init(int argc, char** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
-    //CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
+    // CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
+    // CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
 
     if(!parser.parse())
     {
@@ -80,7 +79,7 @@ bool CPipeline::Init(int argc, char** argv)
 void CPipeline::Finish()
 {
     end = omp_get_wtime();
-    len = (long) (end - begin);
+    len = (long)(end - begin);
 
     h = len / 3600;
     m = (len - h * 3600) / 60;
@@ -91,8 +90,9 @@ void CPipeline::Finish()
 
     cout << CLR_LINE;
     cout << SEP_LINE;
-    cout
-            << "* POLARIS SUCCESSFULLY FINISHED                                                     *" << endl;
+    cout << "* POLARIS SUCCESSFULLY FINISHED                                             "
+            "        *"
+         << endl;
     cout << SEP_LINE << endl;
 
     string opath = path_data + "time.txt";
@@ -107,7 +107,6 @@ void CPipeline::Finish()
      #pragma warning(suppress: 6031)
      getchar();
      #endif*/
-
 }
 
 void CPipeline::Run()
@@ -149,7 +148,7 @@ void CPipeline::Run()
 
             case CMD_FORCE:
                 // Needs update!!!
-                //result = calcRadPressure(param);
+                // result = calcRadPressure(param);
                 break;
 
             case CMD_OPIATE:
@@ -157,8 +156,8 @@ void CPipeline::Run()
                 break;
 
             case CMD_SYNCHROTRON:
-                  result = calcPolarizationMapsViaSynchrotron(param);
-                  break;
+                result = calcPolarizationMapsViaSynchrotron(param);
+                break;
 
             default:
                 cout << "\nERROR: Command is unknown!" << endl;
@@ -176,7 +175,7 @@ void CPipeline::Run()
 void CPipeline::Error()
 {
     end = omp_get_wtime();
-    len = (long) (end - begin);
+    len = (long)(end - begin);
 
     h = len / 3600;
     m = (len - h * 3600) / 60;
@@ -187,18 +186,19 @@ void CPipeline::Error()
 
     cout << CLR_LINE;
     cout << SEP_LINE;
-    cout << "* POLARIS ABORTED PROCESSING	                                                    *" << endl;
+    cout << "* POLARIS ABORTED PROCESSING	                                         "
+            "           *"
+         << endl;
     cout << SEP_LINE << endl;
 }
-
 
 bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 {
     // Check if the energy density is used instead of launching photons with fixed energy
-    // In case of (save radiation field), (calc RATs), and (calc stochastic heating temperatures)
+    // In case of (save radiation field), (calc RATs), and (calc stochastic heating
+    // temperatures)
     bool use_energy_density = false;
-    if(param.getSaveRadiationField() || param.isRatSimulation() || 
-            param.getStochasticHeatingMaxSize() > 0)
+    if(param.getSaveRadiationField() || param.isRatSimulation() || param.getStochasticHeatingMaxSize() > 0)
         use_energy_density = true;
 
     CGridBasic * grid = 0;
@@ -265,8 +265,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
             rad.convertTempInQB(param.getOffsetMinGasDensity(), true);
     }
 
-    rad.calcMonteCarloRadiationField(param.getCommand(), 
-        use_energy_density, false); //(param.getCommand() == CMD_RAT));
+    rad.calcMonteCarloRadiationField(param.getCommand(),
+                                     use_energy_density,
+                                     false); //(param.getCommand() == CMD_RAT));
 
     if(param.isTemperatureSimulation())
         rad.calcFinalTemperature(use_energy_density);
@@ -399,8 +400,8 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     {
         // Add fields to store the stochastic heating propabilities for each cell
         for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-            nr_of_offset_entries += dust->getNrOfStochasticSizes(i_mixture) * 
-                dust->getNrOfCalorimetryTemperatures(i_mixture);
+            nr_of_offset_entries +=
+                dust->getNrOfStochasticSizes(i_mixture) * dust->getNrOfCalorimetryTemperatures(i_mixture);
     }
     else if(param.getScatteringToRay())
     {
@@ -447,9 +448,9 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     if(param.getStochasticHeatingMaxSize() > 0)
         rad.calcStochasticHeating();
 
-    // Calculate radiation field before raytracing (if sources defined and no radiation field in grid)
-    if(!grid->getRadiationFieldAvailable() && 
-            param.getScatteringToRay() && sources_mc.size() > 0)
+    // Calculate radiation field before raytracing (if sources defined and no radiation
+    // field in grid)
+    if(!grid->getRadiationFieldAvailable() && param.getScatteringToRay() && sources_mc.size() > 0)
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
@@ -487,7 +488,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
         return false;
 
     if(!createWavelengthList(param, dust, gas))
-            return false;
+        return false;
 
     if(!assignDustMixture(param, dust, grid))
         return false;
@@ -609,7 +610,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     return true;
 }
 
-bool CPipeline::assignGridType(CGridBasic * &grid, parameters & param)
+bool CPipeline::assignGridType(CGridBasic *& grid, parameters & param)
 {
     string filename = param.getPathGrid();
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
@@ -622,7 +623,7 @@ bool CPipeline::assignGridType(CGridBasic * &grid, parameters & param)
         return false;
     }
 
-    bin_reader.read((char*) &tmpID, 2);
+    bin_reader.read((char *)&tmpID, 2);
     bin_reader.close();
 
     switch(tmpID)
@@ -715,14 +716,21 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
         string path_out = path_data;
 
-#pragma warning(suppress: 6385)
-        detector[pos].init(path_out, bins_x, bins_y, sideLength_x, sideLength_y, distance,
-            lam_min, lam_max, nr_spectral_bins);
+#pragma warning(suppress : 6385)
+        detector[pos].init(path_out,
+                           bins_x,
+                           bins_y,
+                           sideLength_x,
+                           sideLength_y,
+                           distance,
+                           lam_min,
+                           lam_max,
+                           nr_spectral_bins);
         detector[pos].setOrientation(axis1, axis2, rot_angle_1, rot_angle_2);
         /*if(param.getPeelOff() && param.getNrOfDustPhotons() != 0)
         {
-            cout << "\nHINT: Peel-off technique disabled for self-scattering of dust grain emission!" << endl;
-            param.setPeelOff(false);
+            cout << "\nHINT: Peel-off technique disabled for self-scattering of dust grain
+        emission!" << endl; param.setPeelOff(false);
         }*/
         if(param.getPeelOff() && param.getAcceptanceAngle() > 1.0)
             cout << "\nHINT: Peel-off technique needs no acceptance angle!" << endl;
@@ -730,7 +738,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
             detector[pos].setAcceptanceAngle(param.getAcceptanceAngle());
     }
 
-    //cout << "- Creating dust MC detectors    : done" << endl;
+    // cout << "- Creating dust MC detectors    : done" << endl;
     return detector;
 }
 
@@ -747,14 +755,14 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         if(param.getNrOfDiffuseSources() > 0)
         {
             cout << "\nWARNING: Diffuse sources cannot be considered in "
-                    << "dust, line, or synchrotron emission!" << endl;
+                 << "dust, line, or synchrotron emission!" << endl;
             nr_ofSources--;
         }
 
         if(param.getISRFSource())
         {
             cout << "\nWARNING: ISRF as radiation source cannot be considered in "
-                << "dust, line, or synchrotron emission!" << endl;
+                 << "dust, line, or synchrotron emission!" << endl;
             nr_ofSources--;
         }
 
@@ -785,8 +793,8 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                 {
                     if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                     {
-                        cout << "\nERROR: Background source nr. " << s / NR_OF_BG_SOURCES + 1
-                                << " undefined!" << endl;
+                        cout << "\nERROR: Background source nr. " << s / NR_OF_BG_SOURCES + 1 << " undefined!"
+                             << endl;
                         sources_ray.clear();
                     }
                 }
@@ -799,7 +807,9 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             if(!param.getScatteringToRay())
                 nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "\nWARNING: Point sources cannot be considered in line or synchrotron emission!" << endl;
+                cout << "\nWARNING: Point sources cannot be considered in line or "
+                        "synchrotron emission!"
+                     << endl;
             else
             {
                 for(uint s = 0; s < param.getPointSources().size(); s += NR_OF_POINT_SOURCES)
@@ -811,13 +821,14 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                     if(path.size() == 0)
                     {
                         tmp_source->setParameter(param, grid, dust, s);
-                        //tmp_source->setNrOfPhotons(1);
+                        // tmp_source->setNrOfPhotons(1);
                     }
                     else
                     {
                         if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                         {
-                            cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1 << " undefined!" << endl;
+                            cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1
+                                 << " undefined!" << endl;
                             sources_mc.clear();
                         }
                     }
@@ -831,7 +842,9 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             if(!param.getScatteringToRay() && grid->getRadiationFieldAvailable())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
-                cout << "\nWARNING: Dust source cannot be considered in line or synchrotron emission!" << endl;
+                cout << "\nWARNING: Dust source cannot be considered in line or "
+                        "synchrotron emission!"
+                     << endl;
             else
             {
                 CSourceBasic * tmp_source = new CSourceDust();
@@ -855,8 +868,8 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             {
                 if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                 {
-                    cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1
-                            << " undefined!" << endl;
+                    cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1 << " undefined!"
+                         << endl;
                     sources_mc.clear();
                 }
             }
@@ -876,7 +889,8 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             {
                 if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                 {
-                    cout << "\nERROR: Sorce Starfield nr. " << s / NR_OF_DIFF_SOURCES + 1 << " undefined! \n" << flush;
+                    cout << "\nERROR: Sorce Starfield nr. " << s / NR_OF_DIFF_SOURCES + 1 << " undefined! \n"
+                         << flush;
                     sources_mc.clear();
                 }
             }
@@ -884,14 +898,16 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         }
 
         if(param.getBackgroundSources().size() > 0)
-            cout << "\nERROR: Background sources can only be used for raytracing simulations!" << endl;
+            cout << "\nERROR: Background sources can only be used for raytracing "
+                    "simulations!"
+                 << endl;
 
         if(param.getISRFSource())
         {
             CSourceBasic * tmp_source = new CSourceISRF();
 
             cout << "-> Creating ISRF source list             \r" << flush;
-            
+
             if(param.getISRFPath() != "")
             {
                 if(!tmp_source->setParameterFromFile(param, grid, dust, 0))
@@ -911,7 +927,9 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             if(param.isTemperatureSimulation())
             {
                 cout << "\nERROR: Dust as radiation source cannot be considered in "
-                    << "temperature calculations (use RAT to consider dust as a separate source)!" << endl;
+                     << "temperature calculations (use RAT to consider dust as a "
+                        "separate source)!"
+                     << endl;
                 nr_ofSources--;
             }
             else
@@ -980,19 +998,21 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
         half_length = max_len / 2.0;
     }
 
-    str_header << "set xrange[" << -1.01 * half_length << ":" << 1.01 * half_length
-            << "]" << endl;
-    str_header << "set yrange[" << -1.01 * half_length << ":" << 1.01 * half_length
-            << "]" << endl;
-    str_header << "set zrange[" << -1.01 * half_length << ":" << 1.01 * half_length
-            << "]" << endl;
+    str_header << "set xrange[" << -1.01 * half_length << ":" << 1.01 * half_length << "]" << endl;
+    str_header << "set yrange[" << -1.01 * half_length << ":" << 1.01 * half_length << "]" << endl;
+    str_header << "set zrange[" << -1.01 * half_length << ":" << 1.01 * half_length << "]" << endl;
 
     str_header << "set palette defined (0 0.5 0 0, 0.5 1 0 0, 2 1 1 0, 3 0.4 0.5 1)" << endl;
     str_header << "set style arrow 1 ls 1 lw 2 lc rgb 0x0000FF" << endl;
     str_header << "set style line 2 pt 7 ps variable lt palette" << endl;
     str_header << "set style line 3 pt 19 ps variable lt palette" << endl;
     str_header << "set cbrange[1000:10000]" << endl;
-    str_header << "splot \'-\' w p ls 2 title \"\",\'-\' using 1:2:3:(sprintf(\"star ID %d, %d\",$4,$5)) with labels left offset 2 notitle,\'-\' w p ls 3 title \"\",\'-\' using 1:2:3:(sprintf(\"diff ID %d, %d\",$4,$5)) with labels left offset 2 notitle,\'-\' with vectors as 1 title \"\",\'-\' using 1:2:3:(sprintf(\"bs ID %d\",$4)) with labels left offset 2 notitle" << endl;
+    str_header << "splot \'-\' w p ls 2 title \"\",\'-\' using 1:2:3:(sprintf(\"star ID %d, "
+                  "%d\",$4,$5)) with labels left offset 2 notitle,\'-\' w p ls 3 title "
+                  "\"\",\'-\' using 1:2:3:(sprintf(\"diff ID %d, %d\",$4,$5)) with labels left "
+                  "offset 2 notitle,\'-\' with vectors as 1 title \"\",\'-\' using "
+                  "1:2:3:(sprintf(\"bs ID %d\",$4)) with labels left offset 2 notitle"
+               << endl;
 
     for(uint s = 0; s < point_source.size(); s += NR_OF_POINT_SOURCES)
     {
@@ -1036,22 +1056,21 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
         if(T > 10000)
             T = 10000;
 
-        str_ds_data1 << diffuse_source[s] << "\t" << diffuse_source[s + 1] << "\t"
-                << diffuse_source[s + 2] << "\t" << R << "\t" << T << endl;
-        str_ds_data2 << diffuse_source[s] << "\t" << diffuse_source[s + 1] << "\t"
-                << diffuse_source[s + 2] << "\t" << i + 1 << "\t" << nr_of_photons << endl;
+        str_ds_data1 << diffuse_source[s] << "\t" << diffuse_source[s + 1] << "\t" << diffuse_source[s + 2]
+                     << "\t" << R << "\t" << T << endl;
+        str_ds_data2 << diffuse_source[s] << "\t" << diffuse_source[s + 1] << "\t" << diffuse_source[s + 2]
+                     << "\t" << i + 1 << "\t" << nr_of_photons << endl;
     }
 
-    //for (uint s = 0; s < background_source.size(); s += 7) {
+    // for (uint s = 0; s < background_source.size(); s += 7) {
     //	uint i = s / 7;
     //}
 
     if(param.getDustSource())
     {
-
     }
 
-    //path_plot = "E:\\gnutests\\";
+    // path_plot = "E:\\gnutests\\";
     string plot_out = path_plot + "sources.plt";
     ofstream outStream(plot_out.c_str());
 
@@ -1076,13 +1095,12 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
 
     outStream.close();
 
-    //cout << "- Plotting of sources           : done          \n" << flush;
+    // cout << "- Plotting of sources           : done          \n" << flush;
 
     return true;
 }
 
-bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust,
-        CGridBasic * grid)
+bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust, CGridBasic * grid)
 {
     // Get the number of different mixtures of dust_components
     if(!dust->createDustMixtures(param, path_data, path_plot))
@@ -1211,14 +1229,16 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             // Add wavelength for stochastic heating
             if(param.getStochasticHeatingMaxSize() > 0)
                 dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS, true);
-                
+
             // Get detector parameters list
             values = param.getDustRayDetectors();
-            
+
             // Check if a detector is defined
             if(values.empty())
             {
-                cout << "\nERROR: No dust raytracing detector defined (see <detector_dust>)!" << endl;
+                cout << "\nERROR: No dust raytracing detector defined (see "
+                        "<detector_dust>)!"
+                     << endl;
                 return false;
             }
 
@@ -1234,7 +1254,9 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             // Check if a detector is defined
             if(values.empty())
             {
-                cout << "\nERROR: No dust Monte-Carlo detector defined (see <detector_dust_mc>)!" << endl;
+                cout << "\nERROR: No dust Monte-Carlo detector defined (see "
+                        "<detector_dust_mc>)!"
+                     << endl;
                 return false;
             }
 
@@ -1332,8 +1354,8 @@ bool CPipeline::calcRadPressure(parameter & param)
     dust->printParameter(param, grid);
     grid->printParameter();
 
-    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
-        return false;
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(),
+true)) return false;
 
     if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
         return false;
@@ -1372,7 +1394,8 @@ bool CPipeline::calcRadPressure(parameter & param)
 */
 
 /*
-bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters & param, bool plot, uint itID)
+bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters &
+param, bool plot, uint itID)
 {
     uint per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
@@ -1397,7 +1420,8 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
 
         pos_1 = grid->getCenter(cell_1);
 
-        Vector3D F1 = con_G * Mstar * Md / (pos_1.length() * pos_1.length()) * pos_1.normalized();
+        Vector3D F1 = con_G * Mstar * Md / (pos_1.length() * pos_1.length()) *
+pos_1.normalized();
 
         cell_1->updateData(data_off + 0, -F1.X());
         cell_1->updateData(data_off + 1, -F1.Y());
@@ -1423,7 +1447,8 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
         dist.normalize();
 
         Vector3D F1 = -con_G * M2*Md / (R * R) * dist;
-        Vector3D F2 = -con_G * M1*Md / (R * R) * dist; // -con_G*M1*Mstar / (pos_2.sq_length())*pos_2.normalized();
+        Vector3D F2 = -con_G * M1*Md / (R * R) * dist; // -con_G*M1*Mstar /
+(pos_2.sq_length())*pos_2.normalized();
 
         cell_1->updateData(data_off + 0, -F1.X());
         cell_1->updateData(data_off + 1, -F1.Y());
@@ -1447,9 +1472,12 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
 
             if(w > 0)
             {
-                FradX += (wavelength_list[w] - wavelength_list[w - 1]) * tmpX[w - 1] + 0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (tmpX[w] - tmpX[w - 1]);
-                FradY += (wavelength_list[w] - wavelength_list[w - 1]) * tmpY[w - 1] + 0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (tmpY[w] - tmpY[w - 1]);
-                FradZ += (wavelength_list[w] - wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_list[w - 1]) * (tmpZ[w] - tmpZ[w - 1]);
+                FradX += (wavelength_list[w] - wavelength_list[w - 1]) * tmpX[w - 1] + 0.5
+* (wavelength_list[w] - wavelength_list[w - 1]) * (tmpX[w] - tmpX[w - 1]); FradY +=
+(wavelength_list[w] - wavelength_list[w - 1]) * tmpY[w - 1] + 0.5 * (wavelength_list[w] -
+wavelength_list[w - 1]) * (tmpY[w] - tmpY[w - 1]); FradZ += (wavelength_list[w] -
+wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_list[w -
+1]) * (tmpZ[w] - tmpZ[w - 1]);
             }
         }
 
@@ -1897,7 +1925,8 @@ bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, para
     //writer << "++++++" << endl;
 
     //for(double pos = min_pos; pos <= max_pos; pos += step)
-    //    writer << pos << "\t" << abs(sFrad.getValue(pos)) << "\t" << sFgra.getValue(pos) << endl;
+    //    writer << pos << "\t" << abs(sFrad.getValue(pos)) << "\t" << sFgra.getValue(pos)
+<< endl;
 
     writer.close();
 

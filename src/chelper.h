@@ -1,16 +1,15 @@
-#include "typedefs.h"
-#include "Vector.h"
-#include "Stokes.h"
-#include "Matrix2D.h"
 #include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Stokes.h"
+#include "Vector.h"
+#include "typedefs.h"
 
 #ifndef CHELPER
 #define CHELPER
 
 class cell_basic
 {
-public:
-
+  public:
     cell_basic()
     {
         data = 0;
@@ -37,7 +36,7 @@ public:
         if(i == MAX_UINT)
             return 0;
 
-        if(i>4138637280)
+        if(i > 4138637280)
             return 0;
 
         return data[i];
@@ -91,15 +90,14 @@ public:
         id += _id;
     }
 
-protected:
+  protected:
     double * data;
     uint id;
 };
 
-class cell_oc: public cell_basic
+class cell_oc : public cell_basic
 {
-public:
-
+  public:
     cell_oc()
     {
         parent = 0;
@@ -199,7 +197,7 @@ public:
     ulong getUniqueID()
     {
         uint parent_id = parent->getID();
-        ulong res = 8^level + 8 * parent_id + id;
+        ulong res = 8 ^ level + 8 * parent_id + id;
         return res;
     }
 
@@ -218,17 +216,16 @@ public:
         return &children[i];
     }
 
-private:
+  private:
     double x_min, y_min, z_min, length;
     cell_oc * children;
     cell_oc * parent;
     uchar level;
 };
 
-class cell_vo: public cell_basic
+class cell_vo : public cell_basic
 {
-public:
-
+  public:
     cell_vo()
     {
         id = 0;
@@ -266,7 +263,6 @@ public:
             return;
 
         neighbors[pos] = id;
-
     }
 
     void setCenter(double cx, double cy, double cz)
@@ -314,18 +310,16 @@ public:
         return nr_neighbors;
     }
 
-
-private:
+  private:
     Vector3D center;
     ushort nr_neighbors;
     int * neighbors;
     double volume;
 };
 
-class cell_sp: public cell_basic
+class cell_sp : public cell_basic
 {
-public:
-
+  public:
     cell_sp()
     {
         rID = 0;
@@ -382,14 +376,13 @@ public:
         return thID;
     }
 
-private:
+  private:
     uint rID, phID, thID;
 };
 
-class cell_cyl: public cell_basic
+class cell_cyl : public cell_basic
 {
-public:
-
+  public:
     cell_cyl()
     {
         rID = 0;
@@ -437,14 +430,13 @@ public:
         return zID;
     }
 
-private:
+  private:
     uint rID, phID, zID;
 };
 
 class parameters
 {
-public:
-
+  public:
     parameters()
     {
         path_grid = "";
@@ -536,7 +528,7 @@ public:
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
-        
+
         isrf_path = "";
 
         max_subpixel_lvl = 1;
@@ -556,14 +548,13 @@ public:
         axis1.set(1, 0, 0);
         axis2.set(0, 1, 0);
 
-        //opiate parmeter
+        // opiate parmeter
         opiate_param_path = "";
         opiate_data_path = "";
     }
 
     ~parameters()
-    {
-    }
+    {}
 
     string getOpiateParamPath()
     {
@@ -651,8 +642,8 @@ public:
 
     bool isRaytracing()
     {
-        if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION
-                || getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
+        if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
+           getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
             return true;
         return false;
     }
@@ -871,27 +862,27 @@ public:
 
     bool getAligPA()
     {
-        return(align & ALIG_PA) == ALIG_PA;
+        return (align & ALIG_PA) == ALIG_PA;
     }
 
     bool getAligIDG()
     {
-        return(align & ALIG_IDG) == ALIG_IDG;
+        return (align & ALIG_IDG) == ALIG_IDG;
     }
 
     bool getAligRAT()
     {
-        return(align & ALIG_RAT) == ALIG_RAT;
+        return (align & ALIG_RAT) == ALIG_RAT;
     }
 
     bool getAligGOLD()
     {
-        return(align & ALIG_GOLD) == ALIG_GOLD;
+        return (align & ALIG_GOLD) == ALIG_GOLD;
     }
 
     bool getAligINTERNAL()
     {
-        return(align & ALIG_INTERNAL) == ALIG_INTERNAL;
+        return (align & ALIG_INTERNAL) == ALIG_INTERNAL;
     }
 
     double getMu()
@@ -927,7 +918,7 @@ public:
     bool getScatteringToRay()
     {
         return scattering_to_raytracing;
-    }  
+    }
 
     bool getIsSpeedOfSound()
     {
@@ -1237,8 +1228,8 @@ public:
     void AddDustComponentChoice(uint dust_component_choice)
     {
         // If the dust component choice of a dust component is already loaded,
-        // add the "dust_component_choice" to the list of component_id_to_choice but not to
-        // the dust_choices.
+        // add the "dust_component_choice" to the list of component_id_to_choice but not
+        // to the dust_choices.
         if(component_id_to_choice.size() > 0)
             for(uint a = 0; a < component_id_to_choice.size(); a++)
                 if(component_id_to_choice[a] == dust_component_choice)
@@ -1247,7 +1238,8 @@ public:
                     return;
                 }
 
-        // If the "dust_component_choice" is not yet used, add it to the amount of available choices.
+        // If the "dust_component_choice" is not yet used, add it to the amount of
+        // available choices.
         component_id_to_choice.push_back(dust_component_choice);
         dust_choices.push_back(dust_component_choice);
 
@@ -1388,7 +1380,8 @@ public:
             midplane_3d_param.push_back(z_max);
         }
         else
-            cout << "\nHINT: Multiple 3D midplane plot commands found. The first command will be considered!";
+            cout << "\nHINT: Multiple 3D midplane plot commands found. The first command "
+                    "will be considered!";
     }
 
     void setInpMidDataPoints(uint val)
@@ -1527,7 +1520,7 @@ public:
     {
         if(conv_l_in_SI != 1 && val != 1)
             cout << "\nHINT: <conv_len> may be used multiple times!" << endl
-                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_l_in_SI *= val;
     }
 
@@ -1535,7 +1528,7 @@ public:
     {
         if(conv_dH_in_SI != 1 && val != 1)
             cout << "\nHINT: <conv_dens> may be used multiple times!" << endl
-                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_dH_in_SI *= val;
     }
 
@@ -1543,7 +1536,7 @@ public:
     {
         if(conv_B_in_SI != 1 && val != 1)
             cout << "\nHINT: <conv_mag> may be used multiple times!" << endl
-                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_B_in_SI *= val;
     }
 
@@ -1551,7 +1544,7 @@ public:
     {
         if(conv_V_in_SI != 1 && val != 1)
             cout << "\nHINT: <conv_vel> may be used multiple times!" << endl
-                << "      -> No problem if <path_grid_cgs> was used!" << endl;
+                 << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_V_in_SI *= val;
     }
 
@@ -1693,7 +1686,8 @@ public:
         dust_ray_detectors.push_back(val[4]);
         // Rot angle #2 (cart, polar, slice) / obs. position Y (healpix)
         dust_ray_detectors.push_back(val[5]);
-        // Distance from observer to model (cart, polar, slice) / obs. position Z (healpix)
+        // Distance from observer to model (cart, polar, slice) / obs. position Z
+        // (healpix)
         dust_ray_detectors.push_back(val[6]);
         // Side length of dust detector in x-dir (cart, polar, slice) / l_max (healpix)
         dust_ray_detectors.push_back(val[7]);
@@ -1750,7 +1744,6 @@ public:
         }
     }
 
-
     void addSyncRayDetector(dlist & val)
     {
         // Minimum wavelength (in SI)
@@ -1765,7 +1758,8 @@ public:
         sync_ray_detectors.push_back(val[4]);
         // Rot angle #2 (cart, polar, slice) / obs. position Y (healpix)
         sync_ray_detectors.push_back(val[5]);
-        // Distance from observer to model (cart, polar, slice) / obs. position Z (healpix)
+        // Distance from observer to model (cart, polar, slice) / obs. position Z
+        // (healpix)
         sync_ray_detectors.push_back(val[6]);
         // Side length of dust detector in x-dir (cart, polar, slice) / l_max (healpix)
         sync_ray_detectors.push_back(val[7]);
@@ -1822,26 +1816,25 @@ public:
         }
     }
 
-
     void addLineOpiateDetector(dlist & val)
     {
-        //ang1
+        // ang1
         line_opiate_detectors.push_back(val[0]);
-        //ang2
+        // ang2
         line_opiate_detectors.push_back(val[1]);
-        //abundance
+        // abundance
         line_opiate_detectors.push_back(val[2]);
-        //mol. weight
+        // mol. weight
         line_opiate_detectors.push_back(val[3]);
-        //vel. max
+        // vel. max
         line_opiate_detectors.push_back(val[4]);
-        //nr_of vels
+        // nr_of vels
         line_opiate_detectors.push_back(val[5]);
-        //OPIATE column
+        // OPIATE column
         line_opiate_detectors.push_back(val[6]);
-        //distance
+        // distance
         line_opiate_detectors.push_back(val[7]);
-        //bins
+        // bins
         line_opiate_detectors.push_back(val[8]);
     }
 
@@ -2141,8 +2134,13 @@ public:
         return line_ray_detector_list;
     }
 
-    void addDustComponent(string path, string size_key, double fr, double mat_dens,
-        double a_min, double a_max, dlist size_parameter)
+    void addDustComponent(string path,
+                          string size_key,
+                          double fr,
+                          double mat_dens,
+                          double a_min,
+                          double a_max,
+                          dlist size_parameter)
     {
         dust_paths.push_back(path);
         size_keywords.push_back(size_key);
@@ -2234,7 +2232,7 @@ public:
 
     uint getTotalNrOfDustComponents()
     {
-        return(uint) dust_paths.size();
+        return (uint)dust_paths.size();
     }
 
     void resetNrOfDustComponents()
@@ -2267,8 +2265,7 @@ public:
 
     class plot_parameter
     {
-    public:
-
+      public:
         plot_parameter()
         {
             label = "";
@@ -2283,7 +2280,6 @@ public:
             scale = 1;
             offset = 0;
 
-
             pixel_bins = MAX_UINT;
             vec_bins = 26;
             vec_color[0] = 255;
@@ -2292,8 +2288,7 @@ public:
         }
 
         ~plot_parameter()
-        {
-        }
+        {}
 
         void addColorBarColor(double pos, double R, double G, double B)
         {
@@ -2340,7 +2335,7 @@ public:
         uchar vec_color[3];
     };
 
-private:
+  private:
     int cmd;
     string path_grid;
     string path_input;
@@ -2467,7 +2462,7 @@ private:
 
     bool reset_dust_files;
 
-    //opiate data
+    // opiate data
     string opiate_param_path;
     string opiate_data_path;
     dlist line_opiate_detectors;
@@ -2475,8 +2470,7 @@ private:
 
 class photon_package
 {
-public:
-
+  public:
     photon_package()
     {
         sc_counter = 0;
@@ -2514,7 +2508,7 @@ public:
         if(call == 1)
         {
             call = !call;
-            return(mu + sigma * (double) X2);
+            return (mu + sigma * (double)X2);
         }
 
         do
@@ -2522,8 +2516,7 @@ public:
             U1 = -1 + getRND() * 2;
             U2 = -1 + getRND() * 2;
             W = pow(U1, 2) + pow(U2, 2);
-        }
-        while(W >= 1 || W == 0);
+        } while(W >= 1 || W == 0);
 
         mult = sqrt((-2 * log(W)) / W);
         X1 = U1 * mult;
@@ -2531,7 +2524,7 @@ public:
 
         call = !call;
 
-        double res = mu + sigma * (double) X1;
+        double res = mu + sigma * (double)X1;
 
         if(res < 0)
             return randn(mu, sigma);
@@ -2539,7 +2532,7 @@ public:
         return res;
     }
 
-    double generateGaussianNoise(const double &variance)
+    double generateGaussianNoise(const double & variance)
     {
         hasSpare = false;
         rand1 = getRND(), rand2 = getRND();
@@ -2556,7 +2549,7 @@ public:
         if(rand1 < 1e-100)
             rand1 = 1e-100;
         rand1 = -2 * log(rand1);
-        rand2 = (getRND() / ((double) RAND_MAX)) * PIx2;
+        rand2 = (getRND() / ((double)RAND_MAX)) * PIx2;
 
         return sqrt(variance * rand1) * cos(rand2);
     }
@@ -2635,7 +2628,7 @@ public:
         return sh_distance;
     }
 
-    StokesVector& getMultiStokesVector(uint vch)
+    StokesVector & getMultiStokesVector(uint vch)
     {
         return multi_stokes[vch];
     }
@@ -2834,7 +2827,7 @@ public:
         sh_distance = val;
     }
 
-private:
+  private:
     CMathFunctions mf;
     Vector3D pos;
     Vector3D pos_li;

@@ -1,9 +1,9 @@
 #pragma once
-#include "typedefs.h"
-#include "chelper.h"
-#include "Matrix2D.h"
-#include "Grid.h"
 #include "Faddeeva.hh"
+#include "Grid.h"
+#include "Matrix2D.h"
+#include "chelper.h"
+#include "typedefs.h"
 #include <complex>
 
 #ifndef CMOLECULE
@@ -11,8 +11,7 @@
 
 class CGasSpecies
 {
-public:
-
+  public:
     CGasSpecies()
     {
         molecular_weight = 0;
@@ -485,11 +484,12 @@ public:
             gamma += trans_einstA[i];
 
         // "http://chem.libretexts.org/Core/Physical_and_Theoretical_Chemistry/
-        //  -> Kinetics/Modeling_Reaction_Kinetics/Collision_Theory/Collisional_Cross_Section"
+        //  ->
+        //  Kinetics/Modeling_Reaction_Kinetics/Collision_Theory/Collisional_Cross_Section"
         // "http://www.phy.ohiou.edu/~mboett/astro401_fall12/broadening.pdf
         double v_th = sqrt(2.0 * con_kB * temp_gas / (molecular_weight * 1.0e-3 / con_Na));
-        double col_param = dens_gas * PI * pow(con_r_bohr + gas_species_radius, 2)
-                * sqrt(pow(v_th, 2) + pow(v_turb, 2));
+        double col_param =
+            dens_gas * PI * pow(con_r_bohr + gas_species_radius, 2) * sqrt(pow(v_th, 2) + pow(v_turb, 2));
 
         return gamma + 2 * col_param;
     }
@@ -522,29 +522,48 @@ public:
         return w;
     }
 
-    Matrix2D getLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity,
-        Vector3D mag_field, double cos_theta, double sin_theta, double cos_2_phi, double sin_2_phi)
+    Matrix2D getLineMatrix(CGridBasic * grid,
+                           photon_package * pp,
+                           uint i_line,
+                           double velocity,
+                           Vector3D mag_field,
+                           double cos_theta,
+                           double sin_theta,
+                           double cos_2_phi,
+                           double sin_2_phi)
     {
         if(getZeemanSplitting())
-            return getZeemanSplittingMatrix(grid, pp, i_line, velocity,
-                mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+            return getZeemanSplittingMatrix(
+                grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
         else
             return getGaussLineMatrix(grid, pp, i_line, velocity);
     }
 
-    Matrix2D  getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity);
+    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity);
 
-    Matrix2D getZeemanSplittingMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity,
-        Vector3D mag_field, double cos_theta, double sin_theta, double cos_2_phi, double sin_2_phi);
+    Matrix2D getZeemanSplittingMatrix(CGridBasic * grid,
+                                      photon_package * pp,
+                                      uint i_line,
+                                      double velocity,
+                                      Vector3D mag_field,
+                                      double cos_theta,
+                                      double sin_theta,
+                                      double cos_2_phi,
+                                      double sin_2_phi);
 
-    StokesVector calcEmissivities(CGridBasic *grid, photon_package * pp, uint i_line);
+    StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_line);
 
     bool calcLTE(CGridBasic * grid);
     bool calcFEP(CGridBasic * grid);
     bool calcLVG(CGridBasic * grid, double kepler_star_mass);
 
-    double elem_LVG(CGridBasic * grid, double dens_species, double * new_pop, double doppler,
-            double L, double J_ext, uint i_trans);
+    double elem_LVG(CGridBasic * grid,
+                    double dens_species,
+                    double * new_pop,
+                    double doppler,
+                    double L,
+                    double J_ext,
+                    uint i_trans);
 
     void createMatrix(double * J_mid, Matrix2D & A, double * b, Matrix2D final_col_para);
     Matrix2D calc_collision_parameter(CGridBasic * grid, double temp_gas, double gas_number_density);
@@ -552,10 +571,9 @@ public:
     bool readGasParamaterFile(string filename, uint id, uint max);
     bool readZeemanParamaterFile(string filename);
 
-private:
-
+  private:
     double ** collision_temp;
-    int ** col_upper, ** col_lower;
+    int **col_upper, **col_lower;
     double ** line_strength_pi;
     double ** line_strength_sigma_p;
     double ** line_strength_sigma_m;
@@ -580,19 +598,19 @@ private:
 
     int * nr_of_collision_transition;
     int * nr_of_col_temp;
-    int * nr_sublevels_upper, *nr_sublevels_lower;
-    int * nr_pi_transitions, *nr_sigma_transitions;
+    int *nr_sublevels_upper, *nr_sublevels_lower;
+    int *nr_pi_transitions, *nr_sigma_transitions;
     int * zeeman_transitions;
     int * transitions;
 
     double * energy_level;
     double * g_level;
     double * j_level;
-    int * trans_upper, *trans_lower;
-    double * trans_einstA, *trans_einstB_l, *trans_einstB_u;
-    double * trans_freq, *trans_inneregy;
+    int *trans_upper, *trans_lower;
+    double *trans_einstA, *trans_einstB_l, *trans_einstB_u;
+    double *trans_freq, *trans_inneregy;
     int * orientation_H2;
-    double * lande_upper, *lande_lower;
+    double *lande_upper, *lande_lower;
 
     string stringID;
     string filename;
@@ -603,12 +621,9 @@ private:
     bool zeeman_splitting;
 };
 
-
-
 class CGasMixture
 {
-public:
-
+  public:
     CGasMixture()
     {
         nr_of_species = 0;
@@ -785,11 +800,19 @@ public:
         single_species[i_species].calcLineBroadening(grid);
     }
 
-    Matrix2D getLineMatrix(CGridBasic * grid, photon_package * pp, uint i_species, uint i_line, double velocity,
-        Vector3D mag_field, double cos_theta, double sin_theta, double cos_2_phi, double sin_2_phi)
+    Matrix2D getLineMatrix(CGridBasic * grid,
+                           photon_package * pp,
+                           uint i_species,
+                           uint i_line,
+                           double velocity,
+                           Vector3D mag_field,
+                           double cos_theta,
+                           double sin_theta,
+                           double cos_2_phi,
+                           double sin_2_phi)
     {
-        return single_species[i_species].getLineMatrix(grid, pp, i_line, velocity,
-            mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+        return single_species[i_species].getLineMatrix(
+            grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
     }
 
     StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_species, uint i_line)
@@ -799,7 +822,7 @@ public:
 
     void printParameter(parameters & param, CGridBasic * grid);
 
-private:
+  private:
     CGasSpecies * single_species;
     double kepler_star_mass;
     uint nr_of_species;

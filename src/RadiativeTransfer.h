@@ -1,27 +1,26 @@
 #pragma once
-#include "typedefs.h"
-#include "OcTree.h"
-#include "Grid.h"
+#include "Detector.h"
 #include "Dust.h"
 #include "GasSpecies.h"
+#include "Grid.h"
 #include "MathFunctions.h"
-#include "chelper.h"
+#include "OcTree.h"
 #include "Source.h"
-#include "Detector.h"
+#include "chelper.h"
+#include "typedefs.h"
 //#include "OPIATE.h"
 #include "Raytracing.h"
 #include "Synchrotron.h"
 
 class CRadiativeTransfer
 {
-public:
-
+  public:
     CRadiativeTransfer(parameters & param)
     {
         grid = 0;
         dust = 0;
         gas = 0;
-        //op = 0;
+        // op = 0;
         tracer = 0;
         b_forced = true;
         peel_off = false;
@@ -45,7 +44,7 @@ public:
 
         probing_points = 0;
 
-        synchrotron=0;
+        synchrotron = 0;
 
         pathOutput = param.getPathOutput();
     }
@@ -64,7 +63,7 @@ public:
         if(RK_b2 != 0)
             delete[] RK_b2;
 
-        if(synchrotron!=0)
+        if(synchrotron != 0)
             delete synchrotron;
     }
 
@@ -147,7 +146,7 @@ public:
     }
 
     // Temperature calculation and RATs
-    bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission=false);
+    bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
     // Set temperature (old!)
     bool setTemperatureDistribution();
 
@@ -156,26 +155,51 @@ public:
 
     // Dust emission
     bool calcPolMapsViaRaytracing(parameters & param);
-    void getDustPixelIntensity(CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl, int pos_id);
-    void getDustIntensity(photon_package * pp, CSourceBasic * tmp_source,
-            double cx, double cy, uint subpixel_lvl);
+    void getDustPixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               uint subpixel_lvl,
+                               int pos_id);
+    void getDustIntensity(photon_package * pp,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint subpixel_lvl);
     void calcStellarEmission();
 
     // Synchrontron emission
     bool calcSyncMapsViaRaytracing(parameters & param);
-    void getSyncPixelIntensity(CSourceBasic * tmp_source, double cx, double cy, uint subpixel_lvl, int pos_id);
-    void getSyncIntensity(photon_package * pp1, photon_package * pp2, CSourceBasic * tmp_source,
-            double cx, double cy, uint subpixel_lvl);
+    void getSyncPixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               uint subpixel_lvl,
+                               int pos_id);
+    void getSyncIntensity(photon_package * pp1,
+                          photon_package * pp2,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint subpixel_lvl);
 
     // Line meission
     bool calcChMapsViaRaytracing(parameters & param);
-    void getLinePixelIntensity(CSourceBasic * tmp_source, double cx, double cy,
-            const uint i_species, const uint i_line, uint subpixel_lvl, int pos_id);
-    void getLineIntensity(photon_package * pp, CSourceBasic * tmp_source, double cx, double cy,
-            uint subpixel_lvl, const uint i_species, const uint i_line);
+    void getLinePixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               const uint i_species,
+                               const uint i_line,
+                               uint subpixel_lvl,
+                               int pos_id);
+    void getLineIntensity(photon_package * pp,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint subpixel_lvl,
+                          const uint i_species,
+                          const uint i_line);
 
     // Calc radiation pressure
-    //bool calcRadiativePressure(parameter & param);
+    // bool calcRadiativePressure(parameter & param);
 
     void updateRadiationField(photon_package * pp, double len)
     {
@@ -229,29 +253,31 @@ public:
         return false;
     }
 
-    void calcStepWidth(StokesVector & stokes_new, StokesVector & stokes_new2, double cell_d_l,
-        double & epsi, double & dz_new)
+    void calcStepWidth(StokesVector & stokes_new,
+                       StokesVector & stokes_new2,
+                       double cell_d_l,
+                       double & epsi,
+                       double & dz_new)
     {
         epsi = 2.0;
         dz_new = 0.9 * cell_d_l;
         if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
         {
-            double epsi_I = abs(stokes_new2.I() - stokes_new.I()) /
-                    (rel_err * abs(stokes_new.I()) + abs_err);
-            
-            double epsi_Q = abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) /
-                    (rel_err * abs(stokes_new.Q()) + abs_err);
-            
-            double epsi_U = abs(abs(stokes_new2.U()) - abs(stokes_new.U())) /
-                    (rel_err * abs(stokes_new.U()) + abs_err);
-            
-            double epsi_V = abs(abs(stokes_new2.V()) - abs(stokes_new.V())) /
-                    (rel_err * abs(stokes_new.V()) + abs_err);
-            
-            double dz_new_I = 0.9 * cell_d_l * pow(epsi_I, -0.2);            
+            double epsi_I = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
+
+            double epsi_Q =
+                abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) / (rel_err * abs(stokes_new.Q()) + abs_err);
+
+            double epsi_U =
+                abs(abs(stokes_new2.U()) - abs(stokes_new.U())) / (rel_err * abs(stokes_new.U()) + abs_err);
+
+            double epsi_V =
+                abs(abs(stokes_new2.V()) - abs(stokes_new.V())) / (rel_err * abs(stokes_new.V()) + abs_err);
+
+            double dz_new_I = 0.9 * cell_d_l * pow(epsi_I, -0.2);
             double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);
             double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
-            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);                         
+            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
 
             epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
             dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
@@ -260,14 +286,14 @@ public:
 
     void convertTempInQB(double min_gas_density, bool use_gas_temp);
 
-private:
+  private:
     string pathOutput;
 
     int * probing_points;
 
     CRaytracingBasic * tracer;
     CGridBasic * grid;
-    //COpiate * op;
+    // COpiate * op;
     CDustMixture * dust;
     CGasMixture * gas;
     slist sources_mc, sources_ray;

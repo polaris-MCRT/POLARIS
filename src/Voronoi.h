@@ -3,13 +3,12 @@
 #include "Vector.h"
 
 // search tree parameters
-#define MAX_CELLS 31  // max. cells per tree node
-#define MAX_LEVEL 30  // max. tree level
+#define MAX_CELLS 31 // max. cells per tree node
+#define MAX_LEVEL 30 // max. tree level
 
-class CGridVoronoi: public CGridBasic
+class CGridVoronoi : public CGridBasic
 {
-public:
-
+  public:
     CGridVoronoi(void)
     {
         basic_path = 0;
@@ -81,9 +80,9 @@ public:
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
 
-        //data_pos_gd = MAX_UINT;
-        //data_pos_dd = MAX_UINT;
-        //data_pos_td = MAX_UINT;
+        // data_pos_gd = MAX_UINT;
+        // data_pos_dd = MAX_UINT;
+        // data_pos_td = MAX_UINT;
         data_pos_tg = MAX_UINT;
         data_pos_mx = MAX_UINT;
         data_pos_my = MAX_UINT;
@@ -161,7 +160,7 @@ public:
 
         if(hull_list != 0)
         {
-            delete [] hull_list;
+            delete[] hull_list;
             hull_list = 0;
         }
 
@@ -174,7 +173,6 @@ public:
         cout << CLR_LINE << flush;
     }
 
-    
     bool isInside(Vector3D & pos)
     {
         double l_min = -0.5 * max_len;
@@ -196,7 +194,7 @@ public:
 
         return true;
     }
-        
+
     bool writeGNUPlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
@@ -204,12 +202,12 @@ public:
 
     Vector3D getCenter(cell_basic * cell)
     {
-        return((cell_vo *) cell)->getCenter();
+        return ((cell_vo *)cell)->getCenter();
     }
 
     Vector3D getCenter(uint id)
     {
-        cell_vo * cell = ((cell_vo *) cell_list[id]);
+        cell_vo * cell = ((cell_vo *)cell_list[id]);
         return cell->getCenter();
     }
 
@@ -218,7 +216,7 @@ public:
         return max_len;
     }
 
-    bool next(photon_package *pp)
+    bool next(photon_package * pp)
     {
         if(!positionPhotonInGrid(pp))
             return false;
@@ -229,7 +227,7 @@ public:
         return true;
     };
 
-    bool findStartingPoint(photon_package *pp);
+    bool findStartingPoint(photon_package * pp);
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {
@@ -239,17 +237,17 @@ public:
 
     bool createCellList()
     {
-        //cout << CLR_LINE;
-        //cout << "- Creating of cell list                : done          \n" << flush;
+        // cout << CLR_LINE;
+        // cout << "- Creating of cell list                : done          \n" << flush;
         return true;
     }
 
     double getVolume(cell_basic * cell)
     {
-        return((cell_vo*) cell)->getVolume();
+        return ((cell_vo *)cell)->getVolume();
     }
 
-    double getVolume(photon_package *pp)
+    double getVolume(photon_package * pp)
     {
         cell_basic * cell_pos = pp->getPositionCell();
 
@@ -257,12 +255,11 @@ public:
     }
 
     bool positionPhotonInGrid(photon_package * pp);
-    
+
     // for debugging only
     bool positionPhotonInGridTest(photon_package * pp);
     bool createArtificialGrid(string path);
-    
-    
+
     double getMaxLength()
     {
         return max_len;
@@ -281,12 +278,11 @@ public:
         return loadGridFromBinrayFile(param, 0);
     };
 
-    // final cleanup 
+    // final cleanup
     void clear()
     {
         line_counter = 0;
         char_counter = 0;
-
 
         if(cell_list != 0)
         {
@@ -296,7 +292,7 @@ public:
 
         if(hull_list != 0)
         {
-            delete [] hull_list;
+            delete[] hull_list;
             hull_list = 0;
         }
 
@@ -306,14 +302,13 @@ public:
 
     void printParameters();
 
-private:
+  private:
     uint pos_counter;
 
     // list of convex hull points
     class h_list
     {
-    public:
-
+      public:
         h_list()
         {
             id = 0;
@@ -332,831 +327,821 @@ private:
     // search tree class
     class search_tree
     {
-    public:
-            // list element of for linked Voronoi cell lists
-            class list_element
+      public:
+        // list element of for linked Voronoi cell lists
+        class list_element
+        {
+          public:
+            list_element()
             {
-            public:
-
-                    list_element()
-                    {
-                            cell = 0;
-                            next = 0;
-                    }
-
-                    cell_vo * cell;
-                    list_element * next;
-            };
-
-            //node object for the search tree
-            class tree_node
-            {
-            public:
-
-                    tree_node()
-                    {
-                            first = 0;
-                            last = 0;
-                            size = 0;
-
-                            x_min = 0;
-                            y_min = 0;
-                            z_min = 0;
-                            length = 0;
-
-                            level = 0;
-                            branch = 0;
-                            leafs = 0;
-                    }
-
-                    ~tree_node()
-                    {
-                            clear();
-                    }
-
-                    // finds all nodes within search radius
-                    bool nodeIntersection(Vector3D point, double _sq_distance)
-                    {
-                            double X = point.X();
-                            double Y = point.Y();
-                            double Z = point.Z();
-
-                            // is point within node?
-                            if (isPointInNode(point))
-                                    return true;
-
-                            // edge intersection
-                            for (uint ix = 0; ix <= 1; ix++)
-                                    for (uint iy = 0; iy <= 1; iy++)
-                                            for (uint iz = 0; iz <= 1; iz++)
-                                            {
-                                                    double X1 = x_min + double(ix)*length;
-                                                    double Y1 = y_min + double(iy)*length;
-                                                    double Z1 = z_min + double(iz)*length;
-
-                                                    double sq_distance = (X - X1)*(X - X1) + (Y - Y1)*(Y - Y1) + (Z - Z1)*(Z - Z1);
-
-                                                    if (sq_distance <= _sq_distance)
-                                                            return true;
-                                            }
-
-                            // surface intersection
-                            double distance = sqrt(_sq_distance);
-                            for(int ix=-1;ix<=1;ix++)
-                                    for (int iy = -1; iy <= 1; iy++)
-                                            for (int iz = -1; iz <= 1; iz++)
-                                            {
-                                                    if (ix + iy + iz == 0)
-                                                    continue;
-
-                                                    double x = point.X() + double(ix)*distance;
-                                                    double y = point.Y() + double(iy)*distance;
-                                                    double z = point.Z() + double(iz)*distance;
-
-                                                    if (isPointInNode(Vector3D(x,y,z)))
-                                                            return true;
-                                            }/**/
-
-
-                            return false;
-                    }
-
-                  
-                    bool isPointInNode(Vector3D point)
-                    {
-                            if (point.X() < getXMin() || point.Y() < getYMin() || point.Z() < getZMin())
-                                    return false;
-
-                            if (point.X() > getXMax() || point.Y() > getYMax() || point.Z() > getZMax())
-                                    return false;
-
-                            return true;
-                    }
-
-                    // keep track of the amount of cells in each level
-                    void increment()
-                    {
-                            size++;
-                    }
-
-                    // add cell pointer to linked list
-                    void add_cell(cell_vo * cell)
-                    {
-                            list_element * new_element = new list_element();
-                            new_element->cell = cell;
-
-                            if (first == 0)
-                            {
-                                    first = new_element;
-                                    last = new_element;
-                            }
-                            else
-                            {
-                                    last->next = new_element;
-                                    last = new_element;
-                            }
-
-                            size++;
-                    }
-
-                    // final cleanup
-                    void clear()
-                    {
-                            if (first == 0)
-                                    return;
-
-                            list_element * pos = first;
-
-                            while (pos != 0)
-                            {
-                                    list_element * tmp_element = pos;
-                                    pos = pos->next;
-
-                                    // only for debugging
-                                    // final cell cleanup happens in Voronoi grid itself
-                                    //delete tmp_element->cell;
-                                    //tmp_element->cell=0;
-
-                                    delete tmp_element;
-                                    tmp_element = 0;
-                            }
-
-                            first = 0;
-                            last = 0;
-                            size = 0;
-                    }
-
-                    // empty node and refine tree if to many cell populate the node 
-                    void push_down()
-                    {
-                            list_element * pos = first;
-
-                            while (pos != 0)
-                            {
-                                    list_element * tmp_element = pos;
-                                    pos = pos->next;
-
-                                    Vector3D center = tmp_element->cell->getCenter();
-                                    double X = center.X();
-                                    double Y = center.Y();
-                                    double Z = center.Z();
-
-                                    double xmid = this->getXCenter();
-                                    double ymid = this->getYCenter();
-                                    double zmid = this->getZCenter();
-
-                                    tree_node * leaf;
-
-                                    if (Z < zmid) //z 0 1 2 3
-                                    {
-                                            if (Y < ymid) //y 0 1
-                                            {
-                                                    if (X < xmid) //x 0
-                                                            leaf = this->getLeaf(0);
-                                                    else
-                                                            //x 1
-                                                            leaf = this->getLeaf(1);
-                                            }
-                                            else //y 2 3
-                                            {
-                                                    if (X < xmid) //x 2
-                                                            leaf = this->getLeaf(2);
-                                                    else //x 3
-                                                            leaf = this->getLeaf(3);
-                                            }
-                                    }
-                                    else //z 4 5 6 7
-                                    {
-                                            if (Y < ymid) //y 4 5
-                                            {
-                                                    if (X < xmid) //x 4
-                                                            leaf = this->getLeaf(4);
-                                                    else //x 5
-                                                            leaf = this->getLeaf(5);
-                                            }
-                                            else //y 6 7
-                                            {
-                                                    if (X < xmid) //x 6
-                                                            leaf = this->getLeaf(6);
-                                                    else //x 7
-                                                            leaf = this->getLeaf(7);
-                                            }
-                                    }
-
-                                    leaf->add_cell(tmp_element->cell);
-
-                                    delete tmp_element;
-                                    tmp_element = 0;
-                            }
-
-                            first = 0;
-                            last = 0;
-                    }
-
-                    // find closest cell for given point
-                    cell_vo * findClosestCell(Vector3D point, double & _min_distance, tree_node *&f_node)
-                    {
-                            double min_distance = 1e200;
-                            cell_vo * res = 0;
-
-                            //search in highest level
-                            if (this->getLeafs() != 0)
-                            {
-                                    for (uint i = 0; i < 8; i++)
-                                    {
-                                            double tmp_distance = 0;
-                                            cell_vo * cell = leafs[i].findClosestCell(point, tmp_distance, f_node);
-
-                                            if (tmp_distance < min_distance)
-                                            {
-                                                    min_distance = tmp_distance;
-                                                    res = cell;
-                                            }
-                                    }
-                            }
-                            else //search in level plus all sub-levels within search radius
-                            {
-                                    list_element * pos = first;
-
-                                    while (pos != 0)
-                                    {
-                                            cell_vo * cell = pos->cell;
-                                            Vector3D center = cell->getCenter();
-
-                                            double X = point.X();
-                                            double Y = point.Y();
-                                            double Z = point.Z();
-
-                                            double X1 = center.X();
-                                            double Y1 = center.Y();
-                                            double Z1 = center.Z();
-
-                                            double sq_distance = (X - X1)*(X - X1) + (Y - Y1)*(Y - Y1) + (Z - Z1)*(Z - Z1);
-
-                                            if (sq_distance < min_distance)
-                                            {
-                                                    min_distance = sq_distance;
-                                                    res = cell;
-
-                                                    f_node = this;
-                                            }
-
-                                            pos = pos->next;
-                                    }
-                            }
-
-                            _min_distance = min_distance;
-                            return res;
-                    }
-
-                    uint get_size()
-                    {
-                            return size;
-                    }
-
-                    bool is_emty()
-                    {
-                            return size == 0;
-                    }
-
-                    double getXMin()
-                    {
-                            return x_min;
-                    }
-
-                    double getYMin()
-                    {
-                            return y_min;
-                    }
-
-                    double getZMin()
-                    {
-                            return z_min;
-                    }
-
-                    double getXMax()
-                    {
-                            return x_min + length;
-                    }
-
-                    double getYMax()
-                    {
-                            return y_min + length;
-                    }
-
-                    double getZMax()
-                    {
-                            return z_min + length;
-                    }
-
-                    double getXCenter()
-                    {
-                            return x_min + 0.5 * length;
-                    }
-
-                    double getYCenter()
-                    {
-                            return y_min + 0.5 * length;
-                    }
-
-                    double getZCenter()
-                    {
-                            return z_min + 0.5 * length;
-                    }
-
-                    void setXMin(double x)
-                    {
-                            x_min = x;
-                    }
-
-                    void setYMin(double y)
-                    {
-                            y_min = y;
-                    }
-
-                    void setZMin(double y)
-                    {
-                            z_min = y;
-                    }
-
-                    double getLength()
-                    {
-                            return length;
-                    }
-
-                    void setLength(double l)
-                    {
-                            length = l;
-                    }
-
-                    void setLevel(uint l)
-                    {
-                            level = l;
-                    }
-
-                    list_element * get_first()
-                    {
-                            return first;
-                    }
-
-                    list_element * get_last()
-                    {
-                            return last;
-                    }
-
-                    uint getLevel()
-                    {
-                            return level;
-                    }
-
-                    tree_node * getLeafs()
-                    {
-                            return leafs;
-                    }
-
-                    tree_node * getLeaf(uint index)
-                    {
-                            return &leafs[index];
-                    }
-
-                    tree_node * getBranch()
-                    {
-                            return branch;
-                    }
-
-                    void setLeafs(tree_node * l)
-                    {
-                            leafs = l;
-                    }
-
-                    void setBranch(tree_node * b)
-                    {
-                            branch = b;
-                    }
-
-            private:
-                    list_element * first;
-                    list_element * last;
-
-                    uint size;
-
-                    uint level;
-
-                    double x_min;
-                    double y_min;
-                    double z_min;
-                    double length;
-
-                    tree_node * branch;
-                    tree_node * leafs;
-            };
-
-            search_tree()
-            {
-                    root = 0;
-                    max_level = 0;
-                    max_nodes = 0;
-            };
-
-            ~search_tree()
-            {
-                    if (root != 0)
-                    {
-                            clear(root);
-                            root = 0;
-                    }
-            };
-
-            bool addCell(cell_vo* cell)
-            {
-                    Vector3D center = cell->getCenter();
-
-                    if (center.X() < root->getXMin() || center.Y() < root->getYMin()
-                            || center.Z() < root->getZMin())
-                            return false;
-
-                    if (center.X() > root->getXMax() || center.Y() > root->getYMax()
-                            || center.Z() > root->getZMax())
-                            return false;
-
-                    return addCell(root, cell);
+                cell = 0;
+                next = 0;
             }
 
-            // init. tree and first level refinement
-            void initTree(double _side_length)
+            cell_vo * cell;
+            list_element * next;
+        };
+
+        // node object for the search tree
+        class tree_node
+        {
+          public:
+            tree_node()
             {
-                    side_length = _side_length;
+                first = 0;
+                last = 0;
+                size = 0;
 
-                    root = new tree_node();
-                    root->setLength(side_length);
-                    root->setXMin(-0.5 * side_length);
-                    root->setYMin(-0.5 * side_length);
-                    root->setZMin(-0.5 * side_length);
+                x_min = 0;
+                y_min = 0;
+                z_min = 0;
+                length = 0;
 
-                    max_nodes = 1;
-
-                    createLeafNodes(root);
+                level = 0;
+                branch = 0;
+                leafs = 0;
             }
 
-            uint getMaxLevel()
+            ~tree_node()
             {
-                    return max_level;
+                clear();
             }
 
-            uint getMaxNodes()
+            // finds all nodes within search radius
+            bool nodeIntersection(Vector3D point, double _sq_distance)
             {
-                    return max_nodes;
+                double X = point.X();
+                double Y = point.Y();
+                double Z = point.Z();
+
+                // is point within node?
+                if(isPointInNode(point))
+                    return true;
+
+                // edge intersection
+                for(uint ix = 0; ix <= 1; ix++)
+                    for(uint iy = 0; iy <= 1; iy++)
+                        for(uint iz = 0; iz <= 1; iz++)
+                        {
+                            double X1 = x_min + double(ix) * length;
+                            double Y1 = y_min + double(iy) * length;
+                            double Z1 = z_min + double(iz) * length;
+
+                            double sq_distance =
+                                (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1) + (Z - Z1) * (Z - Z1);
+
+                            if(sq_distance <= _sq_distance)
+                                return true;
+                        }
+
+                // surface intersection
+                double distance = sqrt(_sq_distance);
+                for(int ix = -1; ix <= 1; ix++)
+                    for(int iy = -1; iy <= 1; iy++)
+                        for(int iz = -1; iz <= 1; iz++)
+                        {
+                            if(ix + iy + iz == 0)
+                                continue;
+
+                            double x = point.X() + double(ix) * distance;
+                            double y = point.Y() + double(iy) * distance;
+                            double z = point.Z() + double(iz) * distance;
+
+                            if(isPointInNode(Vector3D(x, y, z)))
+                                return true;
+                        } /**/
+
+                return false;
             }
 
-            //find closest cell for given point in the entire tree
-            cell_vo * findClosestCell(Vector3D point, cell_basic ** cell_list)
+            bool isPointInNode(Vector3D point)
             {
-                    //find current node that contains the point
-                    tree_node * p_node = findMatchingNode(point, MAX_LEVEL);
-                    double min_distance = 0;
+                if(point.X() < getXMin() || point.Y() < getYMin() || point.Z() < getZMin())
+                    return false;
 
-                    //no node found
-                    if (p_node == 0)
-                            return 0;
+                if(point.X() > getXMax() || point.Y() > getYMax() || point.Z() > getZMax())
+                    return false;
 
-                    //when node has not enough cells go to next lower level
-                    while (p_node->is_emty())
-                    {
-                            p_node = p_node->getBranch();
-
-                            if (p_node->getBranch() == 0)
-                                    break;
-                    }
-
-                    // node that contains the closest cell
-                    // not necessarily identical with p_node
-                    tree_node * f_node = 0;
-
-                    //find closest cell in current node
-                    cell_vo * cell = p_node->findClosestCell(point, min_distance, f_node);
-
-                    //find possible closer cells in neighboring nodes
-                    double len = min_distance * 1.00001;
-                    double n_distance = 1e200;
-                    cell_vo * n_cell = checkNeighboringNodes(root, p_node, f_node, point, len, n_distance);
-
-                    if (n_distance < min_distance)
-                    {
-                            cell = n_cell;
-                            min_distance = n_distance;
-                    }
-
-                    return cell;
+                return true;
             }
 
-    private:
-            // check neighboring nodes for shortest distance
-            cell_vo * checkNeighboringNodes(tree_node * node, tree_node * f_node, tree_node * p_node, Vector3D point, double distance, double & min_distance)
+            // keep track of the amount of cells in each level
+            void increment()
             {
-                    cell_vo * res_cell = 0;
-                    if (node->getLeafs() == 0)
-                    {
-                            // do not search f_node again
-                            if (node != f_node)
-                            {
-                                    // do not search p_node again
-                                    if (node != p_node)
-                                    {
-                                            tree_node * dummy;
-                                            res_cell = node->findClosestCell(point, min_distance, dummy);
-                                    }
-                            }
-                    }
-                    else
-                    {
-                            for (uint i = 0; i < 8; i++)
-                            {
-                                    if (node->getLeaf(i)->nodeIntersection(point, distance))
-                                    {
-                                            double tmp_distance = 1.0e200;
-                                            cell_vo* tmp_cell = checkNeighboringNodes(node->getLeaf(i), f_node, p_node, point, distance, tmp_distance);
-
-                                            if (tmp_distance < min_distance)
-                                            {
-                                                    min_distance = tmp_distance;
-                                                    res_cell = tmp_cell;
-                                            }
-                                    }
-                            }
-                    }
-
-                    return res_cell;
+                size++;
             }
 
-            tree_node * findMatchingNode(Vector3D point)
+            // add cell pointer to linked list
+            void add_cell(cell_vo * cell)
             {
-                    return findMatchingNode(point, MAX_LEVEL);
+                list_element * new_element = new list_element();
+                new_element->cell = cell;
+
+                if(first == 0)
+                {
+                    first = new_element;
+                    last = new_element;
+                }
+                else
+                {
+                    last->next = new_element;
+                    last = new_element;
+                }
+
+                size++;
             }
 
-            // go to maximal level for starting the point search
-            tree_node * findMatchingNode(Vector3D point, uint _level)
+            // final cleanup
+            void clear()
             {
-                    if (point.X() < root->getXMin() || point.Y() < root->getYMin()
-                            || point.Z() < root->getZMin())
-                            return 0;
+                if(first == 0)
+                    return;
 
-                    if (point.X() > root->getXMax() || point.Y() > root->getYMax()
-                            || point.Z() > root->getZMax())
-                            return 0;
+                list_element * pos = first;
 
-                    return goNextLevelDown(root, point, _level);
+                while(pos != 0)
+                {
+                    list_element * tmp_element = pos;
+                    pos = pos->next;
+
+                    // only for debugging
+                    // final cell cleanup happens in Voronoi grid itself
+                    // delete tmp_element->cell;
+                    // tmp_element->cell=0;
+
+                    delete tmp_element;
+                    tmp_element = 0;
+                }
+
+                first = 0;
+                last = 0;
+                size = 0;
             }
 
-            // add cell to tree
-            bool addCell(tree_node * node, cell_vo* cell)
+            // empty node and refine tree if to many cell populate the node
+            void push_down()
             {
-                    Vector3D center = cell->getCenter();
+                list_element * pos = first;
+
+                while(pos != 0)
+                {
+                    list_element * tmp_element = pos;
+                    pos = pos->next;
+
+                    Vector3D center = tmp_element->cell->getCenter();
                     double X = center.X();
                     double Y = center.Y();
                     double Z = center.Z();
 
-                    if (node->getLeafs() == 0)
+                    double xmid = this->getXCenter();
+                    double ymid = this->getYCenter();
+                    double zmid = this->getZCenter();
+
+                    tree_node * leaf;
+
+                    if(Z < zmid) // z 0 1 2 3
                     {
-                            node->add_cell(cell);
-
-                            // check for maximal cells in node
-                            if (node->get_size() >= MAX_CELLS)
-                            {
-                                // check for maximal level
-                                if (node->getLevel()<MAX_LEVEL)
-                                {
-                                    // do refinement
-                                    createLeafNodes(node);
-                                    node->push_down();
-                                }
-                                return true;
-                            }
-
-                            return true;
+                        if(Y < ymid) // y 0 1
+                        {
+                            if(X < xmid) // x 0
+                                leaf = this->getLeaf(0);
+                            else
+                                // x 1
+                                leaf = this->getLeaf(1);
+                        }
+                        else // y 2 3
+                        {
+                            if(X < xmid) // x 2
+                                leaf = this->getLeaf(2);
+                            else // x 3
+                                leaf = this->getLeaf(3);
+                        }
+                    }
+                    else // z 4 5 6 7
+                    {
+                        if(Y < ymid) // y 4 5
+                        {
+                            if(X < xmid) // x 4
+                                leaf = this->getLeaf(4);
+                            else // x 5
+                                leaf = this->getLeaf(5);
+                        }
+                        else // y 6 7
+                        {
+                            if(X < xmid) // x 6
+                                leaf = this->getLeaf(6);
+                            else // x 7
+                                leaf = this->getLeaf(7);
+                        }
                     }
 
-                    node->increment();
+                    leaf->add_cell(tmp_element->cell);
 
-                    double xmid = node->getXCenter();
-                    double ymid = node->getYCenter();
-                    double zmid = node->getZCenter();
+                    delete tmp_element;
+                    tmp_element = 0;
+                }
 
-                    if (Z < zmid) //z 0 1 2 3
-                    {
-                            if (Y < ymid) //y 0 1
-                            {
-                                    if (X < xmid) //x 0
-                                            node = node->getLeaf(0);
-                                    else
-                                            //x 1
-                                            node = node->getLeaf(1);
-                            }
-                            else //y 2 3
-                            {
-                                    if (X < xmid) //x 2
-                                            node = node->getLeaf(2);
-                                    else //x 3
-                                            node = node->getLeaf(3);
-                            }
-                    }
-                    else //z 4 5 6 7
-                    {
-                            if (Y < ymid) //y 4 5
-                            {
-                                    if (X < xmid) //x 4
-                                            node = node->getLeaf(4);
-                                    else //x 5
-                                            node = node->getLeaf(5);
-                            }
-                            else //y 6 7
-                            {
-                                    if (X < xmid) //x 6
-                                            node = node->getLeaf(6);
-                                    else //x 7
-                                            node = node->getLeaf(7);
-                            }
-                    }
-
-                    return addCell(node, cell);
+                first = 0;
+                last = 0;
             }
 
-            // find connected nodes in the next level
-            tree_node * goNextLevelDown(tree_node * node, Vector3D point, uint _level)
+            // find closest cell for given point
+            cell_vo * findClosestCell(Vector3D point, double & _min_distance, tree_node *& f_node)
             {
-                    if (node->getLeafs() == 0)
-                            return node;
+                double min_distance = 1e200;
+                cell_vo * res = 0;
 
-                    if (node->getLevel() == _level)
-                            return node;
-
-
-                    double xmid = node->getXCenter();
-                    double ymid = node->getYCenter();
-                    double zmid = node->getZCenter();
-
-                    if (point.Z() < zmid) //z 0 1 2 3
+                // search in highest level
+                if(this->getLeafs() != 0)
+                {
+                    for(uint i = 0; i < 8; i++)
                     {
-                            if (point.Y() < ymid) //y 0 1
-                            {
-                                    if (point.X() < xmid) //x 0
-                                            node = node->getLeaf(0);
-                                    else
-                                            //x 1
-                                            node = node->getLeaf(1);
-                            }
-                            else //y 2 3
-                            {
-                                    if (point.X() < xmid) //x 2
-                                            node = node->getLeaf(2);
-                                    else //x 3
-                                            node = node->getLeaf(3);
-                            }
-                    }
-                    else //z 4 5 6 7
-                    {
-                            if (point.Y() < ymid) //y 4 5
-                            {
-                                    if (point.X() < xmid) //x 4
-                                            node = node->getLeaf(4);
-                                    else //x 5
-                                            node = node->getLeaf(5);
-                            }
-                            else //y 6 7
-                            {
-                                    if (point.X() < xmid) //x 6
-                                            node = node->getLeaf(6);
-                                    else //x 7
-                                            node = node->getLeaf(7);
-                            }
-                    }
+                        double tmp_distance = 0;
+                        cell_vo * cell = leafs[i].findClosestCell(point, tmp_distance, f_node);
 
-                    return goNextLevelDown(node, point, _level);
+                        if(tmp_distance < min_distance)
+                        {
+                            min_distance = tmp_distance;
+                            res = cell;
+                        }
+                    }
+                }
+                else // search in level plus all sub-levels within search radius
+                {
+                    list_element * pos = first;
+
+                    while(pos != 0)
+                    {
+                        cell_vo * cell = pos->cell;
+                        Vector3D center = cell->getCenter();
+
+                        double X = point.X();
+                        double Y = point.Y();
+                        double Z = point.Z();
+
+                        double X1 = center.X();
+                        double Y1 = center.Y();
+                        double Z1 = center.Z();
+
+                        double sq_distance = (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1) + (Z - Z1) * (Z - Z1);
+
+                        if(sq_distance < min_distance)
+                        {
+                            min_distance = sq_distance;
+                            res = cell;
+
+                            f_node = this;
+                        }
+
+                        pos = pos->next;
+                    }
+                }
+
+                _min_distance = min_distance;
+                return res;
             }
 
-            //final tree cleanup
-            void clear(tree_node * node)
+            uint get_size()
             {
-                    tree_node * leafs = node->getLeafs();
-
-                    node->clear();
-
-                    if (leafs == 0)
-                            return;
-
-                    for (uint i = 0; i < 8; i++)
-                            clear(&leafs[i]);
-
-                    delete[] leafs;
-                    node->setLeafs(0);
+                return size;
             }
 
-            // create eight sub-nodes for node pointer
-            bool createLeafNodes(tree_node * node)
+            bool is_emty()
             {
-                    uint next_level = 1 + node->getLevel();
+                return size == 0;
+            }
 
-                    if (MAX_LEVEL < next_level)
-                            return false;
+            double getXMin()
+            {
+                return x_min;
+            }
 
-                    max_level = next_level;
-                    max_nodes += 4;
+            double getYMin()
+            {
+                return y_min;
+            }
 
-                    double ox = node->getXMin();
-                    double oy = node->getYMin();
-                    double oz = node->getZMin();
+            double getZMin()
+            {
+                return z_min;
+            }
 
-                    double length = 0.5 * node->getLength();
-                    tree_node * leafs = new tree_node[8];
+            double getXMax()
+            {
+                return x_min + length;
+            }
 
-                    leafs[0].setBranch(node);
-                    leafs[0].setXMin(ox);
-                    leafs[0].setYMin(oy);
-                    leafs[0].setZMin(oz);
+            double getYMax()
+            {
+                return y_min + length;
+            }
 
-                    leafs[0].setLength(length);
-                    leafs[0].setLevel(next_level);
+            double getZMax()
+            {
+                return z_min + length;
+            }
 
+            double getXCenter()
+            {
+                return x_min + 0.5 * length;
+            }
 
-                    leafs[1].setBranch(node);
-                    leafs[1].setXMin(ox + length);
-                    leafs[1].setYMin(oy);
-                    leafs[1].setZMin(oz);
+            double getYCenter()
+            {
+                return y_min + 0.5 * length;
+            }
 
-                    leafs[1].setLength(length);
-                    leafs[1].setLevel(next_level);
+            double getZCenter()
+            {
+                return z_min + 0.5 * length;
+            }
 
+            void setXMin(double x)
+            {
+                x_min = x;
+            }
 
-                    leafs[2].setBranch(node);
-                    leafs[2].setXMin(ox);
-                    leafs[2].setYMin(oy + length);
-                    leafs[2].setZMin(oz);
+            void setYMin(double y)
+            {
+                y_min = y;
+            }
 
-                    leafs[2].setLength(length);
-                    leafs[2].setLevel(next_level);
+            void setZMin(double y)
+            {
+                z_min = y;
+            }
 
+            double getLength()
+            {
+                return length;
+            }
 
-                    leafs[3].setBranch(node);
-                    leafs[3].setXMin(ox + length);
-                    leafs[3].setYMin(oy + length);
-                    leafs[3].setZMin(oz);
+            void setLength(double l)
+            {
+                length = l;
+            }
 
-                    leafs[3].setLength(length);
-                    leafs[3].setLevel(next_level);
+            void setLevel(uint l)
+            {
+                level = l;
+            }
 
+            list_element * get_first()
+            {
+                return first;
+            }
 
-                    leafs[4].setBranch(node);
-                    leafs[4].setXMin(ox);
-                    leafs[4].setYMin(oy);
-                    leafs[4].setZMin(oz + length);
+            list_element * get_last()
+            {
+                return last;
+            }
 
-                    leafs[4].setLength(length);
-                    leafs[4].setLevel(next_level);
+            uint getLevel()
+            {
+                return level;
+            }
 
+            tree_node * getLeafs()
+            {
+                return leafs;
+            }
 
-                    leafs[5].setBranch(node);
-                    leafs[5].setXMin(ox + length);
-                    leafs[5].setYMin(oy);
-                    leafs[5].setZMin(oz + length);
+            tree_node * getLeaf(uint index)
+            {
+                return &leafs[index];
+            }
 
-                    leafs[5].setLength(length);
-                    leafs[5].setLevel(next_level);
+            tree_node * getBranch()
+            {
+                return branch;
+            }
 
+            void setLeafs(tree_node * l)
+            {
+                leafs = l;
+            }
 
-                    leafs[6].setBranch(node);
-                    leafs[6].setXMin(ox);
-                    leafs[6].setYMin(oy + length);
-                    leafs[6].setZMin(oz + length);
+            void setBranch(tree_node * b)
+            {
+                branch = b;
+            }
 
-                    leafs[6].setLength(length);
-                    leafs[6].setLevel(next_level);
+          private:
+            list_element * first;
+            list_element * last;
 
+            uint size;
 
-                    leafs[7].setBranch(node);
-                    leafs[7].setXMin(ox + length);
-                    leafs[7].setYMin(oy + length);
-                    leafs[7].setZMin(oz + length);
+            uint level;
 
-                    leafs[7].setLength(length);
-                    leafs[7].setLevel(next_level);
+            double x_min;
+            double y_min;
+            double z_min;
+            double length;
 
-                    node->setLeafs(leafs);
+            tree_node * branch;
+            tree_node * leafs;
+        };
 
+        search_tree()
+        {
+            root = 0;
+            max_level = 0;
+            max_nodes = 0;
+        };
+
+        ~search_tree()
+        {
+            if(root != 0)
+            {
+                clear(root);
+                root = 0;
+            }
+        };
+
+        bool addCell(cell_vo * cell)
+        {
+            Vector3D center = cell->getCenter();
+
+            if(center.X() < root->getXMin() || center.Y() < root->getYMin() || center.Z() < root->getZMin())
+                return false;
+
+            if(center.X() > root->getXMax() || center.Y() > root->getYMax() || center.Z() > root->getZMax())
+                return false;
+
+            return addCell(root, cell);
+        }
+
+        // init. tree and first level refinement
+        void initTree(double _side_length)
+        {
+            side_length = _side_length;
+
+            root = new tree_node();
+            root->setLength(side_length);
+            root->setXMin(-0.5 * side_length);
+            root->setYMin(-0.5 * side_length);
+            root->setZMin(-0.5 * side_length);
+
+            max_nodes = 1;
+
+            createLeafNodes(root);
+        }
+
+        uint getMaxLevel()
+        {
+            return max_level;
+        }
+
+        uint getMaxNodes()
+        {
+            return max_nodes;
+        }
+
+        // find closest cell for given point in the entire tree
+        cell_vo * findClosestCell(Vector3D point, cell_basic ** cell_list)
+        {
+            // find current node that contains the point
+            tree_node * p_node = findMatchingNode(point, MAX_LEVEL);
+            double min_distance = 0;
+
+            // no node found
+            if(p_node == 0)
+                return 0;
+
+            // when node has not enough cells go to next lower level
+            while(p_node->is_emty())
+            {
+                p_node = p_node->getBranch();
+
+                if(p_node->getBranch() == 0)
+                    break;
+            }
+
+            // node that contains the closest cell
+            // not necessarily identical with p_node
+            tree_node * f_node = 0;
+
+            // find closest cell in current node
+            cell_vo * cell = p_node->findClosestCell(point, min_distance, f_node);
+
+            // find possible closer cells in neighboring nodes
+            double len = min_distance * 1.00001;
+            double n_distance = 1e200;
+            cell_vo * n_cell = checkNeighboringNodes(root, p_node, f_node, point, len, n_distance);
+
+            if(n_distance < min_distance)
+            {
+                cell = n_cell;
+                min_distance = n_distance;
+            }
+
+            return cell;
+        }
+
+      private:
+        // check neighboring nodes for shortest distance
+        cell_vo * checkNeighboringNodes(tree_node * node,
+                                        tree_node * f_node,
+                                        tree_node * p_node,
+                                        Vector3D point,
+                                        double distance,
+                                        double & min_distance)
+        {
+            cell_vo * res_cell = 0;
+            if(node->getLeafs() == 0)
+            {
+                // do not search f_node again
+                if(node != f_node)
+                {
+                    // do not search p_node again
+                    if(node != p_node)
+                    {
+                        tree_node * dummy;
+                        res_cell = node->findClosestCell(point, min_distance, dummy);
+                    }
+                }
+            }
+            else
+            {
+                for(uint i = 0; i < 8; i++)
+                {
+                    if(node->getLeaf(i)->nodeIntersection(point, distance))
+                    {
+                        double tmp_distance = 1.0e200;
+                        cell_vo * tmp_cell = checkNeighboringNodes(
+                            node->getLeaf(i), f_node, p_node, point, distance, tmp_distance);
+
+                        if(tmp_distance < min_distance)
+                        {
+                            min_distance = tmp_distance;
+                            res_cell = tmp_cell;
+                        }
+                    }
+                }
+            }
+
+            return res_cell;
+        }
+
+        tree_node * findMatchingNode(Vector3D point)
+        {
+            return findMatchingNode(point, MAX_LEVEL);
+        }
+
+        // go to maximal level for starting the point search
+        tree_node * findMatchingNode(Vector3D point, uint _level)
+        {
+            if(point.X() < root->getXMin() || point.Y() < root->getYMin() || point.Z() < root->getZMin())
+                return 0;
+
+            if(point.X() > root->getXMax() || point.Y() > root->getYMax() || point.Z() > root->getZMax())
+                return 0;
+
+            return goNextLevelDown(root, point, _level);
+        }
+
+        // add cell to tree
+        bool addCell(tree_node * node, cell_vo * cell)
+        {
+            Vector3D center = cell->getCenter();
+            double X = center.X();
+            double Y = center.Y();
+            double Z = center.Z();
+
+            if(node->getLeafs() == 0)
+            {
+                node->add_cell(cell);
+
+                // check for maximal cells in node
+                if(node->get_size() >= MAX_CELLS)
+                {
+                    // check for maximal level
+                    if(node->getLevel() < MAX_LEVEL)
+                    {
+                        // do refinement
+                        createLeafNodes(node);
+                        node->push_down();
+                    }
                     return true;
+                }
+
+                return true;
             }
 
-            double side_length;
-            tree_node * root;
-            uint max_level;
-            uint max_nodes;
+            node->increment();
+
+            double xmid = node->getXCenter();
+            double ymid = node->getYCenter();
+            double zmid = node->getZCenter();
+
+            if(Z < zmid) // z 0 1 2 3
+            {
+                if(Y < ymid) // y 0 1
+                {
+                    if(X < xmid) // x 0
+                        node = node->getLeaf(0);
+                    else
+                        // x 1
+                        node = node->getLeaf(1);
+                }
+                else // y 2 3
+                {
+                    if(X < xmid) // x 2
+                        node = node->getLeaf(2);
+                    else // x 3
+                        node = node->getLeaf(3);
+                }
+            }
+            else // z 4 5 6 7
+            {
+                if(Y < ymid) // y 4 5
+                {
+                    if(X < xmid) // x 4
+                        node = node->getLeaf(4);
+                    else // x 5
+                        node = node->getLeaf(5);
+                }
+                else // y 6 7
+                {
+                    if(X < xmid) // x 6
+                        node = node->getLeaf(6);
+                    else // x 7
+                        node = node->getLeaf(7);
+                }
+            }
+
+            return addCell(node, cell);
+        }
+
+        // find connected nodes in the next level
+        tree_node * goNextLevelDown(tree_node * node, Vector3D point, uint _level)
+        {
+            if(node->getLeafs() == 0)
+                return node;
+
+            if(node->getLevel() == _level)
+                return node;
+
+            double xmid = node->getXCenter();
+            double ymid = node->getYCenter();
+            double zmid = node->getZCenter();
+
+            if(point.Z() < zmid) // z 0 1 2 3
+            {
+                if(point.Y() < ymid) // y 0 1
+                {
+                    if(point.X() < xmid) // x 0
+                        node = node->getLeaf(0);
+                    else
+                        // x 1
+                        node = node->getLeaf(1);
+                }
+                else // y 2 3
+                {
+                    if(point.X() < xmid) // x 2
+                        node = node->getLeaf(2);
+                    else // x 3
+                        node = node->getLeaf(3);
+                }
+            }
+            else // z 4 5 6 7
+            {
+                if(point.Y() < ymid) // y 4 5
+                {
+                    if(point.X() < xmid) // x 4
+                        node = node->getLeaf(4);
+                    else // x 5
+                        node = node->getLeaf(5);
+                }
+                else // y 6 7
+                {
+                    if(point.X() < xmid) // x 6
+                        node = node->getLeaf(6);
+                    else // x 7
+                        node = node->getLeaf(7);
+                }
+            }
+
+            return goNextLevelDown(node, point, _level);
+        }
+
+        // final tree cleanup
+        void clear(tree_node * node)
+        {
+            tree_node * leafs = node->getLeafs();
+
+            node->clear();
+
+            if(leafs == 0)
+                return;
+
+            for(uint i = 0; i < 8; i++)
+                clear(&leafs[i]);
+
+            delete[] leafs;
+            node->setLeafs(0);
+        }
+
+        // create eight sub-nodes for node pointer
+        bool createLeafNodes(tree_node * node)
+        {
+            uint next_level = 1 + node->getLevel();
+
+            if(MAX_LEVEL < next_level)
+                return false;
+
+            max_level = next_level;
+            max_nodes += 4;
+
+            double ox = node->getXMin();
+            double oy = node->getYMin();
+            double oz = node->getZMin();
+
+            double length = 0.5 * node->getLength();
+            tree_node * leafs = new tree_node[8];
+
+            leafs[0].setBranch(node);
+            leafs[0].setXMin(ox);
+            leafs[0].setYMin(oy);
+            leafs[0].setZMin(oz);
+
+            leafs[0].setLength(length);
+            leafs[0].setLevel(next_level);
+
+            leafs[1].setBranch(node);
+            leafs[1].setXMin(ox + length);
+            leafs[1].setYMin(oy);
+            leafs[1].setZMin(oz);
+
+            leafs[1].setLength(length);
+            leafs[1].setLevel(next_level);
+
+            leafs[2].setBranch(node);
+            leafs[2].setXMin(ox);
+            leafs[2].setYMin(oy + length);
+            leafs[2].setZMin(oz);
+
+            leafs[2].setLength(length);
+            leafs[2].setLevel(next_level);
+
+            leafs[3].setBranch(node);
+            leafs[3].setXMin(ox + length);
+            leafs[3].setYMin(oy + length);
+            leafs[3].setZMin(oz);
+
+            leafs[3].setLength(length);
+            leafs[3].setLevel(next_level);
+
+            leafs[4].setBranch(node);
+            leafs[4].setXMin(ox);
+            leafs[4].setYMin(oy);
+            leafs[4].setZMin(oz + length);
+
+            leafs[4].setLength(length);
+            leafs[4].setLevel(next_level);
+
+            leafs[5].setBranch(node);
+            leafs[5].setXMin(ox + length);
+            leafs[5].setYMin(oy);
+            leafs[5].setZMin(oz + length);
+
+            leafs[5].setLength(length);
+            leafs[5].setLevel(next_level);
+
+            leafs[6].setBranch(node);
+            leafs[6].setXMin(ox);
+            leafs[6].setYMin(oy + length);
+            leafs[6].setZMin(oz + length);
+
+            leafs[6].setLength(length);
+            leafs[6].setLevel(next_level);
+
+            leafs[7].setBranch(node);
+            leafs[7].setXMin(ox + length);
+            leafs[7].setYMin(oy + length);
+            leafs[7].setZMin(oz + length);
+
+            leafs[7].setLength(length);
+            leafs[7].setLevel(next_level);
+
+            node->setLeafs(leafs);
+
+            return true;
+        }
+
+        double side_length;
+        tree_node * root;
+        uint max_level;
+        uint max_nodes;
     };
-    
+
     uint min_nrOfNeigbors;
     uint max_nrOfNeigbors;
 
     uint hull_size;
     h_list * hull_list;
     search_tree * stree;
-
 
     double abs_min(double x_min, double x_max, double y_min, double y_max, double z_min, double z_max)
     {
@@ -1226,10 +1211,10 @@ private:
 
         return false;
     }
-    
+
     void addGNULines(uint cID, stringstream & str)
     {
-        cell_vo * tmp_cell = (cell_vo*) cell_list[cID];
+        cell_vo * tmp_cell = (cell_vo *)cell_list[cID];
         uint nr_neighbors = tmp_cell->getNrOfNeighbors();
 
         Vector3D p1 = tmp_cell->getCenter();
@@ -1240,26 +1225,26 @@ private:
             {
                 Vector3D p2 = getNeighborCenter(tmp_cell, i);
                 Vector3D tmp_len = p2 - p1;
-                str << p1.X() << " " << p1.Y() << " " << p1.Z() << " " << tmp_len.X() << " " << tmp_len.Y() << " " << tmp_len.Z() << "\n";
+                str << p1.X() << " " << p1.Y() << " " << p1.Z() << " " << tmp_len.X() << " " << tmp_len.Y()
+                    << " " << tmp_len.Z() << "\n";
             }
         }
-
     }
 
-    bool isNeigboringVoroCell(cell_vo* cell, uint nID)
+    bool isNeigboringVoroCell(cell_vo * cell, uint nID)
     {
         int id = cell->getNeighborID(nID);
-        
-        if(id>max_cells)
+
+        if(id > max_cells)
             return false;
-            
-        return id>-1;
+
+        return id > -1;
     }
 
-    Vector3D getNeighborCenter(cell_vo* cell, uint nID)
+    Vector3D getNeighborCenter(cell_vo * cell, uint nID)
     {
         int id = cell->getNeighborID(nID);
-        cell_vo* n_cell = ((cell_vo *) cell_list[id]);
+        cell_vo * n_cell = ((cell_vo *)cell_list[id]);
         return n_cell->getCenter();
     }
 };

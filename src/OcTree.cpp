@@ -1,7 +1,7 @@
-#include "typedefs.h"
 #include "OcTree.h"
-#include "MathFunctions.h"
 #include "CommandParser.h"
+#include "MathFunctions.h"
+#include "typedefs.h"
 #include <limits>
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)
@@ -16,8 +16,7 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing Gnuplot vectors: "
-                    << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << "-> Writing Gnuplot vectors: " << ru[(unsigned int)char_counter % 4] << "           \r";
         }
 
         if(cell->getLevel() > level)
@@ -78,25 +77,21 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
                 }
 
                 if(blen != 0)
-                    file_streams[0]
-                        << float(cell->getXmin() + len - mmx) << " "
-                    << float(cell->getYmin() + len - mmy) << " "
-                    << float(cell->getZmin() + len - mmz) << " "
-                    << float(2.0 * mmx) << " " << float(2.0 * mmy) << " "
-                    << float(2.0 * mmz) << " "
-                    << float(log10(blen)) << endl;
+                    file_streams[0] << float(cell->getXmin() + len - mmx) << " "
+                                    << float(cell->getYmin() + len - mmy) << " "
+                                    << float(cell->getZmin() + len - mmz) << " " << float(2.0 * mmx) << " "
+                                    << float(2.0 * mmy) << " " << float(2.0 * mmz) << " "
+                                    << float(log10(blen)) << endl;
 
                 if(vlen != 0)
-                    file_streams[1]
-                        << float(cell->getXmin() + len - vvx) << " "
-                    << float(cell->getYmin() + len - vvy) << " "
-                    << float(cell->getZmin() + len - vvz) << " "
-                    << float(2.0 * vvx) << " " << float(2.0 * vvy)
-                    << " " << float(2.0 * vvz) << " "
-                    << float(vlen) << endl;
+                    file_streams[1] << float(cell->getXmin() + len - vvx) << " "
+                                    << float(cell->getYmin() + len - vvy) << " "
+                                    << float(cell->getZmin() + len - vvz) << " " << float(2.0 * vvx) << " "
+                                    << float(2.0 * vvy) << " " << float(2.0 * vvz) << " " << float(vlen)
+                                    << endl;
 
-                //file_streams[0].flush();
-                //file_streams[1].flush();
+                // file_streams[0].flush();
+                // file_streams[1].flush();
             }
         }
     }
@@ -120,8 +115,8 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing Gnuplot point files: "
-                    << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << "-> Writing Gnuplot point files: " << ru[(unsigned int)char_counter % 4]
+                 << "           \r";
         }
 
         if(cell->getLevel() > level)
@@ -132,28 +127,28 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
             {
                 if(plt_gas_dens)
                     file_streams[1] << x << " " << y << " " << z << " "
-                        << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                    << float(log10(getGasDensity(cell))) << endl;
+                                    << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
+                                    << float(log10(getGasDensity(cell))) << endl;
 
                 if(plt_dust_dens)
                     file_streams[2] << x << " " << y << " " << z << " "
-                        << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                    << float(log10(getDustDensity(cell))) << endl;
+                                    << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
+                                    << float(log10(getDustDensity(cell))) << endl;
 
                 if(plt_gas_temp)
                     file_streams[3] << x << " " << y << " " << z << " "
-                        << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                    << float(log10(getGasTemperature(cell))) << endl;
+                                    << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
+                                    << float(log10(getGasTemperature(cell))) << endl;
 
                 if(plt_dust_temp)
                     file_streams[4] << x << " " << y << " " << z << " "
-                        << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                    << float(log10(getDustTemperature(cell))) << endl;
+                                    << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
+                                    << float(log10(getDustTemperature(cell))) << endl;
 
                 if(plt_rat)
                     file_streams[5] << x << " " << y << " " << z << " "
-                        << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                    << getAlignedRadius(cell) << endl;
+                                    << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
+                                    << getAlignedRadius(cell) << endl;
 
                 /*if(plt_delta)
                 {
@@ -176,7 +171,8 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
                         double Tg = getGasTemperature(cell);
                         double dens = getGasDensity(cell);
 
-                        double a_limit = CMathFunctions::calc_eff_limit(field, Td, Tg, dens, 0.5);
+                        double a_limit = CMathFunctions::calc_eff_limit(field, Td, Tg,
+                dens, 0.5);
 
                         file_streams[7] << x << " " << y << " " << z << " "
                                 << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
@@ -187,7 +183,8 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
                 {
                         Vector3D vel_field = getVelocityField(cell);
                         double gas_temp = getGasTemperature(cell);
-                        double mach = CMathFunctions::calc_mach(vel_field.length(), gas_temp, mu);
+                        double mach = CMathFunctions::calc_mach(vel_field.length(),
+                gas_temp, mu);
 
                         file_streams[8] << x << " " << y << " " << z << " "
                                 << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
@@ -218,67 +215,61 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Writing Gnuplot grid file: " << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << " -> Writing Gnuplot grid file: " << ru[(unsigned int)char_counter % 4]
+                 << "           \r";
         }
 
         stringstream buffer;
         buffer.str("");
 
-        //center lines
+        // center lines
         if(cell->getLevel() != max_level && cell->getLevel() > 1)
         {
-            buffer << xm << " " << ym + len_min << " " << zm + len_min << " "
-                    << len_max << " " << 0 << " " << 0 << endl;
+            buffer << xm << " " << ym + len_min << " " << zm + len_min << " " << len_max << " " << 0 << " "
+                   << 0 << endl;
 
-            buffer << xm + len_min << " " << ym + len_min << " " << zm << " "
-                    << 0 << " " << 0 << " " << len_max << endl;
+            buffer << xm + len_min << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " "
+                   << len_max << endl;
 
-            buffer << xm + len_min << " " << ym << " " << zm + len_min << " "
-                    << 0 << " " << len_max << " " << 0 << endl;
+            buffer << xm + len_min << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " "
+                   << 0 << endl;
         }
 
-        //front face
-        buffer << xm + len_min << " " << ym << " " << zm << " "
-                << 0 << " " << len_max << " " << 0 << endl;
+        // front face
+        buffer << xm + len_min << " " << ym << " " << zm << " " << 0 << " " << len_max << " " << 0 << endl;
 
-        buffer << xm << " " << ym + len_min << " " << zm << " "
-                << len_max << " " << 0 << " " << 0 << endl;
+        buffer << xm << " " << ym + len_min << " " << zm << " " << len_max << " " << 0 << " " << 0 << endl;
 
-        //back face
-        buffer << xm + len_min << " " << ym << " " << zm + len_max << " "
-                << 0 << " " << len_max << " " << 0 << endl;
+        // back face
+        buffer << xm + len_min << " " << ym << " " << zm + len_max << " " << 0 << " " << len_max << " " << 0
+               << endl;
 
-        buffer << xm << " " << ym + len_min << " " << zm + len_max << " "
-                << len_max << " " << 0 << " " << 0 << endl;
+        buffer << xm << " " << ym + len_min << " " << zm + len_max << " " << len_max << " " << 0 << " " << 0
+               << endl;
 
+        // left face
+        buffer << xm << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " " << 0 << endl;
 
-        //left face
-        buffer << xm << " " << ym << " " << zm + len_min << " "
-                << 0 << " " << len_max << " " << 0 << endl;
+        buffer << xm << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " " << len_max << endl;
 
-        buffer << xm << " " << ym + len_min << " " << zm << " "
-                << 0 << " " << 0 << " " << len_max << endl;
+        // right face
+        buffer << xm + len_max << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " " << 0
+               << endl;
 
-        //right face
-        buffer << xm + len_max << " " << ym << " " << zm + len_min << " "
-                << 0 << " " << len_max << " " << 0 << endl;
+        buffer << xm + len_max << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " " << len_max
+               << endl;
 
-        buffer << xm + len_max << " " << ym + len_min << " " << zm << " "
-                << 0 << " " << 0 << " " << len_max << endl;
+        // bottom face
+        buffer << xm + len_min << " " << ym << " " << zm << " " << 0 << " " << 0 << " " << len_max << endl;
 
-        //bottom face
-        buffer << xm + len_min << " " << ym << " " << zm << " "
-                << 0 << " " << 0 << " " << len_max << endl;
+        buffer << xm << " " << ym << " " << zm + len_min << " " << len_max << " " << 0 << " " << 0 << endl;
 
-        buffer << xm << " " << ym << " " << zm + len_min << " "
-                << len_max << " " << 0 << " " << 0 << endl;
+        // top face
+        buffer << xm + len_min << " " << ym + len_max << " " << zm << " " << 0 << " " << 0 << " " << len_max
+               << endl;
 
-        //top face
-        buffer << xm + len_min << " " << ym + len_max << " " << zm << " "
-                << 0 << " " << 0 << " " << len_max << endl;
-
-        buffer << xm << " " << ym + len_max << " " << zm + len_min << " "
-                << len_max << " " << 0 << " " << 0 << endl;
+        buffer << xm << " " << ym + len_max << " " << zm + len_min << " " << len_max << " " << 0 << " " << 0
+               << endl;
 
         grid_streams[0] << buffer.str();
     }
@@ -313,7 +304,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
     if(line_counter % 1000 == 0)
     {
         char_counter++;
-        cout << "-> reducing tree: " << ru[(unsigned int) char_counter % 4] << "           \r";
+        cout << "-> reducing tree: " << ru[(unsigned int)char_counter % 4] << "           \r";
     }
 
     if(cell->getChildren() == 0)
@@ -417,11 +408,11 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     char_counter = 0;
     cube_pos = -1;
 
-    bin_reader.read((char*) &tmpID, 2);
-    bin_reader.read((char*) &tmpOffset, 2);
+    bin_reader.read((char *)&tmpID, 2);
+    bin_reader.read((char *)&tmpOffset, 2);
 
     dataID = tmpID;
-    data_offset = (uint) tmpOffset;
+    data_offset = (uint)tmpOffset;
     data_len = _data_len + data_offset;
 
     data_ids.resize(data_offset);
@@ -434,14 +425,14 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         double min_len;
         double max_len;
 
-        bin_reader.read((char*) &min_len, 8);
-        bin_reader.read((char*) &max_len, 8);
+        bin_reader.read((char *)&min_len, 8);
+        bin_reader.read((char *)&max_len, 8);
 
-        bin_reader.read((char*) &min_len, 8);
-        bin_reader.read((char*) &max_len, 8);
+        bin_reader.read((char *)&min_len, 8);
+        bin_reader.read((char *)&max_len, 8);
 
-        bin_reader.read((char*) &min_len, 8);
-        bin_reader.read((char*) &max_len, 8);
+        bin_reader.read((char *)&min_len, 8);
+        bin_reader.read((char *)&max_len, 8);
 
         cube_length = max_len - min_len;
     }
@@ -450,14 +441,14 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = 0;
-            bin_reader.read((char*) &tmp_ids, 2);
+            bin_reader.read((char *)&tmp_ids, 2);
             data_ids[i] = tmp_ids;
         }
 
         if(!setDataPositionsVariable())
             return false;
 
-        bin_reader.read((char*) &cube_length, 8);
+        bin_reader.read((char *)&cube_length, 8);
     }
 
     uint tmp_data_offset = validateDataPositions(param);
@@ -474,7 +465,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     max_len = cube_length;
 
-    total_volume = max_len * max_len*max_len;
+    total_volume = max_len * max_len * max_len;
 
     cell_oc_root->setXmin(-0.5 * max_len);
     cell_oc_root->setYmin(-0.5 * max_len);
@@ -490,45 +481,45 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
         if(line_counter % 5000 == 0)
         {
             char_counter++;
-            cout << "-> Loading octree grid file: "
-                    << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << "-> Loading octree grid file: " << ru[(unsigned int)char_counter % 4] << "           \r";
         }
 
-        bin_reader.read((char*) &isleaf, 2);
-        bin_reader.read((char*) &level, 2);
+        bin_reader.read((char *)&isleaf, 2);
+        bin_reader.read((char *)&level, 2);
 
         if(isleaf == 1)
         {
             cube_pos++;
 
             cell_oc_pos->getChildren()[cube_pos].resize(data_len + tmp_data_offset);
-            cell_oc_pos->getChildren()[cube_pos].setLevel((uchar) level);
+            cell_oc_pos->getChildren()[cube_pos].setLevel((uchar)level);
             cell_oc_pos->getChildren()[cube_pos].setID(cube_pos);
 
             for(uint i = 0; i < data_offset; i++)
             {
-                bin_reader.read((char*) &tmp_data, 4);
+                bin_reader.read((char *)&tmp_data, 4);
                 cell_oc_pos->getChildren()[cube_pos].setData(i, tmp_data);
             }
 
             updateVelocity(cell_oc_pos, param);
 
             if(uint(cell_oc_pos->getData(data_pos_id)) < 0 ||
-                uint(cell_oc_pos->getData(data_pos_id)) > param.getMaxDustComponentChoice())
+               uint(cell_oc_pos->getData(data_pos_id)) > param.getMaxDustComponentChoice())
             {
-                cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices available! " << endl;
+                cout << "\nERROR: Dust ID in grid exceeds maximum number of dust choices "
+                        "available! "
+                     << endl;
                 return false;
             }
 
-            //assignOpiateID(&cell_oc_pos->getChildren()[cube_pos]);
+            // assignOpiateID(&cell_oc_pos->getChildren()[cube_pos]);
             updateDataRange(&cell_oc_pos->getChildren()[cube_pos]);
 
             if(cube_pos > 7)
             {
                 cout << "Error in octree grid file:" << endl;
                 cout << filename;
-                cout << "Data set nr.: " << line_counter << " level: " << level
-                        << " cell: " << cube_pos + 1;
+                cout << "Data set nr.: " << line_counter << " level: " << level << " cell: " << cube_pos + 1;
                 cout << "\nMore then 8 low level boxes!";
                 return false;
             }
@@ -537,8 +528,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
             {
                 cout << "Error in octree grid file:" << endl;
                 cout << filename;
-                cout << "Data set nr.: " << line_counter << " level: " << level
-                        << " cell: " << cube_pos + 1;
+                cout << "Data set nr.: " << line_counter << " level: " << level << " cell: " << cube_pos + 1;
                 cout << "\nWrong number of low level boxes!";
                 return false;
             }
@@ -572,8 +562,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
                         cell_oc_pos = cell_oc_pos->getParent();
 
-                    }
-                    while(cube_pos == 7);
+                    } while(cube_pos == 7);
                 }
 
                 if(is_closed == true)
@@ -599,8 +588,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
                 createBoundingCell();
 
-                cell_oc_pos->setLevel((uchar) level);
-                cell_oc_pos->setID((uint) cube_pos);
+                cell_oc_pos->setLevel((uchar)level);
+                cell_oc_pos->setID((uint)cube_pos);
                 cube_pos = -1;
             }
             else
@@ -608,12 +597,12 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
                 cell_oc_pos->setChildren(new cell_oc[8]);
 
                 createBoundingCell();
-                cell_oc_pos->setLevel((uchar) level);
+                cell_oc_pos->setLevel((uchar)level);
             }
         }
     }
 
-    //delete[] data;
+    // delete[] data;
     bin_reader.close();
 
     if(max_cells == 0)
@@ -626,8 +615,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     data_offset += tmp_data_offset;
     data_len += tmp_data_offset;
 
-    //cout << CLR_LINE;
-    //cout << "- Loading octree grid file             : done" << endl;
+    // cout << CLR_LINE;
+    // cout << "- Loading octree grid file             : done" << endl;
 
     return true;
 }
@@ -673,13 +662,13 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (data_pos_gd_list.size() > 0); // 1
-    plt_dust_dens = false; //param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
+    plt_dust_dens = false;                    // param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT); // 3
-    plt_dust_temp = (!data_pos_dt_list.empty()); // 4
-    plt_rat = (data_pos_aalg != MAX_UINT); // 5
-    plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);// && (data_pos_td != MAX_UINT); // 6
-    plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);// && (data_pos_td != MAX_UINT); // 7
-    plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT); // 8
+    plt_dust_temp = (!data_pos_dt_list.empty());                        // 4
+    plt_rat = (data_pos_aalg != MAX_UINT);                              // 5
+    plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
+    plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);  // && (data_pos_td != MAX_UINT); // 7
+    plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8
 
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
@@ -768,8 +757,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[3].fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << temp_gas_filename << endl;
             return false;
         }
     }
@@ -780,8 +768,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
         if(point_fields[4].fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << temp_dust_filename << endl;
             return false;
         }
     }
@@ -863,109 +850,83 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
     basic_grid_l0.str("");
 
-    basic_grid_l0 << xm << " " << ym << " " << zm << " "
-            << len_max << " " << 0 << " " << 0 << endl;
-    basic_grid_l0 << xm << " " << ym << " " << zm << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-    basic_grid_l0 << xm << " " << ym << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
+    basic_grid_l0 << xm << " " << ym << " " << zm << " " << len_max << " " << 0 << " " << 0 << endl;
+    basic_grid_l0 << xm << " " << ym << " " << zm << " " << 0 << " " << len_max << " " << 0 << endl;
+    basic_grid_l0 << xm << " " << ym << " " << zm << " " << 0 << " " << 0 << " " << len_max << endl;
 
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " "
-            << -len_max << " " << 0 << " " << 0 << endl;
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " "
-            << 0 << " " << -len_max << " " << 0 << endl;
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " "
-            << 0 << " " << 0 << " " << -len_max << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " " << -len_max << " " << 0
+                  << " " << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " " << 0 << " " << -len_max
+                  << " " << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm + len_max << " " << 0 << " " << 0 << " "
+                  << -len_max << endl;
 
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " " << -len_max << " " << 0 << " "
+                  << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " " << 0 << " " << -len_max << " "
+                  << 0 << endl;
 
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " "
-            << -len_max << " " << 0 << " " << 0 << endl;
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " "
-            << 0 << " " << -len_max << " " << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " " << -len_max << " " << 0 << " "
+                  << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " " << 0 << " " << -len_max << " "
+                  << 0 << endl;
 
+    basic_grid_l0 << xm << " " << ym + len_max << " " << zm + len_max << " " << 0 << " " << -len_max << " "
+                  << 0 << endl;
+    basic_grid_l0 << xm << " " << ym + len_max << " " << zm + len_max << " " << 0 << " " << 0 << " "
+                  << -len_max << endl;
 
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " "
-            << -len_max << " " << 0 << " " << 0 << endl;
-    basic_grid_l0 << xm + len_max << " " << ym + len_max << " " << zm << " "
-            << 0 << " " << -len_max << " " << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym << " " << zm + len_max << " " << -len_max << " " << 0 << " "
+                  << 0 << endl;
+    basic_grid_l0 << xm + len_max << " " << ym << " " << zm + len_max << " " << 0 << " " << 0 << " "
+                  << -len_max << endl;
 
+    // center lines
 
-    basic_grid_l0 << xm << " " << ym + len_max << " " << zm + len_max << " "
-            << 0 << " " << -len_max << " " << 0 << endl;
-    basic_grid_l0 << xm << " " << ym + len_max << " " << zm + len_max << " "
-            << 0 << " " << 0 << " " << -len_max << endl;
+    basic_grid_l1 << xm << " " << ym + len_min << " " << zm + len_min << " " << len_max << " " << 0 << " "
+                  << 0 << endl;
 
+    basic_grid_l1 << xm + len_min << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " "
+                  << len_max << endl;
 
-    basic_grid_l0 << xm + len_max << " " << ym << " " << zm + len_max << " "
-            << -len_max << " " << 0 << " " << 0 << endl;
-    basic_grid_l0 << xm + len_max << " " << ym << " " << zm + len_max << " "
-            << 0 << " " << 0 << " " << -len_max << endl;
+    basic_grid_l1 << xm + len_min << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " "
+                  << 0 << endl;
 
+    // front face
+    basic_grid_l1 << xm + len_min << " " << ym << " " << zm << " " << 0 << " " << len_max << " " << 0 << endl;
 
+    basic_grid_l1 << xm << " " << ym + len_min << " " << zm << " " << len_max << " " << 0 << " " << 0 << endl;
 
+    // back face
+    basic_grid_l1 << xm + len_min << " " << ym << " " << zm + len_max << " " << 0 << " " << len_max << " "
+                  << 0 << endl;
 
+    basic_grid_l1 << xm << " " << ym + len_min << " " << zm + len_max << " " << len_max << " " << 0 << " "
+                  << 0 << endl;
 
+    // left face
+    basic_grid_l1 << xm << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " " << 0 << endl;
 
+    basic_grid_l1 << xm << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " " << len_max << endl;
 
+    // right face
+    basic_grid_l1 << xm + len_max << " " << ym << " " << zm + len_min << " " << 0 << " " << len_max << " "
+                  << 0 << endl;
 
+    basic_grid_l1 << xm + len_max << " " << ym + len_min << " " << zm << " " << 0 << " " << 0 << " "
+                  << len_max << endl;
 
+    // bottom face
+    basic_grid_l1 << xm + len_min << " " << ym << " " << zm << " " << 0 << " " << 0 << " " << len_max << endl;
 
+    basic_grid_l1 << xm << " " << ym << " " << zm + len_min << " " << len_max << " " << 0 << " " << 0 << endl;
 
+    // top face
+    basic_grid_l1 << xm + len_min << " " << ym + len_max << " " << zm << " " << 0 << " " << 0 << " "
+                  << len_max << endl;
 
-    //center lines
-
-    basic_grid_l1 << xm << " " << ym + len_min << " " << zm + len_min << " "
-            << len_max << " " << 0 << " " << 0 << endl;
-
-    basic_grid_l1 << xm + len_min << " " << ym + len_min << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
-
-    basic_grid_l1 << xm + len_min << " " << ym << " " << zm + len_min << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-
-
-    //front face
-    basic_grid_l1 << xm + len_min << " " << ym << " " << zm << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-
-    basic_grid_l1 << xm << " " << ym + len_min << " " << zm << " "
-            << len_max << " " << 0 << " " << 0 << endl;
-
-    //back face
-    basic_grid_l1 << xm + len_min << " " << ym << " " << zm + len_max << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-
-    basic_grid_l1 << xm << " " << ym + len_min << " " << zm + len_max << " "
-            << len_max << " " << 0 << " " << 0 << endl;
-
-
-    //left face
-    basic_grid_l1 << xm << " " << ym << " " << zm + len_min << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-
-    basic_grid_l1 << xm << " " << ym + len_min << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
-
-    //right face
-    basic_grid_l1 << xm + len_max << " " << ym << " " << zm + len_min << " "
-            << 0 << " " << len_max << " " << 0 << endl;
-
-    basic_grid_l1 << xm + len_max << " " << ym + len_min << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
-
-    //bottom face
-    basic_grid_l1 << xm + len_min << " " << ym << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
-
-    basic_grid_l1 << xm << " " << ym << " " << zm + len_min << " "
-            << len_max << " " << 0 << " " << 0 << endl;
-
-    //top face
-    basic_grid_l1 << xm + len_min << " " << ym + len_max << " " << zm << " "
-            << 0 << " " << 0 << " " << len_max << endl;
-
-    basic_grid_l1 << xm << " " << ym + len_max << " " << zm + len_min << " "
-            << len_max << " " << 0 << " " << 0 << endl;
+    basic_grid_l1 << xm << " " << ym + len_max << " " << zm + len_min << " " << len_max << " " << 0 << " "
+                  << 0 << endl;
 
     cout << CLR_LINE;
 
@@ -981,12 +942,12 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     point_header << "set ylabel \'y[m]\'" << endl;
     point_header << "set zlabel \'z[m]\'" << endl;
 
-    point_header << "set xrange[" << 1.01 * cell_oc_root->getXmin() << ":"
-            << 1.01 * cell_oc_root->getXmax() << "]" << endl;
-    point_header << "set yrange[" << 1.01 * cell_oc_root->getYmin() << ":"
-            << 1.01 * cell_oc_root->getYmax() << "]" << endl;
-    point_header << "set zrange[" << 1.01 * cell_oc_root->getZmin() << ":"
-            << 1.01 * cell_oc_root->getZmax() << "]" << endl;
+    point_header << "set xrange[" << 1.01 * cell_oc_root->getXmin() << ":" << 1.01 * cell_oc_root->getXmax()
+                 << "]" << endl;
+    point_header << "set yrange[" << 1.01 * cell_oc_root->getYmin() << ":" << 1.01 * cell_oc_root->getYmax()
+                 << "]" << endl;
+    point_header << "set zrange[" << 1.01 * cell_oc_root->getZmin() << ":" << 1.01 * cell_oc_root->getZmax()
+                 << "]" << endl;
 
     point_header << "set style arrow 1 nohead ls 1 lw 1 lc rgb 0x0000cc" << endl;
     point_header << "set style arrow 2 nohead ls 1 lw 1 lc rgb 0xaa0000" << endl;
@@ -995,17 +956,16 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     point_header << "set grid" << endl;
     point_header << "set nokey" << endl;
 
-    //0 octre grid
+    // 0 octre grid
     point_fields[0] << point_header.str();
     point_fields[0] << "set title \'3D octree grid geometry\' font \'Arial,12\'" << endl;
     point_fields[0] << "set style arrow 3 nohead ls 1 lw 0.5 lc rgb 0x550066" << endl;
     point_fields[0] << "splot '-' with vectors as 3,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-
-    //1 gas density
+    // 1 gas density
     point_fields[1] << point_header.str();
     point_fields[1] << "set title \'3D gas number density distribution (min: " << min_gas_dens
-            << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_gas_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[1] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[1] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1, 3 1 1 0)" << endl;
 
@@ -1018,17 +978,15 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_dens / max_gas_dens > 0.9)
         min_gas_dens = 0.9 * max_gas_dens;
 
-    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":"
-            << log10(max_gas_dens) << "]" << endl;
+    point_fields[1] << "set cbrange[" << log10(min_gas_dens) << ":" << log10(max_gas_dens) << "]" << endl;
     point_fields[1] << "set format cb \'%.02g\'" << endl;
 
     point_fields[1] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-
-    //2 dust density
+    // 2 dust density
     point_fields[2] << point_header.str();
     point_fields[2] << "set title \'3D dust number density distribution (min: " << min_dust_dens
-            << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
+                    << "[m^-3]; max: " << max_dust_dens << "[m^-3])\' font \'Arial,12\'" << endl;
     point_fields[2] << "set cblabel \'gas density[m^-3]\'" << endl;
     point_fields[2] << "set palette defined (0 0.5 0 0, 1 0 0 1, 2 0 1 1)" << endl;
 
@@ -1041,19 +999,17 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_dens / max_dust_dens > 0.9)
         min_dust_dens = 0.9 * max_dust_dens;
 
-    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":"
-            << log10(max_dust_dens) << "]" << endl;
+    point_fields[2] << "set cbrange[" << log10(min_dust_dens) << ":" << log10(max_dust_dens) << "]" << endl;
     point_fields[2] << "set format cb \'%.02g\'" << endl;
 
     point_fields[2] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //3 gas_temp
+    // 3 gas_temp
     point_fields[3] << point_header.str();
     point_fields[3] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[3] << "set title \'3D gas temperature distribution (min: "
-            << min_gas_temp << "[K]; max: " << max_gas_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[3] << "set title \'3D gas temperature distribution (min: " << min_gas_temp
+                    << "[K]; max: " << max_gas_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[3] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_gas_temp == 0 && max_gas_temp == 0)
@@ -1065,20 +1021,17 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     if(min_gas_temp / max_gas_temp > 0.90)
         min_gas_temp = 0.9 * max_gas_temp;
 
-    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":"
-            << float(max_gas_temp) << "]" << endl;
+    point_fields[3] << "set cbrange[" << float(min_gas_temp) << ":" << float(max_gas_temp) << "]" << endl;
     point_fields[3] << "set format cb \'%.03g\'" << endl;
 
     point_fields[3] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //4 dust temp
+    // 4 dust temp
     point_fields[4] << point_header.str();
-    point_fields[4]
-            << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
+    point_fields[4] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[4] << "set title \'3D dust temperature distribution (min: "
-            << min_dust_temp << "[K]; max: " << max_dust_temp
-            << "[K])\' font \'Arial,12\'" << endl;
+    point_fields[4] << "set title \'3D dust temperature distribution (min: " << min_dust_temp
+                    << "[K]; max: " << max_dust_temp << "[K])\' font \'Arial,12\'" << endl;
     point_fields[4] << "set cblabel \'temperature [K]\'" << endl;
 
     if(min_dust_temp == 0 && max_dust_temp == 0)
@@ -1090,20 +1043,17 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     if(min_dust_temp / max_dust_temp > 0.9)
         min_dust_temp = 0.9 * max_dust_temp;
 
-    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":"
-            << float(max_dust_temp) << "]" << endl;
+    point_fields[4] << "set cbrange[" << float(min_dust_temp) << ":" << float(max_dust_temp) << "]" << endl;
     point_fields[4] << "set format cb \'%.03g\'" << endl;
 
     point_fields[4] << "splot  '-' w p ls 1,'-' with vectors as 2,'-' with vectors as 1" << endl;
 
-    //5 rat
+    // 5 rat
     point_fields[5] << point_header.str();
     point_fields[5] << "set palette defined (0 0.05 0 0, 0.4 1 0 0, 0.7 1 1 0, 1 1 1 0.5)" << endl;
 
-    point_fields[5] << "set title \'3D aligned radii distribution (min ID: "
-            << aalg_min << "; max ID: " << aalg_max
-            << ")\' font \'Arial,12\'" << endl;
-
+    point_fields[5] << "set title \'3D aligned radii distribution (min ID: " << aalg_min
+                    << "; max ID: " << aalg_max << ")\' font \'Arial,12\'" << endl;
 
     point_fields[5] << "set cblabel \'aligned radius ID\'" << endl;
 
@@ -1128,12 +1078,12 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     vec_header << "set ylabel \'y\'" << endl;
     vec_header << "set zlabel \'z\'" << endl;
 
-    vec_header << "set xrange[" << 1.01 * cell_oc_root->getXmin() << ":"
-            << 1.01 * cell_oc_root->getXmax() << "]" << endl;
-    vec_header << "set yrange[" << 1.01 * cell_oc_root->getYmin() << ":"
-            << 1.01 * cell_oc_root->getYmax() << "]" << endl;
-    vec_header << "set zrange[" << 1.01 * cell_oc_root->getZmin() << ":"
-            << 1.01 * cell_oc_root->getZmax() << "]" << endl;
+    vec_header << "set xrange[" << 1.01 * cell_oc_root->getXmin() << ":" << 1.01 * cell_oc_root->getXmax()
+               << "]" << endl;
+    vec_header << "set yrange[" << 1.01 * cell_oc_root->getYmin() << ":" << 1.01 * cell_oc_root->getYmax()
+               << "]" << endl;
+    vec_header << "set zrange[" << 1.01 * cell_oc_root->getZmin() << ":" << 1.01 * cell_oc_root->getZmax()
+               << "]" << endl;
 
     vec_header << "set style arrow 1 nohead ls 1 lw 1 lc rgb 0x0000cc" << endl;
     vec_header << "set style arrow 2 nohead ls 1 lw 1 lc rgb 0xbb00cc" << endl;
@@ -1142,7 +1092,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     vec_header << "set grid" << endl;
     vec_header << "set nokey" << endl;
 
-    //0 mag
+    // 0 mag
     vec_fields[0] << vec_header.str();
     vec_fields[0] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -1152,17 +1102,19 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         max_mag = 2e-45;
     }
 
-    vec_fields[0]
-            << "set title \'3D mag. field distribution (min:" << log10(min_mag) << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
+    vec_fields[0] << "set title \'3D mag. field distribution (min:" << log10(min_mag)
+                  << " log10([T]); max:" << log10(max_mag) << " log10([T])  \' font \'Arial,12\'" << endl;
 
     if(min_mag / max_mag > 0.9)
         min_mag = 0.9 * max_mag;
 
     vec_fields[0] << "set cbrange[" << log10(min_mag) << ":" << log10(max_mag) << "]" << endl;
     vec_fields[0] << "set format cb \'%.02g\'" << endl;
-    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[0] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
-    //1 vel
+    // 1 vel
     vec_fields[1] << vec_header.str();
     vec_fields[1] << "set palette defined (0 1 0 0, 0.5 0.0 0.9 0,  0.75 0.0 0.9 1, 0.9 0 0.1 0.9)" << endl;
 
@@ -1172,15 +1124,17 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         max_vel = 1e-45;
     }
 
-    vec_fields[1]
-            << "set title \'3D vel. field directions (min:" << log10(min_vel) << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
+    vec_fields[1] << "set title \'3D vel. field directions (min:" << log10(min_vel)
+                  << " log10(m/s); max:" << log10(max_vel) << " log10(m/s)\' font \'Arial,12\'" << endl;
 
     if(min_vel / max_vel > 0.9)
         min_vel = 0.9 * max_vel;
 
     vec_fields[1] << "set cbrange[" << float(log10(min_vel)) << ":" << float(log10(max_vel)) << "]" << endl;
     vec_fields[1] << "set format cb \'%.03g\'" << endl;
-    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' with vectors as 1" << endl;
+    vec_fields[1] << "splot  \'-\' with vectors as 3, \'-\' with vectors as 2, \'-\' "
+                     "with vectors as 1"
+                  << endl;
 
     line_counter = 0;
     rec_counter = 0;
@@ -1196,15 +1150,16 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
 
     for(uint pos = 0; pos < 7; pos++)
     {
-        point_fields[pos]
-                << "\n e \n" << basic_grid_l1.str()
-                << "\n e \n" << basic_grid_l0.str() << "\n e" << endl;
+        point_fields[pos] << "\n e \n"
+                          << basic_grid_l1.str() << "\n e \n"
+                          << basic_grid_l0.str() << "\n e" << endl;
     }
 
     for(uint pos = 0; pos < 2; pos++)
     {
-        vec_fields[pos] << "\n e \n" << basic_grid_l1.str()
-                << "\n e \n" << basic_grid_l0.str() << "\n e" << endl;
+        vec_fields[pos] << "\n e \n"
+                        << basic_grid_l1.str() << "\n e \n"
+                        << basic_grid_l0.str() << "\n e" << endl;
     }
 
     for(uint pos = 0; pos < 8; pos++)
@@ -1260,15 +1215,15 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
     x_min = y_min = z_min = cell_oc_root->getXmin();
     cube_length = cell_oc_root->getLength();
 
-    bin_writer.write((char*) &id, 2);
-    bin_writer.write((char*) &data_size, 2);
+    bin_writer.write((char *)&id, 2);
+    bin_writer.write((char *)&data_size, 2);
 
     if(dataID == GRID_ID_OCT)
     {
         for(uint i = 0; i < data_offset; i++)
         {
             ushort tmp_ids = data_ids[i];
-            bin_writer.write((char*) &tmp_ids, 2);
+            bin_writer.write((char *)&tmp_ids, 2);
         }
     }
     else
@@ -1279,7 +1234,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
         return false;
     }
 
-    bin_writer.write((char*) &cube_length, 8);
+    bin_writer.write((char *)&cube_length, 8);
 
     nextBinaryDataCell(bin_writer, cell_oc_root, data_size);
 
@@ -1301,29 +1256,29 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing binary octree grid file: "
-                    << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
+            cout << "-> Writing binary octree grid file: " << ru[(unsigned int)char_counter % 4]
+                 << "           \r" << flush;
         }
 
-        isleaf = (ushort) 1;
-        level = (ushort) cell->getLevel();
+        isleaf = (ushort)1;
+        level = (ushort)cell->getLevel();
 
-        file_stream.write((char*) &isleaf, 2);
-        file_stream.write((char*) &level, 2);
+        file_stream.write((char *)&isleaf, 2);
+        file_stream.write((char *)&level, 2);
 
         for(uint pos = 0; pos < data_size; pos++)
         {
-            data = (float) cell->getData(pos);
-            file_stream.write((char*) &data, 4);
+            data = (float)cell->getData(pos);
+            file_stream.write((char *)&data, 4);
         }
     }
     else
     {
-        isleaf = (ushort) 0;
-        level = (ushort) cell->getLevel();
+        isleaf = (ushort)0;
+        level = (ushort)cell->getLevel();
 
-        file_stream.write((char*) &isleaf, 2);
-        file_stream.write((char*) &level, 2);
+        file_stream.write((char *)&isleaf, 2);
+        file_stream.write((char *)&level, 2);
 
         for(int i = 0; i < 8; i++)
             nextBinaryDataCell(file_stream, &cell->getChildren()[i], data_size);
@@ -1338,9 +1293,11 @@ void CGridOcTree::printParameters()
     {
         ulong tmp_cells = ulong(pow(double(8), double(max_level)));
         cout << CLR_LINE;
-        cout << "OcTree parameters (ID: " << getDataID() << "; data len.: " << getDataOffset() << "; level: " << max_level << ")" << endl;
+        cout << "OcTree parameters (ID: " << getDataID() << "; data len.: " << getDataOffset()
+             << "; level: " << max_level << ")" << endl;
         cout << SEP_LINE;
-        cout << "- Number of OcTree cells        : " << max_cells << "(data), " << tmp_cells << " (max)" << endl;
+        cout << "- Number of OcTree cells        : " << max_cells << "(data), " << tmp_cells << " (max)"
+             << endl;
 
         printPhysicalParameters();
         cout << SEP_LINE;
@@ -1420,8 +1377,7 @@ void CGridOcTree::createNextLevel(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " - Creating artificial tree: "
-                    << ru[(unsigned int) char_counter % 4] << "           \r";
+            cout << " - Creating artificial tree: " << ru[(unsigned int)char_counter % 4] << "           \r";
         }
 
         cell->resize(max_data);
@@ -1534,7 +1490,6 @@ void CGridOcTree::createBoundingCell()
 
     cell_oc_pos->getChildren()[0].setLength(length);
 
-
     cell_oc_pos->getChildren()[1].setParent(cell_oc_pos);
     cell_oc_pos->getChildren()[1].setXmin(ox + length);
     cell_oc_pos->getChildren()[1].setYmin(oy);
@@ -1596,7 +1551,7 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
     bool hit = false;
 
     double path_length = 0;
-    cell_oc * tmp_cell_pos = (cell_oc*) pp->getPositionCell();
+    cell_oc * tmp_cell_pos = (cell_oc *)pp->getPositionCell();
 
     tmp_pos_xyz = pp->getPosition();
     tmp_dir_xyz = pp->getDirection();
@@ -1689,7 +1644,7 @@ bool CGridOcTree::updateShortestDistance(photon_package * pp)
     double loc_x_min, loc_x_max, loc_y_min, loc_y_max, loc_z_min, loc_z_max;
     bool found = false;
 
-    cell_oc * tmp_cell_pos = (cell_oc*) pp->getPositionCell();
+    cell_oc * tmp_cell_pos = (cell_oc *)pp->getPositionCell();
 
     tmp_pos = pp->getPosition();
 
@@ -1834,8 +1789,7 @@ bool CGridOcTree::nextLowLevelCell()
                 return false;
 
             cube_pos = cell_oc_pos->getID();
-        }
-        while(cube_pos == 7);
+        } while(cube_pos == 7);
 
         if(cell_oc_pos == 0)
             return false;
@@ -1846,7 +1800,7 @@ bool CGridOcTree::nextLowLevelCell()
         cube_pos = cell_oc_pos->getID() + 1;
     }
 
-#pragma warning(suppress: 6011)
+#pragma warning(suppress : 6011)
     cell_oc_pos = &cell_oc_pos->getParent()->getChildren()[cube_pos];
 
     if(cell_oc_pos->getChildren() != 0)
@@ -1860,7 +1814,7 @@ bool CGridOcTree::nextLowLevelCell()
 bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
 {
     uint cube_pos;
-    cell_oc * extern_cell = (cell_oc*) cell;
+    cell_oc * extern_cell = (cell_oc *)cell;
 
     if(extern_cell == 0)
     {
@@ -1894,8 +1848,7 @@ bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
                 return false;
 
             cube_pos = extern_cell->getID();
-        }
-        while(cube_pos == 7);
+        } while(cube_pos == 7);
 
         if(extern_cell == 0)
             return false;
@@ -1906,7 +1859,7 @@ bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
         cube_pos = extern_cell->getID() + 1;
     }
 
-#pragma warning(suppress: 6011)
+#pragma warning(suppress : 6011)
     extern_cell = &extern_cell->getParent()->getChildren()[cube_pos];
 
     if(extern_cell->getChildren() != 0)
@@ -1951,11 +1904,10 @@ void CGridOcTree::clear(cell_oc * cell)
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Final cleanup: "
-                    << ru[(unsigned int) char_counter % 4] << "              \r";
+            cout << " -> Final cleanup: " << ru[(unsigned int)char_counter % 4] << "              \r";
         }
-        
-//#pragma omp parallel for schedule(dynamic)
+
+        //#pragma omp parallel for schedule(dynamic)
         for(unsigned int i = 0; i < 8; i++)
             clear(&cell->getChildren()[i]);
 
@@ -1966,16 +1918,21 @@ void CGridOcTree::clear(cell_oc * cell)
     CGridOcTree();
 }
 
-bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
-        double _length, string str_dens, string str_temp,
-        string str_magx, string str_magy, string str_magz)
+bool CGridOcTree::initiateTreeFromFile(uint _nx,
+                                       uint _max_level,
+                                       double _fa,
+                                       double _length,
+                                       string str_dens,
+                                       string str_temp,
+                                       string str_magx,
+                                       string str_magy,
+                                       string str_magz)
 {
     ifstream reader_dens(str_dens.c_str());
     ifstream reader_temp(str_temp.c_str());
     ifstream reader_magx(str_magx.c_str());
     ifstream reader_magy(str_magy.c_str());
     ifstream reader_magz(str_magz.c_str());
-
 
     double dens, temp, magx, magy, magz;
 
@@ -1985,7 +1942,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
 
     nx = _nx;
     factor = _fa;
-
 
     dataID = GRID_ID_OCT;
     data_offset = 9;
@@ -2012,7 +1968,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
     data_ids[6] = GRIDvx;
     data_ids[7] = GRIDvy;
     data_ids[8] = GRIDvz;
-
 
     if(reader_dens.fail())
     {
@@ -2050,7 +2005,7 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
     max_len = _length;
     min_len = max_len / (pow(2, max_level));
 
-    max_cells = (uint) pow(double(8.0), double(max_level));
+    max_cells = (uint)pow(double(8.0), double(max_level));
 
     for(uint i = 0; i < nx; ++i)
     {
@@ -2071,26 +2026,24 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
             per_counter++;
 
             if(j % 10 == 0)
-                cout << " -> Reading input data: "
-                    << 100.0 * float(per_counter) / float(nx * nx)
-                << " [%]                \r";
+                cout << " -> Reading input data: " << 100.0 * float(per_counter) / float(nx * nx)
+                     << " [%]                \r";
 
             for(uint k = 0; k < nx; k++)
             {
-                //string line;
-                //getline(reader_dens, line);
-
+                // string line;
+                // getline(reader_dens, line);
 
                 reader_dens >> dens;
                 reader_temp >> temp;
-                reader_magx>> magx;
+                reader_magx >> magx;
                 reader_magy >> magy;
                 reader_magz >> magz;
 
-                //temp = 0;
-                //magx = 0;
-                //magy = 0;
-                //magz = 1;
+                // temp = 0;
+                // magx = 0;
+                // magy = 0;
+                // magz = 1;
 
                 datdens[i][j][k] = dens;
                 dattemp[i][j][k] = temp;
@@ -2103,7 +2056,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
 
     double xyz_min = -0.5 * max_len;
 
-
     f_min = 1e30;
     f_max = -1e30;
 
@@ -2111,33 +2063,39 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx, uint _max_level, double _fa,
     tagged_cells = 0;
     cell_oc_root = new cell_oc();
     createTree(cell_oc_root, 0, 0, 0, max_len, 0);
-    //(cell_oc * parent, double _x_min, double _y_min, double _z_min, double _length, uint _level)
+    //(cell_oc * parent, double _x_min, double _y_min, double _z_min, double _length, uint
+    //_level)
     reader_dens.close();
 
     cell_oc_root->setLength(4.7305E+19);
     cout << CLR_LINE;
     cout << "min , max 1   " << f_min << "\t" << f_max << endl;
     return true;
-}/**/
+} /**/
 
-bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, double _z_min, double _length, uint _level)
+bool CGridOcTree::createTree(cell_oc * parent,
+                             double _x_min,
+                             double _y_min,
+                             double _z_min,
+                             double _length,
+                             uint _level)
 {
-    //double dx, dy, dz,
+    // double dx, dy, dz,
     double field, delta;
     float max_cells;
 
-    //dx = (x_max - x_min) / 2.0;
-    //dy = (y_max - y_min) / 2.0;
-    //dz = (z_max - z_min) / 2.0;
+    // dx = (x_max - x_min) / 2.0;
+    // dy = (y_max - y_min) / 2.0;
+    // dz = (z_max - z_min) / 2.0;
 
-    //double qx = x_max - dx - 0.5;
-    //double qy = y_max - dy - 0.5;
-    //double qz = z_max - dy - 0.5;
+    // double qx = x_max - dx - 0.5;
+    // double qy = y_max - dy - 0.5;
+    // double qz = z_max - dy - 0.5;
 
-    //double len = sqrt(qx * qx + qy * qy + qz * qz);
+    // double len = sqrt(qx * qx + qy * qy + qz * qz);
 
-    //if(len>0.9)
-    //cout << len << endl;
+    // if(len>0.9)
+    // cout << len << endl;
 
     parent->setXmin(_x_min);
     parent->setYmin(_y_min);
@@ -2145,19 +2103,19 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
     parent->setLevel(_level);
     parent->setLength(_length);
 
-    double scale_factor = 1.0; //double(nx) / (_length);
+    double scale_factor = 1.0; // double(nx) / (_length);
 
     double px, py, pz;
     double dens, gas_temp, dust_temp, mx, my, mz, vx, vy, vz;
     int p_x, p_y, p_z;
 
-    //calcMeanValue(parent);
-    max_cells = (float) pow(8.0, max_level);
+    // calcMeanValue(parent);
+    max_cells = (float)pow(8.0, max_level);
     //
     if(parent->getLevel() == max_level)
     {
         treelevel_counter++;
-        Vector3D center = getCenter((cell_basic*) parent);
+        Vector3D center = getCenter((cell_basic *)parent);
 
         px = center.X();
         py = center.Y();
@@ -2165,23 +2123,22 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
 
         if(treelevel_counter % 10000 == 0)
         {
-            cout << "Creating tree: "
-                    << float(100.0 * treelevel_counter) / max_cells
-                    << " [%]                          \r";
+            cout << "Creating tree: " << float(100.0 * treelevel_counter) / max_cells
+                 << " [%]                          \r";
         }
 
         p_x = int(px * scale_factor);
         p_y = int(py * scale_factor);
         p_z = int(pz * scale_factor);
 
-        //cout << px << "\t" << p_x << endl;
+        // cout << px << "\t" << p_x << endl;
 
-        if(p_x > (int) nx - 1)
-            p_x = (int) nx - 1;
-        if(p_y > (int) nx - 1)
-            p_y = (int) nx - 1;
-        if(p_z > (int) nx - 1)
-            p_z = (int) nx - 1;
+        if(p_x > (int)nx - 1)
+            p_x = (int)nx - 1;
+        if(p_y > (int)nx - 1)
+            p_y = (int)nx - 1;
+        if(p_z > (int)nx - 1)
+            p_z = (int)nx - 1;
 
         if(p_x < 0)
             p_x = 0;
@@ -2190,7 +2147,7 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
         if(p_z < 0)
             p_z = 0;
 
-        //cout << "1" << endl;
+        // cout << "1" << endl;
 
         dens = 1 * datdens[p_x][p_y][p_z];
         gas_temp = dattemp[p_x][p_y][p_z];
@@ -2199,16 +2156,16 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
         vy = my = datmy[p_x][p_y][p_z];
         vz = mz = datmz[p_x][p_y][p_z];
 
-        //if(dens<1e-25) dens=1e-25;
+        // if(dens<1e-25) dens=1e-25;
         px = center.X() - 64;
         py = center.Y() - 64;
         pz = center.Z() - 64;
 
         double lx = sqrt(px * px + py * py + pz * pz) / 128.0 / 0.85926;
 
-        //if(lx>1)
+        // if(lx>1)
         {
-            //double f=1000/1.1*(lx-1.9)+1;
+            // double f=1000/1.1*(lx-1.9)+1;
             double mx = pow((lx - 1), 6);
             double px = pow((lx + 1), 6);
             double f = (exp(-0.9 * px) + exp(-0.9 * mx) - 0.81319) / 0.186806; //= exp(-9.21*xx*xx);
@@ -2216,7 +2173,7 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
             if(lx > 0.6)
             {
                 double max = 100;
-                double d = (max - 1) / (1 - 0.6)*(lx - 0.6) + 1;
+                double d = (max - 1) / (1 - 0.6) * (lx - 0.6) + 1;
                 f /= d;
 
                 if(d < f_min)
@@ -2225,18 +2182,13 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
                     f_max = d;
             }
 
-
             dens *= f;
             mx *= f;
             my *= f;
             mz *= f;
-
-
         }
 
-
-
-        //if(dens<1e-24) dens = 1e-24;
+        // if(dens<1e-24) dens = 1e-24;
 
         field = sqrt(mx * mx + my * my + mz * mz);
 
@@ -2323,27 +2275,24 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
     for(int i = 0; i < 8; i++)
         parent->getChild(i)->setParent(parent);
 
-    if(parent->getChild(0)->getChildren() == 0 && parent->getChild(1)->getChildren() == 0
-            && parent->getChild(2)->getChildren() == 0
-            && parent->getChild(3)->getChildren() == 0
-            && parent->getChild(4)->getChildren() == 0
-            && parent->getChild(5)->getChildren() == 0
-            && parent->getChild(6)->getChildren() == 0
-            && parent->getChild(7)->getChildren() == 0)
+    if(parent->getChild(0)->getChildren() == 0 && parent->getChild(1)->getChildren() == 0 &&
+       parent->getChild(2)->getChildren() == 0 && parent->getChild(3)->getChildren() == 0 &&
+       parent->getChild(4)->getChildren() == 0 && parent->getChild(5)->getChildren() == 0 &&
+       parent->getChild(6)->getChildren() == 0 && parent->getChild(7)->getChildren() == 0)
     {
         double limit = 2e-23;
 
-        //if(len<0.51)
+        // if(len<0.51)
         //   limit=0;
 
-        if(parent->getChild(0)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(1)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(2)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(3)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(4)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(5)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(6)->getData(data_pos_gd_list[0]) < limit
-                && parent->getChild(7)->getData(data_pos_gd_list[0]) < limit)
+        if(parent->getChild(0)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(1)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(2)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(3)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(4)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(5)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(6)->getData(data_pos_gd_list[0]) < limit &&
+           parent->getChild(7)->getData(data_pos_gd_list[0]) < limit)
         {
 
             dens = gas_temp = dust_temp = mx = my = mz = vx = vy = vz = 0;
@@ -2397,9 +2346,9 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
             if(vel.length() < 1)
                 vel.normalize();
 
-            //if(dust_temp < 1) dust_temp = 0.1;
+            // if(dust_temp < 1) dust_temp = 0.1;
 
-            //if(dens<1e-20) dens=1e-20;
+            // if(dens<1e-20) dens=1e-20;
             parent->resize(max_data);
             parent->setData(data_pos_gd_list[0], dens);
             parent->setData(data_pos_tg, gas_temp);
@@ -2415,8 +2364,7 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
             meanBdir += Vector3D(mx, my, mz);
             field = sqrt(mx * mx + my * my + mz * mz);
 
-            delta = CMathFunctions::calc_delta(field, dust_temp, gas_temp,
-                    dens);
+            delta = CMathFunctions::calc_delta(field, dust_temp, gas_temp, dens);
 
             if(dens > max_gas_dens)
                 max_gas_dens = dens;
@@ -2447,7 +2395,6 @@ bool CGridOcTree::createTree(cell_oc * parent, double _x_min, double _y_min, dou
             parent->setChildren(0);
             max_cells -= 7;
         }
-
     }
 
     return true;

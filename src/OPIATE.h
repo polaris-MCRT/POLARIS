@@ -23,13 +23,13 @@
 /* History:   05.12.2016                                                    */
 /****************************************************************************/
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <stdlib.h> 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -42,8 +42,7 @@ typedef unsigned int uint;
 
 class opiate_link
 {
-public:
-
+  public:
     opiate_link()
     {
         value = 1e-300;
@@ -66,8 +65,7 @@ typedef vector<double> dlist;
 
 class opiate_data
 {
-public:
-
+  public:
     opiate_data()
     {
         id = MAX_UINT;
@@ -98,8 +96,7 @@ public:
 
 class opiate_ids
 {
-public:
-
+  public:
     opiate_ids()
     {
         N = MAX_UINT;
@@ -113,10 +110,17 @@ public:
         flih = 1e-300;
         fli2 = 1e-300;
     }
-    //UniqID	dx	dens	temp	flge	fluv	flih	fli2	N
+    // UniqID	dx	dens	temp	flge	fluv	flih	fli2	N
 
-    opiate_ids(uint _N, uint _uiniqD, double _dx, double _dens,
-            double _temp, double _flge, double _fluv, double _flih, double _fli2)
+    opiate_ids(uint _N,
+               uint _uiniqD,
+               double _dx,
+               double _dens,
+               double _temp,
+               double _flge,
+               double _fluv,
+               double _flih,
+               double _fli2)
     {
         N = _N;
         uiniqD = _uiniqD;
@@ -129,8 +133,7 @@ public:
         fli2 = _fli2;
     }
 
-    opiate_ids(double _dx, double _dens,
-            double _temp, double _flge, double _fluv, double _flih, double _fli2)
+    opiate_ids(double _dx, double _dens, double _temp, double _flge, double _fluv, double _flih, double _fli2)
     {
         N = MAX_UINT;
         uiniqD = MAX_UINT;
@@ -143,9 +146,7 @@ public:
         fli2 = _fli2;
     }
 
-    ~opiate_ids()
-    {
-    };
+    ~opiate_ids(){};
 
     uint N;
     uint uiniqD;
@@ -158,12 +159,11 @@ public:
     double fli2;
 };
 
-typedef vector<opiate_data*> opiate_data_list;
+typedef vector<opiate_data *> opiate_data_list;
 
 class COpiate
 {
-public:
-
+  public:
     COpiate()
     {
         ru[0] = '|';
@@ -179,7 +179,7 @@ public:
 
         nr_of_velocity_channels = 0;
         max_velocity = 0;
-        
+
         abundance = 0;
         mol_weight = 0;
     }
@@ -192,7 +192,7 @@ public:
         {
             for(uint i = 0; i < data_list.size(); i++)
             {
-                opiate_data *tmp_data = data_list[i];
+                opiate_data * tmp_data = data_list[i];
 
                 delete tmp_data;
                 tmp_data = 0;
@@ -207,7 +207,6 @@ public:
             velocity_channel = 0;
         }
 
-
         if(id_list.size() != 0)
         {
 
@@ -216,23 +215,22 @@ public:
 
         cout << CLR_LINE1;
     }
-    
-    
+
     void setAbundance(double a)
     {
         abundance = a;
     }
-    
+
     void setMolWeight(double w)
     {
-        mol_weight=w;
+        mol_weight = w;
     }
-    
+
     double getAbundance()
     {
         return abundance;
     }
-    
+
     double getMolWeight()
     {
         return mol_weight;
@@ -378,7 +376,6 @@ public:
             return res;
         }
 
-
         res.uiniqD = uint((*next_level)[0].value);
         res.N = uint((*next_level)[1].value);
 
@@ -411,7 +408,7 @@ public:
             return -1;
         }
 
-        opiate_data *data = data_list[index];
+        opiate_data * data = data_list[index];
         double res = data->data[pos];
 
         return res;
@@ -421,16 +418,15 @@ public:
     {
         nr_of_velocity_channels = nr_of_channels;
         max_velocity = max_vel;
-		
+
         velocity_channel = new double[nr_of_velocity_channels];
 
         if(nr_of_velocity_channels > 1)
         {
             for(uint i = 0; i < nr_of_velocity_channels; i++)
             {
-                velocity_channel[i] = 2 * (float) i
-                        / ((float) nr_of_velocity_channels - 1) * max_velocity
-                        - max_velocity;
+                velocity_channel[i] =
+                    2 * (float)i / ((float)nr_of_velocity_channels - 1) * max_velocity - max_velocity;
             };
         }
         else if(nr_of_velocity_channels == 1)
@@ -439,47 +435,45 @@ public:
         }
         else
         {
-            cout
-                    << "Number of velocity channels is not larger than zero!          " << endl;
+            cout << "Number of velocity channels is not larger than zero!          " << endl;
             return false;
         }
 
-		return true;
+        return true;
     }
-    
-    
+
     double getVelocityChannel(uint vch)
-    { 
+    {
         return velocity_channel[vch];
     }
-    
+
     uint getNrOfVelChannels(uint vch)
-    { 
+    {
         return nr_of_velocity_channels;
     }
-    
+
     double getMaxVelocity()
     {
         return max_velocity;
     }
 
-	linked_list id_list; //top level linked list fli2 flih fluv flge temp dens dx
+    linked_list id_list; // top level linked list fli2 flih fluv flge temp dens dx
 
-private:
+  private:
     unsigned char ru[4];
     uint data_len;
     uint data_rows;
     uint max_entries;
     uint column_length;
     opiate_data_list data_list;
-    
+
     double * velocity_channel;
     uint nr_of_velocity_channels;
     double max_velocity;
     double abundance;
     double mol_weight;
 
-    void formatLine(string &line);
+    void formatLine(string & line);
 
     uint insertInList(opiate_data * data)
     {
@@ -645,9 +639,17 @@ private:
         return 0;
     }
 
-    //fli2 flih fluv flge temp dens dx
+    // fli2 flih fluv flge temp dens dx
 
-    void insertInIDList(uint uniqID, double dx, double dens, double temp, double flge, double fluv, double flih, double fli2, uint N)
+    void insertInIDList(uint uniqID,
+                        double dx,
+                        double dens,
+                        double temp,
+                        double flge,
+                        double fluv,
+                        double flih,
+                        double fli2,
+                        uint N)
     {
         linked_list * next_level;
 
@@ -661,9 +663,6 @@ private:
         next_level->push_back(opiate_link(double(uniqID)));
         next_level->push_back(opiate_link(double(N)));
     }
-
-
 };
 
 #endif
-

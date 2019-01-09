@@ -60,25 +60,23 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     if(!data_pos_dt_list.empty())
     {
         dust_temp = cell->getData(data_pos_dt_list[0]);
-        //to do if conversion is implemented
+        // to do if conversion is implemented
 
         if(dust_temp > max_dust_temp)
             max_dust_temp = dust_temp;
         if(dust_temp < min_dust_temp)
             min_dust_temp = dust_temp;
-
     }
 
     if(data_pos_tg != MAX_UINT)
     {
         gas_temp = cell->getData(data_pos_tg);
-        //to do if conversion is implemented
+        // to do if conversion is implemented
         if(gas_temp > max_gas_temp)
             max_gas_temp = gas_temp;
         if(gas_temp < min_gas_temp)
             min_gas_temp = gas_temp;
     }
-
 
     if(data_pos_mx != MAX_UINT)
     {
@@ -121,10 +119,10 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         a_alg = cell->getData(data_pos_aalg);
 
         if(a_alg > float(aalg_max))
-            aalg_max = (double) a_alg;
+            aalg_max = (double)a_alg;
 
         if(a_alg < float(aalg_min))
-            aalg_min = (double) a_alg;
+            aalg_min = (double)a_alg;
     }
 
     if(data_pos_amin != MAX_UINT)
@@ -160,7 +158,7 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             dust_id_min = dust_id;
     }
 
-    //data positions for synchrotron
+    // data positions for synchrotron
     if(data_pos_n_th != MAX_UINT)
     {
         cell->convertData(data_pos_n_th, conv_dens_in_SI);
@@ -218,7 +216,6 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             max_g_max = data;
     }
 
-
     if(data_pos_p != MAX_UINT)
     {
         double data = cell->getData(data_pos_p);
@@ -265,7 +262,6 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     if(a_limit < min_larm_limit)
         min_larm_limit = a_limit;
 
-
     if(Vfield >= 0)
     {
         if(gas_temp > 0)
@@ -298,7 +294,7 @@ bool CGridBasic::fillGridWithOpiateData(uint col_id)
              if(cell_count % 500 == 0)
              {
                  cout << "-> Filling grid with OPIATE data  : "
-                         << 100 * float(cell_count) / float(max_cells) << " [%]               \r";
+                         << 100 * float(cell_count) / float(max_cells) << " [%] \r";
              }
          }
 
@@ -320,8 +316,10 @@ bool CGridBasic::fillGridWithOpiateData(uint col_id)
      }
 
      cout << CLR_LINE;
-     cout << " - " << found_count << " of " << max_cells << " cells match with the OPIATE paramter file." << endl;
-     */return true;
+     cout << " - " << found_count << " of " << max_cells << " cells match with the OPIATE
+ paramter file." << endl;
+     */
+    return true;
 }
 
 uint CGridBasic::validateDataPositions(parameters & param)
@@ -337,9 +335,9 @@ uint CGridBasic::validateDataPositions(parameters & param)
         return MAX_UINT;
     }
 
-    if(nr_mixtures > 0 && (param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_EMISSION || 
-            param.getCommand() == CMD_LINE_EMISSION || param.getCommand() == CMD_FORCE || 
-            param.getCommand() == CMD_PROBING))
+    if(nr_mixtures > 0 && (param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_EMISSION ||
+                           param.getCommand() == CMD_LINE_EMISSION || param.getCommand() == CMD_FORCE ||
+                           param.getCommand() == CMD_PROBING))
     {
         // Get Number of temperature fields for temperature calculation
         if(data_pos_dd_list.size() > 0)
@@ -347,7 +345,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
         else
             nr_densities = data_pos_gd_list.size();
 
-        // Precalculate the number of temperature entries, if the grid has a 
+        // Precalculate the number of temperature entries, if the grid has a
         // temperature for each grain size or stochastically heated grains
         for(uint i_density = 0; i_density < nr_densities; i_density++)
         {
@@ -359,8 +357,10 @@ uint CGridBasic::validateDataPositions(parameters & param)
         if(nr_densities > 1 && nr_mixtures != nr_densities)
         {
             cout << "\nERROR: Amount of densities in the grid (" << nr_densities
-                << ") does not fit with the defined dust mixtures (" << nr_mixtures << ")!\n"
-                << "(Use a grid with only one density distribution or define more/less dust mixtures!)" << endl;
+                 << ") does not fit with the defined dust mixtures (" << nr_mixtures << ")!\n"
+                 << "(Use a grid with only one density distribution or define more/less "
+                    "dust mixtures!)"
+                 << endl;
             return MAX_UINT;
         }
     }
@@ -430,27 +430,31 @@ uint CGridBasic::validateDataPositions(parameters & param)
 
 void CGridBasic::printPhysicalParameters()
 {
-    cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume
-            << " [m^3], " << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume))
-            << " [%]" << endl;
+    cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume << " [m^3], "
+         << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume)) << " [%]" << endl;
     cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun]" << endl;
     cout << "- Grid length         (min,max) : [" << min_len << ", " << max_len << "] [m]" << endl;
     if(gas_is_mass_density)
-        cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]" << endl;
+        cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]"
+             << endl;
     else
-        cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]" << endl;
+        cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]"
+             << endl;
     if(!dust_is_mass_density && data_pos_dd_list.size() > 0)
-        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]" << endl;
+        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]"
+             << endl;
     else
         cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
-            << "] [kg m^-3]" << endl;
+             << "] [kg m^-3]" << endl;
     if(data_pos_tg != MAX_UINT)
-        cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]" << endl;
+        cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]"
+             << endl;
     else
         cout << "- Gas temperature     (min,max) : none" << endl;
 
     if(!data_pos_dt_list.empty())
-        cout << "- Dust temperature    (min,max) : [" << min_dust_temp << ", " << max_dust_temp << "] [K]" << endl;
+        cout << "- Dust temperature    (min,max) : [" << min_dust_temp << ", " << max_dust_temp << "] [K]"
+             << endl;
     else
         cout << "- Dust temperature    (min,max) : none" << endl;
 
@@ -458,9 +462,11 @@ void CGridBasic::printPhysicalParameters()
     {
         meanBdir.normalize();
         cout << "- Magnetic field      (min,max) : [" << min_mag << ", " << max_mag << "] [T]" << endl;
-        cout << "- Mean direction      (norm.)   : X: " << meanBdir.X() << " Y: " << meanBdir.Y() << " Z: " << meanBdir.Z() << endl;
+        cout << "- Mean direction      (norm.)   : X: " << meanBdir.X() << " Y: " << meanBdir.Y()
+             << " Z: " << meanBdir.Z() << endl;
         cout << "- Delta0              (min,max) : [" << min_delta << ", " << max_delta << "] [m]" << endl;
-        cout << "- Larm. limit         (min,max) : [" << min_larm_limit << ", " << max_larm_limit << "] [m]" << endl;
+        cout << "- Larm. limit         (min,max) : [" << min_larm_limit << ", " << max_larm_limit << "] [m]"
+             << endl;
     }
     else
         cout << "- Magnetic field     (min,max) : none" << endl;
@@ -472,7 +478,8 @@ void CGridBasic::printPhysicalParameters()
     {
         meanVdir.normalize();
         cout << "- Velocity field      (min,max) : [" << min_vel << ", " << max_vel << "] [m/s]" << endl;
-        cout << "- Mean direction      (norm.)   : X: " << meanVdir.X() << " Y: " << meanVdir.Y() << " Z: " << meanVdir.Z() << endl;
+        cout << "- Mean direction      (norm.)   : X: " << meanVdir.X() << " Y: " << meanVdir.Y()
+             << " Z: " << meanVdir.Z() << endl;
         cout << "- Mach number         (min,max) : [" << min_mach << ", " << max_mach << "]" << endl;
     }
 
@@ -507,7 +514,7 @@ void CGridBasic::printPhysicalParameters()
         else
             cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
     }
-        
+
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
         cout << SEP_LINE;
@@ -546,7 +553,8 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
         return true;
 
     bool plt_gas_dens = (data_pos_gd_list.size() > 0);
-    //bool plt_dust_dens = param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); //to do if dust denity is possible
+    // bool plt_dust_dens = param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); //to
+    // do if dust denity is possible
     bool plt_gas_temp = (data_pos_tg != MAX_UINT);
     bool plt_dust_temp = (!data_pos_dt_list.empty());
     bool plt_mag = (data_pos_mx != MAX_UINT);
@@ -590,8 +598,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(gas_writer.fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << gtemp_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << gtemp_filename << endl;
             return false;
         }
     }
@@ -601,8 +608,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
         dust_writer.open(dtemp_filename.c_str(), ios::out);
         if(dust_writer.fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << dtemp_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << dtemp_filename << endl;
             return false;
         }
     }
@@ -635,8 +641,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(magvec_writer.fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << magvec_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << magvec_filename << endl;
             return false;
         }
 
@@ -655,8 +660,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
         if(velvec_writer.fail())
         {
-            cout << "\nERROR: Cannot write to:\n " << velvec_filename
-                    << endl;
+            cout << "\nERROR: Cannot write to:\n " << velvec_filename << endl;
             return false;
         }
 
@@ -682,15 +686,15 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     point_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
     point_header << "define Lattice " << bins << " " << bins << " " << bins;
     point_header << "\tParameters {" << endl;
-    point_header << "Content \"" << bins << "x" << bins << "x" << bins
-            << " float, uniform coordinates\"," << endl;
+    point_header << "Content \"" << bins << "x" << bins << "x" << bins << " float, uniform coordinates\","
+                 << endl;
     point_header << "BoundingBox ";
-    point_header << 0 << " "; //float(cell_oc_root->getXmin())
-    point_header << 1 << " "; //float(cell_oc_root->getXmax())
-    point_header << 0 << " "; //float(cell_oc_root->getXmin())
-    point_header << 1 << " "; //float(cell_oc_root->getXmax())
-    point_header << 0 << " "; //float(cell_oc_root->getXmin())
-    point_header << 1 << " "; //float(cell_oc_root->getXmax())
+    point_header << 0 << " "; // float(cell_oc_root->getXmin())
+    point_header << 1 << " "; // float(cell_oc_root->getXmax())
+    point_header << 0 << " "; // float(cell_oc_root->getXmin())
+    point_header << 1 << " "; // float(cell_oc_root->getXmax())
+    point_header << 0 << " "; // float(cell_oc_root->getXmin())
+    point_header << 1 << " "; // float(cell_oc_root->getXmax())
     point_header << "," << endl;
     point_header << " CoordType \"uniform\"" << endl;
     point_header << "}" << endl;
@@ -701,22 +705,21 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     vec_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
     vec_header << "define Lattice " << bins << " " << bins << " " << bins;
     vec_header << "\tParameters {" << endl;
-    vec_header << "Content \"" << bins << "x" << bins << "x" << bins
-            << " float[3], uniform coordinates\"," << endl;
+    vec_header << "Content \"" << bins << "x" << bins << "x" << bins << " float[3], uniform coordinates\","
+               << endl;
     vec_header << "BoundingBox ";
-    vec_header << 0 << " "; //float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; //float(cell_oc_root->getXmax())
-    vec_header << 0 << " "; //float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; //float(cell_oc_root->getXmax())
-    vec_header << 0 << " "; //float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; //float(cell_oc_root->getXmax())
+    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
+    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
+    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
+    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
+    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
+    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
     vec_header << "," << endl;
     vec_header << " CoordType \"uniform\"" << endl;
     vec_header << "}" << endl;
     vec_header << "Lattice { float[3] Data } @1" << endl;
     vec_header << "# Data section follows" << endl;
     vec_header << "@1" << endl;
-
 
     dens_writer << "# " << (min_len) << " " << (max_len);
     dens_writer << point_header.str();
@@ -765,10 +768,8 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                     magf_writer << float(log10(min_mag)) << endl;
                     velf_writer << float(log10(min_vel)) << endl;
 
-                    magvec_writer << uint(0) << " " << uint(0) << " "
-                            << uint(0) << endl;
-                    velvec_writer << uint(0) << " " << uint(0) << " "
-                            << uint(0) << endl;
+                    magvec_writer << uint(0) << " " << uint(0) << " " << uint(0) << endl;
+                    velvec_writer << uint(0) << " " << uint(0) << " " << uint(0) << endl;
 
                     d_writer << uint(0) << endl;
 
@@ -785,11 +786,10 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                         mag_field = getMagField(pp);
                         magf_writer << float(log10(mag_field.length())) << endl;
                         mag_field.normalize();
-                        //mag_field *= max_len;
+                        // mag_field *= max_len;
 
-                        magvec_writer << float(mag_field.X()) << " "
-                                << float(mag_field.Y()) << " "
-                                << float(mag_field.Z()) << endl;
+                        magvec_writer << float(mag_field.X()) << " " << float(mag_field.Y()) << " "
+                                      << float(mag_field.Z()) << endl;
                     }
 
                     if(plt_vel)
@@ -798,15 +798,13 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                         velf_writer << float(log10(vel_field.length())) << endl;
 
                         vel_field.normalize();
-                        //vel_field *= max_len;
+                        // vel_field *= max_len;
 
-                        velvec_writer << float(vel_field.X()) << " "
-                                << float(vel_field.Y()) << " "
-                                << float(vel_field.Z()) << endl;
+                        velvec_writer << float(vel_field.X()) << " " << float(vel_field.Y()) << " "
+                                      << float(vel_field.Z()) << endl;
                     }
 
                     rat_writer << float(log10(getAlignedRadius(pp))) << endl;
-
 
                     if(plt_delta)
                     {
@@ -814,8 +812,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                         double Td = getDustTemperature(pp);
                         double Tg = getGasTemperature(pp);
                         double dens = getGasDensity(pp);
-                        double delta = CMathFunctions::calc_delta(field, Td, Tg,
-                                dens);
+                        double delta = CMathFunctions::calc_delta(field, Td, Tg, dens);
                         d_writer << float(log10(delta)) << endl;
                     }
                 }
@@ -823,9 +820,8 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
             per_counter++;
             if(per_counter % 49 == 0)
-                cout << " -> Writing AMIRA files:     "
-                    << 100.0 * float(per_counter) / float(per_max)
-                << " [%]                  \r";
+                cout << " -> Writing AMIRA files:     " << 100.0 * float(per_counter) / float(per_max)
+                     << " [%]                  \r";
         }
     }
 
@@ -889,7 +885,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     photon_package * pp = new photon_package;
 
-    //along z
+    // along z
     pp->setPosition(Vector3D(0, 0, -2.0 * max_len));
     pp->setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
     findStartingPoint(pp);
@@ -929,9 +925,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
         if(data_pos_aalg != MAX_UINT)
             a_alg = getAlignedRadius(pp);
 
-        z_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t"
-                << mx << "\t" << my << "\t" << mz << "\t"
-                << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
+        z_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
+                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
     cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
@@ -975,9 +970,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
         if(data_pos_aalg != MAX_UINT)
             a_alg = getAlignedRadius(pp);
 
-        y_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t"
-                << mx << "\t" << my << "\t" << mz << "\t"
-                << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
+        y_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
+                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
     cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
@@ -1021,9 +1015,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
         if(data_pos_aalg != MAX_UINT)
             a_alg = getAlignedRadius(pp);
 
-        x_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t"
-                << mx << "\t" << my << "\t" << mz << "\t"
-                << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
+        x_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
+                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
     x_writer.close();
@@ -1052,8 +1045,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_gas_temp = (data_pos_tg != MAX_UINT);
         plt_mag = (data_pos_mx != MAX_UINT);
         plt_vel = (data_pos_vx != MAX_UINT);
-        plt_delta = false;//(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
-        plt_larm = false;//(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
+        plt_delta = false; //(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) &&
+                           //(!data_pos_dt_list.empty());
+        plt_larm = false;  //(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) &&
+                           //(!data_pos_dt_list.empty());
         plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);
         plt_dust_id = (data_pos_id != MAX_UINT);
         plt_amin = (data_pos_amin != MAX_UINT);
@@ -1064,21 +1059,21 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_g_min = (data_pos_g_min != MAX_UINT);
         plt_g_max = (data_pos_g_max != MAX_UINT);
         plt_p = (data_pos_p != MAX_UINT);
-        
+
         if(cmd != CMD_RAT && cmd != CMD_TEMP_RAT)
         {
-            plt_rat = (data_pos_aalg != MAX_UINT);        
+            plt_rat = (data_pos_aalg != MAX_UINT);
             plt_avg_th = (data_pos_avg_th != MAX_UINT);
-            plt_avg_dir = (data_pos_avg_dir != MAX_UINT);            
+            plt_avg_dir = (data_pos_avg_dir != MAX_UINT);
         }
 
         if(cmd != CMD_TEMP && cmd != CMD_TEMP_RAT)
             plt_dust_temp = (!data_pos_dt_list.empty());
-        
+
         if(getRadiationFieldAvailable())
         {
             if(param.getWriteRadiationField())
-               plt_rad_field = true;
+                plt_rad_field = true;
             else if(param.getWriteFullRadiationField())
             {
                 plt_rad_field = true;
@@ -1090,19 +1085,19 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     else
     {
-        plt_gas_dens=false;
-        plt_dust_dens=false;
-        plt_gas_temp=false;
-        plt_dust_temp=false;
-        plt_mag=false;
-        plt_vel=false;
-        plt_rat=false;
-        plt_delta=false;
-        plt_larm=false;
-        plt_mach=false;
-        plt_dust_id=false;
-        plt_amin=false;
-        plt_amax=false;
+        plt_gas_dens = false;
+        plt_dust_dens = false;
+        plt_gas_temp = false;
+        plt_dust_temp = false;
+        plt_mag = false;
+        plt_vel = false;
+        plt_rat = false;
+        plt_delta = false;
+        plt_larm = false;
+        plt_mach = false;
+        plt_dust_id = false;
+        plt_amin = false;
+        plt_amax = false;
         plt_rad_field = false;
         plt_g_zero = false;
         plt_n_th = false;
@@ -1111,7 +1106,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_g_min = false;
         plt_g_max = false;
         plt_p = false;
-        
+
         plt_avg_th = false;
         plt_avg_dir = false;
 
@@ -1125,7 +1120,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
         {
-            plt_rat = true;       
+            plt_rat = true;
             plt_avg_th = true;
             plt_avg_dir = true;
         }
@@ -1142,18 +1137,20 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             else if(param.getWriteGZero())
                 plt_g_zero = true;
         }
-        
+
         if(param.getWriteRadiationField() && param.getWriteGZero())
-	{
-	      cout << "\nWriting radiation field." << endl;
-	      plt_g_zero = true;
-	}
+        {
+            cout << "\nWriting radiation field." << endl;
+            plt_g_zero = true;
+        }
     }
 
-    uint nr_parameter = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp)
-            + 4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) + uint(plt_larm) +
-            uint(plt_mach) + uint(plt_dust_id) + uint(plt_rad_field) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero) + 
-            uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) + uint(plt_p)+uint(plt_avg_th)+uint(plt_avg_dir);
+    uint nr_parameter = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp) +
+                        4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
+                        uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
+                        uint(plt_rad_field) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero) +
+                        uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) +
+                        uint(plt_p) + uint(plt_avg_th) + uint(plt_avg_dir);
 
     if(nr_parameter == 0)
         return res;
@@ -1169,7 +1166,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             nr_parameter += nr_densities;
 
     long naxis = 4;
-    long naxes[4] = {uint(bins), uint(bins), 3, nr_parameter};
+    long naxes[4] = { uint(bins), uint(bins), 3, nr_parameter };
     uint per_max = 3 * bins * bins;
 
     double max_midplane_len = (max_len / param.getMidplaneZoom());
@@ -1233,7 +1230,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     uint per_counter = 0;
 
     auto_ptr<CCfits::FITS> pFits(0);
-    //unique_ptr<CCfits::FITS> pFits;
+    // unique_ptr<CCfits::FITS> pFits;
 
     try
     {
@@ -1277,16 +1274,17 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     valarray<double> array_g_min(nelements);
     valarray<double> array_g_max(nelements);
     valarray<double> array_p(nelements);
-    
+
     valarray<double> array_avg_th(nelements);
     valarray<double> array_avg_dir(nelements);
 
     if(plt_gas_dens)
     {
-        buffer_gas_dens = new double*[nelements];
+        buffer_gas_dens = new double *[nelements];
         for(int i_cell = 0; i_cell < nelements; i_cell++)
         {
-            // +1 for the average/sum of the quantity, but only if multiple quantities are in the grid
+            // +1 for the average/sum of the quantity, but only if multiple quantities are
+            // in the grid
             if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
                 buffer_gas_dens[i_cell] = new double[nr_densities + 1];
             else
@@ -1295,10 +1293,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_dust_dens)
     {
-        buffer_dust_dens = new double*[nelements];
+        buffer_dust_dens = new double *[nelements];
         for(int i_cell = 0; i_cell < nelements; i_cell++)
         {
-            // +1 for the average/sum of the quantity, but only if multiple quantities are in the grid
+            // +1 for the average/sum of the quantity, but only if multiple quantities are
+            // in the grid
             if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
                 buffer_dust_dens[i_cell] = new double[nr_densities + 1];
             else
@@ -1309,10 +1308,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         buffer_gas_temp = new double[nelements];
     if(plt_dust_temp)
     {
-        buffer_dust_temp = new double*[nelements];
+        buffer_dust_temp = new double *[nelements];
         for(int i_cell = 0; i_cell < nelements; i_cell++)
         {
-            // +1 for the average/sum of the quantity, but only if multiple quantities are in the grid
+            // +1 for the average/sum of the quantity, but only if multiple quantities are
+            // in the grid
             if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
                 buffer_dust_temp[i_cell] = new double[nr_densities + 1];
             else
@@ -1349,34 +1349,34 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         buffer_dust_amax = new double[nelements];
     if(plt_rad_field)
     {
-        buffer_rad_field = new double**[nelements];
+        buffer_rad_field = new double **[nelements];
         for(int i_cell = 0; i_cell < nelements; i_cell++)
         {
-            buffer_rad_field[i_cell] = new double*[WL_STEPS];
+            buffer_rad_field[i_cell] = new double *[WL_STEPS];
             for(int wID = 0; wID < WL_STEPS; wID++)
                 buffer_rad_field[i_cell][wID] = new double[nr_rad_field_comp];
         }
     }
     if(plt_g_zero)
-        buffer_g_zero = new double[nelements];    
+        buffer_g_zero = new double[nelements];
     if(plt_n_th)
-        buffer_n_th= new double[nelements];  
+        buffer_n_th = new double[nelements];
     if(plt_T_e)
-        buffer_T_e= new double[nelements];  
+        buffer_T_e = new double[nelements];
     if(plt_n_cr)
-        buffer_n_cr= new double[nelements];  
+        buffer_n_cr = new double[nelements];
     if(plt_g_min)
-        buffer_g_min= new double[nelements];  
+        buffer_g_min = new double[nelements];
     if(plt_g_max)
-        buffer_g_max= new double[nelements];  
+        buffer_g_max = new double[nelements];
     if(plt_p)
-        buffer_p= new double[nelements];  
-        
+        buffer_p = new double[nelements];
+
     if(plt_avg_dir)
-        buffer_avg_dir= new double[nelements];  
-        
+        buffer_avg_dir = new double[nelements];
+
     if(plt_avg_th)
-        buffer_avg_th= new double[nelements];  
+        buffer_avg_th = new double[nelements];
 
     vector<long> fpixel(4);
 
@@ -1402,18 +1402,16 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 j -= b_limit_xy;
 
-
                 if(bins % 2 == 0)
-                    if(k>-1)
+                    if(k > -1)
                         k++;
 
                 if(bins % 2 == 0)
-                    if(j>-1)
+                    if(j > -1)
                         j++;
 
                 double tx, ty, tz;
-                setPlaneParameter(plane_3d, xy_step, off_xy, z_step, off_z, shift_z,
-                    j, k, l, tx, ty, tz);
+                setPlaneParameter(plane_3d, xy_step, off_xy, z_step, off_z, shift_z, j, k, l, tx, ty, tz);
 
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
@@ -1422,8 +1420,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 {
 #pragma omp critical
                     {
-                        cout << " -> Writing 3D midplane file: " << 100.0 * float(per_counter) / float(per_max)
-                                << " [%]                 \r";
+                        cout << " -> Writing 3D midplane file: "
+                             << 100.0 * float(per_counter) / float(per_max) << " [%]                 \r";
                     }
                 }
             }
@@ -1464,7 +1462,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             if(plt_gas_temp)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
+                    array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_temp);
@@ -1488,7 +1486,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             if(plt_rat)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_rat[i_cell] = buffer_rat[i_cell];
+                    array_rat[i_cell] = buffer_rat[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_rat);
@@ -1571,7 +1569,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amin);
             }
-                buffer_dust_amin = new double[nelements];
+            buffer_dust_amin = new double[nelements];
             if(plt_amax)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1582,7 +1580,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field)
             {
-                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(int wID = 0; wID < WL_STEPS; wID++)
                     {
                         for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1607,7 +1605,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_n_th);
-            }  
+            }
             if(plt_T_e)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1615,7 +1613,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_T_e);
-            }   
+            }
             if(plt_n_cr)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1623,7 +1621,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_n_cr);
-            }    
+            }
             if(plt_g_min)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1631,7 +1629,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_g_min);
-            }     
+            }
             if(buffer_g_max)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1639,7 +1637,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_g_max);
-            }    
+            }
             if(plt_p)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1647,8 +1645,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_p);
-            } 
-            
+            }
+
             if(plt_avg_th)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1656,8 +1654,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_th);
-            }     
-            
+            }
+
             if(plt_avg_dir)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1665,7 +1663,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_dir);
-            }   
+            }
         }
     }
     else
@@ -1684,11 +1682,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 j -= b_limit_xy;
 
                 if(bins % 2 == 0)
-                    if(k>-1)
+                    if(k > -1)
                         k++;
 
                 if(bins % 2 == 0)
-                    if(j>-1)
+                    if(j > -1)
                         j++;
 
                 double tx, ty, tz;
@@ -1703,7 +1701,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 #pragma omp critical
                     {
                         cout << " -> Writing midplane files: " << 100.0 * float(per_counter) / float(per_max)
-                                << " [%]             \r";
+                             << " [%]             \r";
                     }
                 }
             }
@@ -1744,7 +1742,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             if(plt_gas_temp)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
+                    array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_temp);
@@ -1768,7 +1766,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             if(plt_rat)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
-                        array_rat[i_cell] = buffer_rat[i_cell];
+                    array_rat[i_cell] = buffer_rat[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_rat);
@@ -1851,7 +1849,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amin);
             }
-                buffer_dust_amin = new double[nelements];
+            buffer_dust_amin = new double[nelements];
             if(plt_amax)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1862,7 +1860,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field)
             {
-                for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(int wID = 0; wID < WL_STEPS; wID++)
                     {
                         for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1887,7 +1885,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_n_th);
-            }      
+            }
             if(plt_T_e)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1895,7 +1893,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_T_e);
-            }   
+            }
             if(plt_n_cr)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1903,7 +1901,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_n_cr);
-            }     
+            }
             if(plt_g_min)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1911,7 +1909,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_g_min);
-            }     
+            }
             if(buffer_g_max)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1919,7 +1917,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_g_max);
-            }      
+            }
             if(plt_p)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1927,8 +1925,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_p);
-            } 
-                
+            }
+
             if(plt_avg_dir)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1936,8 +1934,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_dir);
-            } 
-                
+            }
+
             if(plt_avg_th)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1945,7 +1943,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_th);
-            } 
+            }
         }
     }
 
@@ -1996,7 +1994,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(midplane_3d_param.size() == 4)
     {
         double bin_width_z = z_step;
-        double first_pix_val_z = shift_z - (z_step *  double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
+        double first_pix_val_z = shift_z - (z_step * double(naxes[2])) / 2.0 + (bin_width_z / 2.0);
 
         // Grid
         pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
@@ -2059,7 +2057,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             else
                 pFits->pHDU().addKey(str_1, "gas_number_density [m^-3]", str_2);
         }
-
     }
     if(plt_dust_dens)
     {
@@ -2181,7 +2178,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "a_min [m]", str_2);
     }
-        buffer_dust_amin = new double[nelements];
+    buffer_dust_amin = new double[nelements];
     if(plt_amax)
     {
         counter++;
@@ -2190,46 +2187,46 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_rad_field)
     {
-        for (int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+        for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
         {
-            for (int wID = 0; wID < WL_STEPS; wID++)
+            for(int wID = 0; wID < WL_STEPS; wID++)
             {
                 counter++;
                 updateMidplaneString(str_1, str_2, counter);
                 char str_3[1024];
                 switch(i_comp)
                 {
-                default:
+                    default:
 #ifdef WINDOWS
-                    sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf_s(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-                    sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf(str_3, "rad_field [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
-                    break;
+                        break;
 
-                case 1:
+                    case 1:
 #ifdef WINDOWS
-                    sprintf_s(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf_s(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-                    sprintf(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf(str_3, "rad_field_x [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
-                    break;
+                        break;
 
-                case 2:
+                    case 2:
 #ifdef WINDOWS
-                    sprintf_s(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf_s(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-                    sprintf(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf(str_3, "rad_field_y [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
-                    break;
+                        break;
 
-                case 3:
+                    case 3:
 #ifdef WINDOWS
-                    sprintf_s(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf_s(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #else
-                    sprintf(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
+                        sprintf(str_3, "rad_field_z [W/m/m^2] (%.3e [m])", wl_list[wID]);
 #endif
-                    break;
+                        break;
                 }
                 pFits->pHDU().addKey(str_1, string(str_3), str_2);
             }
@@ -2246,19 +2243,19 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "therm_el_density [m^-3]", str_2);
-    }            
+    }
     if(plt_T_e)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "electron temperature [K]", str_2);
-    }    
+    }
     if(plt_n_cr)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "cr_el_density [m^-3]", str_2);
-    }     
+    }
     if(plt_g_min)
     {
         counter++;
@@ -2270,27 +2267,27 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "gamma_max", str_2);
-    }   
+    }
     if(plt_p)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "syn_p", str_2);
-    }   
-        
+    }
+
     if(plt_avg_th)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "avg. RAT cos(theta)", str_2);
-    }  
-        
+    }
+
     if(plt_avg_dir)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "avg. RAT aniso. (gamma)", str_2);
-    }   
+    }
 
     // Free memory of pointer arrays
     if(plt_gas_dens)
@@ -2345,23 +2342,23 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_g_zero)
         delete[] buffer_g_zero;
     if(plt_n_th)
-        delete[] buffer_n_th;  
+        delete[] buffer_n_th;
     if(plt_T_e)
-        delete[] buffer_T_e;  
+        delete[] buffer_T_e;
     if(plt_n_cr)
-        delete[] buffer_n_cr;  
+        delete[] buffer_n_cr;
     if(plt_g_min)
-        delete[] buffer_g_min;  
+        delete[] buffer_g_min;
     if(plt_g_max)
-        delete[] buffer_g_max;  
+        delete[] buffer_g_max;
     if(plt_p)
-        delete[] buffer_p;  
-        
+        delete[] buffer_p;
+
     if(plt_avg_th)
-        delete[] buffer_avg_th;          
-        
+        delete[] buffer_avg_th;
+
     if(plt_avg_dir)
-        delete[] buffer_avg_dir;          
+        delete[] buffer_avg_dir;
 
     cout << CLR_LINE;
     cout << "- Writing of midplane files     : done" << endl;

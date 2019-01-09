@@ -246,4 +246,3 @@ bool OPIATE::loadUniqueParamFile(string filename)
     cout << " Loading OPIATE unique parameters file: done" << endl;
     return true;
 }*/
-
