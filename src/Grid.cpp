@@ -1369,12 +1369,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         buffer_g_max = new double[nelements];
     if(plt_p)
         buffer_p = new double[nelements];
-
-    if(plt_avg_dir)
-        buffer_avg_dir = new double[nelements];
-
     if(plt_avg_th)
         buffer_avg_th = new double[nelements];
+    if(plt_avg_dir)
+        buffer_avg_dir = new double[nelements];
 
     vector<long> fpixel(4);
 
@@ -1644,7 +1642,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_p);
             }
-
             if(plt_avg_th)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1653,7 +1650,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_th);
             }
-
             if(plt_avg_dir)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1924,16 +1920,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_p);
             }
-
-            if(plt_avg_dir)
-            {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
-                    array_avg_dir[i_cell] = buffer_avg_dir[i_cell];
-
-                fpixel[3]++;
-                pFits->pHDU().write(fpixel, nelements, array_avg_dir);
-            }
-
             if(plt_avg_th)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1941,6 +1927,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_avg_th);
+            }
+            if(plt_avg_dir)
+            {
+                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    array_avg_dir[i_cell] = buffer_avg_dir[i_cell];
+
+                fpixel[3]++;
+                pFits->pHDU().write(fpixel, nelements, array_avg_dir);
             }
         }
     }
@@ -2272,14 +2266,12 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "syn_p", str_2);
     }
-
     if(plt_avg_th)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "avg. RAT cos(theta)", str_2);
     }
-
     if(plt_avg_dir)
     {
         counter++;
@@ -2351,10 +2343,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_g_max;
     if(plt_p)
         delete[] buffer_p;
-
     if(plt_avg_th)
         delete[] buffer_avg_th;
-
     if(plt_avg_dir)
         delete[] buffer_avg_dir;
 
