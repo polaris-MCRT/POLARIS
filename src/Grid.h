@@ -763,7 +763,7 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_rx_list.empty())
+        if(data_pos_rx_list.empty() && spec_length_as_vector)
             return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
         return cell->getData(data_pos_rx_list[wID]);
     }
@@ -778,7 +778,7 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_ry_list.empty())
+        if(data_pos_ry_list.empty() && spec_length_as_vector)
             return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
         return cell->getData(data_pos_ry_list[wID]);
     }
@@ -793,7 +793,7 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_rz_list.empty())
+        if(data_pos_rz_list.empty() && spec_length_as_vector)
             return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
         return cell->getData(data_pos_rz_list[wID]);
     }

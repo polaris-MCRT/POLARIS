@@ -1079,7 +1079,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 plt_rad_field = true;
                 nr_rad_field_comp = 4;
             }
-            else if(param.getWriteGZero())
+
+            if(param.getWriteGZero())
                 plt_g_zero = true;
         }
     }
@@ -1125,24 +1126,21 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             plt_avg_dir = true;
         }
 
-        if(param.getSaveRadiationField())
-        {
-            if(param.getWriteRadiationField())
-                plt_rad_field = true;
-            else if(param.getWriteFullRadiationField())
+        if(param.getWriteRadiationField())
+            plt_rad_field = true;
+        else if(param.getWriteFullRadiationField())
+            if(!spec_length_as_vector)
+                cout << "HINT: The full radiation field can only be saved if it was used by the simulation\n"
+                        "      (when saving the radiation field in the grid or calculating RATs)!"
+                     << endl;
+            else
             {
                 plt_rad_field = true;
                 nr_rad_field_comp = 4;
             }
-            else if(param.getWriteGZero())
-                plt_g_zero = true;
-        }
 
-        if(param.getWriteRadiationField() && param.getWriteGZero())
-        {
-            cout << "\nWriting radiation field." << endl;
+        if(param.getWriteGZero())
             plt_g_zero = true;
-        }
     }
 
     uint nr_parameter = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp) +
