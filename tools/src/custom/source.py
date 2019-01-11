@@ -124,15 +124,16 @@ class GGTauStars(StellarSource):
 
         # ------ Luminosities -----
         # Cite: luminosity of Aa (White et al. 1999)
-        self.L_Aa = 0.84 * self.math.const['L_sun']
+        #self.L_Aa = 0.84 * self.math.const['L_sun']
         # Cite: luminosity of Aa (Hartigan et al. 2003)
-        #self.L_Aa = (0.38 + 0.122) * self.math.const['L_sun']
+        self.L_Aa = (0.38 + 0.122) * self.math.const['L_sun']
         # Cite: luminosity of Aa (White et al. 1999 and Di Folco et al. 2014)
-        self.L_Ab1 = 0.89 * 0.71 * self.math.const['L_sun']
-        self.L_Ab2 = (1 - 0.89) * 0.71 * self.math.const['L_sun']
+        #self.L_Ab1 = 1. / (1. + 2.5) * 0.71 * self.math.const['L_sun']
+        #self.L_Ab2 = 2.5 / (1. + 2.5) * 0.71 * self.math.const['L_sun']
         # Cite: luminosity of Aa (Hartigan et al. 2003 and Di Folco et al. 2014)
-        #self.L_Ab1 = 0.89 * (0.2 + 0.079) * self.math.const['L_sun']
-        #self.L_Ab2 = (1 - 0.89) * (0.2 + 0.079) * self.math.const['L_sun']
+        self.L_Ab1 = 1. / (1. + 2.5) * (0.2 + 0.079) * self.math.const['L_sun']
+        self.L_Ab2 = 2.5 / (1. + 2.5) * (0.2 + 0.079) * \
+            self.math.const['L_sun']
         # Cite:
         self.L_planet = 1e-1 * \
             (1.4e-5 + 1.863234318727217e-3) * self.math.const['L_sun']
@@ -141,8 +142,8 @@ class GGTauStars(StellarSource):
         # Cite: separations (White et al. 1999)
         rot_angle_2 = 25. + 15.
         self.a_Aab = 36. / 2. * np.sqrt(
-            (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 + 
-            np.sin(rot_angle_2 / 180 * np.pi)**2) 
+            (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 +
+            np.sin(rot_angle_2 / 180 * np.pi)**2)
         self.a_Ab12 = 5. / 2.
         self.a_planet = 260. + 20.
 
