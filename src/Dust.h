@@ -606,6 +606,24 @@ class CDustComponent
         return (2.0 * getCsca1(grid, pp) + getCsca2(grid, pp)) / 3.0;
     }
 
+    // ------------------------------------------------------------------------------------
+    // ----------- Average cross-sections for wavelength mixed with global conditions -----
+    // ------------------------------------------------------------------------------------
+    double getCextMean(double w)
+    {
+        return (2.0 * getCext1(w) + getCext2(w)) / 3.0;
+    }
+
+    double getCabsMean(double w)
+    {
+        return (2.0 * getCabs1(w) + getCabs2(w)) / 3.0;
+    }
+
+    double getCscaMean(double w)
+    {
+        return (2.0 * getCsca1(w) + getCsca2(w)) / 3.0;
+    }
+
     // ------------------------------------------------------------------------------
     // ----------- Cross-sections for wavelength mixed with global limits -----------
     // ------------------------------------------------------------------------------
@@ -2099,6 +2117,10 @@ class CDustMixture
 
         scattering_to_raytracing = false;
 
+        extinction_magnitude = 0;
+        extinction_magnitude_wavelength = 0;
+        extinction_dust_mixture = MAX_UINT;
+
         nr_of_components = 0;
         nr_of_wavelength = 0;
         wavelength_offset = 0;
@@ -2233,6 +2255,137 @@ class CDustMixture
                     mixed_component[i_mixture].calcStochasticHeatingTemperatures(
                         grid, cell, i_mixture, wavelength_list_full);
             }
+        }
+    }
+
+    double getForegroundExtinction(double wavelength)
+    {
+        // Get extinction optical depth at extinction_magnitude_wavelength
+        double extinction_tau = (extinction_magnitude / 1.086);
+
+        if(extinction_dust_mixture == MAX_UINT)
+        {
+            // Init extinction curve
+            spline extinction_curve(100);
+
+            // Extinction curve for ISM grains (silicate and graphite, 5nm to 250nm)
+            extinction_curve.setValue(0, 5.000000074505806e-08, 4.216777503871183e-016);
+            extinction_curve.setValue(1, 5.564875528216362e-08, 4.621585931369242e-016);
+            extinction_curve.setValue(2, 6.193568184971808e-08, 5.721308394426405e-016);
+            extinction_curve.setValue(3, 6.893286854028702e-08, 7.124210419085484e-016);
+            extinction_curve.setValue(4, 7.672057300806045e-08, 7.674365729865441e-016);
+            extinction_curve.setValue(5, 8.538808673620224e-08, 7.177044099170471e-016);
+            extinction_curve.setValue(6, 9.503481537103653e-08, 6.998261913784690e-016);
+            extinction_curve.setValue(7, 1.05771400034428e-07, 6.237277455455178e-016);
+            extinction_curve.setValue(8, 1.1772090196609499e-07, 5.435211899183833e-016);
+            extinction_curve.setValue(9, 1.3102050125598898e-07, 4.750205237431847e-016);
+            extinction_curve.setValue(10, 1.45822495222092e-07, 4.006340109059733e-016);
+            extinction_curve.setValue(11, 1.62296801805496e-07, 3.590026327160000e-016);
+            extinction_curve.setValue(12, 1.8063229322433499e-07, 3.539562486442753e-016);
+            extinction_curve.setValue(13, 2.01039299368858e-07, 3.874130706789749e-016);
+            extinction_curve.setValue(14, 2.2375169396400497e-07, 3.996385089649330e-016);
+            extinction_curve.setValue(15, 2.49030098319054e-07, 3.285992056374746e-016);
+            extinction_curve.setValue(16, 2.77164310216904e-07, 2.829757611670918e-016);
+            extinction_curve.setValue(17, 3.0847701430320697e-07, 2.536181550806294e-016);
+            extinction_curve.setValue(18, 3.43327194452286e-07, 2.287595115539490e-016);
+            extinction_curve.setValue(19, 3.82114589214325e-07, 2.065593074020058e-016);
+            extinction_curve.setValue(20, 4.25284087657928e-07, 1.845888079974461e-016);
+            extinction_curve.setValue(21, 4.7333058714866596e-07, 1.634203032101485e-016);
+            extinction_curve.setValue(22, 5.26805222034454e-07, 1.431729732227695e-016);
+            extinction_curve.setValue(23, 5.86320996284485e-07, 1.250360258234746e-016);
+            extinction_curve.setValue(24, 6.525607109069819e-07, 1.078952024050406e-016);
+            extinction_curve.setValue(25, 7.2628378868103e-07, 9.266067295651665e-017);
+            extinction_curve.setValue(26, 8.08335781097412e-07, 7.881166441657414e-017);
+            extinction_curve.setValue(27, 8.99657726287842e-07, 6.579841269777561e-017);
+            extinction_curve.setValue(28, 1.00129699707031e-06, 5.458088737076844e-017);
+            extinction_curve.setValue(29, 1.1144180297851599e-06, 4.498859327641566e-017);
+            extinction_curve.setValue(30, 1.2403199672698998e-06, 3.660451227198234e-017);
+            extinction_curve.setValue(31, 1.3804450035095198e-06, 2.970563074866552e-017);
+            extinction_curve.setValue(32, 1.5364010334014899e-06, 2.401290428990413e-017);
+            extinction_curve.setValue(33, 1.70997595787048e-06, 1.921721053770342e-017);
+            extinction_curve.setValue(34, 1.90316104888916e-06, 1.523635586331645e-017);
+            extinction_curve.setValue(35, 2.11817002296448e-06, 1.204889560936278e-017);
+            extinction_curve.setValue(36, 2.35747098922729e-06, 9.562793524986687e-018);
+            extinction_curve.setValue(37, 2.6238059997558596e-06, 7.653670597381650e-018);
+            extinction_curve.setValue(38, 2.92023110389709e-06, 6.185056501137134e-018);
+            extinction_curve.setValue(39, 3.25014495849609e-06, 5.054911063069209e-018);
+            extinction_curve.setValue(40, 3.61733102798462e-06, 4.168021658769960e-018);
+            extinction_curve.setValue(41, 4.02599906921387e-06, 3.468548840603535e-018);
+            extinction_curve.setValue(42, 4.4808359146118195e-06, 2.910007332891138e-018);
+            extinction_curve.setValue(43, 4.98706007003784e-06, 2.474287670482146e-018);
+            extinction_curve.setValue(44, 5.5504732131958e-06, 2.148568553881987e-018);
+            extinction_curve.setValue(45, 6.17753791809082e-06, 1.926424030502043e-018);
+            extinction_curve.setValue(46, 6.875445842742919e-06, 1.737387824729840e-018);
+            extinction_curve.setValue(47, 7.652201175689699e-06, 2.102465435646191e-018);
+            extinction_curve.setValue(48, 8.51670932769775e-06, 6.233472209570475e-018);
+            extinction_curve.setValue(49, 9.47888565063477e-06, 1.116189825799359e-017);
+            extinction_curve.setValue(50, 1.05497598648071e-05, 8.459390008941990e-018);
+            extinction_curve.setValue(51, 1.1741620063781699e-05, 5.243048743901026e-018);
+            extinction_curve.setValue(52, 1.3068140029907199e-05, 3.222513686771834e-018);
+            extinction_curve.setValue(53, 1.45445098876953e-05, 2.593459581332661e-018);
+            extinction_curve.setValue(54, 1.6187679290771496e-05, 3.364742430016652e-018);
+            extinction_curve.setValue(55, 1.80164794921875e-05, 4.028119360997947e-018);
+            extinction_curve.setValue(56, 2.00519008636475e-05, 3.589028317207343e-018);
+            extinction_curve.setValue(57, 2.2317260742187498e-05, 2.919286851797911e-018);
+            extinction_curve.setValue(58, 2.48385601043701e-05, 2.424045340461135e-018);
+            extinction_curve.setValue(59, 2.76446990966797e-05, 2.034588235351009e-018);
+            extinction_curve.setValue(60, 3.0767860412597695e-05, 1.725524296987028e-018);
+            extinction_curve.setValue(61, 3.42438583374023e-05, 1.464357218017165e-018);
+            extinction_curve.setValue(62, 3.8112560272216795e-05, 1.239701787887817e-018);
+            extinction_curve.setValue(63, 4.2418331146240196e-05, 1.028703213069295e-018);
+            extinction_curve.setValue(64, 4.72105484008789e-05, 8.412356002324342e-019);
+            extinction_curve.setValue(65, 5.25441703796387e-05, 6.810797851620609e-019);
+            extinction_curve.setValue(66, 5.84803504943848e-05, 5.471715483013374e-019);
+            extinction_curve.setValue(67, 6.50871810913086e-05, 4.374078863404243e-019);
+            extinction_curve.setValue(68, 7.24404067993164e-05, 3.489064367360922e-019);
+            extinction_curve.setValue(69, 8.06243667602539e-05, 2.781946435780552e-019);
+            extinction_curve.setValue(70, 8.973293304443359e-05, 2.221216725155223e-019);
+            extinction_curve.setValue(71, 9.987050628662108e-05, 1.777522731448490e-019);
+            extinction_curve.setValue(72, 0.00011115339660644499, 1.426858510061328e-019);
+            extinction_curve.setValue(73, 0.000123710998535156, 1.155888746296647e-019);
+            extinction_curve.setValue(74, 0.000137687194824219, 9.449756554245537e-020);
+            extinction_curve.setValue(75, 0.000153242401123047, 7.584280096005196e-020);
+            extinction_curve.setValue(76, 0.000170554992675781, 6.018818168528717e-020);
+            extinction_curve.setValue(77, 0.000189823501586914, 4.803205495665578e-020);
+            extinction_curve.setValue(78, 0.00021126879882812498, 3.850335435269971e-020);
+            extinction_curve.setValue(79, 0.000235136993408203, 3.094874612999559e-020);
+            extinction_curve.setValue(80, 0.00026170159912109397, 2.491039874419238e-020);
+            extinction_curve.setValue(81, 0.00029126739501953103, 2.006959239669001e-020);
+            extinction_curve.setValue(82, 0.00032417330932617196, 1.618343487101766e-020);
+            extinction_curve.setValue(83, 0.00036079681396484396, 1.305601603235169e-020);
+            extinction_curve.setValue(84, 0.000401557891845703, 1.053083960958686e-020);
+            extinction_curve.setValue(85, 0.00044692401123046894, 8.500255800817664e-021);
+            extinction_curve.setValue(86, 0.000497415313720703, 6.863925335919417e-021);
+            extinction_curve.setValue(87, 0.000553610778808594, 5.541157311593072e-021);
+            extinction_curve.setValue(88, 0.000616155029296875, 4.473916606814938e-021);
+            extinction_curve.setValue(89, 0.000685765197753906, 3.612131329544281e-021);
+            extinction_curve.setValue(90, 0.0007632396240234379, 2.917011636593121e-021);
+            extinction_curve.setValue(91, 0.0008494666748046879, 2.355426278709940e-021);
+            extinction_curve.setValue(92, 0.000945435302734375, 1.902069506823009e-021);
+            extinction_curve.setValue(93, 0.0010522459716796899, 1.538983867990721e-021);
+            extinction_curve.setValue(94, 0.0011711240234375, 1.232992068728240e-021);
+            extinction_curve.setValue(95, 0.0013034310302734399, 9.975786070486010e-022);
+            extinction_curve.setValue(96, 0.0014506870117187499, 8.016047070202548e-022);
+            extinction_curve.setValue(97, 0.0016145780029296899, 6.504697113317689e-022);
+            extinction_curve.setValue(98, 0.0017969849853515598, 5.270413281701706e-022);
+            extinction_curve.setValue(99, 0.002, 4.197725271491968e-022);
+
+            // Init spline
+            extinction_curve.createSpline();
+
+            // Scaling factor
+            double scaling_factor =
+                extinction_tau / extinction_curve.getValue(extinction_magnitude_wavelength);
+
+            return exp(-scaling_factor * extinction_curve.getValue(wavelength));
+        }
+        else
+        {
+            // Scaling factor
+            double scaling_factor = extinction_tau / mixed_component[extinction_dust_mixture].getCextMean(
+                                                         extinction_magnitude_wavelength);
+
+            return exp(-scaling_factor * mixed_component[extinction_dust_mixture].getCextMean(wavelength));
         }
     }
 
@@ -2916,6 +3069,10 @@ class CDustMixture
     CDustComponent * mixed_component;
 
     bool scattering_to_raytracing;
+
+    double extinction_magnitude;
+    double extinction_magnitude_wavelength;
+    uint extinction_dust_mixture;
 
     uint nr_of_components;
     uint nr_of_wavelength;

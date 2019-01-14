@@ -426,8 +426,13 @@ class CSourceISRF : public CSourceBasic
         sp_ext.resize(getNrOfWavelength());
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
+            // Get Mathis radiation field
             double rad_field = CMathFunctions::mathis_isrf(wavelength_list[w]);
-            sp_ext.setValue(w, wavelength_list[w], g_zero * rad_field);
+
+            // Calculate final emission
+            sp_ext.setValue(w,
+                            wavelength_list[w],
+                            g_zero * rad_field * dust->getForegroundExtinction(wavelength_list[w]));
         }
 
         sp_ext.createSpline();

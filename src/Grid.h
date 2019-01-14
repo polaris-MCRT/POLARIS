@@ -763,8 +763,13 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_rx_list.empty() && spec_length_as_vector)
-            return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
+        if(data_pos_rx_list.empty())
+        {
+            if(spec_length_as_vector)
+                return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
+            else
+                return 0;
+        }
         return cell->getData(data_pos_rx_list[wID]);
     }
 
@@ -778,8 +783,13 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_ry_list.empty() && spec_length_as_vector)
-            return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
+        if(data_pos_ry_list.empty())
+        {
+            if(spec_length_as_vector)
+                return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
+            else
+                return 0;
+        }
         return cell->getData(data_pos_ry_list[wID]);
     }
 
@@ -793,8 +803,13 @@ class CGridBasic
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        if(data_pos_rz_list.empty() && spec_length_as_vector)
-            return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
+        if(data_pos_rz_list.empty())
+        {
+            if(spec_length_as_vector)
+                return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
+            else
+                return 0;
+        }
         return cell->getData(data_pos_rz_list[wID]);
     }
 
@@ -887,15 +902,48 @@ class CGridBasic
     {
         // Init variables
         const double wl1 = 9.1165e-08, wl2 = 2.06640e-07;
-        double g_zero;
+        double g_zero = 0;
 
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
-        dlist rad_field(WL_STEPS);
-        for(uint wID = 0; wID < WL_STEPS; wID++)
-            rad_field[wID] = getRadiationField(cell, wID);
+        if(spec_length_as_vector)
+        {
+            for(uint w = 1; w < WL_STEPS; w++)
+            {
+                double rad_field_1 = getRadiationField(cell, w - 1);
+                double rad_field_2 = getRadiationField(cell, w);
+                double mult = 0;
+                if(wl_list[w] > wl1 && wl_list[w + 1] < wl2)
+                    mult = 1;
+                else if(wl_list[w] < wl1 && wl_list[w + 1] > wl2)
+                    mult = (wl2 - wl1) / (wl_list[w + 1] - wl_list[w]);
+                else if(wl_list[w] < wl2 && wl_list[w + 1] > wl2)
+                    mult = (wl2 - wl_list[w]) / (wl_list[w + 1] - wl_list[w]);
+                else if(wl_list[w] < wl1 && wl_list[w + 1] > wl1)
+                    mult = (wl_list[w + 1] - wl1) / (wl_list[w + 1] - wl_list[w]);
+                g_zero += mult * ((wl_list[w] - wl_list[w - 1]) * rad_field_1 +
+                                  0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
+            }
+        }
+        else
+        {
+            for(uint w = 0; w < WL_STEPS; w++)
+            {
+                if(wl_list[w] > wl1 && wl_list[w + 1] < wl2)
+                    g_zero += getSpecLength(cell, w) / getVolume(cell);
+                else if(wl_list[w] < wl1 && wl_list[w + 1] > wl2)
+                    g_zero += getSpecLength(cell, w) * (wl2 - wl1) / (wl_list[w + 1] - wl_list[w]) /
+                              getVolume(cell);
+                else if(wl_list[w] < wl2 && wl_list[w + 1] > wl2)
+                    g_zero += getSpecLength(cell, w) * (wl2 - wl_list[w]) / (wl_list[w + 1] - wl_list[w]) /
+                              getVolume(cell);
+                else if(wl_list[w] < wl1 && wl_list[w + 1] > wl1)
+                    g_zero += getSpecLength(cell, w) * (wl_list[w + 1] - wl1) /
+                              (wl_list[w + 1] - wl_list[w]) / getVolume(cell);
+            }
+        }
 
-        g_zero = max(0.0, CMathFunctions::full_integ(wl_list, rad_field, wl1, wl2) / 1.7836e-06);
+        g_zero /= 1.7836e-06;
         return g_zero;
     }
 

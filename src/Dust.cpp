@@ -4631,6 +4631,11 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
         killSingleComponents();
     }
 
+    // Init foreground extinction
+    extinction_magnitude = param.getForegroundExtinctionMagnitude();
+    extinction_magnitude_wavelength = param.getForegroundExtinctionWavelength();
+    extinction_dust_mixture = param.getForegroundExtinctionDustMixture();
+
     return true;
 }
 
@@ -4745,6 +4750,20 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
                      << "try to define point source(s) and/or the dust source" << endl;
             }
         }
+
+        cout << "- Foreground Extinction   : ";
+        if(extinction_magnitude > 0)
+        {
+            cout << "A_lambda = " << extinction_magnitude << " at wavelength = " << extinction_magnitude_wavelength
+                 << " [m] " << endl;
+            if(extinction_dust_mixture == MAX_UINT)
+                cout << "                            based on ISM grains with MRN-size distribution" << endl;
+            else
+                cout << "                            based on dust mixture id = " << extinction_dust_mixture
+                     << endl;
+        }
+        else
+            cout << "no, enable via <foreground_extinction> A_lambda wavelength" << endl;
 
         cout << "Observed wavelengths:" << endl;
 

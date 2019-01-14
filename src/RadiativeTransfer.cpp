@@ -844,6 +844,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                                    dust->getWavelength(wID),
                                                                    detector[d].getDistance());
 
+                                            // Consider foreground extinction
+                                            tmp_pp.getStokesVector() *= dust->getForegroundExtinction(
+                                                tracer->getWavelength(dust->getWavelength(wID)));
+
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
                                                 &tmp_pp, wID_det, SCATTERED_DUST);
@@ -927,6 +931,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                            dust->getWavelength(wID),
                                                            detector[d].getDistance());
 
+                                    // Consider foreground extinction
+                                    pp->getStokesVector() *= dust->getForegroundExtinction(
+                                        tracer->getWavelength(dust->getWavelength(wID)));
+
                                     if(interactions == 0)
                                     {
                                         // Add the photon package to the detector
@@ -1004,6 +1012,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // observer
                         CMathFunctions::lum2Jy(
                             tmp_pp.getStokesVector(), dust->getWavelength(wID), detector[d].getDistance());
+
+                        // Consider foreground extinction
+                        tmp_pp.getStokesVector() *=
+                            dust->getForegroundExtinction(tracer->getWavelength(dust->getWavelength(wID)));
 
                         // Add the photon package to the detector
                         detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
@@ -1752,6 +1764,9 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
         double mult =
             1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
 
+        // Include foreground extinction if necessary
+        mult *= dust->getForegroundExtinction(tracer->getWavelength(wavelength));
+
         // Update the photon package with the multi Stokes vectors
 
         if(WMap_cr.S(i_wave).I() < 0)
@@ -2155,6 +2170,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                         {
                             // Add the temporary Stokes vector to the total one
                             WMap.setS(stokes_new, i_wave);
+
+                            // Add optical depth
                             WMap.addT(-alpha_dust(0, 0) * cell_d_l, i_wave);
 
                             // Add to column density
@@ -2190,6 +2207,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         double frequency = con_c / tracer->getWavelength(i_wave);
         double mult =
             1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
+
+        // Include foreground extinction if necessary
+        mult *= dust->getForegroundExtinction(tracer->getWavelength(i_wave));
 
         if(WMap.S(i_wave).I() < 0)
             WMap.S(i_wave).setI(0);
@@ -2849,6 +2869,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     for(uint vch = 0; vch < nr_velocity_channels; vch++)
     {
         double mult = 1.0e+26 * subpixel_fraction * tracer->getDistanceFactor();
+
+        // Include foreground extinction if necessary
+        mult *= dust->getForegroundExtinction(tracer->getWavelength(wavelength));
 
         if(CHMap.S(vch).I() < 0)
             CHMap.S(vch).setI(0);

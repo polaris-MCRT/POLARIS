@@ -535,6 +535,10 @@ class parameters
         midplane_zoom = 1;
         max_dust_component_choice = 0;
 
+        extinction_magnitude = 0;
+        extinction_magnitude_wavelength = 0;
+        extinction_i_mixture = MAX_UINT;
+
         reset_dust_files = false;
         acceptance_angle = 1.0;
 
@@ -928,6 +932,21 @@ class parameters
     bool getPeelOff()
     {
         return peel_off;
+    }
+
+    double getForegroundExtinctionMagnitude()
+    {
+        return extinction_magnitude;
+    }
+
+    double getForegroundExtinctionWavelength()
+    {
+        return extinction_magnitude_wavelength;
+    }
+
+    uint getForegroundExtinctionDustMixture()
+    {
+        return extinction_i_mixture;
     }
 
     bool getVelFieldType()
@@ -1348,6 +1367,15 @@ class parameters
     void setPeelOff(bool val)
     {
         peel_off = val;
+    }
+
+    void setForegroundExtinction(double _extinction_magnitude,
+                                 double _extinction_magnitude_wavelength = 0.55e-6,
+                                 uint _extinction_i_mixture = MAX_UINT)
+    {
+        extinction_magnitude = _extinction_magnitude;
+        extinction_magnitude_wavelength = _extinction_magnitude_wavelength;
+        extinction_i_mixture = _extinction_i_mixture;
     }
 
     void setInpAMIRAPoints(uint val)
@@ -2402,6 +2430,10 @@ class parameters
     double larm_f;
     double acceptance_angle;
     double offset_min_gas_dens;
+
+    double extinction_magnitude;
+    double extinction_magnitude_wavelength;
+    uint extinction_i_mixture;
 
     uilist nr_ofVelocityChannels;
 

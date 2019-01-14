@@ -2651,6 +2651,25 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<foreground_extinction>") == 0)
+    {
+        dlist values = parseValues(data);
+
+        if(values.size() == 1)
+            param->setForegroundExtinction(values[0]);
+        else if(values.size() == 2)
+            param->setForegroundExtinction(values[0], values[1]);
+        else if(values.size() == 3)
+            param->setForegroundExtinction(values[0], values[1], values[2]);
+        else
+        {
+            cout << "\nERROR: Foreground extinction command could not be recognized!" << endl;
+            return false;
+        }
+
+        return true;
+    }
+
     if(cmd.compare("<enfsca>") == 0)
     {
         if(atob(atoi(data.c_str())))

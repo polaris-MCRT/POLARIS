@@ -270,6 +270,11 @@ class TestRoutines:
         self.get_result('scattering_map',
                         comparison_mode='avg_rel_diff_no_abs')
 
+    def test_1001012(self):
+        """Perform test simulation to check continuum radiative transfer (with foreground_extinction).
+        """
+        self.get_result('emission_map')
+
     def test_1002001(self):
         """Perform test simulation to check temp_rat calculation.
         """

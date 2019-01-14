@@ -1685,7 +1685,7 @@ class CMathFunctions
 
         for(uint i = 1; i < x.size(); i++)
         {
-            m = (y[i] - y[i - 1]) / (y[i] - x[i - 1]);
+            m = (y[i] - y[i - 1]) / (x[i] - x[i - 1]);
             if(x[i - 1] < xlow && x[i] >= xup)
             {
                 dx = xup - xlow;
