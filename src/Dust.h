@@ -1827,6 +1827,11 @@ class CDustComponent
         return mass[a];
     }
 
+    double getVolume(uint a)
+    {
+        return 4.0 / 3.0 * PI * a_eff[a] * a_eff[a] * a_eff[a];
+    }
+
     /*double getMaterialDensity()
     {
         return material_density;
@@ -1834,8 +1839,8 @@ class CDustComponent
 
     double getMaterialDensity(uint a)
     {
-        double volume = 4.0 / 3.0 * PI * a_eff[a] * a_eff[a] * a_eff[a];
-        return mass[a] / volume;
+
+        return mass[a] / getVolume(a);
     }
 
     double getFHighJ()

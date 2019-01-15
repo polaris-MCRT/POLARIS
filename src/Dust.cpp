@@ -4754,8 +4754,8 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         cout << "- Foreground Extinction   : ";
         if(extinction_magnitude > 0)
         {
-            cout << "A_lambda = " << extinction_magnitude << " at wavelength = " << extinction_magnitude_wavelength
-                 << " [m] " << endl;
+            cout << "A_lambda = " << extinction_magnitude
+                 << " at wavelength = " << extinction_magnitude_wavelength << " [m] " << endl;
             if(extinction_dust_mixture == MAX_UINT)
                 cout << "                            based on ISM grains with MRN-size distribution" << endl;
             else
