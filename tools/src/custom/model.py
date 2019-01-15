@@ -789,8 +789,6 @@ class HD169142(Model):
                     self.parameter['gas_mass'][:, 1] *= 5.8142e-3 * \
                         self.math.const['M_sun'] / \
                         self.parameter['gas_mass'][:, 1].sum()
-                    print(self.parameter['gas_mass'][:, 0].sum(
-                    )/self.math.const['M_sun'], self.parameter['gas_mass'][:, 1].sum()/self.math.const['M_sun'])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
