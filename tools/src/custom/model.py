@@ -360,11 +360,11 @@ class GGTauDisk(Model):
             np.sin(rot_angle_2 / 180 * np.pi)**2)
         self.a_Ab12 = 5. / 2. * self.math.const['au']
         # Inclination of the GG Tau Aa and Ab12 orbits
-        self.orbit_inclination = 0.0 / 180. * np.pi
+        self.orbit_inclination = 0 / 180. * np.pi
         # Inclination of the circumstellar disks around the stars
         self.inclination_Aa = 0 / 180. * np.pi
         self.inclination_Ab1 = 0 / 180. * np.pi
-        self.inclination_Ab2 = 90. / 180. * np.pi
+        self.inclination_Ab2 = 0. / 180. * np.pi
         self.inclination_rotation_axis = [
             np.cos(25 / 180. * np.pi),
             np.sin(25 / 180. * np.pi),
