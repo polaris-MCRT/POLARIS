@@ -3014,8 +3014,11 @@ class CDustMixture
 
             // First column is the updated size distribution
             for(uint a = 0; a < nr_of_dust_species; a++)
-                size_fraction[i_comp][a][0] =
-                    mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
+                if(single_component[i_comp].sizeIndexUsed(a))
+                {
+                    size_fraction[i_comp][a][0] =
+                        mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
+                }
         }
 
         for(uint a = 0; a < nr_of_dust_species; a++)
@@ -3023,11 +3026,13 @@ class CDustMixture
             // Calulcate the sum for each size bin
             double sum = 0;
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-                sum += size_fraction[i_comp][a][0];
+                if(single_component[i_comp].sizeIndexUsed(a))
+                    sum += size_fraction[i_comp][a][0];
 
             // Second column is the mixing ration between the dust components
             for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
-                size_fraction[i_comp][a][1] = size_fraction[i_comp][a][0] / sum;
+                if(single_component[i_comp].sizeIndexUsed(a))
+                    size_fraction[i_comp][a][1] = size_fraction[i_comp][a][0] / sum;
         }
         return size_fraction;
     }

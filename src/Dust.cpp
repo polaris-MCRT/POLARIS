@@ -2706,15 +2706,18 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
     {
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
-            // Add optical properties on top of the mixture ones
-            addQext1(a, w, size_fraction[a][1] * comp->getQext1(a, w));
-            addQext2(a, w, size_fraction[a][1] * comp->getQext2(a, w));
-            addQabs1(a, w, size_fraction[a][1] * comp->getQabs1(a, w));
-            addQabs2(a, w, size_fraction[a][1] * comp->getQabs2(a, w));
-            addQsca1(a, w, size_fraction[a][1] * comp->getQsca1(a, w));
-            addQsca2(a, w, size_fraction[a][1] * comp->getQsca2(a, w));
-            addQcirc(a, w, size_fraction[a][1] * comp->getQcirc(a, w));
-            addHGg(a, w, size_fraction[a][1] * comp->getHGg(a, w));
+            if(comp->sizeIndexUsed(a, a_min, a_max))
+            {
+                // Add optical properties on top of the mixture ones
+                addQext1(a, w, size_fraction[a][1] * comp->getQext1(a, w));
+                addQext2(a, w, size_fraction[a][1] * comp->getQext2(a, w));
+                addQabs1(a, w, size_fraction[a][1] * comp->getQabs1(a, w));
+                addQabs2(a, w, size_fraction[a][1] * comp->getQabs2(a, w));
+                addQsca1(a, w, size_fraction[a][1] * comp->getQsca1(a, w));
+                addQsca2(a, w, size_fraction[a][1] * comp->getQsca2(a, w));
+                addQcirc(a, w, size_fraction[a][1] * comp->getQcirc(a, w));
+                addHGg(a, w, size_fraction[a][1] * comp->getHGg(a, w));
+            }
         }
     }
 
