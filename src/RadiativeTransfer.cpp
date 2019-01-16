@@ -845,8 +845,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                                    detector[d].getDistance());
 
                                             // Consider foreground extinction
-                                            tmp_pp.getStokesVector() *= dust->getForegroundExtinction(
-                                                tracer->getWavelength(dust->getWavelength(wID)));
+                                            tmp_pp.getStokesVector() *=
+                                                dust->getForegroundExtinction(dust->getWavelength(wID));
 
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
@@ -932,8 +932,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                            detector[d].getDistance());
 
                                     // Consider foreground extinction
-                                    pp->getStokesVector() *= dust->getForegroundExtinction(
-                                        tracer->getWavelength(dust->getWavelength(wID)));
+                                    pp->getStokesVector() *=
+                                        dust->getForegroundExtinction(dust->getWavelength(wID));
 
                                     if(interactions == 0)
                                     {
@@ -1014,8 +1014,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             tmp_pp.getStokesVector(), dust->getWavelength(wID), detector[d].getDistance());
 
                         // Consider foreground extinction
-                        tmp_pp.getStokesVector() *=
-                            dust->getForegroundExtinction(tracer->getWavelength(dust->getWavelength(wID)));
+                        tmp_pp.getStokesVector() *= dust->getForegroundExtinction(dust->getWavelength(wID));
 
                         // Add the photon package to the detector
                         detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
