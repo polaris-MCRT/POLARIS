@@ -1096,7 +1096,7 @@ class CDustComponent
                 conversion_factor *= grid->getMu() * m_H;
             conversion_factor *= grid->getMassFraction();
         }
-        else if(grid->getDustIsMassDensity())
+        else if(!grid->getDustIsMassDensity())
             conversion_factor *= getAvgMass(grid, cell);
 
         return conversion_factor;
