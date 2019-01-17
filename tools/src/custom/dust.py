@@ -13,6 +13,7 @@ import numpy as np
 def update_dust_dict(dictionary):
     dust_dict = {
         'multi_sil': MultiSilicate,
+        'multi_mrn': MultiMRN,
         'multi_themis': MultiThemis,
         'olivine': Olivine,
         'silicate_pah': SilicatePAH,
@@ -23,8 +24,8 @@ def update_dust_dict(dictionary):
         'trust_pah': TrustPah,
         'thomas_themis': ThomasThemis,
         'thomas_CM20': ThomasCM20,
-        'thomas_aPyM5': ThomasaPyM5,
-        'thomas_aOlM5': ThomasaOlM5,
+        'thomas_aPyM5': ThomasPyM5,
+        'thomas_aOlM5': ThomasOlM5,
         'custom': CustomDust,
     }
     dictionary.update(dust_dict)
@@ -117,6 +118,57 @@ class MultiSilicate(Dust):
             self.parameter['amax'] = amax_list[i]
             self.parameter['choice_id'] = choice_id[i]
             new_command_line += self.get_command_line()
+        return new_command_line
+
+
+class MultiMRN(Dust):
+    """Dust class for silicate and PAH grains.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Note:
+            Link: https://www.ias.u-psud.fr/themis/
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        #: dict: Parameters which are different to the default values
+        self.parameter['scattering'] = 'MIE'
+        self.parameter['material_density'] = 0
+
+    def get_command(self):
+        """Provides dust composition command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the MRN dust composition.
+        """
+        amax_list = [250e-9, 100e-6]
+        choice_id = [0, 1]
+        new_command_line = str()
+        for i in range(len(amax_list)):
+            dust = self.dust_chooser.get_module_from_name('silicate')
+            dust.parameter['fraction'] = 0.625
+            dust.parameter['amin'] = 5e-9
+            dust.parameter['amax'] = amax_list[i]
+            dust.parameter['choice_id'] = choice_id[i]
+            new_command_line += dust.get_command_line()
+            dust = self.dust_chooser.get_module_from_name('graphite_perpend')
+            dust.parameter['fraction'] = 0.25
+            dust.parameter['amin'] = 5e-9
+            dust.parameter['amax'] = amax_list[i]
+            dust.parameter['choice_id'] = choice_id[i]
+            new_command_line += dust.get_command_line()
+            dust = self.dust_chooser.get_module_from_name('graphite_parallel')
+            dust.parameter['fraction'] = 0.125
+            dust.parameter['amin'] = 5e-9
+            dust.parameter['amax'] = amax_list[i]
+            dust.parameter['choice_id'] = choice_id[i]
+            new_command_line += dust.get_command_line()
         return new_command_line
 
 
@@ -463,7 +515,7 @@ class ThomasCM20(Dust):
         self.parameter['dustem_wl_file'] = 'LAMBDA_THOMAS'
 
 
-class ThomasaPyM5(Dust):
+class ThomasPyM5(Dust):
     """Dust class for carbon grains from Themis model."""
 
     def __init__(self, file_io, parse_args):
@@ -492,7 +544,7 @@ class ThomasaPyM5(Dust):
         self.parameter['dustem_wl_file'] = 'LAMBDA_THOMAS'
 
 
-class ThomasaOlM5(Dust):
+class ThomasOlM5(Dust):
     """Dust class for carbon grains from Themis model."""
 
     def __init__(self, file_io, parse_args):

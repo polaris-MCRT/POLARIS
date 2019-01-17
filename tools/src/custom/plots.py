@@ -1780,14 +1780,22 @@ class CustomPlots:
             'default'
         ]
         model_descr = [
-            'no circumstellar disks',
-            'disk around Aa',
-            'disk around Ab1',
-            'disk around Ab2',
-            'disks around Aa and Ab1',
-            'disks around Aa and Ab2',
-            'disks around Ab1 and Ab2',
-            'disks around all stars'
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars'
+        ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, 0.85],
+            [-0.52, -1],
+            [1.17, -0.42],
+            [-1.3, -1.1],
+            [-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
@@ -1796,6 +1804,8 @@ class CustomPlots:
         # Define output pdf
         self.file_io.init_plot_output(
             '2x2x2_I_emission_map', path=self.file_io.path['model'])
+        # Sum up the flux inside the circle
+        flux_sum = np.zeros((2, 4, len(measurement_position_list)))
         # Create two 2x3 plots
         for i_plot in range(2):
             # Create Matplotlib figure
@@ -1820,8 +1830,50 @@ class CustomPlots:
                                            i_plot * 4] + r'}$',
                                horizontalalignment='left', verticalalignment='top',
                                ax_index=i_subplot, color='white')
+                for i_pos, center_pos in enumerate(measurement_position_list):
+                    plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+                # Get the image sidelength
+                sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
+                sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                # Get number of pixel per axis
+                nr_pixel_x = tbldata.shape[-2]
+                nr_pixel_y = tbldata.shape[-1]
+                # Find the considered pixel
+                for i_x in range(nr_pixel_x):
+                    for i_y in range(nr_pixel_y):
+                        pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                                [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                          np.divide([sidelength_x, sidelength_y], 2.))
+                        for i_pos, center_pos in enumerate(measurement_position_list):
+                            pos_r = np.linalg.norm(
+                                np.subtract(pos, center_pos))
+                            if pos_r < 0.2:
+                                flux_sum[i_plot, i_subplot,
+                                         i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
+        print(r'\begin{tabular}{lllllll}')
+        print(r'\theadstart')
+        print(
+            r'\thead Configuration & \thead $\mathbf{F_1}$ & \thead $\mathbf{F_2}$ & \thead $\mathbf{F_3}$ & \thead $\mathbf{F_4}$ & \thead $\mathbf{F_5}$ & \thead $\mathbf{F_6}$ \\')
+        print(r'\tbody')
+        for i_plot in range(2):
+            for i_subplot in range(4):
+                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+                    '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+        print(r'\tend')
+        print(r'\end{tabular}')
+        print(r'\begin{tabular}{lllllll}')
+        print(r'\theadstart')
+        print(r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ & \thead $\mathbf{F_5/F_5^\textbf{no disks}}$ & \thead $\mathbf{F_6/F_6^\textbf{no disks}}$ \\')
+        print(r'\tbody')
+        for i_plot in range(2):
+            for i_subplot in range(4):
+                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+                    '$\SI{' + f'{x:1.2f}' + '}{\percent}$' for x in 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])), r'\\')
+        print(r'\tend')
+        print(r'\end{tabular}')
 
     def plot_1006005(self):
         """Plot GG Tau A emission maps for different inclination axis.

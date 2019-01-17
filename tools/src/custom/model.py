@@ -343,7 +343,7 @@ class GGTauDisk(Model):
         # -------------------------------------
         self.parameter['stellar_source'] = 'gg_tau_stars'
         # Cite: larger grains in cb disk (McCabe et al. 2002)
-        self.parameter['dust_composition'] = 'multi_sil'
+        self.parameter['dust_composition'] = 'multi_mrn'
         self.parameter['detector'] = 'gg_tau'
         self.parameter['variable_dust'] = True
         # ----------------------------------------------

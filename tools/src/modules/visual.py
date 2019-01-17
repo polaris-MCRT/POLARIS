@@ -728,9 +728,11 @@ class Plot:
             markersize (float): Size of the marker.
         """
         if len(marker_pos) != 2:
-            raise ValueError('Marker position of plot_marker has to consist of only 2 values!')
+            raise ValueError(
+                'Marker position of plot_marker has to consist of only 2 values!')
 
-        self.ax_list[ax_index].plot(marker_pos[0], marker_pos[1], marker=marker, **args)
+        self.ax_list[ax_index].plot(
+            marker_pos[0], marker_pos[1], marker=marker, **args)
 
     def plot_bar(self, left, height, width=0.8, bottom=None, ax_index=0, orientation='vertical', align='center',
                  label='', color=None, edgecolor=None, alpha=1.0):
@@ -1386,13 +1388,11 @@ class Plot:
         # Plot text
         if self.image_type == 'projection_3d':
             self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text_pos[2], text, zdir, color=color,
-                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
-                                                    **args)
+                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment, **args)
         else:
             # Plot the text object
-            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, color=color,
-                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment,
-                                                    **args)
+            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, color=color, horizontalalignment=horizontalalignment,
+                                                    verticalalignment=verticalalignment, **args)
 
     def plot_rectangle(self, pos, width, height, ax_index=0, facecolor=None, edgecolor='none', alpha=0.1, hatch=None):
         """Plot rectangle in the image.
@@ -1409,6 +1409,32 @@ class Plot:
         """
         self.ax_list[ax_index].add_patch(patches.Rectangle(pos, width, height, facecolor=facecolor,
                                                            edgecolor=edgecolor, alpha=alpha, hatch=hatch))
+
+    def plot_circle(self, pos, size, ax_index=0, **args):
+        """Plot circle in the image.
+
+        Args:
+            pos (List): Position of the circle (2D).
+            size (float): Size of the circle.
+            ax_index (int): Index of subplot image.
+            args: Additional arguments.
+        """
+        self.ax_list[ax_index].add_patch(patches.Circle(pos, size, **args))
+
+    def plot_wedge(self, pos, radius, theta1, theta2, width=None, ax_index=0, **args):
+        """Plot wedge in the image.
+
+        Args:
+            pos (List): Position of the wedge (2D).
+            radius (float): Radius of the wedge.
+            theta1 (float): First angle limit of the wedge.
+            theta2 (float): Second angle limit of the wedge.
+            width (float): Width of the wedge.
+            ax_index (int): Index of subplot image.
+            args: Additional arguments.
+        """
+        self.ax_list[ax_index].add_patch(patches.Wedge(
+            pos, radius, theta1, theta2, width, **args))
 
     def plot_title(self, text, ax_index=0):
         """Plot title on top of an image.
