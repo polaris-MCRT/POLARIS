@@ -1672,7 +1672,7 @@ class CustomPlots:
                 'plot', 'gg_tau_disk', model_name, 'dust')
             # Read raytrace results from file
             sed_data, header, _ = self.file_io.read_emission_sed(
-                'polaris_detector_nr0001_sed')
+                'polaris_detector_nr0200_sed')
             # Init wavelengths and fluxes
             wavelengths = header['wavelengths']
             quantity = sed_data[0, :]
@@ -1767,7 +1767,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 100
+        detector_index = 1#100
         i_quantity = 0
         model_list = [
             'no_circumstellar_disks',
@@ -1853,7 +1853,7 @@ class CustomPlots:
                                          i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
-        print(r'\begin{tabular}{lllllll}')
+        print(r'\begin{tabular}{lcccccc}')
         print(r'\theadstart')
         print(
             r'\thead Configuration & \thead $\mathbf{F_1}$ & \thead $\mathbf{F_2}$ & \thead $\mathbf{F_3}$ & \thead $\mathbf{F_4}$ & \thead $\mathbf{F_5}$ & \thead $\mathbf{F_6}$ \\')
@@ -1864,14 +1864,14 @@ class CustomPlots:
                     '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
         print(r'\tend')
         print(r'\end{tabular}')
-        print(r'\begin{tabular}{lllllll}')
+        print(r'\begin{tabular}{lcccccc}')
         print(r'\theadstart')
         print(r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ & \thead $\mathbf{F_5/F_5^\textbf{no disks}}$ & \thead $\mathbf{F_6/F_6^\textbf{no disks}}$ \\')
         print(r'\tbody')
         for i_plot in range(2):
             for i_subplot in range(4):
                 print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
-                    '$\SI{' + f'{x:1.2f}' + '}{\percent}$' for x in 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])), r'\\')
+                    '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])), r'\\')
         print(r'\tend')
         print(r'\end{tabular}')
 
