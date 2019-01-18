@@ -1575,7 +1575,7 @@ class Plot:
             for ax in self.ax_list:
                 ax.set_visible(False)
         else:
-            self.ax_list[ax_index].set_visible(False)
+            self.ax_list[ax_index].set_axis_off()
 
     @staticmethod
     def make_tight_layout():

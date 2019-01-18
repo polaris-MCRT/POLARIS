@@ -1697,7 +1697,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 100
+        detector_index = 101
         i_quantity = 4
         model_list = [
             'no_circumstellar_disks',
@@ -1710,14 +1710,14 @@ class CustomPlots:
             'default'
         ]
         model_descr = [
-            'no circumstellar disks',
-            'disk around Aa',
-            'disk around Ab1',
-            'disk around Ab2',
-            'disks around Aa and Ab1',
-            'disks around Aa and Ab2',
-            'disks around Ab1 and Ab2',
-            'disks around all stars'
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars'
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.07
@@ -1749,10 +1749,12 @@ class CustomPlots:
                                     2 + i_plot * 4] + r'}$',
                         horizontalalignment='left', verticalalignment='top', ax_index=i_subplot, color='white'
                     )
-                elif i_subplot in [0, 1]:
+                elif i_subplot in [0]:
                     hdulist = fits.open(
                         '/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
                     tbldata = cropND(hdulist[0].data.T, (400, 400)) / 3e7
+                else:
+                    continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=5e-8, vmax=1e-5, cmap='magma')
                 # Hide second observation plot
@@ -1767,7 +1769,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 1#100
+        detector_index = 101
         i_quantity = 0
         model_list = [
             'no_circumstellar_disks',
@@ -1794,8 +1796,8 @@ class CustomPlots:
             [0, 0.85],
             [-0.52, -1],
             [1.17, -0.42],
-            [-1.3, -1.1],
-            [-0.57, 0.82]
+            #[-1.3, -1.1],
+            #[-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
@@ -1822,7 +1824,7 @@ class CustomPlots:
                 tbldata = plot_data[i_quantity, 0, :, :]
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=5e-7, vmax=1e-4)
+                                 norm='LogNorm', vmin=1e-7, vmax=1e-4)
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
@@ -1853,10 +1855,10 @@ class CustomPlots:
                                          i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
-        print(r'\begin{tabular}{lcccccc}')
+        print(r'\begin{tabular}{lcccc}')
         print(r'\theadstart')
         print(
-            r'\thead Configuration & \thead $\mathbf{F_1}$ & \thead $\mathbf{F_2}$ & \thead $\mathbf{F_3}$ & \thead $\mathbf{F_4}$ & \thead $\mathbf{F_5}$ & \thead $\mathbf{F_6}$ \\')
+            r'\thead Configuration & \thead $\mathbf{F_1}$ & \thead $\mathbf{F_2}$ & \thead $\mathbf{F_3}$ & \thead $\mathbf{F_4}$  \\')
         print(r'\tbody')
         for i_plot in range(2):
             for i_subplot in range(4):
@@ -1864,9 +1866,9 @@ class CustomPlots:
                     '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
         print(r'\tend')
         print(r'\end{tabular}')
-        print(r'\begin{tabular}{lcccccc}')
+        print(r'\begin{tabular}{lccccc}')
         print(r'\theadstart')
-        print(r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ & \thead $\mathbf{F_5/F_5^\textbf{no disks}}$ & \thead $\mathbf{F_6/F_6^\textbf{no disks}}$ \\')
+        print(r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ \\')
         print(r'\tbody')
         for i_plot in range(2):
             for i_subplot in range(4):
