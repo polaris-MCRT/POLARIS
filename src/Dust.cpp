@@ -1430,7 +1430,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     char str_frac_end[1024];
 
     // Init strings for various filenames/titles
-    string path_cross, path_eff, path_diff, path_g;
+    string path_cross, path_eff, path_kappa, path_diff, path_g;
     string path_scat, str_title, gnu_title, plot_sign = "points";
 
     // Check if enough points to draw lines
@@ -1465,8 +1465,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         gnu_title = "#Dust mixture ";
         gnu_title += str_mix_ID_end;
         gnu_title += "\n";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.plt";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
         path_data += "dust_mixture_";
         path_data += str_mix_ID_end;
@@ -1516,6 +1517,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         gnu_title = str_title;
         path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
         path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.plt";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
@@ -1583,7 +1585,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     cross_writer << "set format x \"%.1te%02T\"" << endl;
     cross_writer << "set format y \"%.1te%02T\"" << endl;
-    cross_writer << "set ylabel \'C_{avg} [m^{-2}]\'" << endl;
+    cross_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     cross_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
     cross_writer << "set title \"" << gnu_title << "\"" << endl;
     cross_writer << "plot \'-\' with " << plot_sign << " title \'C_{ext,x}\' lc rgb \"#0000F0\","
@@ -1634,7 +1636,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // ------------------------------------------------------
 
-    // Init text file writer for cross-sections
+    // Init text file writer for efficiencies
     ofstream eff_writer(path_eff.c_str());
 
     // Error message if the write does not work
@@ -1744,6 +1746,117 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // ------------------------------------------------------
 
+    // Init text file writer for mass cross-sections
+    ofstream kappa_writer(path_kappa.c_str());
+
+    // Error message if the write does not work
+    if(kappa_writer.fail())
+    {
+        cout << "\nERROR: Cannot write to:\n" << path_eff << endl;
+        return false;
+    }
+
+    // Init plot limits
+    double Kappa_min = 1e100, Kappa_max = -1e100;
+
+    // Find min and max values over the wavelength (checks only Cext1 and Cabs1)
+    // Find min and max values over the wavelength (checks only Cext1 and Cabs1)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+    {
+        if(getKappaExt1(i) < Kappa_min && getKappaExt1(i) > 0)
+            Kappa_min = getKappaExt1(i);
+        if(getKappaAbs1(i) < Kappa_min && getKappaAbs1(i) > 0)
+            Kappa_min = getKappaAbs1(i);
+        if(getKappaSca1(i) < Kappa_min && getKappaSca1(i) > 0)
+            Kappa_min = getKappaSca1(i);
+        if(getKappaExt2(i) < Kappa_min && getKappaExt2(i) > 0)
+            Kappa_min = getKappaExt2(i);
+        if(getKappaAbs2(i) < Kappa_min && getKappaAbs2(i) > 0)
+            Kappa_min = getKappaAbs2(i);
+        if(getKappaSca2(i) < Kappa_min && getKappaSca2(i) > 0)
+            Kappa_min = getKappaSca2(i);
+
+        if(getKappaExt1(i) > Kappa_max)
+            Kappa_max = getKappaExt1(i);
+        if(getKappaAbs1(i) > Kappa_max)
+            Kappa_max = getKappaAbs1(i);
+        if(getKappaSca1(i) > Kappa_max)
+            Kappa_max = getKappaSca1(i);
+        if(getKappaExt2(i) > Kappa_max)
+            Kappa_max = getKappaExt2(i);
+        if(getKappaAbs2(i) > Kappa_max)
+            Kappa_max = getKappaAbs2(i);
+        if(getKappaSca2(i) > Kappa_max)
+            Kappa_max = getKappaSca2(i);
+    }
+
+    // Add a bit more space for good visualization
+    Kappa_min *= 0.9;
+    Kappa_max *= 1.10;
+
+    // Add Gnuplot commands to file
+    kappa_writer << "reset" << endl;
+    if(nr_of_wavelength > 1)
+        kappa_writer << "set log x" << endl;
+    kappa_writer << "set log y" << endl;
+    kappa_writer << "set grid" << endl;
+    if(nr_of_wavelength > 1)
+        kappa_writer << "set xrange[" << wavelength_list[wavelength_offset] << ":" << wavelength_list.back()
+                     << "]" << endl;
+    kappa_writer << "set yrange[" << Kappa_min << ":" << Kappa_max << "]" << endl;
+    kappa_writer << "set format x \"%.1te%02T\"" << endl;
+    kappa_writer << "set format y \"%.1te%02T\"" << endl;
+    kappa_writer << "set ylabel \'{/Symbol k}_{avg}  [m^2/kg]\'" << endl;
+    kappa_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
+    kappa_writer << "set title \"" << gnu_title << "\"" << endl;
+    kappa_writer << "plot \'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,x}\' lc rgb \"#0000F0\","
+                 << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,y}\' lc rgb \"#000090\","
+                 << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{abs,x}\' lc rgb \"#FF0000\","
+                 << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{abs,y}\' lc rgb \"#900000\","
+                 << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{sca,x}\' lc rgb \"#FFFF00\","
+                 << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{sca,y}\' lc rgb \"#909000\"" << endl;
+
+    // Add Cext1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaExt1(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaExt1(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Add Cext2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaExt2(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaExt2(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Add Cabs1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaAbs1(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaAbs1(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Add Cabs2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaAbs2(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaAbs2(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Add Csca1 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaSca1(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaSca1(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Add Csca2 data to file (if larger than 0)
+    for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
+        if(getKappaSca2(i) > 0)
+            kappa_writer << wavelength_list[i] << "\t" << getKappaSca2(i) << endl;
+    kappa_writer << "e" << endl;
+
+    // Close text file writer
+    kappa_writer.close();
+
+    // ------------------------------------------------------
+
     // Init text file writer for cross-section differences
     ofstream diff_writer(path_diff.c_str());
 
@@ -1792,7 +1905,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set yrange[" << Cmin << ":" << Cmax << "]" << endl;
     diff_writer << "set format x \"%.1te%02T\"" << endl;
     diff_writer << "set format y \"%.1te%02T\"" << endl;
-    diff_writer << "set ylabel \'C_{avg} [m^{-2}]\'" << endl;
+    diff_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     diff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
     diff_writer << "set title \"" << gnu_title << "\"" << endl;
     diff_writer << "plot \'-\' with " << plot_sign << " title \'|dC_{ext}| (Cpol)\' lc rgb \"#0000FF\","
