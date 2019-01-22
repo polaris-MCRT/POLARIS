@@ -776,7 +776,7 @@ class HD169142(Model):
                         [7.9099e-7, 5.8142e-3],
                         [0., 0.7733e-2 * 5.8142e-3]
                     ]) * self.math.const['M_sun']
-                elif self.parameter['model_number'] == 2:
+                elif self.parameter['model_number'] in [2, 3]:
                     self.parameter['gas_mass'] = np.array([
                         [0, 0.17e-3],
                         [0.63e-3, 0.63e-3],
@@ -800,7 +800,7 @@ class HD169142(Model):
         # Init density 2D list
         density_list = np.zeros((2, 2))
         if self.parameter['model_number'] is not None:
-            if self.parameter['model_number'] == 2:
+            if self.parameter['model_number'] in [2, 3]:
                 density_list = np.zeros((4, 2))
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)

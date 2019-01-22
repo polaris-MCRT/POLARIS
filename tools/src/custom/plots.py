@@ -1697,7 +1697,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 100
         i_quantity = 4
         model_list = [
             'no_circumstellar_disks',
@@ -1751,7 +1751,7 @@ class CustomPlots:
                     )
                 elif i_subplot in [0]:
                     hdulist = fits.open(
-                        '/home/rbrauer/Documents/projects/005_gg_tau/nrear_infrared_imaging_paper/sub_pi.fits')
+                        '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
                     tbldata = cropND(hdulist[0].data.T, (400, 400)) / 3e7
                 else:
                     continue
@@ -1769,8 +1769,10 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 100
         i_quantity = 0
+        zoom = 0.8
+        # Set some lists
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1810,9 +1812,8 @@ class CustomPlots:
         flux_sum = np.zeros((2, 4, len(measurement_position_list)))
         # Create two 2x3 plots
         for i_plot in range(2):
-            # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
-                        nr_x_images=2, nr_y_images=2)
+            # Init plot class variable
+            plot = None
             for i_subplot in range(4):
                 # Set paths of each simulation
                 self.file_io.set_path_from_str(
@@ -1822,6 +1823,10 @@ class CustomPlots:
                     'polaris_detector_nr' + str(detector_index).zfill(4))
                 # Take data for current quantity
                 tbldata = plot_data[i_quantity, 0, :, :]
+                # Create Matplotlib figure
+                if i_subplot == 0:
+                    plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                                nr_x_images=2, nr_y_images=2)
                 # Plot imshow
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=1e-7, vmax=1e-4)
@@ -1833,7 +1838,8 @@ class CustomPlots:
                                horizontalalignment='left', verticalalignment='top',
                                ax_index=i_subplot, color='white')
                 for i_pos, center_pos in enumerate(measurement_position_list):
-                    plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
+                    plot.plot_text(text_pos=center_pos,
+                                   text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
                                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
                 # Get the image sidelength
                 sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
@@ -1868,7 +1874,8 @@ class CustomPlots:
         print(r'\end{tabular}')
         print(r'\begin{tabular}{lccccc}')
         print(r'\theadstart')
-        print(r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ \\')
+        print(
+            r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ \\')
         print(r'\tbody')
         for i_plot in range(2):
             for i_subplot in range(4):
