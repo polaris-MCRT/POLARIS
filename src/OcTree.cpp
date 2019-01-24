@@ -1240,7 +1240,7 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
 
     bin_writer.close();
     cout << CLR_LINE;
-    cout << "- Writing octree grid file             : done" << endl;
+    cout << "- Writing octree grid file      : done" << endl;
 
     return true;
 }

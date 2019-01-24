@@ -1632,7 +1632,8 @@ class CustomPlots:
             'sed_comparison', path=self.file_io.path['model'])
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
-                    ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
+                    ylabel=self.file_io.get_quantity_labels(0), with_cbar=False,
+                    limits=[None, None, 1e-10, None])
         # Plot vizier data
         from astropy.io.votable import parse_single_table
         table = parse_single_table(
@@ -1643,7 +1644,10 @@ class CustomPlots:
         # Plot total spectral energy distribution
         plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy',
                        linestyle='none', marker='.', color='black',
-                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
+                       alpha=0.7, label=r'$\text{Photometric observations}$')
+        # Set some variables
+        detector_index = 200
+        i_quantity = 0
         # Different model configurations
         model_list = [
             'no_circumstellar_disks',
@@ -1656,29 +1660,71 @@ class CustomPlots:
             'default'
         ]
         model_descr = [
-            'no circumstellar disks',
-            'disk around Aa',
-            'disk around Ab1',
-            'disk around Ab2',
-            'disks around Aa and Ab1',
-            'disks around Aa and Ab2',
-            'disks around Ab1 and Ab2',
-            'disks around all stars'
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars'
         ]
         # Loop over model configurations
         for i_model, model_name in enumerate(model_list):
-            # Set paths of each simulation
-            self.file_io.set_path_from_str(
-                'plot', 'gg_tau_disk', model_name, 'dust')
-            # Read raytrace results from file
-            sed_data, header, _ = self.file_io.read_emission_sed(
-                'polaris_detector_nr0200_sed')
-            # Init wavelengths and fluxes
-            wavelengths = header['wavelengths']
-            quantity = sed_data[0, :]
-            # Plot spectral energy distribution
-            plot.plot_line(wavelengths, quantity, log='xy',
-                           label=r'$\text{' + model_descr[i_model] + r'}$')
+            if i_model < 8:
+                # Set paths of each simulation
+                self.file_io.set_path_from_str(
+                    'plot', 'gg_tau_disk', model_name, 'dust')
+                # Read raytrace results from file
+                sed_data, header, _ = self.file_io.read_emission_sed(
+                    'polaris_detector_nr' + str(detector_index).zfill(4) + '_sed')
+                # Init wavelengths and fluxes
+                wavelengths = header['wavelengths']
+                quantity = sed_data[i_quantity, :]
+                # Plot spectral energy distribution
+                plot.plot_line(wavelengths, quantity, log='xy',
+                               label=r'$\text{' + model_descr[i_model] + r'}$')
+            '''
+            else:
+                # Set paths of each simulation
+                self.file_io.set_path_from_str(
+                    'plot', 'gg_tau_disk', model_name, 'dust')
+                # Read raytrace results from file
+                plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                    'polaris_detector_nr' + str(detector_index).zfill(4))
+                # Set paths of each simulation (for no disks)
+                self.file_io.set_path_from_str(
+                    'plot', 'gg_tau_disk', 'no_circumstellar_disks', 'dust')
+                # Read raytrace results from file (for no disks)
+                plot_data_no, header_no, plot_data_type_no = self.file_io.read_emission_map(
+                    'polaris_detector_nr' + str(detector_index).zfill(4))
+                # Init wavelengths and fluxes
+                wavelengths = header['wavelengths']
+                quantity = np.zeros((plot_data.shape[1], 3))
+                # Get the image sidelength
+                sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
+                sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                # Get number of pixel per axis
+                nr_pixel_x = plot_data.shape[-2]
+                nr_pixel_y = plot_data.shape[-1]
+                # Find the considered pixel
+                for i_x in range(nr_pixel_x):
+                    for i_y in range(nr_pixel_y):
+                        if np.sqrt((i_x - 256)**2 + (i_y - 256)**2) < 30:
+                            quantity[:, 0] += \
+                                plot_data_no[i_quantity, :, i_x, i_y]
+                            quantity[:, 1] += plot_data[i_quantity, :, i_x, i_y]
+                        else:
+                            quantity[:, 2] += plot_data[i_quantity, :, i_x, i_y]
+
+                # Plot spectral energy distribution
+                plot.plot_line(wavelengths, quantity[:, 0], log='xy',
+                               label=r'$\text{- central stars}$')
+                plot.plot_line(wavelengths, np.subtract(quantity[:, 1], quantity[:, 0]), log='xy',
+                               label=r'$\text{- circumstellar disks}$')
+                plot.plot_line(wavelengths, quantity[:, 2], log='xy',
+                               label=r'$\text{- circumbinary disk}$')
+            '''
         # Plot the legend
         plot.plot_legend(loc=4)
         # Save figure to pdf file or print it on screen
