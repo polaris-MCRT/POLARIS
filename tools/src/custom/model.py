@@ -473,7 +473,8 @@ class GGTauDisk(Model):
             ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
             disk_density_Aa = self.math.default_disk_density(
-                pos_Aa, outer_radius=self.outer_radius_Aa, inner_radius=self.inner_radius, ref_scale_height=0.6*self.math.const['au'], ref_scale_height=0.7*self.math.const['au'], ref_radius=7*self.math.const['au'])
+                pos_Aa, outer_radius=self.outer_radius_Aa, inner_radius=self.inner_radius,
+                ref_scale_height=0.7*self.math.const['au'], ref_radius=7*self.math.const['au'])
         else:
             # Set to zero outside of the disk
             disk_density_Aa = 0.
