@@ -788,6 +788,8 @@ class HD169142(Model):
                     self.parameter['gas_mass'][:, 1] *= 5.8142e-3 * \
                         self.math.const['M_sun'] / \
                         self.parameter['gas_mass'][:, 1].sum()
+                    # Decrease the silicates by 4 orders of magnitude
+                    self.parameter['gas_mass'][2:, :] *= 1e-4
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
