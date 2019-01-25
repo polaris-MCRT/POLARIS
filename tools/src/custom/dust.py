@@ -147,7 +147,7 @@ class MultiMRN(Dust):
         Returns:
             str: Command line to consider the MRN dust composition.
         """
-        amax_list = [250e-9, 100e-6]
+        amax_list = [0.25e-6, 0.5e-6]
         choice_id = [0, 1]
         new_command_line = str()
         for i in range(len(amax_list)):

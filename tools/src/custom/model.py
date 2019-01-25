@@ -472,8 +472,8 @@ class GGTauDisk(Model):
                 np.sin(self.orbit_inclination) + self.vertical_shift_Aa
             ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Aa)
             # Calculate the density
-            disk_density_Aa = self.math.default_disk_density(pos_Aa, outer_radius=self.outer_radius_Aa,
-                                                             inner_radius=self.inner_radius)
+            disk_density_Aa = self.math.default_disk_density(
+                pos_Aa, outer_radius=self.outer_radius_Aa, inner_radius=self.inner_radius, ref_scale_height=12*self.math.const['au'])
         else:
             # Set to zero outside of the disk
             disk_density_Aa = 0.
@@ -490,8 +490,8 @@ class GGTauDisk(Model):
                     np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
                 ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab1)
                 # Calculate the density
-                disk_density_Ab1 = self.math.default_disk_density(pos_Ab1, outer_radius=self.outer_radius_Ab12,
-                                                                  inner_radius=self.inner_radius)
+                disk_density_Ab1 = self.math.default_disk_density(
+                    pos_Ab1, outer_radius=self.outer_radius_Ab12, inner_radius=self.inner_radius)
             else:
                 disk_density_Ab1 = 0.
 
@@ -505,8 +505,8 @@ class GGTauDisk(Model):
                     np.sin(self.orbit_inclination) + self.vertical_shift_Ab12
                 ], rotation_axis=self.inclination_rotation_axis, rotation_angle=self.inclination_Ab2)
                 # Calculate the density
-                disk_density_Ab2 = self.math.default_disk_density(pos_Ab2, outer_radius=self.outer_radius_Ab12,
-                                                                  inner_radius=self.inner_radius)
+                disk_density_Ab2 = self.math.default_disk_density(
+                    pos_Ab2, outer_radius=self.outer_radius_Ab12, inner_radius=self.inner_radius)
             else:
                 disk_density_Ab2 = 0.
         else:
@@ -517,9 +517,8 @@ class GGTauDisk(Model):
         # --- GG Tau A CB disk
         if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
             # Calculate the density
-            disk_density = self.math.default_disk_density(self.position, outer_radius=260. * self.math.const['au'],
-                                                          inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height,
-                                                          ref_radius=self.ref_radius, column_dens_exp=self.surf_dens_exp, beta=self.beta)
+            disk_density = self.math.default_disk_density(self.position,
+                                                          outer_radius=260. * self.math.const['au'], inner_radius=180. * self.math.const['au'], ref_scale_height=self.ref_scale_height, ref_radius=self.ref_radius, column_dens_exp=self.surf_dens_exp, beta=self.beta)
             # Add exponential decay ath the inner border
             if radius_cy < 190. * self.math.const['au']:
                 disk_density *= np.exp(-0.5 * (
