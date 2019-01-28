@@ -349,7 +349,7 @@ class CustomPlots:
         """
         self.file_io.init_plot_output('tau_profile')
         data = self.file_io.read_data_file('tau_profile.dat')
-        #freq = self.math.const['c'] / 7.7e-6
+        # freq = self.math.const['c'] / 7.7e-6
         N_wl = 31
         N = len(data[:, 0])
         N_pos = int(N / N_wl)
@@ -357,16 +357,16 @@ class CustomPlots:
         wl_list = ['1.5364e-06', '3.61733e-06', '4.98706e-06', '7.6522e-06',
                    '1.05498e-05', '1.45445e-05']
 
-        #initial_intensity = radius.copy()
-        #final_intensity = radius.copy()
+        # initial_intensity = radius.copy()
+        # final_intensity = radius.copy()
         # for i in range(N):
-        #radius[i] = np.sqrt(data[i, 0] ** 2 + data[i, 1] ** 2 + data[i, 2] ** 2) / self.math.const['au']
-        #radius_proj[i] = np.sqrt(data[i, 0] ** 2 + (data[i, 1] * np.cos(37. / 180. * np.pi)) ** 2 + data[i, 2] ** 2) / self.math.const['au']
-        #optical_depth[i] = data[i, 3]
-        #mult =  self.math.const['c'] / (freq * freq)
-        #mult *= 1e+26  / (140. * self.math.const['pc']) ** 2
-        #initial_intensity[i] = data[i, 4] * mult * 1e3
-        #final_intensity[i] = data[i, 5] * mult * 1e3
+        # radius[i] = np.sqrt(data[i, 0] ** 2 + data[i, 1] ** 2 + data[i, 2] ** 2) / self.math.const['au']
+        # radius_proj[i] = np.sqrt(data[i, 0] ** 2 + (data[i, 1] * np.cos(37. / 180. * np.pi)) ** 2 + data[i, 2] ** 2) / self.math.const['au']
+        # optical_depth[i] = data[i, 3]
+        # mult =  self.math.const['c'] / (freq * freq)
+        # mult *= 1e+26  / (140. * self.math.const['pc']) ** 2
+        # initial_intensity[i] = data[i, 4] * mult * 1e3
+        # final_intensity[i] = data[i, 5] * mult * 1e3
 
         radius = np.zeros(N_pos)
         radius_proj = np.zeros(N_pos)
@@ -556,13 +556,15 @@ class CustomPlots:
                     '''
                         plot.plot_line(xdata=range(header['nr_channels']),
                                        ydata=tbldata[1, :, i_x, i_y] / max(
-                                           np.max(abs(tbldata[1, :, i_x, i_y])),
+                                           np.max(
+                                               abs(tbldata[1, :, i_x, i_y])),
                                            np.max(abs(tbldata[2, :, i_x, i_y]))),
                                        marker='.', color='blue', linestyle='-',
                                        label=r'$F_\mathsf{Q}$')
                         plot.plot_line(xdata=range(header['nr_channels']),
                                        ydata=tbldata[2, :, i_x, i_y] / max(
-                                           np.max(abs(tbldata[1, :, i_x, i_y])),
+                                           np.max(
+                                               abs(tbldata[1, :, i_x, i_y])),
                                            np.max(abs(tbldata[2, :, i_x, i_y]))),
                                        marker='.', color='green', linestyle='-',
                                        label=r'$F_\mathsf{U}$')
@@ -1733,9 +1735,10 @@ class CustomPlots:
     def plot_1006003(self):
         """Plot two times 6 polarized intensity emission maps with differnet configurations for GG Tau A.
         """
-        def cropND(img, bounding):
+        def cropND(img, bounding, offset=[0, 0]):
             import operator
-            start = tuple(map(lambda a, da: a//2-da//2, img.shape, bounding))
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
             end = tuple(map(operator.add, start, bounding))
             slices = tuple(map(slice, start, end))
             return img[slices]
@@ -1743,7 +1746,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 100
+        detector_index = 101
         i_quantity = 4
         model_list = [
             'no_circumstellar_disks',
@@ -1765,6 +1768,14 @@ class CustomPlots:
             'Disks around Ab1 and Ab2',
             'Disks around all stars'
         ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, 0.85],
+            [-0.57, -0.975],
+            [1.17, -0.42],
+            # [-1.3, -1.1],
+            # [-0.57, 0.82]
+        ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.07
         # Take colorbar label from quantity id
@@ -1772,6 +1783,14 @@ class CustomPlots:
         # Define output pdf
         self.file_io.init_plot_output(
             '2x2x3_PI_emission_map', path=self.file_io.path['model'])
+        # Sum up the flux inside the circle
+        flux_sum = np.zeros((2, 6, len(measurement_position_list)))
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', 'default', 'dust')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
         # Create two 2x3 plots
         for i_plot in range(2):
             # Create Matplotlib figure
@@ -1798,15 +1817,66 @@ class CustomPlots:
                 elif i_subplot in [0]:
                     hdulist = fits.open(
                         '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
-                    tbldata = cropND(hdulist[0].data.T, (400, 400)) / 3e7
+                    tbldata = cropND(
+                        hdulist[0].data.T, (500, 500), offset=[0, 30]) / 3e7
                 else:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=5e-8, vmax=1e-5, cmap='magma')
+                for i_pos, center_pos in enumerate(measurement_position_list):
+                    plot.plot_text(text_pos=center_pos,
+                                   text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+                # Get the image sidelength
+                sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
+                sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                # Get number of pixel per axis
+                nr_pixel_x = tbldata.shape[-2]
+                nr_pixel_y = tbldata.shape[-1]
+                # Find the considered pixel
+                for i_x in range(nr_pixel_x):
+                    for i_y in range(nr_pixel_y):
+                        pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                                [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                          np.divide([sidelength_x, sidelength_y], 2.))
+                        for i_pos, center_pos in enumerate(measurement_position_list):
+                            pos_r = np.linalg.norm(
+                                np.subtract(pos, center_pos))
+                            if pos_r < 0.2:
+                                flux_sum[i_plot, i_subplot,
+                                         i_pos] += tbldata[i_x, i_y]
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
+        print(r'\begin{tabular}{lcccc}')
+        print(r'\theadstart')
+        print(
+            r'\thead Configuration & \thead $\boldsymbol{\textit{PI}}$ (1) & \thead $\boldsymbol{\textit{PI}}$ (2) & \thead $\boldsymbol{\textit{PI}}$ (3) & \thead $\boldsymbol{\textit{PI}}$ (4) \\')
+        print(r'\tbody')
+        for i_plot in range(2):
+            for i_subplot in range(6):
+                if i_subplot > 1:
+                    print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
+                        '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+        print('Observation &', ' & '.join(
+            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
+        print(r'\tend')
+        print(r'\end{tabular}')
+        print(r'\begin{tabular}{lcccccc}')
+        print(r'\theadstart')
+        print(
+            r'\thead Configuration & \thead $\boldsymbol{\delta \textit{PI}}$ (region 1) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 2) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 3) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 4) & \thead \textit{PI} (region 1) / \textit{PI} (region 2) \\')
+        print(r'\tbody')
+        for i_plot in range(2):
+            for i_subplot in range(6):
+                if i_subplot > 1:
+                    print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
+                        100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
+        print('Observation & x & x & x & x &', ' & '.join(
+            '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
+        print(r'\tend')
+        print(r'\end{tabular}')
 
     def plot_1006004(self):
         """Plot two times 4 intensity emission maps with differnet configurations for GG Tau A.
@@ -1815,7 +1885,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 100
+        detector_index = 101
         i_quantity = 0
         zoom = 0.8
         # Set some lists
@@ -1842,10 +1912,10 @@ class CustomPlots:
         measurement_position_list = [
             [0, -1.05],
             [0, 0.85],
-            [-0.52, -1],
+            [-0.57, -0.975],
             [1.17, -0.42],
-            #[-1.3, -1.1],
-            #[-0.57, 0.82]
+            # [-1.3, -1.1],
+            # [-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
@@ -1910,25 +1980,32 @@ class CustomPlots:
         print(r'\begin{tabular}{lcccc}')
         print(r'\theadstart')
         print(
-            r'\thead Configuration & \thead $\mathbf{F_1}$ & \thead $\mathbf{F_2}$ & \thead $\mathbf{F_3}$ & \thead $\mathbf{F_4}$  \\')
+            r'\thead Configuration & \thead $\boldsymbol{\textit{F}}$ (1) & \thead $\boldsymbol{\textit{F}}$ (2) & \thead $\boldsymbol{\textit{F}}$ (3) & \thead $\boldsymbol{\textit{F}}$ (4) \\')
         print(r'\tbody')
         for i_plot in range(2):
-            for i_subplot in range(4):
-                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+            for i_subplot in range(4): # 6
+                #if i_subplot > 1:
+                print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
                     '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+        #print('Observation &', ' & '.join(
+        #    '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
         print(r'\tend')
         print(r'\end{tabular}')
-        print(r'\begin{tabular}{lccccc}')
+        print(r'\begin{tabular}{lcccccc}')
         print(r'\theadstart')
         print(
-            r'\thead Configuration & \thead $\mathbf{F_1/F_1^\textbf{no disks}}$ & \thead $\mathbf{F_2/F_2^\textbf{no disks}}$ & \thead $\mathbf{F_3/F_3^\textbf{no disks}}$ & \thead $\mathbf{F_4/F_4^\textbf{no disks}}$ \\')
+            r'\thead Configuration & \thead $\boldsymbol{\delta \textit{F}}$ (region 1) & \thead $\boldsymbol{\delta \textit{F}}$ (region 2) & \thead $\boldsymbol{\delta \textit{F}}$ (region 3) & \thead $\boldsymbol{\delta \textit{F}}$ (region 4) & \thead \textit{F} (region 1) / \textit{F} (region 2) \\')
         print(r'\tbody')
         for i_plot in range(2):
-            for i_subplot in range(4):
-                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
-                    '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])), r'\\')
+            for i_subplot in range(4): # 6
+                #if i_subplot > 1:
+                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
+                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
+        #print('Observation & x & x & x & x &', ' & '.join(
+        #    '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
         print(r'\tend')
         print(r'\end{tabular}')
+
 
     def plot_1006005(self):
         """Plot GG Tau A emission maps for different inclination axis.
