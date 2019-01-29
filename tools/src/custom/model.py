@@ -776,13 +776,13 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
-                    self.parameter['dust_composition'] = 'olivine_pah'
+                    # self.parameter['dust_composition'] = 'olivine_pah'
                     self.parameter['gas_mass'] = np.array([
                         [7.9099e-7, 5.8142e-3],
                         [0., 0.7733e-2 * 5.8142e-3]
                     ]) * self.math.const['M_sun']
                 elif self.parameter['model_number'] in [2, 3]:
-                    self.parameter['dust_composition'] = 'thomas_themis'
+                    # self.parameter['dust_composition'] = 'thomas_themis'
                     self.parameter['gas_mass'] = np.array([
                         [0, 0.17e-3],
                         [0.63e-3, 0.63e-3],
@@ -798,8 +798,8 @@ class HD169142(Model):
                     # Decrease the silicates by 4 orders of magnitude
                     self.parameter['gas_mass'][2:, :] *= 1e-4
                 if self.parameter['model_number'] == 4:
-                    self.parameter['dust_composition'] = 'olivine_themis_CM20'
-                    pah_to_dust_mass_ratio = 0.7733e-2
+                    # self.parameter['dust_composition'] = 'olivine_themis_CM20'
+                    pah_to_dust_mass_ratio = 4. * 0.7733e-2
                     self.parameter['gas_mass'] = np.array([
                         [7.9099e-7, (1 - pah_to_dust_mass_ratio) * 5.8142e-3],
                         [0., pah_to_dust_mass_ratio * 5.8142e-3]
