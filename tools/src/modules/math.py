@@ -5,6 +5,7 @@ import numpy as np
 # Import curve_fit from scipy package
 from scipy.optimize import curve_fit
 
+
 class Math:
     """Constants and math functions.
     """
@@ -33,22 +34,29 @@ class Math:
             'M_sun':        1.9884754153381438e+30,  # Solar mass [kg]
             'M_jup':        1.8981871658715508e+27,  # Jupiter mass [kg]
             'R_sun':        695700000.0,             # Nominal solar radius [m]
-            'L_sun':        3.828e+26,               # Nominal solar luminosity [W]
+            # Nominal solar luminosity [W]
+            'L_sun':        3.828e+26,
             'au':           149597870700.0,          # Astronomical Unit [m]
             'pc':           3.0856775814671916e+16,  # Parsec [m]
             'amu':          1.66053904e-27,          # Atomic mass unit [kg]
-            'G':            6.67408e-11,             # Gravitational constant [m^3 / (kg * s^2)]
+            # Gravitational constant [m^3 / (kg * s^2)]
+            'G':            6.67408e-11,
             'h':            6.62607004e-34,          # Planck constant [Js]
-            'hbar':         1.0545718e-34,           # Reduced Planck constant [Js]
-            'c':            299792458,               # Speed of light in vacuum [m / s]
+            # Reduced Planck constant [Js]
+            'hbar':         1.0545718e-34,
+            # Speed of light in vacuum [m / s]
+            'c':            299792458,
             'e':            1.6021766208e-19,        # Electron charge [C]
             'mu_B':         9.274009994e-24,         # Bohr magneton [J / T]
-            'k_B':          1.38064852e-23,          # Boltzmann constant [J / K]
+            # Boltzmann constant [J / K]
+            'k_B':          1.38064852e-23,
             'Rydberg':      10973731.568508,         # Rydberg constant [1 / m]
-            'sigma_sb':     5.670367e-08,            # Stefan-Boltzmann constant [W / (m^2 * K^4)]
+            # Stefan-Boltzmann constant [W / (m^2 * K^4)]
+            'sigma_sb':     5.670367e-08,
             'm_e':          9.10938356e-31,          # Electron mass [kg]
             'm_p':          1.672621898e-27,         # Proton mass [kg]
-            'epsilon_0':    8.854187817620389e-12,   # Vacuum permittivity [F / m]
+            # Vacuum permittivity [F / m]
+            'epsilon_0':    8.854187817620389e-12,
             'avg_gas_mass': 2.,                      # Average atomic mass unit per gas particle
         }
 
@@ -91,7 +99,8 @@ class Math:
         """
         if unit == 'arcsec':
             if distance is not None:
-                new_length = np.divide(length, self.const['au'] * (distance / self.const['pc']))
+                new_length = np.divide(
+                    length, self.const['au'] * (distance / self.const['pc']))
             else:
                 raise ValueError('The distance is not set. Without the distance, '
                                  'no conversion to arcseconds is available!')
@@ -148,7 +157,8 @@ class Math:
             elif unit == 'm' or unit is None:
                 return parsed_value
             else:
-                raise ValueError('There is no unit type available for conversion!')
+                raise ValueError(
+                    'There is no unit type available for conversion!')
         elif unit_type == 'velocity':
             parsed_value = self.parse_velocity(value)
             if unit == 'km/s':
@@ -158,7 +168,8 @@ class Math:
             elif unit == 'm/s' or unit is None:
                 return parsed_value
             else:
-                raise ValueError('There is no unit type available for conversion!')
+                raise ValueError(
+                    'There is no unit type available for conversion!')
         elif unit_type == 'mass':
             parsed_value = self.parse_mass(value)
             if unit == 'm_jup':
@@ -168,7 +179,8 @@ class Math:
             elif unit == 'kg' or unit is None:
                 return parsed_value
             else:
-                raise ValueError('There is no unit type available for conversion!')
+                raise ValueError(
+                    'There is no unit type available for conversion!')
         elif unit_type == 'luminosity':
             parsed_value = self.parse_luminosity(value)
             if unit == 'l_sun':
@@ -176,7 +188,8 @@ class Math:
             elif unit == 'w' or unit is None:
                 return parsed_value
             else:
-                raise ValueError('There is no unit type available for conversion!')
+                raise ValueError(
+                    'There is no unit type available for conversion!')
         elif unit_type == 'angle':
             parsed_value = self.parse_angle(value)
             if unit == 'arcsec':
@@ -186,7 +199,8 @@ class Math:
             elif unit == 'degree' or unit is None:
                 return parsed_value
             else:
-                raise ValueError('There is no unit type available for conversion!')
+                raise ValueError(
+                    'There is no unit type available for conversion!')
 
     def parse_length(self, length):
         """Convert input length string into length in meters.
@@ -293,7 +307,6 @@ class Math:
         except ValueError:
             print('Luminosity string ' + luminosity + ' cannot be interpreted!')
 
-
     @staticmethod
     def angle_conv(angle, unit):
         """Converted the angle in various units into radians.
@@ -345,7 +358,7 @@ class Math:
         colormap = cm.get_cmap(cmap)
         if cmap_scaling == 'log':
             mean_value = 10 ** ((np.log10(np.max(tbldata)) +
-                np.log10(np.min(tbldata[np.where(tbldata > 0.)]))) / 2.)
+                                 np.log10(np.min(tbldata[np.where(tbldata > 0.)]))) / 2.)
         else:
             mean_value = (np.max(tbldata) + np.min(tbldata)) / 2.
         if np.mean(tbldata) >= mean_value:
@@ -367,9 +380,12 @@ class Math:
         """
         if filter_system in self.conversion_factor.keys():
             if float(flux) is not 0:
-                magnitude = 2.5 * np.log10(self.conversion_factor[filter_system] / float(flux))
+                magnitude = 2.5 * \
+                    np.log10(
+                        self.conversion_factor[filter_system] / float(flux))
             else:
-                raise ValueError('Flux is zero and cannot be converted to a magnitude!')
+                raise ValueError(
+                    'Flux is zero and cannot be converted to a magnitude!')
         else:
             raise ValueError('The chosen filter system does not exists!')
         return magnitude
@@ -386,7 +402,8 @@ class Math:
             float: flux in the chosen filter system.
         """
         if filter_system in self.conversion_factor.keys():
-            flux = 10 ** (magnitude / -2.5) * self.conversion_factor[str(filter_system)]
+            flux = 10 ** (magnitude / -2.5) * \
+                self.conversion_factor[str(filter_system)]
         else:
             raise ValueError('The chosen filter system does not exists!')
         return flux
@@ -415,7 +432,8 @@ class Math:
         Returns:
             float: Radius [m].
         """
-        radius = np.sqrt(luminosity / (4. * np.pi * 5.670367e-08 * temperature ** 4.))
+        radius = np.sqrt(luminosity / (4. * np.pi *
+                                       5.670367e-08 * temperature ** 4.))
         return radius
 
     @staticmethod
@@ -427,17 +445,20 @@ class Math:
             vel_map_plots (int): No more than this should be the amount of channels.
         """
         channel_skip = int((nr_channels - 1) / (vel_map_plots - 1))
-        leftover = (nr_channels - 1) %  (vel_map_plots - 1)
+        leftover = (nr_channels - 1) % (vel_map_plots - 1)
         if leftover % 2 == 0:
             start_channel = int(leftover / 2.0)
             vch_list = list(range(start_channel, nr_channels, channel_skip))
         else:
             if nr_channels % 2 == 1:
                 start_channel = int((leftover - 1) / 2.0)
-                vch_list = list(range(start_channel, int((nr_channels - 1) / 2.0), channel_skip))
-                vch_list = list(np.append(vch_list, np.subtract(nr_channels - 1, vch_list[::-1])))
+                vch_list = list(range(start_channel, int(
+                    (nr_channels - 1) / 2.0), channel_skip))
+                vch_list = list(np.append(vch_list, np.subtract(
+                    nr_channels - 1, vch_list[::-1])))
             else:
-                raise ValueError('Odd number of vel_map_plots does not work with even number of channels!')
+                raise ValueError(
+                    'Odd number of vel_map_plots does not work with even number of channels!')
 
         if vel_map_plots > 5:
             nr_y_images = int(np.sqrt(len(vch_list)))
@@ -448,7 +469,8 @@ class Math:
         return vch_list, nr_x_images, nr_y_images
 
     def planet_lum(self, M, M_acc, R):
-        """Calculates the luminosity of a circumplanetary disk.
+        """Calculates the luminosity of a circumplanetary disk
+        (according to Zhu 2015).
 
         Args:
             M (float): Mass of the planet [kg].
@@ -460,7 +482,7 @@ class Math:
         """
         M_acc_si = M_acc * self.const['M_sun'] * (1/31536000.)
         res = self.const['G'] * M * M_acc_si / (2. * R)
-        return res / self.const['L_sun']
+        return res
 
     def planet_temp(self, M, M_acc, R):
         """Calculates the effective temperature of a circumplanetary disk.
@@ -476,7 +498,7 @@ class Math:
         M_acc_si = M_acc * self.const['M_sun'] * (1/31536000.)
         res = 3 * self.const['G'] * M * M_acc_si / \
             (8 * np.pi * self.const['sigma_sb'] ** 1 * R ** 3)
-        return res ** (1. / 4.)
+        return 0.488 * res ** (1. / 4.)
 
     @staticmethod
     def apply_inclination(pos, inclination, inc_PA, inc_offset=0, inv=False):
@@ -488,11 +510,12 @@ class Math:
         if not inv:
             return np.multiply(np.dot(pos, dir_perp), dir_perp) + \
                 np.multiply(np.dot(pos, dir_inc) * np.cos(inclination), dir_inc) + \
-                np.multiply(inc_offset, dir_inc) 
+                np.multiply(inc_offset, dir_inc)
         else:
-            shifted_pos = pos - np.multiply(inc_offset, dir_inc) 
+            shifted_pos = pos - np.multiply(inc_offset, dir_inc)
             return np.multiply(np.dot(shifted_pos, dir_perp), dir_perp) + \
-                np.multiply(np.dot(shifted_pos, dir_inc) / np.cos(inclination), dir_inc)
+                np.multiply(np.dot(shifted_pos, dir_inc) /
+                            np.cos(inclination), dir_inc)
 
     @staticmethod
     def tbldata_2_radial_profile(tbldata, bins=50):
@@ -519,7 +542,8 @@ class Math:
         for i_x in range(n):
             for i_y in range(n):
                 #: float: Radial position in [m]
-                radius = np.sqrt((i_x - n_half) ** 2 + (i_y - n_half) ** 2) / n_half
+                radius = np.sqrt((i_x - n_half) ** 2 +
+                                 (i_y - n_half) ** 2) / n_half
                 #: float: Radial position in bins [0, bins - 1]
                 radius_bin = int(radius * (bins - 1))
                 if radius_bin < bins:
@@ -570,7 +594,7 @@ class Math:
         for i_bin in range(bins):
             if radial_profile[i_bin] == 0 or number_of_pixel_per_bin[i_bin] == 0:
                 radial_profile[i_bin] = radial_profile[i_bin - 1] \
-                                        + (radial_profile[i_bin - 1] - radial_profile[i_bin - 2])
+                    + (radial_profile[i_bin - 1] - radial_profile[i_bin - 2])
             else:
                 radial_profile[i_bin] /= number_of_pixel_per_bin[i_bin]
         return radial_profile
@@ -625,7 +649,8 @@ class Math:
         elif wavelength == 8.50E-4:
             return 1. / f * ((189. / 0.720 - 48.) * 1. / (sigma * 1e3)) ** 2
         else:
-            raise ValueError('The chosen wavelength is not provided by the SCUBA-2 instrument!')
+            raise ValueError(
+                'The chosen wavelength is not provided by the SCUBA-2 instrument!')
 
     @staticmethod
     def spherical_to_carthesian(spherical_coord):
@@ -639,9 +664,12 @@ class Math:
             List[float, float, float]: Carthesian coordinates
         """
         carthesian_coord = np.zeros(3)
-        carthesian_coord[0] = spherical_coord[0] * np.cos(spherical_coord[1]) * np.cos(spherical_coord[2])
-        carthesian_coord[1] = spherical_coord[0] * np.cos(spherical_coord[1]) * np.sin(spherical_coord[2])
-        carthesian_coord[2] = -1 * spherical_coord[0] * np.sin(spherical_coord[1])
+        carthesian_coord[0] = spherical_coord[0] * \
+            np.cos(spherical_coord[1]) * np.cos(spherical_coord[2])
+        carthesian_coord[1] = spherical_coord[0] * \
+            np.cos(spherical_coord[1]) * np.sin(spherical_coord[2])
+        carthesian_coord[2] = -1 * spherical_coord[0] * \
+            np.sin(spherical_coord[1])
         return carthesian_coord
 
     @staticmethod
@@ -660,7 +688,8 @@ class Math:
         #: float: Cylindrical radius
         rho = np.linalg.norm(carthesian_coord[0:2])
         spherical_coord[1] = np.arctan2(carthesian_coord[2], rho)
-        spherical_coord[2] = np.arctan2(carthesian_coord[1], carthesian_coord[0]) + np.pi
+        spherical_coord[2] = np.arctan2(
+            carthesian_coord[1], carthesian_coord[0]) + np.pi
         return spherical_coord
 
     @staticmethod
@@ -675,8 +704,10 @@ class Math:
             List[float, float, float]: Carthesian coordinates
         """
         carthesian_coord = np.zeros(3)
-        carthesian_coord[0] = cylindrical_coord[0] * np.cos(cylindrical_coord[1])
-        carthesian_coord[1] = cylindrical_coord[0] * np.sin(cylindrical_coord[1])
+        carthesian_coord[0] = cylindrical_coord[0] * \
+            np.cos(cylindrical_coord[1])
+        carthesian_coord[1] = cylindrical_coord[0] * \
+            np.sin(cylindrical_coord[1])
         carthesian_coord[2] = cylindrical_coord[2]
         return carthesian_coord
 
@@ -693,7 +724,8 @@ class Math:
         """
         cylindrical_coord = np.zeros(3)
         cylindrical_coord[0] = np.linalg.norm(carthesian_coord[0:2])
-        cylindrical_coord[1] = np.arctan2(carthesian_coord[1], carthesian_coord[0]) + np.pi
+        cylindrical_coord[1] = np.arctan2(
+            carthesian_coord[1], carthesian_coord[0]) + np.pi
         cylindrical_coord[2] = carthesian_coord[2]
         return cylindrical_coord
 
@@ -789,7 +821,8 @@ class Math:
             if i_x <= mid:
                 number_list[i_x] = start + inter * (0.5 * np.sin(i_x * dang))
             else:
-                number_list[i_x] = start + inter * (1 - 0.5 * np.sin(i_x * dang))
+                number_list[i_x] = start + inter * \
+                    (1 - 0.5 * np.sin(i_x * dang))
         return number_list
 
     @staticmethod
@@ -835,7 +868,8 @@ class Math:
             dx = (stop - start) * (base - 1.0) / (pow(base, total_number) - 1)
 
             for i_x in range(0, total_number):
-                number_list[i_x] = start + dx * (pow(base, i_x) - 1) / (base - 1.0)
+                number_list[i_x] = start + dx * \
+                    (pow(base, i_x) - 1) / (base - 1.0)
         else:
             raise ValueError('only positive exp bases are allowed!')
         return number_list
@@ -868,7 +902,7 @@ class Math:
                 number_list[midN - 1 - i_x] = tmp_mid - diff
         else:
             midN = int((total_number - 1) / 2)
-            tmpN = midN + 1;
+            tmpN = midN + 1
             tmp_list = self.exp_list(tmp_mid, stop, tmpN, base)
             for i_x in range(tmpN, total_number + 1):
                 number_list[i_x] = tmp_list[i_x - midN]
@@ -930,8 +964,10 @@ class Math:
         #: float: Cylindrical radius
         radius_cy = np.sqrt(position[0] ** 2 + position[1] ** 2)
         #: float: Kepler constant ( v=sqrt(GM/a) )
-        kepler_const = (self.const['G'] * stellar_mass * self.const['M_sun'] / radius_cy) ** 0.5
-        velocity = [-1.0 * position[1] / radius_cy * kepler_const, position[0] / radius_cy * kepler_const, 0.]
+        kepler_const = (self.const['G'] * stellar_mass *
+                        self.const['M_sun'] / radius_cy) ** 0.5
+        velocity = [-1.0 * position[1] / radius_cy * kepler_const,
+                    position[0] / radius_cy * kepler_const, 0.]
         return velocity
 
     @staticmethod
@@ -949,12 +985,14 @@ class Math:
             Float: Velocity shift in [m/s] calculated from I and V profiles.
         """
         # Derivative of the intensity I with respect to the velocity
-        intensity_derivative = np.gradient(profile_i, vel_channel_width, axis=0)
+        intensity_derivative = np.gradient(
+            profile_i, vel_channel_width, axis=0)
 
         velocity_shift = np.zeros(intensity_derivative.shape[1:])
         for i in np.ndindex(intensity_derivative.shape[1:]):
             # Define fit function to get proportionality factor
-            fit_function = lambda vch, prop_factor: prop_factor * intensity_derivative[(vch,) + i]
+            def fit_function(vch, prop_factor): return prop_factor * \
+                intensity_derivative[(vch,) + i]
 
             # A total zero line profile corresponds to a magnetic field of zero
             if (intensity_derivative[(slice(None),) + i] == 0.).all():
@@ -1046,7 +1084,8 @@ class Math:
         #: float: Orbital Lande factor of CN
         g_j = (j * (j + 1) + s * (s + 1) - n * (n + 1)) / (j * (j + 1))
         #: float: Atomic Lande factor of CN
-        g_f = g_j * (f * (f + 1) + j * (j + 1) - i * (i + 1)) / (2 * f * (f + 1))
+        g_f = g_j * (f * (f + 1) + j * (j + 1) -
+                     i * (i + 1)) / (2 * f * (f + 1))
         return g_f
 
     @staticmethod
@@ -1103,7 +1142,8 @@ class Math:
         if (j - 1) < 0:
             g_j = 0.
         else:
-            g_j *= p_list[int(j)] ** 2 / ((j - 1) + 1) - q_list[int(j)] ** 2 / (j + 1)
+            g_j *= p_list[int(j)] ** 2 / ((j - 1) + 1) - \
+                q_list[int(j)] ** 2 / (j + 1)
         return g_j
 
     @staticmethod
@@ -1127,7 +1167,8 @@ class Math:
         g_j = 3. / 2. + (s * (s + 1) - l * (l + 1)) / (2 * j * (j + 1))
         if f > 0:
             #: float: Atomic Lande factor of H1
-            g_f = g_j * (f * (f + 1) - i * (i + 1) + j * (j + 1)) / (2 * f * (f + 1))
+            g_f = g_j * (f * (f + 1) - i * (i + 1) +
+                         j * (j + 1)) / (2 * f * (f + 1))
         else:
             g_f = 0.0
         return g_f
@@ -1162,7 +1203,8 @@ class Math:
                         if qn_3 == -1:
                             if qn_2 == -1:
                                 if qn_1 == -1:
-                                    raise ValueError('No valid quantum numbers!')
+                                    raise ValueError(
+                                        'No valid quantum numbers!')
                                 else:
                                     weight = (qn_1 * 2) + 1
                             else:
@@ -1207,19 +1249,21 @@ class Math:
             #: float: Vertical scale height
             scale_height = ref_scale_height * (radius_cy / ref_radius) ** beta
             #: float: Shakura and Sunyaev density distribution
-            density = (radius_cy / ref_radius) ** (-alpha) * np.exp(-0.5 * (vert_height / scale_height) ** 2)
+            density = (radius_cy / ref_radius) ** (-alpha) * \
+                np.exp(-0.5 * (vert_height / scale_height) ** 2)
         else:
             density = 0.
         if tappered_gamma is not None:
-            density *= np.exp(-(radius_cy / ref_radius) ** (2 + tappered_gamma))
+            density *= np.exp(-(radius_cy / ref_radius)
+                              ** (2 + tappered_gamma))
         if not real_zero:
             density = max(density, 1e-200)
-        
+
         return density
 
     @staticmethod
     def default_disk_scale_height(radius, beta=1.125,
-            ref_scale_height=10. * 149597870700.0, ref_radius=100. * 149597870700.0):
+                                  ref_scale_height=10. * 149597870700.0, ref_radius=100. * 149597870700.0):
         """Shakura and Sunyaev disk density profile.
 
         Args:
@@ -1247,7 +1291,8 @@ class Math:
             Float: Density at the given position.
         """
         #: float: Radial distance from center
-        radius = np.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
+        radius = np.sqrt(position[0] ** 2 + position[1]
+                         ** 2 + position[2] ** 2)
         #: float: Constant density inside the Sphere
         density = 0.
         if inner_radius is None:
@@ -1275,7 +1320,8 @@ class Math:
             Float: Density at the given position.
         """
         #: float: Radial distance
-        radius = np.sqrt(position[0] ** 2 + position[1] ** 2 + position[2] ** 2)
+        radius = np.sqrt(position[0] ** 2 + position[1]
+                         ** 2 + position[2] ** 2)
         #: float: Bonnor-Ebert sphere density distribution
         density = 0.0
         if radius <= truncation_radius:
@@ -1316,7 +1362,8 @@ class Math:
         #: List: Magnetic field strength
         mag = [0., 0., 0.]
         if random_variations:
-            mag_field_strength = rnd_b_min + np.random.random() * (mag_field_strength - rnd_b_min)
+            mag_field_strength = rnd_b_min + \
+                np.random.random() * (mag_field_strength - rnd_b_min)
         if axis is 'x':
             mag[0] += mag_field_strength
         elif axis is 'y':
@@ -1346,8 +1393,10 @@ class Math:
         #: list: Magnetic field strength
         mag = [0., 0., 0.]
         #: float: Disturbing magnetic field strength
-        sec_mag_strength_1 = mag_field_strength * rel_strength * (2. * np.random.random() - 1.)
-        sec_mag_strength_2 = mag_field_strength * rel_strength * (2. * np.random.random() - 1.)
+        sec_mag_strength_1 = mag_field_strength * \
+            rel_strength * (2. * np.random.random() - 1.)
+        sec_mag_strength_2 = mag_field_strength * \
+            rel_strength * (2. * np.random.random() - 1.)
         if main_axis is 'x':
             mag[0] += mag_field_strength
             mag[1] += sec_mag_strength_1
@@ -1361,7 +1410,8 @@ class Math:
             mag[1] += sec_mag_strength_2
             mag[2] += mag_field_strength
         else:
-            raise ValueError('Chosen main axis direction for the magnetic field strength is not valid!')
+            raise ValueError(
+                'Chosen main axis direction for the magnetic field strength is not valid!')
         return mag
 
     @staticmethod
@@ -1382,8 +1432,10 @@ class Math:
         disturbed_theta_angle = np.arccos(np.random.random()) * max_angle / 90.
         disturbed_phi_angle = np.random.random() * 2. * np.pi
 
-        mag_strength_perp_1 = mag_field_strength * np.cos(disturbed_phi_angle) * np.sin(disturbed_theta_angle)
-        mag_strength_perp_2 = mag_field_strength * np.sin(disturbed_phi_angle) * np.sin(disturbed_theta_angle)
+        mag_strength_perp_1 = mag_field_strength * \
+            np.cos(disturbed_phi_angle) * np.sin(disturbed_theta_angle)
+        mag_strength_perp_2 = mag_field_strength * \
+            np.sin(disturbed_phi_angle) * np.sin(disturbed_theta_angle)
         mag_strength_main = mag_field_strength * np.cos(disturbed_theta_angle)
         if main_axis is 'x':
             mag[0] += mag_strength_main
@@ -1490,13 +1542,16 @@ class Math:
         #: float: Weighting factor
         gamma = 5
         #: float: Radial component of the magnetic field
-        mag_r = mag_field_strength * (gamma * radius ** 2 / (radius + spherical_coord[0]) ** 2)
+        mag_r = mag_field_strength * \
+            (gamma * radius ** 2 / (radius + spherical_coord[0]) ** 2)
         #: float: Z component of the magnetic field
         mag_z = mag_field_strength
         mag = np.zeros(3)
         # Conversion to carthesian coordinates
-        mag[0] += mag_r * np.cos(spherical_coord[1]) * np.cos(spherical_coord[2])
-        mag[1] += mag_r * np.cos(spherical_coord[1]) * np.sin(spherical_coord[2])
+        mag[0] += mag_r * np.cos(spherical_coord[1]) * \
+            np.cos(spherical_coord[2])
+        mag[1] += mag_r * np.cos(spherical_coord[1]) * \
+            np.sin(spherical_coord[2])
         mag[2] += mag_r * np.sin(spherical_coord[1])
         # The field should point into the same direction above and below the xy-plane
         if spherical_coord[1] < 0:
@@ -1521,7 +1576,8 @@ class Math:
         #: int: Bin id corresponding to the x-position
         pos_bin = int(position / length * bins)
         #: float: Exponent to scale the temperature logarithmically
-        exponent = min_exponent - (min_exponent - max_exponent) * (pos_bin / (bins - 1))
+        exponent = min_exponent - \
+            (min_exponent - max_exponent) * (pos_bin / (bins - 1))
         value = 10 ** exponent
         return value
 
@@ -1536,7 +1592,8 @@ class Math:
             List[float, float, float]: Magnetic field strength at any position.
         """
         #: Float: Hydrogen number density [m^-3]
-        n = correction_factor * density / (self.const['avg_gas_mass'] * self.const['amu'])
+        n = correction_factor * density / \
+            (self.const['avg_gas_mass'] * self.const['amu'])
         #: Float: Reference hydrogen number density [m^-3]
         n_0 = 300e6
         #: Float: Reference magnetic field strength [T]
@@ -1560,7 +1617,8 @@ class Math:
             List[float, float, float]: Magnetic field strength at any position.
         """
         #: Float: Magnetic field strength from equation of Crutcher et al. (2010)
-        mag_field_strength = self.crutcher_mag_field_strength(density, correction_factor)
+        mag_field_strength = self.crutcher_mag_field_strength(
+            density, correction_factor)
 
         #: List: Magnetic field strength
         mag = [0., 0., 0.]
@@ -1594,10 +1652,12 @@ class Math:
         a_max *= 1e2
 
         if not ('PLAW' in dist_type.upper() or 'LOGN' in dist_type.upper()):
-            raise ValueError('Dust grains size distribution dist_type not known!')
+            raise ValueError(
+                'Dust grains size distribution dist_type not known!')
 
         if nr_of_dust_species != 1:
-            da = (np.log(a_max) - np.log(a_min)) / float(nr_of_dust_species - 1)
+            da = (np.log(a_max) - np.log(a_min)) / \
+                float(nr_of_dust_species - 1)
         else:
             da = np.log(a_max) - np.log(a_min)
         ava = np.zeros(nr_of_dust_species)
@@ -1606,7 +1666,8 @@ class Math:
         if 'PLAW' in dist_type.upper():
             if ('-ED' in dist_type.upper() and '-CV' in dist_type.upper() and len(dist_parameter) != 7) or \
                     (('-ED' in dist_type.upper() or '-CV' in dist_type.upper()) and len(dist_parameter) != 4):
-                raise ValueError('Wrong number of parameters for size distribution!')
+                raise ValueError(
+                    'Wrong number of parameters for size distribution!')
             for i_dust in range(nr_of_dust_species):
                 aux = np.log(a_min) + float(i_dust) * da
                 # argu = (4.0 + dist_parameter[0]) * aux
@@ -1632,18 +1693,23 @@ class Math:
                     zxp = np.sign(1.0, dist_parameter[2])
                     gama = dist_parameter[3]
                 for i_dust in range(nr_of_dust_species):
-                    ava[i_dust] *= (1.0 + zeta * (size_ava[i_dust] / au) ** gama) ** zxp
+                    ava[i_dust] *= (1.0 + zeta *
+                                    (size_ava[i_dust] / au) ** gama) ** zxp
         elif 'LOGN' in dist_type.upper():
             if dist_parameter[0] == 0. or dist_parameter[1] == 0.:
-                raise ValueError('Centroid or sigma of log-normal cannot be 0!')
+                raise ValueError(
+                    'Centroid or sigma of log-normal cannot be 0!')
             if nr_of_dust_species != 1:
-                da = (np.log(a_max) - np.log(a_min)) / float(nr_of_dust_species - 1)
+                da = (np.log(a_max) - np.log(a_min)) / \
+                    float(nr_of_dust_species - 1)
             else:
                 da = np.log(a_max) - np.log(a_min)
             for i_dust in range(nr_of_dust_species):
                 aux = np.log(a_min) + float(i_dust) * da
                 # argu = 3.0 * aux - 0.5 * ((aux - np.log(dist_parameter[0])) / dist_parameter[1]) ** 2
-                argu = - 0.5 * ((aux - np.log(dist_parameter[0])) / dist_parameter[1]) ** 2
+                argu = - 0.5 * \
+                    ((aux - np.log(dist_parameter[0])
+                      ) / dist_parameter[1]) ** 2
                 if argu > -350.0:
                     ava[i_dust] = np.exp(argu)
                 size_ava[i_dust] = np.exp(aux)

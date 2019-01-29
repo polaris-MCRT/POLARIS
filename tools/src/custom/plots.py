@@ -1648,7 +1648,7 @@ class CustomPlots:
                        linestyle='none', marker='.', color='black',
                        alpha=0.7, label=r'$\text{Photometric observations}$')
         # Set some variables
-        detector_index = 200
+        detector_index = 201
         i_quantity = 0
         # Different model configurations
         model_list = [
@@ -1748,6 +1748,7 @@ class CustomPlots:
         # Set some variables
         detector_index = 101
         i_quantity = 4
+        calc = False
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1822,61 +1823,63 @@ class CustomPlots:
                 else:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=5e-8, vmax=1e-5, cmap='magma')
+                                 norm='LogNorm', vmin=3e-8, vmax=1e-5, cmap='magma')
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
                                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
-                # Get the image sidelength
-                sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
-                sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
-                # Get number of pixel per axis
-                nr_pixel_x = tbldata.shape[-2]
-                nr_pixel_y = tbldata.shape[-1]
-                # Find the considered pixel
-                for i_x in range(nr_pixel_x):
-                    for i_y in range(nr_pixel_y):
-                        pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
-                                                                [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
-                                          np.divide([sidelength_x, sidelength_y], 2.))
-                        for i_pos, center_pos in enumerate(measurement_position_list):
-                            pos_r = np.linalg.norm(
-                                np.subtract(pos, center_pos))
-                            if pos_r < 0.2:
-                                flux_sum[i_plot, i_subplot,
-                                         i_pos] += tbldata[i_x, i_y]
+                if calc:
+                    # Get the image sidelength
+                    sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
+                    sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                    # Get number of pixel per axis
+                    nr_pixel_x = tbldata.shape[-2]
+                    nr_pixel_y = tbldata.shape[-1]
+                    # Find the considered pixel
+                    for i_x in range(nr_pixel_x):
+                        for i_y in range(nr_pixel_y):
+                            pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                                    [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                            np.divide([sidelength_x, sidelength_y], 2.))
+                            for i_pos, center_pos in enumerate(measurement_position_list):
+                                pos_r = np.linalg.norm(
+                                    np.subtract(pos, center_pos))
+                                if pos_r < 0.2:
+                                    flux_sum[i_plot, i_subplot,
+                                            i_pos] += tbldata[i_x, i_y]
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
-        print(r'\begin{tabular}{lcccc}')
-        print(r'\theadstart')
-        print(
-            r'\thead Configuration & \thead $\boldsymbol{\textit{PI}}$ (1) & \thead $\boldsymbol{\textit{PI}}$ (2) & \thead $\boldsymbol{\textit{PI}}$ (3) & \thead $\boldsymbol{\textit{PI}}$ (4) \\')
-        print(r'\tbody')
-        for i_plot in range(2):
-            for i_subplot in range(6):
-                if i_subplot > 1:
-                    print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
-                        '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
-        print('Observation &', ' & '.join(
-            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
-        print(r'\tend')
-        print(r'\end{tabular}')
-        print(r'\begin{tabular}{lcccccc}')
-        print(r'\theadstart')
-        print(
-            r'\thead Configuration & \thead $\boldsymbol{\delta \textit{PI}}$ (region 1) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 2) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 3) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 4) & \thead \textit{PI} (region 1) / \textit{PI} (region 2) \\')
-        print(r'\tbody')
-        for i_plot in range(2):
-            for i_subplot in range(6):
-                if i_subplot > 1:
-                    print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
-                        100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
-        print('Observation & x & x & x & x &', ' & '.join(
-            '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
-        print(r'\tend')
-        print(r'\end{tabular}')
+        if calc:
+            print(r'\begin{tabular}{lcccc}')
+            print(r'\theadstart')
+            print(
+                r'\thead Configuration & \thead $\boldsymbol{\textit{PI}}$ (1) & \thead $\boldsymbol{\textit{PI}}$ (2) & \thead $\boldsymbol{\textit{PI}}$ (3) & \thead $\boldsymbol{\textit{PI}}$ (4) \\')
+            print(r'\tbody')
+            for i_plot in range(2):
+                for i_subplot in range(6):
+                    if i_subplot > 1:
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
+                            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+            print('Observation &', ' & '.join(
+                '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
+            print(r'\tend')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lcccccc}')
+            print(r'\theadstart')
+            print(
+                r'\thead Configuration & \thead $\boldsymbol{\delta \textit{PI}}$ (region 1) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 2) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 3) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 4) & \thead \textit{PI} (region 1) / \textit{PI} (region 2) \\')
+            print(r'\tbody')
+            for i_plot in range(2):
+                for i_subplot in range(6):
+                    if i_subplot > 1:
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
+                            100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
+            print('Observation & x & x & x & x &', ' & '.join(
+                '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
+            print(r'\tend')
+            print(r'\end{tabular}')
 
     def plot_1006004(self):
         """Plot two times 4 intensity emission maps with differnet configurations for GG Tau A.
