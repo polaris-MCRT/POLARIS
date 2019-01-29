@@ -424,11 +424,11 @@ class GGTauDisk(Model):
         # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
         self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
         self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
-        # Polivine_themis_pahhi cells
-        n_polivine_themis_pahh_list_1 = [600] * 150
-        n_polivine_themis_pahh_list_2 = [180] * 51
-        # -olivine_themis_pah----- With circumstellar disks -----
-        selolivine_themis_pahf.cylindrical_parameter['n_ph'] = np.hstack(
+        # Phi cells
+        n_ph_list_1 = [600] * 150
+        n_ph_list_2 = [180] * 51
+        # ------ With circumstellar disks -----
+        self.cylindrical_parameter['n_ph'] = np.hstack(
             (n_ph_list_1, n_ph_list_2)).ravel()
         # ---- Without circumstellar disks ----
         # self.cylindrical_parameter['n_ph'] = n_ph_list_2
@@ -454,10 +454,10 @@ class GGTauDisk(Model):
                 raise ValueError('Wrong number of extra parameters!')
 
     def gas_density_distribution(self):
-        """Calculaolivine_themis_pahs the gas density at a given position.
+        """Calculas the gas density at a given position.
 
         Returns:
-            float:olivine_themis_pahas density at a given position.
+            float:as density at a given position.
         """
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)

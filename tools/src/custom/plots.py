@@ -1648,7 +1648,7 @@ class CustomPlots:
                        linestyle='none', marker='.', color='black',
                        alpha=0.7, label=r'$\text{Photometric observations}$')
         # Set some variables
-        detector_index = 201
+        detector_index = 202
         i_quantity = 0
         # Different model configurations
         model_list = [
