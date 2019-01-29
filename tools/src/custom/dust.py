@@ -18,6 +18,7 @@ def update_dust_dict(dictionary):
         'olivine': Olivine,
         'silicate_pah': SilicatePAH,
         'olivine_pah': OlivinePAH,
+        'olivine_themis_CM20': OlivineThemisCM20,
         'olivine_pah_carbon': OlivinePAHCarbon,
         'trust_silicate': TrustSilicate,
         'trust_graphite': TrustGraphite,
@@ -338,6 +339,49 @@ class OlivinePAH(Dust):
         dust.parameter['size_parameter'] = [-3.5]
         dust.parameter['amin'] = 4e-10
         dust.parameter['amax'] = 4e-10
+        dust.parameter['choice_id'] = 1
+        new_command_line += dust.get_command_line()
+        return new_command_line
+
+
+class OlivineThemisCM20(Dust):
+    """Dust class for olivine and PAH grains.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Note:
+            Link: https: // www.ias.u-psud.fr/themis/
+
+        Args:
+            file_io: Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        #: dict: Parameters which are different to the default values
+        self.parameter['scattering'] = 'MIE'
+        self.parameter['material_density'] = 0
+
+    def get_command(self):
+        """Provides dust composition command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the MRN dust composition.
+        """
+        new_command_line = str()
+        # First dust choice is the full themis model
+        dust = self.dust_chooser.get_module_from_name('olivine')
+        # For HD169142
+        dust.parameter['size_parameter'] = [-3.7]
+        dust.parameter['amin'] = 0.04637e-6
+        dust.parameter['amax'] = 1e-3  # 6506.4e-6
+        # ---
+        dust.parameter['choice_id'] = 0
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('thomas_CM20')
+        # Add _pah to the keyword to consider the pah mass correctly
         dust.parameter['choice_id'] = 1
         new_command_line += dust.get_command_line()
         return new_command_line

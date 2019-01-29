@@ -424,11 +424,11 @@ class GGTauDisk(Model):
         # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
         self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
         self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
-        # Phi cells
-        n_ph_list_1 = [600] * 150
-        n_ph_list_2 = [180] * 51
-        # ------ With circumstellar disks -----
-        self.cylindrical_parameter['n_ph'] = np.hstack(
+        # Polivine_themis_pahhi cells
+        n_polivine_themis_pahh_list_1 = [600] * 150
+        n_polivine_themis_pahh_list_2 = [180] * 51
+        # -olivine_themis_pah----- With circumstellar disks -----
+        selolivine_themis_pahf.cylindrical_parameter['n_ph'] = np.hstack(
             (n_ph_list_1, n_ph_list_2)).ravel()
         # ---- Without circumstellar disks ----
         # self.cylindrical_parameter['n_ph'] = n_ph_list_2
@@ -454,10 +454,10 @@ class GGTauDisk(Model):
                 raise ValueError('Wrong number of extra parameters!')
 
     def gas_density_distribution(self):
-        """Calculates the gas density at a given position.
+        """Calculaolivine_themis_pahs the gas density at a given position.
 
         Returns:
-            float: Gas density at a given position.
+            float:olivine_themis_pahas density at a given position.
         """
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
@@ -511,7 +511,7 @@ class GGTauDisk(Model):
                 # Calculate the density
                 disk_density_Ab2 = self.math.default_disk_density(
                     pos_Ab2, outer_radius=self.outer_radius_Ab12, inner_radius=self.inner_radius,
-                    ref_scale_height=0.3*self.math.const['au'], ref_radius=2*self.math.const['au'], 
+                    ref_scale_height=0.3*self.math.const['au'], ref_radius=2*self.math.const['au'],
                     alpha=2.4, beta=1.3)
             else:
                 disk_density_Ab2 = 0.
@@ -742,7 +742,6 @@ class HD169142(Model):
         self.parameter['outer_radius'] = 244.8 * self.math.const['au']
         # Define the used sources, dust composition and gas species
         self.parameter['stellar_source'] = 'hd169142'
-        self.parameter['dust_composition'] = 'olivine_pah'
         self.parameter['detector'] = 'hd169142'
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 100
@@ -777,11 +776,13 @@ class HD169142(Model):
                 # Change mass ratios depending on the chosen model
                 self.parameter['model_number'] = int(extra_parameter[0])
                 if self.parameter['model_number'] == 1:
+                    self.parameter['dust_composition'] = 'olivine_pah'
                     self.parameter['gas_mass'] = np.array([
                         [7.9099e-7, 5.8142e-3],
                         [0., 0.7733e-2 * 5.8142e-3]
                     ]) * self.math.const['M_sun']
                 elif self.parameter['model_number'] in [2, 3]:
+                    self.parameter['dust_composition'] = 'thomas_themis'
                     self.parameter['gas_mass'] = np.array([
                         [0, 0.17e-3],
                         [0.63e-3, 0.63e-3],
@@ -796,6 +797,13 @@ class HD169142(Model):
                         self.parameter['gas_mass'][:, 1].sum()
                     # Decrease the silicates by 4 orders of magnitude
                     self.parameter['gas_mass'][2:, :] *= 1e-4
+                if self.parameter['model_number'] == 4:
+                    self.parameter['dust_composition'] = 'olivine_themis_CM20'
+                    pah_to_dust_mass_ratio = 0.7733e-2
+                    self.parameter['gas_mass'] = np.array([
+                        [7.9099e-7, (1 - pah_to_dust_mass_ratio) * 5.8142e-3],
+                        [0., pah_to_dust_mass_ratio * 5.8142e-3]
+                    ]) * self.math.const['M_sun']
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
