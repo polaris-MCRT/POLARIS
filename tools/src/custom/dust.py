@@ -361,7 +361,7 @@ class OlivineThemisCM20(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['scattering'] = 'MIE'
+        self.parameter['scattering'] = 'HG'
         self.parameter['material_density'] = 0
 
     def get_command(self):
