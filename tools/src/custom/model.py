@@ -45,14 +45,14 @@ class CustomModel(Model):
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
         # Define which other choice are default for this model
         self.parameter['background_source'] = 'bg_plane'
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['gas_species'] = 'oh'
         self.parameter['detector'] = 'cartesian'
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update
-        disk parameter that depend on other parameter.
+        model parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file
 
@@ -100,7 +100,7 @@ class Cube(Model):
         self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
-        self.parameter['stellar_source'] = 'isrf'
+        self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -190,7 +190,7 @@ class TestModel(Model):
         #                              [8.77862e-07 * self.math.const['M_sun']]]
         self.parameter['gas_mass'] = [[1e-6 * self.math.const['M_sun']],
                                       [1e-5 * self.math.const['M_sun']]]
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'cartesian'
         self.parameter['variable_dust'] = True
@@ -267,7 +267,7 @@ class Filament(Model):
         self.parameter['outer_radius'] = 10 * self.math.const['pc']
         self.parameter['gas_mass'] = 100.0 * self.math.const['M_sun']
         self.parameter['detector'] = 'cartesian'
-        # self.parameter['stellar_source'] = 't_tauri'
+        # self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -306,7 +306,7 @@ class MhdFlock(Model):
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
         self.parameter['external_input_name'] = 350
         self.parameter['vel_is_speed_of_sound'] = True
-        self.parameter['stellar_source'] = 'binary'
+        self.parameter['radiation_source'] = 'binary'
         self.parameter['dust_composition'] = 'mrn_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -341,7 +341,7 @@ class GGTauDisk(Model):
         # ---- Without circumstellar disks ----
         # self.parameter['gas_mass'] = 1.3e-1 * self.math.const['M_sun']
         # -------------------------------------
-        self.parameter['stellar_source'] = 'gg_tau_stars'
+        self.parameter['radiation_source'] = 'gg_tau_stars'
         # Cite: larger grains in cb disk (McCabe et al. 2002)
         self.parameter['dust_composition'] = 'multi_mrn'
         self.parameter['detector'] = 'gg_tau'
@@ -608,7 +608,7 @@ class HD97048(Model):
         self.cylindrical_parameter['split_first_cell'] = 20
         # Define the used sources, dust composition and gas species
         self.parameter['detector'] = 'hd97048'
-        self.parameter['stellar_source'] = 'hd97048'
+        self.parameter['radiation_source'] = 'hd97048'
         self.parameter['dust_composition'] = 'olivine_pah'
         # Use multiple dust compositionas depending on the region in the grid
         self.parameter['variable_dust'] = True
@@ -741,7 +741,7 @@ class HD169142(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 244.8 * self.math.const['au']
         # Define the used sources, dust composition and gas species
-        self.parameter['stellar_source'] = 'hd169142'
+        self.parameter['radiation_source'] = 'hd169142'
         self.parameter['detector'] = 'hd169142'
         # In the case of a cylindrical grid
         self.cylindrical_parameter['n_r'] = 100
@@ -892,7 +892,7 @@ class ThemisDisk(Model):
         self.parameter['inner_radius'] = 0.2 * self.math.const['au']
         self.parameter['outer_radius'] = 350. * self.math.const['au']
         # Define the used sources, dust composition and gas species
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'themis'
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
@@ -1027,7 +1027,7 @@ class MultiDisk(Model):
         self.parameter['inner_radius'] = 1. * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
         # Define the used sources, dust composition and gas species
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate_pah'
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'

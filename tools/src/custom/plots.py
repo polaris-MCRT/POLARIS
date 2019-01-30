@@ -1476,21 +1476,21 @@ class CustomPlots:
                 # Plot midplane data depending on quantity derived from filename
                 self.basic_plots.plot_midplane_map_base(
                     visualization_input, plot, tbldata, vec_field_data)
-                # Load stellar source to get position of the binary stars
+                # Load radiation source to get position of the binary stars
                 from modules.source import SourceChooser
-                stellar_source_chooser = SourceChooser(
+                radiation_source_chooser = SourceChooser(
                     self.model, self.file_io, self.parse_args)
-                stellar_source = stellar_source_chooser.get_module_from_name(
+                radiation_source = radiation_source_chooser.get_module_from_name(
                     'gg_tau_binary')
                 # Plot position of binary stars (with conversion from m to au)
-                stellar_source.tmp_parameter['position_star'][0] = np.divide(stellar_source.tmp_parameter['position_star'][0],
+                radiation_source.tmp_parameter['position_star'][0] = np.divide(radiation_source.tmp_parameter['position_star'][0],
                                                                              self.math.const['au'])
                 plot.plot_text(
-                    stellar_source.tmp_parameter['position_star'][0], r'$+$')
-                stellar_source.tmp_parameter['position_star'][1] = np.divide(stellar_source.tmp_parameter['position_star'][1],
+                    radiation_source.tmp_parameter['position_star'][0], r'$+$')
+                radiation_source.tmp_parameter['position_star'][1] = np.divide(radiation_source.tmp_parameter['position_star'][1],
                                                                              self.math.const['au'])
                 plot.plot_text(
-                    stellar_source.tmp_parameter['position_star'][1], r'$+$')
+                    radiation_source.tmp_parameter['position_star'][1], r'$+$')
                 # Save figure to pdf file or print it on screen
                 plot.save_figure(self.file_io)
 
@@ -1598,15 +1598,15 @@ class CustomPlots:
         # Plot zoomed image
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata_zoom, vec_field_data_zoom,
                                                 ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True, cmap='inferno')
-        # Load stellar source to get position of the binary stars
+        # Load radiation source to get position of the binary stars
         from modules.source import SourceChooser
-        stellar_source_chooser = SourceChooser(
+        radiation_source_chooser = SourceChooser(
             self.model, self.file_io, self.parse_args)
-        stellar_source = stellar_source_chooser.get_module_from_name(
+        radiation_source = radiation_source_chooser.get_module_from_name(
             'gg_tau_stars')
         # Plot position of binary stars (with conversion from m to au)
         star_descr = ['Aa', 'Ab1', 'Ab2']
-        for i_star, position in enumerate(stellar_source.tmp_parameter['position_star']):
+        for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
             # plot.plot_marker(
             #    np.divide(position[0:2], self.math.const['au']),
             #    "*", ax_index=0, color='white', markersize=12)

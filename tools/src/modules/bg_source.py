@@ -41,7 +41,7 @@ class BGSourceChooser:
 
         Note:
             Parameters set by PolarisTools overwrite preset values in the
-            separate stellar source classes.
+            separate radiation source classes.
 
         Returns:
             Instance of chosen background source.

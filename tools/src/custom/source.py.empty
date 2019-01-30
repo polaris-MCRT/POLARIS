@@ -21,7 +21,7 @@ class CustomStar(StellarSource):
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all necessary paths.
@@ -42,7 +42,7 @@ class CustomStar(StellarSource):
         self.parameter['mass'] = 0.7
 
     def get_command(self):
-        """Provides stellar source command line for POLARIS .cmd file.
+        """Provides radiation source command line for POLARIS .cmd file.
 
         Returns:
             str: Command line to consider the stellar source.

@@ -35,7 +35,7 @@ class CustomModel(Model):
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
         # Define which other choise are default for this model
         self.parameter['background_source'] = 'bg_plane'
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['gas_species'] = 'oh'
         self.parameter['detector'] = 'cartesian'

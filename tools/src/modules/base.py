@@ -553,7 +553,7 @@ class Model:
             # Define which other objects will be connected to this model
             'background_source': 'bg_plane',
             'detector': None,
-            'stellar_source': None,
+            'radiation_source': None,
             'dust_composition': None,
             'gas_species': None,
             # Other parameter
@@ -770,7 +770,7 @@ class Model:
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
-        disk parameter that depend on other parameter.
+        model parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file
 
@@ -970,13 +970,13 @@ class Server:
         return self.get_command_line()
 
 
-# ----- Stellar source class -----
+# ----- radiation source class -----
 class StellarSource:
     """The StellarSource class is the base version for each stellar sources.
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all
@@ -1000,12 +1000,12 @@ class StellarSource:
             'kepler_usable': True,
         }
 
-    def update_stellar_properties(self):
+    def check_source_properties(self):
         """Checking for correct stellar parameters and calculating the radius,
         if only a luminosity is set.
         """
         if self.parameter['temperature'] == 0.:
-            raise ValueError('Effective temperature of stellar source is zero!')
+            raise ValueError('Effective temperature of radiation source is zero!')
         elif self.parameter['radius'] == 0.:
             if self.parameter['luminosity'] == 0.:
                 raise ValueError('No radius or luminosity is set for the stellar source!')
@@ -1016,20 +1016,26 @@ class StellarSource:
             radius = self.parameter['radius']
         return radius
 
+    def update_parameter(self, extra_parameter):
+        """Use this function to set radiation source parameter with the extra parameters and update
+        radiation source parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the radiation source without changing the source.py file
+
     def get_command_line(self):
-        """Provides stellar source command line for POLARIS .cmd file.
+        """Provides radiation source command line for POLARIS .cmd file.
 
         Returns:
             str: Command line to consider the stellar source.
         """
-        radius = self.update_stellar_properties()
+        radius = self.check_source_properties()
         return '\t<source_star nr_photons = "' + str(int(self.parameter['nr_photons'])) + '">\t' \
                + str(self.parameter['position'][0]) + '\t' + str(self.parameter['position'][1]) + '\t' \
                + str(self.parameter['position'][2]) + '\t' + str(radius / self.math.const['R_sun']) + '\t' \
                + str(self.parameter['temperature']) + '\n'
 
     def get_command(self):
-        """Provides stellar source command line for POLARIS .cmd file.
+        """Provides radiation source command line for POLARIS .cmd file.
 
         Returns:
             str: Command line to consider the stellar source.

@@ -164,7 +164,7 @@ class Disk(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 300. * self.math.const['au']
         # Define the used sources, dust composition and gas species
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['gas_species'] = 'co'
         self.parameter['detector'] = 'cartesian'
@@ -288,7 +288,7 @@ class Sphere(Model):
         self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['detector'] = 'cartesian'
 
@@ -354,7 +354,7 @@ class BokGlobule(Model):
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
         self.spherical_parameter['n_ph'] = 1  # 01
         self.octree_parameter['sidelength'] = 3e4 * self.math.const['au']
-        self.parameter['stellar_source'] = 't_tauri'
+        self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['detector'] = 'cartesian'
 

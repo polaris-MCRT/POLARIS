@@ -45,64 +45,66 @@ class SourceChooser:
         update_sources_dict(self.sources_dict)
 
     def get_module(self):
-        """Chooses stellar source from user input
+        """Chooses radiation source from user input
 
         Note:
             Parameters set by PolarisTools overwrite preset values in the
-            separate stellar source classes.
+            separate radiation source classes.
 
         Returns:
             Instance of chosen stellar source.
         """
-        if self.parse_args.stellar_source in self.sources_dict.keys():
-            source_name = self.parse_args.stellar_source
-        elif self.parse_args.stellar_source is None:
-            if self.model is not None and self.model.parameter['stellar_source'] is not None:
-                source_name = self.model.parameter['stellar_source']
+        if self.parse_args.radiation_source in self.sources_dict.keys():
+            source_name = self.parse_args.radiation_source
+        elif self.parse_args.radiation_source is None:
+            if self.model is not None and self.model.parameter['radiation_source'] is not None:
+                source_name = self.model.parameter['radiation_source']
             else:
                 return None
         else:
             raise ValueError(
                 'stellar source not known! You can add a new source in source.py')
-        stellar_source = self.sources_dict[source_name](
+        radiation_source = self.sources_dict[source_name](
             self.file_io, self.parse_args)
         # Overwrite default values with user input
         if self.parse_args.nr_photons is not None:
-            stellar_source.parameter['nr_photons'] = int(
+            radiation_source.parameter['nr_photons'] = int(
                 self.parse_args.nr_photons)
-        if self.parse_args.stellar_position is not None:
-            stellar_source.parameter['position'] = [self.math.parse(self.parse_args.stellar_position[i], 'length')
-                                                    for i in range(3)]
-        if self.parse_args.stellar_temperature is not None:
-            stellar_source.parameter['temperature'] = self.parse_args.stellar_temperature
-        if self.parse_args.stellar_luminosity is not None:
-            stellar_source.parameter['luminosity'] = self.math.parse(
-                self.parse_args.stellar_luminosity, 'luminosity')
-            stellar_source.parameter['radius'] = 0.
-        elif self.parse_args.stellar_radius is not None:
-            stellar_source.parameter['radius'] = self.math.parse(
-                self.parse_args.stellar_radius, 'length')
-        if self.parse_args.stellar_mass is not None:
-            stellar_source.parameter['mass'] = self.math.parse(
-                self.parse_args.stellar_mass, 'mass')
-        return stellar_source
+        if self.parse_args.rad_source_position is not None:
+            radiation_source.parameter['position'] = [self.math.parse(self.parse_args.rad_source_position[i], 'length')
+                                                      for i in range(3)]
+        if self.parse_args.rad_source_temperature is not None:
+            radiation_source.parameter['temperature'] = self.parse_args.rad_source_temperature
+        if self.parse_args.rad_source_luminosity is not None:
+            radiation_source.parameter['luminosity'] = self.math.parse(
+                self.parse_args.rad_source_luminosity, 'luminosity')
+            radiation_source.parameter['radius'] = 0.
+        elif self.parse_args.rad_source_radius is not None:
+            radiation_source.parameter['radius'] = self.math.parse(
+                self.parse_args.rad_source_radius, 'length')
+        if self.parse_args.rad_source_mass is not None:
+            radiation_source.parameter['mass'] = self.math.parse(
+                self.parse_args.rad_source_mass, 'mass')
+        radiation_source.update_parameter(
+            self.parse_args.rad_source_extra_parameter)
+        return radiation_source
 
-    def get_module_from_name(self, stellar_source_name):
-        """Chooses stellar source from name string
+    def get_module_from_name(self, radiation_source_name):
+        """Chooses radiation source from name string
 
         Args:
-            stellar_source_name (str): Name of the stellar source.
+            radiation_source_name (str): Name of the stellar source.
 
         Returns:
-            Instance of chosen stellar source .
+            Instance of chosen radiation source .
         """
-        if stellar_source_name in self.sources_dict.keys():
-            stellar_source = self.sources_dict[stellar_source_name](
+        if radiation_source_name in self.sources_dict.keys():
+            radiation_source = self.sources_dict[radiation_source_name](
                 self.file_io, self.parse_args)
         else:
             raise ValueError('No source with the name ' +
-                             str(stellar_source_name) + '!')
-        return stellar_source
+                             str(radiation_source_name) + '!')
+        return radiation_source
 
 
 class ISRF:
@@ -152,7 +154,7 @@ class Sun(StellarSource):
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all
@@ -179,7 +181,7 @@ class TTauri(StellarSource):
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all necessary paths.
@@ -203,7 +205,7 @@ class HerbigAe(StellarSource):
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all necessary paths.
@@ -227,7 +229,7 @@ class BinaryStar(StellarSource):
     """
 
     def __init__(self, file_io, parse_args):
-        """Initialisation of the stellar source parameters.
+        """Initialisation of the radiation source parameters.
 
         Args:
             file_io : Handles file input/output and all
