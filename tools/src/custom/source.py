@@ -186,7 +186,7 @@ class GGTauStars(StellarSource):
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab = self.angle_Aa + np.pi
         # Cite: position of planet (Dutrey et al. 2014)
-        self.angle_planet = np.pi * (360. - 127.) / 180.
+        self.angle_planet = np.pi * (360. - 127. - 25.) / 180.
 
         #: dict: Parameters for the binary components
         self.tmp_parameter = {
