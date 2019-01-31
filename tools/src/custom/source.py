@@ -238,7 +238,6 @@ class GGTauStars(StellarSource):
             self.parameter['position'] = [self.a_planet * self.math.const['au'] * np.sin(self.angle_planet),
                                           self.a_planet * self.math.const['au'] * np.cos(self.angle_planet), 0.]
             new_command_line += self.get_command_line()
-        print(new_command_line)
         return new_command_line
 
 
