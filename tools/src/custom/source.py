@@ -205,25 +205,26 @@ class GGTauStars(StellarSource):
     def update_parameter(self, extra_parameter):
         """Update the radiation source to include a planet.
         """
-        if len(extra_parameter) == 1:
-            # Add planet to sources (options: 'none', saturn', 'jupiter')
-            self.potential_planet = extra_parameter[0]
-        elif len(extra_parameter) == 2:
-            # Add planet to sources (options: 'none', saturn', 'jupiter')
-            self.potential_planet = extra_parameter[0]
-            # Change the angular position of the planet (in degree)
-            self.angle_planet = float(extra_parameter[1])
-        elif len(extra_parameter) == 3:
-            # Add planet to sources (options: 'none', saturn', 'jupiter')
-            self.potential_planet = extra_parameter[0]
-            # Change the angular position of the planet (in degree)
-            self.angle_planet = float(extra_parameter[1])
-            # Change the radial distance of the planet (in au)
-            self.a_planet = float(extra_parameter[2])
-        else:
-            raise ValueError(
-                'The following combinations are allowed: Type of planet ' +
-                '(+ planet angular position (+ planet radial distance))')
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                # Add planet to sources (options: 'none', saturn', 'jupiter')
+                self.potential_planet = extra_parameter[0]
+            elif len(extra_parameter) == 2:
+                # Add planet to sources (options: 'none', saturn', 'jupiter')
+                self.potential_planet = extra_parameter[0]
+                # Change the angular position of the planet (in degree)
+                self.angle_planet = float(extra_parameter[1])
+            elif len(extra_parameter) == 3:
+                # Add planet to sources (options: 'none', saturn', 'jupiter')
+                self.potential_planet = extra_parameter[0]
+                # Change the angular position of the planet (in degree)
+                self.angle_planet = float(extra_parameter[1])
+                # Change the radial distance of the planet (in au)
+                self.a_planet = float(extra_parameter[2])
+            else:
+                raise ValueError(
+                    'The following combinations are allowed: Type of planet ' +
+                    '(+ planet angular position (+ planet radial distance))')
 
     def get_command(self):
         new_command_line = str()
