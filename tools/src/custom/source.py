@@ -188,6 +188,8 @@ class GGTauStars(StellarSource):
         # Cite: position of planet (Dutrey et al. 2014)
         self.angle_planet = np.pi * (360. - 127. - 25.) / 180.
 
+        self.potential_planet = None
+
         #: dict: Parameters for the binary components
         self.tmp_parameter = {
             # New: M0, M2, M3 (http://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt)
