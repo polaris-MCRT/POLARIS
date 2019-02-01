@@ -412,7 +412,7 @@ class GGTauDisk(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
         r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                      self.a_Aab + 8. * self.math.const['au'], 150)
+                                      self.a_Aab + 8. * self.math.const['au'], 250)
         r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                             260. * self.math.const['au'], 50, 1.03)
         # ------ With circumstellar disks -----
@@ -425,7 +425,7 @@ class GGTauDisk(Model):
         self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
         self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
         # Phi cells
-        n_ph_list_1 = [600] * 150
+        n_ph_list_1 = [600] * 250
         n_ph_list_2 = [180] * 51
         # ------ With circumstellar disks -----
         self.cylindrical_parameter['n_ph'] = np.hstack(
