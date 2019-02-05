@@ -148,6 +148,11 @@ class ISRF:
         """
         return self.get_command_line()
 
+    def update_parameter(self, extra_parameter):
+        """Use this function to set isrf source parameter with the extra parameters and update isrf source parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the radiation source without changing the source.py file
+
 
 class Sun(StellarSource):
     """The Sun class is a sun-like star in the center.

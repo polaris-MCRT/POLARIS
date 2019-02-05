@@ -12,6 +12,7 @@ import numpy as np
 
 def update_dust_dict(dictionary):
     dust_dict = {
+        'vincent_mrn_oblate': VincentMrnOblate,
         'multi_sil': MultiSilicate,
         'multi_mrn': MultiMRN,
         'multi_themis': MultiThemis,
@@ -82,6 +83,50 @@ class CustomDust(Dust):
         dust = self.dust_chooser.get_module_from_name('silicate_oblate')
         dust.parameter['fraction'] = 1.
         dust.parameter['choice_id'] = 2
+        new_command_line += dust.get_command_line()
+        return new_command_line
+
+
+class VincentMrnOblate(Dust):
+    """Dust class for MRN dust grains.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Note:
+            Mathis, J. S. 1972, ApJ, 176, 651
+            Link: http://adsabs.harvard.edu/doi/10.1086/151667
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        # Set the name of one component to allow print of sizes and wavelengths
+        self.parameter['dust_cat_file'] = 'silicate_oblate.dat'
+
+    def get_command(self):
+        """Provides dust composition command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the MRN dust composition.
+        """
+        new_command_line = str()
+        dust = self.dust_chooser.get_module_from_name('silicate_oblate')
+        dust.parameter['fraction'] = 0.67
+        dust.parameter['amin'] = 8.0e-9
+        dust.parameter['amax'] = 4.0e-7
+        dust.parameter['size_keyword'] = 'plaw'
+        dust.parameter['size_parameter'] = [-3.5]
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('graphite_oblate')
+        dust.parameter['fraction'] = 0.33
+        dust.parameter['amin'] = 1.0e-8
+        dust.parameter['amax'] = 1.7e-7
+        dust.parameter['size_keyword'] = 'plaw'
+        dust.parameter['size_parameter'] = [-3.9]
         new_command_line += dust.get_command_line()
         return new_command_line
 

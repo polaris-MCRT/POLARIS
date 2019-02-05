@@ -100,7 +100,7 @@ class Cube(Model):
         self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
-        self.parameter['radiation_source'] = 'isrf'
+        #self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -949,6 +949,9 @@ class ThemisDisk(Model):
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                     self.tmp_parameter['ignored_gas_density'] = np.zeros(
                         (4, 1))
+                elif self.parameter['model_number'] == 7:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
                 self.parameter['mass_fraction'] = np.sum(
                     self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
@@ -987,6 +990,14 @@ class ThemisDisk(Model):
                 self.tmp_parameter['ignored_gas_density'][1:, 0] -= \
                     density_list[1:, 0] * self.volume
                 density_list[1:, 0] = 0.
+        elif self.parameter['model_number'] == 7:
+            r_min = 5.
+            r_max = 20.
+            # Calculate cylindrical radius
+            radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+            # Set density of larger grains to zero to create a gap
+            if r_min * self.math.const['au'] <= radius_cy <= r_max * self.math.const['au']:
+                density_list[:, 0] = 0.
         return density_list
 
     def scale_height(self, radius):
