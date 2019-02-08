@@ -2884,7 +2884,7 @@ class CDustMixture
             {
                 uint i_mixture = grid->getDustChoiceID(pp);
                 mixed_component[i_mixture].calcExtCrossSections(grid, pp, 0, Cext, Cpol, Ccirc);
-                double dens_dust = getNumberDensity(grid, pp, i_mixture);
+                double dens_dust = getNumberDensity(grid, pp);
                 Cext *= dens_dust;
                 Cpol *= dens_dust;
                 Ccirc *= dens_dust;
