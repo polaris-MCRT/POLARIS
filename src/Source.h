@@ -116,20 +116,20 @@ class CSourceBasic
         return StringID;
     }
 
-    void setNrOfPhotons(long val)
+    void setNrOfPhotons(llong val)
     {
         nr_of_photons = val;
     }
 
     void updateNrOfPhotons(double val)
     {
-        nr_of_photons = long(nr_of_photons * val);
+        nr_of_photons = llong(nr_of_photons * val);
     }
 
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT)
+    virtual void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT)
     {}
 
     virtual llong getNrOfPhotons()
@@ -194,7 +194,7 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -229,7 +229,7 @@ class CSourceStarField : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -324,7 +324,7 @@ class CSourceBackground : public CSourceBasic
         constant = true;
         init = true;
 
-        nr_of_photons = uint(values[p + 7]);
+        nr_of_photons = llong(values[p + 7]);
     }
 
     llong getNrOfPhotons()
@@ -438,7 +438,7 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
 
   private:
     Vector3D e, l;
@@ -471,7 +471,7 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, uint nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
 
     void setParameter(parameters & param, uint p)
     {

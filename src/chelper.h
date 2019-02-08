@@ -844,7 +844,7 @@ class parameters
         return nr_ofISRFPhotons > 0;
     }
 
-    long getNrOfDustPhotons()
+    llong getNrOfDustPhotons()
     {
         return nr_ofDustPhotons;
     }
@@ -1026,7 +1026,7 @@ class parameters
         return nr_ofThreads;
     }
 
-    long getNrOfISRFPhotons()
+    llong getNrOfISRFPhotons()
     {
         return nr_ofISRFPhotons;
     }
@@ -2478,8 +2478,8 @@ class parameters
     double adjTgas;
     double isrf_g_zero;
 
-    long nr_ofISRFPhotons;
-    long nr_ofDustPhotons;
+    llong nr_ofISRFPhotons;
+    llong nr_ofDustPhotons;
 
     dlist dust_fractions;
     dlist material_density;

@@ -94,7 +94,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     R = values[p + 3];
     T = values[p + 4];
 
-    nr_of_photons = long(values[p + NR_OF_POINT_SOURCES - 1]);
+    nr_of_photons = llong(values[p + NR_OF_POINT_SOURCES - 1]);
     cout << CLR_LINE << flush;
     cout << "-> Loading spectrum for source star...           \r" << flush;
 
@@ -149,7 +149,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStar::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceStar::createNextRay(photon_package * pp, llong i_pos, llong nr_photons)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -292,7 +292,7 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
     R = 0;
     T = 0;
     var = values[p + 3];
-    nr_of_photons = long(values[p + NR_OF_DIFF_SOURCES - 1]);
+    nr_of_photons = llong(values[p + NR_OF_DIFF_SOURCES - 1]);
 
     cout << CLR_LINE << flush;
     cout << "-> Loading spectrum for source star...           \r" << flush;
@@ -348,7 +348,7 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, llong nr_photons)
 {
     StokesVector tmp_stokes_vector;
     double energy;
@@ -507,7 +507,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
 
     rot_angle1 = values[p + 5];
     rot_angle2 = values[p + 6];
-    nr_of_photons = long(values[p + 7]);
+    nr_of_photons = llong(values[p + 7]);
 
     if(reader.fail())
     {
@@ -759,7 +759,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, llong nr_photons)
 {
     double energy, excess_x = 0, excess_y = 0, excess_z = 0;
     StokesVector tmp_stokes_vector;
@@ -922,7 +922,7 @@ bool CSourceDust::initSource(uint w)
     return true;
 }
 
-void CSourceDust::createNextRay(photon_package * pp, llong i_pos, uint nr_photons)
+void CSourceDust::createNextRay(photon_package * pp, llong i_pos, llong nr_photons)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);

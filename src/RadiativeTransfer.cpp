@@ -257,7 +257,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                                                       bool disable_reemission)
 {
     // Init variables
-    ullong nr_of_photons = 0;
+    llong nr_of_photons = 0;
     uint nr_used_wavelengths = 1;
     uint kill_counter = 0;
     uint mrw_counter = 0;
@@ -647,7 +647,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             // Perform radiative transfer through the model for each photon
 
 #pragma omp parallel for schedule(dynamic)
-            for(long r = 0; r < long(nr_of_photons); r++)
+            for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init cross sections
                 double Cext, Csca;
@@ -1006,7 +1006,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
-                        tmp_pp.getStokesVector() *= long(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
+                        tmp_pp.getStokesVector() *= llong(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
