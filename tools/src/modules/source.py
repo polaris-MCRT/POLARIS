@@ -37,6 +37,7 @@ class SourceChooser:
         #: dict: Dictionary with all usable stellar sources
         self.sources_dict = {
             'isrf': ISRF,
+            'mathis_isrf': MathisISRF,
             't_tauri': TTauri,
             'herbig_ae': HerbigAe,
             'binary': BinaryStar,
@@ -139,6 +140,55 @@ class ISRF:
                + str(int(self.parameter['nr_photons'])) + '">\t''\"' \
                + self.file_io.path['input'] \
                + self.parameter['filename'] + '\"\n'
+
+    def get_command(self):
+        """Provides ISRF command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the interstellar radiation field.
+        """
+        return self.get_command_line()
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set isrf source parameter with the extra parameters and update isrf source parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the radiation source without changing the source.py file
+
+
+class MathisISRF(ISRF):
+    """The ISRF class is the interstellar radiation field, usable for temperature
+    and rat simulations. The data is read from file in the input directory.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the radiation source parameters.
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        ISRF.__init__(self, file_io, parse_args)
+
+        self.file_io = file_io
+        self.parse_args = parse_args
+
+        #: dict: Parameters of the interstellar radiation field class
+        mathis_isrf_parameter = {
+            'g_zero': 1,
+        }
+
+        # Updates the parameter dictionary
+        self.parameter.update(mathis_isrf_parameter)
+
+    def get_command_line(self):
+        """Provides ISRF command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the interstellar radiation field.
+        """
+        return '\t<source_isrf nr_photons = "' \
+               + str(int(self.parameter['nr_photons'])) + '">\t' \
+               + str(self.parameter['g_zero']) + '\n'
 
     def get_command(self):
         """Provides ISRF command line for POLARIS .cmd file.
