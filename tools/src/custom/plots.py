@@ -1626,6 +1626,15 @@ class CustomPlots:
     def plot_1006002(self):
         """Plot GG Tau A SED comparison
         """
+        from scipy.interpolate import interp1d   
+        data = np.genfromtxt(self.file_io.path['model'] + 'foreground_extinction.dat')
+        ext_cross_section = interp1d(data[:, 0] * 1e-6, data[:, 1])
+        def reddening(wl, value, a_v):
+            C_ext_wl = ext_cross_section(wl)
+            A_wl = C_ext_wl / 8.743994626531222e-17 * a_v
+            tau_wl = A_wl / 1.086
+            return value * np.exp(-tau_wl)
+
         # Set data input to Jy/px to calculate the total flux
         if self.parse_args.cmap_unit is None:
             self.file_io.cmap_unit = 'total'
@@ -1648,7 +1657,7 @@ class CustomPlots:
                        linestyle='none', marker='.', color='black',
                        alpha=0.7, label=r'$\text{Photometric observations}$')
         # Set some variables
-        detector_index = 202
+        detector_index = 203
         i_quantity = 0
         # Different model configurations
         model_list = [
@@ -1682,7 +1691,7 @@ class CustomPlots:
                     'polaris_detector_nr' + str(detector_index).zfill(4) + '_sed')
                 # Init wavelengths and fluxes
                 wavelengths = header['wavelengths']
-                quantity = sed_data[i_quantity, :]
+                quantity = reddening(wavelengths, sed_data[i_quantity, :], 0.3)
                 # Plot spectral energy distribution
                 plot.plot_line(wavelengths, quantity, log='xy',
                                label=r'$\text{' + model_descr[i_model] + r'}$')
@@ -1748,7 +1757,8 @@ class CustomPlots:
         # Set some variables
         detector_index = 101
         i_quantity = 4
-        calc = False
+        calc = True
+        observation = 'SCUBA'  # 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1778,7 +1788,10 @@ class CustomPlots:
             # [-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
-        self.file_io.beam_size = 0.07
+        if observation == 'SCUBA':
+            self.file_io.beam_size = 0.07
+        elif observation == 'SPHERE':
+            self.file_io.beam_size = 0.03
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # Define output pdf
@@ -1816,10 +1829,16 @@ class CustomPlots:
                         horizontalalignment='left', verticalalignment='top', ax_index=i_subplot, color='white'
                     )
                 elif i_subplot in [0]:
-                    hdulist = fits.open(
-                        '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
-                    tbldata = cropND(
-                        hdulist[0].data.T, (500, 500), offset=[0, 30]) / 3e7
+                    if observation == 'SCUBA':
+                        hdulist = fits.open(
+                            '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
+                        tbldata = cropND(
+                            hdulist[0].data.T, (500, 500), offset=[0, 30]) / 3e7
+                    elif observation == 'SPHERE':
+                        hdulist = fits.open(
+                            '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
+                        tbldata = cropND(
+                            hdulist[0].data.T, (390, 390), offset=[6, 10]) / 8e6
                 else:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
@@ -1836,6 +1855,7 @@ class CustomPlots:
                     nr_pixel_x = tbldata.shape[-2]
                     nr_pixel_y = tbldata.shape[-1]
                     # Find the considered pixel
+                    count = np.zeros(len(measurement_position_list))
                     for i_x in range(nr_pixel_x):
                         for i_y in range(nr_pixel_y):
                             pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
@@ -1846,39 +1866,37 @@ class CustomPlots:
                                     np.subtract(pos, center_pos))
                                 if pos_r < 0.2:
                                     flux_sum[i_plot, i_subplot,
-                                            i_pos] += tbldata[i_x, i_y]
+                                                i_pos] += tbldata[i_x, i_y] 
+                                    count[i_pos] += 1
+                    if i_subplot == 0:
+                        print(flux_sum[i_plot, i_subplot, :] / count)
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
-            print(r'\begin{tabular}{lcccc}')
-            print(r'\theadstart')
+            print(r'\begin{tabular}{lccccc}')
             print(
-                r'\thead Configuration & \thead $\boldsymbol{\textit{PI}}$ (1) & \thead $\boldsymbol{\textit{PI}}$ (2) & \thead $\boldsymbol{\textit{PI}}$ (3) & \thead $\boldsymbol{\textit{PI}}$ (4) \\')
-            print(r'\tbody')
-            for i_plot in range(2):
-                for i_subplot in range(6):
-                    if i_subplot > 1:
-                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
-                            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
-            print('Observation &', ' & '.join(
-                '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
-            print(r'\tend')
-            print(r'\end{tabular}')
-            print(r'\begin{tabular}{lcccccc}')
-            print(r'\theadstart')
-            print(
-                r'\thead Configuration & \thead $\boldsymbol{\delta \textit{PI}}$ (region 1) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 2) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 3) & \thead $\boldsymbol{\delta \textit{PI}}$ (region 4) & \thead \textit{PI} (region 1) / \textit{PI} (region 2) \\')
-            print(r'\tbody')
+                r'Configuration & $\delta \textit{PI}$ (region 1) & $\delta \textit{PI}$ (region 2) & $\delta \textit{PI}$ (region 3) & $\delta \textit{PI}$ (region 4) \\')
+            print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(6):
                     if i_subplot > 1:
                         print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
-                            100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
-            print('Observation & x & x & x & x &', ' & '.join(
-                '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
-            print(r'\tend')
+                            100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), r'\\')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lcccc}')
+            print(
+                r'Configuration & \textit{PI} (region 1) / \textit{PI} (region 2) & \textit{PI} (region 1) / \textit{PI} (region 3) & \textit{PI} (region 1) / \textit{PI} (region 4) \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(6):
+                    if i_subplot > 1:
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
+                            '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
+            print(r'\hline')
+            print('Observation & ', ' & '.join(
+                '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[0, 0, 0], flux_sum[0, 0, 1:])), r'\\')
             print(r'\end{tabular}')
 
     def plot_1006004(self):
@@ -1980,33 +1998,23 @@ class CustomPlots:
                                          i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
-        print(r'\begin{tabular}{lcccc}')
-        print(r'\theadstart')
+        print(r'\begin{tabular}{lccccc}')
         print(
-            r'\thead Configuration & \thead $\boldsymbol{\textit{F}}$ (1) & \thead $\boldsymbol{\textit{F}}$ (2) & \thead $\boldsymbol{\textit{F}}$ (3) & \thead $\boldsymbol{\textit{F}}$ (4) \\')
-        print(r'\tbody')
+            r'Configuration & $\delta F$ (region 1) & $\delta F$ (region 2) & $\delta F$ (region 3) & $\delta F$ (region 4) \\')
+        print(r'\hline')
         for i_plot in range(2):
-            for i_subplot in range(4): # 6
-                #if i_subplot > 1:
-                print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
-                    '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
-        #print('Observation &', ' & '.join(
-        #    '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[0, 0, :]), r'\\')
-        print(r'\tend')
-        print(r'\end{tabular}')
-        print(r'\begin{tabular}{lcccccc}')
-        print(r'\theadstart')
-        print(
-            r'\thead Configuration & \thead $\boldsymbol{\delta \textit{F}}$ (region 1) & \thead $\boldsymbol{\delta \textit{F}}$ (region 2) & \thead $\boldsymbol{\delta \textit{F}}$ (region 3) & \thead $\boldsymbol{\delta \textit{F}}$ (region 4) & \thead \textit{F} (region 1) / \textit{F} (region 2) \\')
-        print(r'\tbody')
-        for i_plot in range(2):
-            for i_subplot in range(4): # 6
-                #if i_subplot > 1:
+            for i_subplot in range(4):
                 print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
-                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :]))), '&', '& '.join('$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[i_plot, i_subplot, 0] / flux_sum[i_plot, i_subplot, 1]]), r'\\')
-        #print('Observation & x & x & x & x &', ' & '.join(
-        #    '$\SI{' + f'{x:1.0f}' + '}{\percent}$' for x in [1e2*flux_sum[0, 0, 0]/flux_sum[0, 0, 1]]), r'\\')
-        print(r'\tend')
+                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :]))), r'\\')
+        print(r'\end{tabular}')
+        print(r'\begin{tabular}{lcccc}')
+        print(
+            r'Configuration & $F$ (region 1) / $F$ (region 2) & $F$ (region 1) / $F$ (region 3) & $F$ (region 1) / $F$ (region 4) \\')
+        print(r'\hline')
+        for i_plot in range(2):
+            for i_subplot in range(4):
+                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+                    '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
         print(r'\end{tabular}')
 
 
