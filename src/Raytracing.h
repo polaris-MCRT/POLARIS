@@ -1649,7 +1649,7 @@ class CRaytracingPolar : public CRaytracingBasic
     bool postProcessing()
     {
         // Init counter and percentage to show progress
-        uint per_counter = 0;
+        ullong per_counter = 0;
         float last_percentage = 0;
 
         // Create a double list with the center points of the rt grid in radial direction

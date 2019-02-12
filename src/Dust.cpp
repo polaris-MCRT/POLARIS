@@ -64,7 +64,7 @@ void CDustComponent::initDustProperties()
 void CDustComponent::initScatteringMatrixArray()
 {
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init maximum counter value
@@ -772,7 +772,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     initScatteringMatrixArray();
 
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init error check
@@ -1048,7 +1048,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     }
 
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init maximum counter value
@@ -2322,7 +2322,7 @@ void CDustComponent::preCalcAbsorptionRates()
         tab_em_inv = new spline[nr_of_dust_species];
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
     for(uint a = 0; a < nr_of_dust_species; a++)
@@ -2391,7 +2391,7 @@ void CDustComponent::preCalcMieScatteringProb()
     double d_ang = PI / double(nr_of_scat_theta - 1);
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
     for(uint a = 0; a < nr_of_dust_species; a++)
@@ -2476,7 +2476,7 @@ void CDustComponent::preCalcWaveProb()
     avg_planck_frac = new prob_list[nr_of_dust_species * nr_of_temperatures];
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
     // Set each entry of avg_planck_frac with integrated value of pl_mean

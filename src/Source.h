@@ -116,23 +116,23 @@ class CSourceBasic
         return StringID;
     }
 
-    void setNrOfPhotons(llong val)
+    void setNrOfPhotons(ullong val)
     {
         nr_of_photons = val;
     }
 
     void updateNrOfPhotons(double val)
     {
-        nr_of_photons = llong(nr_of_photons * val);
+        nr_of_photons = ullong(nr_of_photons * val);
     }
 
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0)
+    virtual void createNextRay(photon_package * pp, ullong i_pos, ullong nr_photons = 0)
     {}
 
-    virtual llong getNrOfPhotons()
+    virtual ullong getNrOfPhotons()
     {
         return nr_of_photons;
     }
@@ -159,7 +159,7 @@ class CSourceBasic
     CDustMixture * dust;
     CGridBasic * grid;
 
-    llong nr_of_photons;
+    ullong nr_of_photons;
     dlist wavelength_list;
 
     Vector3D pos;
@@ -194,7 +194,7 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
+    void createNextRay(photon_package * pp, ullong i_pos, ullong nr_photons = 0);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -208,7 +208,7 @@ class CSourceStar : public CSourceBasic
         q = values[p + 5];
         u = values[p + 6];
 
-        nr_of_photons = (llong)values[p + NR_OF_POINT_SOURCES - 1];
+        nr_of_photons = (ullong)values[p + NR_OF_POINT_SOURCES - 1];
 
         L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
     }
@@ -229,7 +229,7 @@ class CSourceStarField : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
+    void createNextRay(photon_package * pp, ullong i_pos, ullong nr_photons = 0);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -244,7 +244,7 @@ class CSourceStarField : public CSourceBasic
         q = values[p + 6];
         u = values[p + 7];
 
-        nr_of_photons = llong(values[p + NR_OF_DIFF_SOURCES - 1]);
+        nr_of_photons = ullong(values[p + NR_OF_DIFF_SOURCES - 1]);
 
         L = R * T * T * T * T;
     }
@@ -324,12 +324,12 @@ class CSourceBackground : public CSourceBasic
         constant = true;
         init = true;
 
-        nr_of_photons = llong(values[p + 7]);
+        nr_of_photons = ullong(values[p + 7]);
     }
 
-    llong getNrOfPhotons()
+    ullong getNrOfPhotons()
     {
-        return llong(bins * bins) * nr_of_photons;
+        return ullong(bins * bins) * nr_of_photons;
     }
 
     uint getBins()
@@ -438,7 +438,7 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
+    void createNextRay(photon_package * pp, ullong i_pos, ullong nr_photons = 0);
 
   private:
     Vector3D e, l;
@@ -471,14 +471,14 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
+    void createNextRay(photon_package * pp, ullong i_pos, ullong nr_photons = 0);
 
     void setParameter(parameters & param, uint p)
     {
         nr_of_photons = param.getNrOfDustPhotons();
     }
 
-    llong getNrOfPhotons()
+    ullong getNrOfPhotons()
     {
         return nr_of_photons;
     }

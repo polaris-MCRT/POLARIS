@@ -1454,7 +1454,7 @@ class CMathFunctions
 #endif
     }
 
-    void initRnd(llong seed)
+    void initRnd(ullong seed)
     {
         /*
         IDUM = -abs(seed);

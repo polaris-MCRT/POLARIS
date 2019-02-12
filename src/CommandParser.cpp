@@ -1959,7 +1959,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<source_star nr_photons = >") == 0)
     {
         string str = seperateString(data);
-        llong nr_of_photons = llong(atof(str.c_str()));
+        ullong nr_of_photons = ullong(atof(str.c_str()));
         string ps_path = seperateString(data);
 
         if(nr_of_photons <= 0)
@@ -2024,7 +2024,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<source_starfield nr_photons = >") == 0)
     {
         string str = seperateString(data);
-        llong nr_of_photons = llong(atof(str.c_str()));
+        ullong nr_of_photons = ullong(atof(str.c_str()));
         string ps_path = seperateString(data);
 
         if(nr_of_photons <= 0)
@@ -2089,7 +2089,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<source_background nr_photons = >") == 0)
     {
         string str = seperateString(data);
-        llong nr_of_photons = llong(atof(str.c_str()));
+        ullong nr_of_photons = ullong(atof(str.c_str()));
 
         if(nr_of_photons <= 0)
         {
@@ -2609,7 +2609,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<source_dust nr_photons = >") == 0)
     {
         string str = seperateString(data);
-        llong nr_of_photons = llong(atof(str.c_str()));
+        ullong nr_of_photons = ullong(atof(str.c_str()));
 
         if(nr_of_photons > 0)
             param->setNrOfDustPhotons(long(nr_of_photons));
@@ -2625,7 +2625,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<source_isrf nr_photons = >") == 0)
     {
         string str = seperateString(data);
-        llong nr_of_photons = llong(atof(str.c_str()));
+        ullong nr_of_photons = ullong(atof(str.c_str()));
 
         if(nr_of_photons > 0)
             param->setNrOfISRFPhotons(long(nr_of_photons));

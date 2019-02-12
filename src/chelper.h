@@ -844,7 +844,7 @@ class parameters
         return nr_ofISRFPhotons > 0;
     }
 
-    llong getNrOfDustPhotons()
+    ullong getNrOfDustPhotons()
     {
         return nr_ofDustPhotons;
     }
@@ -1026,7 +1026,7 @@ class parameters
         return nr_ofThreads;
     }
 
-    llong getNrOfISRFPhotons()
+    ullong getNrOfISRFPhotons()
     {
         return nr_ofISRFPhotons;
     }
@@ -2478,8 +2478,8 @@ class parameters
     double adjTgas;
     double isrf_g_zero;
 
-    llong nr_ofISRFPhotons;
-    llong nr_ofDustPhotons;
+    ullong nr_ofISRFPhotons;
+    ullong nr_ofDustPhotons;
 
     dlist dust_fractions;
     dlist material_density;
@@ -2592,7 +2592,7 @@ class photon_package
             delete[] multi_stokes;
     }
 
-    void initRandomGenerator(llong seed)
+    void initRandomGenerator(ullong seed)
     {
         mf.initRnd(seed);
     }

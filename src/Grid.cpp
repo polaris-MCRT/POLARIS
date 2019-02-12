@@ -564,7 +564,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     bool plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
     bool plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);
 
-    uint per_counter = 0, per_max = bins * bins;
+    ullong per_counter = 0, per_max = bins * bins;
     string dens_filename = path + "gas_density.am";
     string dtemp_filename = path + "dust_temp.am";
     string gtemp_filename = path + "gas_temp.am";
@@ -1225,7 +1225,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     else
         b_limit_xy = naxes[0] / 2;
 
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
     auto_ptr<CCfits::FITS> pFits(0);
     // unique_ptr<CCfits::FITS> pFits;
