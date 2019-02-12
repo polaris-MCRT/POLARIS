@@ -645,7 +645,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             last_percentage = 0;
 
             // Perform radiative transfer through the model for each photon
-
 #pragma omp parallel for schedule(dynamic)
             for(llong r = 0; r < llong(nr_of_photons); r++)
             {
@@ -884,7 +883,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions < MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToLastInteraction();

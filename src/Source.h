@@ -129,7 +129,7 @@ class CSourceBasic
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT)
+    virtual void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0)
     {}
 
     virtual llong getNrOfPhotons()
@@ -194,7 +194,7 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -229,7 +229,7 @@ class CSourceStarField : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -438,7 +438,7 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
 
   private:
     Vector3D e, l;
@@ -471,7 +471,7 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = MAX_UINT);
+    void createNextRay(photon_package * pp, llong i_pos, llong nr_photons = 0);
 
     void setParameter(parameters & param, uint p)
     {

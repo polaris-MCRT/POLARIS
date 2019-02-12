@@ -1758,7 +1758,7 @@ class CustomPlots:
         detector_index = 101
         i_quantity = 4
         calc = True
-        observation = 'SCUBA'  # 'SPHERE'
+        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1856,6 +1856,7 @@ class CustomPlots:
                     nr_pixel_y = tbldata.shape[-1]
                     # Find the considered pixel
                     count = np.zeros(len(measurement_position_list))
+                    obs_error = []
                     for i_x in range(nr_pixel_x):
                         for i_y in range(nr_pixel_y):
                             pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
@@ -1864,12 +1865,18 @@ class CustomPlots:
                             for i_pos, center_pos in enumerate(measurement_position_list):
                                 pos_r = np.linalg.norm(
                                     np.subtract(pos, center_pos))
-                                if pos_r < 0.2:
+                                if pos_r < 0.15:
                                     flux_sum[i_plot, i_subplot,
                                                 i_pos] += tbldata[i_x, i_y] 
                                     count[i_pos] += 1
+                            pos_r = np.linalg.norm(np.subtract(pos, [-1.8, -1.8]))
+                            if pos_r < 0.15:
+                                obs_error.append(tbldata[i_x, i_y])
                     if i_subplot == 0:
-                        print(flux_sum[i_plot, i_subplot, :] / count)
+                        flux = flux_sum[i_plot, i_subplot, :] / count
+                        da = np.std(obs_error)
+                        uncertainty = np.sqrt((1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
+                        print('obs. error:', uncertainty)
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
@@ -1993,7 +2000,7 @@ class CustomPlots:
                         for i_pos, center_pos in enumerate(measurement_position_list):
                             pos_r = np.linalg.norm(
                                 np.subtract(pos, center_pos))
-                            if pos_r < 0.2:
+                            if pos_r < 0.15:
                                 flux_sum[i_plot, i_subplot,
                                          i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen

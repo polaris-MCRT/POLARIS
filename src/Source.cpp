@@ -156,7 +156,7 @@ void CSourceStar::createNextRay(photon_package * pp, llong i_pos, llong nr_photo
     double energy;
     uint wID;
 
-    if(nr_photons == MAX_UINT)
+    if(nr_photons == 0)
         nr_photons = nr_of_photons;
 
     pp->initRandomGenerator(i_pos);
@@ -354,7 +354,7 @@ void CSourceStarField::createNextRay(photon_package * pp, llong i_pos, llong nr_
     double energy;
     uint wID;
 
-    if(nr_photons == MAX_UINT)
+    if(nr_photons == 0)
         nr_photons = nr_of_photons;
 
     pp->initRandomGenerator(i_pos);
@@ -766,7 +766,7 @@ void CSourceISRF::createNextRay(photon_package * pp, llong i_pos, llong nr_photo
     pp->initRandomGenerator(i_pos);
     uint wID;
 
-    if(nr_photons == MAX_UINT)
+    if(nr_photons == 0)
         nr_photons = nr_of_photons;
 
     if(pp->getWavelengthID() != MAX_UINT)
@@ -928,7 +928,7 @@ void CSourceDust::createNextRay(photon_package * pp, llong i_pos, llong nr_photo
     pp->initRandomGenerator(i_pos);
     pp->calcRandomDirection();
 
-    if(nr_photons == MAX_UINT)
+    if(nr_photons == 0)
         nr_photons = nr_of_photons;
 
     // Set wavelength of photon package
