@@ -835,10 +835,14 @@ class CGridBasic
         // Get radiation field strength and direction from cell
         if(data_pos_rf_list.empty())
         {
-            // Get SpecLength instead if no radiation field in grid
-            // getSpecLength(cell, w, us, tmp_dir);
-            // us /= getVolume(cell);
-            cout << "ERROR: THis should not happen" << endl;
+            if(spec_length_as_vector)
+            {
+                // Get SpecLength instead if no radiation field in grid
+                getSpecLength(cell, w, us, tmp_dir);
+                us /= getVolume(cell);
+            }
+            else
+                cout << "ERROR: THis should not happen" << endl;
         }
         else
         {

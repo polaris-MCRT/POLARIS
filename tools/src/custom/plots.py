@@ -1758,7 +1758,7 @@ class CustomPlots:
         detector_index = 101
         i_quantity = 4
         calc = True
-        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
