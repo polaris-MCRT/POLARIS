@@ -1390,7 +1390,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             fpixel[2]++;
 
 #pragma omp parallel for schedule(dynamic)
-            for(int i_cell = 0; i_cell < nelements; i_cell++)
+            for(long i_cell = 0; i_cell < nelements; i_cell++)
             {
                 int j = (i_cell % bins);
 
@@ -1667,7 +1667,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             fpixel[2] = i;
 
 #pragma omp parallel for schedule(dynamic)
-            for(int i_cell = 0; i_cell < nelements; i_cell++)
+            for(long i_cell = 0; i_cell < nelements; i_cell++)
             {
                 int j = (i_cell % bins);
 

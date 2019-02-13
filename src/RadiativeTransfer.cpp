@@ -305,10 +305,10 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         }
             // A loop for each wavelength
 #pragma omp parallel for schedule(dynamic) collapse(2)
-        for(int wID = 0; wID < nr_used_wavelengths; wID++)
+        for(int wID = 0; wID < int(nr_used_wavelengths); wID++)
         {
             // A loop for each photon
-            for(ullong r = 0; r < ullong(nr_of_photons); r++)
+            for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init variables
                 double end_tau, Cext, Csca;
@@ -646,7 +646,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Perform radiative transfer through the model for each photon
 #pragma omp parallel for schedule(dynamic)
-            for(ullong r = 0; r < ullong(nr_of_photons); r++)
+            for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init cross sections
                 double Cext, Csca;

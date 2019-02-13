@@ -1908,7 +1908,7 @@ void CGridOcTree::clear(cell_oc * cell)
         }
 
         //#pragma omp parallel for schedule(dynamic)
-        for(unsigned int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
             clear(&cell->getChildren()[i]);
 
         delete[] cell->getChildren();

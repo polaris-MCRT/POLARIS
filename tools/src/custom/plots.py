@@ -1758,7 +1758,7 @@ class CustomPlots:
         detector_index = 101
         i_quantity = 4
         calc = True
-        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1781,11 +1781,10 @@ class CustomPlots:
         ]
         measurement_position_list = [
             [0, -1.05],
+            [0, -1.60],
             [0, 0.85],
             [-0.57, -0.975],
             [1.17, -0.42],
-            # [-1.3, -1.1],
-            # [-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
@@ -1838,7 +1837,7 @@ class CustomPlots:
                         hdulist = fits.open(
                             '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
                         tbldata = cropND(
-                            hdulist[0].data.T, (390, 390), offset=[6, 10]) / 8e6
+                            hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
                 else:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
@@ -1882,28 +1881,38 @@ class CustomPlots:
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
+            print(r'\begin{tabular}{lcccccc}')
+            print(
+                r'Configuration & $\delta \textit{PI}_1$ & $\delta \textit{PI}_2$ & $\delta \textit{PI}_3$ & $\delta \textit{PI}_4$ & $\delta \textit{PI}_5$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(6):
+                    if i_subplot > 1:
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
+                            100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :])))), r'\\')
+            print(r'\end{tabular}')
             print(r'\begin{tabular}{lccccc}')
             print(
-                r'Configuration & $\delta \textit{PI}$ (region 1) & $\delta \textit{PI}$ (region 2) & $\delta \textit{PI}$ (region 3) & $\delta \textit{PI}$ (region 4) \\')
+                r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ \\')
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(6):
                     if i_subplot > 1:
-                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
-                            100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :]))), r'\\')
-            print(r'\end{tabular}')
-            print(r'\begin{tabular}{lcccc}')
-            print(
-                r'Configuration & \textit{PI} (region 1) / \textit{PI} (region 2) & \textit{PI} (region 1) / \textit{PI} (region 3) & \textit{PI} (region 1) / \textit{PI} (region 4) \\')
+                        string = model_descr[i_subplot - 2 + i_plot * 4]
+                        for i_x, x in enumerate(np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])):
+                            if abs(x - np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1 + i_x])) <= uncertainty[i_x]: 
+                                string += r' & {\color{new_green}\textbf{' + f'{x:1.2f}' + '}}'
+                            else:
+                                string += r' & {\color{red}' + f'{x:1.2f}' + '}'
+                        print(string, r'\\')
             print(r'\hline')
-            for i_plot in range(2):
-                for i_subplot in range(6):
-                    if i_subplot > 1:
-                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
-                            '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
-            print(r'\hline')
-            print('Observation & ', ' & '.join(
-                '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[0, 0, 0], flux_sum[0, 0, 1:])), r'\\')
+            if observation == 'SCUBA':
+                string = 'Observation (Subaru/HiCIAO)'
+            elif observation == 'SPHERE':
+                string = 'Observation (SPHERE/IRDIS)'
+            for i_x, x in enumerate(np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1:])):
+                string += ' & $' + f'{x:1.2f}' + '\pm' + f'{uncertainty[i_x]:1.2f}' + '$'
+            print(string, r'\\')
             print(r'\end{tabular}')
 
     def plot_1006004(self):
@@ -1939,11 +1948,10 @@ class CustomPlots:
         ]
         measurement_position_list = [
             [0, -1.05],
+            [0, -1.60],
             [0, 0.85],
             [-0.57, -0.975],
             [1.17, -0.42],
-            # [-1.3, -1.1],
-            # [-0.57, 0.82]
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
@@ -2007,21 +2015,21 @@ class CustomPlots:
             plot.save_figure(self.file_io)
         print(r'\begin{tabular}{lccccc}')
         print(
-            r'Configuration & $\delta F$ (region 1) & $\delta F$ (region 2) & $\delta F$ (region 3) & $\delta F$ (region 4) \\')
+            r'Configuration & $\delta F_1$ & $\delta F_2$ & $\delta F_3$ & $\delta F_4$ & $\delta F_5$ \\')
         print(r'\hline')
         for i_plot in range(2):
             for i_subplot in range(4):
-                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.subtract(
-                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :]))), r'\\')
+                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
+                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])))), r'\\')
         print(r'\end{tabular}')
         print(r'\begin{tabular}{lcccc}')
         print(
-            r'Configuration & $F$ (region 1) / $F$ (region 2) & $F$ (region 1) / $F$ (region 3) & $F$ (region 1) / $F$ (region 4) \\')
+            r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ \\')
         print(r'\hline')
         for i_plot in range(2):
             for i_subplot in range(4):
                 print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
-                    '$\SI{' + f'{x:1.2f}' + '}{}$' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
+                    f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
         print(r'\end{tabular}')
 
 

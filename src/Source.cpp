@@ -840,7 +840,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         cell_prob[w].setValue(0, total_energy[w]);
 
 #pragma omp parallel for schedule(dynamic)
-        for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+        for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
             // Increase counter used to show progress
             per_counter++;
