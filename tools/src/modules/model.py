@@ -352,11 +352,20 @@ class BokGlobule(Model):
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1.0 * self.math.const['au']
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
-        self.spherical_parameter['n_ph'] = 1  # 01
-        self.octree_parameter['sidelength'] = 3e4 * self.math.const['au']
+        self.parameter['truncation_radius'] = 1e3 * self.math.const['au']
+        self.spherical_parameter['n_ph'] = 1
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['detector'] = 'cartesian'
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                self.parameter['truncation_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -368,11 +377,11 @@ class BokGlobule(Model):
             gas_density = self.math.bonor_ebert_density(self.position,
                                                         outer_radius=0.5 *
                                                         self.octree_parameter['sidelength'],
-                                                        truncation_radius=1e3 * self.math.const['au'])
+                                                        truncation_radius=self.parameter['truncation_radius'])
         elif self.parameter['grid_type'] == 'spherical':
             gas_density = self.math.bonor_ebert_density(self.position,
                                                         outer_radius=self.spherical_parameter['outer_radius'],
-                                                        truncation_radius=1e3 * self.math.const['au'])
+                                                        truncation_radius=self.parameter['truncation_radius'])
         return gas_density
 
     def magnetic_field(self):
@@ -395,14 +404,5 @@ class BokGlobule(Model):
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 30.
+        dust_temperature = 10.
         return dust_temperature
-
-    def gas_temperature(self):
-        """Calculates the gas temperature at a given position.
-
-        Returns:
-            float: Gas temperature at a given position.
-        """
-        gas_temp = 100.
-        return gas_temp

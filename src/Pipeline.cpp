@@ -1023,7 +1023,7 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
 
         double R = point_source[s + 3];
         double T = point_source[s + 4];
-        llong nr_of_photons = uint(point_source[s + 5]);
+        ullong nr_of_photons = uint(point_source[s + 5]);
 
         if(R < 1)
             R = 1;
@@ -1044,7 +1044,7 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
         uint i = s / 7;
         double R = diffuse_source[s + 3];
         double T = diffuse_source[s + 4];
-        llong nr_of_photons = uint(diffuse_source[s + 6]);
+        ullong nr_of_photons = uint(diffuse_source[s + 6]);
 
         if(R < 1)
             R = 1;
@@ -1397,7 +1397,7 @@ true)) return false;
 bool CPipeline::preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters &
 param, bool plot, uint itID)
 {
-    uint per_counter = 0;
+    ullong per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
     double mu = param.getMu();
     ulong data_off = grid->getDataOffset();

@@ -748,7 +748,14 @@ class CGridBasic
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
         if(data_pos_rf_list.empty())
-            return getSpecLength(cell, wID) / getVolume(cell);
+        {
+            double mult = 1.0 / getVolume(cell);
+            if(wID == 0)
+                mult /= wl_list[1] - wl_list[0];
+            else
+                mult /= wl_list[wID] - wl_list[wID - 1];
+            return getSpecLength(cell, wID) * mult;
+        }
         return cell->getData(data_pos_rf_list[wID]);
 #endif
     }
@@ -828,9 +835,14 @@ class CGridBasic
         // Get radiation field strength and direction from cell
         if(data_pos_rf_list.empty())
         {
-            // Get SpecLength instead if no radiation field in grid
-            getSpecLength(cell, w, us, tmp_dir);
-            us /= getVolume(cell);
+            if(spec_length_as_vector)
+            {
+                // Get SpecLength instead if no radiation field in grid
+                getSpecLength(cell, w, us, tmp_dir);
+                us /= getVolume(cell);
+            }
+            else
+                cout << "ERROR: This should not happen" << endl;
         }
         else
         {

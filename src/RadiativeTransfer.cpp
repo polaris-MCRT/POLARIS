@@ -259,7 +259,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     // Init variables
     ullong nr_of_photons = 0;
     uint nr_used_wavelengths = 1;
-    uint kill_counter = 0;
+    ullong kill_counter = 0;
     uint mrw_counter = 0;
     uint max_source = uint(sources_mc.size());
 
@@ -305,7 +305,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         }
             // A loop for each wavelength
 #pragma omp parallel for schedule(dynamic) collapse(2)
-        for(int wID = 0; wID < nr_used_wavelengths; wID++)
+        for(int wID = 0; wID < int(nr_used_wavelengths); wID++)
         {
             // A loop for each photon
             for(llong r = 0; r < llong(nr_of_photons); r++)
@@ -353,10 +353,10 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 if(use_energy_density)
                 {
                     pp->setWavelengthID(wID);
-                    tm_source->createNextRay(pp, llong(nr_of_photons * wID + r));
+                    tm_source->createNextRay(pp, ullong(nr_of_photons * wID + r));
                 }
                 else
-                    tm_source->createNextRay(pp, llong(r));
+                    tm_source->createNextRay(pp, ullong(r));
 
                 if(!grid->positionPhotonInGrid(pp))
                     if(!grid->findStartingPoint(pp))
@@ -372,7 +372,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 old_pos = pp->getPosition();
 
                 // Init current number of interactions
-                uint interactions = 0;
+                ullong interactions = 0;
 
                 // Init variables
                 double tmp_tau, len, dens;
@@ -608,11 +608,11 @@ bool CRadiativeTransfer::setTemperatureDistribution()
 bool CRadiativeTransfer::calcPolMapsViaMC()
 {
     // Init variables
-    llong nr_of_photons;
-    uint per_counter, ph_max, nr_of_wavelength;
+    ullong nr_of_photons;
+    ullong per_counter, ph_max, nr_of_wavelength;
     float last_percentage;
     uint mrw_counter = 0;
-    uint kill_counter = 0;
+    ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
 
     // Perform Monte-Carlo radiative transfer for each chosen source
@@ -645,9 +645,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             last_percentage = 0;
 
             // Perform radiative transfer through the model for each photon
-
 #pragma omp parallel for schedule(dynamic)
-            for(long r = 0; r < long(nr_of_photons); r++)
+            for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init cross sections
                 double Cext, Csca;
@@ -745,7 +744,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
 
                     // Init variables
-                    uint interactions = 0;
+                    ullong interactions = 0;
                     double tmp_tau;
                     double len, dens;
 
@@ -884,7 +883,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions < MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToLastInteraction();
@@ -1006,7 +1005,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
-                        tmp_pp.getStokesVector() *= long(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
+                        tmp_pp.getStokesVector() *= ullong(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
@@ -1094,7 +1093,7 @@ void CRadiativeTransfer::calcAlignedRadii()
 {
     ulong max_cells = grid->getMaxDataCells();
 
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     cout << CLR_LINE;
@@ -1131,7 +1130,7 @@ void CRadiativeTransfer::calcAlignedRadii()
 
 void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
 {
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     ulong max_cells = grid->getMaxDataCells();
@@ -1170,7 +1169,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
 
 void CRadiativeTransfer::calcStochasticHeating()
 {
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Resize wavelength list for stochastic heating propabilities
@@ -1317,7 +1316,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            uint per_counter = 0;
+            ullong per_counter = 0;
             float last_percentage = 0;
 
             // Show information about the current detector
@@ -1528,7 +1527,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                     StokesVector S_em_ca(syn_ca.j_I, syn_ca.j_Q * cos_2ph, syn_ca.j_Q * sin_2ph, syn_ca.j_V);
 
                     // Initiating the kill counter
-                    uint kill_counter = 0;
+                    ullong kill_counter = 0;
 
                     // Initiating the fail-save
                     bool fail = false;
@@ -1868,7 +1867,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            uint per_counter = 0;
+            ullong per_counter = 0;
             float last_percentage = 0;
 
             // Show information about the current detector
@@ -2099,7 +2098,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
 
                     // Init number of steps
-                    uint kill_counter = 0;
+                    ullong kill_counter = 0;
 
                     // Make sub steps until cell is completely crossed
                     // If the error of a sub step is too high, make the step smaller
@@ -2419,7 +2418,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             uint per_max = tracer->getNpix();
 
             // Init counter and percentage to show progress
-            uint per_counter = 0;
+            ullong per_counter = 0;
             float last_percentage = 0;
 
             // Calculate pixel intensity for each pixel
@@ -2646,7 +2645,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                 {
                     // Init variables
                     double cell_d_l, velo_dir, cell_sum = 0;
-                    uint kill_counter = 0;
+                    ullong kill_counter = 0;
 
                     // Get direction and entry position of the current cell
                     Vector3D dir_map_xyz = pp->getDirection();

@@ -64,7 +64,7 @@ void CDustComponent::initDustProperties()
 void CDustComponent::initScatteringMatrixArray()
 {
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init maximum counter value
@@ -74,7 +74,7 @@ void CDustComponent::initScatteringMatrixArray()
     sca_mat = new double *****[nr_of_dust_species];
 
 #pragma omp parallel for
-    for(int a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Second init of the scattering matrix
         sca_mat[a] = new double ****[nr_of_wavelength];
@@ -772,7 +772,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     initScatteringMatrixArray();
 
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init error check
@@ -782,9 +782,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
 #pragma omp parallel for schedule(dynamic) collapse(2)
-    for(uint a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
-        for(uint w = 0; w < nr_of_wavelength; w++)
+        for(int w = 0; w < int(nr_of_wavelength); w++)
         {
             // Skip everything else if error was found
             if(error)
@@ -1048,7 +1048,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     }
 
     // Init counter and percentage to show progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
     float last_percentage = 0;
 
     // Init maximum counter value
@@ -1058,7 +1058,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     interp ***** sca_mat_wl = new interp ****[nr_of_dust_species];
 
 #pragma omp parallel for
-    for(int a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Second init of the scattering matrix interp
         sca_mat_wl[a] = new interp ***[nr_of_incident_angles];
@@ -1111,7 +1111,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     max_counter = nr_of_wavelength_dustcat * nr_of_dust_species;
 
 #pragma omp parallel for
-    for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
+    for(int w = 0; w < int(nr_of_wavelength_dustcat); w++)
     {
         if(error)
             continue;
@@ -1197,7 +1197,7 @@ bool CDustComponent::readScatteringMatrices(string path,
 
     // Fill values of the scattering matrix via interpolation
 #pragma omp parallel for
-    for(int a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         if(sizeIndexUsed(a))
         {
@@ -2322,10 +2322,10 @@ void CDustComponent::preCalcAbsorptionRates()
         tab_em_inv = new spline[nr_of_dust_species];
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
-    for(uint a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Resize tabulated absorption/emission rates spline
         tab_em[a].resize(nr_of_temperatures);
@@ -2391,10 +2391,10 @@ void CDustComponent::preCalcMieScatteringProb()
     double d_ang = PI / double(nr_of_scat_theta - 1);
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
-    for(uint a = 0; a < nr_of_dust_species; a++)
+    for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Init pointer arrays
         double * S11_tmp = new double[nr_of_scat_theta];
@@ -2476,11 +2476,11 @@ void CDustComponent::preCalcWaveProb()
     avg_planck_frac = new prob_list[nr_of_dust_species * nr_of_temperatures];
 
     // Init counter for progress
-    uint per_counter = 0;
+    ullong per_counter = 0;
 
 #pragma omp parallel for
     // Set each entry of avg_planck_frac with integrated value of pl_mean
-    for(uint t = 0; t < nr_of_temperatures; t++)
+    for(int t = 0; t < int(nr_of_temperatures); t++)
     {
         // Init array of mean absorption cross-section times dPlanck/dT for each
         // wavelength and grain size
@@ -2490,7 +2490,7 @@ void CDustComponent::preCalcWaveProb()
             pl_mean[a] = new double[WL_STEPS];
 
         // Get temperature from tab_temp spline
-        double temp = tab_temp.getValue(t);
+        double temp = tab_temp.getValue(uint(t));
 
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
