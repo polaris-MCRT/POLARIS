@@ -464,6 +464,23 @@ class GGTauDisk(Model):
                     self.disk_Ab2 = True
                     # Rotate Ab2 CS disk
                     self.inclination_Ab2 = 90. / 180. * np.pi
+                    # Adjust vertical cell number
+                    self.cylindrical_parameter['n_z'] = 300
+                    # Radial cell borders
+                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                  self.a_Aab + 8. * self.math.const['au'], 300)
+                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                        260. * self.math.const['au'], 50, 1.03)
+                    self.cylindrical_parameter['radius_list'] = np.hstack(
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+                    # Radial grid limits
+                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+                    self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
+                    # Number of phi cells
+                    n_ph_list_1 = [800] * 300
+                    n_ph_list_2 = [180] * 51
+                    self.cylindrical_parameter['n_ph'] = np.hstack(
+                        (n_ph_list_1, n_ph_list_2)).ravel()
                 else:
                     raise ValueError('Model keyword not known (--extra)!')
             elif len(extra_parameter) == 3:
@@ -590,7 +607,7 @@ class GGTauDisk(Model):
             float: Scale height.
         """
         if(radius <= self.a_Aab + self.outer_radius_Aa):
-            scale_height = 0.3 * self.math.const['au']
+            scale_height = 0.45 * self.math.const['au']  # 0.3
         else:
             scale_height = self.math.default_disk_scale_height(
                 radius, ref_radius=self.ref_radius, ref_scale_height=self.ref_scale_height, beta=self.beta)
