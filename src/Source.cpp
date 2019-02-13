@@ -628,7 +628,8 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
 bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
 {
     double * star_emi = new double[getNrOfWavelength()];
-    sidelength = grid->getMaxLength();
+    
+    sidelength = 2.0*grid->getMaxLength();
 
     cout << CLR_LINE << flush;
     cout << "-> Initiating interstellar radiation field          \r" << flush;

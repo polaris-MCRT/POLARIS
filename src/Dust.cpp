@@ -3567,10 +3567,10 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 du[w] = arr_en_dens;
 
                 // Radiative torque efficiency as a power-law
-                double Qr = 0.4 / pow(wavelength_list[w] / a_eff[a], 3);
+                double Qr = 0.4;
 
-                if(wavelength_list[w] < 2.0 * a_eff[a])
-                    Qr = 0.4;
+                if(wavelength_list[w] > 1.8 * a_eff[a])
+                    Qr = 0.4 / pow(wavelength_list[w] / (1.8*a_eff[a]), 3);
 
                 double cos_theta = abs(cos(theta));
 
