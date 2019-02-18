@@ -817,9 +817,9 @@ class CDustComponent
     {
         double * Cext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext1[a] = a_eff_1_5[a] * getQext1(a, w) / mass[a];
+            Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cext1;
         return res;
@@ -829,9 +829,9 @@ class CDustComponent
     {
         double * Cext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext2[a] = a_eff_1_5[a] * getQext2(a, w) / mass[a];
+            Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cext2;
         return res;
@@ -841,9 +841,9 @@ class CDustComponent
     {
         double * Cabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w) / mass[a];
+            Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cabs1;
         return res;
@@ -853,9 +853,9 @@ class CDustComponent
     {
         double * Cabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w) / mass[a];
+            Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Cabs2;
         return res;
@@ -865,9 +865,9 @@ class CDustComponent
     {
         double * Csca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca1[a] = a_eff_1_5[a] * getQsca1(a, w) / mass[a];
+            Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Csca1;
         return res;
@@ -877,9 +877,9 @@ class CDustComponent
     {
         double * Csca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca2[a] = a_eff_1_5[a] * getQsca2(a, w) / mass[a];
+            Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
         double res =
-            PI / getWeight() *
+            PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min_global, a_max_global);
         delete[] Csca2;
         return res;
@@ -2214,6 +2214,18 @@ class CDustMixture
             delete[] mixed_component;
     }
 
+    uint getMixtureID(CGridBasic * grid, cell_basic * cell)
+    {
+        uint dust_choice = grid->getDustChoiceID(cell);
+        return dust_choices_to_index[dust_choice];
+    }
+
+    uint getMixtureID(CGridBasic * grid, photon_package * pp)
+    {
+        uint dust_choice = grid->getDustChoiceID(pp);
+        return dust_choices_to_index[dust_choice];
+    }
+
     double getAvgMass(uint i_mixture)
     {
         return mixed_component[i_mixture].getAvgMass();
@@ -2289,7 +2301,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 mixed_component[i_mixture].calcTemperature(grid, cell, 0, use_energy_density);
             }
             else
@@ -2306,7 +2318,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 mixed_component[i_mixture].calcStochasticHeatingPropabilities(
                     grid, cell, 0, wavelength_list_full);
             }
@@ -2325,7 +2337,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 mixed_component[i_mixture].calcStochasticHeatingTemperatures(
                     grid, cell, 0, wavelength_list_full);
             }
@@ -2476,7 +2488,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 sum = mixed_component[i_mixture].getCextMean(grid, pp);
             }
             else
@@ -2494,7 +2506,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 sum = mixed_component[i_mixture].getCabsMean(grid, pp);
             }
             else
@@ -2512,7 +2524,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 sum = mixed_component[i_mixture].getCscaMean(grid, pp);
             }
             else
@@ -2540,7 +2552,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 mixed_component[i_mixture].calcAlignedRadii(grid, cell, 0);
             }
             else
@@ -2622,7 +2634,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 min_a = mixed_component[i_mixture].getSizeMin();
             }
             else
@@ -2711,7 +2723,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
             }
             else
@@ -2733,7 +2745,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                if(i_mixture == grid->getDustChoiceID(cell))
+                if(i_mixture == getMixtureID(grid, cell))
                     sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
             }
             else
@@ -2755,7 +2767,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 sum = mixed_component[i_mixture].getMassDensity(grid, cell);
             }
             else
@@ -2777,7 +2789,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                if(i_mixture == grid->getDustChoiceID(cell))
+                if(i_mixture == getMixtureID(grid, cell))
                     sum = mixed_component[i_mixture].getMassDensity(grid, cell);
             }
             else
@@ -2842,7 +2854,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 tmp_stokes = mixed_component[i_mixture].calcEmissivitiesHz(grid, pp, 0);
             }
             else
@@ -2863,7 +2875,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 pl_abs = mixed_component[i_mixture].calcEmissivities(grid, pp, 0);
             }
             else
@@ -2882,7 +2894,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 mixed_component[i_mixture].calcExtCrossSections(grid, pp, 0, Cext, Cpol, Ccirc);
                 double dens_dust = getNumberDensity(grid, pp);
                 Cext *= dens_dust;
@@ -2943,7 +2955,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 tmp_stokes = mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
@@ -2965,7 +2977,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(cell);
+                uint i_mixture = getMixtureID(grid, cell);
                 mixed_component[i_mixture].convertTempInQB(grid, cell, 0, min_gas_density, use_gas_temp);
             }
             else
@@ -2981,7 +2993,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 return i_mixture;
             }
             else
@@ -3006,7 +3018,7 @@ class CDustMixture
         {
             if(grid->useDustChoice())
             {
-                uint i_mixture = grid->getDustChoiceID(pp);
+                uint i_mixture = getMixtureID(grid, pp);
                 return i_mixture;
             }
             else

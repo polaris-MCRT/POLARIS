@@ -1484,11 +1484,11 @@ class CustomPlots:
                     'gg_tau_binary')
                 # Plot position of binary stars (with conversion from m to au)
                 radiation_source.tmp_parameter['position_star'][0] = np.divide(radiation_source.tmp_parameter['position_star'][0],
-                                                                             self.math.const['au'])
+                                                                               self.math.const['au'])
                 plot.plot_text(
                     radiation_source.tmp_parameter['position_star'][0], r'$+$')
                 radiation_source.tmp_parameter['position_star'][1] = np.divide(radiation_source.tmp_parameter['position_star'][1],
-                                                                             self.math.const['au'])
+                                                                               self.math.const['au'])
                 plot.plot_text(
                     radiation_source.tmp_parameter['position_star'][1], r'$+$')
                 # Save figure to pdf file or print it on screen
@@ -1626,9 +1626,11 @@ class CustomPlots:
     def plot_1006002(self):
         """Plot GG Tau A SED comparison
         """
-        from scipy.interpolate import interp1d   
-        data = np.genfromtxt(self.file_io.path['model'] + 'foreground_extinction.dat')
+        from scipy.interpolate import interp1d
+        data = np.genfromtxt(
+            self.file_io.path['model'] + 'foreground_extinction.dat')
         ext_cross_section = interp1d(data[:, 0] * 1e-6, data[:, 1])
+
         def reddening(wl, value, a_v):
             C_ext_wl = ext_cross_section(wl)
             A_wl = C_ext_wl / 8.743994626531222e-17 * a_v
@@ -1758,7 +1760,7 @@ class CustomPlots:
         detector_index = 101
         i_quantity = 4
         calc = True
-        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1789,8 +1791,12 @@ class CustomPlots:
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
             self.file_io.beam_size = 0.07
+            vmin = 1e-7
+            vmax = 1e-4
         elif observation == 'SPHERE':
             self.file_io.beam_size = 0.03
+            vmin = 3e-8
+            vmax = 1e-5
         # Take colorbar label from quantity id
         cbar_label = self.file_io.get_quantity_labels(i_quantity)
         # Define output pdf
@@ -1832,7 +1838,7 @@ class CustomPlots:
                         hdulist = fits.open(
                             '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
                         tbldata = cropND(
-                            hdulist[0].data.T, (500, 500), offset=[0, 30]) / 3e7
+                            hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
                     elif observation == 'SPHERE':
                         hdulist = fits.open(
                             '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
@@ -1841,15 +1847,17 @@ class CustomPlots:
                 else:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=3e-8, vmax=1e-5, cmap='magma')
+                                 norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
                                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
                 if calc:
                     # Get the image sidelength
-                    sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
-                    sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                    sidelength_x = 2. * \
+                        self.model.tmp_parameter['radius_x_arcsec']
+                    sidelength_y = 2. * \
+                        self.model.tmp_parameter['radius_y_arcsec']
                     # Get number of pixel per axis
                     nr_pixel_x = tbldata.shape[-2]
                     nr_pixel_y = tbldata.shape[-1]
@@ -1860,22 +1868,26 @@ class CustomPlots:
                         for i_y in range(nr_pixel_y):
                             pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
                                                                     [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
-                                            np.divide([sidelength_x, sidelength_y], 2.))
+                                              np.divide([sidelength_x, sidelength_y], 2.))
                             for i_pos, center_pos in enumerate(measurement_position_list):
                                 pos_r = np.linalg.norm(
                                     np.subtract(pos, center_pos))
                                 if pos_r < 0.15:
                                     flux_sum[i_plot, i_subplot,
-                                                i_pos] += tbldata[i_x, i_y] 
+                                             i_pos] += tbldata[i_x, i_y]
                                     count[i_pos] += 1
-                            pos_r = np.linalg.norm(np.subtract(pos, [-1.8, -1.8]))
+                            pos_r = np.linalg.norm(
+                                np.subtract(pos, [-1.8, -1.8]))
                             if pos_r < 0.15:
                                 obs_error.append(tbldata[i_x, i_y])
                     if i_subplot == 0:
                         flux = flux_sum[i_plot, i_subplot, :] / count
                         da = np.std(obs_error)
-                        uncertainty = np.sqrt((1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
+                        uncertainty = np.sqrt(
+                            (1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
                         print('obs. error:', uncertainty)
+                    if i_subplot == 2:
+                        print(flux_sum[0, i_subplot, :])
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
@@ -1900,10 +1912,12 @@ class CustomPlots:
                     if i_subplot > 1:
                         string = model_descr[i_subplot - 2 + i_plot * 4]
                         for i_x, x in enumerate(np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])):
-                            if abs(x - np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1 + i_x])) <= uncertainty[i_x]: 
-                                string += r' & {\color{new_green}\textbf{' + f'{x:1.2f}' + '}}'
+                            if abs(x - np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1 + i_x])) <= uncertainty[i_x]:
+                                string += r' & {\color{new_green}\textbf{' + \
+                                    f'{x:1.2f}' + '}}'
                             else:
-                                string += r' & {\color{red}' + f'{x:1.2f}' + '}'
+                                string += r' & {\color{red}' + \
+                                    f'{x:1.2f}' + '}'
                         print(string, r'\\')
             print(r'\hline')
             if observation == 'SCUBA':
@@ -1911,7 +1925,8 @@ class CustomPlots:
             elif observation == 'SPHERE':
                 string = 'Observation (SPHERE/IRDIS)'
             for i_x, x in enumerate(np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1:])):
-                string += ' & $' + f'{x:1.2f}' + '\pm' + f'{uncertainty[i_x]:1.2f}' + '$'
+                string += ' & $' + f'{x:1.2f}' + '\pm' + \
+                    f'{uncertainty[i_x]:1.2f}' + '$'
             print(string, r'\\')
             print(r'\end{tabular}')
 
@@ -2032,7 +2047,6 @@ class CustomPlots:
                     f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
         print(r'\end{tabular}')
 
-
     def plot_1006005(self):
         """Plot GG Tau A emission maps for different inclination axis.
         """
@@ -2126,5 +2140,246 @@ class CustomPlots:
                     ylabel=cbar_label, limits=[position[0], position[-1], None, None])
         # Plot cut/radial profile
         plot.plot_line(position, data, log='y')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1006007(self):
+        """Plot GG Tau A observation and one configuration
+        """
+        def cropND(img, bounding, offset=[0, 0]):
+            import operator
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
+            end = tuple(map(operator.add, start, bounding))
+            slices = tuple(map(slice, start, end))
+            return img[slices]
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 101
+        i_quantity = 4
+        i_subplot = 8
+        vmin = 1e-7
+        vmax = 1e-4
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default',
+            'vertical_Ab2'
+        ]
+        model_descr = [
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars',
+            'Vertical disk around Ab2'
+        ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, -1.60],
+            [0, 0.85],
+            [-0.57, -0.975],
+            #[1.17, -0.42],
+        ]
+        # Set beam size (in arcsec)
+        if observation == 'SCUBA':
+            self.file_io.beam_size = 0.07
+        elif observation == 'SPHERE':
+            self.file_io.beam_size = 0.03
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'PI_emission_map_comparison_with_circles', path=self.file_io.path['model'])
+        # Sum up the flux inside the circle
+        flux_sum = np.zeros(len(measurement_position_list))
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', model_list[i_subplot], 'dust')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                    nr_x_images=2, nr_y_images=1, size_x=6 / 1.4298620007401583)
+        # Take data for current quantity
+        tbldata = plot_data[i_quantity, 0, :, :]
+        # plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        # Load radiation source to get position of the binary stars
+        from modules.source import SourceChooser
+        radiation_source_chooser = SourceChooser(
+            self.model, self.file_io, self.parse_args)
+        radiation_source = radiation_source_chooser.get_module_from_name(
+            'gg_tau_stars')
+        # Plot position of binary stars (with conversion from m to au)
+        star_descr = ['Aa', 'Ab1', 'Ab2']
+        for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
+            if i_star == 0:
+                offset = np.array([-35, -10]) * 1.3
+            elif i_star == 1:
+                offset = np.array([-24, 10]) * 1.3
+            elif i_star == 2:
+                offset = np.array([44, -12]) * 1.2
+            pos_arcsec = np.add(
+                np.divide(position[0:2], self.math.const['au']), offset) / 140.
+            plot.plot_text(pos_arcsec,
+                           text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
+        for i_pos, center_pos in enumerate(measurement_position_list):
+            plot.plot_text(text_pos=center_pos,text=str(i_pos + 1), ax_index=1, color='black', fontsize=10,bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+        # Plot map description
+        plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,text=r'$\text{' + 
+            model_descr[i_subplot] + r'}$',horizontalalignment='left', verticalalignment='top', 
+            ax_index=1, color='white')
+        # Get the image sidelength
+        sidelength_x = 2. * \
+            self.model.tmp_parameter['radius_x_arcsec']
+        sidelength_y = 2. * \
+            self.model.tmp_parameter['radius_y_arcsec']
+        # Get number of pixel per axis
+        nr_pixel_x = tbldata.shape[-2]
+        nr_pixel_y = tbldata.shape[-1]
+        # Find the considered pixel
+        count = np.zeros(len(measurement_position_list))
+        obs_error = []
+        for i_x in range(nr_pixel_x):
+            for i_y in range(nr_pixel_y):
+                pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                        [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                  np.divide([sidelength_x, sidelength_y], 2.))
+                for i_pos, center_pos in enumerate(measurement_position_list):
+                    pos_r = np.linalg.norm(
+                        np.subtract(pos, center_pos))
+                    if pos_r < 0.15:
+                        flux_sum[i_pos] += tbldata[i_x, i_y]
+        print(flux_sum[:])
+        print(r'\begin{tabular}{lccccc}')
+        print(
+            r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ \\')
+        print(r'\hline')
+        string = model_descr[i_subplot]
+        for i_x, x in enumerate(np.divide(flux_sum[0], flux_sum[1:])):
+            string += r' & {\color{red}' + f'{x:1.2f}' + '}'
+            print(string, r'\\')
+        print(r'\hline')
+        # Observation
+        if observation == 'SCUBA':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
+        elif observation == 'SPHERE':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
+        # plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        for i_pos, center_pos in enumerate(measurement_position_list):
+            plot.plot_text(text_pos=center_pos,text=str(i_pos + 1), ax_index=0, color='black', fontsize=10,bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_3001001(self):
+        """Plot GG Tau A observation and one configuration
+        """
+        def cropND(img, bounding, offset=[0, 0]):
+            import operator
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
+            end = tuple(map(operator.add, start, bounding))
+            slices = tuple(map(slice, start, end))
+            return img[slices]
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 101
+        i_quantity = 4
+        i_subplot = 4
+        vmin = 1e-7
+        vmax = 1e-4
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default',
+            'vertical_Ab2',
+        ]
+        # Set beam size (in arcsec)
+        if observation == 'SCUBA':
+            self.file_io.beam_size = 0.07
+        elif observation == 'SPHERE':
+            self.file_io.beam_size = 0.03
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'PI_emission_map_comparison', path=self.file_io.path['model'])
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', model_list[i_subplot], 'dust')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                    nr_x_images=2, nr_y_images=1)
+        # Take data for current quantity
+        tbldata = plot_data[i_quantity, 0, :, :]
+        # plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        # Load radiation source to get position of the binary stars
+        from modules.source import SourceChooser
+        radiation_source_chooser = SourceChooser(
+            self.model, self.file_io, self.parse_args)
+        radiation_source = radiation_source_chooser.get_module_from_name(
+            'gg_tau_stars')
+        # Plot position of binary stars (with conversion from m to au)
+        star_descr = ['Aa', 'Ab1', 'Ab2']
+        for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
+            if i_star == 0:
+                offset = np.array([-35, -10]) * 1.3
+            elif i_star == 1:
+                offset = np.array([-22, 10]) * 1.3
+            elif i_star == 2:
+                offset = np.array([40, -12]) * 1.2
+            pos_arcsec = np.add(
+                np.divide(position[0:2], self.math.const['au']), offset) / 140.
+            plot.plot_text(pos_arcsec,
+                           text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
+        # Observation
+        if observation == 'SCUBA':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
+        elif observation == 'SPHERE':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
+        # plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)

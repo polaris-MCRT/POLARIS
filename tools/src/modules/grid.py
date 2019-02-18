@@ -46,7 +46,7 @@ class Grid:
 
         # Number of gas density distributions
         if self.model.parameter['gas_mass'] is not None:
-            if isinstance(self.model.parameter['gas_mass'], float):
+            if isinstance(self.model.parameter['gas_mass'], (float, int)):
                 self.nr_gas_densities = 1
             else:
                 self.nr_gas_densities = len(self.model.parameter['gas_mass'])
@@ -54,7 +54,7 @@ class Grid:
             self.nr_gas_densities = 0
         # Number of dust density distributions
         if self.model.parameter['dust_mass'] is not None:
-            if isinstance(self.model.parameter['dust_mass'], float):
+            if isinstance(self.model.parameter['dust_mass'], (float, int)):
                 self.nr_dust_densities = 1
             else:
                 self.nr_dust_densities = len(self.model.parameter['dust_mass'])
@@ -78,11 +78,11 @@ class Grid:
                 self.data_length += 1
         else:
             if self.nr_gas_densities != 1 or self.nr_dust_densities > 1:
-                raise ValueError('Too many density distributions defined, but variable dust not activated!')
+                raise ValueError(
+                    'Too many density distributions defined, but variable dust not activated!')
         if parse_args.variable_size_limits or self.model.parameter['variable_size_limits']:
             self.dust_limits_used = True
             self.data_length += 2
-
 
     def update_mass_measurement(self, node, remove=False):
         """Updates the total mass for normalization and allows the definition
@@ -92,8 +92,10 @@ class Grid:
             node: A grid cell.
             remove (bool): Remove the density instead of adding?
         """
-        gas_mass = np.multiply(node.parameter['gas_density'], node.parameter['volume'])
-        dust_mass = np.multiply(node.parameter['dust_density'], node.parameter['volume'])
+        gas_mass = np.multiply(
+            node.parameter['gas_density'], node.parameter['volume'])
+        dust_mass = np.multiply(
+            node.parameter['dust_density'], node.parameter['volume'])
         if remove:
             gas_mass *= -1
             dust_mass *= -1
@@ -112,37 +114,40 @@ class Grid:
         """Check if get_density functions provide fitting arrays.
         """
         # Set the position to an arbitrary value to check get_density functions
-        self.data.position = [0,0,0]
+        self.data.position = [0, 0, 0]
         self.data.volume = 0.
 
         # Check for errors
         try:
             if self.nr_gas_densities == 1:
-                if not isinstance(self.data.get_gas_density_distribution(), float):
+                if not isinstance(self.data.get_gas_density_distribution(), (float, int)):
                     if len(self.data.get_gas_density_distribution()[0]) != \
                             len(self.model.parameter['gas_mass'][0]):
                         raise ValueError("gas_density_distribution does not provied the same array than "
-                            "defined in self.parameter['gas_mass']")
+                                         "defined in self.parameter['gas_mass']")
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
                             len(self.model.parameter['gas_mass'][i_gas_dens]):
                         raise ValueError("gas_density_distribution does not provied the same array than "
-                            "defined in self.parameter['gas_mass']")
+                                         "defined in self.parameter['gas_mass']")
         except:
-            raise ValueError("the gas_density function and the defined gas_mass do not fit!")
+            raise ValueError(
+                "the gas_density function and the defined gas_mass do not fit!")
         try:
             if self.nr_dust_densities == 1:
-                if not isinstance(self.data.get_dust_density_distribution(), float):
-                    raise ValueError("get_dust_density_distribution provides not float!")
+                if not isinstance(self.data.get_dust_density_distribution(), (float, int)):
+                    raise ValueError(
+                        "get_dust_density_distribution provides not float!")
             elif self.nr_dust_densities > 1:
                 for i_dust_dens in range(self.nr_dust_densities):
                     if len(self.data.get_dust_density_distribution()[i_dust_dens]) != \
                             len(self.model.parameter['dust_mass'][i_dust_dens]):
                         raise ValueError("dust_density_distribution does not provied the same array than "
-                            "defined in self.parameter['dust_mass']")
+                                         "defined in self.parameter['dust_mass']")
         except:
-            raise ValueError("the dust_density function and the defined dust_mass do not fit!")
+            raise ValueError(
+                "the dust_density function and the defined dust_mass do not fit!")
 
     def write_header(self, grid_file, grid_type='', root=None):
         """Writes general header to binary file.
@@ -229,11 +234,13 @@ class Grid:
             grid_file.write(struct.pack('H', 15))
         if grid_type == 'octree':
             if root is not None:
-                grid_file.write(struct.pack('d', self.model.octree_parameter['sidelength']))
+                grid_file.write(struct.pack(
+                    'd', self.model.octree_parameter['sidelength']))
                 grid_file.write(struct.pack('H', root.parameter['is_leaf']))
                 grid_file.write(struct.pack('H', root.parameter['level']))
             else:
-                raise ValueError('root node has to be defined for writing the grid header!')
+                raise ValueError(
+                    'root node has to be defined for writing the grid header!')
 
     def write_node_data(self, grid_file, node, data_type='f', cell_IDs=None, rewrite=False):
         """Write data of each node.
@@ -253,7 +260,8 @@ class Grid:
         elif data_type is 'd':
             data_type_length = 8
         else:
-            raise ValueError('Do not understand the data type ' + data_type + ' in grid.py!')
+            raise ValueError(
+                'Do not understand the data type ' + data_type + ' in grid.py!')
 
         if rewrite:
             grid_file.seek(-(self.data_length * data_type_length), 1)
@@ -271,16 +279,20 @@ class Grid:
         a_max = self.data.get_dust_max_size()
         # Write gas density to grid for each defined distribution
         for i_gas_dens in range(self.nr_gas_densities):
-            if isinstance(node.parameter['gas_density'], float):
-                grid_file.write(struct.pack(data_type, node.parameter['gas_density']))
+            if isinstance(node.parameter['gas_density'], (float, int)):
+                grid_file.write(struct.pack(
+                    data_type, node.parameter['gas_density']))
             else:
-                grid_file.write(struct.pack(data_type, np.sum(node.parameter['gas_density'][i_gas_dens])))
+                grid_file.write(struct.pack(data_type, np.sum(
+                    node.parameter['gas_density'][i_gas_dens])))
         # Write dust density to grid for each defined distribution
         for i_dust_dens in range(self.nr_dust_densities):
-            if isinstance(node.parameter['dust_density'], float):
-                grid_file.write(struct.pack(data_type, node.parameter['dust_density']))
+            if isinstance(node.parameter['dust_density'], (float, int)):
+                grid_file.write(struct.pack(
+                    data_type, node.parameter['dust_density']))
             else:
-                grid_file.write(struct.pack(data_type, np.sum(node.parameter['dust_density'][i_dust_dens])))
+                grid_file.write(struct.pack(data_type, np.sum(
+                    node.parameter['dust_density'][i_dust_dens])))
         grid_file.write(struct.pack(data_type, dust_temperature))
         grid_file.write(struct.pack(data_type, gas_temperature))
         grid_file.write(struct.pack(data_type, mag_field[0]))
@@ -310,22 +322,25 @@ class Grid:
         elif data_type is 'd':
             data_type_length = 8
         else:
-            raise ValueError('Do not understand the data type ' + data_type + ' in grid.py!')
+            raise ValueError(
+                'Do not understand the data type ' + data_type + ' in grid.py!')
 
         # Calculate normalized density
         for i_gas_dens in range(self.nr_gas_densities):
             gas_density = tmp_file.read(data_type_length)
             normed_gas_density = 0.
-            if isinstance(np.sum(self.total_gas_mass), float) and np.sum(self.total_gas_mass) > 0.:
+            if isinstance(np.sum(self.total_gas_mass), (float, int)) and np.sum(self.total_gas_mass) > 0.:
                 normed_gas_density = struct.unpack(data_type, gas_density)[0] * \
-                    (np.sum(self.model.parameter['gas_mass']) / np.sum(self.total_gas_mass))
+                    (np.sum(
+                        self.model.parameter['gas_mass']) / np.sum(self.total_gas_mass))
             grid_file.write(struct.pack(data_type, normed_gas_density))
         for i_dust_dens in range(self.nr_dust_densities):
             dust_density = tmp_file.read(data_type_length)
             normed_dust_density = 0.
-            if isinstance(np.sum(self.total_dust_mass), float) and np.sum(self.total_dust_mass) > 0.:
+            if isinstance(np.sum(self.total_dust_mass), (float, int)) and np.sum(self.total_dust_mass) > 0.:
                 normed_dust_density = struct.unpack(data_type, dust_density)[0] * \
-                    (np.sum(self.model.parameter['dust_mass']) / np.sum(self.total_dust_mass))
+                    (np.sum(
+                        self.model.parameter['dust_mass']) / np.sum(self.total_dust_mass))
             grid_file.write(struct.pack(data_type, normed_dust_density))
         for i in range(self.data_length - self.nr_gas_densities - self.nr_dust_densities):
             grid_file.write(tmp_file.read(data_type_length))
@@ -393,7 +408,8 @@ class Grid:
                 tmp_file.write(byte)
                 byte = grid_file.read(1)
         else:
-            raise ValueError('Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
+            raise ValueError(
+                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
 
     def set_quantiy_in_grid(self, grid_file, tmp_file, quantity_id, quantity_value):
         """Set the value of the desired quantity to value in each cell of the grid.
@@ -415,7 +431,8 @@ class Grid:
             tmp_quantity_id = grid_file.read(2)
             if struct.unpack('H', tmp_quantity_id)[0] == quantity_id:
                 if pos is not None:
-                    raise ValueError('Desired quantity is set in grid multiple times!')
+                    raise ValueError(
+                        'Desired quantity is set in grid multiple times!')
                 pos = i
                 found = True
                 print('HINT: Quantity found in grid!')
@@ -425,9 +442,9 @@ class Grid:
             data_length += 1
             id_list.append(struct.pack('H', quantity_id))
 
-        tmp_file.write(struct.pack('H', data_length))   
+        tmp_file.write(struct.pack('H', data_length))
         for i in range(data_length):
-            tmp_file.write(id_list[i])         
+            tmp_file.write(id_list[i])
         if struct.unpack('H', grid_id)[0] == 20:
             tmp_file.write(grid_file.read(8))
             tmp_file.write(grid_file.read(2))
@@ -500,13 +517,14 @@ class Grid:
                     tmp_file.write(grid_file.read(8))
             data_type = 'd'
         else:
-            raise ValueError('Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
+            raise ValueError(
+                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
 
         if data_type is 'f':
             data_type_length = 4
         elif data_type is 'd':
             data_type_length = 8
-        
+
         is_leaf = grid_file.read(2)
         while is_leaf != b'':
             tmp_file.write(is_leaf)
@@ -521,7 +539,7 @@ class Grid:
                     else:
                         tmp_file.write(grid_file.read(data_type_length))
             is_leaf = grid_file.read(2)
-        
+
 
 class OcTree(Grid):
     """This class creates OcTree grids based on the models defined in model.py.
@@ -589,11 +607,12 @@ class OcTree(Grid):
             tmp_node = tmp_node.parent
         percentage_count = 0
         if tmp_node.parameter['level'] is 2:
-            percentage_count = tmp_node.parameter['index'] + tmp_node.parent.parameter['index'] * 8
+            percentage_count = tmp_node.parameter['index'] + \
+                tmp_node.parent.parameter['index'] * 8
         elif tmp_node.parameter['level'] is 1:
             percentage_count = tmp_node.parameter['index'] * 8
         stdout.write('--- Generate cartesian grid: ' +
-            str(int(100 * percentage_count / (8 * 8 - 1))) + ' %      \r')
+                     str(int(100 * percentage_count / (8 * 8 - 1))) + ' %      \r')
         stdout.flush()
         if node.parameter['level'] < max_tree_level and not self.model.ignore_cell(node):
             # Add 8 children to node
@@ -616,11 +635,13 @@ class OcTree(Grid):
                         # delete the children and use the parent node only.
                         for j_leaf in range(8):
                             # Subtract the children mass from total mass
-                            self.remove_node_from_grid(grid_file=grid_file, node=node.children[j_leaf])
+                            self.remove_node_from_grid(
+                                grid_file=grid_file, node=node.children[j_leaf])
                         # Parent node is now a leaf
                         node.parameter['is_leaf'] = True
                         # Rewrite the header of the parent node
-                        self.write_node_header(grid_file=grid_file, node=node, rewrite=True)
+                        self.write_node_header(
+                            grid_file=grid_file, node=node, rewrite=True)
                         # Write data of the parent node
                         self.write_node_data(grid_file=grid_file, node=node)
                         # Add the mass of the parent node to the total mass
@@ -629,7 +650,8 @@ class OcTree(Grid):
             # Initialize and write a leaf node including data
             node.parameter['is_leaf'] = True
             # Rewrite the node header to include is_leaf = True
-            self.write_node_header(grid_file=grid_file, node=node, rewrite=True)
+            self.write_node_header(grid_file=grid_file,
+                                   node=node, rewrite=True)
             # Write data of the node
             self.write_node_data(grid_file=grid_file, node=node)
             # Add the mass of the node to the total mass
@@ -656,15 +678,19 @@ class OcTree(Grid):
             # Calculate the position of the children nodes
             position = [0., 0., 0.]
             if i_leaf == 0:
-                position = np.add(node.parameter['position'], [-d_x, -d_y, -d_z])
+                position = np.add(
+                    node.parameter['position'], [-d_x, -d_y, -d_z])
             elif i_leaf == 1:
-                position = np.add(node.parameter['position'], [d_x, -d_y, -d_z])
+                position = np.add(
+                    node.parameter['position'], [d_x, -d_y, -d_z])
             elif i_leaf == 2:
-                position = np.add(node.parameter['position'], [-d_x, d_y, -d_z])
+                position = np.add(
+                    node.parameter['position'], [-d_x, d_y, -d_z])
             elif i_leaf == 3:
                 position = np.add(node.parameter['position'], [d_x, d_y, -d_z])
             elif i_leaf == 4:
-                position = np.add(node.parameter['position'], [-d_x, -d_y, d_z])
+                position = np.add(
+                    node.parameter['position'], [-d_x, -d_y, d_z])
             elif i_leaf == 5:
                 position = np.add(node.parameter['position'], [d_x, -d_y, d_z])
             elif i_leaf == 6:
@@ -719,7 +745,8 @@ class OcTree(Grid):
         Returns:
             Volume of the node
         """
-        volume = (node.parameter['sidelength'] * node.parameter['sidelength'] * node.parameter['sidelength'])
+        volume = (node.parameter['sidelength'] *
+                  node.parameter['sidelength'] * node.parameter['sidelength'])
         return volume
 
     def grid_refinement(self, node):
@@ -736,7 +763,7 @@ class OcTree(Grid):
         # Set density of parent node for refinement calculation
         self.model.init_position(node)
         node.parameter['gas_density'] = self.model.get_gas_density_distribution()
-        if isinstance(node.parameter['gas_density'], float):
+        if isinstance(node.parameter['gas_density'], (float, int)):
             if np.sum(node.parameter['gas_density']) > 0:
                 return 9999
         else:
@@ -775,7 +802,8 @@ class OcTree(Grid):
             children_mag = self.model.get_magnetic_field()
             for i in range(3):
                 if abs(parent_mag[i] + children_mag[i]) > 0:
-                    diff = abs(parent_mag[i] - children_mag[i]) / abs(parent_mag[i] + children_mag[i])
+                    diff = abs(parent_mag[i] - children_mag[i]) / \
+                        abs(parent_mag[i] + children_mag[i])
                     difference = max(difference, diff)
         return difference
 
@@ -796,7 +824,8 @@ class OcTree(Grid):
             self.model.init_position(node.children[i_leaf])
             children_t_gas = self.model.get_gas_temperature()
             if abs(parent_t_gas + children_t_gas) > 0:
-                diff = 10 * abs(parent_t_gas - children_t_gas) / abs(parent_t_gas + children_t_gas)
+                diff = 10 * abs(parent_t_gas - children_t_gas) / \
+                    abs(parent_t_gas + children_t_gas)
                 difference = max(difference, diff)
         return difference
 
@@ -810,12 +839,14 @@ class OcTree(Grid):
         """
         self.read_write_header(tmp_file=tmp_file, grid_file=grid_file)
         while True:
-            is_leaf = self.read_write_node_header(tmp_file=tmp_file, grid_file=grid_file)
+            is_leaf = self.read_write_node_header(
+                tmp_file=tmp_file, grid_file=grid_file)
             if len(is_leaf) == 0:
                 break
             is_leaf = struct.unpack('H', is_leaf)[0]
             if is_leaf:
-                self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file)
+                self.read_write_node_data(
+                    tmp_file=tmp_file, grid_file=grid_file)
 
     def read_write_header(self, tmp_file, grid_file):
         """Read and write octree header from binary file.
@@ -903,20 +934,23 @@ class Spherical(Grid):
         if sp_param['sf_r'] == 0:
             if sp_param['radius_list'][0] != sp_param['inner_radius'] or \
                     sp_param['radius_list'][-1] != sp_param['outer_radius']:
-                raise ValueError('radius_list does not agree with the inner and outer grid borders!')
+                raise ValueError(
+                    'radius_list does not agree with the inner and outer grid borders!')
             radius_list = sp_param['radius_list']
             sp_param['n_r'] = len(radius_list) - 1
         elif sp_param['sf_r'] == 1:
-            radius_list = self.math.sin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
+            radius_list = self.math.sin_list(
+                sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
         elif sp_param['sf_r'] > 1:
             radius_list = self.math.exp_list(sp_param['inner_radius'],
-                sp_param['outer_radius'], sp_param['n_r'], sp_param['sf_r'])
+                                             sp_param['outer_radius'], sp_param['n_r'], sp_param['sf_r'])
         else:
-            radius_list = self.math.lin_list(sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
+            radius_list = self.math.lin_list(
+                sp_param['inner_radius'], sp_param['outer_radius'], sp_param['n_r'])
 
         if sp_param['split_first_cell'] > 1 and sp_param['sf_r'] != 0:
-            sp_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
-                sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            sp_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1],
+                                                             sp_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = sp_param['radius_list']
             sp_param['sf_r'] = 0
             sp_param['n_r'] = len(radius_list) - 1
@@ -934,11 +968,14 @@ class Spherical(Grid):
             theta_list = sp_param['theta_list']
             sp_param['n_th'] = len(theta_list) - 1
         elif sp_param['sf_th'] == 1:
-            theta_list = self.math.sin_list(-np.pi / 2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.sin_list(-np.pi /
+                                            2., np.pi / 2., sp_param['n_th'])
         elif sp_param['sf_th'] > 1:
-            theta_list = self.math.exp_list_sym(-np.pi / 2., np.pi / 2., sp_param['n_th'], sp_param['sf_th'])
+            theta_list = self.math.exp_list_sym(-np.pi / 2.,
+                                                np.pi / 2., sp_param['n_th'], sp_param['sf_th'])
         else:
-            theta_list = self.math.lin_list(-np.pi / 2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.lin_list(-np.pi /
+                                            2., np.pi / 2., sp_param['n_th'])
 
         grid_file.write(struct.pack('d', sp_param['inner_radius']))
         grid_file.write(struct.pack('d', sp_param['outer_radius']))
@@ -974,15 +1011,19 @@ class Spherical(Grid):
             for i_p in range(sp_param['n_ph']):
                 for i_t in range(sp_param['n_th']):
                     stdout.write('--- Generate spherical grid: ' +
-                        str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
+                                 str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)
-                    spherical_coord[0] = (radius_list[i_r] + radius_list[i_r + 1]) / 2.
-                    spherical_coord[1] = (theta_list[i_t] + theta_list[i_t + 1]) / 2.
-                    spherical_coord[2] = (phi_list[i_p] + phi_list[i_p + 1]) / 2.
+                    spherical_coord[0] = (
+                        radius_list[i_r] + radius_list[i_r + 1]) / 2.
+                    spherical_coord[1] = (
+                        theta_list[i_t] + theta_list[i_t + 1]) / 2.
+                    spherical_coord[2] = (
+                        phi_list[i_p] + phi_list[i_p + 1]) / 2.
                     # Convert the spherical coordinate into carthesian node position
-                    position = self.math.spherical_to_carthesian(spherical_coord)
+                    position = self.math.spherical_to_carthesian(
+                        spherical_coord)
                     node = Node('spherical')
                     node.parameter['position'] = position
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
@@ -990,7 +1031,7 @@ class Spherical(Grid):
                                                 phi_list[i_p], phi_list[i_p + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
                     self.write_node_data(grid_file=grid_file, node=node, data_type='d',
-                        cell_IDs=[i_r, i_t, i_p])
+                                         cell_IDs=[i_r, i_t, i_p])
                     self.update_mass_measurement(node=node)
                     del node
                     i_node += 1
@@ -1001,7 +1042,7 @@ class Spherical(Grid):
                                     0, 2. * np.pi]
         node.parameter['volume'] = self.get_volume(node=node)
         self.write_node_data(grid_file=grid_file, node=node, data_type='d',
-            cell_IDs=[-1, -1, -1])
+                             cell_IDs=[-1, -1, -1])
         self.update_mass_measurement(node=node)
 
     @staticmethod
@@ -1016,7 +1057,8 @@ class Spherical(Grid):
         """
         volume = (node.parameter['extent'][1] ** 3 - node.parameter['extent'][0] ** 3) * \
                  (np.sin(node.parameter['extent'][3]) - np.sin(node.parameter['extent'][2])) * \
-                 (node.parameter['extent'][5] - node.parameter['extent'][4]) / 3.
+                 (node.parameter['extent'][5] -
+                  node.parameter['extent'][4]) / 3.
         return volume
 
     def normalize_density(self, tmp_file, grid_file):
@@ -1034,8 +1076,10 @@ class Spherical(Grid):
         for i_r in range(sp_param['n_r']):
             for i_t in range(sp_param['n_th']):
                 for i_p in range(sp_param['n_ph']):
-                    self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
-        self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
+                    self.read_write_node_data(
+                        tmp_file=tmp_file, grid_file=grid_file, data_type='d')
+        self.read_write_node_data(
+            tmp_file=tmp_file, grid_file=grid_file, data_type='d')
 
     def read_write_header(self, tmp_file, grid_file):
         """Read and write spherical header from binary file.
@@ -1090,10 +1134,13 @@ class Spherical(Grid):
 
         if code_name == 'mcfost':
             if sp_param['n_ph'] == 1:
-                tbldata = np.zeros((int(sp_param['n_th'] / 2), sp_param['n_r']))
+                tbldata = np.zeros(
+                    (int(sp_param['n_th'] / 2), sp_param['n_r']))
             else:
-                tbldata = np.zeros((sp_param['n_ph'], int(sp_param['n_th'] / 2), sp_param['n_r']))
-            tmp_file.read(2 + 2 + 2 * self.data_length + 8 + 8 + 2 + 2 + 2 + 8 + 8)
+                tbldata = np.zeros((sp_param['n_ph'], int(
+                    sp_param['n_th'] / 2), sp_param['n_r']))
+            tmp_file.read(2 + 2 + 2 * self.data_length +
+                          8 + 8 + 2 + 2 + 2 + 8 + 8)
             for i_r in range(sp_param['n_r']):
                 for i_p in range(sp_param['n_ph']):
                     for i_t in range(sp_param['n_th']):
@@ -1101,7 +1148,8 @@ class Spherical(Grid):
                         if np.sum(self.total_gas_mass) > 0. and i_t >= int(sp_param['n_th'] / 2.0):
                             i_t_tmp = i_t - int(sp_param['n_th'] / 2.0)
                             data = struct.unpack('d', density)[0] * \
-                                (self.model.parameter['gas_mass'] / np.sum(self.total_gas_mass))
+                                (self.model.parameter['gas_mass'] /
+                                 np.sum(self.total_gas_mass))
                             if sp_param['n_ph'] == 1:
                                 tbldata[i_t_tmp, i_r] = data
                             else:
@@ -1110,7 +1158,8 @@ class Spherical(Grid):
                             tmp_file.read(8)
             hdu = fits.PrimaryHDU(tbldata)
             hdulist = fits.HDUList([hdu])
-            hdulist.writeto(self.file_io.path['model'] + code_name + '_grid.fits', overwrite=True)
+            hdulist.writeto(
+                self.file_io.path['model'] + code_name + '_grid.fits', overwrite=True)
 
 
 class Cylindrical(Grid):
@@ -1165,21 +1214,24 @@ class Cylindrical(Grid):
         if cy_param['sf_r'] == 0:
             if cy_param['radius_list'][0] != cy_param['inner_radius'] or \
                     cy_param['radius_list'][-1] != cy_param['outer_radius']:
-                raise ValueError('radius_list does not agree with the inner and outer grid borders!')
+                raise ValueError(
+                    'radius_list does not agree with the inner and outer grid borders!')
             radius_list = cy_param['radius_list']
             cy_param['n_r'] = len(radius_list) - 1
         elif cy_param['sf_r'] == 1:
-            radius_list = self.math.sin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
+            radius_list = self.math.sin_list(
+                cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
         elif cy_param['sf_r'] > 1:
             radius_list = self.math.exp_list(cy_param['inner_radius'],
-                cy_param['outer_radius'], cy_param['n_r'], cy_param['sf_r'])
+                                             cy_param['outer_radius'], cy_param['n_r'], cy_param['sf_r'])
         else:
-            radius_list = self.math.lin_list(cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
+            radius_list = self.math.lin_list(
+                cy_param['inner_radius'], cy_param['outer_radius'], cy_param['n_r'])
 
         # Add refinement to innermost cell
         if cy_param['split_first_cell'] > 1 and cy_param['sf_r'] != 0:
-            cy_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1], 
-                cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
+            cy_param['radius_list'] = np.hstack((np.linspace(radius_list[0], radius_list[1],
+                                                             cy_param['split_first_cell'] + 1), radius_list[2:])).ravel()
             radius_list = cy_param['radius_list']
             cy_param['sf_r'] = 0
             cy_param['n_r'] = len(radius_list) - 1
@@ -1195,38 +1247,46 @@ class Cylindrical(Grid):
                 if cy_param['phi_list'][0] != 0 or \
                         cy_param['phi_list'][-1] != 2. * np.pi:
                     raise ValueError('phi_list does not fullfil a full cicle!')
-                phi_list = np.array([cy_param['phi_list'] for i_r in range(cy_param['n_ph'][0])])
+                phi_list = np.array([cy_param['phi_list']
+                                     for i_r in range(cy_param['n_ph'][0])])
                 cy_param['n_ph'][0] = len(phi_list) - 1
             else:
-                raise ValueError('Cell distriution in phi-direction not understood!')
+                raise ValueError(
+                    'Cell distriution in phi-direction not understood!')
         elif cy_param['sf_ph'] == -1:
-            phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph) for n_ph in cy_param['n_ph']]
+            phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph)
+                        for n_ph in cy_param['n_ph']]
         else:
             phi_list = np.array([self.math.lin_list(0., 2. * np.pi, cy_param['n_ph'][0])
-                for i_r in range(cy_param['n_r'])])
+                                 for i_r in range(cy_param['n_r'])])
 
         #: Array of z values
         if cy_param['sf_z'] == 0:
             if len(cy_param['z_list']) > 0:
                 if cy_param['z_list'][0] != -cy_param['z_max'] or \
                         cy_param['z_list'][-1] != cy_param['z_max']:
-                    raise ValueError('z_list does not agree with the inner and outer grid borders!')
-                z_list = np.array([cy_param['z_list'] for i_r in range(cy_param['n_r'])])
+                    raise ValueError(
+                        'z_list does not agree with the inner and outer grid borders!')
+                z_list = np.array([cy_param['z_list']
+                                   for i_r in range(cy_param['n_r'])])
                 cy_param['n_z'] = len(z_list) - 1
             else:
-                raise ValueError('Cell distribution in z-direction not understood!')
-        elif  cy_param['sf_z'] == -1:
-            z_max_tmp = [self.model.get_dz(radius_list[i_r]) * cy_param['n_z'] / 2. for i_r in range(cy_param['n_r'])]
-            z_list = np.array([self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
+                raise ValueError(
+                    'Cell distribution in z-direction not understood!')
+        elif cy_param['sf_z'] == -1:
+            z_max_tmp = [self.model.get_dz(
+                radius_list[i_r]) * cy_param['n_z'] / 2. for i_r in range(cy_param['n_r'])]
+            z_list = np.array(
+                [self.math.lin_list(-zmax, zmax, cy_param['n_z']) for zmax in z_max_tmp])
         elif cy_param['sf_z'] == 1.0:
             z_list = np.array([self.math.sin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
-                for i_r in range(cy_param['n_r'])])
+                               for i_r in range(cy_param['n_r'])])
         elif cy_param['sf_z'] > 1.0:
-            z_list = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'], 
-                cy_param['n_z'], cy_param['sf_z']) for i_r in range(cy_param['n_r'])])
+            z_list = np.array([self.math.exp_list_sym(-cy_param['z_max'], cy_param['z_max'],
+                                                      cy_param['n_z'], cy_param['sf_z']) for i_r in range(cy_param['n_r'])])
         else:
             z_list = np.array([self.math.lin_list(-cy_param['z_max'], cy_param['z_max'], cy_param['n_z'])
-                for i_r in range(cy_param['n_r'])])
+                               for i_r in range(cy_param['n_r'])])
 
         grid_file.write(struct.pack('d', cy_param['inner_radius']))
         grid_file.write(struct.pack('d', cy_param['outer_radius']))
@@ -1269,15 +1329,19 @@ class Cylindrical(Grid):
             for i_p in range(cy_param['n_ph'][i_r]):
                 for i_z in range(cy_param['n_z']):
                     stdout.write('--- Generate cylindrical grid: ' +
-                        str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
+                                 str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in cylindrical coordinates
                     cylindrical_coord = np.zeros(3)
-                    cylindrical_coord[0] = (radius_list[i_r] + radius_list[i_r + 1]) / 2.
-                    cylindrical_coord[1] = (phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.
-                    cylindrical_coord[2] = (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
+                    cylindrical_coord[0] = (
+                        radius_list[i_r] + radius_list[i_r + 1]) / 2.
+                    cylindrical_coord[1] = (
+                        phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.
+                    cylindrical_coord[2] = (
+                        z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     # Convert the cylindrical coordinate into carthesian node position
-                    position = self.math.cylindrical_to_carthesian(cylindrical_coord)
+                    position = self.math.cylindrical_to_carthesian(
+                        cylindrical_coord)
                     node = Node('cylindrical')
                     node.parameter['position'] = position
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
@@ -1285,18 +1349,20 @@ class Cylindrical(Grid):
                                                 z_list[i_r][i_z], z_list[i_r][i_z + 1]]
                     node.parameter['volume'] = self.get_volume(node=node)
                     self.write_node_data(grid_file=grid_file, node=node, data_type='d',
-                        cell_IDs=[i_r, i_p, i_z])
+                                         cell_IDs=[i_r, i_p, i_z])
                     self.update_mass_measurement(node=node)
                     del node
                     i_node += 1
 
         for i_z in range(cy_param['n_z']):
             node = Node('cylindrical')
-            node.parameter['position'] = [0., 0., (z_list[0][i_z] + z_list[0][i_z + 1]) / 2.]
+            node.parameter['position'] = [
+                0., 0., (z_list[0][i_z] + z_list[0][i_z + 1]) / 2.]
             node.parameter['extent'] = [0., radius_list[0],
-                phi_list[0][0], phi_list[0][cy_param['n_ph'][0]], z_list[0][i_z], z_list[0][i_z + 1]]
+                                        phi_list[0][0], phi_list[0][cy_param['n_ph'][0]], z_list[0][i_z], z_list[0][i_z + 1]]
             node.parameter['volume'] = self.get_volume(node=node)
-            self.write_node_data(grid_file=grid_file, node=node, data_type='d', cell_IDs=[-1, -1, i_z])
+            self.write_node_data(grid_file=grid_file, node=node,
+                                 data_type='d', cell_IDs=[-1, -1, i_z])
             self.update_mass_measurement(node=node)
             del node
 
@@ -1312,7 +1378,8 @@ class Cylindrical(Grid):
         """
         volume = (node.parameter['extent'][1] ** 2 - node.parameter['extent'][0] ** 2) * \
                  (node.parameter['extent'][3] - node.parameter['extent'][2]) * \
-                 (node.parameter['extent'][5] - node.parameter['extent'][4]) / 2.
+                 (node.parameter['extent'][5] -
+                  node.parameter['extent'][4]) / 2.
         return volume
 
     def normalize_density(self, tmp_file, grid_file):
@@ -1330,9 +1397,11 @@ class Cylindrical(Grid):
         for i_r in range(cy_param['n_r']):
             for i_p in range(cy_param['n_ph'][i_r]):
                 for i_z in range(cy_param['n_z']):
-                    self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
+                    self.read_write_node_data(
+                        tmp_file=tmp_file, grid_file=grid_file, data_type='d')
         for i_z in range(cy_param['n_z']):
-            self.read_write_node_data(tmp_file=tmp_file, grid_file=grid_file, data_type='d')
+            self.read_write_node_data(
+                tmp_file=tmp_file, grid_file=grid_file, data_type='d')
 
     def read_write_header(self, tmp_file, grid_file):
         """Read and write spherical header from binary file.
@@ -1379,6 +1448,7 @@ class Cylindrical(Grid):
         elif struct.unpack('d', sf_z)[0] == -1:
             for i_r in range(struct.unpack('H', n_r)[0]):
                 grid_file.write(tmp_file.read(8))
+
 
 class Node:
     """The Node class includes the information of one node in the grid.
