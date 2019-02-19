@@ -1940,6 +1940,7 @@ class CustomPlots:
         detector_index = 101
         i_quantity = 0
         zoom = 0.8
+        calc = False
         # Set some lists
         model_list = [
             'no_circumstellar_disks',
@@ -1995,8 +1996,11 @@ class CustomPlots:
                     plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
                                 nr_x_images=2, nr_y_images=2)
                 # Plot imshow
+                import matplotlib
+                cmap = matplotlib.colors.LinearSegmentedColormap.from_list("bbw", ["black","royalblue","white"])
+                matplotlib.pyplot.register_cmap(cmap=cmap)
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=1e-7, vmax=1e-4)
+                                 norm='LogNorm', vmin=1e-7, vmax=1e-4, cmap='bbw')
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
@@ -2008,44 +2012,46 @@ class CustomPlots:
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
                                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
-                # Get the image sidelength
-                sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
-                sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
-                # Get number of pixel per axis
-                nr_pixel_x = tbldata.shape[-2]
-                nr_pixel_y = tbldata.shape[-1]
-                # Find the considered pixel
-                for i_x in range(nr_pixel_x):
-                    for i_y in range(nr_pixel_y):
-                        pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
-                                                                [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
-                                          np.divide([sidelength_x, sidelength_y], 2.))
-                        for i_pos, center_pos in enumerate(measurement_position_list):
-                            pos_r = np.linalg.norm(
-                                np.subtract(pos, center_pos))
-                            if pos_r < 0.15:
-                                flux_sum[i_plot, i_subplot,
-                                         i_pos] += tbldata[i_x, i_y]
+                if calc:
+                    # Get the image sidelength
+                    sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
+                    sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                    # Get number of pixel per axis
+                    nr_pixel_x = tbldata.shape[-2]
+                    nr_pixel_y = tbldata.shape[-1]
+                    # Find the considered pixel
+                    for i_x in range(nr_pixel_x):
+                        for i_y in range(nr_pixel_y):
+                            pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                                    [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                            np.divide([sidelength_x, sidelength_y], 2.))
+                            for i_pos, center_pos in enumerate(measurement_position_list):
+                                pos_r = np.linalg.norm(
+                                    np.subtract(pos, center_pos))
+                                if pos_r < 0.15:
+                                    flux_sum[i_plot, i_subplot,
+                                            i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
-        print(r'\begin{tabular}{lccccc}')
-        print(
-            r'Configuration & $\delta F_1$ & $\delta F_2$ & $\delta F_3$ & $\delta F_4$ & $\delta F_5$ \\')
-        print(r'\hline')
-        for i_plot in range(2):
-            for i_subplot in range(4):
-                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
-                    100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])))), r'\\')
-        print(r'\end{tabular}')
-        print(r'\begin{tabular}{lcccc}')
-        print(
-            r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ \\')
-        print(r'\hline')
-        for i_plot in range(2):
-            for i_subplot in range(4):
-                print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
-                    f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
-        print(r'\end{tabular}')
+        if calc:
+            print(r'\begin{tabular}{lccccc}')
+            print(
+                r'Configuration & $\delta F_1$ & $\delta F_2$ & $\delta F_3$ & $\delta F_4$ & $\delta F_5$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(4):
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
+                        100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])))), r'\\')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lcccc}')
+            print(
+                r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(4):
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+                        f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
+            print(r'\end{tabular}')
 
     def plot_1006005(self):
         """Plot GG Tau A emission maps for different inclination axis.
@@ -2157,7 +2163,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 103
         i_quantity = 4
         i_subplot = 8
         vmin = 1e-7
