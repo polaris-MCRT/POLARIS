@@ -1262,6 +1262,9 @@ class parameters
         component_id_to_choice.push_back(dust_component_choice);
         dust_choices.push_back(dust_component_choice);
 
+        // Sort dust choices
+        sort(dust_choices.begin(), dust_choices.end());
+
         // Update the highest value of the dust choice ids.
         if(dust_component_choice > max_dust_component_choice)
             max_dust_component_choice = dust_component_choice;
