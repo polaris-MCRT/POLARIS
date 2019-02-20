@@ -396,9 +396,9 @@ class GGTauDisk(Model):
         # Range: 16 AU, 21 AU, 26 AU, 31 AU
         self.ref_scale_height = [
             21. * self.math.const['au'],
-            0.6*self.math.const['au'],
-            0.3*self.math.const['au'],
-            0.3*self.math.const['au'],
+            0.6 * self.math.const['au'],
+            0.3 * self.math.const['au'],
+            0.3 * self.math.const['au'],
         ]
         self.ref_radius = [
             180. * self.math.const['au'],
@@ -487,6 +487,8 @@ class GGTauDisk(Model):
                     self.disk_Ab2 = True
                     # Increase size of Ab2
                     self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase scale height of Aa
+                    self.ref_scale_height[1] = 0.7 * self.math.const['au']
                     # Rotate Ab2 CS disk
                     self.inclination_Ab2 = 90. / 180. * np.pi
                     # Adjust vertical cell number
@@ -520,7 +522,7 @@ class GGTauDisk(Model):
                 raise ValueError('Wrong number of extra parameters!')
 
     def gas_density_distribution(self):
-        """Calculas the gas density at a given position.
+        """Calculates the gas density at a given position.
 
         Returns:
             float:as density at a given position.
