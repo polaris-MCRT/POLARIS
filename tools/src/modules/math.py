@@ -779,19 +779,23 @@ class Math:
         Returns:
             List[float, float, float]: Rotated carthesian coordinates
         """
+        # Ignore if angle is zero
+        if rotation_angle == 0:
+            return position
+
         rotation_axis /= np.linalg.norm(rotation_axis)
         (u_x, u_y, u_z) = rotation_axis
         rot_cos = np.cos(rotation_angle)
         rot_sin = np.sin(rotation_angle)
         rotation_matrix = np.array([[rot_cos + u_x ** 2 * (1 - rot_cos),
-                                     u_x * u_y * (1 - rot_cos) - u_z * rot_sin,
-                                     u_x * u_z * (1 - rot_cos) + u_y * rot_sin],
+                                    u_x * u_y * (1 - rot_cos) - u_z * rot_sin,
+                                    u_x * u_z * (1 - rot_cos) + u_y * rot_sin],
                                     [u_y * u_x * (1 - rot_cos) + u_z * rot_sin,
-                                     rot_cos + u_y ** 2 * (1 - rot_cos),
-                                     u_y * u_z * (1 - rot_cos) - u_x * rot_sin],
+                                    rot_cos + u_y ** 2 * (1 - rot_cos),
+                                    u_y * u_z * (1 - rot_cos) - u_x * rot_sin],
                                     [u_z * u_x * (1 - rot_cos) - u_y * rot_sin,
-                                     u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
-                                     rot_cos + u_z ** 2 * (1 - rot_cos)]])
+                                    u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
+                                    rot_cos + u_z ** 2 * (1 - rot_cos)]])
         if inv:
             rotation_matrix = rotation_matrix.T
         rotated_position = np.dot(position, rotation_matrix)
@@ -1253,6 +1257,7 @@ class Math:
                 np.exp(-0.5 * (vert_height / scale_height) ** 2)
         else:
             density = 0.
+            
         if tappered_gamma is not None:
             density *= np.exp(-(radius_cy / ref_radius)
                               ** (2 + tappered_gamma))
