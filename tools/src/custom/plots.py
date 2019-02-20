@@ -1654,6 +1654,11 @@ class CustomPlots:
         data_flux = table.array['sed_flux']
         data_flux_error = table.array['sed_eflux'].filled(0)
         data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
+        for i, wl in enumerate(data_wl):
+            if wl > 1e-6 and data_flux[i] < 1e-2:
+                data_flux[i] = np.nan
+                data_flux_error[i] = np.nan
+                data_wl[i] = np.nan
         # Plot total spectral energy distribution
         plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy',
                        linestyle='none', marker='.', color='black',
@@ -2163,7 +2168,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 103
+        detector_index = 101
         i_quantity = 4
         i_subplot = 8
         vmin = 1e-7
@@ -2223,7 +2228,7 @@ class CustomPlots:
         tbldata = plot_data[i_quantity, 0, :, :]
         # plot imshow
         plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
-                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
         # Load radiation source to get position of the binary stars
         from modules.source import SourceChooser
         radiation_source_chooser = SourceChooser(
@@ -2293,7 +2298,7 @@ class CustomPlots:
                 hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
         # plot imshow
         plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
-                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
         for i_pos, center_pos in enumerate(measurement_position_list):
             plot.plot_text(text_pos=center_pos,text=str(i_pos + 1), ax_index=0, color='black', fontsize=10,bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
         # Save figure to pdf file or print it on screen

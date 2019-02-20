@@ -3570,7 +3570,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double Qr = 0.4;
 
                 if(wavelength_list[w] > 1.8 * a_eff[a])
-                    Qr = 0.4 / pow(wavelength_list[w] / (1.8*a_eff[a]), 3);
+                    Qr = 0.4 / pow(wavelength_list[w] / (1.8 * a_eff[a]), 3);
 
                 double cos_theta = abs(cos(theta));
 
