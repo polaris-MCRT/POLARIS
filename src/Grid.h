@@ -584,7 +584,6 @@ class CGridBasic
         conv_dens_in_SI = abs(param.getSIConvDH());
         conv_Bfield_in_SI = param.getSIConvBField();
         conv_Vfield_in_SI = param.getSIConvVField();
-        mass_fraction = param.getMassFraction();
     }
 
     // overloaded functions
@@ -961,11 +960,6 @@ class CGridBasic
     {
         cell_basic * cell = pp->getPositionCell();
         return getGZero(cell);
-    }
-
-    double getMassFraction()
-    {
-        return mass_fraction;
     }
 
     double getMu()
@@ -3607,7 +3601,6 @@ class CGridBasic
 
     double conv_length_in_SI, conv_dens_in_SI;
     double conv_Bfield_in_SI, conv_Vfield_in_SI;
-    double mass_fraction;
 
     double total_gas_mass;
     double mu;

@@ -32,16 +32,6 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             max_gas_dens = gas_dens;
         if(gas_dens < min_gas_dens)
             min_gas_dens = gas_dens;
-
-        if(data_pos_dd_list.size() == 0)
-        {
-            dust_dens = getGasMassDensity(cell) * getMassFraction();
-
-            if(dust_dens > max_dust_dens)
-                max_dust_dens = dust_dens;
-            if(dust_dens < min_dust_dens)
-                min_dust_dens = dust_dens;
-        }
     }
 
     if(!data_pos_dd_list.empty())
@@ -443,12 +433,13 @@ void CGridBasic::printPhysicalParameters()
     else
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]"
              << endl;
-    if(!dust_is_mass_density && !data_pos_dd_list.empty())
-        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]"
-             << endl;
-    else
-        cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
-             << "] [kg m^-3]" << endl;
+    if(!data_pos_dd_list.empty())
+        if(dust_is_mass_density)
+            cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
+                 << "] [kg m^-3]" << endl;
+        else
+            cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens
+                 << "] [m^-3]" << endl;
     if(data_pos_tg != MAX_UINT)
         cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]"
              << endl;
