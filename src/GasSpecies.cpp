@@ -1375,18 +1375,23 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             cout << "- Abundance                     : " << ab << endl;
         else
         {
-            double dens_species, min_ab = 1e200, max_ab = 0;
+            double dens_species, min_dens_species = 1e200, max_dens_species = 0;
             for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
             {
                 cell_basic * cell = grid->getCellFromIndex(i_cell);
-                double tmp_ab = grid->getCellAbundance(cell, uint(-ab - 1));
-                if(tmp_ab < min_ab)
-                    min_ab = tmp_ab;
-                if(tmp_ab > max_ab)
-                    max_ab = tmp_ab;
+
+                // Get abundance of a certain gas species
+                double dens_species =
+                    grid->getCellAbundance(cell, uint(-ab - 1)) * grid->getGasNumberDensity(cell);
+
+                if(dens_species < min_dens_species)
+                    min_dens_species = dens_species;
+                if(dens_species > max_dens_species)
+                    max_dens_species = dens_species;
             }
             cout << "- Abundance from grid ID nr.    : " << int(-ab) << endl;
-            cout << "                      (min,max) : [" << min_ab << ", " << max_ab << "] [m^-3]" << endl;
+            cout << "                      (min,max) : [" << min_dens_species << ", " << max_dens_species
+                 << "] [m^-3]" << endl;
         }
 
         double total_species_mass = 0;
