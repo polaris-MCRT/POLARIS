@@ -2498,7 +2498,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<mass_fraction>") == 0)
     {
-        if(atoi(data.c_str()) == 0)
+        if(atof(data.c_str()) == 0)
         {
             // Use the dust fractions as dust-to-gas mass ratios
             param->setDustMassFraction(1.0);
