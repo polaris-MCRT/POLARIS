@@ -488,7 +488,7 @@ class GGTauDisk(Model):
                     # Increase size of Ab2
                     self.outer_radius_Ab2 = 3. * self.math.const['au']
                     # Increase scale height of Aa
-                    self.ref_scale_height[1] = 0.7 * self.math.const['au']
+                    self.ref_scale_height[1] = 0.8 * self.math.const['au']
                     # Rotate Ab2 CS disk
                     self.inclination_Ab2 = 90. / 180. * np.pi
                     # Adjust vertical cell number
