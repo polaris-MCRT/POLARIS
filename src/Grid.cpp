@@ -22,7 +22,7 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     double delta = 0;
     double a_limit = 0;
 
-    if(data_pos_gd_list.size() > 0)
+    if(!data_pos_gd_list.empty())
     {
         for(uint i_dens = 0; i_dens < data_pos_gd_list.size(); i_dens++)
             cell->convertData(data_pos_gd_list[i_dens], conv_dens_in_SI);
@@ -32,19 +32,9 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             max_gas_dens = gas_dens;
         if(gas_dens < min_gas_dens)
             min_gas_dens = gas_dens;
-
-        if(data_pos_dd_list.size() == 0)
-        {
-            dust_dens = getGasMassDensity(cell) * getMassFraction();
-
-            if(dust_dens > max_dust_dens)
-                max_dust_dens = dust_dens;
-            if(dust_dens < min_dust_dens)
-                min_dust_dens = dust_dens;
-        }
     }
 
-    if(data_pos_dd_list.size() > 0)
+    if(!data_pos_dd_list.empty())
     {
         for(uint i_dens = 0; i_dens < data_pos_dd_list.size(); i_dens++)
             cell->convertData(data_pos_dd_list[i_dens], conv_dens_in_SI);
@@ -114,15 +104,18 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         vz = cell->getData(data_pos_vz);
     }
 
-    if(data_pos_aalg != MAX_UINT)
+    if(!data_pos_aalg_list.empty())
     {
-        a_alg = cell->getData(data_pos_aalg);
+        for(uint i_dens = 0; i_dens < data_pos_aalg_list.size(); i_dens++)
+        {
+            a_alg = cell->getData(data_pos_aalg_list[i_dens]);
 
-        if(a_alg > float(aalg_max))
-            aalg_max = (double)a_alg;
+            if(a_alg > float(aalg_max))
+                aalg_max = (double)a_alg;
 
-        if(a_alg < float(aalg_min))
-            aalg_min = (double)a_alg;
+            if(a_alg < float(aalg_min))
+                aalg_min = (double)a_alg;
+        }
     }
 
     if(data_pos_amin != MAX_UINT)
@@ -340,7 +333,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
                            param.getCommand() == CMD_PROBING))
     {
         // Get Number of temperature fields for temperature calculation
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
             nr_densities = data_pos_dd_list.size();
         else
             nr_densities = data_pos_gd_list.size();
@@ -440,12 +433,13 @@ void CGridBasic::printPhysicalParameters()
     else
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]"
              << endl;
-    if(!dust_is_mass_density && data_pos_dd_list.size() > 0)
-        cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens << "] [m^-3]"
-             << endl;
-    else
-        cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
-             << "] [kg m^-3]" << endl;
+    if(!data_pos_dd_list.empty())
+        if(dust_is_mass_density)
+            cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
+                 << "] [kg m^-3]" << endl;
+        else
+            cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens
+                 << "] [m^-3]" << endl;
     if(data_pos_tg != MAX_UINT)
         cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]"
              << endl;
@@ -471,7 +465,7 @@ void CGridBasic::printPhysicalParameters()
     else
         cout << "- Magnetic field     (min,max) : none" << endl;
 
-    if(data_pos_aalg != MAX_UINT)
+    if(!data_pos_aalg_list.empty())
         cout << "- a_alig              (min,max) : [" << aalg_min << ", " << aalg_max << "] [m]" << endl;
 
     if(data_pos_vx != MAX_UINT)
@@ -552,14 +546,14 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     if(bins == 0)
         return true;
 
-    bool plt_gas_dens = (data_pos_gd_list.size() > 0);
-    // bool plt_dust_dens = param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); //to
+    bool plt_gas_dens = (!data_pos_gd_list.empty());
+    // bool plt_dust_dens = param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); //to
     // do if dust denity is possible
     bool plt_gas_temp = (data_pos_tg != MAX_UINT);
     bool plt_dust_temp = (!data_pos_dt_list.empty());
     bool plt_mag = (data_pos_mx != MAX_UINT);
     bool plt_vel = (data_pos_vx != MAX_UINT);
-    bool plt_rat = (data_pos_aalg != MAX_UINT);
+    bool plt_rat = (!data_pos_aalg_list.empty());
     bool plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
     bool plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
     bool plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);
@@ -804,7 +798,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                                       << float(vel_field.Z()) << endl;
                     }
 
-                    rat_writer << float(log10(getAlignedRadius(pp))) << endl;
+                    rat_writer << float(log10(getAlignedRadius(pp, 0))) << endl;
 
                     if(plt_delta)
                     {
@@ -922,8 +916,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
             vz = getVelocityField(pp).Z();
         }
 
-        if(data_pos_aalg != MAX_UINT)
-            a_alg = getAlignedRadius(pp);
+        if(!data_pos_aalg_list.empty())
+            a_alg = getAlignedRadius(pp, 0);
 
         z_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
                  << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
@@ -967,8 +961,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
             vz = getVelocityField(pp).Z();
         }
 
-        if(data_pos_aalg != MAX_UINT)
-            a_alg = getAlignedRadius(pp);
+        if(!data_pos_aalg_list.empty())
+            a_alg = getAlignedRadius(pp, 0);
 
         y_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
                  << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
@@ -1012,8 +1006,8 @@ bool CGridBasic::writeSpecialLines(string data_path)
             vz = getVelocityField(pp).Z();
         }
 
-        if(data_pos_aalg != MAX_UINT)
-            a_alg = getAlignedRadius(pp);
+        if(!data_pos_aalg_list.empty())
+            a_alg = getAlignedRadius(pp, 0);
 
         x_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
                  << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
@@ -1062,7 +1056,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         if(cmd != CMD_RAT && cmd != CMD_TEMP_RAT)
         {
-            plt_rat = (data_pos_aalg != MAX_UINT);
+            plt_rat = (!data_pos_aalg_list.empty());
             plt_avg_th = (data_pos_avg_th != MAX_UINT);
             plt_avg_dir = (data_pos_avg_dir != MAX_UINT);
         }
@@ -1283,7 +1277,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
-            if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+            if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
                 buffer_gas_dens[i_cell] = new double[nr_densities + 1];
             else
                 buffer_gas_dens[i_cell] = new double[nr_densities];
@@ -1296,7 +1290,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
-            if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+            if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
                 buffer_dust_dens[i_cell] = new double[nr_densities + 1];
             else
                 buffer_dust_dens[i_cell] = new double[nr_densities];
@@ -1318,7 +1312,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
     }
     if(plt_rat)
-        buffer_rat = new double[nelements];
+    {
+        buffer_rat = new double *[nelements];
+        for(int i_cell = 0; i_cell < nelements; i_cell++)
+            buffer_rat[i_cell] = new double[data_pos_aalg_list.size()];
+    }
     if(plt_delta)
         buffer_delta = new double[nelements];
     if(plt_mag)
@@ -1481,11 +1479,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rat)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
-                    array_rat[i_cell] = buffer_rat[i_cell];
+                for(uint i_density = 0; i_density < nr_densities; i_density++)
+                {
+                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        array_rat[i_cell] = buffer_rat[i_cell][i_density];
 
-                fpixel[3]++;
-                pFits->pHDU().write(fpixel, nelements, array_rat);
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_rat);
+                }
             }
             if(plt_delta)
             {
@@ -1759,11 +1760,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rat)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
-                    array_rat[i_cell] = buffer_rat[i_cell];
+                for(uint i_density = 0; i_density < nr_densities; i_density++)
+                {
+                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        array_rat[i_cell] = buffer_rat[i_cell][i_density];
 
-                fpixel[3]++;
-                pFits->pHDU().write(fpixel, nelements, array_rat);
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_rat);
+                }
             }
             if(plt_delta)
             {

@@ -64,6 +64,8 @@ class CDustComponent
         sub_temp = 1e6;
         material_density = 0;
         gold_g_factor = 0;
+        dust_mass_fraction = 0;
+
         min_temp = 0;
         max_temp = 0;
         min_a_alig = 1e200;
@@ -80,6 +82,7 @@ class CDustComponent
         sublimate = false;
         is_align = false;
         is_mixture = false;
+        individual_dust_fractions = false;
 
         // Connection between mat_elem_counter and position in scattering matrix
         elements[0] = int(1);   // S11
@@ -1117,6 +1120,16 @@ class CDustComponent
         fraction = val;
     }
 
+    double getDustMassFraction()
+    {
+        return dust_mass_fraction;
+    }
+
+    void setDustMassFraction(double val)
+    {
+        dust_mass_fraction = val;
+    }
+
     void setSizeParameter(string size_key, dlist size_parameter_list)
     {
         size_keyword = size_key;
@@ -1153,7 +1166,7 @@ class CDustComponent
         {
             if(!grid->getGasIsMassDensity())
                 conversion_factor *= grid->getMu() * m_H;
-            conversion_factor *= grid->getMassFraction();
+            conversion_factor *= getDustMassFraction();
             conversion_factor /= avg_mass;
         }
         else if(grid->getDustIsMassDensity())
@@ -1169,7 +1182,7 @@ class CDustComponent
         {
             if(!grid->getGasIsMassDensity())
                 conversion_factor *= grid->getMu() * m_H;
-            conversion_factor *= grid->getMassFraction();
+            conversion_factor *= getDustMassFraction();
         }
         else if(!grid->getDustIsMassDensity())
             conversion_factor *= getAvgMass(grid, cell);
@@ -1210,7 +1223,7 @@ class CDustComponent
         if(grid->useDustDensities())
             return convDensityToMass(grid, cell) * grid->getDustDensity(cell);
         else
-            return grid->getMassFraction() * grid->getGasMassDensity(cell);
+            return getDustMassFraction() * grid->getGasMassDensity(cell);
     }
 
     uint getMassDensity(CGridBasic * grid, photon_package * pp)
@@ -1224,7 +1237,7 @@ class CDustComponent
         if(grid->useDustDensities())
             return convDensityToMass(grid, cell) * grid->getDustDensity(cell, i_density);
         else
-            return grid->getMassFraction() * grid->getGasMassDensity(cell, i_density);
+            return getDustMassFraction() * grid->getGasMassDensity(cell, i_density);
     }
 
     void setMu(double mu_)
@@ -1797,25 +1810,36 @@ class CDustComponent
         str_stream.str("");
 
         // Start with printing the dust components (if mixture or only single component)
-        if(stringID.length() == 0 || comp->getFraction() == 1)
+        if(stringID.length() == 0 || comp->getComponentId() == comp->getNrOfComponents() - 1)
             str_stream << "Dust components:" << endl;
+
+        // Use the fraction as dust to gas mass ratio (if user chosen it)
+        double fraction = comp->getFraction();
+        string fraction_string = "mass ratio";
+        if(individual_dust_fractions)
+        {
+            fraction *= dust_mass_fraction;
+            fraction_string = "dust-to-gas mass ratio";
+        }
 
         // Fill the string with various parameters and format it
         char tmp_str[1024];
 #ifdef WINDOWS
         sprintf_s(tmp_str,
-                  "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                  "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
                   comp->getStringID().c_str(),
-                  comp->getFraction(),
+                  fraction_string.c_str(),
+                  fraction,
                   comp->getDustSizeKeyword().c_str(),
                   comp->getDustSizeParameterString().c_str(),
                   comp->getSizeMin(),
                   comp->getSizeMax());
 #else
         sprintf(tmp_str,
-                "- %s\n    ratio: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
                 comp->getStringID().c_str(),
-                comp->getFraction(),
+                fraction_string.c_str(),
+                fraction,
                 comp->getDustSizeKeyword().c_str(),
                 comp->getDustSizeParameterString().c_str(),
                 comp->getSizeMin(),
@@ -1826,10 +1850,20 @@ class CDustComponent
         str_stream << tmp_str;
 
         // Add stream to stringID or replace it if only one component
-        if(comp->getFraction() == 1)
+        if(comp->getComponentId() == comp->getNrOfComponents() - 1)
             stringID = str_stream.str();
         else
             stringID += str_stream.str();
+    }
+
+    void setIndividualDustMassFractions(bool val)
+    {
+        individual_dust_fractions = val;
+    }
+
+    bool getIndividualDustMassFractions()
+    {
+        return individual_dust_fractions;
     }
 
     void setWavelengthList(dlist _wavelength_list, uint _wavelength_offset)
@@ -1906,11 +1940,6 @@ class CDustComponent
     {
         return 4.0 / 3.0 * PI * a_eff[a] * a_eff[a] * a_eff[a];
     }
-
-    /*double getMaterialDensity()
-    {
-        return material_density;
-    }*/
 
     double getMaterialDensity(uint a)
     {
@@ -2146,6 +2175,7 @@ class CDustComponent
     double sub_temp;
     double material_density;
     double gold_g_factor;
+    double dust_mass_fraction;
     double min_temp, max_temp;
     double min_a_alig, max_a_alig;
     double f_highJ;
@@ -2162,6 +2192,7 @@ class CDustComponent
     bool sublimate;
     bool is_align;
     bool is_mixture;
+    bool individual_dust_fractions;
 
     int elements[16];
 

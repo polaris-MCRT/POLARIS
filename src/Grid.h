@@ -115,7 +115,6 @@ class CGridBasic
         data_pos_px = MAX_UINT;
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
-        data_pos_aalg = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
         data_pos_eq = MAX_UINT;
@@ -302,7 +301,6 @@ class CGridBasic
         data_pos_px = MAX_UINT;
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
-        data_pos_aalg = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
         data_pos_eq = MAX_UINT;
@@ -586,7 +584,6 @@ class CGridBasic
         conv_dens_in_SI = abs(param.getSIConvDH());
         conv_Bfield_in_SI = param.getSIConvBField();
         conv_Vfield_in_SI = param.getSIConvVField();
-        mass_fraction = param.getMassFraction();
     }
 
     // overloaded functions
@@ -965,11 +962,6 @@ class CGridBasic
         return getGZero(cell);
     }
 
-    double getMassFraction()
-    {
-        return mass_fraction;
-    }
-
     double getMu()
     {
         return mu;
@@ -1004,7 +996,7 @@ class CGridBasic
 
     void setDustTemperature(cell_basic * cell, uint i_density, uint a, double temp)
     {
-        if(data_pos_dt_list.size() > 0)
+        if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
@@ -1147,7 +1139,7 @@ class CGridBasic
 
     double getQBOffset(cell_basic * cell, uint i_density, uint a)
     {
-        if(data_pos_dt_list.size() > 0)
+        if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
@@ -1166,7 +1158,7 @@ class CGridBasic
 
     void setQBOffset(cell_basic * cell, uint i_density, uint a, double temp)
     {
-        if(data_pos_dt_list.size() > 0)
+        if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
@@ -1183,20 +1175,28 @@ class CGridBasic
             cell->setData(data_pos_dt_list[i_density], temp);
     }
 
-    double getAlignedRadius(cell_basic * cell)
+    uint getNrAlignedRadii()
     {
-        return cell->getData(data_pos_aalg);
+        return data_pos_aalg_list.size();
     }
 
-    double getAlignedRadius(photon_package * pp)
+    double getAlignedRadius(cell_basic * cell, uint i_density)
+    {
+        if(data_pos_aalg_list.size() > 1)
+            return cell->getData(data_pos_aalg_list[i_density]);
+        else
+            return cell->getData(data_pos_aalg_list[0]);
+    }
+
+    double getAlignedRadius(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
-        return getAlignedRadius(cell);
+        return getAlignedRadius(cell, i_density);
     }
 
-    void setAlignedRadius(cell_basic * cell, double _a_alg)
+    void setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg)
     {
-        cell->setData(data_pos_aalg, _a_alg);
+        cell->setData(data_pos_aalg_list[i_density], _a_alg);
     }
 
     double getMinGrainRadius(cell_basic * cell)
@@ -1292,11 +1292,6 @@ class CGridBasic
 
     uint validateDataPositions(parameters & param);
     uint getDataIdsOffset(parameters & param);
-
-    void setAlignedPos(uint pos)
-    {
-        data_pos_aalg = pos;
-    }
 
     void setLvlPopLower(cell_basic * cell, uint i_line, double lvl_lower)
     {
@@ -1537,7 +1532,7 @@ class CGridBasic
 
     double getDustTemperature(cell_basic * cell, uint i_density, uint a)
     {
-        if(data_pos_dt_list.size() > 0)
+        if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
@@ -1722,7 +1717,7 @@ class CGridBasic
             {
                 buffer_gas_dens[i_cell][0] = getGasDensity(pp);
                 // Do it only once if only one gas distribution is defined
-                if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+                if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density + 1] = getGasDensity(pp, i_density);
             }
@@ -1730,7 +1725,7 @@ class CGridBasic
             {
                 buffer_dust_dens[i_cell][0] = getDustDensity(pp);
                 // Do it only once if only one dust distribution is defined
-                if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density + 1] = getDustDensity(pp, i_density);
             }
@@ -1745,7 +1740,8 @@ class CGridBasic
                         buffer_dust_temp[i_cell][i_density + 1] = getDustTemperature(pp, i_density);
             }
             if(plt_rat)
-                buffer_rat[i_cell] = getAlignedRadius(pp);
+                for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
+                    buffer_rat[i_cell][i_density] = getAlignedRadius(pp, i_density);
             if(plt_delta)
             {
                 double field = getMagField(pp).length();
@@ -1845,14 +1841,14 @@ class CGridBasic
             if(plt_gas_dens)
             {
                 buffer_gas_dens[i_cell][0] = 0;
-                if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+                if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density] = 0;
             }
             if(plt_dust_dens)
             {
                 buffer_dust_dens[i_cell][0] = 0;
-                if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density] = 0;
             }
@@ -1866,7 +1862,10 @@ class CGridBasic
                         buffer_dust_temp[i_cell][i_density] = 0;
             }
             if(plt_rat)
-                buffer_rat[i_cell] = 0;
+            {
+                for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
+                    buffer_rat[i_cell][i_density] = 0;
+            }
             if(plt_delta)
                 buffer_delta[i_cell] = 0;
             if(plt_mag)
@@ -2007,7 +2006,7 @@ class CGridBasic
 
     double getGasDensity(cell_basic * cell, uint i_density)
     {
-        if(data_pos_gd_list.size() > 0)
+        if(!data_pos_gd_list.empty())
             return cell->getData(data_pos_gd_list[i_density]);
         else
             return 0;
@@ -2108,7 +2107,7 @@ class CGridBasic
 
     void setDustDensity(cell_basic * cell, double val)
     {
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
             for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
                 cell->setData(data_pos_dd_list[i_density], val);
         else
@@ -2118,7 +2117,7 @@ class CGridBasic
 
     void setDustDensity(cell_basic * cell, uint i_density, double val)
     {
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
             cell->setData(data_pos_dd_list[i_density], val);
         else
             cell->setData(data_pos_gd_list[i_density], val);
@@ -2139,7 +2138,7 @@ class CGridBasic
     double getDustDensity(cell_basic * cell)
     {
         double sum = 0;
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
         {
             for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
                 sum += cell->getData(data_pos_dd_list[i_density]);
@@ -2151,7 +2150,7 @@ class CGridBasic
 
     double getDustDensity(cell_basic * cell, uint i_density)
     {
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
             return cell->getData(data_pos_dd_list[i_density]);
         else
             return 0;
@@ -2181,7 +2180,7 @@ class CGridBasic
 
     void adjustDustDensity(cell_basic * cell, uint i_density, double factor)
     {
-        if(data_pos_dd_list.size() > 0)
+        if(!data_pos_dd_list.empty())
         {
             double dust_dens = getDustDensity(cell, i_density);
             cell->setData(data_pos_dd_list[i_density], dust_dens * factor);
@@ -2348,7 +2347,7 @@ class CGridBasic
             switch(data_ids[i])
             {
                 case GRIDgas_dens:
-                    if(data_pos_gd_list.size() > 0)
+                    if(!data_pos_gd_list.empty())
                     {
                         if(data_pos_id != MAX_UINT)
                         {
@@ -2370,7 +2369,7 @@ class CGridBasic
                     break;
 
                 case GRIDgas_mdens:
-                    if(data_pos_gd_list.size() > 0)
+                    if(!data_pos_gd_list.empty())
                     {
                         if(data_pos_id != MAX_UINT)
                         {
@@ -2392,7 +2391,7 @@ class CGridBasic
                     break;
 
                 case GRIDdust_dens:
-                    if(data_pos_dd_list.size() > 0)
+                    if(!data_pos_dd_list.empty())
                     {
                         if(data_pos_id != MAX_UINT)
                         {
@@ -2414,7 +2413,7 @@ class CGridBasic
                     break;
 
                 case GRIDdust_mdens:
-                    if(data_pos_dd_list.size() > 0)
+                    if(!data_pos_dd_list.empty())
                     {
                         if(data_pos_id != MAX_UINT)
                         {
@@ -2540,13 +2539,7 @@ class CGridBasic
                     break;
 
                 case GRIDa_alg:
-                    if(data_pos_aalg != MAX_UINT)
-                    {
-                        cout << "\nERROR: Grid ID " << GRIDa_alg << " can be set only once!" << endl;
-                        return false;
-                    }
-
-                    data_pos_aalg = i;
+                    data_pos_aalg_list.push_back(i);
                     break;
 
                 case GRIDa_min:
@@ -2799,7 +2792,7 @@ class CGridBasic
                 data_pos_my = 4;
                 data_pos_mz = 5;
 
-                data_pos_aalg = 6;
+                data_pos_aalg_list.push_back(6);
 
                 data_ids[0] = GRIDgas_dens;
                 data_ids[1] = GRIDdust_temp;
@@ -2866,7 +2859,7 @@ class CGridBasic
                 data_pos_vy = 7;
                 data_pos_vz = 8;
 
-                data_pos_aalg = 9;
+                data_pos_aalg_list.push_back(9);
 
                 data_ids[0] = GRIDgas_dens;
                 data_ids[1] = GRIDdust_temp;
@@ -3090,12 +3083,14 @@ class CGridBasic
 
     uint RatCheck(parameters & param, uint & tmp_data_offset)
     {
-        if(data_pos_aalg == MAX_UINT)
+        if(data_pos_aalg_list.empty())
         {
-            data_pos_aalg = data_offset + tmp_data_offset;
-            data_ids.push_back(GRIDa_alg);
-            tmp_data_offset++;
-            // cout << "Create entries for RAT alignment     : done" << endl;
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+            {
+                data_pos_aalg_list.push_back(data_offset + tmp_data_offset);
+                data_ids.push_back(GRIDa_alg);
+                tmp_data_offset++;
+            }
         }
 
         if(data_pos_avg_dir == MAX_UINT)
@@ -3103,7 +3098,6 @@ class CGridBasic
             data_pos_avg_dir = data_offset + tmp_data_offset;
             data_ids.push_back(GRIDavg_dir);
             tmp_data_offset++;
-            // cout << "Create entries for RAT alignment     : done" << endl;
         }
 
         if(data_pos_avg_th == MAX_UINT)
@@ -3111,7 +3105,6 @@ class CGridBasic
             data_pos_avg_th = data_offset + tmp_data_offset;
             data_ids.push_back(GRIDavg_th);
             tmp_data_offset++;
-            // cout << "Create entries for RAT alignment     : done" << endl;
         }
 
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
@@ -3189,7 +3182,7 @@ class CGridBasic
             }
         }
 
-        if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
+        if(!data_pos_rf_list.empty() && data_pos_rf_list.size() != WL_STEPS)
         {
             cout << "\nERROR: The grid includes partial/no information about a radiation "
                     "field!"
@@ -3250,9 +3243,16 @@ class CGridBasic
 
         if(param.getAligRAT())
         {
-            if(data_pos_aalg == MAX_UINT)
+            if(data_pos_aalg_list.empty())
             {
                 cout << "\nERROR: Grid contains no minimum alignment radius for RATs!" << endl;
+                cout << "        No dust emission with RAT alignment possible." << endl;
+                return MAX_UINT;
+            }
+            else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
+            {
+                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for RATs!"
+                     << endl;
                 cout << "        No dust emission with RAT alignment possible." << endl;
                 return MAX_UINT;
             }
@@ -3328,9 +3328,18 @@ class CGridBasic
 
         if(param.getAligRAT())
         {
-            if(data_pos_aalg == MAX_UINT)
+            if(data_pos_aalg_list.empty())
             {
                 cout << "\nERROR: Grid contains no minimum alignment radius for RATs!" << endl;
+                cout << "        No dust scattering calculations with RAT alignment "
+                        "possible."
+                     << endl;
+                return MAX_UINT;
+            }
+            else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
+            {
+                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for RATs!"
+                     << endl;
                 cout << "        No dust scattering calculations with RAT alignment "
                         "possible."
                      << endl;
@@ -3358,7 +3367,7 @@ class CGridBasic
             return MAX_UINT;
         }
 
-        if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
+        if(!data_pos_rf_list.empty() && data_pos_rf_list.size() != WL_STEPS)
         {
             cout << "\nERROR: The grid includes partial/no information about a radiation "
                     "field!"
@@ -3460,7 +3469,7 @@ class CGridBasic
             return MAX_UINT;
         }
 
-        if(data_pos_rf_list.size() > 0 && data_pos_rf_list.size() != WL_STEPS)
+        if(!data_pos_rf_list.empty() && data_pos_rf_list.size() != WL_STEPS)
         {
             cout << "\nERROR: The grid includes partial/no information about a radiation "
                     "field!"
@@ -3592,7 +3601,6 @@ class CGridBasic
 
     double conv_length_in_SI, conv_dens_in_SI;
     double conv_Bfield_in_SI, conv_Vfield_in_SI;
-    double mass_fraction;
 
     double total_gas_mass;
     double mu;
@@ -3640,7 +3648,7 @@ class CGridBasic
     uint data_pos_px;
     uint data_pos_py;
     uint data_pos_pz;
-    uint data_pos_aalg;
+    uilist data_pos_aalg_list;
     uint data_pos_amin;
     uint data_pos_amax;
     uint data_pos_eq;
@@ -3715,7 +3723,7 @@ class CGridBasic
     double ** buffer_dust_dens;
     double * buffer_gas_temp;
     double ** buffer_dust_temp;
-    double * buffer_rat;
+    double ** buffer_rat;
     double * buffer_delta;
     double * buffer_mag;
     double * buffer_mag_x;

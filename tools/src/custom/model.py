@@ -485,15 +485,15 @@ class GGTauDisk(Model):
                     self.disk_Aa = True
                     self.disk_Ab1 = True
                     self.disk_Ab2 = True
-                    # Increase size of Ab2
-                    self.outer_radius_Ab2 = 3. * self.math.const['au']
-                    # Increase scale height of Aa
-                    self.ref_scale_height[1] = 0.8 * self.math.const['au']
                     # Rotate Ab2 CS disk
                     self.inclination_Ab2 = 90. / 180. * np.pi
                     # Adjust vertical cell number
                     self.cylindrical_parameter['n_z'] = 300
                     self.fixed_scale_height = 0.45 * self.math.const['au']
+                    # Increase size of Ab2
+                    self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase scale height of Aa
+                    self.ref_scale_height[1] = 0.8 * self.math.const['au']
                     # Radial cell borders
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
                                                   self.a_Aab + 8. * self.math.const['au'], 300)

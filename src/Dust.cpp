@@ -2873,10 +2873,12 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
 
     // Mix various parameters
     // Have to be mixed for each grain size in the future!
-    // material_density += comp->getFraction() * comp->getMaterialDensity();
     aspect_ratio += comp->getFraction() * comp->getAspectRatio();
-    delta_rat += comp->getFraction() * comp->getDeltaRat();
     gold_g_factor += comp->getFraction() * comp->getGoldFactor();
+    delta_rat += comp->getFraction() * comp->getDeltaRat();
+
+    // Add all dust-to-gas mass ratios together
+    dust_mass_fraction += comp->getDustMassFraction();
 
     // Check for scattering phase function (use HG if one or more components use HG)
     if(comp->getPhaseFunctionID() < phID)
@@ -3061,7 +3063,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     // Calculate the parameters for radiative torque alignment
     if((alignment & ALIG_RAT) == ALIG_RAT)
     {
-        a_alig = grid->getAlignedRadius(pp);
+        a_alig = grid->getAlignedRadius(pp, i_density);
         if(a_eff[a] > a_alig)
         {
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
@@ -3471,7 +3473,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     // Calculate the aligned radii only for cells with a density not zero
     if(getNumberDensity(grid, cell, i_density) == 0)
     {
-        grid->setAlignedRadius(cell, a_eff[nr_of_dust_species - 1]);
+        grid->setAlignedRadius(cell, i_density, a_eff[nr_of_dust_species - 1]);
         return;
     }
 
@@ -3640,7 +3642,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
         a_alig = a_max;
 
     // Set aligned grain size in grid
-    grid->setAlignedRadius(cell, a_alig);
+    grid->setAlignedRadius(cell, i_density, a_alig);
     grid->setAvgDir(cell, dir);
     grid->setAvgTheta(cell, th);
 
@@ -4620,9 +4622,6 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
     mixed_component = new CDustComponent[nr_of_dust_mixtures];
     for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
     {
-        // Init the sum of the current dust composition
-        double sum = 0;
-
         // Set up the relation between dust_i_mixture and the "real" dust index used in
         // this code.
         uilist unique_components;
@@ -4663,6 +4662,28 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
         mixed_component[i_mixture].setSizeMin(a_min_mixture);
         mixed_component[i_mixture].setSizeMax(a_max_mixture);
 
+        // Init the sum of the current dust composition
+        double fraction_sum = 0;
+
+        // Calculate the sum of all fractions
+        for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+        {
+            // Get the global id of the current dust component
+            uint dust_component_choice = unique_components[i_comp];
+
+            double fraction = param.getDustFraction(dust_component_choice);
+            fraction_sum += fraction;
+        }
+
+        /* Not necessary
+        if(!param.getIndividualDustMassFractions() && fraction_sum != 1.0)
+        {
+            cout << "\nERROR: Fractions of dust materials do not add up to 100 % "
+                 << "(" << sum << "%)!" << endl;
+            return false;
+        }
+        */
+
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
@@ -4675,8 +4696,19 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get dust component fraction of mixture
             double fraction = param.getDustFraction(dust_component_choice);
-            single_component[i_comp].setFraction(fraction);
-            sum += fraction;
+
+            // Set mass fractions of each
+            if(param.getIndividualDustMassFractions())
+            {
+                single_component[i_comp].setIndividualDustMassFractions(true);
+                single_component[i_comp].setDustMassFraction(fraction);
+                single_component[i_comp].setFraction(fraction / fraction_sum);
+            }
+            else
+            {
+                single_component[i_comp].setDustMassFraction(param.getDustMassFraction());
+                single_component[i_comp].setFraction(fraction / fraction_sum);
+            }
 
             // Get size distribution parameters
             string size_keyword = param.getDustSizeKeyword(dust_component_choice);
@@ -4726,14 +4758,6 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             // Write dust component files, if multiple components will be mixed together
             if(nr_of_components > 1)
                 single_component[i_comp].writeComponent(path_data, path_plot);
-        }
-
-        // Check if the sum of the fractions of the dust components add up to one
-        if(sum != 1.0)
-        {
-            cout << "\nERROR: Fractions of dust materials do not add up to 100 % "
-                 << "(" << sum << "%)!" << endl;
-            return false;
         }
 
         // Set the ID and number of the mixtures
@@ -4836,6 +4860,19 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         }
         else
             cout << "not available (This should not happen!)" << endl;
+
+        if(param.getAligRAT())
+        {
+            cout << "- Alignment radii         : ";
+            if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+                cout << "found a common radius for all dust mixtures" << endl;
+            else if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+                cout << "found a common radius for all dust mixtures and density dist." << endl;
+            else if(!grid->useDustChoice() && grid->getNrAlignedRadii() == getNrOfMixtures())
+                cout << "found a separate radius for each density distribution" << endl;
+            else
+                cout << "ERROR: This should not happen!" << endl;
+        }
 
         cout << "- Include scattered light : ";
         if(grid->getRadiationFieldAvailable())
@@ -5051,6 +5088,9 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         // Only if no component can be aligned, do not use alignment of mixture
         if(single_component[i_comp].isAligned())
             mixed_component[i_mixture].setIsAligned(true);
+
+        if(single_component[i_comp].getIndividualDustMassFractions())
+            mixed_component[i_mixture].setIndividualDustMassFractions(true);
 
         // Add parameters of each component together to the mixture
         if(!mixed_component[i_mixture].add(size_fraction[i_comp], &single_component[i_comp]))

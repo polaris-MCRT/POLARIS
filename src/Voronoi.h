@@ -93,7 +93,7 @@ class CGridVoronoi : public CGridBasic
         data_pos_px = MAX_UINT;
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
-        data_pos_aalg = MAX_UINT;
+        // data_pos_aalg = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
         data_pos_eq = MAX_UINT;

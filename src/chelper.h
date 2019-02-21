@@ -501,6 +501,7 @@ class parameters
         save_radiation_field = false;
         scattering_to_raytracing = true;
         sublimate = false;
+        individual_dust_fractions = false;
 
         nr_ofISRFPhotons = 0;
         nr_ofDustPhotons = 0;
@@ -849,7 +850,7 @@ class parameters
         return nr_ofDustPhotons;
     }
 
-    double getMassFraction()
+    double getDustMassFraction()
     {
         return conv_mass_fraction;
     }
@@ -922,6 +923,11 @@ class parameters
     bool getScatteringToRay()
     {
         return scattering_to_raytracing;
+    }
+
+    bool getIndividualDustMassFractions()
+    {
+        return individual_dust_fractions;
     }
 
     bool getIsSpeedOfSound()
@@ -1033,7 +1039,7 @@ class parameters
 
     uint getNrOfMixtures()
     {
-        if(dust_choices.size() > 0)
+        if(!dust_choices.empty())
             return dust_choices.size();
         else
             return 1;
@@ -1249,7 +1255,7 @@ class parameters
         // If the dust component choice of a dust component is already loaded,
         // add the "dust_component_choice" to the list of component_id_to_choice but not
         // to the dust_choices.
-        if(component_id_to_choice.size() > 0)
+        if(!component_id_to_choice.empty())
             for(uint a = 0; a < component_id_to_choice.size(); a++)
                 if(component_id_to_choice[a] == dust_component_choice)
                 {
@@ -1261,6 +1267,9 @@ class parameters
         // available choices.
         component_id_to_choice.push_back(dust_component_choice);
         dust_choices.push_back(dust_component_choice);
+
+        // Sort dust choices
+        sort(dust_choices.begin(), dust_choices.end());
 
         // Update the highest value of the dust choice ids.
         if(dust_component_choice > max_dust_component_choice)
@@ -1547,7 +1556,7 @@ class parameters
     void updateSIConvLength(double val)
     {
         if(conv_l_in_SI != 1 && val != 1)
-            cout << "\nHINT: <conv_len> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_len> may not be used multiple times!" << endl
                  << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_l_in_SI *= val;
     }
@@ -1555,7 +1564,7 @@ class parameters
     void updateSIConvDH(double val)
     {
         if(conv_dH_in_SI != 1 && val != 1)
-            cout << "\nHINT: <conv_dens> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_dens> may not be used multiple times!" << endl
                  << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_dH_in_SI *= val;
     }
@@ -1563,7 +1572,7 @@ class parameters
     void updateSIConvBField(double val)
     {
         if(conv_B_in_SI != 1 && val != 1)
-            cout << "\nHINT: <conv_mag> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_mag> may not be used multiple times!" << endl
                  << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_B_in_SI *= val;
     }
@@ -1571,14 +1580,19 @@ class parameters
     void updateSIConvVField(double val)
     {
         if(conv_V_in_SI != 1 && val != 1)
-            cout << "\nHINT: <conv_vel> may be used multiple times!" << endl
+            cout << "\nHINT: <conv_vel> may not be used multiple times!" << endl
                  << "      -> No problem if <path_grid_cgs> was used!" << endl;
         conv_V_in_SI *= val;
     }
 
-    void setMassFraction(double val)
+    void setDustMassFraction(double val)
     {
         conv_mass_fraction = val;
+    }
+
+    void setIndividualDustMassFractions(bool val)
+    {
+        individual_dust_fractions = val;
     }
 
     void addAlignmentMechanism(uint val)
@@ -2419,6 +2433,8 @@ class parameters
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
     bool scattering_to_raytracing;
+    bool individual_dust_fractions;
+
     strlist zeeman_catalog_path;
 
     uint phID;

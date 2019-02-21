@@ -531,11 +531,11 @@ bool CGridCylindrical::writeGNUPlotFiles(string path, parameters & param)
         return false;
     }
 
-    plt_gas_dens = (data_pos_gd_list.size() > 0); // 1
-    plt_dust_dens = false;                    // param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
-    plt_gas_temp = (data_pos_tg != MAX_UINT); // 3
-    plt_dust_temp = (!data_pos_dt_list.empty());                        // 4
-    plt_rat = (data_pos_aalg != MAX_UINT);                              // 5
+    plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
+    plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
+    plt_dust_temp = (!data_pos_dt_list.empty()); // 4
+    plt_rat = (!data_pos_aalg_list.empty());     // 5
     plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
     plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);  // && (data_pos_td != MAX_UINT); // 7
     plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8

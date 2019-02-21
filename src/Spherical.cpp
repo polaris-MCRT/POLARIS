@@ -415,11 +415,11 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         return false;
     }
 
-    plt_gas_dens = (data_pos_gd_list.size() > 0); // 1
-    plt_dust_dens = false;                    // param.getPlot(plIDnd) && (data_pos_dd_list.size() > 0); // 2
-    plt_gas_temp = (data_pos_tg != MAX_UINT); // 3
+    plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
+    plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
-    plt_rat = (data_pos_aalg != MAX_UINT);       // 5
+    plt_rat = (!data_pos_aalg_list.empty());     // 5
     plt_delta = false;                           // param.getPlot(plIDdelta) && (data_pos_tg != MAX_UINT) &&
                        // (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 6
     plt_larm = false; // param.getPlot(plIDlarm) && (data_pos_tg != MAX_UINT) &&
@@ -933,7 +933,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
                     if(plt_rat)
                     {
-                        double a_alg = getAlignedRadius(tmp_cell_pos);
+                        double a_alg = getAlignedRadius(tmp_cell_pos, 0);
                         point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
                                         << a_alg << endl;
                     }

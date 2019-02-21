@@ -2168,7 +2168,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 104
         i_quantity = 4
         i_subplot = 8
         vmin = 1e-7

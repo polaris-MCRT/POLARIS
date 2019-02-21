@@ -450,7 +450,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 
     // Calculate radiation field before raytracing (if sources defined and no radiation
     // field in grid)
-    if(!grid->getRadiationFieldAvailable() && param.getScatteringToRay() && sources_mc.size() > 0)
+    if(!grid->getRadiationFieldAvailable() && param.getScatteringToRay() && !sources_mc.empty())
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
@@ -897,7 +897,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             sources_mc.push_back(tmp_source);
         }
 
-        if(param.getBackgroundSources().size() > 0)
+        if(!param.getBackgroundSources().empty())
             cout << "\nERROR: Background sources can only be used for raytracing "
                     "simulations!"
                  << endl;
