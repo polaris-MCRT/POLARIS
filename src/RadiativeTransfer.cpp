@@ -1255,7 +1255,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
     // Get maximum length of the simulation model
     double max_length = grid->getMaxLength();
 
-    if(sync_ray_detectors.size() > 0)
+    if(!sync_ray_detectors.empty())
     {
         for(uint i_det = start; i_det <= stop; i_det++)
         {
@@ -1799,7 +1799,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     // Get maximum length of the simulation model
     double max_length = grid->getMaxLength();
 
-    if(dust_ray_detectors.size() > 0)
+    if(!dust_ray_detectors.empty())
     {
         for(uint i_det = start; i_det <= stop; i_det++)
         {

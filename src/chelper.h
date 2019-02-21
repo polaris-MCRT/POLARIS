@@ -1033,7 +1033,7 @@ class parameters
 
     uint getNrOfMixtures()
     {
-        if(dust_choices.size() > 0)
+        if(!dust_choices.empty())
             return dust_choices.size();
         else
             return 1;
@@ -1249,7 +1249,7 @@ class parameters
         // If the dust component choice of a dust component is already loaded,
         // add the "dust_component_choice" to the list of component_id_to_choice but not
         // to the dust_choices.
-        if(component_id_to_choice.size() > 0)
+        if(!component_id_to_choice.empty())
             for(uint a = 0; a < component_id_to_choice.size(); a++)
                 if(component_id_to_choice[a] == dust_component_choice)
                 {

@@ -3061,7 +3061,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     // Calculate the parameters for radiative torque alignment
     if((alignment & ALIG_RAT) == ALIG_RAT)
     {
-        a_alig = grid->getAlignedRadius(pp);
+        a_alig = grid->getAlignedRadius(pp, i_density);
         if(a_eff[a] > a_alig)
         {
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
@@ -3471,7 +3471,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     // Calculate the aligned radii only for cells with a density not zero
     if(getNumberDensity(grid, cell, i_density) == 0)
     {
-        grid->setAlignedRadius(cell, a_eff[nr_of_dust_species - 1]);
+        grid->setAlignedRadius(cell, i_density, a_eff[nr_of_dust_species - 1]);
         return;
     }
 
@@ -3640,7 +3640,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
         a_alig = a_max;
 
     // Set aligned grain size in grid
-    grid->setAlignedRadius(cell, a_alig);
+    grid->setAlignedRadius(cell, i_density, a_alig);
     grid->setAvgDir(cell, dir);
     grid->setAvgTheta(cell, th);
 
