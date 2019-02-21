@@ -1181,6 +1181,11 @@ class CGridBasic
             cell->setData(data_pos_dt_list[i_density], temp);
     }
 
+    uint getNrAlignedRadii()
+    {
+        return data_pos_aalg_list.size();
+    }
+
     double getAlignedRadius(cell_basic * cell, uint i_density)
     {
         if(data_pos_aalg_list.size() > 1)

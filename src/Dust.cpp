@@ -4837,6 +4837,19 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         else
             cout << "not available (This should not happen!)" << endl;
 
+        if(param.getAligRAT())
+        {
+            cout << "- Alignment radii         : ";
+            if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+                cout << "found a common radius for all dust mixtures" << endl;
+            else if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+                cout << "found a common radius for all dust mixtures and density dist." << endl;
+            else if(!grid->useDustChoice() && grid->getNrAlignedRadii() == getNrOfMixtures())
+                cout << "found a separate radius for each density distribution" << endl;
+            else
+                cout << "ERROR: This should not happen!" << endl;
+        }
+
         cout << "- Include scattered light : ";
         if(grid->getRadiationFieldAvailable())
         {
