@@ -747,10 +747,10 @@ class CGridBasic
         if(data_pos_rf_list.empty())
         {
             double mult = 1.0 / getVolume(cell);
-            if(wID == 0)
-                mult /= wl_list[1] - wl_list[0];
-            else
-                mult /= wl_list[wID] - wl_list[wID - 1];
+            // if(wID == 0)
+            //     mult /= wl_list[1] - wl_list[0];
+            // else
+            //     mult /= wl_list[wID] - wl_list[wID - 1];
             return getSpecLength(cell, wID) * mult;
         }
         return cell->getData(data_pos_rf_list[wID]);

@@ -2879,6 +2879,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
 
     // Add all dust-to-gas mass ratios together
     dust_mass_fraction += comp->getDustMassFraction();
+    fraction += comp->getFraction();
 
     // Check for scattering phase function (use HG if one or more components use HG)
     if(comp->getPhaseFunctionID() < phID)
@@ -4706,7 +4707,8 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             }
             else
             {
-                single_component[i_comp].setDustMassFraction(param.getDustMassFraction());
+                single_component[i_comp].setDustMassFraction(fraction * param.getDustMassFraction() /
+                                                             fraction_sum);
                 single_component[i_comp].setFraction(fraction / fraction_sum);
             }
 
