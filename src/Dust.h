@@ -1810,7 +1810,7 @@ class CDustComponent
         str_stream.str("");
 
         // Start with printing the dust components (if mixture or only single component)
-        if(stringID.length() == 0 || comp->getComponentId() == comp->getNrOfComponents() - 1)
+        if(stringID.length() == 0 || comp->getNrOfComponents() == 1)
             str_stream << "Dust components:" << endl;
 
         // Use the fraction as dust to gas mass ratio (if user chosen it)
@@ -1850,7 +1850,7 @@ class CDustComponent
         str_stream << tmp_str;
 
         // Add stream to stringID or replace it if only one component
-        if(comp->getComponentId() == comp->getNrOfComponents() - 1)
+        if(comp->getNrOfComponents() == 1)
             stringID = str_stream.str();
         else
             stringID += str_stream.str();
