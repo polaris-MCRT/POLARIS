@@ -2110,9 +2110,20 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_rat)
     {
-        counter++;
-        updateMidplaneString(str_1, str_2, counter);
-        pFits->pHDU().addKey(str_1, "rat_aalig [m]", str_2);
+        if(nr_densities > 1)
+            for(uint i_density = 1; i_density <= nr_densities; i_density++)
+            {
+                counter++;
+                updateMidplaneString(str_1, str_2, counter);
+                string str_3 = getDensityString("rat_aalig_%i [m]", i_density);
+                pFits->pHDU().addKey(str_1, str_3, str_2);
+            }
+        else
+        {
+            counter++;
+            updateMidplaneString(str_1, str_2, counter);
+            pFits->pHDU().addKey(str_1, "rat_aalig [m]", str_2);
+        }
     }
     if(plt_delta)
     {
