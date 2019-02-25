@@ -494,6 +494,7 @@ class GGTauDisk(Model):
                     self.outer_radius_Ab2 = 3. * self.math.const['au']
                     # Increase scale height of Aa
                     self.ref_scale_height[1] = 0.8 * self.math.const['au']
+                    self.ref_scale_height[3] = 0.1 * self.math.const['au']
                     # Radial cell borders
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
                                                   self.a_Aab + 8. * self.math.const['au'], 300)

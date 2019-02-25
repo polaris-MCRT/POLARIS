@@ -1891,6 +1891,7 @@ class CustomPlots:
                         uncertainty = np.sqrt(
                             (1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
                         print('obs. error:', uncertainty)
+                        print('BG flux:', np.divide(flux[:], np.std(obs_error)))
                     if i_subplot == 2:
                         print(flux_sum[0, i_subplot, :])
                 # Hide second observation plot
