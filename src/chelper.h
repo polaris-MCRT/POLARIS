@@ -2610,7 +2610,7 @@ class photon_package
 
     void initRandomGenerator(ullong seed)
     {
-        mf.initRnd(seed);
+        rand_gen.setSeed(seed);
     }
 
     uint getAbsorptionEvents()
@@ -2647,8 +2647,7 @@ class photon_package
 
     double const getRND()
     {
-        double tt = mf.ran2();
-        return tt;
+        return rand_gen.getValue();
     }
 
     double & getTmpPathLength()
@@ -2695,7 +2694,7 @@ class photon_package
         double cos_theta = ez.Z();
         double sin_theta = sin(theta);
 
-        mD = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
 
         ex = mD * Vector3D(1, 0, 0);
         ey = mD * Vector3D(0, 1, 0);
@@ -2710,7 +2709,7 @@ class photon_package
         double cos_theta = ez.Z();
         double sin_theta = sin(theta);
 
-        Matrix2D D_help = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
         mD = mD * D_help;
 
         ex = mD * Vector3D(1, 0, 0);
@@ -2725,7 +2724,7 @@ class photon_package
         double cos_theta = cos(theta);
         double sin_theta = sin(theta);
 
-        Matrix2D D_help = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
         mD = mD * D_help;
 
         ex = mD * Vector3D(1, 0, 0);
@@ -2876,7 +2875,7 @@ class photon_package
     }
 
   private:
-    CMathFunctions mf;
+    CRandomGenerator rand_gen;
     Vector3D pos;
     Vector3D pos_li;
     Vector3D ex;
