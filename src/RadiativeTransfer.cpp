@@ -649,7 +649,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init cross sections
-                double Cext, Csca;
+                double Cext;
 
                 // Init photon package
                 photon_package * rays;
@@ -816,7 +816,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             {
                                 // Calculate the dust scattering cross section (for random
                                 // alignment)
-                                Csca = dust->getCscaMean(grid, pp);
+                                // Csca = dust->getCscaMean(grid, pp);
 
                                 // If peel-off is used, add flux to the detector
                                 if(peel_off)

@@ -2645,13 +2645,13 @@ class photon_package
         return stokes;
     }
 
-    double getRND()
+    double const getRND()
     {
         double tt = mf.ran2();
         return tt;
     }
 
-    double getTmpPathLength()
+    double & getTmpPathLength()
     {
         return tmp_path;
     }

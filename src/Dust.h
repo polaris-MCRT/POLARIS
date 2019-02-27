@@ -2512,7 +2512,7 @@ class CDustMixture
         }
     }
 
-    double getCextMean(CGridBasic * grid, photon_package * pp)
+    double const getCextMean(CGridBasic * grid, photon_package * pp)
     {
         double sum = 0;
         if(mixed_component != 0)
@@ -2530,7 +2530,7 @@ class CDustMixture
         return sum;
     }
 
-    double getCabsMean(CGridBasic * grid, photon_package * pp)
+    double const getCabsMean(CGridBasic * grid, photon_package * pp)
     {
         double sum = 0;
         if(mixed_component != 0)
@@ -2548,7 +2548,7 @@ class CDustMixture
         return sum;
     }
 
-    double getCscaMean(CGridBasic * grid, photon_package * pp)
+    double const getCscaMean(CGridBasic * grid, photon_package * pp)
     {
         double sum = 0;
         if(mixed_component != 0)
@@ -2707,7 +2707,7 @@ class CDustMixture
         return min_temp;
     }
 
-    double getMaxDustTemp()
+    double const getMaxDustTemp()
     {
         double max_temp = 0;
         if(mixed_component != 0)
@@ -2747,7 +2747,7 @@ class CDustMixture
     }
 
     // Dust number density functions
-    double getNumberDensity(CGridBasic * grid, cell_basic * cell)
+    double const getNumberDensity(CGridBasic * grid, cell_basic * cell)
     {
         double sum = 0;
         if(mixed_component != 0)
@@ -2764,7 +2764,7 @@ class CDustMixture
         return sum;
     }
 
-    double getNumberDensity(CGridBasic * grid, photon_package * pp)
+    double const getNumberDensity(CGridBasic * grid, photon_package * pp)
     {
         return getNumberDensity(grid, pp->getPositionCell());
     }
