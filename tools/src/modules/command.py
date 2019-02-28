@@ -458,9 +458,9 @@ class CmdPolaris:
                 self.file_io.path['polaris'] + 'cfitsio:${DYLD_LIBRARY_PATH}"\n')
         if self.parse_args.save_output:
             run_file.write(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['simulation_type'] +
-                'POLARIS.cmd ' + '| tee ' + self.file_io.path['simulation_type'] + '/POLARIS.out\n')
+                'POLARIS.cmd ' + '| tee ' + self.file_io.path['simulation_type'] + 'POLARIS.out\n')
             run_file.write(r"sed -i 's/\r$//; s/\r/\r\n/g; /\r/d' " +
-                self.file_io.path['simulation_type'] + '/POLARIS.out\n')
+                self.file_io.path['simulation_type'] + 'POLARIS.out\n')
         else:
             run_file.write(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['simulation_type'] +
                 'POLARIS.cmd' + '\n')

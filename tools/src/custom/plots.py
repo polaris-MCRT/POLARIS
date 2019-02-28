@@ -2370,11 +2370,11 @@ class CustomPlots:
         star_descr = ['Aa', 'Ab1', 'Ab2']
         for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
             if i_star == 0:
-                offset = np.array([-35, -10]) * 1.3
+                offset = np.array([-35, -10]) * 1.4
             elif i_star == 1:
-                offset = np.array([-22, 10]) * 1.3
+                offset = np.array([-22, 10]) * 1.5
             elif i_star == 2:
-                offset = np.array([40, -12]) * 1.2
+                offset = np.array([40, -12]) * 1.3
             pos_arcsec = np.add(
                 np.divide(position[0:2], self.math.const['au']), offset) / 140.
             plot.plot_text(pos_arcsec,

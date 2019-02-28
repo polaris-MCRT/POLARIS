@@ -257,7 +257,7 @@ class GridRoutines:
             for i in range(len(self.model.parameter['dust_mass'])):
                 for j in range(len(self.model.parameter['dust_mass'][i])):
                     print('--- Total dust mass of density distribution ' + str(i + 1) +
-                          ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_gas_mass[i][j] /
+                          ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_dust_mass[i][j] /
                                                                                     self.math.const['M_sun']))
 
     def update_polaris_grid(self, reverse=False):

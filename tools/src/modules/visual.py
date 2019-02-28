@@ -154,10 +154,6 @@ class Plot:
             from mpl_toolkits.mplot3d import Axes3D
             self.fig = plt.figure(figsize=(1.8 * size_x, 1.8 * size_y))
             self.ax_list = self.fig.gca(projection='3d')
-            if parse_args.gray_background:
-                self.fig.gca().patch.set_facecolor('#FAFAFA')
-            else:
-                self.fig.gca().patch.set_facecolor('white')
             self.ax_list = np.array([self.ax_list])
             self.ax_list[0].w_xaxis.set_pane_color((0.8, 0.8, 0.8, 1.0))
             self.ax_list[0].w_yaxis.set_pane_color((0.8, 0.8, 0.8, 1.0))
