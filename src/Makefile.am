@@ -8,3 +8,4 @@ polaris_SOURCES = CommandParser.cpp CommandParser.h Cylindrical.cpp Cylindrical.
 clean::
 	rm -rf polaris
 	rm -rf *.o
+	rm -rf .deps/
