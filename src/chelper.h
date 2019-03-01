@@ -529,6 +529,7 @@ class parameters
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
+        isrf_radius = 0;
 
         isrf_path = "";
 
@@ -987,6 +988,11 @@ class parameters
         return isrf_g_zero;
     }
 
+    double getISRFRadius()
+    {
+        return isrf_radius;
+    }
+
     string getISRFPath()
     {
         return isrf_path;
@@ -1235,14 +1241,11 @@ class parameters
         cmd = val;
     }
 
-    void setISRFPath(string val)
+    void setISRF(string path, double g_zero = 0, double radius = 2)
     {
-        isrf_path = val;
-    }
-
-    void setISRFGZero(double val)
-    {
-        isrf_g_zero = val;
+        isrf_path = path;
+        isrf_g_zero = g_zero;
+        isrf_radius = radius;
     }
 
     void setNrOfISRFPhotons(long val)
@@ -2493,6 +2496,7 @@ class parameters
     double f_cor;
     double adjTgas;
     double isrf_g_zero;
+    double isrf_radius;
 
     ullong nr_ofISRFPhotons;
     ullong nr_ofDustPhotons;

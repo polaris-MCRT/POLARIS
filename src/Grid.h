@@ -548,7 +548,7 @@ class CGridBasic
         return min_len;
     }
 
-    double getMaxLength()
+    double & getMaxLength()
     {
         return max_len;
     }

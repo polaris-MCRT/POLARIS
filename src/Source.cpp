@@ -629,15 +629,13 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
 {
     double * star_emi = new double[getNrOfWavelength()];
 
-    sidelength = 2.0 * grid->getMaxLength();
-
     cout << CLR_LINE << flush;
     cout << "-> Initiating interstellar radiation field          \r" << flush;
 
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
         double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1 sr^-1]
-        double sp_energy = pl * PI * 3 * pow(sidelength, 2);
+        double sp_energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2);
         if(g_zero > 0)
             sp_energy *= PIx2; //[W m^-1] energy per second an wavelength
         star_emi[w] = sp_energy;
@@ -671,10 +669,11 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
              << "      " << endl;
     }
 
+    cout << "    Radius: " << radius << " * Sidelength, ";
     if(g_zero > 0)
-        cout << "    G_0: " << g_zero << " (see Mathis et al. 1983)" << endl;
+        cout << "G_0: " << g_zero << " (see Mathis et al. 1983)" << endl;
     else
-        cout << "    luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
+        cout << "luminosity: " << float(L / L_sun) << " [L_sun]" << endl;
 
     delete[] star_emi;
 
@@ -774,7 +773,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos, ullong nr_pho
     {
         wID = pp->getWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
-        energy = pl * PI * 3 * pow(sidelength, 2) / nr_photons;
+        energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2) / nr_photons;
         if(g_zero > 0)
             energy *= PIx2; //[W m^-1] energy per second an wavelength
     }
@@ -791,9 +790,9 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos, ullong nr_pho
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
 
     e.rndDir(pp->getRND(), pp->getRND());
-    l.setX(e.X() * sqrt(3) * sidelength / 2);
-    l.setY(e.Y() * sqrt(3) * sidelength / 2);
-    l.setZ(e.Z() * sqrt(3) * sidelength / 2);
+    l.setX(e.X() * sqrt(3) * radius * grid->getMaxLength() / 2);
+    l.setY(e.Y() * sqrt(3) * radius * grid->getMaxLength() / 2);
+    l.setZ(e.Z() * sqrt(3) * radius * grid->getMaxLength() / 2);
 
     pp->calcRandomDirection();
     while(pp->getDirection() * e >= 0)
