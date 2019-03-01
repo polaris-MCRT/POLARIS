@@ -422,7 +422,7 @@ class CSourceISRF : public CSourceBasic
     {
         nr_of_photons = param.getNrOfISRFPhotons();
         g_zero = param.getISRFGZero();
-        radius = param.getISRFRadius();
+        radius = param.getISRFRadius() * grid->getMaxLength();
 
         sp_ext.resize(getNrOfWavelength());
         for(uint w = 0; w < getNrOfWavelength(); w++)
