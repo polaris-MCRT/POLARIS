@@ -293,14 +293,9 @@ class TestRoutines:
     def test_1002004(self):
         """Perform test simulation to check heating via ISRF.
         """
-        self.get_result('temperature', limit_override=2)
+        self.get_result('temperature')
 
     def test_1002005(self):
-        """Perform test simulation to check heating via ISRF (radiation field approach).
-        """
-        self.get_result('temperature', limit_override=5)
-
-    def test_1002006(self):
         """Perform test simulation to check polarized background source in raytracing.
         """
         self.get_result('emission_map')
