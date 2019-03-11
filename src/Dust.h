@@ -2919,7 +2919,13 @@ class CDustMixture
 
     Matrix2D calcEmissivitiesExt(CGridBasic * grid, photon_package * pp)
     {
+        // Init variables
         double Cext = 0, Cpol = 0, Ccirc = 0;
+
+        // Calculate orientation of the Stokes vector in relation to the magnetic field
+        double phi = grid->getPhiMag(pp);
+        double sin_2ph = sin(2.0 * phi);
+        double cos_2ph = cos(2.0 * phi);
 
         if(mixed_component != 0)
         {
@@ -2949,14 +2955,23 @@ class CDustMixture
 
         // Create extinction matrix for the dust grains
         Matrix2D dust_matrix(4, 4);
+
         dust_matrix.setValue(0, 0, Cext);
         dust_matrix.setValue(1, 1, Cext);
         dust_matrix.setValue(2, 2, Cext);
         dust_matrix.setValue(3, 3, Cext);
-        dust_matrix.setValue(0, 1, Cpol);
-        dust_matrix.setValue(1, 0, Cpol);
-        dust_matrix.setValue(2, 3, Ccirc);
-        dust_matrix.setValue(3, 2, -Ccirc);
+
+        dust_matrix.setValue(0, 1, Cpol * cos_2ph);
+        dust_matrix.setValue(0, 2, Cpol * sin_2ph);
+
+        dust_matrix.setValue(1, 0, Cpol * cos_2ph);
+        dust_matrix.setValue(2, 0, Cpol * sin_2ph);
+
+        dust_matrix.setValue(1, 3, -Ccirc * sin_2ph);
+        dust_matrix.setValue(2, 3, Ccirc * cos_2ph);
+
+        dust_matrix.setValue(3, 1, -Ccirc * sin_2ph);
+        dust_matrix.setValue(3, 2, Ccirc * cos_2ph);
 
         return dust_matrix;
     }
