@@ -45,7 +45,7 @@ class CGasSpecies
         trans_einstB_u = 0;
 
         trans_freq = 0;
-        trans_inneregy = 0;
+        trans_inner_energy = 0;
 
         orientation_H2 = 0;
         nr_of_col_temp = 0;
@@ -608,7 +608,7 @@ class CGasSpecies
     double * j_level;
     int *trans_upper, *trans_lower;
     double *trans_einstA, *trans_einstB_l, *trans_einstB_u;
-    double *trans_freq, *trans_inneregy;
+    double *trans_freq, *trans_inner_energy;
     int * orientation_H2;
     double *lande_upper, *lande_lower;
 
