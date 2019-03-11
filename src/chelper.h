@@ -2145,7 +2145,7 @@ class parameters
         uint nr_of_transitions = getNrOfGasSpeciesTransitions(i_species);
         int * transitions = new int[nr_of_transitions];
         dlist line_ray_detector = getLineRayDetector(i_species);
-        for(uint i = 0; i < line_ray_detector_list.size(); i += NR_OF_LINE_DET)
+        for(uint i = 0; i < line_ray_detector_list[i_species].size(); i += NR_OF_LINE_DET)
         {
             uint pos = i / NR_OF_LINE_DET;
 
