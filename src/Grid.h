@@ -2886,7 +2886,8 @@ class CGridBasic
         if(data_pos_n_th == MAX_UINT && data_pos_n_th == MAX_UINT)
         {
             cout << "\nERROR: Neither thermal electrons nor CR electrons are defined in "
-                    "grid file!                                            \n" << endl;
+                    "grid file!                                            \n"
+                 << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
@@ -2932,11 +2933,11 @@ class CGridBasic
                      << endl;
                 data_pos_T_e = data_pos_tg;
             }*/
-            
+
             if(data_pos_T_e != MAX_UINT)
             {
                 cout << "\nHINT: Grid contains a electron temperature component!" << endl;
-                cout << "      This component is currently ignored!          "<< endl;
+                cout << "      This component is currently ignored!          " << endl;
             }
         }
 
@@ -2947,35 +2948,28 @@ class CGridBasic
         }
         else
         {
-        if(data_pos_g_min == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
+            if(data_pos_g_min == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no gamma_min component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
+
+            if(data_pos_g_max == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no gamma_max component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
+
+            if(data_pos_p == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no electron power-law index p component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
         }
 
-        if(data_pos_g_min == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
-
-        if(data_pos_g_max == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no gamma_max component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
-
-        if(data_pos_p == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no electron power-law index p component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
-        }
-            
         return 0;
     }
 
@@ -3530,7 +3524,6 @@ class CGridBasic
     }
 
   protected:
-      
     // uint grid_type;
     ulong max_cells;
     uint max_data;
