@@ -844,10 +844,6 @@ class CMathFunctions
             delete sigma;
     }
 
-    void initSEDStatistics(uint _nr_ofSeq);
-
-    bool writeSEDStatistics(string path, bool fin, Vector3D axis1, Vector3D axis2);
-
     static inline bool isPowerOfTwo(int num)
     {
         return ((num & (num - 1)) == 0);

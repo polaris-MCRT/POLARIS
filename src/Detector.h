@@ -1271,7 +1271,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6 * 3 };
+            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6*2 };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1290,7 +1290,7 @@ class CDetector
         fpixel[0] = 1;
         fpixel[1] = 1;
 
-        for(uint i_electrons = 0; i_electrons < 3; i_electrons++)
+        for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
             for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
             {
@@ -1419,7 +1419,7 @@ class CDetector
         pFits->pHDU().addKey("CRPIX4", 1, "pixel where CRVAL4 is defined ");
         pFits->pHDU().addKey("CDELT4", 1, "delta of axis 4");
 
-        pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, [Jy/px], ...", "unit of axis 4");
+        pFits->pHDU().addKey("CUNIT4", "CR only (I, Q, U, V [Jy/px], 0, Nth [m^-2]), CR+TH (I, Q, U, V [Jy/px], lambda^2 RM [rad], Ncr [m^-2])", "unit of axis 4");
         pFits->pHDU().addKey("ETYPE", "synchotron emission", "type of emission");
 
         pFits->pHDU().addKey("ID", nr, "detector ID");
@@ -1494,16 +1494,15 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 5;
-        vector<string> colName(3 * nr_of_quantities * nr_of_spectral_bins + 3, "");
-        vector<string> colForm(3 * nr_of_quantities * nr_of_spectral_bins + 3, "");
-        vector<string> colUnit(3 * nr_of_quantities * nr_of_spectral_bins + 3, "");
+        vector<string> colName(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
+        vector<string> colForm(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
+        vector<string> colUnit(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
 
         strlist e_description;
-        e_description.push_back("THERMAL ELECTRONS");
-        e_description.push_back("COSMIC RAYS");
-        e_description.push_back("TOTAL");
+        e_description.push_back("THERMAL_ELECTRONS");
+        e_description.push_back("COSMIC_RAYS");
 
-        for(uint i_electrons = 0; i_electrons < 3; i_electrons++)
+        for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
             for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
             {
@@ -1565,7 +1564,7 @@ class CDetector
                           e_description[i_electrons].c_str());
 #else
                 sprintf(str_1,
-                        "FARADY ROTATION (WAVELENGTH = %e [m], %s)",
+                        "WAVELENGTH^2*FARADY_ROTATION (WAVELENGTH = %e [m], %s)",
                         wavelength_list_det[i_spectral],
                         e_description[i_electrons].c_str());
 #endif
@@ -1581,7 +1580,7 @@ class CDetector
                 colUnit[id + 1] = "Jy/px";
                 colUnit[id + 2] = "Jy/px";
                 colUnit[id + 3] = "Jy/px";
-                colUnit[id + 4] = "rad/m^2";
+                colUnit[id + 4] = "rad";
             }
             char str_1[1024];
 #ifdef WINDOWS
@@ -1589,14 +1588,14 @@ class CDetector
 #else
             sprintf(str_1, "COLUMN_DENSITY (%s)", e_description[i_electrons].c_str());
 #endif
-            colName[3 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = str_1;
-            colForm[3 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "D";
-            colUnit[3 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "m^-2";
+            colName[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = str_1;
+            colForm[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "D";
+            colUnit[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "m^-2";
         }
 
         CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-        for(uint i_electrons = 0; i_electrons < 3; i_electrons++)
+        for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
             for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
             {
@@ -1617,8 +1616,7 @@ class CDetector
                         array_T[i] = matrixT[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
                         i++;
                     }
-                uint id =
-                    i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
+                uint id = i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
                 newTable->column(colName[id + 0]).write(array_I, 1);
                 newTable->column(colName[id + 1]).write(array_Q, 1);
                 newTable->column(colName[id + 2]).write(array_U, 1);
@@ -1635,7 +1633,7 @@ class CDetector
                     array_C[i] = matrixS[0 + i_electrons * nr_of_spectral_bins](i_x, i_y);
                     i++;
                 }
-            newTable->column(colName[3 * nr_of_quantities * nr_of_spectral_bins + i_electrons])
+            newTable->column(colName[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons])
                 .write(array_C, 1);
         }
 

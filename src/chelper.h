@@ -607,6 +607,19 @@ class parameters
         return midplane_3d_param;
     }
 
+    uilist & getPlotList()
+    {
+        return plot_list;
+    }
+
+    bool isInPlotList(uint id)
+    {
+        if(plot_list.empty())
+            return true;
+
+        return (find(plot_list.begin(), plot_list.end(), id) != plot_list.end());
+    }
+
     uint getInpMidDataPoints()
     {
         return nr_ofInpMidDataPoints;
@@ -1349,6 +1362,11 @@ class parameters
     void setDelta0(double val)
     {
         delta0 = val;
+    }
+
+    void addToPlotList(uint id)
+    {
+        plot_list.push_back(id);
     }
 
     void setLarmF(double val)
@@ -2425,6 +2443,8 @@ class parameters
 
     dlist midplane_3d_param;
     dlist star_mass;
+
+    uilist plot_list;
 
     bool b_mrw;
     bool b_pda;

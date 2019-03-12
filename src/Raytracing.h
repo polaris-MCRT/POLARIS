@@ -318,22 +318,17 @@ class CRaytracingBasic
 
     virtual void addToDetector(photon_package * pp1,
                                photon_package * pp2,
-                               photon_package * pp3,
                                int i_pix,
                                bool direct = false)
     {
         // pos was only traced of first photon package
         pp2->setPosition(pp1->getPosition());
-        pp3->setPosition(pp1->getPosition());
 
         // Add first package of photons to detector
         addToDetector(pp1, i_pix, direct);
 
         // Add second package of photons to detector
         addToDetector(pp2, i_pix, direct, 1);
-
-        // Add third package of photons to detector
-        addToDetector(pp3, i_pix, direct, 2);
     }
 
     virtual void setObserverPosition(Vector3D pos)
@@ -570,7 +565,7 @@ class CRaytracingCartesian : public CRaytracingBasic
         double lam_min = sync_ray_detectors[pos + 0];
         double lam_max = sync_ray_detectors[pos + 1];
         nr_spectral_bins = uint(sync_ray_detectors[pos + 2]);
-        nr_extra = 3;
+        nr_extra = 2;
 
         sID = uint(sync_ray_detectors[pos + 3]);
 
@@ -891,7 +886,7 @@ class CRaytracingHealPix : public CRaytracingBasic
         double lam_min = sync_ray_detectors[pos + 0];
         double lam_max = sync_ray_detectors[pos + 1];
         nr_spectral_bins = uint(sync_ray_detectors[pos + 2]);
-        nr_extra = 3;
+        nr_extra = 2;
 
         sID = uint(sync_ray_detectors[pos + 3]);
 
@@ -1419,7 +1414,7 @@ class CRaytracingPolar : public CRaytracingBasic
         double lam_min = sync_ray_detectors[pos + 0];
         double lam_max = sync_ray_detectors[pos + 1];
         nr_spectral_bins = uint(sync_ray_detectors[pos + 2]);
-        nr_extra = 3;
+        nr_extra = 2;
 
         sID = uint(sync_ray_detectors[pos + 3]);
 
@@ -1960,7 +1955,7 @@ class CRaytracingSlice : public CRaytracingBasic
         double lam_min = sync_ray_detectors[pos + 0];
         double lam_max = sync_ray_detectors[pos + 1];
         nr_spectral_bins = uint(sync_ray_detectors[pos + 2]);
-        nr_extra = 3;
+        nr_extra = 2;
 
         sID = uint(sync_ray_detectors[pos + 3]);
 
