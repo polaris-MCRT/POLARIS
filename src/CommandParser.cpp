@@ -763,6 +763,35 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->setLarmF(val);
         return true;
     }
+    
+    if(cmd.compare("<plot_list>") == 0)
+    {
+        dlist ids = parseValues(data);
+        
+        if(ids.empty())
+        {
+            cout << "\nWARNING: The list of plot IDs is empty! "   << endl;
+            cout << "         Only integers and no text is allowed!    "  << endl;
+            //return false;
+        }
+        
+        for(uint i=0;i<ids.size();i++)
+        {
+            uint id=ids[i];
+
+            if(id>=minGRID && id<=maxGRID)
+                param->addToPlotList(id);
+            else
+            {
+                cout << "\nWARNING: Unknown grid ID in line " << line_counter << "!    "  << endl;
+                cout << "         A plot ID of "<< id << " is not a valid POLARIS grid ID (see manual, Table 3.3)!     "  << endl;
+                //return false;
+            }
+                
+        }
+        
+        return true;
+    }
 
     if(cmd.compare("<phase_function>") == 0)
     {
@@ -2646,11 +2675,9 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         dlist values = parseValues(data);
 
         if(str.size() > 0)
-            param->setISRF(str);
+            param->setISRFPath(str);
         else if(values.size() == 1 && values[0] > 0)
-            param->setISRF("", values[0]);
-        else if(values.size() == 2 && values[0] > 0 && values[1] >= 1)
-            param->setISRF("", values[0], values[1]);
+            param->setISRFGZero(values[0]);
         else
         {
             cout << "\nERROR: Path of ISRF SED path could not be recognized!" << endl;

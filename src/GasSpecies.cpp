@@ -742,7 +742,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             trans_lower = new int[nr_of_total_transitions];
             trans_einstA = new double[nr_of_total_transitions];
             trans_freq = new double[nr_of_total_transitions];
-            trans_inner_energy = new double[nr_of_total_transitions];
+            trans_inneregy = new double[nr_of_total_transitions];
 
             trans_einstB_u = new double[nr_of_total_transitions];
             trans_einstB_l = new double[nr_of_total_transitions];
@@ -775,7 +775,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             // FREQ(GHz -> Hz)
             trans_freq[pos_counter] = values[4] * 1e9;
             // E_u(K)
-            trans_inner_energy[pos_counter] = values[5];
+            trans_inneregy[pos_counter] = values[5];
 
             trans_einstB_u[pos_counter] =
                 values[3] * pow(con_c / (values[4] * 1e9), 2.0) / (2.0 * con_h * (values[4] * 1e9));

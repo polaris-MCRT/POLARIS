@@ -649,7 +649,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             for(llong r = 0; r < llong(nr_of_photons); r++)
             {
                 // Init cross sections
-                double Cext;
+                double Cext, Csca;
 
                 // Init photon package
                 photon_package * rays;
@@ -816,7 +816,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             {
                                 // Calculate the dust scattering cross section (for random
                                 // alignment)
-                                // Csca = dust->getCscaMean(grid, pp);
+                                Csca = dust->getCscaMean(grid, pp);
 
                                 // If peel-off is used, add flux to the detector
                                 if(peel_off)
@@ -1409,7 +1409,7 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
         // Calculate continuum emission along one path
         getSyncIntensity(pp1, pp2, tmp_source, cx, cy, subpixel_lvl);
 
-        tracer->addToDetector(pp1, pp2, pp2, i_pix);
+        tracer->addToDetector(pp1, pp2, i_pix);
 
         // Delete photon package after usage
         delete pp1;
@@ -1472,7 +1472,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
         while(grid->next(pp1) && tracer->isNotAtCenter(pp1, cx, cy))
         {
             double n_th = grid->getThermalElectronDensity(pp1);
-            double T_e = grid->getElectronTemperature(pp1);
+            double T_e = 0.0;//grid->getElectronTemperature(pp1); //reserved for later use
 
             double n_cr = grid->getCRElectronDensity(pp1);
             double g_min = grid->getGammaMin(pp1);
@@ -1481,8 +1481,8 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
 
             double B = grid->getMagField(pp1).length();
 
-            // If the CR electron density is far too low, skip the current cell
-            if(n_cr >= 1e-200)
+            // If the all the electron densities are far too low, skip the current cell
+            if(n_cr + n_th>= 1e-200 )
             {
                 // Get path length through current cell
                 double len = pp1->getTmpPathLength();
@@ -1711,11 +1711,12 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                             // Add the temporary Stokes vector to the total one
                             WMap_cr.setS(stokes_new_cr, i_wave);
 
-                            // tau is set to Farraday rotation*lambda^2
+                            // tau is set to Farraday rotation*lambda^2 for CR electrons
+                            // (currently its set to zero)
                             WMap_cr.addT(syn_cr.kappa_V * cell_d_l, i_wave);
 
                             // Sp is set to the thermal electron column
-                            WMap_cr.addSp(n_cr * cell_d_l, i_wave);
+                            WMap_cr.addSp(n_th * cell_d_l, i_wave);//
 
                             // Add additional data to stokes vector
                             stokes_new_ca.setT(WMap_ca.T(i_wave));
@@ -1723,11 +1724,11 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
 
                             WMap_ca.setS(stokes_new_ca, i_wave);
 
-                            // tau is set to Farraday rotation*lambda^2
+                            // tau is set to Farraday rotation*lambda^2 for all
                             WMap_ca.addT(syn_ca.kappa_V * cell_d_l, i_wave);
 
                             // Sp is set to the CR electron column
-                            WMap_ca.addSp(n_cr * cell_d_l, i_wave);
+                            WMap_ca.addSp(n_cr * cell_d_l, i_wave);//
 
                             // Update the position of the photon package
                             pos_xyz_cell += cell_d_l * dir_map_xyz;

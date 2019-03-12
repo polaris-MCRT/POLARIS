@@ -529,7 +529,6 @@ class parameters
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
-        isrf_radius = 0;
 
         isrf_path = "";
 
@@ -605,6 +604,19 @@ class parameters
     dlist getMidplane3dParams()
     {
         return midplane_3d_param;
+    }
+    
+    uilist & getPlotList()
+    {
+        return plot_list;
+    }
+    
+    bool isInPlotList(uint id)
+    {
+        if(plot_list.empty())
+            return true;
+        
+        return (find(plot_list.begin(), plot_list.end(),id)!=plot_list.end());
     }
 
     uint getInpMidDataPoints()
@@ -988,11 +1000,6 @@ class parameters
         return isrf_g_zero;
     }
 
-    double getISRFRadius()
-    {
-        return isrf_radius;
-    }
-
     string getISRFPath()
     {
         return isrf_path;
@@ -1241,11 +1248,14 @@ class parameters
         cmd = val;
     }
 
-    void setISRF(string path, double g_zero = 0, double radius = 2)
+    void setISRFPath(string val)
     {
-        isrf_path = path;
-        isrf_g_zero = g_zero;
-        isrf_radius = radius;
+        isrf_path = val;
+    }
+
+    void setISRFGZero(double val)
+    {
+        isrf_g_zero = val;
     }
 
     void setNrOfISRFPhotons(long val)
@@ -1349,6 +1359,11 @@ class parameters
     void setDelta0(double val)
     {
         delta0 = val;
+    }
+    
+    void addToPlotList(uint id)
+    {
+        plot_list.push_back(id);
     }
 
     void setLarmF(double val)
@@ -2145,7 +2160,7 @@ class parameters
         uint nr_of_transitions = getNrOfGasSpeciesTransitions(i_species);
         int * transitions = new int[nr_of_transitions];
         dlist line_ray_detector = getLineRayDetector(i_species);
-        for(uint i = 0; i < line_ray_detector_list[i_species].size(); i += NR_OF_LINE_DET)
+        for(uint i = 0; i < line_ray_detector_list.size(); i += NR_OF_LINE_DET)
         {
             uint pos = i / NR_OF_LINE_DET;
 
@@ -2425,6 +2440,8 @@ class parameters
 
     dlist midplane_3d_param;
     dlist star_mass;
+    
+    uilist plot_list;
 
     bool b_mrw;
     bool b_pda;
@@ -2496,7 +2513,6 @@ class parameters
     double f_cor;
     double adjTgas;
     double isrf_g_zero;
-    double isrf_radius;
 
     ullong nr_ofISRFPhotons;
     ullong nr_ofDustPhotons;
@@ -2614,7 +2630,7 @@ class photon_package
 
     void initRandomGenerator(ullong seed)
     {
-        rand_gen.setSeed(seed);
+        mf.initRnd(seed);
     }
 
     uint getAbsorptionEvents()
@@ -2649,12 +2665,13 @@ class photon_package
         return stokes;
     }
 
-    double const getRND()
+    double getRND()
     {
-        return rand_gen.getValue();
+        double tt = mf.ran2();
+        return tt;
     }
 
-    double & getTmpPathLength()
+    double getTmpPathLength()
     {
         return tmp_path;
     }
@@ -2698,7 +2715,7 @@ class photon_package
         double cos_theta = ez.Z();
         double sin_theta = sin(theta);
 
-        mD = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
 
         ex = mD * Vector3D(1, 0, 0);
         ey = mD * Vector3D(0, 1, 0);
@@ -2713,7 +2730,7 @@ class photon_package
         double cos_theta = ez.Z();
         double sin_theta = sin(theta);
 
-        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        Matrix2D D_help = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
         mD = mD * D_help;
 
         ex = mD * Vector3D(1, 0, 0);
@@ -2728,7 +2745,7 @@ class photon_package
         double cos_theta = cos(theta);
         double sin_theta = sin(theta);
 
-        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        Matrix2D D_help = mf.getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
         mD = mD * D_help;
 
         ex = mD * Vector3D(1, 0, 0);
@@ -2879,7 +2896,7 @@ class photon_package
     }
 
   private:
-    CRandomGenerator rand_gen;
+    CMathFunctions mf;
     Vector3D pos;
     Vector3D pos_li;
     Vector3D ex;

@@ -766,53 +766,6 @@ inline spline operator*(double val, spline & spline2)
 }
 }
 
-class CRandomGenerator
-{
-  public:
-    CRandomGenerator()
-    {
-        kiss_x = 0;
-        kiss_y = 0;
-        kiss_z = 0;
-        kiss_c = 0;
-    }
-
-    void setSeed(ullong seed)
-    {
-        kiss_x = (seed * 1234567890987654321ULL) % 18446744073709551615ULL;
-        kiss_y = (seed * 362436362436362436ULL) % 18446744073709551615ULL;
-        kiss_z = (seed * 1066149217761810ULL) % 18446744073709551615ULL;
-        kiss_c = (seed * 123456123456123456ULL) % 18446744073709551615ULL;
-    }
-
-    double getValue()
-    {
-        // KISS (Keep it Simple Stupid) is a family of pseudorandom number generators
-        // introduced by George Marsaglia.
-        // Source: https://de.wikipedia.org/wiki/KISS_(Zufallszahlengenerator)
-        ullong t;
-
-        kiss_z = 6906969069LL * kiss_z + 1234567;
-
-        // Xorshift
-        kiss_y ^= kiss_y << 13;
-        kiss_y ^= kiss_y >> 17;
-        kiss_y ^= kiss_y << 43;
-
-        // Multiply-with-carry
-        t = (kiss_x << 58) + kiss_c;
-        kiss_c = (kiss_x >> 6);
-        kiss_x += t;
-        kiss_c += (kiss_x < t);
-
-        // Return double between 0 and 1
-        return double(kiss_x + kiss_y + kiss_z) / 18446744073709551615ULL;
-    }
-
-  private:
-    ullong kiss_x, kiss_y, kiss_z, kiss_c;
-};
-
 class CMathFunctions
 {
   public:
@@ -824,9 +777,28 @@ class CMathFunctions
         d = 0;
         y = 0;
         sigma = 0;
+        srand(int(time(NULL)) ^ (omp_get_thread_num() + 1));
 
+        IY = 0;
+        M = 0;
+        IDUM = 0;
+        IFF = 0;
+        IC = 0;
+        N = 0;
         nr_ofSeq = 0;
+        Mr = 0;
+        IA = 0;
+        RM = 0;
+
+        kiss_x = 0;
+        kiss_y = 0;
+        kiss_z = 0;
+        kiss_c = 0;
     }
+
+    void initSEDStatistics(uint _nr_ofSeq);
+
+    bool writeSEDStatistics(string path, bool fin, Vector3D axis1, Vector3D axis2);
 
     ~CMathFunctions(void)
     {
@@ -843,10 +815,6 @@ class CMathFunctions
         if(sigma != 0)
             delete sigma;
     }
-
-    void initSEDStatistics(uint _nr_ofSeq);
-
-    bool writeSEDStatistics(string path, bool fin, Vector3D axis1, Vector3D axis2);
 
     static inline bool isPowerOfTwo(int num)
     {
@@ -1484,6 +1452,98 @@ class CMathFunctions
 
         usleep(milliseconds * 1000);
 #endif
+    }
+
+    void initRnd(ullong seed)
+    {
+        /*
+        IDUM = -abs(seed);
+        IY = 0;
+        IFF = 0;
+
+        Mr = 714025;
+        IA = 1366;
+        IC = 150889;
+
+        for(int i = 0; i < 98; i++)
+            IR[i] = 0;
+         */
+
+        // KISS random generator
+        kiss_x = (seed * 1234567890987654321ULL) % 18446744073709551615ULL;
+        kiss_y = (seed * 362436362436362436ULL) % 18446744073709551615ULL;
+        kiss_z = (seed * 1066149217761810ULL) % 18446744073709551615ULL;
+        kiss_c = (seed * 123456123456123456ULL) % 18446744073709551615ULL;
+    }
+
+    double ranMC3D()
+    {
+        int J;
+        RM = 1.0 / Mr;
+        double rndx = 0;
+
+        if(IDUM < 0 || IFF == 0)
+        {
+            IFF = 1;
+            IDUM = (IC - IDUM) % Mr;
+
+            for(J = 1; J < 98; J++)
+            {
+                IDUM = (IA * IDUM + IC) % Mr;
+                IR[J] = IDUM;
+            }
+            IDUM = (IA * IDUM + IC) % Mr;
+            IY = IDUM;
+        }
+
+        J = 1 + (97 * IY) / Mr;
+
+        if(J > 97 || J < 1)
+        {
+            cout << "subroutine ranMC3D(): failed." << endl;
+            return 0;
+        }
+
+        IY = IR[J];
+        rndx = IY * RM;
+        IDUM = (IA * IDUM + IC) % Mr;
+        IR[J] = IDUM;
+
+        return rndx;
+    }
+
+    double ranKISS()
+    {
+        // KISS (Keep it Simple Stupid) is a family of pseudorandom number generators
+        // introduced by George Marsaglia.
+        // Source: https://de.wikipedia.org/wiki/KISS_(Zufallszahlengenerator)
+        ullong t;
+
+        kiss_z = 6906969069LL * kiss_z + 1234567;
+
+        // Xorshift
+        kiss_y ^= kiss_y << 13;
+        kiss_y ^= kiss_y >> 17;
+        kiss_y ^= kiss_y << 43;
+
+        // Multiply-with-carry
+        t = (kiss_x << 58) + kiss_c;
+        kiss_c = (kiss_x >> 6);
+        kiss_x += t;
+        kiss_c += (kiss_x < t);
+
+        // Return double between 0 and 1
+        return double(kiss_x + kiss_y + kiss_z) / 18446744073709551615ULL;
+    }
+
+    double ran2()
+    {
+        return ranKISS();
+    }
+
+    double ran3()
+    {
+        return double(rand()) / RAND_MAX;
     }
 
     static inline double integ(const double * x, const double * y, uint xlow, uint xup)

@@ -4652,7 +4652,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             double a_min = param.getSizeMin(dust_component_choice);
             double a_max = param.getSizeMax(dust_component_choice);
 
-            // Use the highest a_max and lowest a_min of the components
+            // Use the highes a_max and lowest a_min of the components
             if(a_min_mixture > a_min)
                 a_min_mixture = a_min;
             if(a_max_mixture < a_max)
@@ -4718,7 +4718,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
                                                       param.getDustSizeParameter(dust_component_choice));
 
             // Get material density and similar user defined parameters
-            single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
+            single_component[i_comp].setMaterialDensity(param.getMaterialDensity(i_comp));
             single_component[i_comp].setFHighJ(param.getFHighJ());
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());

@@ -390,7 +390,7 @@ class CSourceISRF : public CSourceBasic
     {
         init = false;
         kill_count = 0;
-        radius = 0;
+        sidelength = 0;
         g_zero = 0;
 
         grid = 0;
@@ -422,7 +422,6 @@ class CSourceISRF : public CSourceBasic
     {
         nr_of_photons = param.getNrOfISRFPhotons();
         g_zero = param.getISRFGZero();
-        radius = param.getISRFRadius();
 
         sp_ext.resize(getNrOfWavelength());
         for(uint w = 0; w < getNrOfWavelength(); w++)
@@ -447,7 +446,7 @@ class CSourceISRF : public CSourceBasic
     int kill_count;
     bool init;
     double c_q, c_u, c_v;
-    double radius, g_zero;
+    double sidelength, g_zero;
     double *c_w, *c_f;
 };
 
