@@ -2,7 +2,7 @@
 #include "Vector.h"
 #include "chelper.h"
 
-#ifndef CGRIDBASIC
+#ifndef CGRIDBASICc
 #define CGRIDBASIC
 
 class CGridBasic
@@ -548,7 +548,7 @@ class CGridBasic
         return min_len;
     }
 
-    double & getMaxLength()
+    double getMaxLength()
     {
         return max_len;
     }
@@ -745,7 +745,14 @@ class CGridBasic
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
         if(data_pos_rf_list.empty())
-            return getSpecLength(cell, wID) / getVolume(cell);
+        {
+            double mult = 1.0 / getVolume(cell);
+            // if(wID == 0)
+            //     mult /= wl_list[1] - wl_list[0];
+            // else
+            //     mult /= wl_list[wID] - wl_list[wID - 1];
+            return getSpecLength(cell, wID) * mult;
+        }
         return cell->getData(data_pos_rf_list[wID]);
 #endif
     }
@@ -1914,7 +1921,6 @@ class CGridBasic
     bool writeSpecialLines(string path);
     bool writeAMIRAFiles(string path, parameters & param, uint bins);
     bool writeMidplaneFits(string data_path, parameters & param, uint bins, bool all = false);
-    bool writeMidplaneFits1(string data_path, parameters & param, uint bins, bool all = false);
 
     void updateMidplaneString(char * str_1, char * str_2, uint counter)
     {
@@ -2882,17 +2888,16 @@ class CGridBasic
         return true;
     }
 
-    uint SynchrotronCheck(parameters & param)
+    uint CheckSynchrotron(parameters & param)
     {
         if(data_pos_n_th == MAX_UINT && data_pos_n_th == MAX_UINT)
         {
             cout << "\nERROR: Neither thermal electrons nor CR electrons are defined in "
-                    "grid file!"
-                 << endl;
+                    "grid file!                                            \n" << endl;
             cout << "       No SYNCHROTRON calculation possible." << endl;
             return MAX_UINT;
         }
-
+        
         if(data_pos_mx == MAX_UINT)
         {
             cout << "\nERROR: Grid contains no magnetic Bx component!" << endl;
@@ -2919,61 +2924,69 @@ class CGridBasic
         }
         else
         {
-            if(data_pos_tg == MAX_UINT)
+            /*if(data_pos_tg == MAX_UINT)
             {
                 cout << "\nERROR: Grid contains no gas temperature!" << endl;
                 cout << "       No SYNCHROTRON calculation possible." << endl;
                 return MAX_UINT;
-            }
+            }*/
 
-            if(data_pos_T_e == MAX_UINT)
+            /*if(data_pos_T_e == MAX_UINT)
             {
                 cout << "\nWARNING: Grid contains no electron temperature component!" << endl;
                 cout << "         Electron temperature will be set to equal gas "
                         "temperature!"
                      << endl;
                 data_pos_T_e = data_pos_tg;
+            }*/
+            
+            if(data_pos_T_e != MAX_UINT)
+            {
+                cout << "\nHINT: Grid contains a electron temperature component!" << endl;
+                cout << "      This component is currently ignored!          "<< endl;
             }
         }
 
         if(data_pos_n_cr == MAX_UINT)
         {
-            cout << "\nERROR: Grid contains no CR electron component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
+            cout << "\nWARNING: Grid contains no thermal electron component!         " << endl;
+            cout << "         Only Fraraday RM calculations possible." << endl;
         }
-
-        if(data_pos_g_min == MAX_UINT)
+        else
         {
-            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
+            if(data_pos_g_min == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no gamma_min component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
 
-        if(data_pos_g_min == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no gamma_min component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
+            if(data_pos_g_min == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no gamma_min component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
 
-        if(data_pos_g_max == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no gamma_max component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
-        }
+            if(data_pos_g_max == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no gamma_max component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
 
-        if(data_pos_p == MAX_UINT)
-        {
-            cout << "\nERROR: Grid contains no electron power-law index p component!" << endl;
-            cout << "       No SYNCHROTRON calculation possible." << endl;
-            return MAX_UINT;
+            if(data_pos_p == MAX_UINT)
+            {
+                cout << "\nERROR: Grid contains no electron power-law index p component!" << endl;
+                cout << "       No SYNCHROTRON calculation possible." << endl;
+                return MAX_UINT;
+            }
         }
+            
         return 0;
     }
 
-    uint OpiateCheck(parameters & param)
+    uint CheckOpiate(parameters & param)
     {
         if(data_pos_tg == MAX_UINT)
         {
@@ -2984,7 +2997,7 @@ class CGridBasic
         return 0;
     }
 
-    uint TempCheck(parameters & param, uint & tmp_data_offset)
+    uint CheckTemp(parameters & param, uint & tmp_data_offset)
     {
         uint extra_temp_entries = 0;
         if(getTemperatureFieldInformation() == MAX_UINT)
@@ -3074,7 +3087,7 @@ class CGridBasic
         return 0;
     }
 
-    uint RatCheck(parameters & param, uint & tmp_data_offset)
+    uint CheckRat(parameters & param, uint & tmp_data_offset)
     {
         if(data_pos_aalg_list.empty())
         {
@@ -3139,7 +3152,7 @@ class CGridBasic
         return 0;
     }
 
-    uint DustEmissionCheck(parameters & param)
+    uint CheckDustEmission(parameters & param)
     {
         // Check if stochastic heating temperatures are saved in grid
         if(data_pos_dt_list.size() > nr_densities && data_pos_dt_list.size() < multi_temperature_entries)
@@ -3253,7 +3266,7 @@ class CGridBasic
         return 0;
     }
 
-    uint DustScatteringCheck(parameters & param)
+    uint CheckDustScattering(parameters & param)
     {
         if(param.getAlign() != 0 && !param.getAligPA())
         {
@@ -3343,7 +3356,7 @@ class CGridBasic
         return 0;
     }
 
-    uint RadiationForceCheck(parameters & param)
+    uint CheckRadiationForce(parameters & param)
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
@@ -3372,7 +3385,7 @@ class CGridBasic
         return 0;
     }
 
-    uint LineEmissionCheck(parameters & param)
+    uint CheckLineEmission(parameters & param)
     {
         if(param.getTotalNrOfDustComponents() != 0)
         {
@@ -3445,7 +3458,7 @@ class CGridBasic
         return 0;
     }
 
-    uint ProbingCheck(parameters & param)
+    uint CheckProbing(parameters & param)
     {
         if(getTemperatureFieldInformation() == TEMP_EMPTY)
         {
@@ -3523,7 +3536,8 @@ class CGridBasic
         return 0;
     }
 
-  protected:
+  protected:      
+      
     // uint grid_type;
     ulong max_cells;
     uint max_data;

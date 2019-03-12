@@ -357,59 +357,59 @@ uint CGridBasic::validateDataPositions(parameters & param)
             return MAX_UINT;
         }
     }
-
+    
     switch(param.getCommand())
     {
         case CMD_SYNCHROTRON:
-            if(SynchrotronCheck(param) == MAX_UINT)
+            if(CheckSynchrotron(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_OPIATE:
-            if(OpiateCheck(param) == MAX_UINT)
+            if(CheckOpiate(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_TEMP:
-            if(TempCheck(param, tmp_data_offset) == MAX_UINT)
+            if(CheckTemp(param, tmp_data_offset) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_TEMP_RAT:
-            if(TempCheck(param, tmp_data_offset) == MAX_UINT)
+            if(CheckTemp(param, tmp_data_offset) == MAX_UINT)
                 return MAX_UINT;
 
-            if(RatCheck(param, tmp_data_offset) == MAX_UINT)
+            if(CheckRat(param, tmp_data_offset) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_RAT:
-            if(RatCheck(param, tmp_data_offset) == MAX_UINT)
+            if(CheckRat(param, tmp_data_offset) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_DUST_EMISSION:
-            if(DustEmissionCheck(param) == MAX_UINT)
+            if(CheckDustEmission(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_DUST_SCATTERING:
-            if(DustScatteringCheck(param) == MAX_UINT)
+            if(CheckDustScattering(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_FORCE:
-            if(RadiationForceCheck(param) == MAX_UINT)
+            if(CheckRadiationForce(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_LINE_EMISSION:
-            if(LineEmissionCheck(param) == MAX_UINT)
+            if(CheckLineEmission(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
         case CMD_PROBING:
-            if(ProbingCheck(param) == MAX_UINT)
+            if(CheckProbing(param) == MAX_UINT)
                 return MAX_UINT;
             break;
 
@@ -487,27 +487,35 @@ void CGridBasic::printPhysicalParameters()
         cout << "- Dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "]" << endl;
 
     if(data_pos_n_cr != MAX_UINT)
+    {
         cout << "- CR el. density      (min,max) : [" << min_n_cr << "; " << max_n_cr << "] [m^-3]" << endl;
 
-    if(data_pos_g_min != MAX_UINT)
-        cout << "- Gamma_min           (min,max) : [" << min_g_min << "; " << max_g_min << "]" << endl;
+        if(data_pos_g_min != MAX_UINT)
+            cout << "- Gamma_min           (min,max) : [" << min_g_min << "; " << max_g_min << "]" << endl;
 
-    if(data_pos_g_max != MAX_UINT)
-        cout << "- Gamma_max           (min,max) : [" << min_g_max << "; " << max_g_max << "]" << endl;
+        if(data_pos_g_max != MAX_UINT)
+            cout << "- Gamma_max           (min,max) : [" << min_g_max << "; " << max_g_max << "]" << endl;
 
-    if(data_pos_p != MAX_UINT)
-        cout << "- El. energy index p  (min,max) : [" << min_p << "; " << max_p << "]" << endl;
-
-    if(data_pos_n_th != MAX_UINT)
-        cout << "- Therm. el. density  (min,max) : [" << min_n_th << "; " << max_n_th << "] [m]" << endl;
-
-    if(data_pos_T_e != MAX_UINT)
-    {
-        if(min_T_e == 1e300)
-            cout << "- Electron temperature          : same as dust temperature" << endl;
-        else
-            cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
+        if(data_pos_p != MAX_UINT)
+            cout << "- El. energy index p  (min,max) : [" << min_p << "; " << max_p << "]" << endl;
     }
+    else
+        cout << "- CR el. density      (min,max) : none   " << endl;
+    
+    if(data_pos_n_th != MAX_UINT)
+    {
+        cout << "- Therm. el. density  (min,max) : [" << min_n_th << "; " << max_n_th << "] [m]" << endl;
+        
+        if(data_pos_T_e != MAX_UINT)
+        {
+            if(min_T_e == 1e300)
+                cout << "- Electron temperature          : same as dust temperature" << endl;
+            else
+                cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
+        }
+    }
+    else
+        cout << "- Therm. el. density  (min,max) : none" << endl;
 
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
@@ -546,17 +554,22 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     if(bins == 0)
         return true;
 
-    bool plt_gas_dens = (!data_pos_gd_list.empty());
+    bool plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
     // bool plt_dust_dens = param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); //to
     // do if dust denity is possible
-    bool plt_gas_temp = (data_pos_tg != MAX_UINT);
-    bool plt_dust_temp = (!data_pos_dt_list.empty());
-    bool plt_mag = (data_pos_mx != MAX_UINT);
-    bool plt_vel = (data_pos_vx != MAX_UINT);
-    bool plt_rat = (!data_pos_aalg_list.empty());
-    bool plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
-    bool plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) && (!data_pos_dt_list.empty());
-    bool plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);
+    bool plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
+    bool plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
+    bool plt_mag = (data_pos_mx != MAX_UINT) && param.isInPlotList(GRIDgas_dens);
+
+    plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT)
+                && param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
+
+    plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) 
+              && param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
+
+    plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+    plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+    plt_mach = plt_vel && plt_gas_temp;
 
     ullong per_counter = 0, per_max = bins * bins;
     string dens_filename = path + "gas_density.am";
@@ -798,7 +811,8 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                                       << float(vel_field.Z()) << endl;
                     }
 
-                    rat_writer << float(log10(getAlignedRadius(pp, 0))) << endl;
+                    if(plt_rat)
+                        rat_writer << float(log10(getAlignedRadius(pp, 0))) << endl;
 
                     if(plt_delta)
                     {
@@ -1034,35 +1048,41 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     if(all)
     {
-        plt_gas_dens = (!data_pos_gd_list.empty());
-        plt_dust_dens = (!data_pos_dd_list.empty());
-        plt_gas_temp = (data_pos_tg != MAX_UINT);
-        plt_mag = (data_pos_mx != MAX_UINT);
-        plt_vel = (data_pos_vx != MAX_UINT);
-        plt_delta = false; //(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) &&
-                           //(!data_pos_dt_list.empty());
-        plt_larm = false;  //(data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT) &&
-                           //(!data_pos_dt_list.empty());
-        plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);
+        plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
+        plt_dust_dens = (!data_pos_dd_list.empty()) && param.isInPlotList(GRIDdust_dens);
+        plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
+        
+        plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT)
+                    && param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
+        
+        plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) 
+                  && param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
+        
+        plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+        plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+        plt_mach = plt_vel && plt_gas_temp;
+        
         plt_dust_id = (data_pos_id != MAX_UINT);
-        plt_amin = (data_pos_amin != MAX_UINT);
-        plt_amax = (data_pos_amax != MAX_UINT);
-        plt_n_th = (data_pos_n_th != MAX_UINT);
-        plt_T_e = (data_pos_T_e != MAX_UINT);
-        plt_n_cr = (data_pos_n_cr != MAX_UINT);
-        plt_g_min = (data_pos_g_min != MAX_UINT);
-        plt_g_max = (data_pos_g_max != MAX_UINT);
-        plt_p = (data_pos_p != MAX_UINT);
+        
+        plt_amin = (data_pos_amin != MAX_UINT) && param.isInPlotList(GRIDa_min);
+        plt_amax = (data_pos_amax != MAX_UINT) && param.isInPlotList(GRIDa_max);
+        
+        plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
+        plt_T_e = (data_pos_T_e != MAX_UINT)&& param.isInPlotList(GRIDT_e);
+        plt_n_cr = (data_pos_n_cr != MAX_UINT) && param.isInPlotList(GRIDn_cr);
+        plt_g_min = (data_pos_g_min != MAX_UINT) && param.isInPlotList(GRIDg_min);
+        plt_g_max = (data_pos_g_max != MAX_UINT) && param.isInPlotList(GRIDg_max);
+        plt_p = (data_pos_p != MAX_UINT) && param.isInPlotList(GRIDp);
 
         if(cmd != CMD_RAT && cmd != CMD_TEMP_RAT)
         {
-            plt_rat = (!data_pos_aalg_list.empty());
-            plt_avg_th = (data_pos_avg_th != MAX_UINT);
-            plt_avg_dir = (data_pos_avg_dir != MAX_UINT);
+            plt_rat = (!data_pos_aalg_list.empty()) && param.isInPlotList(GRIDa_alg);
+            plt_avg_th = (data_pos_avg_th != MAX_UINT) && param.isInPlotList(GRIDavg_th);
+            plt_avg_dir = (data_pos_avg_dir != MAX_UINT) && param.isInPlotList(GRIDavg_dir);
         }
 
         if(cmd != CMD_TEMP && cmd != CMD_TEMP_RAT)
-            plt_dust_temp = (!data_pos_dt_list.empty());
+            plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
 
         if(getRadiationFieldAvailable())
         {
@@ -1108,16 +1128,16 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         if(cmd == CMD_TEMP || cmd == CMD_TEMP_RAT)
         {
             if(param.getAdjTgas() > 0)
-                plt_gas_temp = true;
+                plt_gas_temp = param.isInPlotList(GRIDgas_temp);
 
-            plt_dust_temp = true;
+            plt_dust_temp = param.isInPlotList(GRIDdust_temp);
         }
 
         if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
         {
-            plt_rat = true;
-            plt_avg_th = true;
-            plt_avg_dir = true;
+            plt_rat = param.isInPlotList(GRIDa_alg);
+            plt_avg_th = param.isInPlotList(GRIDavg_th);
+            plt_avg_dir = param.isInPlotList(GRIDavg_dir);
         }
 
         if(param.getWriteRadiationField())

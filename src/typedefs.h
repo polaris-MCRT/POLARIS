@@ -69,7 +69,6 @@ using namespace std;
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
 #define MAX_INTERACTION 1500000
-#define MAX_SOLVER_STEPS 1500000
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e-6
 #define ACC_SELECT_LEVEL 1.0e-6
@@ -79,6 +78,7 @@ using namespace std;
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define rel_err 1.0e-6
 #define abs_err 1.0e-30
+#define MAX_SOLVER_STEPS 1500000
 
 // Number of quantities in dust component file (C_{x,abs}, C_{x,ext}, C_{x,sca}, ...)
 #define NR_OF_EFF 8
@@ -183,7 +183,7 @@ using namespace std;
 #define GRIDavg_dir 35
 
 #define minGRID GRIDgas_dens
-#define maxGRID GRIDrad
+#define maxGRID GRIDavg_dir
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))

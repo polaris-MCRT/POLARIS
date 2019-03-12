@@ -1,4 +1,7 @@
 #include "Pipeline.h"
+#include "Grid.h"
+#include "OcTree.h"
+#include "chelper.h"
 
 int main(int argc, char ** argv)
 {
@@ -7,6 +10,13 @@ int main(int argc, char ** argv)
         return 0;
 
     pipeline.Run();
+    
+    
+    /*CPipeline pipeline;
+    if(!pipeline.Init(argc, argv))
+        return 0;
+
+    pipeline.Run();*/
 
     return 0;
 }
