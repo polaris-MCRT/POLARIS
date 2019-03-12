@@ -396,7 +396,7 @@ class GGTauDisk(Model):
         # Range: 16 AU, 21 AU, 26 AU, 31 AU
         self.ref_scale_height = [
             21. * self.math.const['au'],
-            0.6 * self.math.const['au'],
+            0.7 * self.math.const['au'],  # 0.6 * self.math.const['au'],
             0.3 * self.math.const['au'],
             0.3 * self.math.const['au'],
         ]
