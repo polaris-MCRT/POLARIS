@@ -1762,7 +1762,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 102
         i_quantity = 4
         calc = True
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
@@ -1885,21 +1885,30 @@ class CustomPlots:
                                 np.subtract(pos, [-1.8, -1.8]))
                             if pos_r < 0.15:
                                 obs_error.append(tbldata[i_x, i_y])
-                    if i_subplot == 0:
+                    if i_plot == 0 and i_subplot == 0:
                         flux = flux_sum[i_plot, i_subplot, :] / count
                         da = np.std(obs_error)
                         uncertainty = np.sqrt(
                             (1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
+                        bg_flux = np.divide(flux[:], np.std(obs_error))
                         print('obs. error:', uncertainty)
-                        print('BG flux:', np.divide(flux[:], np.std(obs_error)))
-                    if i_subplot == 2:
-                        print(flux_sum[0, i_subplot, :])
+                        #print('BG flux:', bg_flux)
                 # Hide second observation plot
                 plot.remove_axes(ax_index=1)
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
-            print(r'\begin{tabular}{lcccccc}')
+            print(r'\begin{tabular}{lccccc}')
+            print(
+                r'Configuration & $\textit{PI}_1$ & $\textit{PI}_2$ & $\textit{PI}_3$ & $\textit{PI}_4$ & $\textit{PI}_5$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(6):
+                    if i_subplot > 1:
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
+                            '$\SI{-' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lccccc}')
             print(
                 r'Configuration & $\delta \textit{PI}_1$ & $\delta \textit{PI}_2$ & $\delta \textit{PI}_3$ & $\delta \textit{PI}_4$ & $\delta \textit{PI}_5$ \\')
             print(r'\hline')
@@ -1934,6 +1943,16 @@ class CustomPlots:
                 string += ' & $' + f'{x:1.2f}' + '\pm' + \
                     f'{uncertainty[i_x]:1.2f}' + '$'
             print(string, r'\\')
+            print(r'\\')
+            print(
+                r'Configuration & $\textit{PI}_1 / \sigma_\text{BG}$    & $\textit{PI}_2 / \sigma_\text{BG}$    & $\textit{PI}_3 / \sigma_\text{BG}$ & $\textit{PI}_4 / \sigma_\text{BG}$    & $\textit{PI}_5 / \sigma_\text{BG}$ \\')
+            if observation == 'SCUBA':
+                string = 'Observation (Subaru/HiCIAO)'
+            elif observation == 'SPHERE':
+                string = 'Observation (SPHERE/IRDIS)'
+            for i_x, x in enumerate(bg_flux):
+                string += ' & $' + f'{x:1.1f}' + '$'
+            print(string, r'\\')
             print(r'\end{tabular}')
 
     def plot_1006004(self):
@@ -1943,7 +1962,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 102
         i_quantity = 0
         zoom = 0.8
         calc = False
@@ -2003,7 +2022,8 @@ class CustomPlots:
                                 nr_x_images=2, nr_y_images=2)
                 # Plot imshow
                 import matplotlib
-                cmap = matplotlib.colors.LinearSegmentedColormap.from_list("bbw", ["black","royalblue","white"])
+                cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                    "bbw", ["black", "royalblue", "white"])
                 matplotlib.pyplot.register_cmap(cmap=cmap)
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=1e-7, vmax=1e-4, cmap='bbw')
@@ -2020,8 +2040,10 @@ class CustomPlots:
                                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
                 if calc:
                     # Get the image sidelength
-                    sidelength_x = 2. * self.model.tmp_parameter['radius_x_arcsec']
-                    sidelength_y = 2. * self.model.tmp_parameter['radius_y_arcsec']
+                    sidelength_x = 2. * \
+                        self.model.tmp_parameter['radius_x_arcsec']
+                    sidelength_y = 2. * \
+                        self.model.tmp_parameter['radius_y_arcsec']
                     # Get number of pixel per axis
                     nr_pixel_x = tbldata.shape[-2]
                     nr_pixel_y = tbldata.shape[-1]
@@ -2030,16 +2052,24 @@ class CustomPlots:
                         for i_y in range(nr_pixel_y):
                             pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
                                                                     [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
-                                            np.divide([sidelength_x, sidelength_y], 2.))
+                                              np.divide([sidelength_x, sidelength_y], 2.))
                             for i_pos, center_pos in enumerate(measurement_position_list):
                                 pos_r = np.linalg.norm(
                                     np.subtract(pos, center_pos))
                                 if pos_r < 0.15:
                                     flux_sum[i_plot, i_subplot,
-                                            i_pos] += tbldata[i_x, i_y]
+                                             i_pos] += tbldata[i_x, i_y]
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
+            print(r'\begin{tabular}{lccccc}')
+            print(
+                r'Configuration & $F_1$ & $F_2$ & $F_3$ & $F_4$ & $F_5$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(4):
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+            print(r'\end{tabular}')
             print(r'\begin{tabular}{lccccc}')
             print(
                 r'Configuration & $\delta F_1$ & $\delta F_2$ & $\delta F_3$ & $\delta F_4$ & $\delta F_5$ \\')
@@ -2250,11 +2280,12 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos,text=str(i_pos + 1), ax_index=1, color='black', fontsize=10,bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='black',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
         # Plot map description
-        plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,text=r'$\text{' + 
-            model_descr[i_subplot] + r'}$',horizontalalignment='left', verticalalignment='top', 
-            ax_index=1, color='white')
+        plot.plot_text(text_pos=[0.03, 0.97], relative_position=True, text=r'$\text{' +
+                       model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top',
+                       ax_index=1, color='white')
         # Get the image sidelength
         sidelength_x = 2. * \
             self.model.tmp_parameter['radius_x_arcsec']
@@ -2301,7 +2332,8 @@ class CustomPlots:
         plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
                          norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos,text=str(i_pos + 1), ax_index=0, color='black', fontsize=10,bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='black',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 

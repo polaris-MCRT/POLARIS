@@ -94,8 +94,6 @@ class CmdPolaris:
                     else:
                         cmd_file.write('\t' + str(self.parse_args.midplane_3d_param[i]))
                 cmd_file.write('\n')
-        cmd_file.write('\t<plot_inp_midplanes>\t0\n')
-        cmd_file.write('\t<plot_out_midplanes>\t0\n')
         cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
         if self.parse_args.midplane_rad_field:
             cmd_file.write('\t<write_radiation_field>\t1\n')
