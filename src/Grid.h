@@ -2999,28 +2999,13 @@ class CGridBasic
         }
         else
         {
-            // Init list to know how many dust sizes are used per dust component
-            size_skip = new uint[nr_densities];
-
             // Calculate the entries for the temperature that have to be added
             if(param.getDustTempMulti())
-            {
                 extra_temp_entries = multi_temperature_entries;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = nr_dust_temp_sizes[i_density];
-            }
             else if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
-            {
                 extra_temp_entries = stochastic_temperature_entries;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = nr_stochastic_sizes[i_density];
-            }
             else
-            {
                 extra_temp_entries = nr_densities;
-                for(uint i_density = 0; i_density < nr_densities; i_density++)
-                    size_skip[i_density] = 1;
-            }
 
             // Entries that are already in the grid do not need to be added
             if(getTemperatureFieldInformation() == TEMP_SINGLE)

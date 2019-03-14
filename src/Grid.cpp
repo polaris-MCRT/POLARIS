@@ -356,8 +356,22 @@ uint CGridBasic::validateDataPositions(parameters & param)
                  << endl;
             return MAX_UINT;
         }
+
+        // Init list to know how many dust sizes are used per dust component
+        size_skip = new uint[nr_densities];
+
+        // Calculate the entries for the temperature that have to be added
+        if(param.getDustTempMulti())
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+                size_skip[i_density] = nr_dust_temp_sizes[i_density];
+        else if(param.getStochasticHeatingMaxSize() > 0 && !param.getSaveRadiationField())
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+                size_skip[i_density] = nr_stochastic_sizes[i_density];
+        else
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+                size_skip[i_density] = 1;
     }
-    
+
     switch(param.getCommand())
     {
         case CMD_SYNCHROTRON:
@@ -501,17 +515,18 @@ void CGridBasic::printPhysicalParameters()
     }
     else
         cout << "- CR el. density      (min,max) : none   " << endl;
-    
+
     if(data_pos_n_th != MAX_UINT)
     {
         cout << "- Therm. el. density  (min,max) : [" << min_n_th << "; " << max_n_th << "] [m]" << endl;
-        
+
         if(data_pos_T_e != MAX_UINT)
         {
             if(min_T_e == 1e300)
                 cout << "- Electron temperature          : same as dust temperature" << endl;
             else
-                cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]" << endl;
+                cout << "- Electron temp.      (min,max) : [" << min_T_e << "; " << max_T_e << "] [K]"
+                     << endl;
         }
     }
     else
@@ -561,11 +576,11 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     bool plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
     bool plt_mag = (data_pos_mx != MAX_UINT) && param.isInPlotList(GRIDgas_dens);
 
-    plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT)
-                && param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
+    plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT) &&
+              param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
 
-    plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) 
-              && param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
+    plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) &&
+              param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
 
     plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
     plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
@@ -1051,24 +1066,24 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
         plt_dust_dens = (!data_pos_dd_list.empty()) && param.isInPlotList(GRIDdust_dens);
         plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
-        
-        plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT)
-                    && param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
-        
-        plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) 
-                  && param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
-        
+
+        plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT) &&
+                  param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
+
+        plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) &&
+                  param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
+
         plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
         plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
         plt_mach = plt_vel && plt_gas_temp;
-        
+
         plt_dust_id = (data_pos_id != MAX_UINT);
-        
+
         plt_amin = (data_pos_amin != MAX_UINT) && param.isInPlotList(GRIDa_min);
         plt_amax = (data_pos_amax != MAX_UINT) && param.isInPlotList(GRIDa_max);
-        
+
         plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
-        plt_T_e = (data_pos_T_e != MAX_UINT)&& param.isInPlotList(GRIDT_e);
+        plt_T_e = (data_pos_T_e != MAX_UINT) && param.isInPlotList(GRIDT_e);
         plt_n_cr = (data_pos_n_cr != MAX_UINT) && param.isInPlotList(GRIDn_cr);
         plt_g_min = (data_pos_g_min != MAX_UINT) && param.isInPlotList(GRIDg_min);
         plt_g_max = (data_pos_g_max != MAX_UINT) && param.isInPlotList(GRIDg_max);
