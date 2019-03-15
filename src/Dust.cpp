@@ -5004,6 +5004,14 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
 
         cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
 
+        if(param.getCommand() == CMD_DUST_EMISSION && !param.getAligRANDOM())
+        {
+            if(mixed_component[i_mixture].isAligned())
+                cout << "- Affected by alignment   : Yes" << endl;
+            else
+                cout << "- Affected by alignment   : No" << endl;
+        }
+
         double total_dust_mass = 0;
         for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
