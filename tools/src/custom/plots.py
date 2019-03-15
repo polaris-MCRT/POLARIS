@@ -1762,10 +1762,10 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 102
+        detector_index = 101
         i_quantity = 4
         calc = True
-        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1962,10 +1962,10 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 102
+        detector_index = 103
         i_quantity = 0
         zoom = 0.8
-        calc = False
+        calc = True
         # Set some lists
         model_list = [
             'no_circumstellar_disks',
@@ -2068,7 +2068,7 @@ class CustomPlots:
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(4):
-                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
             print(r'\end{tabular}')
             print(r'\begin{tabular}{lccccc}')
             print(
