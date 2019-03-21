@@ -421,6 +421,8 @@ class CmdPolaris:
         cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
         if self.parse_args.no_vel_maps:
+            cmd_file.write('\t<vel_maps>\t\t0\n')
+        else:
             cmd_file.write('\t<vel_maps>\t\t1\n')
         if self.parse_args.kepler and self.source.parameter['kepler_usable']:
             cmd_file.write(

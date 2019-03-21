@@ -1,6 +1,7 @@
 .idea/
 .vscode/
 .dep.inc
+.dirstamp
 
 autom4te.cache/
 bin/
@@ -24,4 +25,3 @@ missing
 py-compile
 polaris.run
 /build/
-input/dust/silicate/calorimetry_1000.dat

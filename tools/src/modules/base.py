@@ -92,7 +92,7 @@ class Detector:
             'distance': model.parameter['distance'],
             'nr_pixel_x': 256,
             'nr_pixel_y': 256,
-            'max_subpixel_lvl': 1,
+            'max_subpixel_lvl': 0,
             'source_id': 1,
             'gas_species_id': 1,
             'transition_id': 1,

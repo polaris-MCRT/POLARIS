@@ -1153,7 +1153,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     bin_writer.close();
 
     cout << CLR_LINE;
-    cout << "- Writing cylindrical grid file        : done" << endl;
+    cout << "- Writing cylindrical grid file : done" << endl;
 
     return true;
 }

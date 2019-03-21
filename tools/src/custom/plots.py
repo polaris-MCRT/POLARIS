@@ -1688,6 +1688,7 @@ class CustomPlots:
             'Disks around all stars'
         ]
         # Loop over model configurations
+        line_cycle = [':','-.','-.','-.','--','--','--','-']
         for i_model, model_name in enumerate(model_list):
             if i_model < 8:
                 # Set paths of each simulation
@@ -1700,7 +1701,7 @@ class CustomPlots:
                 wavelengths = header['wavelengths']
                 quantity = reddening(wavelengths, sed_data[i_quantity, :], 0.3)
                 # Plot spectral energy distribution
-                plot.plot_line(wavelengths, quantity, log='xy',
+                plot.plot_line(wavelengths, quantity, log='xy', linestyle=line_cycle[i_model],
                                label=r'$\text{' + model_descr[i_model] + r'}$')
             '''
             else:
@@ -1762,10 +1763,10 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 103
         i_quantity = 4
         calc = True
-        observation = 'SPHERE'  # 'SCUBA', 'SPHERE'
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -1792,6 +1793,7 @@ class CustomPlots:
             [0, 0.85],
             [-0.57, -0.975],
             [1.17, -0.42],
+            [1.5, 0],
         ]
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
@@ -1890,6 +1892,8 @@ class CustomPlots:
                         da = np.std(obs_error)
                         uncertainty = np.sqrt(
                             (1/flux[1:]*da)**2 + (flux[0]/flux[1:]**2*da)**2)
+                        uncertainty[-1] = np.sqrt(
+                            (1/flux[1]*da)**2 + (flux[-1]/flux[1]**2*da)**2)
                         bg_flux = np.divide(flux[:], np.std(obs_error))
                         print('obs. error:', uncertainty)
                         #print('BG flux:', bg_flux)
@@ -1898,54 +1902,64 @@ class CustomPlots:
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
-            print(r'\begin{tabular}{lccccc}')
+            print(r'\begin{tabular}{lcccccc}')
             print(
-                r'Configuration & $\textit{PI}_1$ & $\textit{PI}_2$ & $\textit{PI}_3$ & $\textit{PI}_4$ & $\textit{PI}_5$ \\')
+                r'Configuration & $\textit{PI}_1 [\si{Jy}]$ & $\textit{PI}_2 [\si{Jy}]$ & $\textit{PI}_3 [\si{Jy}]$ & $\textit{PI}_4 [\si{Jy}]$ & $\textit{PI}_5 [\si{Jy}]$  & $\textit{PI}_6 [\si{Jy}]$\\')
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(6):
                     if i_subplot > 1:
                         print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join(
-                            '$\SI{-' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+                            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
             print(r'\end{tabular}')
-            print(r'\begin{tabular}{lccccc}')
+            print(r'\begin{tabular}{lcccccc}')
             print(
-                r'Configuration & $\delta \textit{PI}_1$ & $\delta \textit{PI}_2$ & $\delta \textit{PI}_3$ & $\delta \textit{PI}_4$ & $\delta \textit{PI}_5$ \\')
+                r'Configuration & $\delta \textit{PI}_1 [\si{\percent}]$ & $\delta \textit{PI}_2 [\si{\percent}]$ & $\delta \textit{PI}_3 [\si{\percent}]$ & $\delta \textit{PI}_4 [\si{\percent}]$ & $\delta \textit{PI}_5 [\si{\percent}]$ & $\delta \textit{PI}_6 [\si{\percent}]$ \\')
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(6):
                     if i_subplot > 1:
-                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
+                        print(model_descr[i_subplot - 2 + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{}$' for x in np.absolute(np.subtract(
                             100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 2, :])))), r'\\')
             print(r'\end{tabular}')
-            print(r'\begin{tabular}{lccccc}')
+            print(r'\begin{tabular}{lccccccc}')
             print(
-                r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ \\')
+                r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ & $\textit{PI}_6 / \textit{PI}_3$ \\')
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(6):
                     if i_subplot > 1:
                         string = model_descr[i_subplot - 2 + i_plot * 4]
-                        for i_x, x in enumerate(np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])):
+                        for i_x, x in enumerate(np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:-1])):
                             if abs(x - np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1 + i_x])) <= uncertainty[i_x]:
                                 string += r' & {\color{new_green}\textbf{' + \
                                     f'{x:1.2f}' + '}}'
                             else:
                                 string += r' & {\color{red}' + \
                                     f'{x:1.2f}' + '}'
+                        x = np.divide(
+                            flux_sum[i_plot, i_subplot, -1], flux_sum[i_plot, i_subplot, 1])
+                        if abs(x - np.divide(flux_sum[i_plot, 0, -1], flux_sum[i_plot, 0, 2])) <= uncertainty[i_x]:
+                            string += r' & {\color{new_green}\textbf{' + \
+                                f'{x:1.2f}' + '}}'
+                        else:
+                            string += r' & {\color{red}' + f'{x:1.2f}' + '}'
                         print(string, r'\\')
             print(r'\hline')
             if observation == 'SCUBA':
                 string = 'Observation (Subaru/HiCIAO)'
             elif observation == 'SPHERE':
                 string = 'Observation (SPHERE/IRDIS)'
-            for i_x, x in enumerate(np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1:])):
+            for i_x, x in enumerate(np.divide(flux_sum[i_plot, 0, 0], flux_sum[i_plot, 0, 1:-1])):
                 string += ' & $' + f'{x:1.2f}' + '\pm' + \
                     f'{uncertainty[i_x]:1.2f}' + '$'
+            x = np.divide(flux_sum[i_plot, 0, -1], flux_sum[i_plot, 0, 1])
+            string += ' & $' + f'{x:1.2f}' + '\pm' + \
+                f'{uncertainty[-1]:1.2f}' + '$'
             print(string, r'\\')
             print(r'\\')
             print(
-                r'Configuration & $\textit{PI}_1 / \sigma_\text{BG}$    & $\textit{PI}_2 / \sigma_\text{BG}$    & $\textit{PI}_3 / \sigma_\text{BG}$ & $\textit{PI}_4 / \sigma_\text{BG}$    & $\textit{PI}_5 / \sigma_\text{BG}$ \\')
+                r'Configuration & $\textit{PI}_1 / \sigma_\text{BG}$    & $\textit{PI}_2 / \sigma_\text{BG}$    & $\textit{PI}_3 / \sigma_\text{BG}$ & $\textit{PI}_4 / \sigma_\text{BG}$    & $\textit{PI}_5 / \sigma_\text{BG}$ & $\textit{PI}_6 / \sigma_\text{BG}$ \\')
             if observation == 'SCUBA':
                 string = 'Observation (Subaru/HiCIAO)'
             elif observation == 'SPHERE':
@@ -1993,6 +2007,7 @@ class CustomPlots:
             [0, 0.85],
             [-0.57, -0.975],
             [1.17, -0.42],
+            [1.5, 0],
         ]
         # Set beam size (in arcsec)
         self.file_io.beam_size = 0.05
@@ -2062,31 +2077,33 @@ class CustomPlots:
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
         if calc:
-            print(r'\begin{tabular}{lccccc}')
+            print(r'\begin{tabular}{lcccccc}')
             print(
-                r'Configuration & $F_1$ & $F_2$ & $F_3$ & $F_4$ & $F_5$ \\')
-            print(r'\hline')
-            for i_plot in range(2):
-                for i_subplot in range(4):
-                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{' + f'{x:1.2e}' + '}{Jy}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
-            print(r'\end{tabular}')
-            print(r'\begin{tabular}{lccccc}')
-            print(
-                r'Configuration & $\delta F_1$ & $\delta F_2$ & $\delta F_3$ & $\delta F_4$ & $\delta F_5$ \\')
-            print(r'\hline')
-            for i_plot in range(2):
-                for i_subplot in range(4):
-                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{\percent}$' for x in np.absolute(np.subtract(
-                        100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])))), r'\\')
-            print(r'\end{tabular}')
-            print(r'\begin{tabular}{lcccc}')
-            print(
-                r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ \\')
+                r'Configuration & $F_1 [\si{Jy}]$ & $F_2 [\si{Jy}]$ & $F_3 [\si{Jy}]$ & $F_4 [\si{Jy}]$ & $F_5 [\si{Jy}]$ & $F_6 [\si{Jy}]$ \\')
             print(r'\hline')
             for i_plot in range(2):
                 for i_subplot in range(4):
                     print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
-                        f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:])), r'\\')
+                        '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[i_plot, i_subplot, :]), r'\\')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lcccccc}')
+            print(
+                r'Configuration & $\delta F_1 [\si{\percent}]$ & $\delta F_2 [\si{\percent}]$ & $\delta F_3 [\si{\percent}]$ & $\delta F_4 [\si{\percent}]$ & $\delta F_5 [\si{\percent}]$ & $\delta F_6 [\si{\percent}]$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(4):
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join('$\SI{-' + f'{x:1.0f}' + '}{}$' for x in np.absolute(np.subtract(
+                        100, 1e2*np.divide(flux_sum[i_plot, i_subplot, :], flux_sum[0, 0, :])))), r'\\')
+            print(r'\end{tabular}')
+            print(r'\begin{tabular}{lccccc}')
+            print(
+                r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ & $F_6 / F_3$ \\')
+            print(r'\hline')
+            for i_plot in range(2):
+                for i_subplot in range(4):
+                    print(model_descr[i_subplot + i_plot * 4], '&', ' & '.join(
+                        f'{x:1.2f}' for x in np.divide(flux_sum[i_plot, i_subplot, 0], flux_sum[i_plot, i_subplot, 1:-1])), '&',
+                        f'{np.divide(flux_sum[i_plot, i_subplot, -1], flux_sum[i_plot, i_subplot, 2]):1.2f}', r'\\')
             print(r'\end{tabular}')
 
     def plot_1006005(self):
@@ -2199,9 +2216,9 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 104
+        detector_index = 1  # 104
         i_quantity = 4
-        i_subplot = 8
+        i_subplot = 9
         vmin = 1e-7
         vmax = 1e-4
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
@@ -2214,7 +2231,8 @@ class CustomPlots:
             'only_Aa_Ab2',
             'only_Ab1_Ab2',
             'default',
-            'vertical_Ab2'
+            'vertical_Ab2',
+            'vertical_Ab2_scale_height_Aa_0_7_very_small'
         ]
         model_descr = [
             'No circumstellar disks',
@@ -2225,6 +2243,7 @@ class CustomPlots:
             'Disks around Aa and Ab2',
             'Disks around Ab1 and Ab2',
             'Disks around all stars',
+            'Vertical disk around Ab2',
             'Vertical disk around Ab2'
         ]
         measurement_position_list = [
@@ -2232,7 +2251,8 @@ class CustomPlots:
             [0, -1.60],
             [0, 0.85],
             [-0.57, -0.975],
-            #[1.17, -0.42],
+            [1.17, -0.42],
+            [1.5, -0.15],
         ]
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
@@ -2307,16 +2327,24 @@ class CustomPlots:
                         np.subtract(pos, center_pos))
                     if pos_r < 0.15:
                         flux_sum[i_pos] += tbldata[i_x, i_y]
-        print(flux_sum[:])
+        # print(flux_sum[:])
         print(r'\begin{tabular}{lccccc}')
         print(
-            r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ \\')
+            r'Configuration & $\textit{PI}_1 [\si{Jy}]$ & $\textit{PI}_2 [\si{Jy}]$ & $\textit{PI}_3 [\si{Jy}]$ & $\textit{PI}_4 [\si{Jy}]$ & $\textit{PI}_5 [\si{Jy}]$  & $\textit{PI}_6 [\si{Jy}]$\\')
+        print(r'\hline')
+        print(model_descr[i_subplot], '&', ' & '.join(
+            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[:]), r'\\')
+        print(r'\begin{tabular}{lccccc}')
+        print(
+            r'Configuration & $\textit{PI}_1 / \textit{PI}_2$ & $\textit{PI}_1 / \textit{PI}_3$ & $\textit{PI}_1 / \textit{PI}_4$ & $\textit{PI}_1 / \textit{PI}_5$ & $\textit{PI}_3 / \textit{PI}_6$ \\')
         print(r'\hline')
         string = model_descr[i_subplot]
-        for i_x, x in enumerate(np.divide(flux_sum[0], flux_sum[1:])):
+        for i_x, x in enumerate(np.divide(flux_sum[0], flux_sum[1:-1])):
             string += r' & {\color{red}' + f'{x:1.2f}' + '}'
-            print(string, r'\\')
-        print(r'\hline')
+        string += r'& - & {\color{red}' + \
+            f'{np.divide(flux_sum[-1], flux_sum[2]):1.2f}' + '}'
+        print(string, r'\\')
+        print(r'\end{tabular}')
         # Observation
         if observation == 'SCUBA':
             hdulist = fits.open(
@@ -2332,8 +2360,154 @@ class CustomPlots:
         plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
                          norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
         for i_pos, center_pos in enumerate(measurement_position_list):
+            if i_pos == 5:
+                center_pos[1] += 0.15
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='black',
                            fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1006008(self):
+        """Plot GG Tau A observation and one configuration
+        """
+        def cropND(img, bounding, offset=[0, 0]):
+            import operator
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
+            end = tuple(map(operator.add, start, bounding))
+            slices = tuple(map(slice, start, end))
+            return img[slices]
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 1  # 104
+        i_quantity = 0
+        i_subplot = 9
+        vmin = 1e-7
+        vmax = 1e-5
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default',
+            'vertical_Ab2',
+            'vertical_Ab2_scale_height_Aa_0_7_very_small'
+        ]
+        model_descr = [
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars',
+            'Vertical disk around Ab2',
+            'Vertical disk around Ab2'
+        ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, -1.60],
+            [0, 0.85],
+            [-0.57, -0.975],
+            [1.17, -0.42],
+            [1.5, -0.15],
+        ]
+        # Set beam size (in arcsec)
+        self.file_io.beam_size = 0.05
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'I_emission_map_comparison_with_circles', path=self.file_io.path['model'])
+        # Sum up the flux inside the circle
+        flux_sum = np.zeros(len(measurement_position_list))
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', model_list[i_subplot], 'dust')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                    size_x=6 / 1.4298620007401583)
+        # Take data for current quantity
+        tbldata = plot_data[i_quantity, 0, :, :]
+        # plot imshow
+        import matplotlib
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+            "bbw", ["black", "royalblue", "white"])
+        matplotlib.pyplot.register_cmap(cmap=cmap)
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True,
+                         norm='LogNorm', cmap='bbw', vmin=vmin, vmax=vmax)
+        # Load radiation source to get position of the binary stars
+        from modules.source import SourceChooser
+        radiation_source_chooser = SourceChooser(
+            self.model, self.file_io, self.parse_args)
+        radiation_source = radiation_source_chooser.get_module_from_name(
+            'gg_tau_stars')
+        # Plot position of binary stars (with conversion from m to au)
+        star_descr = ['Aa', 'Ab1', 'Ab2']
+        for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
+            if i_star == 0:
+                offset = np.array([-35, -10]) * 1.3
+            elif i_star == 1:
+                offset = np.array([-24, 10]) * 1.3
+            elif i_star == 2:
+                offset = np.array([44, -12]) * 1.2
+            pos_arcsec = np.add(
+                np.divide(position[0:2], self.math.const['au']), offset) / 140.
+            plot.plot_text(pos_arcsec,
+                           text=r'$\text{' + star_descr[i_star] + r'}$', color='white')
+        for i_pos, center_pos in enumerate(measurement_position_list):
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), color='black',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+        # Plot map description
+        plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                       text=r'$\text{' + model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top', color='white')
+        # Get the image sidelength
+        sidelength_x = 2. * \
+            self.model.tmp_parameter['radius_x_arcsec']
+        sidelength_y = 2. * \
+            self.model.tmp_parameter['radius_y_arcsec']
+        # Get number of pixel per axis
+        nr_pixel_x = tbldata.shape[-2]
+        nr_pixel_y = tbldata.shape[-1]
+        # Find the considered pixel
+        count = np.zeros(len(measurement_position_list))
+        obs_error = []
+        for i_x in range(nr_pixel_x):
+            for i_y in range(nr_pixel_y):
+                pos = np.subtract(np.multiply(np.divide(np.add([i_x, i_y], 0.5),
+                                                        [nr_pixel_x, nr_pixel_y]), [sidelength_x, sidelength_y]),
+                                  np.divide([sidelength_x, sidelength_y], 2.))
+                for i_pos, center_pos in enumerate(measurement_position_list):
+                    pos_r = np.linalg.norm(
+                        np.subtract(pos, center_pos))
+                    if pos_r < 0.15:
+                        flux_sum[i_pos] += tbldata[i_x, i_y]
+        # print(flux_sum[:])
+        print(r'\begin{tabular}{lccccc}')
+        print(
+            r'Configuration & $F_1 [\si{Jy}]$ & $F_2 [\si{Jy}]$ & $F_3 [\si{Jy}]$ & $F_4 [\si{Jy}]$ & $F_5 [\si{Jy}]$  & $F_6 [\si{Jy}]$\\')
+        print(r'\hline')
+        print(model_descr[i_subplot], '&', ' & '.join(
+            '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[:]), r'\\')
+        print(r'\begin{tabular}{lccccc}')
+        print(
+            r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ & $F_3 / F_6$ \\')
+        print(r'\hline')
+        string = model_descr[i_subplot]
+        for i_x, x in enumerate(np.divide(flux_sum[0], flux_sum[1:-1])):
+            string += r' & ' + f'{x:1.2f}'
+        string += r'& ' + f'{np.divide(flux_sum[-1], flux_sum[2]):1.2f}'
+        print(string, r'\\')
+        print(r'\end{tabular}')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2351,7 +2525,7 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 101
+        detector_index = 103
         i_quantity = 4
         i_subplot = 4
         vmin = 1e-7

@@ -2093,9 +2093,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                         double Csca_tmp = getCscaMean(a, w);
                         sum += Csca_tmp;
                         double rel_amount = a_eff_3_5[a] / weight;
-                        S11_tmp[a] = Csca_tmp * rel_amount * getScatteredFractionMie(a, w, sth) *
+                        S11_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
                                      getScatteringMatrixElement(a, w, 0, 0, sth, 0);
-                        S12_tmp[a] = Csca_tmp * rel_amount * getScatteredFractionMie(a, w, sth) *
+                        S12_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
                                      getScatteringMatrixElement(a, w, 0, 0, sth, 1);
                     }
                     else
@@ -4068,7 +4068,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
             }
 
             // Add scattering component if radiation field is stored in grid
-            if(energy > 1e-200)
+            if(energy > stokes_I[a] * 1e-10)
             {
                 // Init variables
                 StokesVector tmp_stokes;
