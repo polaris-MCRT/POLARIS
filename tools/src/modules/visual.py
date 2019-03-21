@@ -285,7 +285,7 @@ class Plot:
                 ('x', 'y', 'xy', None)
         """
         # Set axis label anautomatic_axes = None
-        automatic_axes = None
+        automatic_axes = ''
         # Set axis label and extent of 2D or 3D plot
         if self.image_type == 'projection_3d':
             # Set label padding, since padding of 3D plots seems to be too low
@@ -457,7 +457,7 @@ class Plot:
                 tmp_ylabel = [tmp_ylabel] * nr_y_images
             return tmp_xlabel, tmp_ylabel, 'xy'
         else:
-            return xlabel, ylabel, None
+            return xlabel, ylabel, ''
 
     def update_extent(self, extent=None, model=None, automatic_axes=None):
         """Update extent of the plot.
