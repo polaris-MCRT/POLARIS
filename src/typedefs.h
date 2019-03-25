@@ -198,9 +198,10 @@ using namespace std;
 #define POP_FEP 2
 #define POP_LVG 3
 
-#define FULL 1
-#define PARA 2
-#define ORTH 3
+#define COL_H2_FULL 1
+#define COL_H2_PARA 2
+#define COL_H2_ORTH 3
+#define COL_HE_FULL 6
 
 // Dust temperature cases
 #define TEMP_EMPTY 0

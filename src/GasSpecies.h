@@ -566,7 +566,7 @@ class CGasSpecies
                     uint i_trans);
 
     void createMatrix(double * J_mid, Matrix2D & A, double * b, Matrix2D final_col_para);
-    Matrix2D calc_collision_parameter(CGridBasic * grid, double temp_gas, double gas_number_density);
+    Matrix2D calc_collision_parameter(CGridBasic * grid, cell_basic * cell);
 
     bool readGasParamaterFile(string filename, uint id, uint max);
     bool readZeemanParamaterFile(string filename);
