@@ -28,6 +28,15 @@ def update_dust_dict(dictionary):
         'thomas_CM20': ThomasCM20,
         'thomas_aPyM5': ThomasPyM5,
         'thomas_aOlM5': ThomasOlM5,
+        'pebbles_typ1': PebblesTyp1,
+        'pebbles_typ2': PebblesTyp2,
+        'pebbles_typ3': PebblesTyp3,
+        'pebbles_typ4': PebblesTyp4,
+        'pebbles_typ5': PebblesTyp5,
+        'pebbles_typ6': PebblesTyp6,
+        'pebbles_typ7': PebblesTyp7,
+        'pebbles_typ8': PebblesTyp8,
+        'pebbles_typ9': PebblesTyp9,
         'custom': CustomDust,
     }
     dictionary.update(dust_dict)
@@ -605,7 +614,7 @@ class ThomasCM20(Dust):
 
 
 class ThomasPyM5(Dust):
-    """Dust class for carbon grains from Themis model."""
+    """Dust class for silicate grains from Themis model."""
 
     def __init__(self, file_io, parse_args):
         """Initialisation of the dust parameters.
@@ -634,7 +643,7 @@ class ThomasPyM5(Dust):
 
 
 class ThomasOlM5(Dust):
-    """Dust class for carbon grains from Themis model."""
+    """Dust class for silicate grains from Themis model."""
 
     def __init__(self, file_io, parse_args):
         """Initialisation of the dust parameters.
@@ -708,3 +717,98 @@ class ThomasThemis(Dust):
         dust.parameter['choice_id'] = 3
         new_command_line += dust.get_command_line()
         return new_command_line
+
+
+class PebblesTyp1(Dust):
+    """Dust class for large silicates from THEMIS model.
+    See: From grain to pebble (Ysard et al.)
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        #: dict: Parameters which are different to the default values
+        self.parameter['dust_cat_file'] = 'pebbles_typ1.dat'
+        self.parameter['scattering'] = 'HG'
+        self.parameter['material_density'] = 2950
+        self.parameter['subl_temp'] = 1200
+        self.parameter['size_keyword'] = 'logn'
+        self.parameter['size_parameter'] = [0.1, 7e-1]
+        # Minimum dust grain size
+        self.parameter['amin'] = 1e-8
+        # Maximum dust grain size
+        self.parameter['amax'] = 9.99e-2
+        # For creation of a dust catalog
+        self.parameter['input_file'] = 'typ1'
+        self.parameter['input_type'] = 'dustem'
+        self.parameter['dustem_wl_file'] = 'LAMBDA_PEBBLES'
+
+
+class PebblesTyp2(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ2.dat'
+        self.parameter['input_file'] = 'typ2'
+        self.parameter['material_density'] = 1600
+
+
+class PebblesTyp3(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ3.dat'
+        self.parameter['input_file'] = 'typ3'
+        self.parameter['material_density'] = 1300
+
+
+class PebblesTyp4(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ4.dat'
+        self.parameter['input_file'] = 'typ4'
+        self.parameter['material_density'] = 2500
+
+
+class PebblesTyp5(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ5.dat'
+        self.parameter['input_file'] = 'typ5'
+        self.parameter['material_density'] = 2400
+
+
+class PebblesTyp6(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ6.dat'
+        self.parameter['input_file'] = 'typ6'
+        self.parameter['material_density'] = 1200
+
+
+class PebblesTyp7(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ7.dat'
+        self.parameter['input_file'] = 'typ7'
+        self.parameter['material_density'] = 1680
+
+
+class PebblesTyp8(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ8.dat'
+        self.parameter['input_file'] = 'typ8'
+        self.parameter['material_density'] = 1880
+
+
+class PebblesTyp9(PebblesTyp1):
+    def __init__(self, file_io, parse_args):
+        PebblesTyp1.__init__(self, file_io, parse_args)
+        self.parameter['dust_cat_file'] = 'pebbles_typ9.dat'
+        self.parameter['input_file'] = 'typ9'
+        self.parameter['material_density'] = 1340
