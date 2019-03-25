@@ -261,7 +261,7 @@ function install_polaris_tools {
     echo -ne "Creating links to Python packages ..."\\r
     local_python_lib="$(python -m site --user-base 2>&1)"
     mkdir -p ${local_python_lib}
-    ln -isn "${install_directory}/lib" "${local_python_lib}/lib"
+    ln -isn ${install_directory}/lib/python* "${local_python_lib}/lib/"
     echo -e "Creating links to Python packages [${GREEN}done${NC}]"
 }
 
