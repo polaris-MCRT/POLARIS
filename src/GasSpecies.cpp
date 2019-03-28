@@ -101,7 +101,6 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         cell_basic * cell = grid->getCellFromIndex(i_cell);
         double * tmp_lvl_pop = new double[nr_of_energy_levels];
 
-        double temp_gas = grid->getGasTemperature(cell);
         double gas_number_density = grid->getGasNumberDensity(cell);
 
         // Calculate percentage of total progress per source
@@ -126,7 +125,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
             A.resize(nr_of_energy_levels, nr_of_energy_levels);
 
             cell_count++;
-            final_col_para = calc_collision_parameter(grid, temp_gas, gas_number_density);
+            final_col_para = calc_collision_parameter(grid, cell);
             createMatrix(J_mid, A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_energy_levels);
 
@@ -254,7 +253,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         double L = R_mid * sqrt(2.0 / 3.0 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
         uint i_iter = 0;
 
-        final_col_para = calc_collision_parameter(grid, temp_gas, gas_number_density);
+        final_col_para = calc_collision_parameter(grid, cell);
 
         for(i_iter = 0; i_iter < MAX_LVG_ITERATIONS; i_iter++)
         {
@@ -413,8 +412,10 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, Matrix2
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_gas, double gas_number_density)
+Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, cell_basic * cell)
 {
+    double temp_gas = grid->getGasTemperature(cell);
+    double gas_number_density = grid->getGasNumberDensity(cell);
     uint nr_col_trans = getNrCollisionTransitions(0);
     uint hi_i = 0;
 
@@ -429,14 +430,20 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, double temp_ga
 
         switch(getOrientation_H2(i_col_partner))
         {
-            case(FULL):
-                dens = gas_number_density;
+            case(COL_H2_FULL):
+                dens = grid->getGasNumberDensity(cell);
                 break;
-            case(PARA):
-                dens = gas_number_density * 0.25;
+            case(COL_H2_PARA):
+                dens = grid->getGasNumberDensity(cell) * 0.25;
                 break;
-            case(ORTH):
-                dens = gas_number_density * 0.75;
+            case(COL_H2_ORTH):
+                dens = grid->getGasNumberDensity(cell) * 0.75;
+                break;
+            case(COL_HE_FULL):
+                dens = grid->getGasNumberDensity(cell) * max(0.0, grid->getMu() - 1.0);
+                break;
+            default:
+                dens = 0;
                 break;
         }
 
@@ -819,7 +826,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         }
         else if(cmd_counter == 6 + nr_of_energy_levels + nr_of_total_transitions)
         {
-            if(values[0] > 3 || values[0] < 1)
+            if(values[0] < 1)
             {
                 cout << "\nERROR: Line " << line_counter
                      << " wrong orientation of H2 collision partner (gas species file)!" << endl;
@@ -898,7 +905,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
         }
         else if(i_col_partner < nr_of_col_partner)
         {
-            if(values[0] > 3 || values[0] < 1)
+            if(values[0] < 1)
             {
                 cout << "\nERROR: Line " << line_counter
                      << " wrong orientation of H2 collision partner (gas species file)!" << endl;

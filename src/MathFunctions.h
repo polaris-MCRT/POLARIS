@@ -2364,13 +2364,13 @@ class CMathFunctions
         return (v >= 0) ? v : v + v2;
     }
 
-    static inline fcomplex Csqrt(fcomplex z)
+    static inline dcomplex Csqrt(dcomplex z)
     {
-        fcomplex c;
+        dcomplex c;
         float x, y, w, r;
 
         if(real(z) == 0.0 && imag(z) == 0.0)
-            c = fcomplex(0.0, 0.0);
+            c = dcomplex(0.0, 0.0);
         else
         {
             x = fabs(real(z));
@@ -2399,183 +2399,193 @@ class CMathFunctions
         return c;
     }
 
-    /*
-        static bool calcBHMie(double x, fcomplex refractive_index,
-                double &qext, double &qabs, double &qsca, double &gsca,
-                double *S11, double *S12, double *S33, double *S34)
-            // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
-            // to calculate scattering and absorption by a homogenous isotropic
-            // sphere.
+    /*static bool calcBHMie(double x,
+                          dcomplex refractive_index,
+                          double & qext,
+                          double & qabs,
+                          double & qsca,
+                          double & gsca,
+                          double * S11,
+                          double * S12,
+                          double * S33,
+                          double * S34)
+    // Subroutine BHMIE is the Bohren-Huffman Mie scattering subroutine
+    // to calculate scattering and absorption by a homogenous isotropic
+    // sphere.
 
-            // Comment:
-            //     NANG = number of angles between 0 and 90 degrees
-            //             (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
+    // Comment:
+    //     NANG = number of angles between 0 and 90 degrees
+    //             (will calculate 2 * NANG - 1 directions from 0 to 180 deg.)
 
-            // Given:
-            //     X = 2*pi*a/lambda
-            //     REFREL = (complex refractive index of sphere) / (real index of medium)
+    // Given:
+    //     X = 2*pi*a/lambda
+    //     REFREL = (complex refractive index of sphere) / (real index of medium)
 
-            // Returns:
-            //     S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
-            //                               scattering E perpendicular to scattering
-       plane)
-            //     S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
-            //                               scattering E parallel to scattering plane)
-            //     QEXT = C_ext/pi*a**2 = efficiency factor for extinction
-            //     QSCA = C_sca/pi*a**2 = efficiency factor for scattering
-            //     QBACK = 4*pi*(dC_sca/domega)/pi*a**2
-            //         = backscattering efficiency
-            //     GSCA = <cos(theta)> for scattering
+    // Returns:
+    //     S1(1 .. 2 * NANG - 1) =  (incident E perpendicular to scattering plane,
+    //                               scattering E perpendicular to scattering plane)
+    //     S2(1 .. 2 * NANG - 1) =  (incident E parallel to scattering plane,
+    //                               scattering E parallel to scattering plane)
+    //     QEXT = C_ext/pi*a**2 = efficiency factor for extinction
+    //     QSCA = C_sca/pi*a**2 = efficiency factor for scattering
+    //     QBACK = 4*pi*(dC_sca/domega)/pi*a**2
+    //         = backscattering efficiency
+    //     GSCA = <cos(theta)> for scattering
 
-            // Original program taken from Bohren and Huffman (1983), Appendix A
-            // Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
-            // in order to compute <cos(theta)>
+    // Original program taken from Bohren and Huffman (1983), Appendix A
+    // Modified by B.T.Draine, Princeton Univ. Obs., 90/10/26
+    // in order to compute <cos(theta)>
+    {
+        dcomplex cxy = dcomplex(x, 0) * refractive_index;
+
+        // Series expansion terminated after XSTOP terms
+        float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
+        long nmx = fmax(xstop, abs(cxy)) + 15;
+
+        if(nmx >= MAX_MIE_ITERATIONS)
         {
-            fcomplex cxy = fcomplex(x, 0) * refractive_index;
+            cout << "\nERROR: Failure in Mie-scattering calculation (NMX = " << nmx
+                 << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" << endl;
+            return false;
+        }
 
-            // Series expansion terminated after XSTOP terms
-            float xstop = x + 4.0 * pow(x, 1.0 / 3.0) + 2.0;
-            long nmx = fmax(xstop, abs(cxy)) + 15;
+        float amu[NANG];
+        float dang = 0.5 * PI / float(NANG - 1);
+        for(int j = 0; j < NANG; j++)
+            amu[j] = cos(float(j) * dang);
 
-            if (nmx >= MAX_MIE_ITERATIONS) {
-                cout << "\nERROR: Failure in Mie-scattering calculation (NMX = "
-                    << nmx << " >= MAX_MIE_ITERATIONS = " << MAX_MIE_ITERATIONS << ")" <<
-       endl; return false;
-            }
+        // Logarithmic derivative D(J) calculated by downward recurrence
+        // beginning with initial value (0., 0.) at J=NMX
+        dcomplex cxd[MAX_MIE_ITERATIONS];
+        cxd[nmx] = dcomplex(0, 0);
 
-            float amu[NANG];
-            float dang = 0.5 * PI / float(NANG - 1);
-            for (int j = 0; j < NANG; j++)
-                amu[j] = cos(float(j) * dang);
+        dcomplex cxtemp;
+        for(long n = 0; n < nmx - 1; n++)
+        {
+            float rn = float(nmx - n);
+            cxd[nmx - (n + 1)] =
+                dcomplex(rn, 0) / cxy - dcomplex(1.0, 0.0) / (cxd[nmx - n] + dcomplex(rn, 0) / cxy);
+        }
 
-            // Logarithmic derivative D(J) calculated by downward recurrence
-            // beginning with initial value (0., 0.) at J=NMX
-            fcomplex cxd[MAX_MIE_ITERATIONS];
-            cxd[nmx] = fcomplex(0, 0);
+        float pi[NANG], pi0[NANG], pi1[NANG];
+        for(int j = 0; j < NANG; j++)
+        {
+            pi0[j] = 0.0;
+            pi1[j] = 1.0;
+        }
 
-            fcomplex cxtemp;
-            for(long n = 0; n < nmx - 1; n++)
+        dcomplex cxs1[2 * NANG - 1], cxs2[2 * NANG - 1];
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            cxs1[j] = dcomplex(0, 0);
+            cxs2[j] = dcomplex(0, 0);
+        }
+
+        // Riccati-Bessel functions with real argument X calculated by upward recurrence
+        double dn, psi;
+        double psi0 = cos(x);
+        double psi1 = sin(x);
+        float rn, fn, apsi, chi;
+        float chi0 = -sin(x);
+        float chi1 = cos(x);
+        float apsi0 = psi0;
+        float apsi1 = psi1;
+        float tau[NANG];
+        qsca = 0.0;
+        gsca = 0.0;
+        dcomplex cxxi;
+        dcomplex cxxi0 = dcomplex(apsi0, -chi0);
+        dcomplex cxxi1 = dcomplex(apsi1, -chi1);
+        dcomplex cxan, cxan1, cxbn, cxbn1;
+
+        for(long n = 1; n <= long(xstop); n++)
+        {
+            dn = n;
+            rn = n;
+            fn = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
+            psi = (2.0 * dn - 1.0) * psi1 / x - psi0;
+            apsi = psi;
+            chi = (2.0 * rn - 1.0) * chi1 / x - chi0;
+            cxxi = dcomplex(apsi, -chi);
+
+            // Store previous values of AN and BN for use in computation of g = <cos(theta)>
+            if(n > 1)
             {
-                float rn = float(nmx - n);
-                cxd[nmx - (n + 1)] = fcomplex(rn, 0) / cxy -
-                    fcomplex(1.0, 0.0) / (cxd[nmx - n] + fcomplex(rn, 0) / cxy);
+                cxan1 = cxan;
+                cxbn1 = cxbn;
             }
 
-            float pi[NANG], pi0[NANG], pi1[NANG];
+            // Compute AN and BN
+            cxan = (cxd[n] / refractive_index + dcomplex(rn / x, 0)) * dcomplex(apsi, 0) - dcomplex(apsi1, 0);
+            cxan = cxan / ((cxd[n] / refractive_index + dcomplex(rn / x, 0)) * cxxi - cxxi1);
+            cxbn = (refractive_index * cxd[n] + dcomplex(rn / x, 0)) * dcomplex(apsi, 0) - dcomplex(apsi1, 0);
+            cxbn = cxbn / ((refractive_index * cxd[n] + dcomplex(rn / x, 0)) * cxxi - cxxi1);
+
+            // Augment sums for *qsca and g=<cos(theta)>
+            qsca = qsca + (2.0 * rn + 1.0) * (abs(cxan) * abs(cxan) + abs(cxbn) * abs(cxbn));
+            gsca = gsca + ((2.0 * rn + 1.0) / (rn * (rn + 1.0))) *
+                              (real(cxan) * real(cxbn) + imag(cxan) * imag(cxbn));
+
+            if(n > 1)
+                gsca = gsca +
+                       ((rn - 1.) * (rn + 1.0) / rn) * (real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) +
+                                                        real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
+
             for(int j = 0; j < NANG; j++)
             {
-                pi0[j] = 0.0;
-                pi1[j] = 1.0;
-            }
+                int jj = 2 * NANG - 1 - j;
+                pi[j] = pi1[j];
+                tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
 
-            fcomplex cxs1[2 * NANG - 1], cxs2[2 * NANG - 1];
-            for(int j = 0; j < 2 * NANG - 1; j++)
-            {
-                cxs1[j] = fcomplex(0, 0);
-                cxs2[j] = fcomplex(0, 0);
-            }
+                float p = pow(-1.0, n - 1);
+                cxs1[j] =
+                    cxs1[j] + (dcomplex(fn, 0) * (cxan * dcomplex(pi[j], 0) + cxbn * dcomplex(tau[j], 0)));
 
-            // Riccati-Bessel functions with real argument X calculated by upward
-       recurrence double dn, psi; double psi0 = cos(x); double psi1 = sin(x); float rn,
-       fn, apsi, chi; float chi0 = -sin(x); float chi1 = cos(x); float apsi0 = psi0; float
-       apsi1 = psi1; float tau[NANG]; qsca = 0.0; gsca = 0.0; fcomplex cxxi; fcomplex
-       cxxi0 = fcomplex(apsi0, -chi0); fcomplex cxxi1 = fcomplex(apsi1, -chi1); fcomplex
-       cxan, cxan1, cxbn, cxbn1;
+                float t = pow(-1.0, n);
+                cxs2[j] =
+                    cxs2[j] + dcomplex(fn, 0) * (cxan * dcomplex(tau[j], 0) + cxbn * dcomplex(pi[j], 0));
 
-            for (long n = 1; n <= long(xstop); n++)
-            {
-                dn = n;
-                rn = n;
-                fn = (2.0 * rn + 1.0) / (rn * (rn + 1.0));
-                psi = (2.0 * dn - 1.0) * psi1 / x - psi0;
-                apsi = psi;
-                chi = (2.0 * rn - 1.0) * chi1 / x - chi0;
-                cxxi = fcomplex(apsi, -chi);
-
-                // Store previous values of AN and BN for use in computation of
-       g=<cos(theta)> if(n > 1)
+                if(j != jj)
                 {
-                    cxan1 = cxan;
-                    cxbn1 = cxbn;
-                }
-
-                // Compute AN and BN
-                cxan = (cxd[n] / refractive_index + fcomplex(rn / x, 0)) *
-                    fcomplex(apsi, 0) - fcomplex(apsi1, 0);
-                cxan = cxan / ((cxd[n] / refractive_index + fcomplex(rn / x, 0)) *
-                    cxxi - cxxi1);
-                cxbn = (refractive_index * cxd[n] + fcomplex(rn / x, 0)) *
-                    fcomplex(apsi, 0) - fcomplex(apsi1, 0);
-                cxbn = cxbn / ((refractive_index * cxd[n] + fcomplex(rn / x, 0)) *
-                    cxxi - cxxi1);
-
-                // Augment sums for *qsca and g=<cos(theta)>
-                qsca = qsca + (2.0 * rn + 1.0) * (abs(cxan) *
-                    abs(cxan) + abs(cxbn) * abs(cxbn));
-                gsca = gsca + ((2.0 * rn + 1.0) / (rn * (rn + 1.0))) *
-                    (real(cxan) * real(cxbn) + imag(cxan) * imag(cxbn));
-
-                if (n > 1)
-                    gsca = gsca + ((rn-1.) * (rn + 1.0) / rn) * (
-                        real(cxan1) * real(cxan) + imag(cxan1) * imag(cxan) +
-                        real(cxbn1) * real(cxbn) + imag(cxbn1) * imag(cxbn));
-
-                for(int j = 0; j < NANG; j++)
-                {
-                    int jj = 2 * NANG - 1 - j;
-                    pi[j] = pi1[j];
-                    tau[j] = rn * amu[j] * pi[j] - (rn + 1.0) * pi0[j];
-
-                    float p = pow(-1.0, n - 1);
-                    cxs1[j] = cxs1[j] + (fcomplex(fn, 0) *
-                        (cxan * fcomplex(pi[j], 0) + cxbn * fcomplex(tau[j], 0)));
-
-                    float t = pow(-1.0, n);
-                    cxs2[j] = cxs2[j] + fcomplex(fn, 0) *
-                        (cxan * fcomplex(tau[j], 0) + cxbn * fcomplex(pi[j], 0));
-
-                    if (j != jj)
-                    {
-                        cxs1[jj] = cxs1[jj] + fcomplex(fn, 0) *
-                            (cxan * fcomplex(pi[j] * p, 0) + cxbn * fcomplex(tau[j] * t,
-       0)); cxs2[jj] = cxs2[jj] + fcomplex(fn, 0) * (cxan * fcomplex(tau[j] * t, 0) + cxbn
-       * fcomplex(pi[j] * p, 0));
-                    }
-                }
-
-                psi0 = psi1;
-                psi1 = psi;
-                apsi1 = psi1;
-                chi0 = chi1;
-                chi1 = chi;
-                cxxi1 = fcomplex(apsi1, -chi1);
-
-                // For each angle J, compute pi_n+1 from PI = pi_n , PI0 = pi_n-1
-                for (int j = 0; j < NANG; j++)
-                {
-                    pi1[j] = ((2.0 * rn + 1.0) * amu[j] * pi[j] - (rn + 1.0) * pi0[j]) /
-       rn; pi0[j] = pi[j];
+                    cxs1[jj] = cxs1[jj] + dcomplex(fn, 0) * (cxan * dcomplex(pi[j] * p, 0) +
+                                                             cxbn * dcomplex(tau[j] * t, 0));
+                    cxs2[jj] = cxs2[jj] + dcomplex(fn, 0) * (cxan * dcomplex(tau[j] * t, 0) +
+                                                             cxbn * dcomplex(pi[j] * p, 0));
                 }
             }
 
-            // Have summed sufficient terms. Now compute *qsca,*qext,*qback,and *gsca
-            gsca = 2.0 * gsca / qsca;
-            qsca = (2.0 / (x * x)) * qsca;
-            qext = (4.0 / (x * x)) * real(cxs1[0]);
-            qabs = qext - qsca;
-            //*qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
+            psi0 = psi1;
+            psi1 = psi;
+            apsi1 = psi1;
+            chi0 = chi1;
+            chi1 = chi;
+            cxxi1 = dcomplex(apsi1, -chi1);
 
-            for(int j = 0; j < 2 * NANG - 1; j++)
+            // For each angle J, compute pi_n+1 from PI = pi_n , PI0 = pi_n-1
+            for(int j = 0; j < NANG; j++)
             {
-                S11[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) + abs(cxs1[j]) *
-       abs(cxs1[j])); S12[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) - abs(cxs1[j]) *
-       abs(cxs1[j])); S33[j] = real(cxs2[j] * conj(cxs1[j])); S34[j] = imag(cxs2[j] *
-       conj(cxs1[j]));
+                pi1[j] = ((2.0 * rn + 1.0) * amu[j] * pi[j] - (rn + 1.0) * pi0[j]) / rn;
+                pi0[j] = pi[j];
             }
-
-            return true;
         }
-    */
+
+        // Have summed sufficient terms. Now compute *qsca,*qext,*qback,and *gsca
+        gsca = 2.0 * gsca / qsca;
+        qsca = (2.0 / (x * x)) * qsca;
+        qext = (4.0 / (x * x)) * real(cxs1[0]);
+        qabs = qext - qsca;
+        //*qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
+
+        for(int j = 0; j < 2 * NANG - 1; j++)
+        {
+            S11[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) + abs(cxs1[j]) * abs(cxs1[j]));
+            S12[j] = 0.5 * (abs(cxs2[j]) * abs(cxs2[j]) - abs(cxs1[j]) * abs(cxs1[j]));
+            S33[j] = real(cxs2[j] * conj(cxs1[j]));
+            S34[j] = imag(cxs2[j] * conj(cxs1[j]));
+        }
+
+        return true;
+    }*/
 
     static bool calcWVMie(double x,
                           dcomplex refractive_index,
@@ -2693,7 +2703,7 @@ class CMathFunctions
         dlist dPI(NANG), dTAU(NANG);
         for(uint iang = 0; iang < NANG; iang++)
         {
-            uint iang2 = 2 * NANG - 1 - iang;
+            uint iang2 = 2 * NANG - 2 - iang;
 
             dPI[iang] = dPI1[iang];
             dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
@@ -2797,7 +2807,7 @@ class CMathFunctions
             FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
             for(uint iang = 0; iang < NANG; iang++)
             {
-                uint iang2 = 2 * NANG - iang;
+                uint iang2 = 2 * NANG - 2 - iang;
 
                 dPI[iang] = dPI1[iang];
                 dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
