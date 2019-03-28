@@ -1874,8 +1874,11 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
 {
     Vector3D pos = pp->getPosition();
     if(isInside(pos))
+    {
+        positionPhotonInGrid(pp);
         return true;
-
+    }
+        
     positionPhotonInGrid(pp);
     uint try_counter = 0;
     bool res = false;
