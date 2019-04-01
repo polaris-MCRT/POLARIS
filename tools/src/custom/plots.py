@@ -1688,7 +1688,7 @@ class CustomPlots:
             'Disks around all stars'
         ]
         # Loop over model configurations
-        line_cycle = [':','-.','-.','-.','--','--','--','-']
+        line_cycle = [':', '-.', '-.', '-.', '--', '--', '--', '-']
         for i_model, model_name in enumerate(model_list):
             if i_model < 8:
                 # Set paths of each simulation
@@ -1857,8 +1857,8 @@ class CustomPlots:
                                  norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
-                                   text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+                                   text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -1979,7 +1979,7 @@ class CustomPlots:
         detector_index = 103
         i_quantity = 0
         zoom = 0.8
-        calc = True
+        calc = False
         # Set some lists
         model_list = [
             'no_circumstellar_disks',
@@ -2051,8 +2051,8 @@ class CustomPlots:
                                ax_index=i_subplot, color='white')
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
-                                   text=str(i_pos + 1), ax_index=i_subplot, color='black', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+                                   text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -2232,7 +2232,7 @@ class CustomPlots:
             'only_Ab1_Ab2',
             'default',
             'vertical_Ab2',
-            'vertical_Ab2_scale_height_Aa_0_7_very_small'
+            'vertical_Ab2_scale_height_Aa_0_8_very_small'
         ]
         model_descr = [
             'No circumstellar disks',
@@ -2300,8 +2300,8 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='black',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True, text=r'$\text{' +
                        model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top',
@@ -2362,8 +2362,8 @@ class CustomPlots:
         for i_pos, center_pos in enumerate(measurement_position_list):
             if i_pos == 5:
                 center_pos[1] += 0.15
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='black',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2396,7 +2396,7 @@ class CustomPlots:
             'only_Ab1_Ab2',
             'default',
             'vertical_Ab2',
-            'vertical_Ab2_scale_height_Aa_0_7_very_small'
+            'vertical_Ab2_scale_height_Aa_0_8_very_small'
         ]
         model_descr = [
             'No circumstellar disks',
@@ -2465,8 +2465,8 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), color='black',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), color='white',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                        text=r'$\text{' + model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top', color='white')
@@ -2508,6 +2508,140 @@ class CustomPlots:
         string += r'& ' + f'{np.divide(flux_sum[-1], flux_sum[2]):1.2f}'
         print(string, r'\\')
         print(r'\end{tabular}')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1006009(self):
+        """Plot GG Tau A observation and two configurations
+        """
+        def cropND(img, bounding, offset=[0, 0]):
+            import operator
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
+            end = tuple(map(operator.add, start, bounding))
+            slices = tuple(map(slice, start, end))
+            return img[slices]
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 1  # 104
+        i_quantity = 4
+        i_subplot = 0
+        vmin = 1e-7
+        vmax = 1e-4
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default',
+            'vertical_Ab2',
+            'vertical_Ab2_scale_height_Aa_0_8_very_small'
+        ]
+        model_descr = [
+            r'$\text{No circumstellar disks}$',
+            r'$\text{Disk around Aa}$',
+            r'$\text{Disk around Ab1}$',
+            r'$\text{Disk around Ab2}$',
+            r'$\text{Disks around Aa and Ab1}$',
+            r'$\text{Disks around Aa and Ab2}$',
+            r'$\text{Disks around Ab1 and Ab2}$',
+            r'$\text{Disks around all stars}$',
+            r'$\text{Vertical disk around Ab2}$',
+            r'$\text{Vertical disk around Ab2}$' + '\n' +
+            r'$\text{Coplanar disks around Aa+Ab1}$'
+        ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, -1.60],
+            [0, 0.85],
+            [-0.57, -0.975],
+            [1.17, -0.42],
+            [1.5, -0.15],
+        ]
+        # Set beam size (in arcsec)
+        if observation == 'SCUBA':
+            self.file_io.beam_size = 0.07
+        elif observation == 'SPHERE':
+            self.file_io.beam_size = 0.03
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'proposal_image', path=self.file_io.path['model'])
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', model_list[i_subplot], 'dust')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                    nr_x_images=3, nr_y_images=1, size_x=6 / 1.4298620007401583)
+        for i_plot in range(2):
+            # Set paths of each simulation
+            self.file_io.set_path_from_str(
+                'plot', 'gg_tau_disk', model_list[i_subplot + i_plot * 9], 'dust')
+            # Create pdf file if show_plot is not chosen and read map data from file
+            plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                'polaris_detector_nr' + str(detector_index).zfill(4))
+            # Take data for current quantity
+            tbldata = plot_data[i_quantity, 0, :, :]
+            # plot imshow
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_plot + 1, set_bad_to_min=True,
+                             norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
+            if i_plot == 1:
+                # Load radiation source to get position of the binary stars
+                from modules.source import SourceChooser
+                radiation_source_chooser = SourceChooser(
+                    self.model, self.file_io, self.parse_args)
+                radiation_source = radiation_source_chooser.get_module_from_name(
+                    'gg_tau_stars')
+                # Plot position of binary stars (with conversion from m to au)
+                star_descr = ['Aa', 'Ab1', 'Ab2']
+                for i_star, position in enumerate(radiation_source.tmp_parameter['position_star']):
+                    if i_star == 0:
+                        offset = np.array([-35, -10]) * 1.3
+                    elif i_star == 1:
+                        offset = np.array([-24, 10]) * 1.3
+                    elif i_star == 2:
+                        offset = np.array([44, -12]) * 1.2
+                    pos_arcsec = np.add(
+                        np.divide(position[0:2], self.math.const['au']), offset) / 140.
+                    plot.plot_text(pos_arcsec,
+                                   text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=i_plot + 1, color='white')
+            for i_pos, center_pos in enumerate(measurement_position_list):
+                plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_plot + 1, color='white',
+                                fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+            # Plot map description
+            plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                           text=model_descr[i_subplot + 9 *
+                                            i_plot], horizontalalignment='left',
+                           verticalalignment='top', ax_index=i_plot + 1, color='white')
+        # Observation
+        if observation == 'SCUBA':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
+        elif observation == 'SPHERE':
+            hdulist = fits.open(
+                '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
+            tbldata = cropND(
+                hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
+        # plot imshow
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
+        for i_pos, center_pos in enumerate(measurement_position_list):
+            if i_pos == 5:
+                center_pos[1] += 0.15
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
