@@ -477,7 +477,7 @@ void CGridBasic::printPhysicalParameters()
              << endl;
     }
     else
-        cout << "- Magnetic field     (min,max) : none" << endl;
+        cout << "- Magnetic field      (min,max) : none" << endl;
 
     if(!data_pos_aalg_list.empty())
         cout << "- a_alig              (min,max) : [" << aalg_min << ", " << aalg_max << "] [m]" << endl;

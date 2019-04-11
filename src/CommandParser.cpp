@@ -1702,6 +1702,96 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
+    
+    
+    if(cmd.compare("<detector_sync_slice nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        while(values[4] < 0)
+            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+
+        if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            // Set distance to 1
+            values.push_back(1.0);
+            // Set sidelength in x-direction to cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction to cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 7)
+        {
+            // As above, but with distance to observer
+            // Set sidelength in x-direction of cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction of cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 6)
+        {
+            // As above, but with one sidelength for both directions of cube sidelength
+            // Set given sidelength also for y-direction of cube sidelength
+            values.push_back(values[NR_OF_RAY_DET - 7]);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 5)
+        {
+            // As above, but with two sidelengths for x- and y-directions of cube
+            // sidelength Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_SLICE);
+        if(!checkPixel(values, nr_of_pixel))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << "\nERROR: Number of parameters in raytracing detector could not be "
+                    "recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << "\nERROR: Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << "\nERROR: Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addSyncRayDetector(values);
+        param->updateDetectorAngles(values[4], values[5]);
+        param->updateObserverDistance(values[6]);
+        param->updateMapSidelength(values[7], values[8]);
+        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorPixel(uint(values[NR_OF_RAY_DET - 2]), uint(values[NR_OF_RAY_DET - 1]));
+
+        return true;
+    }
 
     if(cmd.compare("<detector_sync_healpix nr_sides = >") == 0)
     {

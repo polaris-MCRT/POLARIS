@@ -56,7 +56,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    // CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Ann/data/cmd_file");
     // CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
 
     if(!parser.parse())
