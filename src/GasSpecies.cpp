@@ -1446,12 +1446,12 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                         _snprintf_s(LineStrengthTmp,
                                     sizeof(LineStrengthTmp),
                                     "%.3f",
-                                    getLineStrengthSigmaP(i_species, i_line, i_pi));
+                                    getLineStrengthSigmaP(i_species, i_line, i_sigma_p));
 #else
                         snprintf(LineStrengthTmp,
                                  sizeof(LineStrengthTmp),
                                  "%.3f",
-                                 getLineStrengthSigmaP(i_species, i_line, i_pi));
+                                 getLineStrengthSigmaP(i_species, i_line, i_sigma_p));
 #endif
 
                         cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u) << "\t\t\t   "
@@ -1497,12 +1497,12 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                         _snprintf_s(LineStrengthTmp,
                                     sizeof(LineStrengthTmp),
                                     "%.3f",
-                                    getLineStrengthSigmaM(i_species, i_line, i_pi));
+                                    getLineStrengthSigmaM(i_species, i_line, i_sigma_m));
 #else
                         snprintf(LineStrengthTmp,
                                  sizeof(LineStrengthTmp),
                                  "%.3f",
-                                 getLineStrengthSigmaM(i_species, i_line, i_pi));
+                                 getLineStrengthSigmaM(i_species, i_line, i_sigma_m));
 #endif
 
                         cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(i_sublvl_u) << "\t\t\t   "

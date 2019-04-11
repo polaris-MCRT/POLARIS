@@ -1271,7 +1271,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6*2 };
+            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6 * 2 };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1419,7 +1419,10 @@ class CDetector
         pFits->pHDU().addKey("CRPIX4", 1, "pixel where CRVAL4 is defined ");
         pFits->pHDU().addKey("CDELT4", 1, "delta of axis 4");
 
-        pFits->pHDU().addKey("CUNIT4", "CR only (I, Q, U, V [Jy/px], 0, Nth [m^-2]), CR+TH (I, Q, U, V [Jy/px], lambda^2 RM [rad], Ncr [m^-2])", "unit of axis 4");
+        pFits->pHDU().addKey("CUNIT4",
+                             "CR only (I, Q, U, V [Jy/px], 0, Nth [m^-2]), CR+TH (I, Q, U, V [Jy/px], "
+                             "lambda^2 RM [rad], Ncr [m^-2])",
+                             "unit of axis 4");
         pFits->pHDU().addKey("ETYPE", "synchotron emission", "type of emission");
 
         pFits->pHDU().addKey("ID", nr, "detector ID");
@@ -1616,7 +1619,8 @@ class CDetector
                         array_T[i] = matrixT[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
                         i++;
                     }
-                uint id = i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
+                uint id =
+                    i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
                 newTable->column(colName[id + 0]).write(array_I, 1);
                 newTable->column(colName[id + 1]).write(array_Q, 1);
                 newTable->column(colName[id + 2]).write(array_U, 1);
@@ -1936,10 +1940,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_UPPER",
-                                 gas->getUpperTransition(i_species, i_trans),
+                                 gas->getUpperTransition(i_species, i_trans) + 1,
                                  "upper energy level index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_LOWER",
-                                 gas->getLowerTransition(i_species, i_trans),
+                                 gas->getLowerTransition(i_species, i_trans) + 1,
                                  "lower energy level index number (see leiden database)");
             pFits->pHDU().addKey("FREQ",
                                  gas->getTransitionFrequency(i_species, i_trans),

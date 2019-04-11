@@ -1472,7 +1472,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
         while(grid->next(pp1) && tracer->isNotAtCenter(pp1, cx, cy))
         {
             double n_th = grid->getThermalElectronDensity(pp1);
-            double T_e = 0.0;//grid->getElectronTemperature(pp1); //reserved for later use
+            double T_e = 0.0; // grid->getElectronTemperature(pp1); //reserved for later use
 
             double n_cr = grid->getCRElectronDensity(pp1);
             double g_min = grid->getGammaMin(pp1);
@@ -1482,7 +1482,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
             double B = grid->getMagField(pp1).length();
 
             // If the all the electron densities are far too low, skip the current cell
-            if(n_cr + n_th>= 1e-200 )
+            if(n_cr + n_th >= 1e-200)
             {
                 // Get path length through current cell
                 double len = pp1->getTmpPathLength();
@@ -1716,7 +1716,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                             WMap_cr.addT(syn_cr.kappa_V * cell_d_l, i_wave);
 
                             // Sp is set to the thermal electron column
-                            WMap_cr.addSp(n_th * cell_d_l, i_wave);//
+                            WMap_cr.addSp(n_th * cell_d_l, i_wave); //
 
                             // Add additional data to stokes vector
                             stokes_new_ca.setT(WMap_ca.T(i_wave));
@@ -1728,7 +1728,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                             WMap_ca.addT(syn_ca.kappa_V * cell_d_l, i_wave);
 
                             // Sp is set to the CR electron column
-                            WMap_ca.addSp(n_cr * cell_d_l, i_wave);//
+                            WMap_ca.addSp(n_cr * cell_d_l, i_wave); //
 
                             // Update the position of the photon package
                             pos_xyz_cell += cell_d_l * dir_map_xyz;
@@ -2398,9 +2398,9 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             }
 
             uint nr_velocity_channels = tracer->getNrSpectralBins();
-            if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 5)
+            if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 6)
             {
-                cout << "\nERROR: The magnetic field information requires at least 5 "
+                cout << "\nERROR: The magnetic field information requires at least 6 "
                         "channels\n"
                      << "    for simulations with Zeeman splitting" << endl;
                 return false;
