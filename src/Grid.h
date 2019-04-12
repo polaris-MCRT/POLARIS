@@ -145,8 +145,9 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
-        plt_rad_field = false;
-        plt_g_zero = false;
+        plt_rad_field1 = false;
+        plt_u_rad = false;
+        plt_g_zero1 = false;
         plt_n_th = false;
         plt_T_e = false;
         plt_n_cr = false;
@@ -180,7 +181,8 @@ class CGridBasic
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
-        buffer_g_zero = 0;
+        buffer_g_zero1 = 0;
+        buffer_u_rad = 0;
         buffer_n_th = 0;
         buffer_T_e = 0;
         buffer_n_cr = 0;
@@ -337,8 +339,9 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
-        plt_rad_field = false;
-        plt_g_zero = false;
+        plt_rad_field1 = false;
+        plt_u_rad =false;
+        plt_g_zero1 = false;
         plt_n_th = false;
         plt_T_e = false;
         plt_n_cr = false;
@@ -372,7 +375,8 @@ class CGridBasic
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
         buffer_rad_field = 0;
-        buffer_g_zero = 0;
+        buffer_g_zero1 = 0;
+        buffer_u_rad = 0;
         buffer_n_th = 0;
         buffer_T_e = 0;
         buffer_n_cr = 0;
@@ -953,6 +957,31 @@ class CGridBasic
     {
         cell_basic * cell = pp->getPositionCell();
         return getGZero(cell);
+    }
+       
+    double getUrad(cell_basic * cell)
+    {
+        double u_rad=0;
+        
+        if(spec_length_as_vector)
+        {
+            for(uint w = 1; w < WL_STEPS; w++)
+            {
+                double rad_field_1 = getRadiationField(cell, w - 1)/con_c;
+                double rad_field_2 = getRadiationField(cell, w)/con_c;
+
+                u_rad += ((wl_list[w] - wl_list[w - 1]) * rad_field_1 +
+                                  0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
+            }
+        }
+        
+        return u_rad/(8.64e-14);
+    }
+       
+    double getUrad(photon_package * pp)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getUrad(cell);
     }
 
     double getMu()
@@ -1783,7 +1812,7 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = getMinGrainRadius(pp);
             if(plt_amax)
                 buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
-            if(plt_rad_field)
+            if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
                     for(int wID = 0; wID < WL_STEPS; wID++)
@@ -1810,8 +1839,12 @@ class CGridBasic
                         buffer_rad_field[i_cell][wID][i_comp] = val;
                     }
                 }
-            if(plt_g_zero)
-                buffer_g_zero[i_cell] = getGZero(pp);
+            if(plt_g_zero1)
+                buffer_g_zero1[i_cell] = getGZero(pp);
+            
+            if(plt_u_rad)
+                buffer_u_rad[i_cell] = getUrad(pp);
+            
             if(plt_n_th)
                 buffer_n_th[i_cell] = getThermalElectronDensity(pp);
             if(plt_T_e)
@@ -1885,12 +1918,14 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = 0;
             if(plt_amax)
                 buffer_dust_amax[i_cell] = 0;
-            if(plt_rad_field)
+            if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(uint wID = 0; wID < WL_STEPS; wID++)
                         buffer_rad_field[i_cell][wID][i_comp] = 0;
-            if(plt_g_zero)
-                buffer_g_zero[i_cell] = 0;
+            if(plt_g_zero1)
+                buffer_g_zero1[i_cell] = 0;
+            if(plt_u_rad)
+                buffer_u_rad[i_cell] = 0;
             if(plt_n_th)
                 buffer_n_th[i_cell] = 0;
             if(plt_T_e)
@@ -3675,8 +3710,9 @@ class CGridBasic
     bool plt_dust_id;
     bool plt_amin;
     bool plt_amax;
-    bool plt_rad_field;
-    bool plt_g_zero;
+    bool plt_rad_field1;
+    bool plt_u_rad;
+    bool plt_g_zero1;
     bool plt_n_th;
     bool plt_T_e;
     bool plt_n_cr;
@@ -3717,7 +3753,8 @@ class CGridBasic
     double * buffer_dust_amin;
     double * buffer_dust_amax;
     double *** buffer_rad_field;
-    double * buffer_g_zero;
+    double * buffer_g_zero1;
+    double * buffer_u_rad;
     double * buffer_n_th;
     double * buffer_T_e;
     double * buffer_n_cr;
