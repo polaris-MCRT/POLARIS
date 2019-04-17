@@ -97,12 +97,13 @@ class Cube(Model):
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun'], 0.33 * 1e-6 * self.math.const['M_sun']]])
+        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
         #self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
+        self.parameter['variable_dust'] = True
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
@@ -133,7 +134,7 @@ class Cube(Model):
         # gas_density = self.math.random_density_distribution(
         #    self.position, d_exp=2)
         # gas_density = 1.0
-        return np.array([[1., 1.]])
+        return np.array([[1.], [1.]])
 
     def magnetic_field(self):
         """Calculates the magnetic field strength at a given position.
