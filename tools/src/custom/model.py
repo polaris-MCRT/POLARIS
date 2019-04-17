@@ -97,7 +97,7 @@ class Cube(Model):
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun'], 0.33 * 1e-6 * self.math.const['M_sun']])
+        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun'], 0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
         #self.parameter['radiation_source'] = 'isrf'
@@ -132,8 +132,8 @@ class Cube(Model):
         #                                        truncation_radius=1 * self.math.const['au'])
         # gas_density = self.math.random_density_distribution(
         #    self.position, d_exp=2)
-        gas_density = 1.0
-        return np.array([[gas_density, gas_density])
+        # gas_density = 1.0
+        return np.array([[1., 1.]])
 
     def magnetic_field(self):
         """Calculates the magnetic field strength at a given position.
