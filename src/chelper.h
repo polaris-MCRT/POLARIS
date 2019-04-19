@@ -519,8 +519,7 @@ class parameters
 
         plot_inp_points = false;
         plot_out_points = false;
-        write_radiation_field = false;
-        write_full_radiation_field = false;
+        write_radiation_field1 = 0;
         write_g_zero = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
@@ -981,14 +980,9 @@ class parameters
         }
     }
 
-    bool getWriteRadiationField()
+    uint getWriteRadiationField()
     {
-        return write_radiation_field;
-    }
-
-    bool getWriteFullRadiationField()
-    {
-        return write_full_radiation_field;
+        return write_radiation_field1;
     }
 
     bool getWriteGZero()
@@ -1457,14 +1451,9 @@ class parameters
         midplane_zoom = val;
     }
 
-    void setWriteRadiationField(bool val)
+    void setWriteRadiationField(uint val)
     {
-        write_radiation_field = val;
-    }
-
-    void setWriteFullRadiationField(bool val)
-    {
-        write_full_radiation_field = val;
+        write_radiation_field1 = val;
     }
 
     void setWriteGZero(double val)
@@ -2437,8 +2426,7 @@ class parameters
 
     bool plot_inp_points;
     bool plot_out_points;
-    bool write_radiation_field;
-    bool write_full_radiation_field;
+    uint write_radiation_field1;
     bool write_g_zero;
 
     dlist midplane_3d_param;
