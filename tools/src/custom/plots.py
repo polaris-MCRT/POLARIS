@@ -1594,7 +1594,11 @@ class CustomPlots:
         [tbldata_zoom, vec_field_data_zoom], _, _ = self.file_io.read_midplane_file(
             visualization_input, filename='input_midplane_zoom.fits')
         # Create zoom plot (set model to provide extent of zoomed image)
-        plot.create_zoom_axis(model=self.model, zoom_factor=3.5)
+        plot.create_zoom_axis(model=self.model, zoom_factor=3.2)
+        plot.ax_list[1].spines['bottom'].set_color('0.5')
+        plot.ax_list[1].spines['top'].set_color('0.5')
+        plot.ax_list[1].spines['right'].set_color('0.5')
+        plot.ax_list[1].spines['left'].set_color('0.5')
         # Plot zoomed image
         self.basic_plots.plot_midplane_map_base(visualization_input, plot, tbldata_zoom, vec_field_data_zoom,
                                                 ax_index=1, plot_cbar=False, vmin=1e-14, set_bad_to_min=True, cmap='inferno')
@@ -2659,11 +2663,11 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 103
+        detector_index = 101
         i_quantity = 4
-        i_subplot = 4
-        vmin = 1e-7
-        vmax = 1e-4
+        i_subplot = 9
+        vmin = 2e-7
+        vmax = 8e-5
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
@@ -2675,6 +2679,7 @@ class CustomPlots:
             'only_Ab1_Ab2',
             'default',
             'vertical_Ab2',
+            'vertical_Ab2_hres',
         ]
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
@@ -2694,12 +2699,12 @@ class CustomPlots:
             'polaris_detector_nr' + str(detector_index).zfill(4))
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
-                    nr_x_images=2, nr_y_images=1)
+                    nr_x_images=1, nr_y_images=1)
         # Take data for current quantity
         tbldata = plot_data[i_quantity, 0, :, :]
         # plot imshow
-        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
-                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        #plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
+        #                 norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
         # Load radiation source to get position of the binary stars
         from modules.source import SourceChooser
         radiation_source_chooser = SourceChooser(
@@ -2717,14 +2722,14 @@ class CustomPlots:
                 offset = np.array([40, -12]) * 1.3
             pos_arcsec = np.add(
                 np.divide(position[0:2], self.math.const['au']), offset) / 140.
-            plot.plot_text(pos_arcsec,
-                           text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
+            #plot.plot_text(pos_arcsec,
+            #               text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         # Observation
         if observation == 'SCUBA':
             hdulist = fits.open(
                 '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
             tbldata = cropND(
-                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
+                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 2e7
         elif observation == 'SPHERE':
             hdulist = fits.open(
                 '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
