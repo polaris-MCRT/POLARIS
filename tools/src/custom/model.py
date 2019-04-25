@@ -97,13 +97,13 @@ class Cube(Model):
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
+        self.parameter['gas_mass'] = np.array(
+            [[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
         #self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
-        self.parameter['variable_dust'] = True
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
@@ -194,8 +194,6 @@ class TestModel(Model):
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'cartesian'
-        self.parameter['variable_dust'] = True
-        self.parameter['variable_size_limits'] = True
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -343,7 +341,6 @@ class GGTauDisk(Model):
         # Cite: larger grains in cb disk (McCabe et al. 2002)
         self.parameter['dust_composition'] = 'multi_mrn'
         self.parameter['detector'] = 'gg_tau'
-        self.parameter['variable_dust'] = True
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
@@ -465,12 +462,10 @@ class GGTauDisk(Model):
                                                   self.a_Aab + 8. * self.math.const['au'], 250)
                     r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                                         240. * self.math.const['au'], 50, 1.03)
-                    r_list_planet = self.math.exp_list(280. * self.math.const['au'],
-                                                241. * self.math.const['au'], 39, 1.05)
+                    r_list_planet = self.math.exp_list(260. * self.math.const['au'],
+                                                       241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                            (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
-                    print('[',','.join(str(a) for a in self.cylindrical_parameter['radius_list'] / self.math.const['au']),']')
-                    print(len(r_list_cs_disks), len(r_list_cb_disk), len(r_list_planet[::-1]))
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
                     # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     # Phi cells
@@ -712,7 +707,6 @@ class HD97048(Model):
         self.parameter['radiation_source'] = 'hd97048'
         self.parameter['dust_composition'] = 'olivine_pah'
         # Use multiple dust compositionas depending on the region in the grid
-        self.parameter['variable_dust'] = True
         self.use_cont = False
 
     def update_parameter(self, extra_parameter):
@@ -857,8 +851,6 @@ class HD169142(Model):
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
-        # Enable multiple density distributions
-        self.parameter['variable_dust'] = True
         # Init new parameter
         self.parameter['model_number'] = None
         self.parameter['r_gap_in'] = 0
@@ -1010,8 +1002,6 @@ class ThemisDisk(Model):
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
-        # Enable multiple density distributions
-        self.parameter['variable_dust'] = True
         # Init new parameter
         self.parameter['model_number'] = 0
 
@@ -1160,7 +1150,6 @@ class MultiDisk(Model):
         # Default disk parameter
         self.ref_radius = 100. * self.math.const['au']
         self.ref_scale_height = 10. * self.math.const['au']
-        self.parameter['variable_dust'] = True
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

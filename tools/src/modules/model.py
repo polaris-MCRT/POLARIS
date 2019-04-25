@@ -232,42 +232,6 @@ class Disk(Model):
                                                            beta=self.parameter['beta'])
         return scale_height
 
-    def gas_temperature(self):
-        """Calculates the gas temperature at a given position.
-
-        Returns:
-            float: Gas temperature at a given position.
-        """
-        gas_temp = 10.
-        return gas_temp
-
-    def dust_temperature(self):
-        """Calculates the dust temperature at a given position.
-
-        Returns:
-            float: Dust temperature at a given position.
-        """
-        dust_temp = 20.
-        return dust_temp
-
-    def velocity_field(self):
-        """Calculates the velocity at a given position.
-
-        Returns:
-            List[float, float, float]: Velocity at a given position.
-        """
-        velocity = [0., 0., 0.]
-        return velocity
-
-    def magnetic_field(self):
-        """Calculates the magnetic field strength at a given position.
-
-        Returns:
-            List[float, float, float]: Magnetic field strength at a given position.
-        """
-        magnetic_field = [0., 0., 1e-10]
-        return magnetic_field
-
 
 class Sphere(Model):
     """A sphere model with constant density
