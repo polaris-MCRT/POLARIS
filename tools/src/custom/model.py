@@ -456,46 +456,45 @@ class GGTauDisk(Model):
 
         if extra_parameter is not None:
             if len(extra_parameter) == 1:
-                if extra_parameter[0] == 'small_vertical':
+                if extra_parameter[0] == 'planet':
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
-                    self.disk_Ab2 = True
-                    # Rotate Ab2 CS disk
-                    self.inclination_Ab2 = 90. / 180. * np.pi
-                    # Adjust vertical cell number
-                    self.cylindrical_parameter['n_z'] = 151
-                    self.fixed_scale_height = 0.45 * self.math.const['au']
-                    # Radial cell borders
+                    # Radial cells
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 150)
+                                                  self.a_Aab + 8. * self.math.const['au'], 250)
                     r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                                        260. * self.math.const['au'], 50, 1.03)
+                                                        240. * self.math.const['au'], 50, 1.03)
+                    r_list_planet = self.math.exp_list(280. * self.math.const['au'],
+                                                241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
-                    # Radial grid limits
+                            (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
+                    print('[',','.join(str(a) for a in self.cylindrical_parameter['radius_list'] / self.math.const['au']),']')
+                    print(len(r_list_cs_disks), len(r_list_cb_disk), len(r_list_planet[::-1]))
+                    # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
-                    self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
-                    # Number of phi cells
-                    n_ph_list_1 = [90] * 150
+                    # Phi cells
+                    n_ph_list_1 = [600] * 250
                     n_ph_list_2 = [180] * 51
+                    n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
-                        (n_ph_list_1, n_ph_list_2)).ravel()
-                elif extra_parameter[0] == 'vertical':
+                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                elif extra_parameter[0] == 'vertical_Ab1':
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
                     self.disk_Ab2 = True
-                    # Rotate Ab2 CS disk
-                    self.inclination_Ab2 = 90. / 180. * np.pi
+                    # Rotate Ab1 CS disk ---
+                    self.inclination_Ab1 = 90. / 180. * np.pi
                     # Adjust vertical cell number
                     self.cylindrical_parameter['n_z'] = 300
                     self.fixed_scale_height = 0.45 * self.math.const['au']
-                    # Increase size of Ab2
-                    self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase size of Ab1 ---
+                    self.outer_radius_Ab1 = 3. * self.math.const['au']
                     # Increase scale height of Aa
                     self.ref_scale_height[1] = 0.8 * self.math.const['au']
-                    self.ref_scale_height[3] = 0.1 * self.math.const['au']
+                    # Decrease scale height of Ab1 ---
+                    self.ref_scale_height[2] = 0.01 * self.math.const['au']
                     # Radial cell borders
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
                                                   self.a_Aab + 8. * self.math.const['au'], 300)
@@ -508,6 +507,39 @@ class GGTauDisk(Model):
                     self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
                     # Number of phi cells
                     n_ph_list_1 = [800] * 300
+                    n_ph_list_2 = [180] * 51
+                    self.cylindrical_parameter['n_ph'] = np.hstack(
+                        (n_ph_list_1, n_ph_list_2)).ravel()
+                elif extra_parameter[0] == 'vertical_Ab2':
+                    # Enable all disks
+                    self.disk_Aa = True
+                    self.disk_Ab1 = True
+                    self.disk_Ab2 = True
+                    # Rotate Ab2 CS disk ---
+                    self.inclination_Ab2 = 90. / 180. * \
+                        np.pi  # (90. - 37.) / 180. * np.pi
+                    # Adjust vertical cell number
+                    self.cylindrical_parameter['n_z'] = 400
+                    self.fixed_scale_height = 0.45 * self.math.const['au']
+                    # Increase size of Ab2 ---
+                    self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase scale height of Aa
+                    self.ref_scale_height[1] = 0.8 * self.math.const['au']
+                    # Decrease scale height of Ab2 ---
+                    self.ref_scale_height[3] = 0.01 * self.math.const['au']
+                    print(self.ref_scale_height[3] / self.math.const['au'])
+                    # Radial cell borders
+                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                  self.a_Aab + 8. * self.math.const['au'], 600)
+                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                        260. * self.math.const['au'], 50, 1.03)
+                    self.cylindrical_parameter['radius_list'] = np.hstack(
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+                    # Radial grid limits
+                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+                    self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
+                    # Number of phi cells
+                    n_ph_list_1 = [1000] * 600
                     n_ph_list_2 = [180] * 51
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2)).ravel()
@@ -588,11 +620,10 @@ class GGTauDisk(Model):
             disk_density_Ab2 = 0.
 
         # --- GG Tau A CB disk
-        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
+        if 180. * self.math.const['au'] <= radius_cy <= self.parameter['outer_radius']:
             # Calculate the density
             disk_density = self.math.default_disk_density(self.position,
-                                                          outer_radius=260. *
-                                                          self.math.const['au'],
+                                                          outer_radius=self.parameter['outer_radius'],
                                                           inner_radius=180. *
                                                           self.math.const['au'],
                                                           ref_scale_height=self.ref_scale_height[0],
