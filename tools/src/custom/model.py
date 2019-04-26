@@ -465,7 +465,7 @@ class GGTauDisk(Model):
                                                   self.a_Aab + 8. * self.math.const['au'], 250)
                     r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                                         240. * self.math.const['au'], 50, 1.03)
-                    r_list_planet = self.math.exp_list(280. * self.math.const['au'],
+                    r_list_planet = self.math.exp_list(260. * self.math.const['au'],
                                                 241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
                             (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
