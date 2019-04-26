@@ -2538,6 +2538,7 @@ class photon_package
         tmp_path = 0;
 
         wID = MAX_UINT;
+        dirID = MAX_UINT;
 
         sh_distance = 0;
 
@@ -2748,6 +2749,10 @@ class photon_package
     {
         tmp_path = _len;
         pos = _pos + tmp_path * ez;
+
+        // Calculate cell by position
+        if(tmp_path > 0)
+            dirID = MAX_UINT;
     }
 
     void setPosition(Vector3D val)
@@ -2876,6 +2881,16 @@ class photon_package
         cell_pos = val;
     }
 
+    void setDirectionID(uint val)
+    {
+        dirID = val;
+    }
+
+    uint getDirectionID()
+    {
+        return dirID;
+    }
+
     void setWavelengthID(uint val)
     {
         wID = val;
@@ -2897,6 +2912,7 @@ class photon_package
     StokesVector * multi_stokes;
 
     uint wID;
+    uint dirID;
 
     uint sc_counter;
     uint abs_counter;

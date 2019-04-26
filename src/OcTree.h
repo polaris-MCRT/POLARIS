@@ -376,58 +376,55 @@ class CGridOcTree : public CGridBasic
 
     void goNextLevelDown(photon_package * pp)
     {
-        Vector3D pos = pp->getPosition();
-        cell_oc * cell_pos = (cell_oc *)pp->getPositionCell();
+        cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
 
-        if(cell_pos->getChildren() != 0)
+        if(tmp_cell->getChildren() != 0)
         {
+            Vector3D pos = pp->getPosition();
             Vector3D center = getCenter(pp->getPositionCell());
-            double xmid = center.X();
-            double ymid = center.Y();
-            double zmid = center.Z();
+            double x_mid = center.X();
+            double y_mid = center.Y();
+            double z_mid = center.Z();
 
-            if(pos.Z() < zmid) // z 0 1 2 3
+            if(pos.Z() < z_mid) // z 0 1 2 3
             {
-                if(pos.Y() < ymid) // y 0 1
+                if(pos.Y() < y_mid) // y 0 1
                 {
-                    if(pos.X() < xmid) // x 0
-                        cell_pos = cell_pos->getChild(0);
+                    if(pos.X() < x_mid) // x 0
+                        tmp_cell = tmp_cell->getChild(0);
                     else
                         // x 1
-                        cell_pos = cell_pos->getChild(1);
+                        tmp_cell = tmp_cell->getChild(1);
                 }
                 else // y 2 3
                 {
-                    if(pos.X() < xmid) // x 2
-                        cell_pos = cell_pos->getChild(2);
+                    if(pos.X() < x_mid) // x 2
+                        tmp_cell = tmp_cell->getChild(2);
                     else // x 3
-                        cell_pos = cell_pos->getChild(3);
+                        tmp_cell = tmp_cell->getChild(3);
                 }
             }
             else // z 4 5 6 7
             {
-                if(pos.Y() < ymid) // y 4 5
+                if(pos.Y() < y_mid) // y 4 5
                 {
-                    if(pos.X() < xmid) // x 4
-                        cell_pos = cell_pos->getChild(4);
+                    if(pos.X() < x_mid) // x 4
+                        tmp_cell = tmp_cell->getChild(4);
                     else // x 5
-                        cell_pos = cell_pos->getChild(5);
+                        tmp_cell = tmp_cell->getChild(5);
                 }
                 else // y 6 7
                 {
-                    if(pos.X() < xmid) // x 6
-                        cell_pos = cell_pos->getChild(6);
+                    if(pos.X() < x_mid) // x 6
+                        tmp_cell = tmp_cell->getChild(6);
                     else // x 7
-                        cell_pos = cell_pos->getChild(7);
+                        tmp_cell = tmp_cell->getChild(7);
                 }
             }
 
-            pp->setPositionCell(cell_pos);
+            pp->setPositionCell(tmp_cell);
             goNextLevelDown(pp);
-            return;
         }
-        else
-            return;
     }
 
     bool createTree(cell_oc * parent,
@@ -479,26 +476,20 @@ class CGridOcTree : public CGridBasic
 
     void goNextLevelUp(photon_package * pp)
     {
-        Vector3D pos = pp->getPosition();
-        cell_oc * lcell_oc_pos = (cell_oc *)pp->getPositionCell();
+        cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
 
-        if(lcell_oc_pos == 0)
-            return;
-        if(lcell_oc_pos->getLevel() == 0)
+        if(tmp_cell == 0)
             return;
 
-        lcell_oc_pos = lcell_oc_pos->getParent();
-
-        if(isInside(pos, lcell_oc_pos))
-        {
-            pp->setPositionCell(lcell_oc_pos);
+        if(tmp_cell->getLevel() == 0)
             return;
-        }
-        else
-        {
-            pp->setPositionCell(lcell_oc_pos);
+
+        tmp_cell = tmp_cell->getParent();
+
+        pp->setPositionCell(tmp_cell);
+
+        if(!isInside(pp->getPosition(), tmp_cell))
             goNextLevelUp(pp);
-        }
     }
 
     bool isInside(Vector3D & pos, cell_basic * _cell)
