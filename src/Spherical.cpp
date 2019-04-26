@@ -1608,7 +1608,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length > 0 && length < min_length)
+                if(length >= 0 && length < min_length)
                 {
                     min_length = length;
                     hit = true;
@@ -1625,7 +1625,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length > 0 && length < min_length)
+                if(length >= 0 && length < min_length)
                 {
                     min_length = length;
                     hit = true;
