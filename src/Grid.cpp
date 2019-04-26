@@ -909,7 +909,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     photon_package * pp = new photon_package;
 
     // along z
-    pp->setPosition(Vector3D(0, 0, -2.0 * max_len));
+    pp->setPosition(Vector3D(0, 0, 2.0 * max_len));
     pp->setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
     findStartingPoint(pp);
 
@@ -954,7 +954,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
 
-    pp->setPosition(Vector3D(0, -2.0 * max_len, 0));
+    pp->setPosition(Vector3D(0, 2.0 * max_len, 0));
     pp->setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
     findStartingPoint(pp);
 
@@ -999,7 +999,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
 
-    pp->setPosition(Vector3D(-2.0 * max_len, 0, 0));
+    pp->setPosition(Vector3D(2.0 * max_len, 0, 0));
     pp->setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
     findStartingPoint(pp);
 
@@ -1099,30 +1099,30 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         if(cmd != CMD_TEMP && cmd != CMD_TEMP_RAT)
             plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
 
-        //if(getRadiationFieldAvailable())
+        // if(getRadiationFieldAvailable())
         {
             switch(param.getWriteRadiationField())
             {
-                    default:
-                        plt_u_rad=false;
-                        plt_rad_field1=false;
+                default:
+                    plt_u_rad = false;
+                    plt_rad_field1 = false;
                     break;
 
-                    case 1:
-                        plt_u_rad=(cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
-                        plt_rad_field1=false;
+                case 1:
+                    plt_u_rad = (cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
+                    plt_rad_field1 = false;
                     break;
-                    
-                    case 2:
-                        plt_u_rad=false;
-                        plt_rad_field1=true;
+
+                case 2:
+                    plt_u_rad = false;
+                    plt_rad_field1 = true;
                     break;
-                    
-                    case 3:
-                        plt_u_rad=false;
-                        plt_rad_field1 = true;
-                        nr_rad_field_comp = 4;
-                    break;        
+
+                case 3:
+                    plt_u_rad = false;
+                    plt_rad_field1 = true;
+                    nr_rad_field_comp = 4;
+                    break;
             }
 
             if(param.getWriteGZero())
@@ -1174,31 +1174,32 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         switch(param.getWriteRadiationField())
         {
-                default:
-                    plt_u_rad=false;
-                    plt_rad_field1=false;
+            default:
+                plt_u_rad = false;
+                plt_rad_field1 = false;
                 break;
 
-                case 1:
-                    plt_u_rad=(cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
-                    plt_rad_field1=false;
+            case 1:
+                plt_u_rad = (cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
+                plt_rad_field1 = false;
                 break;
 
-                case 2:
-                    plt_u_rad=false;
-                    plt_rad_field1=true;
-                    
-                    if(!spec_length_as_vector)
-                        cout << "HINT: The full radiation field can only be saved if it was used by the simulation\n"
-                        "      (when saving the radiation field in the grid or calculating RATs)!"
-                        << endl;
+            case 2:
+                plt_u_rad = false;
+                plt_rad_field1 = true;
+
+                if(!spec_length_as_vector)
+                    cout << "HINT: The full radiation field can only be saved if it was used by the "
+                            "simulation\n"
+                            "      (when saving the radiation field in the grid or calculating RATs)!"
+                         << endl;
                 break;
 
-                case 3:
-                    plt_u_rad=false;
-                    plt_rad_field1 = true;
-                    nr_rad_field_comp = 4;
-                break;        
+            case 3:
+                plt_u_rad = false;
+                plt_rad_field1 = true;
+                nr_rad_field_comp = 4;
+                break;
         }
 
         if(param.getWriteGZero())
@@ -1206,11 +1207,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
 
     uint nr_parameters = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp) +
-                        4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
-                        uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
-                        uint(plt_rad_field1) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero1) + uint(plt_u_rad) +
-                        uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) +
-                        uint(plt_p) + uint(plt_avg_th) + uint(plt_avg_dir);
+                         4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
+                         uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
+                         uint(plt_rad_field1) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero1) +
+                         uint(plt_u_rad) + uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) +
+                         uint(plt_g_max) + uint(plt_p) + uint(plt_avg_th) + uint(plt_avg_dir);
 
     if(nr_parameters == 0)
         return res;
@@ -1424,7 +1425,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_g_zero1)
         buffer_g_zero1 = new double[nelements];
-     if(plt_u_rad)
+    if(plt_u_rad)
         buffer_u_rad = new double[nelements];
     if(plt_n_th)
         buffer_n_th = new double[nelements];
@@ -2440,7 +2441,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_g_zero1)
         delete[] buffer_g_zero1;
     if(plt_u_rad)
-        delete[] buffer_u_rad;    
+        delete[] buffer_u_rad;
     if(plt_n_th)
         delete[] buffer_n_th;
     if(plt_T_e)
