@@ -1606,8 +1606,11 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     {
         if(tmp_length[i] > 0 && tmp_length[i] < min_length)
         {
-            min_length = tmp_length[i];
-            hit = true;
+            if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
+            {
+                min_length = tmp_length[i];
+                hit = true;
+            }
         }
     }
 
@@ -1621,24 +1624,30 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
         double length = -num / den1;
         if(length > 0 && length < min_length)
         {
-            min_length = length;
-            hit = true;
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            {
+                min_length = length;
+                hit = true;
+            }
         }
     }
 
-    // Vector3D v_n2(0, 0, 1);
-    // double den2 = v_n2 * d;
-    // if(den2 != 0)
-    // {
-    //     Vector3D v_a2(0, 0, Zmax);
-    //     double num = v_n2 * (p - v_a2);
-    //     double length = -num / den2;
-    //     if(length > 0 && length < min_length)
-    //     {
-    //         min_length = length;
-    //         hit = true;
-    //     }
-    // }
+    Vector3D v_n2(0, 0, 1);
+    double den2 = v_n2 * d;
+    if(den2 != 0)
+    {
+        Vector3D v_a2(0, 0, Zmax);
+        double num = v_n2 * (p - v_a2);
+        double length = -num / den2;
+        if(length > 0 && length < min_length)
+        {
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            {
+                min_length = length;
+                hit = true;
+            }
+        }
+    }
 
     if(!hit)
         return false;
