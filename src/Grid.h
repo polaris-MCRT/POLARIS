@@ -340,7 +340,7 @@ class CGridBasic
         plt_amin = false;
         plt_amax = false;
         plt_rad_field1 = false;
-        plt_u_rad =false;
+        plt_u_rad = false;
         plt_g_zero1 = false;
         plt_n_th = false;
         plt_T_e = false;
@@ -958,26 +958,26 @@ class CGridBasic
         cell_basic * cell = pp->getPositionCell();
         return getGZero(cell);
     }
-       
+
     double getUrad(cell_basic * cell)
     {
-        double u_rad=0;
-        
+        double u_rad = 0;
+
         if(spec_length_as_vector)
         {
             for(uint w = 1; w < WL_STEPS; w++)
             {
-                double rad_field_1 = getRadiationField(cell, w - 1)/con_c;
-                double rad_field_2 = getRadiationField(cell, w)/con_c;
+                double rad_field_1 = getRadiationField(cell, w - 1) / con_c;
+                double rad_field_2 = getRadiationField(cell, w) / con_c;
 
                 u_rad += ((wl_list[w] - wl_list[w - 1]) * rad_field_1 +
-                                  0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
+                          0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
             }
         }
-        
-        return u_rad/(8.64e-14);
+
+        return u_rad / (8.64e-14);
     }
-       
+
     double getUrad(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
@@ -1841,10 +1841,10 @@ class CGridBasic
                 }
             if(plt_g_zero1)
                 buffer_g_zero1[i_cell] = getGZero(pp);
-            
+
             if(plt_u_rad)
                 buffer_u_rad[i_cell] = getUrad(pp);
-            
+
             if(plt_n_th)
                 buffer_n_th[i_cell] = getThermalElectronDensity(pp);
             if(plt_T_e)
@@ -1941,7 +1941,7 @@ class CGridBasic
             if(plt_avg_dir)
                 buffer_avg_dir[i_cell] = 0;
             if(plt_avg_th)
-                buffer_avg_dir[i_cell] = 0;
+                buffer_avg_th[i_cell] = 0;
         }
         delete pp;
     }
