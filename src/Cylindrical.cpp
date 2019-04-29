@@ -1575,22 +1575,22 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 {
     uint try_counter = 0;
 
-    double min_length = 2e300;
-    double tmp_length[4];
+    double min_length = 1e200;
+    double tmp_length[2];
     bool hit = false;
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
     if(isInside(p))
-        return true;
+        return positionPhotonInGrid(pp);
 
     // --- Radial cell borders ---
+    double A = d.X() * d.X() + d.Y() * d.Y();
     double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
     double C = p.X() * p.X() + p.Y() * p.Y() - Rmax * Rmax;
-    double A = d.X() * d.X() + d.Y() * d.Y();
     double dscr = B * B - 4 * A * C;
 
-    if(dscr >= 0)
+    if(A > 0 && dscr >= 0)
     {
         dscr = sqrt(dscr);
         tmp_length[0] = (-B + dscr) / (2 * A);
@@ -1613,49 +1613,37 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
     // --- vertical cell borders ---
     Vector3D v_n1(0, 0, -1);
-    Vector3D v_a1(0, 0, -Zmax);
-
     double den1 = v_n1 * d;
     if(den1 != 0)
     {
+        Vector3D v_a1(0, 0, -Zmax);
         double num = v_n1 * (p - v_a1);
-        tmp_length[0] = -num / den1;
-    }
-    else
-    {
-        tmp_length[0] = 1e200;
-    }
-
-    Vector3D v_n2(0, 0, 1);
-    Vector3D v_a2(0, 0, Zmax);
-
-    double den2 = v_n2 * d;
-    if(den2 != 0)
-    {
-        double num = v_n2 * (p - v_a2);
-        tmp_length[1] = -num / den2;
-    }
-    else
-    {
-        tmp_length[1] = 1e200;
-    }
-
-    for(uint i = 0; i < 2; i++)
-    {
-        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+        double length = -num / den1;
+        if(length > 0 && length < min_length)
         {
-            min_length = tmp_length[i];
+            min_length = length;
             hit = true;
         }
     }
 
-    if(!hit)
-    {
-        cout << "\nERROR: Wrong cell border!                                   " << endl;
-        return false;
-    }
+    // Vector3D v_n2(0, 0, 1);
+    // double den2 = v_n2 * d;
+    // if(den2 != 0)
+    // {
+    //     Vector3D v_a2(0, 0, Zmax);
+    //     double num = v_n2 * (p - v_a2);
+    //     double length = -num / den2;
+    //     if(length > 0 && length < min_length)
+    //     {
+    //         min_length = length;
+    //         hit = true;
+    //     }
+    // }
 
-    double path_length = min_length + 1e-6 * min_len;
+    if(!hit)
+        return false;
+
+    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     pp->setDirectionID(MAX_UINT);
     return positionPhotonInGrid(pp);

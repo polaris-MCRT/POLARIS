@@ -1608,7 +1608,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(length > 0 && length < min_length)
                 {
                     min_length = length;
                     hit = true;
@@ -1625,7 +1625,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(length > 0 && length < min_length)
                 {
                     min_length = length;
                     hit = true;
@@ -1698,9 +1698,9 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     Vector3D d = pp->getDirection();
 
     if(isInside(p))
-        return true;
+        return positionPhotonInGrid(pp);
 
-    double tmp_length[4];
+    double tmp_length[2];
     double min_length = 1e200;
     bool hit = false;
 
@@ -1730,10 +1730,7 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     }
 
     if(!hit)
-    {
-        cout << "\nERROR: Wrong cell border!                                   " << endl;
         return false;
-    }
 
     double path_length = min_length + 1e-3 * min_len;
     pp->setPosition(p + d * path_length);

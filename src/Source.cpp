@@ -684,6 +684,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
 {
     nr_of_photons = param.getNrOfISRFPhotons();
     string filename = param.getISRFPath();
+    radius = param.getISRFRadius();
 
     ifstream reader(filename.c_str());
     int line_counter = -2;

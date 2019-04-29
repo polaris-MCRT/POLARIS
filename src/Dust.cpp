@@ -3567,7 +3567,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);
 
-                du[w] = wavelength_list[w]*arr_en_dens;
+                du[w] = arr_en_dens;
 
                 // Radiative torque efficiency as a power-law
                 double Qr = 0.14;
@@ -3582,8 +3582,8 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // Qr=getQrat(a, w, 0.0);
                 arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
 
-                ddir[w] = wavelength_list[w]*arr_en_dens * gamma;
-                dth[w] = wavelength_list[w]*arr_en_dens * cos_theta;
+                ddir[w] = arr_en_dens * gamma;
+                dth[w] = arr_en_dens * cos_theta;
             }
 
             // Perform integration for total radiation field
