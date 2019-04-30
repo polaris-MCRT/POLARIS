@@ -248,42 +248,42 @@ class CDustComponent
     // ----------------------------------------------------------------------
     // ----------- Efficiencies for grain size and wavelength ---------------
     // ----------------------------------------------------------------------
-    double getQext1(uint a, uint w)
+    inline double getQext1(uint a, uint w)
     {
         return Qext1[a][w];
     }
 
-    double getQext2(uint a, uint w)
+    inline double getQext2(uint a, uint w)
     {
         return Qext2[a][w];
     }
 
-    double getQabs1(uint a, uint w)
+    inline double getQabs1(uint a, uint w)
     {
         return Qabs1[a][w];
     }
 
-    double getQabs2(uint a, uint w)
+    inline double getQabs2(uint a, uint w)
     {
         return Qabs2[a][w];
     }
 
-    double getQsca1(uint a, uint w)
+    inline double getQsca1(uint a, uint w)
     {
         return Qsca1[a][w];
     }
 
-    double getQsca2(uint a, uint w)
+    inline double getQsca2(uint a, uint w)
     {
         return Qsca2[a][w];
     }
 
-    double getQcirc(uint a, uint w)
+    inline double getQcirc(uint a, uint w)
     {
         return Qcirc[a][w];
     }
 
-    double getHGg(uint a, uint w)
+    inline double getHGg(uint a, uint w)
     {
         return HGg[a][w];
     }
@@ -576,17 +576,17 @@ class CDustComponent
     // -----------------------------------------------------------------------------
     // ----------- Average cross-sections for grain size and wavelength ------------
     // -----------------------------------------------------------------------------
-    double getCextMean(uint a, uint w)
+    inline double getCextMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
     }
 
-    double getCabsMean(uint a, uint w)
+    inline double getCabsMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
     }
 
-    double getCscaMean(uint a, uint w)
+    inline double getCscaMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
     }
@@ -1565,10 +1565,6 @@ class CDustComponent
     double getAbsRate(CGridBasic * grid, cell_basic * cell, uint a, bool use_energy_density)
     {
         double abs_rate = 0;
-
-        // Get cell volume
-        double cell_vol = grid->getVolume(cell);
-
         if(use_energy_density)
         {
             double * sp_energy = new double[nr_of_wavelength];
@@ -1582,7 +1578,7 @@ class CDustComponent
             for(uint w = 0; w < nr_of_wavelength; w++)
                 abs_rate += grid->getSpecLength(cell, w) * getCabsMean(a, w);
 
-        return abs(abs_rate) / (PIx4 * cell_vol);
+        return abs(abs_rate) / (PIx4 * grid->getVolume(cell));
     }
 
     double getAbsRate(CGridBasic * grid, photon_package * pp, uint a, bool use_energy_density)

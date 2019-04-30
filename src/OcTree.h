@@ -517,7 +517,7 @@ class CGridOcTree : public CGridBasic
         return true;
     }
 
-    bool isInside(Vector3D & pos)
+    bool isInside(const Vector3D & pos)
     {
         if(pos.X() < cell_oc_root->getXmin() || pos.Y() < cell_oc_root->getYmin() ||
            pos.Z() < cell_oc_root->getZmin())

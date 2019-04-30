@@ -679,7 +679,7 @@ class CGridBasic
         }
     }
 
-    double getSpecLength(cell_basic * cell, uint wID)
+    inline double getSpecLength(cell_basic * cell, uint wID)
     {
 #ifdef CAMPS_BENCHMARK
         // To perform Camps et. al (2015) benchmark.
@@ -695,7 +695,7 @@ class CGridBasic
 #endif
     }
 
-    double getSpecLength(photon_package * pp, uint wID)
+    inline double getSpecLength(photon_package * pp, uint wID)
     {
         cell_basic * cell = pp->getPositionCell();
         return getSpecLength(cell, wID);
@@ -2023,7 +2023,7 @@ class CGridBasic
         return Vector3D(0, 0, 0);
     }
 
-    double getGasDensity(cell_basic * cell)
+    inline double getGasDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2031,7 +2031,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasDensity(cell_basic * cell, uint i_density)
+    inline double getGasDensity(cell_basic * cell, uint i_density)
     {
         if(!data_pos_gd_list.empty())
             return cell->getData(data_pos_gd_list[i_density]);
@@ -2039,19 +2039,19 @@ class CGridBasic
             return 0;
     }
 
-    double getGasDensity(photon_package * pp)
+    inline double getGasDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasDensity(cell);
     }
 
-    double getGasDensity(photon_package * pp, uint i_density)
+    inline double getGasDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasDensity(cell, i_density);
     }
 
-    double getGasNumberDensity(cell_basic * cell)
+    inline double getGasNumberDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2061,7 +2061,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasNumberDensity(cell_basic * cell, uint i_density)
+    inline double getGasNumberDensity(cell_basic * cell, uint i_density)
     {
         double dens = cell->getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
@@ -2069,19 +2069,19 @@ class CGridBasic
         return dens;
     }
 
-    double getGasNumberDensity(photon_package * pp)
+    inline double getGasNumberDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasNumberDensity(cell);
     }
 
-    double getGasNumberDensity(photon_package * pp, uint i_density)
+    inline double getGasNumberDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasNumberDensity(cell, i_density);
     }
 
-    double getGasMassDensity(cell_basic * cell)
+    inline double getGasMassDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2091,7 +2091,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasMassDensity(cell_basic * cell, uint i_density)
+    inline double getGasMassDensity(cell_basic * cell, uint i_density)
     {
         double dens = cell->getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
@@ -2099,13 +2099,13 @@ class CGridBasic
         return dens;
     }
 
-    double getGasMassDensity(photon_package * pp)
+    inline double getGasMassDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasMassDensity(cell);
     }
 
-    double getGasMassDensity(photon_package * pp, uint i_density)
+    inline double getGasMassDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasMassDensity(cell, i_density);

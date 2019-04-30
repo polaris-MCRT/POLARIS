@@ -361,6 +361,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 if(!grid->positionPhotonInGrid(pp))
                     if(!grid->findStartingPoint(pp))
                     {
+                        kill_counter++;
                         delete pp;
                         continue;
                     }

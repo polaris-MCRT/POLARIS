@@ -1702,8 +1702,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
-    
-    
+
     if(cmd.compare("<detector_sync_slice nr_pixel = >") == 0)
     {
         string str = seperateString(data);
@@ -2981,15 +2980,16 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<write_radiation_field>") == 0)
     {
-        uint val=atoi(data.c_str());
-        
-        if(val>3)
+        uint val = atoi(data.c_str());
+
+        if(val > 3)
         {
-            cout << "\nWARNING: Command \"<write_radiation_field>\" accepts only paramers between 0 to 3!" << endl;
+            cout << "\nWARNING: Command \"<write_radiation_field>\" accepts only paramers between 0 to 3!"
+                 << endl;
             param->setWriteRadiationField(0);
             return true;
         }
-        
+
         param->setWriteRadiationField(val);
 
         return true;

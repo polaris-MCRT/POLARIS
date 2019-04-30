@@ -1872,31 +1872,98 @@ bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
 
 bool CGridOcTree::findStartingPoint(photon_package * pp)
 {
-    Vector3D pos = pp->getPosition();
-    if(isInside(pos))
+    Vector3D p = pp->getPosition();
+
+    if(isInside(p))
+        return positionPhotonInGrid(pp);
+
+    bool hit = false;
+    double min_length = 1e300;
+    Vector3D d = pp->getDirection();
+
+    double loc_x_min = cell_oc_root->getXmin();
+    double loc_y_min = cell_oc_root->getYmin();
+    double loc_z_min = cell_oc_root->getZmin();
+
+    double loc_x_max = cell_oc_root->getXmax();
+    double loc_y_max = cell_oc_root->getYmax();
+    double loc_z_max = cell_oc_root->getZmax();
+
+    double loc_dx = loc_x_max - loc_x_min;
+    double loc_dy = loc_y_max - loc_y_min;
+    double loc_dz = loc_z_max - loc_z_min;
+
+    for(uint i_side = 0; i_side < 6; i_side++)
     {
-        positionPhotonInGrid(pp);
-        return true;
-    }
-
-    positionPhotonInGrid(pp);
-    uint try_counter = 0;
-    bool res = false;
-
-    while(goToNextCellBorder(pp))
-    {
-        try_counter++;
-        if(try_counter > 6)
-            return false;
-
-        if(findMatchingCell(pp))
+        Vector3D v_n;
+        switch(i_side)
         {
-            res = true;
-            break;
+            case 0:
+                v_n.setZ(-loc_dx * loc_dy);
+                break;
+            case 1:
+                v_n.setZ(loc_dx * loc_dy);
+                break;
+            case 2:
+                v_n.setY(-loc_dx * loc_dz);
+                break;
+            case 3:
+                v_n.setY(loc_dx * loc_dz);
+                break;
+            case 4:
+                v_n.setX(-loc_dy * loc_dz);
+                break;
+            case 5:
+                v_n.setX(loc_dy * loc_dz);
+                break;
+        }
+
+        double den = v_n * d;
+        if(den != 0)
+        {
+            Vector3D v_a;
+            switch(i_side)
+            {
+                case 0:
+                    v_a.setZ(loc_z_min);
+                    break;
+                case 1:
+                    v_a.setZ(loc_z_max);
+                    break;
+                case 2:
+                    v_a.setY(loc_y_min);
+                    break;
+                case 3:
+                    v_a.setY(loc_y_max);
+                    break;
+                case 4:
+                    v_a.setX(loc_x_min);
+                    break;
+                case 5:
+                    v_a.setX(loc_x_max);
+                    break;
+            }
+
+            double num = v_n * (p - v_a);
+            double length = -num / den;
+
+            if(length >= 0 && length < min_length)
+            {
+                if(isInside(p + d * (length + MIN_LEN_STEP * min_len)))
+                {
+                    min_length = length;
+                    hit = true;
+                }
+            }
         }
     }
 
-    return res;
+    if(!hit)
+        return false;
+
+    double path_length = min_length + MIN_LEN_STEP * min_len;
+    pp->setPosition(p + d * path_length);
+    return positionPhotonInGrid(pp);
 }
 
 void CGridOcTree::clear(cell_oc * cell)
