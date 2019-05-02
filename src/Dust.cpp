@@ -4004,9 +4004,6 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     // Get wavelength index of photon package
     uint w = pp->getWavelengthID();
 
-    // Calculate Planck emission
-    double planck_emission = getTabPlanck(w, temp_dust);
-
     // Calculate orientation of the Stokes vector in relation to the magnetic field
     double sin_2ph = sin(2.0 * phi);
     double cos_2ph = cos(2.0 * phi);
@@ -4064,14 +4061,16 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                 else
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
+                double pl = rel_weight * getTabPlanck(w, temp_dust);
+
 #ifdef CAMPS_BENCHMARK
                 // To perform Camps et. al (2015) benchmark.
-                tmp_stokes[a].addQ(cs.Cabs * rel_weight * planck_emission;
+                tmp_stokes[a].addQ(cs.Cabs * pl;
 #else
                 // Add relative emissivity from this temperature
-                tmp_stokes[a].addI(cs.Cabs * rel_weight * planck_emission);
-                tmp_stokes[a].addQ(cs.Cpabs * rel_weight * planck_emission * cos_2ph);
-                tmp_stokes[a].addU(cs.Cpabs * rel_weight * planck_emission * sin_2ph);
+                tmp_stokes[a].addI(cs.Cabs * pl);
+                tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
+                tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
 #endif
             }
 
