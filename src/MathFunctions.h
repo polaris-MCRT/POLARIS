@@ -1356,8 +1356,8 @@ class CMathFunctions
     {
         Vector3D velo;
 
-        double r = sqrt(pow(pos.X(), 2) + pow(pos.Y(), 2));
-        double kep_const = pow(con_G * stellar_mass * M_sun / r, 0.5);
+        double r = sqrt(pos.X() * pos.X() + pos.Y() * pos.Y());
+        double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
 
         velo.setX(-1.0 * pos.Y() / r * kep_const);
         velo.setY(pos.X() / r * kep_const);
@@ -1579,27 +1579,27 @@ class CMathFunctions
         for(uint i = 1; i < nr_of_dust_species; i++)
         {
             m = (quantity[i] - quantity[i - 1]) / (a_eff[i] - a_eff[i - 1]);
-            if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
+            if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
+            {
+                dx = a_eff[i] - a_eff[i - 1];
+                y0 = quantity[i - 1];
+            }
+            else if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
             {
                 dx = a_max - a_min;
                 y0 = quantity[i - 1] + (a_min - a_eff[i - 1]) * m;
                 if(dx == 0)
                     return y0;
             }
-            else if(a_eff[i] >= a_min && (a_eff[i - 1] < a_min))
+            else if(a_eff[i] >= a_min && a_eff[i - 1] < a_min)
             {
                 dx = a_eff[i] - a_min;
                 y0 = quantity[i];
                 m *= -1;
             }
-            else if(a_eff[i - 1] < a_max && (a_eff[i] >= a_max))
+            else if(a_eff[i - 1] < a_max && a_eff[i] >= a_max)
             {
                 dx = a_max - a_eff[i - 1];
-                y0 = quantity[i - 1];
-            }
-            else if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
-            {
-                dx = a_eff[i] - a_eff[i - 1];
                 y0 = quantity[i - 1];
             }
             else
@@ -1637,7 +1637,15 @@ class CMathFunctions
             m_U = (stokes[i].U() - stokes[i - 1].U()) / (a_eff[i] - a_eff[i - 1]);
             m_V = (stokes[i].V() - stokes[i - 1].V()) / (a_eff[i] - a_eff[i - 1]);
 
-            if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
+            if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
+            {
+                dx = a_eff[i] - a_eff[i - 1];
+                y0_I = stokes[i - 1].I();
+                y0_Q = stokes[i - 1].Q();
+                y0_U = stokes[i - 1].U();
+                y0_V = stokes[i - 1].V();
+            }
+            else if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
             {
                 dx = a_max - a_min;
                 y0_I = stokes[i - 1].I() + (a_min - a_eff[i - 1]) * m_I;
@@ -1647,7 +1655,7 @@ class CMathFunctions
                 if(dx == 0)
                     return StokesVector(y0_I, y0_Q, y0_U, y0_V);
             }
-            else if(a_eff[i] >= a_min && (a_eff[i - 1] < a_min))
+            else if(a_eff[i] >= a_min && a_eff[i - 1] < a_min)
             {
                 dx = a_eff[i] - a_min;
                 y0_I = stokes[i].I();
@@ -1659,17 +1667,9 @@ class CMathFunctions
                 m_U *= -1;
                 m_V *= -1;
             }
-            else if(a_eff[i - 1] < a_max && (a_eff[i] >= a_max))
+            else if(a_eff[i - 1] < a_max && a_eff[i] >= a_max)
             {
                 dx = a_max - a_eff[i - 1];
-                y0_I = stokes[i - 1].I();
-                y0_Q = stokes[i - 1].Q();
-                y0_U = stokes[i - 1].U();
-                y0_V = stokes[i - 1].V();
-            }
-            else if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
-            {
-                dx = a_eff[i] - a_eff[i - 1];
                 y0_I = stokes[i - 1].I();
                 y0_Q = stokes[i - 1].Q();
                 y0_U = stokes[i - 1].U();

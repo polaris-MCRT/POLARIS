@@ -2542,9 +2542,6 @@ class photon_package
 
         sh_distance = 0;
 
-        mD.resize(3, 3);
-        mD.unityMatrix();
-
         stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
 
@@ -2630,8 +2627,6 @@ class photon_package
     {
         return abs_counter;
     }
-
-    Matrix2D mD;
 
     void setD(Matrix2D & _mD)
     {
@@ -2908,6 +2903,7 @@ class photon_package
     Vector3D ex;
     Vector3D ey;
     Vector3D ez;
+    Matrix2D mD;
     StokesVector stokes;
     StokesVector * multi_stokes;
 

@@ -980,7 +980,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         Vector3D dir_obs = detector[d].getDirection();
 
                         // Launch a new photon package from the source
-                        tm_source->createNextRay(&tmp_pp, long(0));
+                        tm_source->createNextRay(&tmp_pp, llong(0));
 
                         // Position the photon inside the grid
                         grid->positionPhotonInGrid(&tmp_pp);
@@ -1003,6 +1003,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Increase the optical depth by the current cell
                             tau_obs += Cext * len * dens;
                         }
+
+                        // Rotate photon package into the coordinate space of the detector
+                        double rot_angle_phot_obs =
+                            CMathFunctions::getRotationAngleObserver(dir_obs, tmp_pp.getEX(), tmp_pp.getEY());
+                        tmp_pp.getStokesVector().rot(rot_angle_phot_obs);
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
@@ -1035,9 +1040,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     for(uint d = 0; d < nr_ofMCDetectors; d++)
     {
         if(!detector[d].writeMap(d, RESULTS_MC))
-            ;
+            return false;
         if(!detector[d].writeSed(d, RESULTS_MC))
-            ;
+            return false;
     }
 
     // Format prints
@@ -2605,6 +2610,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         // Set photon package to current wavelength
         pp->setWavelengthID(wID);
 
+        // Init matrices
+        Matrix2D alpha_ges;
+
         // Transport the photon package through the model
         while(grid->next(pp) && tracer->isNotAtCenter(pp, cx, cy))
         {
@@ -2615,9 +2623,6 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
             // are not negligible
             if(temp_gas >= 1e-200)
             {
-                // Init matrices
-                Matrix2D alpha_ges, line_matrix;
-
                 double cos_theta = 0, sin_theta = 0, cos_2_phi = 0, sin_2_phi = 0;
                 Vector3D mag_field;
                 if(gas->getZeemanSplitting(i_species))
@@ -2631,8 +2636,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                 double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
                 // Calculate the emission of the dust grains
-                StokesVector S_dust;
-                S_dust = dust->calcEmissivitiesHz(grid, pp);
+                StokesVector S_dust = dust->calcEmissivitiesHz(grid, pp);
 
                 // Calculate the emission of the gas particles
                 StokesVector S_gas;
@@ -2646,15 +2650,13 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                 for(uint vch = 0; vch < nr_velocity_channels; vch++)
                 {
                     // Init variables
-                    double cell_d_l, velo_dir, cell_sum = 0;
+                    double velo_dir, cell_sum = 0, cell_d_l = len;
                     ullong kill_counter = 0;
 
                     // Get direction and entry position of the current cell
                     Vector3D dir_map_xyz = pp->getDirection();
                     Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
-
-                    // Set path length through current cell
-                    cell_d_l = len;
+                    Vector3D tmp_pos;
 
                     // Make sub steps until cell is completely crossed
                     // If the error of a sub step is too high, make the step smaller
@@ -2681,7 +2683,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                         for(uint k = 0; k < 6; k++)
                         {
                             // Calculate Runge-Kutta position
-                            Vector3D pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
+                            tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
 
                             // Get the velocity in the photon
                             // direction of the current position
@@ -2689,7 +2691,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                             {
                                 // Get velocity from Kepler rotation
                                 velo_dir =
-                                    CMathFunctions::calcKeplerianVelocity(pos, gas->getKeplerStarMass()) *
+                                    CMathFunctions::calcKeplerianVelocity(tmp_pos, gas->getKeplerStarMass()) *
                                     dir_map_xyz;
                             }
                             else if(grid_has_vel_field)
@@ -2700,7 +2702,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                                     velo_dir = 0.0;
                                 else
                                 {
-                                    Vector3D rel_pos = pos - pos_in_grid_0;
+                                    Vector3D rel_pos = tmp_pos - pos_in_grid_0;
                                     velo_dir = vel_field.getValue(rel_pos.length());
 
                                     // Old version without spline interpolation
@@ -2711,18 +2713,20 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                             else
                                 velo_dir = 0.0;
 
-                            velo_dir += obs_vel * dir_map_xyz;
+                            if(obs_vel.length() > 0)
+                                velo_dir += obs_vel * dir_map_xyz;
 
-                            line_matrix = gas->getLineMatrix(grid,
-                                                             pp,
-                                                             i_species,
-                                                             i_line,
-                                                             tracer->getVelocityChannel(vch) - velo_dir,
-                                                             mag_field,
-                                                             cos_theta,
-                                                             sin_theta,
-                                                             cos_2_phi,
-                                                             sin_2_phi);
+                            const Matrix2D & line_matrix =
+                                gas->getLineMatrix(grid,
+                                                   pp,
+                                                   i_species,
+                                                   i_line,
+                                                   tracer->getVelocityChannel(vch) - velo_dir,
+                                                   mag_field,
+                                                   cos_theta,
+                                                   sin_theta,
+                                                   cos_2_phi,
+                                                   sin_2_phi);
 
                             // Combine the Stokes vectors from gas and dust
                             // for emission and extinction

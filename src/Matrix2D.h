@@ -147,6 +147,12 @@ class Matrix2D
             m_data[i] *= val;
     }
 
+    void operator+=(double val)
+    {
+        for(uint i = 0; i < m_size; i++)
+            m_data[i] += val;
+    }
+
     void operator+=(const Matrix2D & mat)
     {
         if(m_size == mat.size())
@@ -426,68 +432,41 @@ inline Matrix2D operator*(const Matrix2D & lhs, const Matrix2D & rhs)
 
 inline Matrix2D operator*(double val, const Matrix2D & mat)
 {
-    Matrix2D res(mat.row(), mat.col());
-
-    for(uint i = 0; i < res.size(); i++)
-        res.set(i, val * mat(i));
+    Matrix2D res(mat);
+    res *= val;
     return res;
 }
 
 inline Matrix2D operator*(const Matrix2D & mat, double val)
 {
+    Matrix2D res(mat);
+    res *= val;
+    return res;
+}
+
+inline Matrix2D operator+(const Matrix2D & mat, const Matrix2D & rhs)
+{
     Matrix2D res(mat.row(), mat.col());
 
     for(uint i = 0; i < res.size(); i++)
-        res.set(i, val * mat(i));
+        res.set(i, mat(i) + rhs(i));
     return res;
 }
 
-inline double * operator*(const Matrix2D & mat, double * rhs)
+inline Matrix2D operator+(const Matrix2D & mat, double val)
 {
-    double * res = new double[mat.col()];
+    Matrix2D res(mat);
+    res += val;
+    return res;
+}
+
+inline ostream & operator<<(ostream & out, const Matrix2D & mat)
+{
 
     for(uint i = 0; i < mat.row(); i++)
-        for(uint j = 0; j < mat.col(); j++)
-            res[i] = mat(i, j) * rhs[j];
-    return res;
-}
-
-inline dlist operator*(const Matrix2D & mat, dlist rhs)
-{
-    dlist res;
-    res.resize(mat.col());
-
-    for(uint i = 0; i < mat.row(); i++)
-        for(uint j = 0; j < mat.col(); j++)
-            res[i] = mat(i, j) * rhs[j];
-    return res;
-}
-
-inline Matrix2D operator+(const Matrix2D & lhs, const Matrix2D & rhs)
-{
-    Matrix2D res(lhs.row(), lhs.col());
-
-    for(uint i = 0; i < res.size(); i++)
-        res.set(i, lhs(i) + rhs(i));
-    return res;
-}
-
-inline Matrix2D operator+(const Matrix2D & lhs, double val)
-{
-    Matrix2D res(lhs.row(), lhs.col());
-
-    for(uint i = 0; i < res.size(); i++)
-        res.set(i, lhs(i) + val);
-    return res;
-}
-
-inline ostream & operator<<(ostream & out, const Matrix2D & lhs)
-{
-
-    for(uint i = 0; i < lhs.row(); i++)
     {
-        for(uint j = 0; j < lhs.col(); j++)
-            out << lhs(i, j) << " ";
+        for(uint j = 0; j < mat.col(); j++)
+            out << mat(i, j) << " ";
 
         out << endl;
     }

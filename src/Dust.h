@@ -2091,6 +2091,7 @@ class CDustComponent
                               double & avg_Ccirc);
     void calcCrossSections(CGridBasic * grid,
                            photon_package * pp,
+                           double theta,
                            uint i_density,
                            uint a,
                            cross_sections & cs);
