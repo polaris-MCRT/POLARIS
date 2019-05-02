@@ -136,6 +136,11 @@ class Matrix2D
         return m_data[i * m_n + j];
     }
 
+    double & operator()(uint i)
+    {
+        return m_data[i];
+    }
+
     void operator*=(double val)
     {
         for(uint i = 0; i < m_size; i++)

@@ -48,7 +48,7 @@ while getopts "hrduD" opt; do
             echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
 	    cd ${install_directory}
 	    make clean 
-            make CXXFLAGS='-O0 -g -Wall -Weffc++ -Wextra -Wsign-conversion' && make install
+            make CXXFLAGS='-O0 -g'  && make install #'-Wall -Weffc++ -Wextra -Wsign-conversion'
             if [ -d "tools" ]
             then
 	        cd "tools"

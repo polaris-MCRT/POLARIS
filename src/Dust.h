@@ -978,33 +978,18 @@ class CDustComponent
         return max_a_alig;
     }
 
-    double getScatteringMatrixElement(uint a, uint w, uint incID, uint sphID, uint sthID, uint matID)
+    double
+    getScatteringMatrixElement(uint a, uint w, uint incID, uint sphID, uint sthID, uint i_mat, uint j_mat)
     {
         if(sca_mat == 0)
             return 0;
 
-        return sca_mat[a][w][incID][sphID][sthID][matID];
+        return sca_mat[a][w][incID][sphID][sthID](i_mat, j_mat);
     }
 
-    void addUpMatrices(Matrix2D & mat_sca, uint a, uint w, uint incID, uint sphID, uint sthID)
+    const Matrix2D & getScatteringMatrix(uint a, uint w, uint incID, uint sphID, uint sthID)
     {
-        int pos;
-        double sign, value;
-
-        if(mat_sca.size() != 16)
-            return;
-
-        for(uint e = 0; e < 16; e++)
-        {
-            sign = CMathFunctions::sgn(elements[e]);
-            pos = abs(elements[e]);
-
-            if(pos > 0)
-            {
-                value = sign * double(sca_mat[a][w][incID][sphID][sthID][pos - 1]);
-                mat_sca.addValue(e, value);
-            }
-        }
+        return sca_mat[a][w][incID][sphID][sthID];
     }
 
     void cleanScatteringData()
@@ -1018,11 +1003,7 @@ class CDustComponent
                     for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                     {
                         for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                        {
-                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
-                                delete[] sca_mat[a][w][inc][sph][sth];
                             delete[] sca_mat[a][w][inc][sph];
-                        }
                         delete[] sca_mat[a][w][inc];
                     }
                     delete[] sca_mat[a][w];
@@ -1558,7 +1539,7 @@ class CDustComponent
 
     double getTabPlanck(uint w, double temp)
     {
-        double pl = tab_planck[w].getValue(max(TEMP_MIN, temp));
+        double pl = tab_planck[w].getValue(temp);
         return max(1e-200, pl);
     }
 
@@ -2152,7 +2133,7 @@ class CDustComponent
     prob_list * avg_planck_frac;
     prob_list *dust_prob, *sca_prob, *abs_prob;
 
-    double ****** sca_mat;
+    Matrix2D ***** sca_mat;
     double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg;
     double ** enthalpy;
     double *a_eff, *a_eff_1_5, *a_eff_3_5, *a_eff_2;
@@ -2379,6 +2360,9 @@ class CDustMixture
 
     double getForegroundExtinction(double wavelength)
     {
+        if(extinction_magnitude == 0)
+            return 1;
+
         // Get extinction optical depth at extinction_magnitude_wavelength
         double extinction_tau = (extinction_magnitude / 1.086);
 

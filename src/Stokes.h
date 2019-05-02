@@ -346,6 +346,16 @@ class StokesVector
         sSp += _Sp;
     }
 
+    void addS(StokesVector _S)
+    {
+        sI += _S.I();
+        sQ += _S.Q();
+        sU += _S.U();
+        sV += _S.V();
+        sT += _S.T();
+        sSp += _S.Sp();
+    }
+
     double I() const
     {
         return sI;
@@ -571,7 +581,7 @@ inline ostream & operator<<(ostream & out, const StokesVector & ex)
     return out;
 }
 
-inline StokesVector operator*(Matrix2D & dM, const StokesVector & v)
+inline StokesVector operator*(const Matrix2D & dM, const StokesVector & v)
 {
     double tmpI = v.I() * dM(0, 0) + v.Q() * dM(0, 1) + v.U() * dM(0, 2) + v.V() * dM(0, 3);
     double tmpQ = v.I() * dM(1, 0) + v.Q() * dM(1, 1) + v.U() * dM(1, 2) + v.V() * dM(1, 3);
@@ -581,7 +591,7 @@ inline StokesVector operator*(Matrix2D & dM, const StokesVector & v)
     return tmp;
 }
 
-inline StokesVector operator*=(Matrix2D dM, StokesVector & v)
+inline StokesVector operator*=(const Matrix2D & dM, StokesVector & v)
 {
     StokesVector tmp;
     tmp.setI(v.I() * dM(0, 0) + v.Q() * dM(0, 1) + v.U() * dM(0, 2) + v.V() * dM(0, 3));
@@ -592,7 +602,7 @@ inline StokesVector operator*=(Matrix2D dM, StokesVector & v)
     return v;
 }
 
-inline StokesVector operator*(StokesVector v, StokesVector u)
+inline StokesVector operator*(const StokesVector & v, const StokesVector & u)
 {
     StokesVector tmp;
 
@@ -606,7 +616,7 @@ inline StokesVector operator*(StokesVector v, StokesVector u)
     return tmp;
 }
 
-inline StokesVector operator*(StokesVector v, double val)
+inline StokesVector operator*(const StokesVector & v, double val)
 {
     StokesVector tmp;
 
@@ -620,7 +630,7 @@ inline StokesVector operator*(StokesVector v, double val)
     return tmp;
 }
 
-inline StokesVector operator/(StokesVector v, double val)
+inline StokesVector operator/(const StokesVector & v, double val)
 {
     StokesVector tmp;
 
