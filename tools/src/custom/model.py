@@ -474,6 +474,27 @@ class GGTauDisk(Model):
                     n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                elif extra_parameter[0] == 'planet_extra':
+                    # Enable all disks
+                    self.disk_Aa = True
+                    self.disk_Ab1 = True
+                    # Radial cells
+                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                  self.a_Aab + 8. * self.math.const['au'], 250)
+                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                        240. * self.math.const['au'], 50, 1.03)
+                    r_list_planet = np.linspace(241. * self.math.const['au'],
+                                                280. * self.math.const['au'], 40)
+                    self.cylindrical_parameter['radius_list'] = np.hstack(
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
+                    # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
+                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+                    # Phi cells
+                    n_ph_list_1 = [600] * 250
+                    n_ph_list_2 = [180] * 51
+                    n_ph_list_3 = [600] * 40
+                    self.cylindrical_parameter['n_ph'] = np.hstack(
+                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
                 elif extra_parameter[0] == 'vertical_Ab1':
                     # Enable all disks
                     self.disk_Aa = True
@@ -629,6 +650,9 @@ class GGTauDisk(Model):
             if radius_cy < 190. * self.math.const['au']:
                 disk_density *= np.exp(-0.5 * (
                     (190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
+            elif radius_cy >= 260. * self.math.const['au']:
+                disk_density *= 1e-3
+
         else:
             # Set to zero outside of the disk
             disk_density = 0.
