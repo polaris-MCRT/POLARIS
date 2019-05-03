@@ -242,8 +242,11 @@ class CPipeline
             if(param.getNrOfPointSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
                 cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
-            if(param.getNrOfDiffuseSources() > 0 && !param.isRaytracing())
+            if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
                 cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
+
+            if(param.getNrOfLaserSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
+                cout << "- Laser(s)  : " << param.getNrOfLaserSources() << endl;
 
             if(param.getNrOfBackgroundSources() > 0 || param.isRaytracing())
                 cout << "- Background(s)  : " << max(uint(1), param.getNrOfBackgroundSources()) << endl;
@@ -251,7 +254,7 @@ class CPipeline
             if(param.getDustSource() && show_dust)
                 cout << "- Dust as sources: yes" << endl;
 
-            if(param.getISRFSource() && !param.isRaytracing())
+            if(param.getISRFSource() && (!param.isRaytracing() || param.getScatteringToRay()))
                 cout << "- ISRF as sources: yes" << endl;
         }
     }
@@ -355,7 +358,9 @@ class CPipeline
     {
         // Check if either the radiation field is present or the radiation field can be
         // calculated Otherwise, disable scattering added to the raytracing
-        if(!grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 && !param.getDustSource())
+        if(!grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 &&
+           param.getNrOfDiffuseSources() == 0 && param.getNrOfLaserSources() == 0 && !param.getISRFSource() &&
+           !param.getDustSource())
             param.setScatteringToRay(false);
 
         // Set if scattering will be included in raytracing if possible

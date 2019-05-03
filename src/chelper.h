@@ -1093,6 +1093,11 @@ class parameters
         return uint(point_sources.size() / NR_OF_POINT_SOURCES);
     }
 
+    uint getNrOfLaserSources()
+    {
+        return uint(laser_sources.size() / NR_OF_LASER_SOURCES);
+    }
+
     uint getNrOfBackgroundSources()
     {
         return uint(background_sources.size() / NR_OF_BG_SOURCES);
@@ -1130,7 +1135,8 @@ class parameters
 
     uint getNrOfSources()
     {
-        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources();
+        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources() +
+                   getNrOfLaserSources();
 
         if(nr_ofDustPhotons > 0)
             res++;
@@ -1684,6 +1690,11 @@ class parameters
         return point_sources;
     }
 
+    dlist & getLaserSources()
+    {
+        return laser_sources;
+    }
+
     strlist & getPointSourceStringList()
     {
         return point_sources_str;
@@ -2039,6 +2050,34 @@ class parameters
         // Number of photons
         point_sources.push_back(val[7]);
         point_sources_str.push_back(path);
+    }
+
+    void addLaserSource(dlist & val)
+    {
+        // Position X
+        laser_sources.push_back(val[0]);
+        // Position Y
+        laser_sources.push_back(val[1]);
+        // Position Z
+        laser_sources.push_back(val[2]);
+        // Direction X
+        laser_sources.push_back(val[3]);
+        // Direction Y
+        laser_sources.push_back(val[4]);
+        // Direction Z
+        laser_sources.push_back(val[5]);
+        // Total power [W]
+        laser_sources.push_back(val[6]);
+        // Central wavelength [m]
+        laser_sources.push_back(val[7]);
+        // FWHM of the laser emission [m]
+        laser_sources.push_back(val[8]);
+        // Stokes Q plarization
+        laser_sources.push_back(val[9]);
+        // Stokes U plarization
+        laser_sources.push_back(val[10]);
+        // Number of photons
+        laser_sources.push_back(val[11]);
     }
 
     void addBackgroundSource(dlist & val)
@@ -2478,6 +2517,7 @@ class parameters
 
     dlist point_sources;
     dlist diffuse_sources;
+    dlist laser_sources;
     dlist background_sources;
     dlist gas_species_abundance;
 

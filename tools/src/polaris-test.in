@@ -352,6 +352,13 @@ class TestRoutines:
         self.get_result('scattering_map',
                         comparison_mode='avg_rel_diff_no_abs')
 
+    def test_1005003(self):
+        """Perform test simulation to check Monte-Carlo radiative transfer
+        (with peel-off technique and laser source).
+        """
+        self.get_result('scattering_map',
+                        comparison_mode='avg_rel_diff_no_abs')
+
     def test_1006001(self):
         """Perform test simulation to check temperature distribution.
         Multiple dust density distributions inside the grid (no overlap, similar to test_1003001).

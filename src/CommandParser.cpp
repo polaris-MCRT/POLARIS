@@ -2280,6 +2280,43 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<source_laser nr_photons = >") == 0)
+    {
+        string str = seperateString(data);
+        ullong nr_of_photons = ullong(atof(str.c_str()));
+
+        if(nr_of_photons <= 0)
+        {
+            cout << "\nERROR: Number of laser photons could not be recognized!" << endl;
+            return false;
+        }
+
+        dlist values = parseValues(data);
+
+        if(values.size() == NR_OF_LASER_SOURCES - 3)
+        {
+            values.push_back(0);
+            values.push_back(0);
+        }
+        else if(values.size() != NR_OF_LASER_SOURCES - 1)
+        {
+            cout << "\nERROR: False amount of parameters for source laser in line " << line_counter << "!"
+                 << endl;
+            return false;
+        }
+
+        double P_l = sqrt(pow(values[9], 2) + pow(values[10], 2));
+        if(P_l > 1.0)
+        {
+            cout << "\nERROR: Chosen polarization of source laser is larger than 1!" << endl;
+            return false;
+        }
+
+        values.push_back(double(nr_of_photons));
+        param->addLaserSource(values);
+        return true;
+    }
+
     if(cmd.compare("<axis1>") == 0)
     {
         dlist values = parseValues(data);

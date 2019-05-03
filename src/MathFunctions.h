@@ -335,6 +335,9 @@ class spline
         if(x == 0)
             return 0;
 
+        if(min == max)
+            return y[0];
+
         // Extrapolation
         if(v < x[0])
             switch(extrapolation)
@@ -594,6 +597,12 @@ class interp
     double getValue(double v, uint interpolation = LINEAR)
     {
         uint min = 0, max = N;
+
+        if(x == 0)
+            return 0;
+
+        if(min == max)
+            return y[0];
 
         if(x != 0)
         {

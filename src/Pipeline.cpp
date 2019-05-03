@@ -56,7 +56,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
+    // CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
     // CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
 
     if(!parser.parse())
@@ -759,12 +759,12 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             nr_ofSources--;
         }
 
-        if(param.getISRFSource())
-        {
-            cout << "\nWARNING: ISRF as radiation source cannot be considered in "
-                 << "dust, line, or synchrotron emission!" << endl;
-            nr_ofSources--;
-        }
+        // if(param.getISRFSource())
+        // {
+        //     cout << "\nWARNING: ISRF as radiation source cannot be considered in "
+        //          << "dust, line, or synchrotron emission!" << endl;
+        //     nr_ofSources--;
+        // }
 
         if(param.getNrOfBackgroundSources() == 0)
         {
@@ -802,6 +802,34 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             }
         }
 
+        if(param.getISRFSource())
+        {
+            if(!param.getScatteringToRay())
+                nr_ofSources--;
+            else if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "\nWARNING: ISRF source cannot be considered in line or synchrotron emission!"
+                     << endl;
+            else
+            {
+                CSourceBasic * tmp_source = new CSourceISRF();
+
+                cout << "-> Creating ISRF source list             \r" << flush;
+
+                if(param.getISRFPath() != "")
+                {
+                    if(!tmp_source->setParameterFromFile(param, grid, dust, 0))
+                    {
+                        cout << "\nERROR: Interstellar radiation field undefined! \n" << flush;
+                        sources_mc.clear();
+                    }
+                }
+                else
+                    tmp_source->setParameter(param, grid, dust, 0);
+
+                sources_mc.push_back(tmp_source);
+            }
+        }
+
         if(param.getNrOfPointSources() > 0)
         {
             if(!param.getScatteringToRay())
@@ -832,6 +860,26 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                             sources_mc.clear();
                         }
                     }
+                    sources_mc.push_back(tmp_source);
+                }
+            }
+        }
+
+        if(param.getNrOfLaserSources() > 0)
+        {
+            if(!param.getScatteringToRay())
+                nr_ofSources -= param.getNrOfLaserSources();
+            else if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "\nWARNING: Laser sources cannot be considered in line or "
+                        "synchrotron emission!"
+                     << endl;
+            else
+            {
+                for(uint s = 0; s < param.getLaserSources().size(); s += NR_OF_LASER_SOURCES)
+                {
+                    cout << "-> Creating laser source list             \r" << flush;
+                    CSourceBasic * tmp_source = new CSourceLaser();
+                    tmp_source->setParameter(param, grid, dust, s);
                     sources_mc.push_back(tmp_source);
                 }
             }
@@ -894,6 +942,14 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                     sources_mc.clear();
                 }
             }
+            sources_mc.push_back(tmp_source);
+        }
+
+        for(uint s = 0; s < param.getLaserSources().size(); s += NR_OF_LASER_SOURCES)
+        {
+            cout << "-> Creating laser source list             \r" << flush;
+            CSourceBasic * tmp_source = new CSourceLaser();
+            tmp_source->setParameter(param, grid, dust, s);
             sources_mc.push_back(tmp_source);
         }
 

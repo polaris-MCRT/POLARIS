@@ -706,10 +706,15 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         pp->setWavelengthID(wID);
 
                         // Launch a new photon package from the source
-                        tm_source->createNextRay(pp, r);
+                        tm_source->createNextRay(pp, ullong(r));
 
                         // Position the photon inside the grid
-                        grid->positionPhotonInGrid(pp);
+                        if(!grid->positionPhotonInGrid(pp))
+                            if(!grid->findStartingPoint(pp))
+                            {
+                                kill_counter++;
+                                break;
+                            }
 
                         // Set starting position for enforced scattering
                         start_pos = pp->getPosition();
@@ -980,13 +985,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         Vector3D dir_obs = detector[d].getDirection();
 
                         // Launch a new photon package from the source
-                        tm_source->createNextRay(&tmp_pp, llong(0));
+                        tm_source->createDirectRay(&tmp_pp, dir_obs);
 
                         // Position the photon inside the grid
                         grid->positionPhotonInGrid(&tmp_pp);
-
-                        // Set direction of the photon package to the observer
-                        tmp_pp.setDirection(dir_obs);
 
                         // Init a variable to save the optical depth
                         double tau_obs = 0;
@@ -1011,7 +1013,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
-                        tmp_pp.getStokesVector() *= ullong(nr_of_photons) * exp(-tau_obs) / (4.0 * PI);
+                        tmp_pp.getStokesVector() *= exp(-tau_obs);
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
@@ -2266,12 +2268,14 @@ void CRadiativeTransfer::calcStellarEmission()
             // Set wavelength index in photon package
             pp->setWavelengthID(wID);
 
-            // Launch photon package
-            sources_mc[s]->createNextRay(pp, long(0), uint(1));
-            Vector3D source_pos = pp->getPosition();
+            // Get position of source
+            Vector3D source_pos = sources_mc[s]->getPosition();
 
             // Set direction of the photon package to the observer
             tracer->preparePhotonWithPosition(pp, source_pos, i_pix);
+
+            // Launch photon package
+            sources_mc[s]->createDirectRay(pp, pp->getDirection());
 
             // Consider the distance to the source
             WMap.setS(pp->getStokesVector(), i_wave);
@@ -2293,8 +2297,7 @@ void CRadiativeTransfer::calcStellarEmission()
                 // Increase the optical depth by the current cell
                 tau_obs += Cext * len * dens;
             }
-            mult *= exp(-tau_obs) / (4.0 * PI);
-            mult *= tracer->getDistanceFactor(source_pos);
+            mult *= exp(-tau_obs) * tracer->getDistanceFactor(source_pos);
 
             // Update the photon package with the multi Stokes vectors
             pp->setMultiStokesVector(WMap.S(i_wave) * mult, i_wave);

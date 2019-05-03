@@ -94,6 +94,7 @@ using namespace std;
 // Number of entries for different sources
 #define NR_OF_POINT_SOURCES 8
 #define NR_OF_DIFF_SOURCES 9
+#define NR_OF_LASER_SOURCES 12
 #define NR_OF_BG_SOURCES 8
 
 #define TEMP_MIN 2.728
