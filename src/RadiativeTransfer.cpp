@@ -382,7 +382,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions >= MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                    if(interactions >= MAX_INTERACTION)
                     {
                         kill_counter++;
                         break;
@@ -390,7 +390,6 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                     // Get necessary quantities
                     dens = dust->getNumberDensity(grid, pp);
-                    len = pp->getTmpPathLength();
 
                     // skip cells without density
                     if(dens == 0)
@@ -398,6 +397,9 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                         old_pos = pp->getPosition();
                         continue;
                     }
+
+                    // Get distance to next cell
+                    len = pp->getTmpPathLength();
 
                     // Calculate the dust cross sections (for random alignment)
                     Cext = dust->getCextMean(grid, pp);
@@ -413,11 +415,10 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                         // Reduce the photon position to match the exact
                         // interaction position
-                        len = len * end_tau / tmp_tau;
-                        pp->adjustPosition(old_pos, len);
+                        pp->adjustPosition(old_pos, len * end_tau / tmp_tau);
 
                         // Update data in grid like spectral length or radiation field
-                        updateRadiationField(pp, len);
+                        updateRadiationField(pp);
 
                         if(!doMRWStepBW(pp))
                         {
@@ -447,6 +448,14 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                                 }
                                 else
                                     break;
+
+                                // ---> Only an idea (not really sufficient) <---
+                                // Check if new photon can escape even the smallest cell
+                                // if(dust->getCextMean(grid, pp) * grid->getMinLength() * dens > 100)
+                                // {
+                                //     kill_counter++;
+                                //     break;
+                                // }
                             }
                         }
                         // Calculate new optical depth for next interaction
@@ -455,7 +464,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     else
                     {
                         // Update data in grid like spectral length or radiation field
-                        updateRadiationField(pp, len);
+                        updateRadiationField(pp);
 
                         // Remove the traveled distance from optical depth
                         end_tau -= tmp_tau;

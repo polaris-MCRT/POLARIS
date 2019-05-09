@@ -951,71 +951,6 @@ class CustomPlots:
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
-    def plot_41(self):
-        """Plot schematic illustration of two Zeeman split spectral lines
-        with either low or high magnetic field strengths.
-        """
-        self.file_io.init_plot_output(
-            'derive_mag_field_spectrum_1', path=self.file_io.path['model'])
-        simulation_names = ['illustration_low_mag_field',
-                            'illustration_very_high_mag_field']
-        max_value = 1.
-        for i_mag_field in range(2):
-            # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, xlabel=r'$\mathsf{Frequency}$', ylabel=r'$\mathsf{Flux}$',
-                        extent=[-3., 3., None, None], with_cbar=False)
-            # Set paths of each simulation
-            self.file_io.set_path_from_str(
-                'plot', 'cube_test', simulation_names[i_mag_field], 'line')
-            # Read spectrum data
-            tbldata = self.file_io.read_data_file(
-                'line_spectrum_species_0001_line_0002.det', skip_header=21)
-            tmp_xdata = np.multiply(tbldata[:, 0], 1e-3)
-            tmp_ydata = tbldata[:, 1]
-            if i_mag_field == 0:
-                max_value = np.max(tmp_ydata)
-            tmp_ydata /= max_value
-
-            if i_mag_field == 0:
-                # Plot spectrum as line
-                plot.plot_line(tmp_xdata, tmp_ydata, color=plot.colorpalette[0],
-                               label=r'$I$', no_ticks=True)
-                # Plot the legend
-                # plot.plot_legend()
-                # Create Matplotlib figure
-
-                # Plot spectrum as line
-                # plot.plot_line(tmp_xdata, tmp_ydata, color=plot.colorpalette[0], label=r'$I (B=0)$')
-            elif i_mag_field == 1:
-                tmp_ydata_sp = tbldata[:, 4]
-                tmp_ydata_sm = tmp_ydata_sp.copy()
-
-                n = len(tmp_ydata[:])
-                max_value_sigma = np.max(
-                    tbldata[:, 4]) / np.max(tmp_ydata[0:int(n / 2.5)])
-
-                tmp_ydata_sp[np.where(tmp_ydata_sp < 0.)] = 0.
-                tmp_ydata_sp /= max_value_sigma
-                tmp_ydata_sm[np.where(tmp_ydata_sm > 0.)] = 0.
-                tmp_ydata_sm /= max_value_sigma
-
-                # tmp_ydata_pi = np.subtract(tmp_ydata, np.add(abs(tmp_ydata_sp), abs(tmp_ydata_sm)))
-                # Plot spectrum as line
-                plot.plot_line(tmp_xdata, tmp_ydata, color=plot.colorpalette[2],
-                               label=r'$I$', no_ticks=True)
-                # plot.plot_line(tmp_xdata, abs(tmp_ydata_sp), color=plot.colorpalette[2], label=r'$\sigma_+$',
-                #               no_ticks=True)
-                # plot.plot_line(tmp_xdata, abs(tmp_ydata_pi), color='orange', label=r'$\pi$', no_ticks=True)
-                # plot.plot_line(tmp_xdata, abs(tmp_ydata_sm), color=plot.colorpalette[0], label=r'$\sigma_-$',
-                #               no_ticks=True)
-                # plot.plot_double_arrow(arrow_origin=[-0.9, 0.57], arrow_offset=[1.8, 0],
-                #                       color=plot.colorpalette[2])
-                # plot.plot_text(text='${\propto}B$', text_pos=[0., 0.6], color=plot.colorpalette[2])
-            # Plot the legend
-            # plot.plot_legend()
-            # Save figure to pdf file or print it on screen
-            plot.save_figure(self.file_io)
-
     def plot_42(self):
         """Plot schematic illustration of two Zeeman split spectral lines
         with either low or high magnetic field strengths.
@@ -1027,63 +962,62 @@ class CustomPlots:
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, with_cbar=False,
-                    xlabel=[r'$\mathsf{Geschwindigkeit}$',
-                            r'$\mathsf{Geschwindigkeit}$'],
-                    ylabel=[r'$\mathsf{Strahlungsfluss}$', r'$\mathsf{Strahlungsfluss}$'], nr_x_images=2, nr_y_images=2,
-                    extent=[-2.5, 2.5, None, None], language='german')
+                    xlabel=[r'$\mathsf{Frequency}$', r'$\mathsf{Frequency}$'],
+                    ylabel=[r'$\mathsf{Flux}$', r'$\mathsf{Flux}$'], nr_x_images=2, nr_y_images=2,
+                    extent=[-2.5, 2.5, None, None])
 
         for i_mag_field in range(2):
             # Set paths of each simulation
             self.file_io.set_path_from_str(
-                'plot', 'cube_test', simulation_names[i_mag_field], 'line')
+                'plot', 'cube', simulation_names[i_mag_field], 'line')
             # Read spectrum data
-            tbldata = self.file_io.read_data_file(
-                'line_spectrum_species_0001_line_0001.det', skip_header=21)
+            plot_data, header = self.file_io.read_spectrum('line_spectrum_species_0001_line_0001')
+            velocity = []
+            for vch in range(header['nr_channels']):
+                # Get velocity of current channel
+                velocity.append(1e-3 * self.math.get_velocity(vch, header['nr_channels'], header['max_velocity']))
 
             for i_quantity in range(0, 4, 3):
-                tmp_xdata = np.multiply(tbldata[:, 0], 1e-3)
-                tmp_ydata = tbldata[:, i_quantity + 1]
+                tmp_xdata = velocity
+                tmp_ydata = plot_data[i_quantity, :]
                 tmp_ydata /= np.max(tmp_ydata)
                 if i_quantity == 0:
                     # Plot spectrum as line
-                    plot.plot_line(ax_index=i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color=plot.colorpalette[0],
-                                   label=r'$I$')
+                    tmp_ydata *= 1.5
+                    plot.plot_line(ax_index=i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color='blue', label=r'$I$')
                 elif i_quantity == 3:
                     # Plot spectrum as line
-                    plot.plot_line(ax_index=2 + i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color='#ff8000',
-                                   label=r'$V$')
+                    plot.plot_line(ax_index=2 + i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color='#ff8000', label=r'$V$')
                 channel_width = tmp_xdata[1] - tmp_xdata[0]
-                tmp_ydata = np.gradient(tbldata[:, 1], channel_width)
+                tmp_ydata = np.gradient(plot_data[0, :], channel_width)
 
                 # Define fit function to get proportionality factor
                 def fit_function(vch, prop_factor):
                     return prop_factor * tmp_ydata[vch]
 
                 # Calculate best-fit parameter
-                popt, pcov = curve_fit(fit_function, range(len(tbldata[:, 0])),
-                                       tbldata[:, 4])
+                popt, pcov = curve_fit(fit_function, range(header['nr_channels']), plot_data[3, :])
                 tmp_ydata *= popt[0]
                 tmp_ydata /= np.max(tmp_ydata)
                 tmp_ydata *= 0.2
                 plot.plot_line(ax_index=int(i_quantity / 3) * 2 + i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata,
-                               linestyle='--',
-                               color='black', label=r'$\mathsf{d}I/\mathsf{d}\nu$')
+                               linestyle='--', color='black', label=r'$\mathsf{d}I/\mathsf{d}\nu$')
                 # Plot proportional arrows to visualise the relation between dI/dv and V
                 if i_quantity == 3:
                     if i_mag_field == 0:
                         plot.plot_annotate(ax_index=int(i_quantity / 3) * 2 + i_mag_field,
-                                           text=r'${\propto}B_\mathsf{Sicht}$',
-                                           text_pos=[-0.71, 0.30], pos=[-0.71, 0.85], color=plot.colorpalette[1])
+                                           text=r'${\propto}B_\mathsf{LOS}$',
+                                           text_pos=[-0.71, 0.30], pos=[-0.71, 0.85], color='green')
                         plot.plot_annotate(ax_index=int(i_quantity / 3) * 2 + i_mag_field,
                                            text='', text_pos=[0.71, -0.26], pos=[0.71, -0.8],
-                                           color=plot.colorpalette[1])
+                                           color='green')
                     elif i_mag_field == 1:
                         plot.plot_annotate(ax_index=int(i_quantity / 3) * 2 + i_mag_field,
-                                           text=r'${\not\propto}B_\mathsf{Sicht}$',
-                                           text_pos=[-0.81, 0.30], pos=[-0.81, 0.85], color=plot.colorpalette[2])
+                                           text=r'${\not\propto}B_\mathsf{LOS}$',
+                                           text_pos=[-0.81, 0.30], pos=[-0.81, 0.85], color='red')
                         plot.plot_annotate(ax_index=int(i_quantity / 3) * 2 + i_mag_field,
                                            text='', text_pos=[0.81, -0.25], pos=[0.81, -0.8],
-                                           color=plot.colorpalette[2])
+                                           color='red')
                 # Plot the legend
                 if int(i_quantity / 3) * 2 + i_mag_field in [0, 1]:
                     plot.plot_legend(ax_index=int(i_quantity / 3)
@@ -1091,8 +1025,8 @@ class CustomPlots:
                 else:
                     plot.plot_legend(ax_index=int(
                         i_quantity / 3) * 2 + i_mag_field)
-        plot.axarr[0].set_ylim([-0.25, 1.25])
-        plot.axarr[1].set_ylim([-0.25, 1.25])
+        plot.ax_list[0].set_ylim([-0.25, 1.55])
+        plot.ax_list[1].set_ylim([-0.25, 1.55])
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2621,7 +2555,7 @@ class CustomPlots:
                                    text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=i_plot + 1, color='white')
             for i_pos, center_pos in enumerate(measurement_position_list):
                 plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_plot + 1, color='white',
-                                fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                               fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot + 9 *
@@ -2698,14 +2632,16 @@ class CustomPlots:
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
             'polaris_detector_nr' + str(detector_index).zfill(4))
         # Create Matplotlib figure
+        #plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+        #            nr_x_images=1, nr_y_images=1)
         plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
-                    nr_x_images=1, nr_y_images=1)
+                    nr_x_images=2, nr_y_images=1)
         # Take data for current quantity
         tbldata = plot_data[i_quantity, 0, :, :]
         # plot imshow
-        #plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
-        #                 norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
-        # Load radiation source to get position of the binary stars
+        plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
+                        norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        #Load radiation source to get position of the binary stars
         from modules.source import SourceChooser
         radiation_source_chooser = SourceChooser(
             self.model, self.file_io, self.parse_args)
@@ -2722,7 +2658,7 @@ class CustomPlots:
                 offset = np.array([40, -12]) * 1.3
             pos_arcsec = np.add(
                 np.divide(position[0:2], self.math.const['au']), offset) / 140.
-            #plot.plot_text(pos_arcsec,
+            # plot.plot_text(pos_arcsec,
             #               text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         # Observation
         if observation == 'SCUBA':
@@ -2740,3 +2676,102 @@ class CustomPlots:
                          norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
+
+    def plot_3001002(self):
+        """Plot GG Tau A observation and one configuration
+        """
+        def cropND(img, bounding, offset=[0, 0]):
+            import operator
+            start = tuple(map(lambda a, da, off: a//2 - da //
+                              2 + off, img.shape, bounding, offset))
+            end = tuple(map(operator.add, start, bounding))
+            slices = tuple(map(slice, start, end))
+            return img[slices]
+        # Import libraries
+        from astropy.io import fits
+        from scipy.ndimage.interpolation import zoom
+        # Set some variables
+        detector_index = 101
+        i_quantity = 4
+        vmin = 2e-7
+        vmax = 8e-5
+        observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
+        model_list = [
+            'no_circumstellar_disks',
+            'only_Aa',
+            'only_Ab1',
+            'only_Ab2',
+            'only_Aa_Ab1',
+            'only_Aa_Ab2',
+            'only_Ab1_Ab2',
+            'default',
+            'vertical_Ab2_hres',
+        ]
+        model_descr = [
+            'No circumstellar disks',
+            'Disk around Aa',
+            'Disk around Ab1',
+            'Disk around Ab2',
+            'Disks around Aa and Ab1',
+            'Disks around Aa and Ab2',
+            'Disks around Ab1 and Ab2',
+            'Disks around all stars',
+            'Vertical disk around Ab2',
+        ]
+        measurement_position_list = [
+            [0, -1.05],
+            [0, -1.60],
+            [0, 0.85],
+            [-0.57, -0.975],
+            [1.17, -0.42],
+            [1.5, -0.15],
+        ]
+        # Set beam size (in arcsec)
+        if observation == 'SCUBA':
+            self.file_io.beam_size = 0.07
+        elif observation == 'SPHERE':
+            self.file_io.beam_size = 0.03
+        # Take colorbar label from quantity id
+        cbar_label = self.file_io.get_quantity_labels(i_quantity)
+        # Define output pdf
+        self.file_io.init_plot_output(
+            'PI_emission_map_comparison', path=self.file_io.path['model'])
+        for i_subplot in range(9):
+            # Set paths of each simulation
+            self.file_io.set_path_from_str(
+                'plot', 'gg_tau_disk', model_list[i_subplot], 'dust')
+            # Create pdf file if show_plot is not chosen and read map data from file
+            plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                'polaris_detector_nr' + str(detector_index).zfill(4))
+            # Create Matplotlib figure
+            plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+                        nr_x_images=2, nr_y_images=1, size_x=6 / 1.4298620007401583)
+            # Take data for current quantity
+            tbldata = plot_data[i_quantity, 0, :, :]
+            # plot imshow
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
+                             norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+            #for i_pos, center_pos in enumerate(measurement_position_list):
+            #    plot.plot_text(text_pos=center_pos,
+            #        text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
+            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+            # Plot map description
+            plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
+                           text=model_descr[i_subplot], horizontalalignment='left',
+                           verticalalignment='top', ax_index=1, color='white')
+            # Observation
+            if observation == 'SCUBA':
+                hdulist = fits.open(
+                    '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
+                tbldata = cropND(
+                    hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1.5e7
+            elif observation == 'SPHERE':
+                hdulist = fits.open(
+                    '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
+                tbldata = cropND(
+                    hdulist[0].data.T, (390, 390), offset=[6, 14]) / 8e6
+            # plot imshow
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
+                             norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+            # Save figure to pdf file or print it on screen
+            plot.save_figure(self.file_io)

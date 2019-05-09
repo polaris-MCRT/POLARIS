@@ -201,9 +201,9 @@ class CRadiativeTransfer
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);
 
-    void updateRadiationField(photon_package * pp, double len)
+    void updateRadiationField(photon_package * pp)
     {
-        double energy = len * pp->getStokesVector().I();
+        double energy = pp->getTmpPathLength() * pp->getStokesVector().I();
         grid->updateSpecLength(pp, energy);
     }
 
