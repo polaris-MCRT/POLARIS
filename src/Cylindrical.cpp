@@ -1463,7 +1463,6 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         // --- Phi cell borders ---
         if(N_ph[rID] > 1)
         {
-            double r = sqrt(p.sq_length());
             double rho = sqrt(p.X() * p.X() + p.Y() * p.Y());
 
             double ph1 = listPh[rID][phID];
@@ -1476,7 +1475,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             double cos_ph2 = cos(ph2);
 
             Vector3D v_n1 = -Vector3D(-sin_ph1, cos_ph1, 0);
-            Vector3D v_a1 = r * Vector3D(cos_ph1, sin_ph1, 0);
+            Vector3D v_a1 = rho * Vector3D(cos_ph1, sin_ph1, 0);
 
             double den1 = v_n1 * d;
             if(den1 != 0)
@@ -1493,7 +1492,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             }
 
             Vector3D v_n2 = Vector3D(-sin_ph2, cos_ph2, 0);
-            Vector3D v_a2 = r * Vector3D(cos_ph2, sin_ph2, 0);
+            Vector3D v_a2 = rho * Vector3D(cos_ph2, sin_ph2, 0);
 
             double den2 = v_n2 * d;
             if(den2 != 0)
