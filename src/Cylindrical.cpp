@@ -1254,6 +1254,9 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
     if(cy_pos.R() < Rmin)
     {
         uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[0], N_z + 1);
+        if(i_z == MAX_UINT)
+            return false;
+
         pp->setPositionCell(center_cells[i_z]);
         return true;
     }
@@ -1276,7 +1279,6 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
         return false;
 
     pp->setPositionCell(grid_cells[i_r][i_ph][i_z]);
-
     return true;
 }
 
@@ -1320,7 +1322,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1359,7 +1361,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1372,53 +1374,51 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         uint phID = tmp_cell->getPhID();
 
         // --- Radial cell borders ---
+        double r1 = listR[rID];
+        double r2 = listR[rID + 1];
+
         double A = d.X() * d.X() + d.Y() * d.Y();
-        if(A > 0)
+
+        double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+        double B_sq = pow(B, 2);
+
+        double C1 = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
+        double C2 = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
+
+        double dscr1 = B_sq - 4 * A * C1;
+        double dscr2 = B_sq - 4 * A * C2;
+
+        if(dscr1 >= 0)
         {
-            double r1 = listR[rID];
-            double r2 = listR[rID + 1];
+            dscr1 = sqrt(dscr1);
+            tmp_length[0] = (-B + dscr1) / (2 * A);
+            tmp_length[1] = (-B - dscr1) / (2 * A);
+        }
+        else
+        {
+            tmp_length[0] = 1e200;
+            tmp_length[1] = 1e200;
+        }
 
-            double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-            double B_sq = pow(B, 2);
+        if(dscr2 >= 0)
+        {
+            dscr2 = sqrt(dscr2);
+            tmp_length[2] = (-B + dscr2) / (2 * A);
+            tmp_length[3] = (-B - dscr2) / (2 * A);
+        }
+        else
+        {
+            tmp_length[2] = 1e200;
+            tmp_length[3] = 1e200;
+        }
 
-            double C1 = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
-            double C2 = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
-
-            double dscr1 = B_sq - 4 * A * C1;
-            double dscr2 = B_sq - 4 * A * C2;
-
-            if(dscr1 >= 0)
+        for(uint i = 0; i < 4; i++)
+        {
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
-                dscr1 = sqrt(dscr1);
-                tmp_length[0] = (-B + dscr1) / (2 * A);
-                tmp_length[1] = (-B - dscr1) / (2 * A);
-            }
-            else
-            {
-                tmp_length[0] = 1e200;
-                tmp_length[1] = 1e200;
-            }
-
-            if(dscr2 >= 0)
-            {
-                dscr2 = sqrt(dscr2);
-                tmp_length[2] = (-B + dscr2) / (2 * A);
-                tmp_length[3] = (-B - dscr2) / (2 * A);
-            }
-            else
-            {
-                tmp_length[2] = 1e200;
-                tmp_length[3] = 1e200;
-            }
-
-            for(uint i = 0; i < 4; i++)
-            {
-                if(tmp_length[i] > 0 && tmp_length[i] < min_length)
-                {
-                    min_length = tmp_length[i];
-                    hit = true;
-                    dirID = uint(i / 2);
-                }
+                min_length = tmp_length[i];
+                hit = true;
+                dirID = uint(i / 2);
             }
         }
 
@@ -1475,7 +1475,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             double cos_ph2 = cos(ph2);
 
             Vector3D v_n1 = -Vector3D(-sin_ph1, cos_ph1, 0);
-            Vector3D v_a1 = r * Vector3D(cos_ph1, sin_ph1, p.Z());
+            Vector3D v_a1 = r * Vector3D(cos_ph1, sin_ph1, 0);
 
             double den1 = v_n1 * d;
             if(den1 != 0)
@@ -1492,7 +1492,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             }
 
             Vector3D v_n2 = Vector3D(-sin_ph2, cos_ph2, 0);
-            Vector3D v_a2 = r * Vector3D(cos_ph2, sin_ph2, p.Z());
+            Vector3D v_a2 = r * Vector3D(cos_ph2, sin_ph2, 0);
 
             double den2 = v_n2 * d;
             if(den2 != 0)
@@ -1600,7 +1600,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
         {
             if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
             {
@@ -1618,7 +1618,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
         Vector3D v_a1(0, 0, -Zmax);
         double num = v_n1 * (p - v_a1);
         double length = -num / den1;
-        if(length > 0 && length < min_length)
+        if(length >= 0 && length < min_length)
         {
             if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
             {
@@ -1635,7 +1635,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
         Vector3D v_a2(0, 0, Zmax);
         double num = v_n2 * (p - v_a2);
         double length = -num / den2;
-        if(length > 0 && length < min_length)
+        if(length >= 0 && length < min_length)
         {
             if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
             {
