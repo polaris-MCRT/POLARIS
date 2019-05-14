@@ -651,7 +651,7 @@ class GGTauDisk(Model):
                 disk_density *= np.exp(-0.5 * (
                     (190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
             elif radius_cy >= 260. * self.math.const['au']:
-                disk_density *= 1e-4
+                disk_density *= 1e-5
 
         else:
             # Set to zero outside of the disk
