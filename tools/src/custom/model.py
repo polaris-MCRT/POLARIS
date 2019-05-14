@@ -65,9 +65,8 @@ class CustomModel(Model):
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
-                dust_temperature(self), velocity_field(
-                    self), magnetic_field(self),
-                dust_id(self), dust_min_size(self), dust_max_size(self)
+                dust_temperature(self), velocity_field(self), magnetic_field(self),
+                dust_id(self), dust_min_size(self), dust_max_size(self), dust_size_param(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
                 - The first dimension is used to define multiple density distributions
@@ -189,8 +188,8 @@ class TestModel(Model):
         self.spherical_parameter['sf_r'] = 1.03
         # self.parameter['gas_mass'] = [[1.22138e-07 * self.math.const['M_sun']],
         #                              [8.77862e-07 * self.math.const['M_sun']]]
-        self.parameter['gas_mass'] = [[1e-6 * self.math.const['M_sun']],
-                                      [1e-5 * self.math.const['M_sun']]]
+        self.parameter['gas_mass'] = np.sum([[1e-6 * self.math.const['M_sun']],
+                                             [1e-5 * self.math.const['M_sun']]])
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'cartesian'
@@ -209,10 +208,11 @@ class TestModel(Model):
         #                                         self.parameter['inner_radius'],
         #                                         outer_radius=self.parameter['outer_radius'])
         # return [[gas_density1], [gas_density2]]
-        if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
-            return [[gas_density1], [0]]
-        else:
-            return [[0], [gas_density1]]
+        # if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
+        #     return [[gas_density1], [0]]
+        # else:
+        #     return [[0], [gas_density1]]
+        return gas_density1
 
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
@@ -250,6 +250,16 @@ class TestModel(Model):
         else:
             dust_max_size = 0.001
         return dust_max_size
+
+    def dust_size_param(self):
+        """Calculates the size distribution parameter depending on the position in the grid.
+        This overwrites the global size distribution parameter.
+
+        Returns:
+            float: minimum grain size
+        """
+        size_param = -3.5
+        return size_param
 
 
 class Filament(Model):

@@ -2539,7 +2539,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else if(path.size() > 3 && nr_size_parameter == 0)
         {
-            size_parameter.push_back(-3.5);
+            size_parameter.push_back(0); // Default is a flat profile now (not -3.5)!
             for(uint i = 1; i < NR_OF_SIZE_DIST_PARAM; i++)
                 size_parameter.push_back(0);
             if(fr.size() == 4)

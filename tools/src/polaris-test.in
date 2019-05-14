@@ -373,11 +373,17 @@ class TestRoutines:
 
     def test_1006003(self):
         """Perform test simulation to check temperature distribution.
-        Multiple dust density distributions inside the grid (with overlap).
+        Variation of the grain size limits and slope in the grid (similar to test_1003001).
         """
         self.get_result('temperature')
 
     def test_1006004(self):
+        """Perform test simulation to check temperature distribution.
+        Multiple dust density distributions inside the grid (with overlap).
+        """
+        self.get_result('temperature')
+
+    def test_1006005(self):
         """Perform test simulation to check thermal emission from overlapped multiple density distributions.
         """
         self.get_result('emission_map')

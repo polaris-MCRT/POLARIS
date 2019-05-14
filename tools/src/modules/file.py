@@ -75,8 +75,6 @@ class FileIO:
             #: bool: Convert unit of maps into unit/arcsec instead of unit/pixel
             if parse_args.cmap_unit is not None:
                 self.cmap_unit = parse_args.cmap_unit
-            else:
-                self.cmap_unit = cmap_unit
             if parse_args.ax_unit is not None:
                 self.ax_unit = parse_args.ax_unit
             elif ax_unit is None:
@@ -306,9 +304,7 @@ class FileIO:
 
         # If beam_label is True or a beam convolution is performed, change to Jy/beam
         quantity = r'\mathit{F}'
-        if self.beam_size is not None:
-            unit = 'Jy/beam'
-        elif self.cmap_unit == 'arcsec':
+        if self.cmap_unit == 'arcsec':
             unit = 'Jy/as^2'
         elif self.cmap_unit == 'px':
             unit = 'Jy/px'
@@ -317,6 +313,12 @@ class FileIO:
         elif self.cmap_unit == 'nuF':
             unit = r'\watt\per\metre\squared'
             quantity = r'\mathit{\nu F}'
+        elif self.beam_size is not None:
+            unit = 'Jy/beam'
+            self.cmap_unit = 'beam'
+        else:
+            self.cmap_unit = 'arcsec'
+            unit = 'Jy/as^2'
         # Integrated velocity maps have their unit multiplied by velocity
         if int_map:
             unit += r'\cdot\kilo\metre\per\second'
@@ -1054,13 +1056,13 @@ class FileIO:
                         tbldata[i_quantity, i_wl, ...] = smoothing(tbldata[i_quantity, i_wl, ...], verbose=False,
                             fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
                         # P is not flux / beam but should be convolved
-                        if i_quantity != 5:
+                        if i_quantity != 5 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * (self.beam_size / 2.) ** 2
                 else:
                     for i_wl in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_wl, ...] = convolve_fft(tbldata[i_quantity, i_wl, ...], gauss)
                         # P is not flux / beam but should be convolved
-                        if i_quantity != 5:
+                        if i_quantity != 5 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * (self.beam_size / 2.) ** 2
                         # Due to FFT, some values are negativ but very small. Make them positive again
                         if i_quantity in [0, 4, 5, 6, 7]:
@@ -1083,7 +1085,7 @@ class FileIO:
                 else:
                     tbldata[i_quantity, ...] = convolve_fft(tbldata[i_quantity, ...], gauss, nan_treatment='fill')
                     # P is not flux / beam but should be convolved
-                    if i_quantity != 4:
+                    if i_quantity != 4 and self.cmap_unit == 'beam':
                         tbldata[i_quantity, ...] *= np.pi * (self.beam_size / 2.) ** 2
                     # Due to FFT, some values are negativ but very small. Make them positive again
                     if i_quantity in [0, 4]:
@@ -1095,14 +1097,14 @@ class FileIO:
                         tbldata[i_quantity, i_channel, ...] = smoothing(tbldata[i_quantity, i_channel, ...],
                             verbose=False, fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
                         # P is not flux / beam but should be convolved
-                        if i_quantity != 4:
+                        if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_channel, ...] *= np.pi * (self.beam_size / 2.) ** 2
                 else:
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = convolve_fft(
                             tbldata[i_quantity, i_channel, ...], gauss, normalize_kernel=True)
                         # P is not flux / beam but should be convolved
-                        if i_quantity != 4:
+                        if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, ...] *= np.pi * (self.beam_size / 2.) ** 2
                         # Due to FFT, some values are negativ but very small. Make them positive again
                         if i_quantity in [0, 4]:
