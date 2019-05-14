@@ -749,6 +749,14 @@ class Model:
         """
         return self.dust_max_size()
 
+    def get_dust_size_param(self):
+        """The size distribution parameter can be modified by the code here if neccessary.
+
+        Returns:
+            float: minimum grain size
+        """
+        return self.dust_size_param()
+
     def get_dz(self, radius):
         """Calculates the width of each vertical cell border depending on the radial position.
 
@@ -909,6 +917,15 @@ class Model:
 
         Returns:
             float: maximum grain size
+        """
+        return None
+
+    def dust_size_param(self):
+        """Calculates the size distribution parameter depending on the position in the grid.
+        This overwrites the global size distribution parameter.
+
+        Returns:
+            float: minimum grain size
         """
         return None
 

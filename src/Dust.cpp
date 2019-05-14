@@ -1958,7 +1958,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     data_writer << "#material" << endl;
     data_writer << str_title << endl;
     data_writer << "#weight" << endl;
-    data_writer << getWeight(a_min_global, a_max_global) << endl;
+    data_writer << getWeight() << endl;
     data_writer << "#aspect ratio" << endl;
     data_writer << aspect_ratio << endl;
     data_writer << "#sublimation temp [K]" << endl;
@@ -3175,17 +3175,20 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
     dust_offset = true;
 
     // Init variables
-    double temp_offset, weight = 1;
+    double temp_offset;
+    double * rel_weight = 0;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
-       grid->getTemperatureFieldInformation() == TEMP_SINGLE)
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, cell);
+
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
     {
-        // Get weight from current grain size distribution
-        weight = getWeight(a_min, a_max);
+        // Get integration over the dust size distribution
+        rel_weight = getRelWeight(a_min, a_max, size_param);
     }
 
     // Get temperature from grid as offset (assuming only ONE dust/gas temperature in
@@ -3220,7 +3223,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
             else
             {
                 // Multiply it with the amount of dust grains in the current bin
-                qb_offset[a] *= a_eff_3_5[a];
+                qb_offset[a] *= rel_weight[a];
             }
         }
         else
@@ -3230,12 +3233,11 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
         }
     }
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
-       grid->getTemperatureFieldInformation() == TEMP_SINGLE)
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
     {
         // Get average absorption rate via interpolation
         double avg_qb_offset =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, qb_offset, nr_of_dust_species, a_min, a_max);
+            CMathFunctions::integ_dust_size(a_eff, qb_offset, nr_of_dust_species, a_min, a_max);
 
         // Save average offset energy to grid
         grid->setQBOffset(cell, i_density, avg_qb_offset);
@@ -3337,8 +3339,11 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, cell);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Init temporary pointer arrays for absorption rate and temperature
     double * abs_rate = new double[nr_of_dust_species];
@@ -3410,7 +3415,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             {
                 // Multiply with the amount of dust grains in the current bin for
                 // integration
-                abs_rate[a] *= a_eff_3_5[a];
+                abs_rate[a] *= rel_weight[a];
             }
             else if(grid->getTemperatureFieldInformation() == TEMP_FULL ||
                     (grid->getTemperatureFieldInformation() == TEMP_STOCH &&
@@ -3427,7 +3432,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             }
 
             // Multiply with the amount of dust grains in the current bin for integration
-            temp[a] *= a_eff_3_5[a];
+            temp[a] *= rel_weight[a];
         }
         else
         {
@@ -3443,14 +3448,13 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     {
         // Get average absorption rate via interpolation
         double avg_abs_rate =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, abs_rate, nr_of_dust_species, a_min, a_max);
+            CMathFunctions::integ_dust_size(a_eff, abs_rate, nr_of_dust_species, a_min, a_max);
 
         // Calculate average temperature from absorption rate
         avg_temp = findTemperature(grid, cell, avg_abs_rate);
     }
     else
-        avg_temp =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
+        avg_temp = CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
     delete[] abs_rate;
@@ -3899,17 +3903,19 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
-    double rel_weight;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
     // Get wavelength index of photon package
     uint w = pp->getWavelengthID();
-
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
 
     // Init temporary array for integration
     double * pl_abs_tmp = new double[nr_of_dust_species];
@@ -3918,11 +3924,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get cross sections and relative weight of the current dust grain size
-            rel_weight = a_eff_3_5[a] / weight;
-
-            // Calculate emission/extinction according to the information inside of the
-            // grid
+            // Calculate emission/extinction according to the information inside of the grid
             if(a_eff[a] <= getStochasticHeatingMaxSize())
             {
                 // Consider stochastic heating for the emission if chosen
@@ -3937,7 +3939,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
 
                     // Add relative emissivity from this temperature
                     pl_abs_tmp[a] +=
-                        getCabsMean(a, w) * rel_weight * temp_probability * getTabPlanck(w, temp_dust);
+                        getCabsMean(a, w) * rel_weight[a] * temp_probability * getTabPlanck(w, temp_dust);
                 }
             }
             else
@@ -3950,7 +3952,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
                 // Calculate the emission of the dust grains
-                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight * getTabPlanck(w, temp_dust);
+                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight[a] * getTabPlanck(w, temp_dust);
             }
         }
         else
@@ -3981,7 +3983,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                                                  Vector3D en_dir)
 {
     // Init variables to calculate the emission/extinction
-    double temp_dust = 0, rel_weight = 0;
+    double temp_dust = 0;
     double scattering_theta = 0, mag_field_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
     uint thID = 0;
@@ -4002,6 +4004,9 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
     // Init  and calculate the cross-sections
     cross_sections cs;
 
@@ -4015,8 +4020,8 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     double sin_2ph = sin(2.0 * phi);
     double cos_2ph = cos(2.0 * phi);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Init temporary Stokes array for integration
     StokesVector * tmp_stokes = new StokesVector[nr_of_dust_species];
@@ -4025,9 +4030,6 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get cross sections and relative weight of the current dust grain size
-            rel_weight = a_eff_3_5[a] / weight;
-
             // Get cross sections and relative weight of the current dust grain size
             calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
 
@@ -4046,7 +4048,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                     double pl = grid->getDustTempProbability(pp, i_density, a, t);
 
                     // Get relative Planck emission
-                    pl *= rel_weight * getTabPlanck(w, temp_dust);
+                    pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
                     // To perform Camps et. al (2015) benchmark.
@@ -4068,7 +4070,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                 else
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
-                double pl = rel_weight * getTabPlanck(w, temp_dust);
+                double pl = rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
                 // To perform Camps et. al (2015) benchmark.
@@ -4089,7 +4091,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
 
                 // Multiply energy with scattered fraction in the theta angle and the
                 // scattering cross-section
-                scatter_stokes.setI(energy * rel_weight * cs.Csca *
+                scatter_stokes.setI(energy * rel_weight[a] * cs.Csca *
                                     getScatteredFraction(a, w, scattering_theta));
 
                 if(phID == PH_MIE)
@@ -4139,15 +4141,18 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
                                           double & avg_Cpol,
                                           double & avg_Ccirc)
 {
+    // Init  and calculate the cross-sections
+    cross_sections cs;
+
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
-    // Init  and calculate the cross-sections
-    cross_sections cs;
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = grid->getThetaMag(pp);
@@ -4162,15 +4167,12 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            double rel_weight = a_eff_3_5[a] / weight;
-
-            // Get cross sections and relative weight of the current dust grain size
             calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
 
             // Add relative cross-sections for integration
-            Cext[a] = cs.Cext * rel_weight;
-            Cpol[a] = cs.Cpol * rel_weight;
-            Ccirc[a] = cs.Ccirc * rel_weight;
+            Cext[a] = cs.Cext * rel_weight[a];
+            Cpol[a] = cs.Cpol * rel_weight[a];
+            Ccirc[a] = cs.Ccirc * rel_weight[a];
         }
         else
         {
@@ -4380,8 +4382,11 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get current cell
     cell_basic * cell = pp->getPositionCell();
@@ -4391,9 +4396,6 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
 
     // Get dust number density of current cell
     double dens = getNumberDensity(grid, cell, i_density);
-
-    // Init energy pointer array of each size bin
-    double * energy = new double[nr_of_dust_species];
 
     // Get wavelength of photon package
     uint w = pp->getWavelengthID();
@@ -4408,15 +4410,16 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
             temp = grid->getDustTemperature(pp, i_density);
 
         // Calculate energy of current grain size
-        energy[a] = a_eff_3_5[a] * getCabsMean(a, w) * getTabPlanck(w, temp);
+        rel_weight[a] = getCabsMean(a, w) * getTabPlanck(w, temp);
     }
 
     // Calclate the total energy via interpolation
-    double total_energy = 1 / weight * dens * vol * PIx4 *
-                          CMathFunctions::integ_dust_size(a_eff, energy, nr_of_dust_species, a_min, a_max);
+    double total_energy =
+        dens * vol * PIx4 *
+        CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
-    delete[] energy;
+    delete[] rel_weight;
 
     return total_energy;
 }

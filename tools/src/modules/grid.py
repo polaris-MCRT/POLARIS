@@ -75,7 +75,8 @@ class Grid:
             (self.data.get_magnetic_field() is not None) * 3 + \
             (self.data.get_velocity_field() is not None) * 3 + \
             (self.data.dust_min_size() is not None) + \
-            (self.data.dust_max_size() is not None)
+            (self.data.dust_max_size() is not None) + \
+            (self.data.dust_size_param() is not None)
         if self.data.get_dust_id() is not None:
             if self.nr_gas_densities > 1 or self.nr_dust_densities > 1:
                 raise ValueError(
@@ -234,6 +235,9 @@ class Grid:
         if self.data.dust_max_size() is not None:
             # Maximum dust grain size: 15
             grid_file.write(struct.pack('H', 15))
+        if self.data.dust_size_param() is not None:
+            # Size distribution parameter: 16
+            grid_file.write(struct.pack('H', 16))    
         if grid_type == 'octree':
             if root is not None:
                 grid_file.write(struct.pack(
@@ -322,6 +326,9 @@ class Grid:
         a_max = self.data.get_dust_max_size()
         if a_max is not None:
             grid_file.write(struct.pack(data_type, a_max))
+        size_param = self.data.get_dust_size_param()
+        if size_param is not None:
+            grid_file.write(struct.pack(data_type, size_param))
 
     def read_write_node_data(self, tmp_file, grid_file, data_type='f'):
         """Read node data to binary grid_file.

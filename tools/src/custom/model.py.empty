@@ -56,7 +56,7 @@ class CustomModel(Model):
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
                 dust_temperature(self), velocity_field(self), magnetic_field(self),
-                dust_id(self), dust_min_size(self), dust_max_size(self)
+                dust_id(self), dust_min_size(self), dust_max_size(self), dust_size_param(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
                 - The first dimension is used to define multiple density distributions

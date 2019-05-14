@@ -53,6 +53,9 @@ class CGridBasic
         a_max_min = 0;
         a_max_max = 0;
 
+        size_param_min = 0;
+        size_param_max = 0;
+
         dust_id_min = 0;
         dust_id_max = 0;
 
@@ -117,7 +120,7 @@ class CGridBasic
         data_pos_pz = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
-        data_pos_eq = MAX_UINT;
+        data_pos_size_param = MAX_UINT;
         data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT;
 
@@ -145,6 +148,7 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
+        plt_size_param = false;
         plt_rad_field1 = false;
         plt_u_rad = false;
         plt_g_zero1 = false;
@@ -180,6 +184,7 @@ class CGridBasic
         buffer_dust_mixture = 0;
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
+        buffer_dust_size_param = 0;
         buffer_rad_field = 0;
         buffer_g_zero1 = 0;
         buffer_u_rad = 0;
@@ -262,6 +267,9 @@ class CGridBasic
         a_max_min = 1e300;
         a_max_max = -1e300;
 
+        size_param_min = 1e300;
+        size_param_max = -1e300;
+
         dust_id_min = MAX_UINT;
         dust_id_max = 0;
 
@@ -305,7 +313,7 @@ class CGridBasic
         data_pos_pz = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
-        data_pos_eq = MAX_UINT;
+        data_pos_size_param = MAX_UINT;
         data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT;
 
@@ -339,6 +347,7 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
+        plt_size_param = false;
         plt_rad_field1 = false;
         plt_u_rad = false;
         plt_g_zero1 = false;
@@ -374,6 +383,7 @@ class CGridBasic
         buffer_dust_mixture = 0;
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
+        buffer_dust_size_param = 0;
         buffer_rad_field = 0;
         buffer_g_zero1 = 0;
         buffer_u_rad = 0;
@@ -1247,6 +1257,19 @@ class CGridBasic
         return getMaxGrainRadius(cell);
     }
 
+    double getGrainSizeParam(cell_basic * cell)
+    {
+        if(data_pos_amax != MAX_UINT)
+            return cell->getData(data_pos_size_param);
+        return 0;
+    }
+
+    double getGrainSizeParam(photon_package * pp)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getGrainSizeParam(cell);
+    }
+
     uint getDustChoiceID(photon_package * pp)
     {
         if(data_pos_id != MAX_UINT)
@@ -1812,6 +1835,8 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = getMinGrainRadius(pp);
             if(plt_amax)
                 buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
+            if(plt_size_param)
+                buffer_dust_size_param[i_cell] = getGrainSizeParam(pp);
             if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
@@ -1918,6 +1943,8 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = 0;
             if(plt_amax)
                 buffer_dust_amax[i_cell] = 0;
+            if(plt_size_param)
+                buffer_dust_size_param[i_cell] = 0;
             if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(uint wID = 0; wID < WL_STEPS; wID++)
@@ -2590,13 +2617,13 @@ class CGridBasic
                     break;
 
                 case GRIDq:
-                    if(data_pos_eq != MAX_UINT)
+                    if(data_pos_size_param != MAX_UINT)
                     {
                         cout << "\nERROR: Grid ID " << GRIDq << " can be set only once!" << endl;
                         return false;
                     }
 
-                    data_pos_eq = i;
+                    data_pos_size_param = i;
                     break;
 
                 case GRIDv_turb:
@@ -3581,6 +3608,9 @@ class CGridBasic
     double a_max_min;
     double a_max_max;
 
+    double size_param_min;
+    double size_param_max;
+
     uint dust_id_min;
     uint dust_id_max;
 
@@ -3664,7 +3694,7 @@ class CGridBasic
     uilist data_pos_aalg_list;
     uint data_pos_amin;
     uint data_pos_amax;
-    uint data_pos_eq;
+    uint data_pos_size_param;
     uint data_pos_ra;
     uint data_pos_id;
 
@@ -3710,6 +3740,7 @@ class CGridBasic
     bool plt_dust_id;
     bool plt_amin;
     bool plt_amax;
+    bool plt_size_param;
     bool plt_rad_field1;
     bool plt_u_rad;
     bool plt_g_zero1;
@@ -3752,6 +3783,7 @@ class CGridBasic
     double * buffer_dust_mixture;
     double * buffer_dust_amin;
     double * buffer_dust_amax;
+    double * buffer_dust_size_param;
     double *** buffer_rad_field;
     double * buffer_g_zero1;
     double * buffer_u_rad;
