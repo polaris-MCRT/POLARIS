@@ -1162,6 +1162,11 @@ class CDustComponent
                     str_stream << ", ";
                 str_stream << size_parameter[i];
             }
+            else
+            {
+                if(i == 0)
+                    return "flat";
+            }
         return str_stream.str();
     }
 
