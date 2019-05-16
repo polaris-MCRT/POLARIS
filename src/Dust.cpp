@@ -3245,6 +3245,8 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
 
     // Delete pointer array
     delete[] qb_offset;
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
+        delete[] rel_weight;
 }
 
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
@@ -3457,6 +3459,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
         avg_temp = CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
+    delete[] rel_weight;
     delete[] abs_rate;
     delete[] temp;
 
@@ -3967,6 +3970,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     pl_abs = CMathFunctions::integ_dust_size(a_eff, pl_abs_tmp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
+    delete[] rel_weight;
     delete[] pl_abs_tmp;
 
     // Multiply with number density
@@ -4126,6 +4130,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
         CMathFunctions::integ_dust_size(a_eff, tmp_stokes, nr_of_dust_species, a_min, a_max));
 
     // Delete pointer arrays
+    delete[] rel_weight;
     delete[] tmp_stokes;
 
     // Multiply with number density
@@ -4189,6 +4194,7 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     avg_Ccirc = CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer arrays
+    delete[] rel_weight;
     delete[] Cext;
     delete[] Cpol;
     delete[] Ccirc;
