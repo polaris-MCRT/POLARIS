@@ -1016,8 +1016,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         }
 
                         // Rotate photon package into the coordinate space of the detector
-                        double rot_angle_phot_obs =
-                            CMathFunctions::getRotationAngleObserver(dir_obs, tmp_pp.getEX(), tmp_pp.getEY());
+                        double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
+                            detector[d].getEX(), tmp_pp.getEX(), tmp_pp.getEY());
                         tmp_pp.getStokesVector().rot(rot_angle_phot_obs);
 
                         // Calculate the source emission and reduce it by the optical

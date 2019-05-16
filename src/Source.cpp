@@ -1171,7 +1171,7 @@ void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
         uint wID = pp->getWavelengthID();
         double line_shape =
             1 / sqrt(2 * PI * sigma_sq) * exp(-pow(wavelength_list[wID] - wl, 2) / (2 * sigma_sq));
-        tmp_stokes_vector = L / double(nr_of_photons) * line_shape * StokesVector(1.0, q, u, 0);
+        tmp_stokes_vector = L * line_shape * StokesVector(1.0, q, u, 0);
     }
 
     pp->setStokesVector(tmp_stokes_vector);
