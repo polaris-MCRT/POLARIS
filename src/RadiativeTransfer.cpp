@@ -1299,7 +1299,8 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setSyncDetector(pos, sync_ray_detectors, max_length, pathOutput))
+                    if(!tracer->setSyncDetector(
+                           pos, sync_ray_detectors, max_length, pathOutput, param.getHealpixOrientation()))
                         return false;
                     break;
 
@@ -1845,8 +1846,12 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setDustDetector(
-                           pos, dust_ray_detectors, max_length, pathOutput, param.getAlignmentMechanism()))
+                    if(!tracer->setDustDetector(pos,
+                                                dust_ray_detectors,
+                                                max_length,
+                                                pathOutput,
+                                                param.getAlignmentMechanism(),
+                                                param.getHealpixOrientation()))
                         return false;
                     break;
 
@@ -2389,8 +2394,12 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
                 case DET_SPHER:
                     tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setLineDetector(
-                           pos, line_ray_detectors, pathOutput, max_length, param.getVelMaps()))
+                    if(!tracer->setLineDetector(pos,
+                                                line_ray_detectors,
+                                                pathOutput,
+                                                max_length,
+                                                param.getVelMaps(),
+                                                param.getHealpixOrientation()))
                         return false;
                     break;
 

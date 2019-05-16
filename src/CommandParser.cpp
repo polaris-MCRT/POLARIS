@@ -2420,6 +2420,23 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<healpix_orientation>") == 0)
+    {
+        if(data.compare("HEALPIX_FIXED") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_FIXED);
+        }
+        else if(data.compare("HEALPIX_YAXIS") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_YAXIS);
+        }
+        else if(data.compare("HEALPIX_CENTER") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_CENTER);
+        }
+        return true;
+    }
+
     if(cmd.compare("<path_grid>") == 0)
     {
         string path = seperateString(data);

@@ -239,6 +239,11 @@ using namespace std;
 #define CALO_HEAT_CAP 0
 #define CALO_ENTHALPY 1
 
+// Type of healpix orientation
+#define HEALPIX_FIXED 0
+#define HEALPIX_YAXIS 1
+#define HEALPIX_CENTER 2
+
 // Mie-scattering calculation
 #define MIE_SIZE_STEPS 100
 // Number of angles for scattering between 0° and 90°

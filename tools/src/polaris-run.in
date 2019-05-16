@@ -123,6 +123,9 @@ detector_args.add_argument('--obs_pos', dest='obs_pos', default=None, type=str, 
                            help='define observer position (only healpix rt_grid).')
 detector_args.add_argument('--obs_vel', dest='obs_vel', default=None, type=str, nargs=3,
                            help='define observer velocity (only healpix rt_grid).')
+detector_args.add_argument('--healpix_orientation', dest='healpix_orientation', default=None, type=str,
+                           help='define orientation reference for healpix detector\n'
+                           '(HEALPIX_CENTER, HEALPIX_YAXIS, HEALPIX_FIXED).')
 
 rad_source_args = parser.add_argument_group('radiation source')
 rad_source_args.add_argument('--rad_source_position', dest='rad_source_position', default=None, type=str, nargs=3,

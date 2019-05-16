@@ -61,7 +61,8 @@ class CRaytracingBasic
                                  dlist dust_ray_detectors,
                                  double _max_length,
                                  string path,
-                                 uint _alignment)
+                                 uint _alignment,
+                                 uint orientation_reference)
     {
         return false;
     }
@@ -91,7 +92,11 @@ class CRaytracingBasic
 
     // synchrotron detectors
 
-    virtual bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length, string path)
+    virtual bool setSyncDetector(uint pos,
+                                 dlist sync_ray_detectors,
+                                 double _max_length,
+                                 string path,
+                                 uint orientation_reference)
     {
         return false;
     }
@@ -123,7 +128,8 @@ class CRaytracingBasic
                                  dlist line_ray_detectors,
                                  string path,
                                  double _max_length,
-                                 bool _vel_maps)
+                                 bool _vel_maps,
+                                 uint orientation_reference)
     {
         return false;
     }
@@ -316,10 +322,7 @@ class CRaytracingBasic
     virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
     {}
 
-    virtual void addToDetector(photon_package * pp1,
-                               photon_package * pp2,
-                               int i_pix,
-                               bool direct = false)
+    virtual void addToDetector(photon_package * pp1, photon_package * pp2, int i_pix, bool direct = false)
     {
         // pos was only traced of first photon package
         pp2->setPosition(pp1->getPosition());
@@ -795,8 +798,6 @@ class CRaytracingHealPix : public CRaytracingBasic
         nside = 1;
         npix = 12;
 
-        spectral_offset_long = 0;
-
         sx = 0;
         sy = 0;
         sz = 0;
@@ -823,7 +824,12 @@ class CRaytracingHealPix : public CRaytracingBasic
         npix = 12 * nside * nside;
     }
 
-    bool setDustDetector(uint pos, dlist dust_ray_detectors, double _max_length, string path, uint _alignment)
+    bool setDustDetector(uint pos,
+                         dlist dust_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint _alignment,
+                         uint orientation_reference)
     {
         rt_detector_shape = DET_SPHER;
 
@@ -861,8 +867,7 @@ class CRaytracingHealPix : public CRaytracingBasic
 
         max_length = _max_length * 10;
 
-        Vector3D spectral_offset = det_pos.getSphericalCoord();
-        spectral_offset_long = spectral_offset.Phi();
+        setOrientation(orientation_reference);
 
         detector = new CDetector(
             path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, 1, _alignment);
@@ -871,7 +876,11 @@ class CRaytracingHealPix : public CRaytracingBasic
         return true;
     }
 
-    bool setSyncDetector(uint pos, dlist sync_ray_detectors, double _max_length, string path)
+    bool setSyncDetector(uint pos,
+                         dlist sync_ray_detectors,
+                         double _max_length,
+                         string path,
+                         uint orientation_reference)
     {
         rt_detector_shape = DET_SPHER;
 
@@ -909,8 +918,7 @@ class CRaytracingHealPix : public CRaytracingBasic
 
         max_length = _max_length * 10;
 
-        Vector3D spectral_offset = det_pos.getSphericalCoord();
-        spectral_offset_long = spectral_offset.Phi();
+        setOrientation(orientation_reference);
 
         detector =
             new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, nr_extra);
@@ -919,7 +927,12 @@ class CRaytracingHealPix : public CRaytracingBasic
         return true;
     }
 
-    bool setLineDetector(uint pos, dlist line_ray_detectors, string path, double _max_length, bool _vel_maps)
+    bool setLineDetector(uint pos,
+                         dlist line_ray_detectors,
+                         string path,
+                         double _max_length,
+                         bool _vel_maps,
+                         uint orientation_reference)
     {
         rt_detector_shape = DET_SPHER;
         vel_maps = _vel_maps;
@@ -945,8 +958,7 @@ class CRaytracingHealPix : public CRaytracingBasic
         b_min = PI * (-line_ray_detectors[pos + 9] + 90.0) / 180;
         b_max = PI * (-line_ray_detectors[pos + 8] + 90.0) / 180;
 
-        Vector3D spectral_offset = det_pos.getSphericalCoord();
-        spectral_offset_long = spectral_offset.Phi();
+        setOrientation(orientation_reference);
 
         vx = line_ray_detectors[pos + 10];
         vy = line_ray_detectors[pos + 11];
@@ -967,6 +979,22 @@ class CRaytracingHealPix : public CRaytracingBasic
         detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(vx, vy, vz), l_min, l_max, b_min, b_max);
 
         return true;
+    }
+
+    void setOrientation(uint orientation_reference)
+    {
+        if(orientation_reference == HEALPIX_CENTER)
+            detector_angle_offset = det_pos.getSphericalCoord();
+        else if(orientation_reference == HEALPIX_YAXIS)
+        {
+            detector_angle_offset = det_pos.getSphericalCoord();
+            detector_angle_offset.setTheta(PI2);
+        }
+        else
+        {
+            detector_angle_offset.setPhi(-PI);
+            detector_angle_offset.setTheta(PI2);
+        }
     }
 
     long getNpix()
@@ -1015,8 +1043,8 @@ class CRaytracingHealPix : public CRaytracingBasic
 
     void preparePhoton(photon_package * pp, double cx, double cy)
     {
-        double theta = cx;
-        double phi = cy + PI + spectral_offset_long;
+        double theta = cx + (PI2 - detector_angle_offset.Theta());
+        double phi = cy + PI + detector_angle_offset.Phi();
 
         Vector3D start_pos, tmp_ex, tmp_ey, tmp_ez;
 
@@ -1048,8 +1076,8 @@ class CRaytracingHealPix : public CRaytracingBasic
         Vector3D tmp_ez = pos - det_pos;
         tmp_ez.normalize();
 
-        double theta = acos(tmp_ez.Z());
-        double phi = atan3(tmp_ez.X(), tmp_ez.Y()) - PI - atan3(det_pos.X(), det_pos.Y());
+        double theta = acos(tmp_ez.Z()) - (PI2 - detector_angle_offset.Theta());
+        double phi = atan3(tmp_ez.X(), tmp_ez.Y()) - (PI + detector_angle_offset.Phi());
 
         tmp_ey.setX(cos(theta) * cos(phi));
         tmp_ey.setY(cos(theta) * sin(phi));
@@ -1275,8 +1303,7 @@ class CRaytracingHealPix : public CRaytracingBasic
     }
 
     Vector3D det_pos;
-
-    double spectral_offset_long;
+    Vector3D detector_angle_offset;
 
     double sx, sy, sz;
     double vx, vy, vz;

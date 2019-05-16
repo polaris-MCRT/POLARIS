@@ -511,6 +511,8 @@ class parameters
         maxGridLines = 0;
         cmd = -1;
 
+        healpix_orientation = HEALPIX_YAXIS;
+
         start = MAX_UINT;
         stop = MAX_UINT;
 
@@ -2215,6 +2217,16 @@ class parameters
         sublimate = val;
     }
 
+    void setHealpixOrientation(uint val)
+    {
+        healpix_orientation = val;
+    }
+
+    uint getHealpixOrientation()
+    {
+        return healpix_orientation;
+    }
+
     dlist getLineRayDetector(uint i_species)
     {
         return line_ray_detector_list[i_species];
@@ -2506,6 +2518,8 @@ class parameters
     uint nrOfGnuPoints;
     uint nrOfGnuVectors;
     uint maxGridLines;
+
+    uint healpix_orientation;
 
     maplist line_ray_detector_list;
 

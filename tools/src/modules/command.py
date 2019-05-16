@@ -82,17 +82,21 @@ class CmdPolaris:
         cmd_file.write('<common>\n')
         cmd_file.write(self.dust.get_command())
         cmd_file.write('\n')
-        cmd_file.write('\t<write_inp_midplanes>\t' + str(midplane_points) + '\n')
-        cmd_file.write('\t<write_out_midplanes>\t' + str(midplane_points) + '\n')
+        cmd_file.write('\t<write_inp_midplanes>\t' +
+                       str(midplane_points) + '\n')
+        cmd_file.write('\t<write_out_midplanes>\t' +
+                       str(midplane_points) + '\n')
         if self.parse_args.midplane_3d_param is not None:
             if 0 <= len(self.parse_args.midplane_3d_param) <= 4 and \
                     1 <= int(self.parse_args.midplane_3d_param[0]) <= 3:
                 cmd_file.write('\t<write_3d_midplanes>')
                 for i in range(len(self.parse_args.midplane_3d_param)):
                     if 1 < i < 4:
-                        cmd_file.write('\t' + str(self.math.parse(self.parse_args.midplane_3d_param[i], 'length')))
+                        cmd_file.write(
+                            '\t' + str(self.math.parse(self.parse_args.midplane_3d_param[i], 'length')))
                     else:
-                        cmd_file.write('\t' + str(self.parse_args.midplane_3d_param[i]))
+                        cmd_file.write(
+                            '\t' + str(self.parse_args.midplane_3d_param[i]))
                 cmd_file.write('\n')
         cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
         if self.parse_args.midplane_rad_field:
@@ -102,6 +106,9 @@ class CmdPolaris:
         cmd_file.write('\t<mu>\t\t\t' + str(mu) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<phase_function>\tPH_' + str(scattering) + '\n')
+        cmd_file.write('\n')
+        if self.parse_args.healpix_orientation is not None:
+            cmd_file.write('\t<healpix_orientation>\t' + str(self.parse_args.healpix_orientation) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<nr_threads>\t\t' + str(nr_threads) + '\n')
         cmd_file.write('</common>\n')
@@ -127,19 +134,24 @@ class CmdPolaris:
             cmd_file.write('\t<cmd>\t\t\tCMD_TEMP\n')
         cmd_file.write('\n')
         if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_filename
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_cgs_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_cgs_filename
             cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
+        cmd_file.write('\t<path_out>\t\t"' +
+                       self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
-        cmd_file.write('\t<dust_offset>\t\t' + str(int(self.parse_args.dust_offset)) + '\n')
+        cmd_file.write('\t<dust_offset>\t\t' +
+                       str(int(self.parse_args.dust_offset)) + '\n')
         cmd_file.write('\n')
         if self.parse_args.adj_tgas is not None:
-            cmd_file.write('\t<adj_tgas>\t\t' + str(self.parse_args.adj_tgas) + '\n')
+            cmd_file.write('\t<adj_tgas>\t\t' +
+                           str(self.parse_args.adj_tgas) + '\n')
         if self.parse_args.sub_dust:
             cmd_file.write('\t<sub_dust>\t1\n')
         if self.parse_args.full_dust_temp:
@@ -147,7 +159,8 @@ class CmdPolaris:
         if self.parse_args.radiation_field:
             cmd_file.write('\t<radiation_field>\t1\n')
         if self.parse_args.temp_a_max is not None:
-            cmd_file.write('\t<stochastic_heating>\t' + str(self.parse_args.temp_a_max) + '\n')
+            cmd_file.write('\t<stochastic_heating>\t' +
+                           str(self.parse_args.temp_a_max) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
@@ -173,20 +186,24 @@ class CmdPolaris:
         cmd_file.write('\t<cmd>\t\t\tCMD_RAT\n')
         cmd_file.write('\n')
         if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_filename
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_cgs_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_cgs_filename
             cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
             grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'
+            grid_path = self.file_io.path['simulation'] + \
+                'temp_rat/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
+        cmd_file.write('\t<path_out>\t\t"' +
+                       self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
@@ -245,25 +262,30 @@ class CmdPolaris:
         cmd_file.write('\t<cmd>\t\t\tCMD_DUST_SCATTERING\n')
         cmd_file.write('\n')
         if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_filename
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_cgs_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_cgs_filename
             cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
             grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'
+            grid_path = self.file_io.path['simulation'] + \
+                'temp_rat/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
+        cmd_file.write('\t<path_out>\t\t"' +
+                       self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
         cmd_file.write('\t<peel_off>\t\t' + str(int(peel_off)) + '\n')
         cmd_file.write('\t<enfsca>\t\t' + str(int(enfsca)) + '\n')
         if not peel_off:
-            cmd_file.write('\t<acceptance_angle>\t' + str(self.detector.parameter['acceptance_angle']) + '\n')
+            cmd_file.write('\t<acceptance_angle>\t' +
+                           str(self.detector.parameter['acceptance_angle']) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
@@ -315,10 +337,12 @@ class CmdPolaris:
         cmd_file.write('\n')
         cmd_file.write('\t<cmd>\t\t\tCMD_DUST_EMISSION\n')
         if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_filename
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_cgs_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_cgs_filename
             cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'rat/grid_rat.dat'):
             grid_path = self.file_io.path['simulation'] + 'rat/grid_rat.dat'
@@ -327,19 +351,23 @@ class CmdPolaris:
             grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'
+            grid_path = self.file_io.path['simulation'] + \
+                'temp_rat/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
+        cmd_file.write('\t<path_out>\t\t"' +
+                       self.file_io.path['simulation_type'] + '"\n')
         if 'dust_' in self.parse_args.simulation_type and \
                 self.parse_args.simulation_type not in ['dust_mc', 'dust_full']:
-            for align in self.parse_args.simulation_type.replace('dust_','').split('_'):
-                cmd_file.write('\t<align>\t\t\tALIG_' + str(align).upper() + '\n')
+            for align in self.parse_args.simulation_type.replace('dust_', '').split('_'):
+                cmd_file.write('\t<align>\t\t\tALIG_' +
+                               str(align).upper() + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<max_subpixel_lvl>\t' + str(max_subpixel_lvl) + '\n')
         if self.parse_args.f_highj is not None:
-            cmd_file.write('\t<f_highJ>\t\t' + str(self.parse_args.f_highj) + '\n')
+            cmd_file.write('\t<f_highJ>\t\t' +
+                           str(self.parse_args.f_highj) + '\n')
         if self.parse_args.f_c is not None:
             cmd_file.write('\t<f_c>\t\t\t' + str(self.parse_args.f_c) + '\n')
         cmd_file.write('\n')
@@ -347,10 +375,11 @@ class CmdPolaris:
             cmd_file.write('\t<rt_scattering>\t0\n')
             cmd_file.write('\n')
         elif self.dust_source.parameter['nr_photons'] > 0:
-                cmd_file.write(self.dust_source.get_command())
-                cmd_file.write('\n')
+            cmd_file.write(self.dust_source.get_command())
+            cmd_file.write('\n')
         if self.parse_args.temp_a_max is not None:
-            cmd_file.write('\t<stochastic_heating>\t' + str(self.parse_args.temp_a_max) + '\n')
+            cmd_file.write('\t<stochastic_heating>\t' +
+                           str(self.parse_args.temp_a_max) + '\n')
             cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
@@ -368,7 +397,8 @@ class CmdPolaris:
 
         # Overwrite default values with user input
         if self.parse_args.turbulent_velocity is not None:
-            turbulent_velocity = self.math.parse(self.parse_args.turbulent_velocity, 'velocity')
+            turbulent_velocity = self.math.parse(
+                self.parse_args.turbulent_velocity, 'velocity')
         else:
             turbulent_velocity = self.model.parameter['turbulent_velocity']
         if self.parse_args.max_subpixel_lvl is not None:
@@ -405,20 +435,24 @@ class CmdPolaris:
         cmd_file.write('\t<cmd>\t\tCMD_LINE_EMISSION\n')
         cmd_file.write('\n')
         if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_filename
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + self.parse_args.grid_cgs_filename
+            grid_path = self.file_io.path['model'] + \
+                self.parse_args.grid_cgs_filename
             cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
             grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'
+            grid_path = self.file_io.path['simulation'] + \
+                'temp_rat/grid_temp.dat'
             cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
         else:
             raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' + self.file_io.path['simulation_type'] + '"\n')
+        cmd_file.write('\t<path_out>\t\t"' +
+                       self.file_io.path['simulation_type'] + '"\n')
         cmd_file.write('\n')
         if self.parse_args.no_vel_maps:
             cmd_file.write('\t<vel_maps>\t\t0\n')
@@ -453,17 +487,17 @@ class CmdPolaris:
         # For MAC PCs with newest OS (they are not allowing the change of the LD library path in .bashrc)
         if 'darwin' in sys.platform:
             run_file.write('export LD_LIBRARY_PATH="' + self.file_io.path['polaris'] + 'CCfits/.libs/:' +
-                self.file_io.path['polaris'] + 'cfitsio:${LD_LIBRARY_PATH}"\n')
+                           self.file_io.path['polaris'] + 'cfitsio:${LD_LIBRARY_PATH}"\n')
             run_file.write('export DYLD_LIBRARY_PATH="' + self.file_io.path['polaris'] + 'CCfits/.libs/:' +
-                self.file_io.path['polaris'] + 'cfitsio:${DYLD_LIBRARY_PATH}"\n')
+                           self.file_io.path['polaris'] + 'cfitsio:${DYLD_LIBRARY_PATH}"\n')
         if self.parse_args.save_output:
             run_file.write(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['simulation_type'] +
-                'POLARIS.cmd ' + '| tee ' + self.file_io.path['simulation_type'] + 'POLARIS.out\n')
+                           'POLARIS.cmd ' + '| tee ' + self.file_io.path['simulation_type'] + 'POLARIS.out\n')
             run_file.write(r"sed -i 's/\r$//; s/\r/\r\n/g; /\r/d' " +
-                self.file_io.path['simulation_type'] + 'POLARIS.out\n')
+                           self.file_io.path['simulation_type'] + 'POLARIS.out\n')
         else:
             run_file.write(self.file_io.path['bin'] + 'polaris ' + self.file_io.path['simulation_type'] +
-                'POLARIS.cmd' + '\n')
+                           'POLARIS.cmd' + '\n')
         run_file.close()
 
     def execute_run_file(self):
