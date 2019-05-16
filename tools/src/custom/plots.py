@@ -2599,7 +2599,7 @@ class CustomPlots:
         # Set some variables
         detector_index = 101
         i_quantity = 4
-        i_subplot = 9
+        i_subplot = 0
         vmin = 2e-7
         vmax = 8e-5
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'

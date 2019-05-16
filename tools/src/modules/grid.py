@@ -118,7 +118,8 @@ class Grid:
         # Check for errors
         try:
             if self.nr_gas_densities == 1:
-                if not isinstance(self.data.get_gas_density_distribution(), (float, int)):
+                if self.data.get_gas_density_distribution() is not None and \
+                        not isinstance(self.data.get_gas_density_distribution(), (float, int)):
                     if len(self.data.get_gas_density_distribution()[0]) != \
                             len(self.model.parameter['gas_mass'][0]):
                         raise ValueError("gas_density_distribution does not provied the same array than "
@@ -134,7 +135,8 @@ class Grid:
                 "the gas_density function and the defined gas_mass do not fit!")
         try:
             if self.nr_dust_densities == 1:
-                if not isinstance(self.data.get_dust_density_distribution(), (float, int)):
+                if self.data.get_dust_density_distribution() is not None and \
+                        not isinstance(self.data.get_dust_density_distribution(), (float, int)):
                     raise ValueError(
                         "get_dust_density_distribution provides not float!")
             elif self.nr_dust_densities > 1:

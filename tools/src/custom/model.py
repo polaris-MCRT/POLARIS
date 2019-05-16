@@ -313,7 +313,7 @@ class MhdFlock(Model):
         self.spherical_parameter['n_ph'] = 512
         self.spherical_parameter['sf_r'] = 1.0063066707156978
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
-        self.parameter['external_input_name'] = 350
+        #self.parameter['external_input_name'] = 'mflock'
         self.parameter['vel_is_speed_of_sound'] = True
         self.parameter['radiation_source'] = 'binary'
         self.parameter['dust_composition'] = 'mrn_oblate'

@@ -75,6 +75,8 @@ class FileIO:
             #: bool: Convert unit of maps into unit/arcsec instead of unit/pixel
             if parse_args.cmap_unit is not None:
                 self.cmap_unit = parse_args.cmap_unit
+            else:
+                self.cmap_unit = None
             if parse_args.ax_unit is not None:
                 self.ax_unit = parse_args.ax_unit
             elif ax_unit is None:
@@ -304,18 +306,19 @@ class FileIO:
 
         # If beam_label is True or a beam convolution is performed, change to Jy/beam
         quantity = r'\mathit{F}'
-        if self.cmap_unit == 'arcsec':
-            unit = 'Jy/as^2'
-        elif self.cmap_unit == 'px':
-            unit = 'Jy/px'
-        elif self.cmap_unit == 'total':
-            unit = 'Jy'
-        elif self.cmap_unit == 'nuF':
-            unit = r'\watt\per\metre\squared'
-            quantity = r'\mathit{\nu F}'
+        if self.cmap_unit is not None:
+            if self.cmap_unit == 'arcsec':
+                unit = 'Jy/as^2'
+            elif self.cmap_unit == 'px':
+                unit = 'Jy/px'
+            elif self.cmap_unit == 'total':
+                unit = 'Jy'
+            elif self.cmap_unit == 'nuF':
+                unit = r'\watt\per\metre\squared'
+                quantity = r'\mathit{\nu F}'
         elif self.beam_size is not None:
-            unit = 'Jy/beam'
             self.cmap_unit = 'beam'
+            unit = 'Jy/beam'
         else:
             self.cmap_unit = 'arcsec'
             unit = 'Jy/as^2'
@@ -583,11 +586,13 @@ class FileIO:
                 wmap_map[5, i_wl, :] = 1e2 * np.divide(wmap_map[4, i_wl, :], data[i_col, :],
                     out=np.zeros_like(wmap_map[4, i_wl, :]), where=data[i_col, :] != 0)
             # Apply intensity unit conversion
-            if self.cmap_unit == 'arcsec':
-                wmap_map[0:5, :, :] /= arcsec_squared_per_pixel
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass
             elif self.cmap_unit == 'nuF':
                 for i_wl in range(header['nr_wavelengths']):
                     wmap_map[0:5, i_wl, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+            else:
+                wmap_map[0:5, :, :] /= arcsec_squared_per_pixel
             # Add column density at the end
             wmap_map[7, :, :] = data[int(self.n_quantities_map - 3) * header['nr_wavelengths'], :]
             # Apply beam convolution if chosen
@@ -609,16 +614,18 @@ class FileIO:
             tbldata[5, :, :, :] = 1e2 * np.divide(tbldata[4, :, :, :], data[0, :, :, :],
                 out=np.zeros_like(tbldata[4, :, :, :]), where=data[0, :, :, :] != 0)
             # Apply intensity unit conversion
-            if self.cmap_unit == 'arcsec':
-                tbldata[0:5, :, :, :] /= arcsec_squared_per_pixel
-                if header['simulation_type'] in ['dust_mc', 'dust_full']:
-                    tbldata[6:8, :, :, :] /= arcsec_squared_per_pixel
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass                
             elif self.cmap_unit == 'nuF':
                 for i_wl in range(header['nr_wavelengths']):
                     tbldata[0:5, i_wl, :, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
                 if header['simulation_type'] in ['dust_mc', 'dust_full']:
                     for i_wl in range(header['nr_wavelengths']):
                         tbldata[6:8, i_wl, :, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+            else:
+                tbldata[0:5, :, :, :] /= arcsec_squared_per_pixel
+                if header['simulation_type'] in ['dust_mc', 'dust_full']:
+                    tbldata[6:8, :, :, :] /= arcsec_squared_per_pixel
             # Apply beam convolution if chosen
             tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             if plot_data_type == 'map':
@@ -894,7 +901,9 @@ class FileIO:
                     if vch == 0:
                         wmap_map[5, 0, ...] = data_extra[...]
             # Change unit if per arcseconds was chosen
-            if self.cmap_unit == 'arcsec':
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass
+            else:
                 wmap_map[0:4, :, :] /= arcsec_squared_per_pixel
             wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             return wmap_map, header, plot_data_type
@@ -914,7 +923,9 @@ class FileIO:
                 if vch < hdulist_extra[0].data.shape[0]:
                     tbldata[5, vch, :, :] = np.transpose(hdulist_extra[0].data, (0, 2, 1))[vch, ...]
             # Change unit if per arcseconds was chosen
-            if self.cmap_unit == 'arcsec':
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass
+            else:
                 tbldata[0:4, :, :, :] /= arcsec_squared_per_pixel
             # Convolve with beam if necessary
             tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
@@ -957,7 +968,9 @@ class FileIO:
             wmap_map = hp.read_map(self.path['results'] + filename + '.fits', field=None, verbose=False)
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = 4 * np.pi * (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
-            if self.cmap_unit == 'arcsec':
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass
+            else:
                 wmap_map[0:4, :] /= arcsec_squared_per_pixel
             wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             return wmap_map, header, plot_data_type
@@ -967,7 +980,9 @@ class FileIO:
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
                 (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
-            if self.cmap_unit == 'arcsec':
+            if self.cmap_unit == 'total' or self.cmap_unit == 'px':
+                pass
+            else:
                 tbldata[0:4, :, :] /= arcsec_squared_per_pixel
             tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             if plot_data_type == 'map':
