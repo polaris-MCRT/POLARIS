@@ -411,12 +411,12 @@ class TestRoutines:
     def test_1007005(self):
         """Perform test simulation to check raytracing (incl. scattering calc before raytracing, cylindrical grid).
         """
-        self.get_result('emission_map')
+        self.get_result('emission_map', limit_override=2)
 
     def test_1008001(self):
         """Perform test simulation to check that multiple dust components are mixed correctly.
         """
-        self.get_result('emission_map', limit_override=2)
+        self.get_result('emission_map')
 
 
 if __name__ == '__main__':
