@@ -504,7 +504,7 @@ class Plot:
                     self.extent = [-radius_x, radius_x, None, None]
                 elif automatic_axes == 'y':
                     self.extent = [None, None, -radius_y, radius_y]
-                elif automatic_axes is None:
+                else:
                     self.extent = [None, None, None, None]
             else:
                 raise ValueError(
