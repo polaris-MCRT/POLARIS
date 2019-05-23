@@ -84,7 +84,7 @@ while getopts "hrduD" opt; do
                         sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
                     fi
 	                cd ${install_directory}/../
-	                rm -rv polaris/
+	                rm -rv ${install_directory}
 			local_python_lib="$(python -m site --user-base 2>&1)"
 			rm "${local_python_lib}/lib"
 	                echo -e  "${TC}-> Deletion of POLARIS ${NC}[${GREEN}done${NC}]"
