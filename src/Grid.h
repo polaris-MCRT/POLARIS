@@ -2147,7 +2147,7 @@ class CGridBasic
 
     bool useConstantGrainSizes()
     {
-        if(data_pos_amin != MAX_UINT || data_pos_amax != MAX_UINT)
+        if(data_pos_amin != MAX_UINT || data_pos_amax != MAX_UINT || data_pos_size_param != MAX_UINT)
             return false;
         return true;
     }
