@@ -1703,7 +1703,7 @@ class CustomPlots:
         # Set some variables
         detector_index = 103
         i_quantity = 4
-        calc = True
+        calc = False
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
@@ -1736,8 +1736,8 @@ class CustomPlots:
         # Set beam size (in arcsec)
         if observation == 'SCUBA':
             self.file_io.beam_size = 0.07
-            vmin = 1e-7
-            vmax = 1e-4
+            vmin = 2e-7
+            vmax = 5e-8
         elif observation == 'SPHERE':
             self.file_io.beam_size = 0.03
             vmin = 3e-8
@@ -1796,7 +1796,7 @@ class CustomPlots:
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -1990,7 +1990,7 @@ class CustomPlots:
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -2154,11 +2154,13 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 1  # 104
+        detector_index = 101  # 104
         i_quantity = 4
         i_subplot = 9
-        vmin = 1e-7
-        vmax = 1e-4
+        #vmin = 1e-7
+        #vmax = 1e-4
+        vmin = 2e-7
+        vmax = 8e-5
         observation = 'SCUBA'  # 'SCUBA', 'SPHERE'
         model_list = [
             'no_circumstellar_disks',
@@ -2170,7 +2172,7 @@ class CustomPlots:
             'only_Ab1_Ab2',
             'default',
             'vertical_Ab2',
-            'vertical_Ab2_scale_height_Aa_0_8_very_small'
+            'vertical_Ab2_hres'
         ]
         model_descr = [
             'No circumstellar disks',
@@ -2238,8 +2240,7 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white', fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True, text=r'$\text{' +
                        model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top',
@@ -2288,7 +2289,7 @@ class CustomPlots:
             hdulist = fits.open(
                 '/home/rbrauer/Documents/projects/005_gg_tau/near_infrared_imaging_paper/sub_pi.fits')
             tbldata = cropND(
-                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 1e7
+                hdulist[0].data.T, (500, 500), offset=[0, 30]) / 2e7  # 1e7
         elif observation == 'SPHERE':
             hdulist = fits.open(
                 '/home/rbrauer/Documents/projects/005_gg_tau/SPHERE_observation_miriam/GG_Tau_2016-11-191_I_POL.fits')
@@ -2301,7 +2302,7 @@ class CustomPlots:
             if i_pos == 5:
                 center_pos[1] += 0.15
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2404,7 +2405,7 @@ class CustomPlots:
                            text=r'$\text{' + star_descr[i_star] + r'}$', color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                        text=r'$\text{' + model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top', color='white')
@@ -2555,7 +2556,7 @@ class CustomPlots:
                                    text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=i_plot + 1, color='white')
             for i_pos, center_pos in enumerate(measurement_position_list):
                 plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_plot + 1, color='white',
-                               fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                               fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot + 9 *
@@ -2579,7 +2580,7 @@ class CustomPlots:
             if i_pos == 5:
                 center_pos[1] += 0.15
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2754,7 +2755,7 @@ class CustomPlots:
             #for i_pos, center_pos in enumerate(measurement_position_list):
             #    plot.plot_text(text_pos=center_pos,
             #        text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
-            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='white', alpha=0.2))
+            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot], horizontalalignment='left',
