@@ -1737,7 +1737,7 @@ class CustomPlots:
         if observation == 'SCUBA':
             self.file_io.beam_size = 0.07
             vmin = 2e-7
-            vmax = 5e-8
+            vmax = 8e-5
         elif observation == 'SPHERE':
             self.file_io.beam_size = 0.03
             vmin = 3e-8
@@ -1793,10 +1793,33 @@ class CustomPlots:
                     continue
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
+                if i_plot == 1:
+                    x=np.linspace(0, 2*np.pi, 100)
+                    inc_pa = 7./180.*np.pi
+                    pos_x = []
+                    pos_y = []
+                    for angle in x:
+                        pos_x.append(0.05 + 0.5*2.65*np.cos(angle) * np.cos(inc_pa) - 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
+                        pos_y.append(-0.3 + 0.5*2.65*np.cos(angle) * np.sin(inc_pa) + 0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
+                    plot.plot_line(pos_x, pos_y, ax_index=0, color='cyan', linestyle=':', no_grid=True)
+                    plot.plot_line(pos_x, pos_y, ax_index=2, color='cyan', linestyle=':', no_grid=True)
+                    #plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
+                    #             ax_index=0, edgecolor='cyan', linestyle=':')
+                    #plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
+                    #             ax_index=2, edgecolor='cyan', linestyle=':')
+                    x=np.linspace(np.pi*1.17, 1.97*np.pi, 100)
+                    inc_pa = 0 # 7./180.*np.pi
+                    pos_x = []
+                    pos_y = []
+                    for angle in x:
+                        pos_x.append(-0.1 + 0.5*2.65*np.cos(angle) * np.cos(inc_pa) + 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
+                        pos_y.append(0.3 + 0.5*2.65*np.cos(angle) * np.sin(inc_pa) + 0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
+                    plot.plot_line(pos_x, pos_y, ax_index=0, color='orange', linestyle=':', no_grid=True)
+                    plot.plot_line(pos_x, pos_y, ax_index=2, color='orange', linestyle=':', no_grid=True)
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -1979,7 +2002,7 @@ class CustomPlots:
                     "bbw", ["black", "royalblue", "white"])
                 matplotlib.pyplot.register_cmap(cmap=cmap)
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
-                                 norm='LogNorm', vmin=1e-7, vmax=1e-4, cmap='bbw')
+                                 norm='LogNorm', vmin=1e-7, vmax=5e-5, cmap='bbw')
                 # Plot map description
                 plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                                text=r'$\text{' +
@@ -1990,7 +2013,7 @@ class CustomPlots:
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
-                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                                   bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
                 if calc:
                     # Get the image sidelength
                     sidelength_x = 2. * \
@@ -2155,7 +2178,7 @@ class CustomPlots:
         from scipy.ndimage.interpolation import zoom
         # Set some variables
         detector_index = 101  # 104
-        i_quantity = 4
+        i_quantity = 0 #4
         i_subplot = 9
         #vmin = 1e-7
         #vmax = 1e-4
@@ -2240,7 +2263,7 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white', fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white', fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True, text=r'$\text{' +
                        model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top',
@@ -2302,7 +2325,7 @@ class CustomPlots:
             if i_pos == 5:
                 center_pos[1] += 0.15
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2323,8 +2346,8 @@ class CustomPlots:
         detector_index = 1  # 104
         i_quantity = 0
         i_subplot = 9
-        vmin = 1e-7
-        vmax = 1e-5
+        vmin = 5e-7
+        vmax = 5e-5
         model_list = [
             'no_circumstellar_disks',
             'only_Aa',
@@ -2335,7 +2358,7 @@ class CustomPlots:
             'only_Ab1_Ab2',
             'default',
             'vertical_Ab2',
-            'vertical_Ab2_scale_height_Aa_0_8_very_small'
+            'vertical_Ab2_hres'
         ]
         model_descr = [
             'No circumstellar disks',
@@ -2405,7 +2428,7 @@ class CustomPlots:
                            text=r'$\text{' + star_descr[i_star] + r'}$', color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                        text=r'$\text{' + model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top', color='white')
@@ -2437,6 +2460,7 @@ class CustomPlots:
         print(r'\hline')
         print(model_descr[i_subplot], '&', ' & '.join(
             '$\SI{' + f'{x:1.2e}' + '}{}$' for x in flux_sum[:]), r'\\')
+        print(r'\end{tabular}')
         print(r'\begin{tabular}{lccccc}')
         print(
             r'Configuration & $F_1 / F_2$ & $F_1 / F_3$ & $F_1 / F_4$ & $F_1 / F_5$ & $F_3 / F_6$ \\')
@@ -2556,7 +2580,7 @@ class CustomPlots:
                                    text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=i_plot + 1, color='white')
             for i_pos, center_pos in enumerate(measurement_position_list):
                 plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=i_plot + 1, color='white',
-                               fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                               fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot + 9 *
@@ -2580,7 +2604,7 @@ class CustomPlots:
             if i_pos == 5:
                 center_pos[1] += 0.15
             plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=0, color='white',
-                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+                           fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2755,7 +2779,7 @@ class CustomPlots:
             #for i_pos, center_pos in enumerate(measurement_position_list):
             #    plot.plot_text(text_pos=center_pos,
             #        text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
-            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.3))
+            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot], horizontalalignment='left',

@@ -1417,6 +1417,17 @@ class Plot:
         """
         self.ax_list[ax_index].add_patch(patches.Circle(pos, size, **args))
 
+    def plot_ellipse(self, xy, width, height, angle=0, ax_index=0, **args):
+        """Plot circle in the image.
+
+        Args:
+            pos (List): Position of the circle (2D).
+            size (float): Size of the circle.
+            ax_index (int): Index of subplot image.
+            args: Additional arguments.
+        """
+        self.ax_list[ax_index].add_patch(patches.Ellipse(xy, width, height, angle, **args))
+
     def plot_wedge(self, pos, radius, theta1, theta2, width=None, ax_index=0, **args):
         """Plot wedge in the image.
 
