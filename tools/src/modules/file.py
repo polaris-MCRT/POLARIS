@@ -238,27 +238,6 @@ class FileIO:
         self.plot_output_filename = self.plot_output_filename.replace(
             '_image_' + str(self.image_index - 1) + file_type, '_image_' + str(self.image_index) + file_type)
 
-    def read_data_file(self, filename, skip_header=0, skip_footer=0, path_name='results'):
-        """Reads data from a text file into a numpy array.
-
-        Args:
-            filename (str): Filename to the text file.
-            skip_header: Amount of ignored lines from the top of the file.
-            skip_footer: Amount of ignored lines from the bottom of the file.
-            path_name (str): Defines the path where the file can be found.
-
-        Returns:
-            Numpy array including the data from the text file.
-        """
-        # Load necessary module
-        import pandas
-        # Load data from file
-        data = pandas.read_csv(self.path[path_name] + filename, delim_whitespace=True, header=None,
-                                       skiprows=skip_header, skipfooter=skip_footer, engine='python')
-        # Convert pandas data to matrix/ndarray
-        data = data.as_matrix()
-        return data
-
     def read_dust_file(self, dust_parameter_dict):
         """Reads dust grain sizes and wavelengths from POLARIS dust catalog files.
 
