@@ -344,98 +344,6 @@ class CustomPlots:
         animation.save(
             self.file_io.path['plots'] + 'continuum_polarization_animation.mp4', dpi=800)
 
-    def plot_22(self):
-        """Plot 2D graph of optical depth profile.
-        """
-        self.file_io.init_plot_output('tau_profile')
-        data = self.file_io.read_data_file('tau_profile.dat')
-        # freq = self.math.const['c'] / 7.7e-6
-        N_wl = 31
-        N = len(data[:, 0])
-        N_pos = int(N / N_wl)
-        data = data.reshape(N_pos, N_wl, 5).transpose(1, 0, 2)
-        wl_list = ['1.5364e-06', '3.61733e-06', '4.98706e-06', '7.6522e-06',
-                   '1.05498e-05', '1.45445e-05']
-
-        # initial_intensity = radius.copy()
-        # final_intensity = radius.copy()
-        # for i in range(N):
-        # radius[i] = np.sqrt(data[i, 0] ** 2 + data[i, 1] ** 2 + data[i, 2] ** 2) / self.math.const['au']
-        # radius_proj[i] = np.sqrt(data[i, 0] ** 2 + (data[i, 1] * np.cos(37. / 180. * np.pi)) ** 2 + data[i, 2] ** 2) / self.math.const['au']
-        # optical_depth[i] = data[i, 3]
-        # mult =  self.math.const['c'] / (freq * freq)
-        # mult *= 1e+26  / (140. * self.math.const['pc']) ** 2
-        # initial_intensity[i] = data[i, 4] * mult * 1e3
-        # final_intensity[i] = data[i, 5] * mult * 1e3
-
-        radius = np.zeros(N_pos)
-        radius_proj = np.zeros(N_pos)
-        optical_depth = np.zeros((N_wl, N_pos))
-        wavelength = np.zeros(N_wl)
-        for i_pos in range(N_pos):
-            radius[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + data[0, i_pos, 2]
-                                    ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
-            radius_proj[i_pos] = np.sqrt(data[0, i_pos, 1] ** 2 + (data[0, i_pos, 2] * np.cos(
-                37. / 180. * np.pi)) ** 2 + data[0, i_pos, 3] ** 2) / self.math.const['au']
-            for i_wl in range(N_wl):
-                wavelength[i_wl] = data[i_wl, i_pos, 0]
-                optical_depth[i_wl, i_pos] = data[i_wl, i_pos, 4]
-
-        # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$R_\textsf{midplane}\ [\si{au}]$',
-                    ylabel=r'$\tau_\textsf{obs}$', with_cbar=False)
-        for i_wl in range(N_wl):
-            if str(wavelength[i_wl]) in wl_list:
-                plot.plot_line(radius, optical_depth[i_wl, :], label=r'$\lambda=\SI{' +
-                               str(round(wavelength[i_wl] * 1e6, 2)) + '}{\micro\metre}$')
-                plot.plot_legend()
-        plot.save_figure(self.file_io)
-
-        # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$R_\textsf{plane-of-sky}\ [\si{au}]$',
-                    ylabel=r'$\tau_\textsf{obs}$', with_cbar=False)
-        for i_wl in range(N_wl):
-            if str(wavelength[i_wl]) in wl_list:
-                plot.plot_line(radius_proj, optical_depth[i_wl, :], label=r'$\lambda=\SI{' +
-                               str(round(wavelength[i_wl] * 1e6, 2)) + '}{\micro\metre}$')
-                plot.plot_legend()
-        plot.save_figure(self.file_io)
-
-    def plot_23(self):
-        """Plot multiple spectral line profiles into one image.
-        """
-        self.file_io.init_plot_output('multiple_spectral_profiles')
-        # Chosen quantity to plot (0: I, 1: Q, ...)
-        i_quantity = 0
-        # Calculation of the column density of each simulation
-        col_dens = [5e-8, 1e-7, 1e-6, 1e-5]
-        # Density at abundance = 1e-5
-        col_dens = np.multiply(col_dens, 2.21859e+14)
-        col_dens = np.multiply(
-            col_dens, self.math.const['au'])  # To column density
-        # Read spectrum data
-        tbldata = self.file_io.read_data_file(
-            'line_spectrum_species_0001_line_0001.det', skip_header=21)
-        # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args,
-                    ylabel='$F_\mathsf{' +
-                    self.stokes_parameter[i_quantity] + '}\ [\mathsf{Jy}]$',
-                    xlabel=r'$v\ [\si{\kilo\metre\per\second}]$', with_cbar=False,
-                    extent=[tbldata[0, 0] * 1e-3, tbldata[-1, 0] * 1e-3, 0., 1.5e-4])
-        for line_number in range(len(col_dens)):
-            # Read spectrum data
-            tbldata = self.file_io.read_data_file(
-                'line_spectrum_species_0001_line_' +
-                str(line_number + 1).zfill(4) + '.det',
-                skip_header=21)
-            # Plot spectrum as line
-            plot.plot_line(tbldata[:, 0] * 1e-3, tbldata[:, i_quantity + 1], marker='.',
-                           label='column density = ' + '{:.2e}'.format(col_dens[line_number], 2))
-        # Plot the legend
-        plot.plot_legend()
-        # Save figure to pdf file or print it on screen
-        plot.save_figure(self.file_io)
-
     def plot_27(self):
         """Plot magnetic field strength weighted with the intensity from Zeeman splitting.
         """
@@ -2343,10 +2251,10 @@ class CustomPlots:
         from astropy.io import fits
         from scipy.ndimage.interpolation import zoom
         # Set some variables
-        detector_index = 1  # 104
+        detector_index = 101  # 104
         i_quantity = 0
         i_subplot = 9
-        vmin = 5e-7
+        vmin = 1e-7
         vmax = 5e-5
         model_list = [
             'no_circumstellar_disks',

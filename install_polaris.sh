@@ -150,7 +150,7 @@ function install_fits_support {
 
 function check_python_packages {
     echo -e  "Looking for required Python packages"
-    for package_name in pandas numpy scipy matplotlib astropy os array struct argparse
+    for package_name in numpy scipy matplotlib astropy os array struct argparse
     do
         if ! python -c "import ${package_name}" &> /dev/null
         then
