@@ -2150,7 +2150,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1)
+        if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
         {
             if(gas_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_gas_mass_density [kg/m^3]", str_2);
@@ -2180,7 +2180,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1)
+        if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
         {
             if(dust_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_dust_mass_density [kg/m^3]", str_2);
