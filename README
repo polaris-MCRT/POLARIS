@@ -7,7 +7,8 @@ Installation:
 
 The easiest way to install POLARIS is to download either the self-extracting package from our webpage ("www1.astrophysik.uni-kiel.de/~polaris/") or to clone the git release repository from our GitHub webpage ("github.com/robertbrauer1988/Polaris"). 
 
-- In the first case, the self-extracting package will launch the installation script that performs the installation.
+- In the first case, the self-extracting package will launch the installation script and can be executed with the following command:
+    ./polaris.run
 
 - In the second case, the installation script can be found in the cloned POLARIS directory and executed with the following command:
     ./install_polaris.sh
