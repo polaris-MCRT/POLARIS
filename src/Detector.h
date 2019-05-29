@@ -1785,8 +1785,8 @@ class CDetector
             long naxis = 3;
             long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
 
-            std::auto_ptr<CCfits::FITS> pFits(0);
-            // std::unique_ptr<CCfits::FITS> pFits;
+            auto_ptr<CCfits::FITS> pFits(0);
+            // unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -1974,8 +1974,8 @@ class CDetector
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), nr_of_quantities };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2190,8 +2190,8 @@ class CDetector
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2394,8 +2394,8 @@ class CDetector
             long naxis = 1;
             long naxes[1] = { 0 };
 
-            std::auto_ptr<CCfits::FITS> pFits(0);
-            // std::unique_ptr<CCfits::FITS> pFits;
+            auto_ptr<CCfits::FITS> pFits(0);
+            // unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -2522,8 +2522,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2688,8 +2688,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {

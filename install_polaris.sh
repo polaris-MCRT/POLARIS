@@ -23,51 +23,60 @@ function usage {
     echo "-r      clean and compile POLARIS including PolarisTools if enabled (release mode)"
     echo "-d      clean and compile POLARIS including PolarisTools if enabled (debug mode)"
     echo "-u      compile POLARIS including PolarisTools if necessary (using release mode)"
+    echo "-c      pre-compile POLARIS to be portable on other machines (using release mode)"
     echo "-D      delete POLARIS from your computer"
     exit
 }
 
-while getopts "hrduD" opt; do
+while getopts "hrducD" opt; do
     case $opt in
 	h)
 	    usage
-            ;;
+        ;;
 	r)
 	    echo -e "${TC}------ clean and compile POLARIS (${GREEN}release mode!${TC}) ------${NC}"
 	    cd ${install_directory}
-	    make clean 
-            make && make install
-            if [ -d "tools" ]
-            then
+	    cmake .
+        make && make install
+        if [ -d "tools" ]
+        then
 	        cd "tools"
 	    fi
-	    make && make install
+	    python setup.py install --user &> /dev/null
 	    exit
 	    ;;
 	d)
             echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
 	    cd ${install_directory}
-	    make clean 
-            make CXXFLAGS='-O0 -g'  && make install #'-Wall -Weffc++ -Wextra -Wsign-conversion'
-            if [ -d "tools" ]
-            then
+	    cmake .
+        make CXXFLAGS='-O0 -g'  && make install #'-Wall -Weffc++ -Wextra -Wsign-conversion'
+        if [ -d "tools" ]
+        then
 	        cd "tools"
 	    fi
-	    make && make install
+	    python setup.py install --user &> /dev/null
 	    exit
 	    ;;
-        u)
+    u)
 	    echo -e "${TC}------ compile POLARIS ------${NC}"
-            cd ${install_directory}
-            make && make install
-            if [ -d "tools" ]
-            then
-                cd "tools"
-            fi
-            make && make install
-            exit
-            ;;
-        D)
+        cd ${install_directory}
+        cmake .
+        make && make install
+        if [ -d "tools" ]
+        then
+            cd "tools"
+        fi
+        python setup.py install --user &> /dev/null
+        exit
+        ;;
+    c)
+	    echo -e "${TC}------ create pre-compiled POLARIS ------${NC}"
+        cd ${install_directory}
+        cmake . -DBUILD_STATIC_LIBS=ON
+        make && make install
+        exit
+        ;;
+    D)
             printf '%s\n' "Do you really want to delete your POLARIS installation [y/N]?"
             read really_delete
             case ${really_delete:=n} in
@@ -85,14 +94,12 @@ while getopts "hrduD" opt; do
                     fi
 	                cd ${install_directory}/../
 	                rm -rv ${install_directory}
-			local_python_lib="$(python -m site --user-base 2>&1)"
-			rm "${local_python_lib}/lib"
-	                echo -e  "${TC}-> Deletion of POLARIS ${NC}[${GREEN}done${NC}]"
+                    pip uninstall PolarisTools
 	                exit
-                ;;
+                    ;;
                 *) 
                     exit
-                ;; 
+                    ;; 
             esac
 	        ;;
         \?)
@@ -114,11 +121,11 @@ function install_fits_support {
     fi
     cd cfitsio
     echo -ne  "- Configuring cfitsio ... "\\r
-    ./configure --prefix=${install_directory} > /dev/null 2>&1 \
+    cmake . -DBUILD_SHARED_LIBS=OFF > /dev/null 2>&1 \
         && echo -e "- Configuring cfitsio [${GREEN}done${NC}]" \
         || { echo -e  "- Configuring cfitsio [${RED}Error${NC}]"; exit; }
     echo -ne  "- Compiling cfitsio ... "\\r
-    make shared > /dev/null 2>&1 \
+    make > /dev/null 2>&1 \
         && echo -e "- Compiling cfitsio [${GREEN}done${NC}]" \
         || { echo -e  "- Compiling cfitsio [${RED}Error${NC}]"; exit; }
     cd ..
@@ -130,7 +137,7 @@ function install_fits_support {
     fi
     cd CCfits
     echo -ne "- Configuring CCfits ... "\\r
-    ./configure --prefix=${install_directory} --with-cfitsio-libdir="${install_directory}/cfitsio" --with-cfitsio-include="${install_directory}/cfitsio" > /dev/null 2>&1 \
+    cmake . -DCMAKE_PREFIX_PATH=${install_directory}/cfitsio > /dev/null 2>&1 \
         && echo -e "- Configuring CCfits [${GREEN}done${NC}]" \
         || { echo -e  "- Configuring CCfits [${RED}Error${NC}]"; exit; }
     echo -ne "- Compiling CCfits ... "\\r
@@ -256,13 +263,16 @@ function install_polaris_tools {
         echo -e "Checking for Python installation [${GREEN}found${NC}]"
         python_installed=true
         check_python_packages
-    fi 
-     
-    echo -ne "Creating links to Python packages ..."\\r
-    local_python_lib="$(python -m site --user-base 2>&1)"
-    mkdir -p "${local_python_lib}/lib"
-    ln -isn ${install_directory}/lib/python* "${local_python_lib}/lib/"
-    echo -e "Creating links to Python packages [${GREEN}done${NC}]"
+    fi
+    export_str="export PATH=\"/home/rbrauer/.local/bin:"'$PATH'"\""
+    if grep -q "${export_str}" ${HOME}/.bashrc
+    then
+            true
+    else
+            echo -ne "Updating bashrc ..."\\r
+            echo "${export_str}" >> ${HOME}/.bashrc
+            echo -e "Updating bashrc [${GREEN}done${NC}]"
+    fi
 }
 
 
@@ -270,14 +280,6 @@ function install_polaris_tools {
 # -------------------------- Installation of POLARIS ------------------------------
 # ---------------------------------------------------------------------------------
 echo -e "${TC}------ Installer for the radiative transfer code POLARIS ------${NC}"
-
-CMDS="aclocal make"
- 
-for i in $CMDS
-do
-	command -v $i >/dev/null && continue || { \
-	    echo -e "${RED}Error:${NC} $i command not found, but required to install POLARIS!"; exit 1; }
-done
 
 # Go to install directory
 cd ${install_directory}
@@ -289,69 +291,51 @@ function command_exists {
     type "$1" &> /dev/null ;
 }
 
-# Check for necessary programms
-if ! command_exists aclocal
-then
-    echo -e "--- ${RED}Error:${NC} Autotools not found. Please install autoconf and automake!"
-    exit
-fi
-
 # Ask for additional features
 echo -e "${PC}--- Additional features ---${NC}"
-#printf '%s\n' "Do you want to enable fits support [y/N]? (required for PolarisTools)"
-#read install_fits
-#case ${install_fits:=n} in
-#    [yY]*) 
-        fits_support=true
-        printf '%s\n' "Do you want to enable PolarisTools [y/N]? (Python scripts collection)"
-        read install_tools
-        case ${install_tools:=n} in
-            [yY]*) 
-                polaris_tools=true
-            ;;
-            *) 
-                polaris_tools=false
-            ;; 
-        esac
-#    ;;
-#
-#    *) 
-#        fits_support=false
-#        polaris_tools=false addition to what others have suggested, I have found out that source won't unset the previously assigned environment variables. So, i
-#    ;; 
-#esac
 
-# Install Libraries for fits support
-compiler_cmd=""
-if [ "${fits_support}" == true ]
-then
+printf '%s\n' "Do you want to enable PolarisTools [y/N]? (Python scripts collection)"
+read install_tools
+case ${install_tools:=n} in
+    [yY]*) 
+        polaris_tools=true
+    ;;
+    *) 
+        polaris_tools=false
+    ;; 
+esac
+
+# Install Polaris
+echo -e "${PC}--- Install POLARIS ---${NC}"
+if ${install_directory}/bin/polaris > /dev/null
+then 
+    echo -e "POLARIS pre-compiled binary can be used [${GREEN}done${NC}]"
+else
+    # Check for necessary programms
+    if ! command_exists cmake
+    then
+        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
+        exit
+    fi
+
+    # Installing fits libraries
     install_fits_support
     sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
-    compiler_cmd=$compiler_cmd" --enable-fits "
-else
-    sed -i.bak 's,^#define FITS_EXPORT,//#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
+
+    cmake . > /dev/null 2>&1 \
+        && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
+
+    echo -ne "Compiling POLARIS ... "\\r
+    make > /dev/null 2>&1 \
+        && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
+
+    echo -ne "Installing POLARIS ... "\\r
+    make install > /dev/null 2>&1 \
+        && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
 fi
-
-# Install PolarisTools
-echo -e "${PC}--- Install POLARIS ---${NC}"
-echo -ne "Configure make scripts ... "\\r
-./autogen.sh > /dev/null 2>&1 \
-    || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
-
-./configure --prefix=$install_directory $compiler_cmd > /dev/null 2>&1 \
-    && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
-    || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
-
-
-echo -ne "Compiling POLARIS ... "\\r
-make > /dev/null 2>&1 \
-    && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
-    || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
-
-echo -ne "Installing POLARIS ... "\\r
-make install > /dev/null 2>&1 \
-    && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
-    || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
 
 export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
 if grep -q "${export_str}" ${HOME}/.bashrc
@@ -370,14 +354,7 @@ then
     install_polaris_tools
     echo -ne "Setting up PolarisTools ... "\\r
     cd "tools/"
-    ./autogen.sh > /dev/null 2>&1 \
-        || { echo -e  "Setting up PolarisTools [${RED}Error${NC}]"; exit; }
-    ./configure --prefix="$install_directory" > /dev/null 2>&1 \
-        || { echo -e  "Setting up PolarisTools [${RED}Error${NC}]"; exit; }
-    make > /dev/null 2>&1 \
-        || { echo -e  "Setting up PolarisTools [${RED}Error${NC}]"; exit; }
-    make install > /dev/null 2>&1 \
-        && echo -e "Setting up PolarisTools [${GREEN}done${NC}]" \
+    python setup.py install --user > /dev/null 2>&1 \
         || { echo -e  "Setting up PolarisTools [${RED}Error${NC}]"; exit; }
 fi  
 

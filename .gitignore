@@ -14,15 +14,12 @@ testing/
 
 .tags
 callgrind.out*
-aclocal.m4
-config.log
-config.status
-configure
-depcomp
-install-sh
 Makefile
-Makefile.in
-missing
-py-compile
 polaris.run
 /build/
+
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+tools/install_manifest.txt
+install_manifest.txt
