@@ -335,6 +335,9 @@ class spline
         if(x == 0)
             return 0;
 
+        if(min == max)
+            return y[0];
+
         // Extrapolation
         if(v < x[0])
             switch(extrapolation)
@@ -594,6 +597,12 @@ class interp
     double getValue(double v, uint interpolation = LINEAR)
     {
         uint min = 0, max = N;
+
+        if(x == 0)
+            return 0;
+
+        if(min == max)
+            return y[0];
 
         if(x != 0)
         {
@@ -1356,8 +1365,8 @@ class CMathFunctions
     {
         Vector3D velo;
 
-        double r = sqrt(pow(pos.X(), 2) + pow(pos.Y(), 2));
-        double kep_const = pow(con_G * stellar_mass * M_sun / r, 0.5);
+        double r = sqrt(pos.X() * pos.X() + pos.Y() * pos.Y());
+        double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
 
         velo.setX(-1.0 * pos.Y() / r * kep_const);
         velo.setY(pos.X() / r * kep_const);
@@ -1579,27 +1588,27 @@ class CMathFunctions
         for(uint i = 1; i < nr_of_dust_species; i++)
         {
             m = (quantity[i] - quantity[i - 1]) / (a_eff[i] - a_eff[i - 1]);
-            if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
+            if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
+            {
+                dx = a_eff[i] - a_eff[i - 1];
+                y0 = quantity[i - 1];
+            }
+            else if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
             {
                 dx = a_max - a_min;
                 y0 = quantity[i - 1] + (a_min - a_eff[i - 1]) * m;
                 if(dx == 0)
                     return y0;
             }
-            else if(a_eff[i] >= a_min && (a_eff[i - 1] < a_min))
+            else if(a_eff[i] >= a_min && a_eff[i - 1] < a_min)
             {
                 dx = a_eff[i] - a_min;
                 y0 = quantity[i];
                 m *= -1;
             }
-            else if(a_eff[i - 1] < a_max && (a_eff[i] >= a_max))
+            else if(a_eff[i - 1] < a_max && a_eff[i] >= a_max)
             {
                 dx = a_max - a_eff[i - 1];
-                y0 = quantity[i - 1];
-            }
-            else if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
-            {
-                dx = a_eff[i] - a_eff[i - 1];
                 y0 = quantity[i - 1];
             }
             else
@@ -1609,6 +1618,82 @@ class CMathFunctions
         }
 
         return res;
+    }
+
+    static inline StokesVector integ_dust_size(const double * a_eff,
+                                               const StokesVector * stokes,
+                                               uint nr_of_dust_species,
+                                               double a_min,
+                                               double a_max)
+    {
+        StokesVector final_stokes;
+        double m_I, m_Q, m_U, m_V;
+        double y0_I, y0_Q, y0_U, y0_V;
+        double dx;
+
+        // If maximum grain size is smaller than the minimum grain size -> return zero
+        if(a_max < a_min)
+            return final_stokes;
+
+        // Return the quantity value if only one size is used
+        if(nr_of_dust_species == 1)
+            return stokes[0];
+
+        for(uint i = 1; i < nr_of_dust_species; i++)
+        {
+            m_I = (stokes[i].I() - stokes[i - 1].I()) / (a_eff[i] - a_eff[i - 1]);
+            m_Q = (stokes[i].Q() - stokes[i - 1].Q()) / (a_eff[i] - a_eff[i - 1]);
+            m_U = (stokes[i].U() - stokes[i - 1].U()) / (a_eff[i] - a_eff[i - 1]);
+            m_V = (stokes[i].V() - stokes[i - 1].V()) / (a_eff[i] - a_eff[i - 1]);
+
+            if(a_eff[i - 1] >= a_min && a_eff[i] < a_max)
+            {
+                dx = a_eff[i] - a_eff[i - 1];
+                y0_I = stokes[i - 1].I();
+                y0_Q = stokes[i - 1].Q();
+                y0_U = stokes[i - 1].U();
+                y0_V = stokes[i - 1].V();
+            }
+            else if(a_eff[i - 1] < a_min && a_eff[i] >= a_max)
+            {
+                dx = a_max - a_min;
+                y0_I = stokes[i - 1].I() + (a_min - a_eff[i - 1]) * m_I;
+                y0_Q = stokes[i - 1].Q() + (a_min - a_eff[i - 1]) * m_Q;
+                y0_U = stokes[i - 1].U() + (a_min - a_eff[i - 1]) * m_U;
+                y0_V = stokes[i - 1].V() + (a_min - a_eff[i - 1]) * m_V;
+                if(dx == 0)
+                    return StokesVector(y0_I, y0_Q, y0_U, y0_V);
+            }
+            else if(a_eff[i] >= a_min && a_eff[i - 1] < a_min)
+            {
+                dx = a_eff[i] - a_min;
+                y0_I = stokes[i].I();
+                y0_Q = stokes[i].Q();
+                y0_U = stokes[i].U();
+                y0_V = stokes[i].V();
+                m_I *= -1;
+                m_Q *= -1;
+                m_U *= -1;
+                m_V *= -1;
+            }
+            else if(a_eff[i - 1] < a_max && a_eff[i] >= a_max)
+            {
+                dx = a_max - a_eff[i - 1];
+                y0_I = stokes[i - 1].I();
+                y0_Q = stokes[i - 1].Q();
+                y0_U = stokes[i - 1].U();
+                y0_V = stokes[i - 1].V();
+            }
+            else
+                continue;
+
+            final_stokes.addI(y0_I * dx + 0.5 * dx * dx * m_I);
+            final_stokes.addQ(y0_Q * dx + 0.5 * dx * dx * m_Q);
+            final_stokes.addU(y0_U * dx + 0.5 * dx * dx * m_U);
+            final_stokes.addV(y0_V * dx + 0.5 * dx * dx * m_V);
+        }
+
+        return final_stokes;
     }
 
     static inline double full_integ(dlist x, dlist y, double xlow, double xup)

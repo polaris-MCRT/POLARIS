@@ -76,12 +76,6 @@ grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, 
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '(multiple values possible, no unit strings!).')
-grid_args.add_argument('--variable_dust', dest='variable_dust', default=False, action='store_true',
-                       help='use the get_dust_id() function in model.py.\n'
-                            'This allows the variation of the dust composition in the grid.')
-grid_args.add_argument('--variable_size_limits', dest='variable_size_limits', default=False, action='store_true',
-                       help='use the get_dust_id() function in model.py.\n'
-                            'This allows the variation of the dust grain size limits in the grid.')
 
 source_args = parser.add_argument_group('source')
 source_args.add_argument('--external', dest='external_input_name', default=None,

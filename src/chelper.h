@@ -511,6 +511,8 @@ class parameters
         maxGridLines = 0;
         cmd = -1;
 
+        healpix_orientation = HEALPIX_YAXIS;
+
         start = MAX_UINT;
         stop = MAX_UINT;
 
@@ -1093,6 +1095,11 @@ class parameters
         return uint(point_sources.size() / NR_OF_POINT_SOURCES);
     }
 
+    uint getNrOfLaserSources()
+    {
+        return uint(laser_sources.size() / NR_OF_LASER_SOURCES);
+    }
+
     uint getNrOfBackgroundSources()
     {
         return uint(background_sources.size() / NR_OF_BG_SOURCES);
@@ -1130,7 +1137,8 @@ class parameters
 
     uint getNrOfSources()
     {
-        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources();
+        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources() +
+                   getNrOfLaserSources();
 
         if(nr_ofDustPhotons > 0)
             res++;
@@ -1684,6 +1692,11 @@ class parameters
         return point_sources;
     }
 
+    dlist & getLaserSources()
+    {
+        return laser_sources;
+    }
+
     strlist & getPointSourceStringList()
     {
         return point_sources_str;
@@ -2041,6 +2054,34 @@ class parameters
         point_sources_str.push_back(path);
     }
 
+    void addLaserSource(dlist & val)
+    {
+        // Position X
+        laser_sources.push_back(val[0]);
+        // Position Y
+        laser_sources.push_back(val[1]);
+        // Position Z
+        laser_sources.push_back(val[2]);
+        // Direction X
+        laser_sources.push_back(val[3]);
+        // Direction Y
+        laser_sources.push_back(val[4]);
+        // Direction Z
+        laser_sources.push_back(val[5]);
+        // Total power [W]
+        laser_sources.push_back(val[6]);
+        // Central wavelength [m]
+        laser_sources.push_back(val[7]);
+        // FWHM of the laser emission [m]
+        laser_sources.push_back(val[8]);
+        // Stokes Q plarization
+        laser_sources.push_back(val[9]);
+        // Stokes U plarization
+        laser_sources.push_back(val[10]);
+        // Number of photons
+        laser_sources.push_back(val[11]);
+    }
+
     void addBackgroundSource(dlist & val)
     {
         // RadiatDetector(ing effective black body surface [m^2]
@@ -2174,6 +2215,16 @@ class parameters
     void setSublimate(bool val)
     {
         sublimate = val;
+    }
+
+    void setHealpixOrientation(uint val)
+    {
+        healpix_orientation = val;
+    }
+
+    uint getHealpixOrientation()
+    {
+        return healpix_orientation;
     }
 
     dlist getLineRayDetector(uint i_species)
@@ -2468,6 +2519,8 @@ class parameters
     uint nrOfGnuVectors;
     uint maxGridLines;
 
+    uint healpix_orientation;
+
     maplist line_ray_detector_list;
 
     string rt_grid_description;
@@ -2478,6 +2531,7 @@ class parameters
 
     dlist point_sources;
     dlist diffuse_sources;
+    dlist laser_sources;
     dlist background_sources;
     dlist gas_species_abundance;
 
@@ -2538,11 +2592,9 @@ class photon_package
         tmp_path = 0;
 
         wID = MAX_UINT;
+        dirID = MAX_UINT;
 
         sh_distance = 0;
-
-        mD.resize(3, 3);
-        mD.unityMatrix();
 
         stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
@@ -2629,8 +2681,6 @@ class photon_package
     {
         return abs_counter;
     }
-
-    Matrix2D mD;
 
     void setD(Matrix2D & _mD)
     {
@@ -2748,6 +2798,10 @@ class photon_package
     {
         tmp_path = _len;
         pos = _pos + tmp_path * ez;
+
+        // Calculate cell by position
+        if(tmp_path > 0)
+            dirID = MAX_UINT;
     }
 
     void setPosition(Vector3D val)
@@ -2876,6 +2930,16 @@ class photon_package
         cell_pos = val;
     }
 
+    void setDirectionID(uint val)
+    {
+        dirID = val;
+    }
+
+    uint getDirectionID()
+    {
+        return dirID;
+    }
+
     void setWavelengthID(uint val)
     {
         wID = val;
@@ -2893,10 +2957,12 @@ class photon_package
     Vector3D ex;
     Vector3D ey;
     Vector3D ez;
+    Matrix2D mD;
     StokesVector stokes;
     StokesVector * multi_stokes;
 
     uint wID;
+    uint dirID;
 
     uint sc_counter;
     uint abs_counter;

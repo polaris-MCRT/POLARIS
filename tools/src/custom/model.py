@@ -65,9 +65,8 @@ class CustomModel(Model):
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
-                dust_temperature(self), velocity_field(
-                    self), magnetic_field(self),
-                dust_id(self), dust_min_size(self), dust_max_size(self)
+                dust_temperature(self), velocity_field(self), magnetic_field(self),
+                dust_id(self), dust_min_size(self), dust_max_size(self), dust_size_param(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
                 - The first dimension is used to define multiple density distributions
@@ -97,13 +96,13 @@ class Cube(Model):
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['gas_mass'] = np.array([[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
+        self.parameter['gas_mass'] = np.array(
+            [[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
         #self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
-        self.parameter['variable_dust'] = True
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
@@ -189,13 +188,11 @@ class TestModel(Model):
         self.spherical_parameter['sf_r'] = 1.03
         # self.parameter['gas_mass'] = [[1.22138e-07 * self.math.const['M_sun']],
         #                              [8.77862e-07 * self.math.const['M_sun']]]
-        self.parameter['gas_mass'] = [[1e-6 * self.math.const['M_sun']],
-                                      [1e-5 * self.math.const['M_sun']]]
+        self.parameter['gas_mass'] = np.sum([[1e-6 * self.math.const['M_sun']],
+                                             [1e-5 * self.math.const['M_sun']]])
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'silicate'
         self.parameter['detector'] = 'cartesian'
-        self.parameter['variable_dust'] = True
-        self.parameter['variable_size_limits'] = True
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -211,10 +208,11 @@ class TestModel(Model):
         #                                         self.parameter['inner_radius'],
         #                                         outer_radius=self.parameter['outer_radius'])
         # return [[gas_density1], [gas_density2]]
-        if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
-            return [[gas_density1], [0]]
-        else:
-            return [[0], [gas_density1]]
+        # if np.linalg.norm(self.position) < 0.5 * self.spherical_parameter['outer_radius']:
+        #     return [[gas_density1], [0]]
+        # else:
+        #     return [[0], [gas_density1]]
+        return gas_density1
 
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
@@ -252,6 +250,16 @@ class TestModel(Model):
         else:
             dust_max_size = 0.001
         return dust_max_size
+
+    def dust_size_param(self):
+        """Calculates the size distribution parameter depending on the position in the grid.
+        This overwrites the global size distribution parameter.
+
+        Returns:
+            float: minimum grain size
+        """
+        size_param = -3.5
+        return size_param
 
 
 class Filament(Model):
@@ -305,7 +313,7 @@ class MhdFlock(Model):
         self.spherical_parameter['n_ph'] = 512
         self.spherical_parameter['sf_r'] = 1.0063066707156978
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
-        self.parameter['external_input_name'] = 350
+        #self.parameter['external_input_name'] = 'mflock'
         self.parameter['vel_is_speed_of_sound'] = True
         self.parameter['radiation_source'] = 'binary'
         self.parameter['dust_composition'] = 'mrn_oblate'
@@ -343,7 +351,6 @@ class GGTauDisk(Model):
         # Cite: larger grains in cb disk (McCabe et al. 2002)
         self.parameter['dust_composition'] = 'multi_mrn'
         self.parameter['detector'] = 'gg_tau'
-        self.parameter['variable_dust'] = True
         # ----------------------------------------------
         # --- Parameter for the density distribution ---
         # ----------------------------------------------
@@ -456,46 +463,64 @@ class GGTauDisk(Model):
 
         if extra_parameter is not None:
             if len(extra_parameter) == 1:
-                if extra_parameter[0] == 'small_vertical':
+                if extra_parameter[0] == 'planet':
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
-                    self.disk_Ab2 = True
-                    # Rotate Ab2 CS disk
-                    self.inclination_Ab2 = 90. / 180. * np.pi
-                    # Adjust vertical cell number
-                    self.cylindrical_parameter['n_z'] = 151
-                    self.fixed_scale_height = 0.45 * self.math.const['au']
-                    # Radial cell borders
+                    # Radial cells
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 150)
+                                                  self.a_Aab + 8. * self.math.const['au'], 250)
+                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                        240. * self.math.const['au'], 50, 1.03)
+                    r_list_planet = self.math.exp_list(260. * self.math.const['au'],
+                                                       241. * self.math.const['au'], 39, 1.05)
+                    self.cylindrical_parameter['radius_list'] = np.hstack(
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
+                    # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
+                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+                    # Phi cells
+                    n_ph_list_1 = [600] * 250
+                    n_ph_list_2 = [180] * 51
+                    n_ph_list_3 = [600] * 40
+                    self.cylindrical_parameter['n_ph'] = np.hstack(
+                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                elif extra_parameter[0] == 'planet_extra':
+                    # Enable all disks
+                    self.disk_Aa = True
+                    self.disk_Ab1 = True
+                    # Radial cells
+                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                  self.a_Aab + 8. * self.math.const['au'], 250)
                     r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
                                                         260. * self.math.const['au'], 50, 1.03)
+                    r_list_planet = np.linspace(261. * self.math.const['au'],
+                                                300. * self.math.const['au'], 40)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
-                    # Radial grid limits
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet)).ravel()
+                    # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
-                    self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
-                    # Number of phi cells
-                    n_ph_list_1 = [90] * 150
+                    # Phi cells
+                    n_ph_list_1 = [600] * 250
                     n_ph_list_2 = [180] * 51
+                    n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
-                        (n_ph_list_1, n_ph_list_2)).ravel()
-                elif extra_parameter[0] == 'vertical':
+                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                elif extra_parameter[0] == 'vertical_Ab1':
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
                     self.disk_Ab2 = True
-                    # Rotate Ab2 CS disk
-                    self.inclination_Ab2 = 90. / 180. * np.pi
+                    # Rotate Ab1 CS disk ---
+                    self.inclination_Ab1 = 90. / 180. * np.pi
                     # Adjust vertical cell number
                     self.cylindrical_parameter['n_z'] = 300
                     self.fixed_scale_height = 0.45 * self.math.const['au']
-                    # Increase size of Ab2
-                    self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase size of Ab1 ---
+                    self.outer_radius_Ab1 = 3. * self.math.const['au']
                     # Increase scale height of Aa
                     self.ref_scale_height[1] = 0.8 * self.math.const['au']
-                    self.ref_scale_height[3] = 0.1 * self.math.const['au']
+                    # Decrease scale height of Ab1 ---
+                    self.ref_scale_height[2] = 0.01 * self.math.const['au']
                     # Radial cell borders
                     r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
                                                   self.a_Aab + 8. * self.math.const['au'], 300)
@@ -508,6 +533,39 @@ class GGTauDisk(Model):
                     self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
                     # Number of phi cells
                     n_ph_list_1 = [800] * 300
+                    n_ph_list_2 = [180] * 51
+                    self.cylindrical_parameter['n_ph'] = np.hstack(
+                        (n_ph_list_1, n_ph_list_2)).ravel()
+                elif extra_parameter[0] == 'vertical_Ab2':
+                    # Enable all disks
+                    self.disk_Aa = True
+                    self.disk_Ab1 = True
+                    self.disk_Ab2 = True
+                    # Rotate Ab2 CS disk ---
+                    self.inclination_Ab2 = 90. / 180. * \
+                        np.pi  # (90. - 37.) / 180. * np.pi
+                    # Adjust vertical cell number
+                    self.cylindrical_parameter['n_z'] = 400
+                    self.fixed_scale_height = 0.45 * self.math.const['au']
+                    # Increase size of Ab2 ---
+                    self.outer_radius_Ab2 = 3. * self.math.const['au']
+                    # Increase scale height of Aa
+                    self.ref_scale_height[1] = 0.8 * self.math.const['au']
+                    # Decrease scale height of Ab2 ---
+                    self.ref_scale_height[3] = 0.01 * self.math.const['au']
+                    print(self.ref_scale_height[3] / self.math.const['au'])
+                    # Radial cell borders
+                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                  self.a_Aab + 8. * self.math.const['au'], 600)
+                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                        260. * self.math.const['au'], 50, 1.03)
+                    self.cylindrical_parameter['radius_list'] = np.hstack(
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+                    # Radial grid limits
+                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
+                    self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
+                    # Number of phi cells
+                    n_ph_list_1 = [1000] * 600
                     n_ph_list_2 = [180] * 51
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2)).ravel()
@@ -588,11 +646,10 @@ class GGTauDisk(Model):
             disk_density_Ab2 = 0.
 
         # --- GG Tau A CB disk
-        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
+        if 180. * self.math.const['au'] <= radius_cy <= self.parameter['outer_radius']:
             # Calculate the density
             disk_density = self.math.default_disk_density(self.position,
-                                                          outer_radius=260. *
-                                                          self.math.const['au'],
+                                                          outer_radius=self.parameter['outer_radius'],
                                                           inner_radius=180. *
                                                           self.math.const['au'],
                                                           ref_scale_height=self.ref_scale_height[0],
@@ -603,6 +660,9 @@ class GGTauDisk(Model):
             if radius_cy < 190. * self.math.const['au']:
                 disk_density *= np.exp(-0.5 * (
                     (190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
+            elif radius_cy >= 260. * self.math.const['au']:
+                disk_density *= 1e-5
+
         else:
             # Set to zero outside of the disk
             disk_density = 0.
@@ -681,7 +741,6 @@ class HD97048(Model):
         self.parameter['radiation_source'] = 'hd97048'
         self.parameter['dust_composition'] = 'olivine_pah'
         # Use multiple dust compositionas depending on the region in the grid
-        self.parameter['variable_dust'] = True
         self.use_cont = False
 
     def update_parameter(self, extra_parameter):
@@ -826,8 +885,6 @@ class HD169142(Model):
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
-        # Enable multiple density distributions
-        self.parameter['variable_dust'] = True
         # Init new parameter
         self.parameter['model_number'] = None
         self.parameter['r_gap_in'] = 0
@@ -979,8 +1036,6 @@ class ThemisDisk(Model):
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 1.625
         self.parameter['beta'] = 1.125
-        # Enable multiple density distributions
-        self.parameter['variable_dust'] = True
         # Init new parameter
         self.parameter['model_number'] = 0
 
@@ -1129,7 +1184,6 @@ class MultiDisk(Model):
         # Default disk parameter
         self.ref_radius = 100. * self.math.const['au']
         self.ref_scale_height = 10. * self.math.const['au']
-        self.parameter['variable_dust'] = True
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

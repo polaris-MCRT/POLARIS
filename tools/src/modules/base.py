@@ -129,12 +129,18 @@ class Detector:
         for direction in ['_x', '_y']:
             zoom_string = 'sidelength_zoom' + direction
             if self.parameter[zoom_string] != 1.:
-                sidelength = 2. * self.model.tmp_parameter['radius' + direction + '_m'] / self.parameter[zoom_string]
+                sidelength = 2. * \
+                    self.model.tmp_parameter['radius' +
+                                             direction + '_m'] / self.parameter[zoom_string]
                 cmd_string += '\t' + str(sidelength)
             elif self.parameter['sidelength_zoom_x'] != 1. or self.parameter['sidelength_zoom_y'] != 1.:
-                cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
+                cmd_string += '\t' + \
+                    str(2. *
+                        self.model.tmp_parameter['radius' + direction + '_m'])
             elif self.parameter['map_shift_x'] != 0 or self.parameter['map_shift_y'] != 0:
-                cmd_string += '\t' + str(2. * self.model.tmp_parameter['radius' + direction + '_m'])
+                cmd_string += '\t' + \
+                    str(2. *
+                        self.model.tmp_parameter['radius' + direction + '_m'])
         return cmd_string
 
     def get_shift_cmd(self):
@@ -161,8 +167,9 @@ class Detector:
             str: Command line to consider the detector configuration.
         """
         param_name_list = ['wavelength_min', 'wavelength_max', 'nr_of_wavelength',
-            'rot_angle_1', 'rot_angle_2', 'distance']
-        cmd_string = '\t<detector_dust_mc nr_pixel = "' + self.get_nr_pixel_cmd() + '">'
+                           'rot_angle_1', 'rot_angle_2', 'distance']
+        cmd_string = '\t<detector_dust_mc nr_pixel = "' + self.get_nr_pixel_cmd() + \
+            '">'
         for param_name in param_name_list:
             cmd_string += '\t' + str(self.parameter[param_name])
         # Zooming but not shifting is possible with the MC detector
@@ -175,14 +182,14 @@ class Detector:
 
         Returns:
             str: Command line to consider the detector configuration.
-        """            
+        """
         if self.parse_args.wavelength is None and self.parameter['wavelength_list'] is not None:
             new_command_line = str()
             for wl in self.parameter['wavelength_list']:
                 self.parameter['wavelength_min'] = wl
                 self.parameter['wavelength_max'] = wl
                 new_command_line += self.get_dust_scattering_command_line()
-            return new_command_line 
+            return new_command_line
         return self.get_dust_scattering_command_line()
 
     def get_dust_emission_command_line(self):
@@ -192,19 +199,25 @@ class Detector:
         Returns:
             str: Command line to consider the detector configuration.
         """
-        param_name_list = ['wavelength_min', 'wavelength_max', 'nr_of_wavelength', 'source_id']
+        param_name_list = ['wavelength_min',
+                           'wavelength_max', 'nr_of_wavelength', 'source_id']
         if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
                 self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
-            cmd_string = '\t<detector_dust_healpix nr_sides = "' + str(int(self.parameter['nr_sides'])) + '">'
-            param_name_list.extend(['obs_position_x', 'obs_position_y', 'obs_position_z'])
+            cmd_string = '\t<detector_dust_healpix nr_sides = "' + \
+                str(int(self.parameter['nr_sides'])) + '">'
+            param_name_list.extend(
+                ['obs_position_x', 'obs_position_y', 'obs_position_z'])
             if self.parameter['all_sky_l_min'] is not None and self.parameter['all_sky_l_max'] is not None and \
                     self.parameter['all_sky_b_min'] is not None and self.parameter['all_sky_b_max'] is not None:
-                param_name_list.extend(['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
+                param_name_list.extend(
+                    ['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
         elif self.parameter['shape'] == 'polar':
-            cmd_string = '\t<detector_dust_polar nr_pixel = "' + self.get_nr_pixel_cmd() + '">'
+            cmd_string = '\t<detector_dust_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
+                '">'
             param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
         elif self.parameter['shape'] == 'slice':
-            cmd_string = '\t<detector_dust_slice nr_pixel = "' + self.get_nr_pixel_cmd() + '">'
+            cmd_string = '\t<detector_dust_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
+                '">'
             param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
         else:
             cmd_string = '\t<detector_dust nr_pixel = "' + self.get_nr_pixel_cmd() + '">'
@@ -213,7 +226,7 @@ class Detector:
         for param_name in param_name_list:
             cmd_string += '\t' + str(self.parameter[param_name])
         cmd_string += self.get_zoom_cmd() + self.get_shift_cmd() + '\n'
-        return  cmd_string
+        return cmd_string
 
     def get_dust_emission_command(self):
         """Provides detector configuration command line for raytrace
@@ -228,7 +241,7 @@ class Detector:
                 self.parameter['wavelength_min'] = wl
                 self.parameter['wavelength_max'] = wl
                 new_command_line += self.get_dust_emission_command_line()
-            return new_command_line 
+            return new_command_line
         return self.get_dust_emission_command_line()
 
     def get_line_command_line(self):
@@ -238,29 +251,37 @@ class Detector:
         Returns:
             str: Command line to consider the detector configuration.
         """
-        param_name_list = ['gas_species_id', 'transition_id', 'source_id', 'max_velocity']
+        param_name_list = ['gas_species_id',
+                           'transition_id', 'source_id', 'max_velocity']
         if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
                 self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
             cmd_string = '\t<detector_line_healpix nr_sides = "' + str(int(self.parameter['nr_sides'])) + \
-                '" vel_channels = "' + str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['obs_position_x', 'obs_position_y', 'obs_position_z'])
+                '" vel_channels = "' + \
+                str(int(self.parameter['nr_velocity_channels'])) + '">'
+            param_name_list.extend(
+                ['obs_position_x', 'obs_position_y', 'obs_position_z'])
             if self.parameter['all_sky_l_min'] is not None and self.parameter['all_sky_l_max'] is not None and \
                     self.parameter['all_sky_b_min'] is not None and self.parameter['all_sky_b_max'] is not None:
-                param_name_list.extend(['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
+                param_name_list.extend(
+                    ['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
                 if self.parameter['obs_velocity_x'] is not None and self.parameter['obs_velocity_y'] is not None and \
                         self.parameter['obs_velocity_z'] is not None:
-                    param_name_list.extend(['obs_velocity_x', 'obs_velocity_y', 'obs_velocity_z'])
+                    param_name_list.extend(
+                        ['obs_velocity_x', 'obs_velocity_y', 'obs_velocity_z'])
         elif self.parameter['shape'] == 'polar':
             cmd_string = '\t<detector_line_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + str(int(self.parameter['nr_velocity_channels'])) + '">'
+                '" vel_channels = "' + \
+                str(int(self.parameter['nr_velocity_channels'])) + '">'
             param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
         elif self.parameter['shape'] == 'slice':
             cmd_string = '\t<detector_line_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + str(int(self.parameter['nr_velocity_channels'])) + '">'
+                '" vel_channels = "' + \
+                str(int(self.parameter['nr_velocity_channels'])) + '">'
             param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
         else:
             cmd_string = '\t<detector_line nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + str(int(self.parameter['nr_velocity_channels'])) + '">'
+                '" vel_channels = "' + \
+                str(int(self.parameter['nr_velocity_channels'])) + '">'
             param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
         # Create cmd string for detector
         for param_name in param_name_list:
@@ -329,7 +350,8 @@ class Dust:
         """
         # Get dust creator module
         from modules.create_dust import DustCreator
-        self.dust_creator = DustCreator(self.file_io, self.parse_args, self.parameter)
+        self.dust_creator = DustCreator(
+            self.file_io, self.parse_args, self.parameter)
 
         # Check if filename is defined
         if self.parameter['input_file'] is None:
@@ -354,13 +376,17 @@ class Dust:
             unit = 'm'
             mult = 1
         # Get dust data from catalog file
-        size_list, wavelength_list = self.file_io.read_dust_file(self.parameter)
-        print(color_bold + 'index\t' + 'dust grain size [' + unit + ']' + color_std)
+        size_list, wavelength_list = self.file_io.read_dust_file(
+            self.parameter)
+        print(color_bold + 'index\t' +
+              'dust grain size [' + unit + ']' + color_std)
         for i, size in enumerate(size_list):
-            print(color_bold + str(i + 1) + '\t' + color_blue + str(size * mult) + color_std)
+            print(color_bold + str(i + 1) + '\t' +
+                  color_blue + str(size * mult) + color_std)
         print(color_bold + 'index\t' + 'wavelength [' + unit + ']' + color_std)
         for i, wl in enumerate(wavelength_list):
-            print(color_bold + str(i + 1) + '\t' + color_red + str(wl * mult) + color_std)
+            print(color_bold + str(i + 1) + '\t' +
+                  color_red + str(wl * mult) + color_std)
 
     def get_command_line(self):
         """Provides dust composition command line for POLARIS .cmd file.
@@ -381,7 +407,8 @@ class Dust:
             for i in range(len(self.parameter['size_parameter'])):
                 dust_string += ' ' + str(self.parameter['size_parameter'][i])
         else:
-            raise ValueError('Minimum AND maximum dust grain size need to be defined!')
+            raise ValueError(
+                'Minimum AND maximum dust grain size need to be defined!')
         return dust_string + '\n'
 
     def get_command(self):
@@ -452,13 +479,16 @@ class Gas:
             str: Command line to consider the gas species.
         """
         gas_species_string = '\t<gas_species>\t"' + str(self.file_io.path['gas']) + str(self.parameter['filename']) + \
-            '"\t' + str(self.parameter['level_pop_type']) + '\t' + str(self.parameter['abundance'])
+            '"\t' + str(self.parameter['level_pop_type']) + \
+            '\t' + str(self.parameter['abundance'])
         if self.parse_args.simulation_type == 'zeeman':
             if self.parameter['zeeman_usable'] is True:
                 gas_species_string += '\t"' + self.file_io.path['gas'] + \
-                    self.parameter['filename'].replace('.dat', '_zeeman.dat') + '"'
+                    self.parameter['filename'].replace(
+                        '.dat', '_zeeman.dat') + '"'
             else:
-                raise ValueError('Chosen gas species does not support Zeeman splitting!')
+                raise ValueError(
+                    'Chosen gas species does not support Zeeman splitting!')
         return gas_species_string + '\n'
 
     def get_command(self):
@@ -482,9 +512,11 @@ class Gas:
             float: Magnetic field strength in [T]
         """
         if self.parameter['zeeman_usable']:
-            raise ValueError('Please define the \"shift_2_mag\" routine for the chosen species!')
+            raise ValueError(
+                'Please define the \"shift_2_mag\" routine for the chosen species!')
         else:
-            raise ValueError('The chosen species has no Zeeman splitting information available!')
+            raise ValueError(
+                'The chosen species has no Zeeman splitting information available!')
 
     def mag_2_shift(self, magnetic_field, f_0, i_trans):
         """Calculates the Zeeman frequency shift of a spectral line
@@ -499,9 +531,11 @@ class Gas:
             float: Zeeman shift in [m/s]
         """
         if self.parameter['zeeman_usable']:
-            raise ValueError('Please define the \"mag_2_shift\" routine for the chosen species!')
+            raise ValueError(
+                'Please define the \"mag_2_shift\" routine for the chosen species!')
         else:
-            raise ValueError('The chosen species has no Zeeman splitting information available!')
+            raise ValueError(
+                'The chosen species has no Zeeman splitting information available!')
 
 
 # ----- No gas class -----
@@ -556,9 +590,6 @@ class Model:
             'radiation_source': None,
             'dust_composition': None,
             'gas_species': None,
-            # Other parameter
-            'variable_dust': False,
-            'variable_size_limits': False,
             'external_input_name': None,
             'vel_is_speed_of_sound': False,
             'enforced_scattering': True,
@@ -585,7 +616,7 @@ class Model:
             'sf_ph': 1.0,
             'sf_th': -1.0,
             # These list are used as cell borders if sf_r or sf_th is zero
-            'radius_list':[],
+            'radius_list': [],
             'phi_list': [],
             'theta_list': [],
             # Split the first radial cell into multiple
@@ -649,7 +680,6 @@ class Model:
             float: Gas temperature at a given position.
         """
         return self.gas_temperature()
-
 
     def get_dust_temperature(self):
         """The dust temperature can be modified by the code here if neccessary.
@@ -718,7 +748,15 @@ class Model:
             float: minimum grain size
         """
         return self.dust_max_size()
-        
+
+    def get_dust_size_param(self):
+        """The size distribution parameter can be modified by the code here if neccessary.
+
+        Returns:
+            float: minimum grain size
+        """
+        return self.dust_size_param()
+
     def get_dz(self, radius):
         """Calculates the width of each vertical cell border depending on the radial position.
 
@@ -784,8 +822,7 @@ class Model:
         Returns:
             float: Gas temperature at a given position.
         """
-        gas_temperature = 0.
-        return gas_temperature
+        return None
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
@@ -793,8 +830,7 @@ class Model:
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 0.
-        return dust_temperature
+        return None
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -809,8 +845,7 @@ class Model:
         Returns:
             float: Gas density at a given position.
         """
-        gas_density = 0.
-        return gas_density
+        return None
 
     def dust_density_distribution(self):
         """Calculates the dust density at a given position.
@@ -825,8 +860,7 @@ class Model:
         Returns:
             float: Dust density at a given position.
         """
-        dust_density = 0.
-        return dust_density
+        return None
 
     def velocity_field(self):
         """Calculates the velocity at a given position.
@@ -839,8 +873,7 @@ class Model:
         Returns:
             List[float, float, float]: Velocity at a given position.
         """
-        velocity = [0., 0., 0.]
-        return velocity
+        return None
 
     def magnetic_field(self):
         """Calculates the magnetic field strength at a given position.
@@ -857,8 +890,7 @@ class Model:
         Returns:
             List[float, float, float]: Magnetic field strength at a given position.
         """
-        magnetic_field = [0., 0., 0.]
-        return magnetic_field
+        return None
 
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
@@ -868,8 +900,7 @@ class Model:
         Returns:
             int: dust ID.
         """
-        dust_id = 0
-        return dust_id
+        return None
 
     def dust_min_size(self):
         """Calculates the minimum dust grain size depending on the position in the grid.
@@ -878,8 +909,7 @@ class Model:
         Returns:
             float: minimum grain size
         """
-        dust_min_size = 0
-        return dust_min_size
+        return None
 
     def dust_max_size(self):
         """Calculates the maximum dust grain size depending on the position in the grid.
@@ -888,8 +918,16 @@ class Model:
         Returns:
             float: maximum grain size
         """
-        dust_max_size = 0
-        return dust_max_size
+        return None
+
+    def dust_size_param(self):
+        """Calculates the size distribution parameter depending on the position in the grid.
+        This overwrites the global size distribution parameter.
+
+        Returns:
+            float: minimum grain size
+        """
+        return None
 
     def scale_height(self, radius):
         """Calculates the scale height at a certain position.
@@ -900,9 +938,11 @@ class Model:
         Returns:
             float: Scale height.
         """
-        return 0
+        return None
 
 # ----- Server class -----
+
+
 class Server:
     """The Server class is the base version for each server/cluster.
     """
@@ -1005,10 +1045,12 @@ class StellarSource:
         if only a luminosity is set.
         """
         if self.parameter['temperature'] == 0.:
-            raise ValueError('Effective temperature of radiation source is zero!')
+            raise ValueError(
+                'Effective temperature of radiation source is zero!')
         elif self.parameter['radius'] == 0.:
             if self.parameter['luminosity'] == 0.:
-                raise ValueError('No radius or luminosity is set for the stellar source!')
+                raise ValueError(
+                    'No radius or luminosity is set for the stellar source!')
             else:
                 radius = self.math.luminosity_to_radius(self.parameter['luminosity'],
                                                         self.parameter['temperature'])
@@ -1096,7 +1138,8 @@ class ExternalInput:
             self.i_t = cell_IDs[1]
             self.i_p = cell_IDs[2]
         else:
-            raise ValueError('Error: External data is set, but cell_IDs of cell is not!')
+            raise ValueError(
+                'Error: External data is set, but cell_IDs of cell is not!')
         if self.i_t < 217 or self.i_t >= (217 + 128):
             self.pos_r = None
             self.pos_t = None
@@ -1114,7 +1157,6 @@ class ExternalInput:
             float: Gas temperature at a given position.
         """
         return self.gas_temperature()
-
 
     def get_dust_temperature(self):
         """The dust temperature can be modified by the code here if neccessary.
@@ -1176,7 +1218,6 @@ class ExternalInput:
             name (str): Name of model parameter.
         """
         self.tmp_parameter[name] = value
-
 
     def ignore_cell(self, node=None):
         """Ignore a cell for grid refinement, if necessary for a given model.

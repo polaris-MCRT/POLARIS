@@ -248,42 +248,42 @@ class CDustComponent
     // ----------------------------------------------------------------------
     // ----------- Efficiencies for grain size and wavelength ---------------
     // ----------------------------------------------------------------------
-    double getQext1(uint a, uint w)
+    inline double getQext1(uint a, uint w)
     {
         return Qext1[a][w];
     }
 
-    double getQext2(uint a, uint w)
+    inline double getQext2(uint a, uint w)
     {
         return Qext2[a][w];
     }
 
-    double getQabs1(uint a, uint w)
+    inline double getQabs1(uint a, uint w)
     {
         return Qabs1[a][w];
     }
 
-    double getQabs2(uint a, uint w)
+    inline double getQabs2(uint a, uint w)
     {
         return Qabs2[a][w];
     }
 
-    double getQsca1(uint a, uint w)
+    inline double getQsca1(uint a, uint w)
     {
         return Qsca1[a][w];
     }
 
-    double getQsca2(uint a, uint w)
+    inline double getQsca2(uint a, uint w)
     {
         return Qsca2[a][w];
     }
 
-    double getQcirc(uint a, uint w)
+    inline double getQcirc(uint a, uint w)
     {
         return Qcirc[a][w];
     }
 
-    double getHGg(uint a, uint w)
+    inline double getHGg(uint a, uint w)
     {
         return HGg[a][w];
     }
@@ -386,15 +386,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Cext1 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQext1(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min, a_max);
-        delete[] Cext1;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -411,15 +413,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Cext2 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQext2(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min, a_max);
-        delete[] Cext2;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -436,15 +440,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Cabs1 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQabs1(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min, a_max);
-        delete[] Cabs1;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -461,15 +467,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Cabs2 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQabs2(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min, a_max);
-        delete[] Cabs2;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -486,15 +494,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Csca1 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQsca1(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min, a_max);
-        delete[] Csca1;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -511,15 +521,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Csca2 = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQsca2(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min, a_max);
-        delete[] Csca2;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -536,15 +548,17 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * Ccirc = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Ccirc[a] = a_eff_1_5[a] * getQcirc(a, w);
+            rel_weight[a] *= a_eff_2[a] * getQcirc(a, w);
         double res =
-            PI / weight * CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
-        delete[] Ccirc;
+            PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
@@ -561,32 +575,33 @@ class CDustComponent
         double a_min = getSizeMin(grid, pp);
         double a_max = getSizeMax(grid, pp);
 
-        // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
 
-        double * HGg = new double[nr_of_dust_species];
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
         for(uint a = 0; a < nr_of_dust_species; a++)
-            HGg[a] = a_eff_3_5[a] * getHGg(a, w);
-        double res =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min, a_max);
-        delete[] HGg;
+            rel_weight[a] *= getHGg(a, w);
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
         return res;
     }
 
     // -----------------------------------------------------------------------------
     // ----------- Average cross-sections for grain size and wavelength ------------
     // -----------------------------------------------------------------------------
-    double getCextMean(uint a, uint w)
+    inline double getCextMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
     }
 
-    double getCabsMean(uint a, uint w)
+    inline double getCabsMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
     }
 
-    double getCscaMean(uint a, uint w)
+    inline double getCscaMean(uint a, uint w)
     {
         return PI * a_eff_2[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
     }
@@ -896,10 +911,25 @@ class CDustComponent
         return delta_rat;
     }
 
-    double getWeight(double a_min, double a_max)
+    double * getRelWeight(double a_min, double a_max, double size_param = 0)
     {
-        double weight = CMathFunctions::integ_dust_size(a_eff, a_eff_3_5, nr_of_dust_species, a_min, a_max);
-        return weight;
+        double * rel_weight = new double[nr_of_dust_species];
+
+        // Create normalization factor
+        for(uint a = 0; a < nr_of_dust_species; a++)
+        {
+            rel_weight[a] = a_eff_3_5[a] * pow(a_eff[a], size_param);
+        }
+
+        double weight = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+
+        // Create the final relative mass distribution
+        for(uint a = 0; a < nr_of_dust_species; a++)
+        {
+            rel_weight[a] /= weight;
+        }
+
+        return rel_weight;
     }
 
     double getWeight()
@@ -978,33 +1008,18 @@ class CDustComponent
         return max_a_alig;
     }
 
-    double getScatteringMatrixElement(uint a, uint w, uint incID, uint sphID, uint sthID, uint matID)
+    double
+    getScatteringMatrixElement(uint a, uint w, uint incID, uint sphID, uint sthID, uint i_mat, uint j_mat)
     {
         if(sca_mat == 0)
             return 0;
 
-        return sca_mat[a][w][incID][sphID][sthID][matID];
+        return sca_mat[a][w][incID][sphID][sthID](i_mat, j_mat);
     }
 
-    void addUpMatrices(Matrix2D & mat_sca, uint a, uint w, uint incID, uint sphID, uint sthID)
+    const Matrix2D & getScatteringMatrix(uint a, uint w, uint incID, uint sphID, uint sthID)
     {
-        int pos;
-        double sign, value;
-
-        if(mat_sca.size() != 16)
-            return;
-
-        for(uint e = 0; e < 16; e++)
-        {
-            sign = CMathFunctions::sgn(elements[e]);
-            pos = abs(elements[e]);
-
-            if(pos > 0)
-            {
-                value = sign * double(sca_mat[a][w][incID][sphID][sthID][pos - 1]);
-                mat_sca.addValue(e, value);
-            }
-        }
+        return sca_mat[a][w][incID][sphID][sthID];
     }
 
     void cleanScatteringData()
@@ -1018,11 +1033,7 @@ class CDustComponent
                     for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                     {
                         for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                        {
-                            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
-                                delete[] sca_mat[a][w][inc][sph][sth];
                             delete[] sca_mat[a][w][inc][sph];
-                        }
                         delete[] sca_mat[a][w][inc];
                     }
                     delete[] sca_mat[a][w];
@@ -1150,6 +1161,11 @@ class CDustComponent
                 if(i > 0)
                     str_stream << ", ";
                 str_stream << size_parameter[i];
+            }
+            else
+            {
+                if(i == 0)
+                    return "flat";
             }
         return str_stream.str();
     }
@@ -1322,6 +1338,25 @@ class CDustComponent
     double getAspectRatio()
     {
         return aspect_ratio;
+    }
+
+    double getSizeParam(CGridBasic * grid, cell_basic * cell)
+    {
+        double size_param = grid->getGrainSizeParam(cell);
+        if(size_param != 0)
+            return size_param;
+        return 0;
+    }
+
+    double getSizeParam(CGridBasic * grid, photon_package * pp)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getSizeParam(grid, cell);
+    }
+
+    double getSizeParam()
+    {
+        return 0;
     }
 
     double getSizeMin(CGridBasic * grid, cell_basic * cell)
@@ -1558,17 +1593,13 @@ class CDustComponent
 
     double getTabPlanck(uint w, double temp)
     {
-        double pl = tab_planck[w].getValue(max(TEMP_MIN, temp));
+        double pl = tab_planck[w].getValue(temp);
         return max(1e-200, pl);
     }
 
     double getAbsRate(CGridBasic * grid, cell_basic * cell, uint a, bool use_energy_density)
     {
         double abs_rate = 0;
-
-        // Get cell volume
-        double cell_vol = grid->getVolume(cell);
-
         if(use_energy_density)
         {
             double * sp_energy = new double[nr_of_wavelength];
@@ -1582,7 +1613,7 @@ class CDustComponent
             for(uint w = 0; w < nr_of_wavelength; w++)
                 abs_rate += grid->getSpecLength(cell, w) * getCabsMean(a, w);
 
-        return abs(abs_rate) / (PIx4 * cell_vol);
+        return abs(abs_rate) / (PIx4 * grid->getVolume(cell));
     }
 
     double getAbsRate(CGridBasic * grid, photon_package * pp, uint a, bool use_energy_density)
@@ -1673,22 +1704,24 @@ class CDustComponent
         double a_min = getSizeMin(grid, cell);
         double a_max = getSizeMax(grid, cell);
 
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, cell);
+
         // Get integration over the dust size distribution
-        double weight = getWeight(a_min, a_max);
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
-        // Init pointer array of relative mass of each dust grain size bin
-        double * rel_mass = new double[nr_of_dust_species];
-
-        // Set the relative mass of each dust grain size bin
+        // Create the final mass distribution
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_mass[a] = a_eff_3_5[a] * mass[a];
+        {
+            rel_weight[a] *= mass[a];
+        }
 
         // Calculate the average mass of the dust grains in the current cell
         double avg_mass =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, rel_mass, nr_of_dust_species, a_min, a_max);
+            CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
         // Delete pointer array
-        delete[] rel_mass;
+        delete[] rel_weight;
 
         return avg_mass;
     }
@@ -2114,6 +2147,7 @@ class CDustComponent
                               double & avg_Ccirc);
     void calcCrossSections(CGridBasic * grid,
                            photon_package * pp,
+                           double theta,
                            uint i_density,
                            uint a,
                            cross_sections & cs);
@@ -2156,7 +2190,7 @@ class CDustComponent
     prob_list * avg_planck_frac;
     prob_list *dust_prob, *sca_prob, *abs_prob;
 
-    double ****** sca_mat;
+    Matrix2D ***** sca_mat;
     double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg;
     double ** enthalpy;
     double *a_eff, *a_eff_1_5, *a_eff_3_5, *a_eff_2;
@@ -2383,6 +2417,9 @@ class CDustMixture
 
     double getForegroundExtinction(double wavelength)
     {
+        if(extinction_magnitude == 0)
+            return 1;
+
         // Get extinction optical depth at extinction_magnitude_wavelength
         double extinction_tau = (extinction_magnitude / 1.086);
 

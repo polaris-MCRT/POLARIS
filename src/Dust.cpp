@@ -71,13 +71,13 @@ void CDustComponent::initScatteringMatrixArray()
     uint max_counter = nr_of_wavelength * nr_of_dust_species;
 
     // First init of the scattering matrix spline
-    sca_mat = new double *****[nr_of_dust_species];
+    sca_mat = new Matrix2D ****[nr_of_dust_species];
 
 #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Second init of the scattering matrix
-        sca_mat[a] = new double ****[nr_of_wavelength];
+        sca_mat[a] = new Matrix2D ***[nr_of_wavelength];
         for(int w = 0; w < nr_of_wavelength; w++)
         {
             // Increase counter used to show progress
@@ -98,23 +98,19 @@ void CDustComponent::initScatteringMatrixArray()
             }
 
             // Third init of the scattering matrix
-            sca_mat[a][w] = new double ***[nr_of_incident_angles];
+            sca_mat[a][w] = new Matrix2D **[nr_of_incident_angles];
             for(int inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 // Fourth init of the scattering matrix
-                sca_mat[a][w][inc] = new double **[nr_of_scat_phi];
+                sca_mat[a][w][inc] = new Matrix2D *[nr_of_scat_phi];
                 for(int sph = 0; sph < nr_of_scat_phi; sph++)
                 {
                     // Fifth init of the scattering matrix
-                    sca_mat[a][w][inc][sph] = new double *[nr_of_scat_theta];
+                    sca_mat[a][w][inc][sph] = new Matrix2D[nr_of_scat_theta];
                     for(int sth = 0; sth < nr_of_scat_theta; sth++)
                     {
                         // sixth init of the scattering matrix
-                        sca_mat[a][w][inc][sph][sth] = new double[nr_of_scat_mat_elements];
-
-                        // Set each element to zero
-                        for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                            sca_mat[a][w][inc][sph][sth][mat] = 0;
+                        sca_mat[a][w][inc][sph][sth].resize(4, 4);
                     }
                 }
             }
@@ -851,10 +847,17 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                     {
                         for(int sth = 0; sth < nr_of_scat_theta; sth++)
                         {
-                            sca_mat[a][w][inc][sph][sth][0] = S11[sth];
-                            sca_mat[a][w][inc][sph][sth][1] = S12[sth];
-                            sca_mat[a][w][inc][sph][sth][2] = S33[sth];
-                            sca_mat[a][w][inc][sph][sth][3] = S34[sth];
+                            sca_mat[a][w][inc][sph][sth](0, 0) = S11[sth]; // S11
+                            sca_mat[a][w][inc][sph][sth](1, 1) = S11[sth]; // S22
+
+                            sca_mat[a][w][inc][sph][sth](0, 1) = S12[sth]; // S12
+                            sca_mat[a][w][inc][sph][sth](1, 0) = S12[sth]; // S21
+
+                            sca_mat[a][w][inc][sph][sth](2, 2) = S33[sth]; // S33
+                            sca_mat[a][w][inc][sph][sth](3, 3) = S33[sth]; // S44
+
+                            sca_mat[a][w][inc][sph][sth](2, 3) = S34[sth];  // S34
+                            sca_mat[a][w][inc][sph][sth](3, 2) = -S34[sth]; // S43
                         }
                     }
                 }
@@ -1207,11 +1210,16 @@ bool CDustComponent::readScatteringMatrices(string path,
                 {
                     for(int sth = 0; sth < nr_of_scat_theta; sth++)
                     {
-                        for(int mat = 0; mat < nr_of_scat_mat_elements; mat++)
+                        for(uint e = 0; e < 16; e++)
                         {
-                            for(int w = 0; w < nr_of_wavelength; w++)
-                                sca_mat[a][w][inc][sph][sth][mat] =
-                                    sca_mat_wl[a][inc][sph][sth][mat].getValue(wavelength_list[w]);
+                            double sign = CMathFunctions::sgn(elements[e]);
+                            int pos = abs(elements[e]);
+                            if(pos > 0)
+                            {
+                                for(int w = 0; w < nr_of_wavelength; w++)
+                                    sca_mat[a][w][inc][sph][sth](e) =
+                                        sign * sca_mat_wl[a][inc][sph][sth][pos].getValue(wavelength_list[w]);
+                            }
                         }
                         delete[] sca_mat_wl[a][inc][sph][sth];
                     }
@@ -1950,7 +1958,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     data_writer << "#material" << endl;
     data_writer << str_title << endl;
     data_writer << "#weight" << endl;
-    data_writer << getWeight(a_min_global, a_max_global) << endl;
+    data_writer << getWeight() << endl;
     data_writer << "#aspect ratio" << endl;
     data_writer << aspect_ratio << endl;
     data_writer << "#sublimation temp [K]" << endl;
@@ -2094,9 +2102,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                         sum += Csca_tmp;
                         double rel_amount = a_eff_3_5[a] / weight;
                         S11_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
-                                     getScatteringMatrixElement(a, w, 0, 0, sth, 0);
+                                     getScatteringMatrixElement(a, w, 0, 0, sth, 0, 0);
                         S12_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
-                                     getScatteringMatrixElement(a, w, 0, 0, sth, 1);
+                                     getScatteringMatrixElement(a, w, 0, 0, sth, 0, 1);
                     }
                     else
                     {
@@ -2413,7 +2421,7 @@ void CDustComponent::preCalcMieScatteringProb()
             for(uint sth = 0; sth < nr_of_scat_theta; sth++)
             {
                 // Calculate the scattering propability in a certain direction
-                S11_tmp[sth] = double(sca_mat[a][w][0][0][sth][0]);
+                S11_tmp[sth] = double(sca_mat[a][w][0][0][sth](0, 0));
 
                 // Calculate the modified angle for integration
                 S11_solid_angle[sth] = PIx2 * cos(double(sth) * d_ang);
@@ -2796,10 +2804,11 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
                 for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                     for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         for(uint sth = 0; sth < nr_of_scat_theta; sth++)
-                            for(uint mat = 0; mat < nr_of_scat_mat_elements; mat++)
-                                sca_mat[a][w][inc][sph][sth][mat] +=
-                                    size_fraction[a][1] *
-                                    comp->getScatteringMatrixElement(a, w, inc, sph, sth, mat);
+                            for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
+                                for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
+                                    sca_mat[a][w][inc][sph][sth](i_mat, j_mat) +=
+                                        size_fraction[a][1] *
+                                        comp->getScatteringMatrixElement(a, w, inc, sph, sth, i_mat, j_mat);
     }
 
     if(comp->getCalorimetryLoaded())
@@ -3013,6 +3022,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
 
 void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        photon_package * pp,
+                                       double theta,
                                        uint i_density,
                                        uint a,
                                        cross_sections & cs)
@@ -3028,9 +3038,6 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
         cs.Csca = getCscaMean(a, w);
         return;
     }
-
-    // Get angle between the magnetic field and the photon direction
-    double theta = grid->getThetaMag(pp);
 
     // Perfect alignment can be calculated efficiently
     if((alignment & ALIG_PA) == ALIG_PA)
@@ -3168,17 +3175,20 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
     dust_offset = true;
 
     // Init variables
-    double temp_offset, weight = 1;
+    double temp_offset;
+    double * rel_weight = 0;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
-       grid->getTemperatureFieldInformation() == TEMP_SINGLE)
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, cell);
+
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
     {
-        // Get weight from current grain size distribution
-        weight = getWeight(a_min, a_max);
+        // Get integration over the dust size distribution
+        rel_weight = getRelWeight(a_min, a_max, size_param);
     }
 
     // Get temperature from grid as offset (assuming only ONE dust/gas temperature in
@@ -3213,7 +3223,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
             else
             {
                 // Multiply it with the amount of dust grains in the current bin
-                qb_offset[a] *= a_eff_3_5[a];
+                qb_offset[a] *= rel_weight[a];
             }
         }
         else
@@ -3223,12 +3233,11 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
         }
     }
 
-    if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
-       grid->getTemperatureFieldInformation() == TEMP_SINGLE)
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
     {
         // Get average absorption rate via interpolation
         double avg_qb_offset =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, qb_offset, nr_of_dust_species, a_min, a_max);
+            CMathFunctions::integ_dust_size(a_eff, qb_offset, nr_of_dust_species, a_min, a_max);
 
         // Save average offset energy to grid
         grid->setQBOffset(cell, i_density, avg_qb_offset);
@@ -3236,6 +3245,8 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
 
     // Delete pointer array
     delete[] qb_offset;
+    if(grid->getTemperatureFieldInformation() != TEMP_FULL)
+        delete[] rel_weight;
 }
 
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
@@ -3330,8 +3341,11 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     double a_min = getSizeMin(grid, cell);
     double a_max = getSizeMax(grid, cell);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, cell);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Init temporary pointer arrays for absorption rate and temperature
     double * abs_rate = new double[nr_of_dust_species];
@@ -3403,7 +3417,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             {
                 // Multiply with the amount of dust grains in the current bin for
                 // integration
-                abs_rate[a] *= a_eff_3_5[a];
+                abs_rate[a] *= rel_weight[a];
             }
             else if(grid->getTemperatureFieldInformation() == TEMP_FULL ||
                     (grid->getTemperatureFieldInformation() == TEMP_STOCH &&
@@ -3420,7 +3434,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             }
 
             // Multiply with the amount of dust grains in the current bin for integration
-            temp[a] *= a_eff_3_5[a];
+            temp[a] *= rel_weight[a];
         }
         else
         {
@@ -3436,16 +3450,16 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     {
         // Get average absorption rate via interpolation
         double avg_abs_rate =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, abs_rate, nr_of_dust_species, a_min, a_max);
+            CMathFunctions::integ_dust_size(a_eff, abs_rate, nr_of_dust_species, a_min, a_max);
 
         // Calculate average temperature from absorption rate
         avg_temp = findTemperature(grid, cell, avg_abs_rate);
     }
     else
-        avg_temp =
-            1 / weight * CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
+        avg_temp = CMathFunctions::integ_dust_size(a_eff, temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
+    delete[] rel_weight;
     delete[] abs_rate;
     delete[] temp;
 
@@ -3567,7 +3581,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
                 arr_en_dens /= double(vol * con_c);
 
-                du[w] = wavelength_list[w]*arr_en_dens;
+                du[w] = wavelength_list[w] * arr_en_dens;
 
                 // Radiative torque efficiency as a power-law
                 double Qr = 0.14;
@@ -3580,10 +3594,11 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 Qr *= cos_theta;
 
                 // Qr=getQrat(a, w, 0.0);
-                arr_product[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
+                arr_product[w] =
+                    arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
 
-                ddir[w] = wavelength_list[w]*arr_en_dens * gamma;
-                dth[w] = wavelength_list[w]*arr_en_dens * cos_theta;
+                ddir[w] = wavelength_list[w] * arr_en_dens * gamma;
+                dth[w] = wavelength_list[w] * arr_en_dens * cos_theta;
             }
 
             // Perform integration for total radiation field
@@ -3891,17 +3906,19 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
-    double rel_weight;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
     // Get wavelength index of photon package
     uint w = pp->getWavelengthID();
-
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
 
     // Init temporary array for integration
     double * pl_abs_tmp = new double[nr_of_dust_species];
@@ -3910,11 +3927,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get cross sections and relative weight of the current dust grain size
-            rel_weight = a_eff_3_5[a] / weight;
-
-            // Calculate emission/extinction according to the information inside of the
-            // grid
+            // Calculate emission/extinction according to the information inside of the grid
             if(a_eff[a] <= getStochasticHeatingMaxSize())
             {
                 // Consider stochastic heating for the emission if chosen
@@ -3929,7 +3942,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
 
                     // Add relative emissivity from this temperature
                     pl_abs_tmp[a] +=
-                        getCabsMean(a, w) * rel_weight * temp_probability * getTabPlanck(w, temp_dust);
+                        getCabsMean(a, w) * rel_weight[a] * temp_probability * getTabPlanck(w, temp_dust);
                 }
             }
             else
@@ -3942,7 +3955,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
                 // Calculate the emission of the dust grains
-                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight * getTabPlanck(w, temp_dust);
+                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight[a] * getTabPlanck(w, temp_dust);
             }
         }
         else
@@ -3957,6 +3970,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     pl_abs = CMathFunctions::integ_dust_size(a_eff, pl_abs_tmp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
+    delete[] rel_weight;
     delete[] pl_abs_tmp;
 
     // Multiply with number density
@@ -3973,12 +3987,29 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                                                  Vector3D en_dir)
 {
     // Init variables to calculate the emission/extinction
-    double temp_dust, rel_weight;
-    StokesVector stokes;
+    double temp_dust = 0;
+    double scattering_theta = 0, mag_field_theta = 0, phi_map = 0;
+    uint temp_info = grid->getTemperatureFieldInformation();
+    uint thID = 0;
+
+    // Precalculate values for scattering
+    if(energy > 1e-200)
+    {
+        scattering_theta = acos(en_dir * pp->getDirection());
+        phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+        if(phID == PH_MIE)
+        {
+            // Get index of theta scattering
+            thID = getScatThetaID(scattering_theta);
+        }
+    }
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
+
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
 
     // Init  and calculate the cross-sections
     cross_sections cs;
@@ -3986,34 +4017,25 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     // Get wavelength index of photon package
     uint w = pp->getWavelengthID();
 
+    // Get angle between the magnetic field and the photon direction
+    mag_field_theta = grid->getThetaMag(pp);
+
     // Calculate orientation of the Stokes vector in relation to the magnetic field
     double sin_2ph = sin(2.0 * phi);
     double cos_2ph = cos(2.0 * phi);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Init temporary Stokes array for integration
-    double * stokes_I = new double[nr_of_dust_species];
-    double * stokes_Q = new double[nr_of_dust_species];
-    double * stokes_U = new double[nr_of_dust_species];
-    double * stokes_V = new double[nr_of_dust_species];
+    StokesVector * tmp_stokes = new StokesVector[nr_of_dust_species];
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Init values with zero
-            stokes_I[a] = 0;
-            stokes_Q[a] = 0;
-            stokes_U[a] = 0;
-            stokes_V[a] = 0;
-
             // Get cross sections and relative weight of the current dust grain size
-            rel_weight = a_eff_3_5[a] / weight;
-
-            // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, i_density, a, cs);
+            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
 
             // Calculate emission/extinction according to the information inside of the
             // grid
@@ -4030,16 +4052,16 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                     double pl = grid->getDustTempProbability(pp, i_density, a, t);
 
                     // Get relative Planck emission
-                    pl *= rel_weight * getTabPlanck(w, temp_dust);
+                    pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
                     // To perform Camps et. al (2015) benchmark.
-                    stokes_I[a] += cs.Cabs * pl;
+                    tmp_stokes[a].addI(cs.Cabs * pl);
 #else
                     // Add relative emissivity from this temperature
-                    stokes_I[a] += cs.Cabs * pl;
-                    stokes_Q[a] += cs.Cpabs * pl * cos_2ph;
-                    stokes_U[a] += cs.Cpabs * pl * sin_2ph;
+                    tmp_stokes[a].addI(cs.Cabs * pl);
+                    tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
+                    tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
 #endif
                 }
             }
@@ -4047,99 +4069,74 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
             {
                 // Consider the temperature of every dust grain size or an average
                 // temperature
-                if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+                if(temp_info == TEMP_FULL)
                     temp_dust = grid->getDustTemperature(pp, i_density, a);
                 else
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
-                // Get relative Planck emission
-                double pl = rel_weight * getTabPlanck(w, temp_dust);
+                double pl = rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
                 // To perform Camps et. al (2015) benchmark.
-                stokes_Q[a] += cs.Cabs * pl;
+                tmp_stokes[a].addQ(cs.Cabs * pl;
 #else
                 // Add relative emissivity from this temperature
-                stokes_I[a] += cs.Cabs * pl;
-                stokes_Q[a] += cs.Cpabs * pl * cos_2ph;
-                stokes_U[a] += cs.Cpabs * pl * sin_2ph;
+                tmp_stokes[a].addI(cs.Cabs * pl);
+                tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
+                tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
 #endif
             }
 
             // Add scattering component if radiation field is stored in grid
-            if(energy > stokes_I[a] * 1e-10)
+            if(energy > 1e-200)
             {
                 // Init variables
-                StokesVector tmp_stokes;
-
-                // Get correct polarization handling
-                double theta = acos(en_dir * pp->getDirection());
+                StokesVector scatter_stokes;
 
                 // Multiply energy with scattered fraction in the theta angle and the
                 // scattering cross-section
-                tmp_stokes.setI(energy * rel_weight * cs.Csca * getScatteredFraction(a, w, theta));
+                scatter_stokes.setI(energy * rel_weight[a] * cs.Csca *
+                                    getScatteredFraction(a, w, scattering_theta));
 
                 if(phID == PH_MIE)
                 {
-                    // Init variables to calculate the scattered contribution
-                    Matrix2D mat_sca(4, 4);
-
-                    // Get index of theta scattering
-                    uint thID = getScatThetaID(theta);
-
                     // Get scattering matrix
-                    addUpMatrices(mat_sca, a, w, 0, 0, thID);
+                    const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
                     // Multiply Stokes vector with scattering matrix
-                    double i_1 = tmp_stokes.I();
+                    double i_1 = scatter_stokes.I();
                     if(i_1 > 1e-200)
                     {
-                        tmp_stokes = mat_sca * tmp_stokes;
-                        tmp_stokes *= i_1 / tmp_stokes.I();
+                        scatter_stokes = mat_sca * scatter_stokes;
+                        scatter_stokes *= i_1 / scatter_stokes.I();
                     }
                     else
-                        tmp_stokes.clear();
+                        scatter_stokes.clear();
                 }
 
                 // Rotate Stokes Vector to be in agreement with the detector plane
-                double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
-                tmp_stokes.rot(phi_map);
+                scatter_stokes.rot(phi_map);
 
 #ifndef CAMPS_BENCHMARK
                 // Add scattered light to the Stokes vector
-                stokes_I[a] += tmp_stokes.I();
-                stokes_Q[a] += tmp_stokes.Q();
-                stokes_U[a] += tmp_stokes.U();
-                stokes_V[a] += tmp_stokes.V();
+                tmp_stokes[a].addS(scatter_stokes);
 #endif
             }
-        }
-        else
-        {
-            // Set stokes vector to zero for the unused grain size
-            stokes_I[a] = 0;
-            stokes_Q[a] = 0;
-            stokes_U[a] = 0;
-            stokes_V[a] = 0;
         }
     }
 
     // Perform integration for the emission
-    stokes.setI(CMathFunctions::integ_dust_size(a_eff, stokes_I, nr_of_dust_species, a_min, a_max));
-    stokes.setQ(CMathFunctions::integ_dust_size(a_eff, stokes_Q, nr_of_dust_species, a_min, a_max));
-    stokes.setU(CMathFunctions::integ_dust_size(a_eff, stokes_U, nr_of_dust_species, a_min, a_max));
-    stokes.setV(CMathFunctions::integ_dust_size(a_eff, stokes_V, nr_of_dust_species, a_min, a_max));
+    StokesVector final_stokes(
+        CMathFunctions::integ_dust_size(a_eff, tmp_stokes, nr_of_dust_species, a_min, a_max));
 
     // Delete pointer arrays
-    delete[] stokes_I;
-    delete[] stokes_Q;
-    delete[] stokes_U;
-    delete[] stokes_V;
+    delete[] rel_weight;
+    delete[] tmp_stokes;
 
     // Multiply with number density
-    stokes *= getNumberDensity(grid, pp, i_density);
+    final_stokes *= getNumberDensity(grid, pp, i_density);
 
-    return stokes;
+    return final_stokes;
 }
 
 void CDustComponent::calcExtCrossSections(CGridBasic * grid,
@@ -4149,15 +4146,21 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
                                           double & avg_Cpol,
                                           double & avg_Ccirc)
 {
+    // Init  and calculate the cross-sections
+    cross_sections cs;
+
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
-    // Init  and calculate the cross-sections
-    cross_sections cs;
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+    // Get angle between the magnetic field and the photon direction
+    double mag_field_theta = grid->getThetaMag(pp);
 
     // Init temporary cross-section array for integration
     double * Cext = new double[nr_of_dust_species];
@@ -4169,15 +4172,12 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            double rel_weight = a_eff_3_5[a] / weight;
-
-            // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, i_density, a, cs);
+            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
 
             // Add relative cross-sections for integration
-            Cext[a] = cs.Cext * rel_weight;
-            Cpol[a] = cs.Cpol * rel_weight;
-            Ccirc[a] = cs.Ccirc * rel_weight;
+            Cext[a] = cs.Cext * rel_weight[a];
+            Cpol[a] = cs.Cpol * rel_weight[a];
+            Ccirc[a] = cs.Ccirc * rel_weight[a];
         }
         else
         {
@@ -4194,6 +4194,7 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     avg_Ccirc = CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer arrays
+    delete[] rel_weight;
     delete[] Cext;
     delete[] Cpol;
     delete[] Ccirc;
@@ -4283,7 +4284,6 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 {
     // Init variables
     double len, dens, Cext, phi_fraction = 1, tau_obs = 0;
-    Matrix2D mat_sca(4, 4);
 
     // Get wavelength index of the photon package
     uint w = pp->getWavelengthID();
@@ -4319,7 +4319,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     uint thID = getScatThetaID(theta_photon_to_obs);
 
     // Create the scattering matrix with the local parameters
-    addUpMatrices(mat_sca, a, w, 0, 0, thID);
+    const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     if(phID == PH_MIE)
     {
@@ -4388,8 +4388,11 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
-    // Get weight from current grain size distribution
-    double weight = getWeight(a_min, a_max);
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get current cell
     cell_basic * cell = pp->getPositionCell();
@@ -4399,9 +4402,6 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
 
     // Get dust number density of current cell
     double dens = getNumberDensity(grid, cell, i_density);
-
-    // Init energy pointer array of each size bin
-    double * energy = new double[nr_of_dust_species];
 
     // Get wavelength of photon package
     uint w = pp->getWavelengthID();
@@ -4416,15 +4416,16 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
             temp = grid->getDustTemperature(pp, i_density);
 
         // Calculate energy of current grain size
-        energy[a] = a_eff_3_5[a] * getCabsMean(a, w) * getTabPlanck(w, temp);
+        rel_weight[a] = getCabsMean(a, w) * getTabPlanck(w, temp);
     }
 
     // Calclate the total energy via interpolation
-    double total_energy = 1 / weight * dens * vol * PIx4 *
-                          CMathFunctions::integ_dust_size(a_eff, energy, nr_of_dust_species, a_min, a_max);
+    double total_energy =
+        dens * vol * PIx4 *
+        CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
-    delete[] energy;
+    delete[] rel_weight;
 
     return total_energy;
 }
@@ -4486,7 +4487,6 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 {
     // Init variables
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
-    Matrix2D mat_sca(4, 4);
 
     // Get wavelength of photon package
     uint w = pp->getWavelengthID();
@@ -4501,7 +4501,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     StokesVector tmp_stokes = pp->getStokesVector();
 
     // Get scattering matrix
-    addUpMatrices(mat_sca, a, w, 0, 0, thID);
+    const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
     PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *

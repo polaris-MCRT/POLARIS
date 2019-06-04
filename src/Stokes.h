@@ -346,6 +346,16 @@ class StokesVector
         sSp += _Sp;
     }
 
+    void addS(StokesVector _S)
+    {
+        sI += _S.I();
+        sQ += _S.Q();
+        sU += _S.U();
+        sV += _S.V();
+        sT += _S.T();
+        sSp += _S.Sp();
+    }
+
     double I() const
     {
         return sI;
@@ -571,67 +581,28 @@ inline ostream & operator<<(ostream & out, const StokesVector & ex)
     return out;
 }
 
-inline StokesVector operator*(Matrix2D & dM, const StokesVector & v)
+inline StokesVector operator*(const Matrix2D & dM, const StokesVector & v)
 {
-    double tmpI = v.I() * dM(0, 0) + v.Q() * dM(0, 1) + v.U() * dM(0, 2) + v.V() * dM(0, 3);
-    double tmpQ = v.I() * dM(1, 0) + v.Q() * dM(1, 1) + v.U() * dM(1, 2) + v.V() * dM(1, 3);
-    double tmpU = v.I() * dM(2, 0) + v.Q() * dM(2, 1) + v.U() * dM(2, 2) + v.V() * dM(2, 3);
-    double tmpV = v.I() * dM(3, 0) + v.Q() * dM(3, 1) + v.U() * dM(3, 2) + v.V() * dM(3, 3);
-    StokesVector tmp(tmpI, tmpQ, tmpU, tmpV);
-    return tmp;
+    return StokesVector(v.I() * dM(0, 0) + v.Q() * dM(0, 1) + v.U() * dM(0, 2) + v.V() * dM(0, 3),
+                        v.I() * dM(1, 0) + v.Q() * dM(1, 1) + v.U() * dM(1, 2) + v.V() * dM(1, 3),
+                        v.I() * dM(2, 0) + v.Q() * dM(2, 1) + v.U() * dM(2, 2) + v.V() * dM(2, 3),
+                        v.I() * dM(3, 0) + v.Q() * dM(3, 1) + v.U() * dM(3, 2) + v.V() * dM(3, 3));
 }
 
-inline StokesVector operator*=(Matrix2D dM, StokesVector & v)
+inline StokesVector operator*(const StokesVector & v, const StokesVector & u)
 {
-    StokesVector tmp;
-    tmp.setI(v.I() * dM(0, 0) + v.Q() * dM(0, 1) + v.U() * dM(0, 2) + v.V() * dM(0, 3));
-    tmp.setQ(v.I() * dM(1, 0) + v.Q() * dM(1, 1) + v.U() * dM(1, 2) + v.V() * dM(1, 3));
-    tmp.setU(v.I() * dM(2, 0) + v.Q() * dM(2, 1) + v.U() * dM(2, 2) + v.V() * dM(2, 3));
-    tmp.setV(v.I() * dM(3, 0) + v.Q() * dM(3, 1) + v.U() * dM(3, 2) + v.V() * dM(3, 3));
-    v = tmp;
-    return v;
+    return StokesVector(
+        v.I() * u.I(), v.Q() * u.Q(), v.U() * u.U(), v.V() * u.V(), v.T() * u.T(), v.Sp() * u.Sp());
 }
 
-inline StokesVector operator*(StokesVector v, StokesVector u)
+inline StokesVector operator*(const StokesVector & v, double val)
 {
-    StokesVector tmp;
-
-    tmp.setI(v.I() * u.I());
-    tmp.setQ(v.Q() * u.Q());
-    tmp.setU(v.U() * u.U());
-    tmp.setV(v.V() * u.V());
-    tmp.setT(v.T() * u.T());
-    tmp.setSp(v.Sp() * u.Sp());
-
-    return tmp;
+    return StokesVector(v.I() * val, v.Q() * val, v.U() * val, v.V() * val, v.T(), v.Sp());
 }
 
-inline StokesVector operator*(StokesVector v, double val)
+inline StokesVector operator/(const StokesVector & v, double val)
 {
-    StokesVector tmp;
-
-    tmp.setI(v.I() * val);
-    tmp.setQ(v.Q() * val);
-    tmp.setU(v.U() * val);
-    tmp.setV(v.V() * val);
-    tmp.setT(v.T());
-    tmp.setSp(v.Sp());
-
-    return tmp;
-}
-
-inline StokesVector operator/(StokesVector v, double val)
-{
-    StokesVector tmp;
-
-    tmp.setI(v.I() / val);
-    tmp.setQ(v.Q() / val);
-    tmp.setU(v.U() / val);
-    tmp.setV(v.V() / val);
-    tmp.setT(v.T());
-    tmp.setSp(v.Sp());
-
-    return tmp;
+    return StokesVector(v.I() / val, v.Q() / val, v.U() / val, v.V() / val, v.T(), v.Sp());
 }
 
 }

@@ -140,6 +140,17 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             a_max_min = a_max;
     }
 
+    if(data_pos_size_param != MAX_UINT)
+    {
+        uint size_param = cell->getData(data_pos_size_param);
+
+        if(size_param > float(size_param_max))
+            size_param_max = size_param;
+
+        if(size_param < float(size_param_min))
+            size_param_min = size_param;
+    }
+
     if(data_pos_id != MAX_UINT)
     {
         uint dust_id = cell->getData(data_pos_id);
@@ -496,6 +507,10 @@ void CGridBasic::printPhysicalParameters()
 
     if(data_pos_amax != MAX_UINT)
         cout << "- Maximum grain size  (min,max) : [" << a_max_min << ", " << a_max_max << "] [m]" << endl;
+
+    if(data_pos_size_param != MAX_UINT)
+        cout << "- Dust size parameter (min,max) : [" << size_param_min << ", " << size_param_max << "]"
+             << endl;
 
     if(data_pos_id != MAX_UINT)
         cout << "- Dust mixture ID     (min,max) : [" << dust_id_min << ", " << dust_id_max << "]" << endl;
@@ -909,7 +924,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     photon_package * pp = new photon_package;
 
     // along z
-    pp->setPosition(Vector3D(0, 0, -2.0 * max_len));
+    pp->setPosition(Vector3D(0, 0, 2.0 * max_len));
     pp->setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
     findStartingPoint(pp);
 
@@ -954,7 +969,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
 
-    pp->setPosition(Vector3D(0, -2.0 * max_len, 0));
+    pp->setPosition(Vector3D(0, 2.0 * max_len, 0));
     pp->setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
     findStartingPoint(pp);
 
@@ -999,7 +1014,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
 
-    pp->setPosition(Vector3D(-2.0 * max_len, 0, 0));
+    pp->setPosition(Vector3D(2.0 * max_len, 0, 0));
     pp->setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
     findStartingPoint(pp);
 
@@ -1081,6 +1096,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         plt_amin = (data_pos_amin != MAX_UINT) && param.isInPlotList(GRIDa_min);
         plt_amax = (data_pos_amax != MAX_UINT) && param.isInPlotList(GRIDa_max);
+        plt_size_param = (data_pos_size_param != MAX_UINT) && param.isInPlotList(GRIDq);
 
         plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
         plt_T_e = (data_pos_T_e != MAX_UINT) && param.isInPlotList(GRIDT_e);
@@ -1099,30 +1115,30 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         if(cmd != CMD_TEMP && cmd != CMD_TEMP_RAT)
             plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
 
-        //if(getRadiationFieldAvailable())
+        // if(getRadiationFieldAvailable())
         {
             switch(param.getWriteRadiationField())
             {
-                    default:
-                        plt_u_rad=false;
-                        plt_rad_field1=false;
+                default:
+                    plt_u_rad = false;
+                    plt_rad_field1 = false;
                     break;
 
-                    case 1:
-                        plt_u_rad=(cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
-                        plt_rad_field1=false;
+                case 1:
+                    plt_u_rad = (cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
+                    plt_rad_field1 = false;
                     break;
-                    
-                    case 2:
-                        plt_u_rad=false;
-                        plt_rad_field1=true;
+
+                case 2:
+                    plt_u_rad = false;
+                    plt_rad_field1 = true;
                     break;
-                    
-                    case 3:
-                        plt_u_rad=false;
-                        plt_rad_field1 = true;
-                        nr_rad_field_comp = 4;
-                    break;        
+
+                case 3:
+                    plt_u_rad = false;
+                    plt_rad_field1 = true;
+                    nr_rad_field_comp = 4;
+                    break;
             }
 
             if(param.getWriteGZero())
@@ -1144,6 +1160,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
+        plt_size_param = false;
         plt_rad_field1 = false;
         plt_g_zero1 = false;
         plt_u_rad = false;
@@ -1174,31 +1191,32 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         switch(param.getWriteRadiationField())
         {
-                default:
-                    plt_u_rad=false;
-                    plt_rad_field1=false;
+            default:
+                plt_u_rad = false;
+                plt_rad_field1 = false;
                 break;
 
-                case 1:
-                    plt_u_rad=(cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
-                    plt_rad_field1=false;
+            case 1:
+                plt_u_rad = (cmd == CMD_RAT || cmd == CMD_TEMP_RAT);
+                plt_rad_field1 = false;
                 break;
 
-                case 2:
-                    plt_u_rad=false;
-                    plt_rad_field1=true;
-                    
-                    if(!spec_length_as_vector)
-                        cout << "HINT: The full radiation field can only be saved if it was used by the simulation\n"
-                        "      (when saving the radiation field in the grid or calculating RATs)!"
-                        << endl;
+            case 2:
+                plt_u_rad = false;
+                plt_rad_field1 = true;
+
+                if(!spec_length_as_vector)
+                    cout << "HINT: The full radiation field can only be saved if it was used by the "
+                            "simulation\n"
+                            "      (when saving the radiation field in the grid or calculating RATs)!"
+                         << endl;
                 break;
 
-                case 3:
-                    plt_u_rad=false;
-                    plt_rad_field1 = true;
-                    nr_rad_field_comp = 4;
-                break;        
+            case 3:
+                plt_u_rad = false;
+                plt_rad_field1 = true;
+                nr_rad_field_comp = 4;
+                break;
         }
 
         if(param.getWriteGZero())
@@ -1206,11 +1224,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
 
     uint nr_parameters = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp) +
-                        4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
-                        uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
-                        uint(plt_rad_field1) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero1) + uint(plt_u_rad) +
-                        uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) + uint(plt_g_max) +
-                        uint(plt_p) + uint(plt_avg_th) + uint(plt_avg_dir);
+                         4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
+                         uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
+                         uint(plt_rad_field1) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero1) +
+                         uint(plt_u_rad) + uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) +
+                         uint(plt_g_max) + uint(plt_p) + uint(plt_avg_th) + uint(plt_avg_dir);
 
     if(nr_parameters == 0)
         return res;
@@ -1326,6 +1344,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     valarray<double> array_dust_mixture(nelements);
     valarray<double> array_amin(nelements);
     valarray<double> array_amax(nelements);
+    valarray<double> array_size_param(nelements);
     valarray<double> array_rad_field(nelements);
     valarray<double> array_g_zero1(nelements);
     valarray<double> array_u_rad(nelements);
@@ -1412,6 +1431,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         buffer_dust_amin = new double[nelements];
     if(plt_amax)
         buffer_dust_amax = new double[nelements];
+    if(plt_size_param)
+        buffer_dust_size_param = new double[nelements];
     if(plt_rad_field1)
     {
         buffer_rad_field = new double **[nelements];
@@ -1424,7 +1445,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_g_zero1)
         buffer_g_zero1 = new double[nelements];
-     if(plt_u_rad)
+    if(plt_u_rad)
         buffer_u_rad = new double[nelements];
     if(plt_n_th)
         buffer_n_th = new double[nelements];
@@ -1637,7 +1658,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amin);
             }
-            buffer_dust_amin = new double[nelements];
             if(plt_amax)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1645,6 +1665,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amax);
+            }
+            if(plt_size_param)
+            {
+                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    array_size_param[i_cell] = buffer_dust_size_param[i_cell];
+
+                fpixel[3]++;
+                pFits->pHDU().write(fpixel, nelements, array_size_param);
             }
             if(plt_rad_field1)
             {
@@ -1926,7 +1954,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amin);
             }
-            buffer_dust_amin = new double[nelements];
             if(plt_amax)
             {
                 for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -1934,6 +1961,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_amax);
+            }
+            if(plt_size_param)
+            {
+                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    array_size_param[i_cell] = buffer_dust_size_param[i_cell];
+
+                fpixel[3]++;
+                pFits->pHDU().write(fpixel, nelements, array_size_param);
             }
             if(plt_rad_field1)
             {
@@ -2115,7 +2150,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1)
+        if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
         {
             if(gas_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_gas_mass_density [kg/m^3]", str_2);
@@ -2145,7 +2180,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1)
+        if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
         {
             if(dust_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_dust_mass_density [kg/m^3]", str_2);
@@ -2272,12 +2307,17 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "a_min [m]", str_2);
     }
-    buffer_dust_amin = new double[nelements];
     if(plt_amax)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "a_max [m]", str_2);
+    }
+    if(plt_size_param)
+    {
+        counter++;
+        updateMidplaneString(str_1, str_2, counter);
+        pFits->pHDU().addKey(str_1, "size param [value]", str_2);
     }
     if(plt_rad_field1)
     {
@@ -2427,6 +2467,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_dust_amin;
     if(plt_amax)
         delete[] buffer_dust_amax;
+    if(plt_size_param)
+        delete[] buffer_dust_size_param;
     if(plt_rad_field1)
     {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
@@ -2440,7 +2482,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_g_zero1)
         delete[] buffer_g_zero1;
     if(plt_u_rad)
-        delete[] buffer_u_rad;    
+        delete[] buffer_u_rad;
     if(plt_n_th)
         delete[] buffer_n_th;
     if(plt_T_e)

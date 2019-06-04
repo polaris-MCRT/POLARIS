@@ -53,6 +53,9 @@ class CGridBasic
         a_max_min = 0;
         a_max_max = 0;
 
+        size_param_min = 0;
+        size_param_max = 0;
+
         dust_id_min = 0;
         dust_id_max = 0;
 
@@ -117,7 +120,7 @@ class CGridBasic
         data_pos_pz = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
-        data_pos_eq = MAX_UINT;
+        data_pos_size_param = MAX_UINT;
         data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT;
 
@@ -145,6 +148,7 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
+        plt_size_param = false;
         plt_rad_field1 = false;
         plt_u_rad = false;
         plt_g_zero1 = false;
@@ -180,6 +184,7 @@ class CGridBasic
         buffer_dust_mixture = 0;
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
+        buffer_dust_size_param = 0;
         buffer_rad_field = 0;
         buffer_g_zero1 = 0;
         buffer_u_rad = 0;
@@ -262,6 +267,9 @@ class CGridBasic
         a_max_min = 1e300;
         a_max_max = -1e300;
 
+        size_param_min = 1e300;
+        size_param_max = -1e300;
+
         dust_id_min = MAX_UINT;
         dust_id_max = 0;
 
@@ -305,7 +313,7 @@ class CGridBasic
         data_pos_pz = MAX_UINT;
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
-        data_pos_eq = MAX_UINT;
+        data_pos_size_param = MAX_UINT;
         data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT;
 
@@ -339,8 +347,9 @@ class CGridBasic
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
+        plt_size_param = false;
         plt_rad_field1 = false;
-        plt_u_rad =false;
+        plt_u_rad = false;
         plt_g_zero1 = false;
         plt_n_th = false;
         plt_T_e = false;
@@ -374,6 +383,7 @@ class CGridBasic
         buffer_dust_mixture = 0;
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
+        buffer_dust_size_param = 0;
         buffer_rad_field = 0;
         buffer_g_zero1 = 0;
         buffer_u_rad = 0;
@@ -679,7 +689,7 @@ class CGridBasic
         }
     }
 
-    double getSpecLength(cell_basic * cell, uint wID)
+    inline double getSpecLength(cell_basic * cell, uint wID)
     {
 #ifdef CAMPS_BENCHMARK
         // To perform Camps et. al (2015) benchmark.
@@ -695,7 +705,7 @@ class CGridBasic
 #endif
     }
 
-    double getSpecLength(photon_package * pp, uint wID)
+    inline double getSpecLength(photon_package * pp, uint wID)
     {
         cell_basic * cell = pp->getPositionCell();
         return getSpecLength(cell, wID);
@@ -958,26 +968,26 @@ class CGridBasic
         cell_basic * cell = pp->getPositionCell();
         return getGZero(cell);
     }
-       
+
     double getUrad(cell_basic * cell)
     {
-        double u_rad=0;
-        
+        double u_rad = 0;
+
         if(spec_length_as_vector)
         {
             for(uint w = 1; w < WL_STEPS; w++)
             {
-                double rad_field_1 = getRadiationField(cell, w - 1)/con_c;
-                double rad_field_2 = getRadiationField(cell, w)/con_c;
+                double rad_field_1 = getRadiationField(cell, w - 1) / con_c;
+                double rad_field_2 = getRadiationField(cell, w) / con_c;
 
                 u_rad += ((wl_list[w] - wl_list[w - 1]) * rad_field_1 +
-                                  0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
+                          0.5 * (wl_list[w] - wl_list[w - 1]) * (rad_field_2 - rad_field_1));
             }
         }
-        
-        return u_rad/(8.64e-14);
+
+        return u_rad / (8.64e-14);
     }
-       
+
     double getUrad(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
@@ -1245,6 +1255,19 @@ class CGridBasic
     {
         cell_basic * cell = pp->getPositionCell();
         return getMaxGrainRadius(cell);
+    }
+
+    double getGrainSizeParam(cell_basic * cell)
+    {
+        if(data_pos_amax != MAX_UINT)
+            return cell->getData(data_pos_size_param);
+        return 0;
+    }
+
+    double getGrainSizeParam(photon_package * pp)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getGrainSizeParam(cell);
     }
 
     uint getDustChoiceID(photon_package * pp)
@@ -1812,6 +1835,8 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = getMinGrainRadius(pp);
             if(plt_amax)
                 buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
+            if(plt_size_param)
+                buffer_dust_size_param[i_cell] = getGrainSizeParam(pp);
             if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
@@ -1841,10 +1866,10 @@ class CGridBasic
                 }
             if(plt_g_zero1)
                 buffer_g_zero1[i_cell] = getGZero(pp);
-            
+
             if(plt_u_rad)
                 buffer_u_rad[i_cell] = getUrad(pp);
-            
+
             if(plt_n_th)
                 buffer_n_th[i_cell] = getThermalElectronDensity(pp);
             if(plt_T_e)
@@ -1918,6 +1943,8 @@ class CGridBasic
                 buffer_dust_amin[i_cell] = 0;
             if(plt_amax)
                 buffer_dust_amax[i_cell] = 0;
+            if(plt_size_param)
+                buffer_dust_size_param[i_cell] = 0;
             if(plt_rad_field1)
                 for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(uint wID = 0; wID < WL_STEPS; wID++)
@@ -1941,7 +1968,7 @@ class CGridBasic
             if(plt_avg_dir)
                 buffer_avg_dir[i_cell] = 0;
             if(plt_avg_th)
-                buffer_avg_dir[i_cell] = 0;
+                buffer_avg_th[i_cell] = 0;
         }
         delete pp;
     }
@@ -2023,7 +2050,7 @@ class CGridBasic
         return Vector3D(0, 0, 0);
     }
 
-    double getGasDensity(cell_basic * cell)
+    inline double getGasDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2031,7 +2058,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasDensity(cell_basic * cell, uint i_density)
+    inline double getGasDensity(cell_basic * cell, uint i_density)
     {
         if(!data_pos_gd_list.empty())
             return cell->getData(data_pos_gd_list[i_density]);
@@ -2039,19 +2066,19 @@ class CGridBasic
             return 0;
     }
 
-    double getGasDensity(photon_package * pp)
+    inline double getGasDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasDensity(cell);
     }
 
-    double getGasDensity(photon_package * pp, uint i_density)
+    inline double getGasDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasDensity(cell, i_density);
     }
 
-    double getGasNumberDensity(cell_basic * cell)
+    inline double getGasNumberDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2061,7 +2088,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasNumberDensity(cell_basic * cell, uint i_density)
+    inline double getGasNumberDensity(cell_basic * cell, uint i_density)
     {
         double dens = cell->getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
@@ -2069,19 +2096,19 @@ class CGridBasic
         return dens;
     }
 
-    double getGasNumberDensity(photon_package * pp)
+    inline double getGasNumberDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasNumberDensity(cell);
     }
 
-    double getGasNumberDensity(photon_package * pp, uint i_density)
+    inline double getGasNumberDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasNumberDensity(cell, i_density);
     }
 
-    double getGasMassDensity(cell_basic * cell)
+    inline double getGasMassDensity(cell_basic * cell)
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2091,7 +2118,7 @@ class CGridBasic
         return sum;
     }
 
-    double getGasMassDensity(cell_basic * cell, uint i_density)
+    inline double getGasMassDensity(cell_basic * cell, uint i_density)
     {
         double dens = cell->getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
@@ -2099,13 +2126,13 @@ class CGridBasic
         return dens;
     }
 
-    double getGasMassDensity(photon_package * pp)
+    inline double getGasMassDensity(photon_package * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasMassDensity(cell);
     }
 
-    double getGasMassDensity(photon_package * pp, uint i_density)
+    inline double getGasMassDensity(photon_package * pp, uint i_density)
     {
         cell_basic * cell = pp->getPositionCell();
         return getGasMassDensity(cell, i_density);
@@ -2120,7 +2147,7 @@ class CGridBasic
 
     bool useConstantGrainSizes()
     {
-        if(data_pos_amin != MAX_UINT || data_pos_amax != MAX_UINT)
+        if(data_pos_amin != MAX_UINT || data_pos_amax != MAX_UINT || data_pos_size_param != MAX_UINT)
             return false;
         return true;
     }
@@ -2590,13 +2617,13 @@ class CGridBasic
                     break;
 
                 case GRIDq:
-                    if(data_pos_eq != MAX_UINT)
+                    if(data_pos_size_param != MAX_UINT)
                     {
                         cout << "\nERROR: Grid ID " << GRIDq << " can be set only once!" << endl;
                         return false;
                     }
 
-                    data_pos_eq = i;
+                    data_pos_size_param = i;
                     break;
 
                 case GRIDv_turb:
@@ -3581,6 +3608,9 @@ class CGridBasic
     double a_max_min;
     double a_max_max;
 
+    double size_param_min;
+    double size_param_max;
+
     uint dust_id_min;
     uint dust_id_max;
 
@@ -3664,7 +3694,7 @@ class CGridBasic
     uilist data_pos_aalg_list;
     uint data_pos_amin;
     uint data_pos_amax;
-    uint data_pos_eq;
+    uint data_pos_size_param;
     uint data_pos_ra;
     uint data_pos_id;
 
@@ -3710,6 +3740,7 @@ class CGridBasic
     bool plt_dust_id;
     bool plt_amin;
     bool plt_amax;
+    bool plt_size_param;
     bool plt_rad_field1;
     bool plt_u_rad;
     bool plt_g_zero1;
@@ -3752,6 +3783,7 @@ class CGridBasic
     double * buffer_dust_mixture;
     double * buffer_dust_amin;
     double * buffer_dust_amax;
+    double * buffer_dust_size_param;
     double *** buffer_rad_field;
     double * buffer_g_zero1;
     double * buffer_u_rad;

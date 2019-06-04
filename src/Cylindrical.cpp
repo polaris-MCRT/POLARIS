@@ -1198,295 +1198,329 @@ void CGridCylindrical::printParameters()
 
 bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
 {
-    Vector3D ca_pos = pp->getPosition();
+    uint dirID = pp->getDirectionID();
+    uint rID = MAX_UINT, zID = MAX_UINT, phID = MAX_UINT;
 
-    if(!isInside(ca_pos))
-        return false;
-
-    cell_cyl * tmp_cell = 0;
-    Vector3D cy_pos = ca_pos.getCylindricalCoord();
-
-    if(ca_pos.X() * ca_pos.X() + ca_pos.Y() * ca_pos.Y() < Rmin * Rmin)
+    if(dirID < 6 && dirID > 1 && pp->getPositionCell() != 0)
     {
-        uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[0], N_z + 1);
-        cell_cyl * tmp_cell = center_cells[i_z];
-        pp->setPositionCell(tmp_cell);
+        cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();
+
+        rID = tmp_cell->getRID();
+        zID = tmp_cell->getZID();
+        phID = tmp_cell->getPhID();
+
+        // Update index of next cell
+        switch(dirID)
+        {
+            case 2:
+                if(zID == 0)
+                    return false;
+                zID--;
+                break;
+
+            case 3:
+                zID++;
+                if(zID >= N_z)
+                    return false;
+                break;
+
+            case 4:
+                if(phID == 0)
+                    phID += N_ph[rID];
+                phID--;
+                break;
+
+            case 5:
+                phID++;
+                if(phID >= N_ph[rID])
+                    phID -= N_ph[rID];
+                break;
+
+            default:
+                return false;
+                break;
+        }
+
+        // Set next cell
+        if(rID == MAX_UINT)
+            pp->setPositionCell(center_cells[zID]);
+        else
+            pp->setPositionCell(grid_cells[rID][phID][zID]);
         return true;
     }
 
-    uint i_r = CMathFunctions::biListIndexSearch(cy_pos.R(), listR, N_r + 1);
-    uint i_ph = CMathFunctions::biListIndexSearch(cy_pos.Phi(), listPh[i_r], N_ph[i_r] + 1);
-    uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[i_r], N_z + 1);
+    Vector3D cy_pos = pp->getPosition().getCylindricalCoord();
 
-    if(i_r == MAX_UINT || i_ph == MAX_UINT || i_z == MAX_UINT)
+    if(cy_pos.R() < Rmin)
+    {
+        uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[0], N_z + 1);
+        if(i_z == MAX_UINT)
+            return false;
+
+        pp->setPositionCell(center_cells[i_z]);
+        return true;
+    }
+
+    uint i_r = 0, i_ph = 0, i_z = 0;
+
+    i_r = CMathFunctions::biListIndexSearch(cy_pos.R(), listR, N_r + 1);
+    if(i_r == MAX_UINT)
         return false;
 
-    tmp_cell = grid_cells[i_r][i_ph][i_z];
+    if(N_ph[i_r] > 1)
+    {
+        i_ph = CMathFunctions::biListIndexSearch(cy_pos.Phi(), listPh[i_r], N_ph[i_r] + 1);
+        if(i_ph == MAX_UINT)
+            return false;
+    }
 
-    pp->setPositionCell(tmp_cell);
+    i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[i_r], N_z + 1);
+    if(i_z == MAX_UINT)
+        return false;
 
+    pp->setPositionCell(grid_cells[i_r][i_ph][i_z]);
     return true;
 }
 
 bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 {
-    Vector3D v_n, v_a;
-    cell_cyl * tmp_cell_pos = (cell_cyl *)pp->getPositionCell();
+    cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
     bool hit = false;
-    double num = 1, den = 1;
-    double A = 1, B = 0, C = 0, dscr = 0;
-    double path_length = 0, length = 2e300, min_length = 1e300;
+    double min_length = 1e300;
+    double tmp_length[4];
 
-    if(tmp_cell_pos->getRID() == MAX_UINT)
+    uint rID = tmp_cell->getRID();
+    uint zID = tmp_cell->getZID();
+
+    uint dirID = MAX_UINT;
+
+    if(rID == MAX_UINT)
     {
-        double z1 = listZ[0][tmp_cell_pos->getZID()];
-        double z2 = listZ[0][tmp_cell_pos->getZID() + 1];
+        // --- Radial cell borders ---
+        double z1 = listZ[0][zID];
+        double z2 = listZ[0][zID + 1];
 
-        for(int i_side = 1; i_side <= 3; i_side++)
+        double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+        double C = p.X() * p.X() + p.Y() * p.Y() - Rmin * Rmin;
+        double A = d.X() * d.X() + d.Y() * d.Y();
+        double dscr = B * B - 4 * A * C;
+
+        if(dscr >= 0)
         {
-            switch(i_side)
+            dscr = sqrt(dscr);
+            tmp_length[0] = (-B + dscr) / (2 * A);
+            tmp_length[1] = (-B - dscr) / (2 * A);
+        }
+        else
+        {
+            tmp_length[0] = 1e200;
+            tmp_length[1] = 1e200;
+        }
+
+        for(uint i = 0; i < 2; i++)
+        {
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
-                case 1:
-                    B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                    C = p.X() * p.X() + p.Y() * p.Y() - Rmin * Rmin;
-                    A = d.X() * d.X() + d.Y() * d.Y();
-                    dscr = B * B - 4 * A * C;
-
-                    if(dscr >= 0)
-                    {
-                        dscr = sqrt(dscr);
-                        double l1 = (-B + dscr) / (2 * A);
-                        double l2 = (-B - dscr) / (2 * A);
-
-                        if(l1 <= 0)
-                            l1 = 2e300;
-
-                        if(l2 <= 0)
-                            l2 = 2e300;
-
-                        length = min(l1, l2);
-                    }
-
-                    break;
-
-                case 2:
-                    v_n = Vector3D(0, 0, -1);
-                    v_a = Vector3D(0, 0, z1);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-
-                    break;
-
-                case 3:
-
-                    v_n = Vector3D(0, 0, 1);
-                    v_a = Vector3D(0, 0, z2);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-
-                    break;
-            }
-
-            if(length < min_length)
-            {
-                min_length = length;
+                min_length = tmp_length[i];
                 hit = true;
+                dirID = 1;
+            }
+        }
+
+        // --- vertical cell borders ---
+        Vector3D v_n1(0, 0, -1);
+        Vector3D v_a1(0, 0, z1);
+
+        double den1 = v_n1 * d;
+        if(den1 != 0)
+        {
+            double num = v_n1 * (p - v_a1);
+            tmp_length[0] = -num / den1;
+        }
+        else
+        {
+            tmp_length[0] = 1e200;
+        }
+
+        Vector3D v_n2(0, 0, 1);
+        Vector3D v_a2(0, 0, z2);
+
+        double den2 = v_n2 * d;
+        if(den2 != 0)
+        {
+            double num = v_n2 * (p - v_a2);
+            tmp_length[1] = -num / den2;
+        }
+        else
+        {
+            tmp_length[1] = 1e200;
+        }
+
+        for(uint i = 0; i < 2; i++)
+        {
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            {
+                min_length = tmp_length[i];
+                hit = true;
+                dirID = 2 + i;
             }
         }
     }
     else
     {
-        double r1 = listR[tmp_cell_pos->getRID()];
-        double r2 = listR[tmp_cell_pos->getRID() + 1];
-        double ph1 = listPh[tmp_cell_pos->getRID()][tmp_cell_pos->getPhID()];
-        double ph2 = listPh[tmp_cell_pos->getRID()][tmp_cell_pos->getPhID() + 1];
-        double z1 = listZ[tmp_cell_pos->getRID()][tmp_cell_pos->getZID()];
-        double z2 = listZ[tmp_cell_pos->getRID()][tmp_cell_pos->getZID() + 1];
+        uint phID = tmp_cell->getPhID();
 
-        double sin_ph1 = sin(ph1);
-        double sin_ph2 = sin(ph2);
+        // --- Radial cell borders ---
+        double r1 = listR[rID];
+        double r2 = listR[rID + 1];
 
-        double cos_ph1 = cos(ph1);
-        double cos_ph2 = cos(ph2);
+        double A = d.X() * d.X() + d.Y() * d.Y();
 
-        double r = sqrt(p.sq_length());
+        double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+        double B_sq = pow(B, 2);
 
-        double max_sides = 6;
-        if(N_ph[tmp_cell_pos->getRID()] == 1)
-            max_sides = 4;
+        double C1 = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
+        double C2 = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
 
-        for(int i_side = 1; i_side <= max_sides; i_side++)
+        double dscr1 = B_sq - 4 * A * C1;
+        double dscr2 = B_sq - 4 * A * C2;
+
+        if(dscr1 >= 0)
         {
-            switch(i_side)
+            dscr1 = sqrt(dscr1);
+            tmp_length[0] = (-B + dscr1) / (2 * A);
+            tmp_length[1] = (-B - dscr1) / (2 * A);
+        }
+        else
+        {
+            tmp_length[0] = 1e200;
+            tmp_length[1] = 1e200;
+        }
+
+        if(dscr2 >= 0)
+        {
+            dscr2 = sqrt(dscr2);
+            tmp_length[2] = (-B + dscr2) / (2 * A);
+            tmp_length[3] = (-B - dscr2) / (2 * A);
+        }
+        else
+        {
+            tmp_length[2] = 1e200;
+            tmp_length[3] = 1e200;
+        }
+
+        for(uint i = 0; i < 4; i++)
+        {
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
-                case 1:
-                    A = d.X() * d.X() + d.Y() * d.Y();
-                    if(A != 0)
-                    {
-                        B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                        C = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
-                        dscr = B * B - 4 * A * C;
-
-                        if(dscr >= 0)
-                        {
-                            dscr = sqrt(dscr);
-                            double l1 = (-B + dscr) / (2 * A);
-                            double l2 = (-B - dscr) / (2 * A);
-
-                            if(l1 < 0)
-                                l1 = 2e300;
-
-                            if(l2 < 0)
-                                l2 = 2e300;
-
-                            length = min(l1, l2);
-                        }
-                    }
-                    break;
-
-                case 2:
-                    A = d.X() * d.X() + d.Y() * d.Y();
-                    if(A != 0)
-                    {
-                        B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                        C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
-                        dscr = B * B - 4 * A * C;
-
-                        if(dscr >= 0)
-                        {
-                            dscr = sqrt(dscr);
-                            double l1 = (-B + dscr) / (2 * A);
-                            double l2 = (-B - dscr) / (2 * A);
-
-                            if(l1 < 0)
-                                l1 = 2e300;
-
-                            if(l2 < 0)
-                                l2 = 2e300;
-
-                            length = min(l1, l2);
-                        }
-                    }
-                    break;
-
-                case 3:
-                    v_n = Vector3D(0, 0, -1);
-                    v_a = Vector3D(0, 0, z1);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-                    break;
-
-                case 4:
-                    v_n = Vector3D(0, 0, 1);
-                    v_a = Vector3D(0, 0, z2);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-                    break;
-
-                case 5:
-                    v_n = -Vector3D(-sin_ph1, cos_ph1, 0);
-                    v_a = r * Vector3D(cos_ph1, sin_ph1, 0);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-                    break;
-
-                case 6:
-                    v_n = Vector3D(-sin_ph2, cos_ph2, 0);
-                    v_a = r * Vector3D(cos_ph2, sin_ph2, 0);
-
-                    num = v_n * (p - v_a);
-                    den = v_n * d;
-
-                    if(den != 0)
-                    {
-                        length = -num / den;
-
-                        if(length < 0)
-                            length = 2e300;
-                    }
-                    else
-                        length = 2e300;
-                    break;
+                min_length = tmp_length[i];
+                hit = true;
+                dirID = uint(i / 2);
             }
+        }
 
-            if(length < min_length)
+        // --- vertical cell borders ---
+        double z1 = listZ[rID][zID];
+        double z2 = listZ[rID][zID + 1];
+
+        Vector3D v_n1(0, 0, -1);
+        Vector3D v_a1(0, 0, z1);
+
+        double den1 = v_n1 * d;
+        if(den1 != 0)
+        {
+            double num = v_n1 * (p - v_a1);
+            double length = -num / den1;
+
+            if(length >= 0 && length < min_length)
             {
                 min_length = length;
                 hit = true;
+                dirID = 2;
+            }
+        }
+
+        Vector3D v_n2(0, 0, 1);
+        Vector3D v_a2(0, 0, z2);
+
+        double den2 = v_n2 * d;
+        if(den2 != 0)
+        {
+            double num = v_n2 * (p - v_a2);
+            double length = -num / den2;
+
+            if(length >= 0 && length < min_length)
+            {
+                min_length = length;
+                hit = true;
+                dirID = 3;
+            }
+        }
+
+        // --- Phi cell borders ---
+        if(N_ph[rID] > 1)
+        {
+            double r = sqrt(p.sq_length());
+
+            double ph1 = listPh[rID][phID];
+            double ph2 = listPh[rID][phID + 1];
+
+            double sin_ph1 = sin(ph1);
+            double sin_ph2 = sin(ph2);
+
+            double cos_ph1 = cos(ph1);
+            double cos_ph2 = cos(ph2);
+
+            Vector3D v_n1 = -Vector3D(-sin_ph1, cos_ph1, 0);
+            Vector3D v_a1 = r * Vector3D(cos_ph1, sin_ph1, 0);
+
+            double den1 = v_n1 * d;
+            if(den1 != 0)
+            {
+                double num = v_n1 * (p - v_a1);
+                double length = -num / den1;
+
+                if(length >= 0 && length < min_length)
+                {
+                    min_length = length;
+                    hit = true;
+                    dirID = 4;
+                }
+            }
+
+            Vector3D v_n2 = Vector3D(-sin_ph2, cos_ph2, 0);
+            Vector3D v_a2 = r * Vector3D(cos_ph2, sin_ph2, 0);
+
+            double den2 = v_n2 * d;
+            if(den2 != 0)
+            {
+                double num = v_n2 * (p - v_a2);
+                double length = -num / den2;
+
+                if(length >= 0 && length < min_length)
+                {
+                    min_length = length;
+                    hit = true;
+                    dirID = 5;
+                }
             }
         }
     }
 
-    if(hit)
-        path_length = min_length + MIN_LEN_STEP * min_len;
-    else
+    if(!hit)
     {
         cout << "\nERROR: Wrong cell border!                                   " << endl;
         return false;
     }
 
+    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
-
-    return hit;
+    pp->setDirectionID(dirID);
+    return true;
 }
 
 bool CGridCylindrical::updateShortestDistance(photon_package * pp)
@@ -1537,83 +1571,85 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 {
     uint try_counter = 0;
 
-    double A, B, C, dscr, min_length = 2e300;
-    Vector3D v_n, v_a, new_pos;
+    double min_length = 1e200;
+    double tmp_length[2];
+    bool hit = false;
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
-    double num, den, length;
 
     if(isInside(p))
-        return true;
+        return positionPhotonInGrid(pp);
 
-    for(int i_side = 1; i_side <= 3; i_side++)
+    // --- Radial cell borders ---
+    double A = d.X() * d.X() + d.Y() * d.Y();
+    double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
+    double C = p.X() * p.X() + p.Y() * p.Y() - Rmax * Rmax;
+    double dscr = B * B - 4 * A * C;
+
+    if(A > 0 && dscr >= 0)
     {
-        switch(i_side)
+        dscr = sqrt(dscr);
+        tmp_length[0] = (-B + dscr) / (2 * A);
+        tmp_length[1] = (-B - dscr) / (2 * A);
+    }
+    else
+    {
+        tmp_length[0] = 1e200;
+        tmp_length[1] = 1e200;
+    }
+
+    for(uint i = 0; i < 2; i++)
+    {
+        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
         {
-            case 1:
-                B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-                C = p.X() * p.X() + p.Y() * p.Y() - Rmax * Rmax;
-                A = d.X() * d.X() + d.Y() * d.Y();
-                dscr = B * B - 4 * A * C;
-
-                if(dscr >= 0 && A > 0)
-                {
-                    dscr = sqrt(dscr);
-                    double l1 = (-B + dscr) / (2 * A);
-                    double l2 = (-B - dscr) / (2 * A);
-
-                    if(l1 <= 0)
-                        l1 = 2e300;
-
-                    if(l2 <= 0)
-                        l2 = 2e300;
-
-                    min_length = min(l1, l2);
-                }
-                break;
-
-            case 2:
-                v_n = Vector3D(0, 0, -1);
-                v_a = Vector3D(0, 0, -Zmax);
-
-                num = v_n * (p - v_a);
-                den = v_n * d;
-
-                if(den != 0)
-                {
-                    length = -num / den;
-
-                    if(length > 0)
-                        min_length = length;
-                }
-                break;
-
-            case 3:
-                v_n = Vector3D(0, 0, 1);
-                v_a = Vector3D(0, 0, Zmax);
-
-                num = v_n * (p - v_a);
-                den = v_n * d;
-
-                if(den != 0)
-                {
-                    length = -num / den;
-
-                    if(length > 0)
-                        min_length = length;
-                }
-                break;
-        }
-
-        min_length *= 1.00001;
-        new_pos = p + min_length * d;
-
-        if(isInside(new_pos))
-        {
-            pp->setPosition(new_pos);
-            return positionPhotonInGrid(pp);
+            if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
+            {
+                min_length = tmp_length[i];
+                hit = true;
+            }
         }
     }
 
-    return false;
+    // --- vertical cell borders ---
+    Vector3D v_n1(0, 0, -1);
+    double den1 = v_n1 * d;
+    if(den1 != 0)
+    {
+        Vector3D v_a1(0, 0, -Zmax);
+        double num = v_n1 * (p - v_a1);
+        double length = -num / den1;
+        if(length >= 0 && length < min_length)
+        {
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            {
+                min_length = length;
+                hit = true;
+            }
+        }
+    }
+
+    Vector3D v_n2(0, 0, 1);
+    double den2 = v_n2 * d;
+    if(den2 != 0)
+    {
+        Vector3D v_a2(0, 0, Zmax);
+        double num = v_n2 * (p - v_a2);
+        double length = -num / den2;
+        if(length >= 0 && length < min_length)
+        {
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            {
+                min_length = length;
+                hit = true;
+            }
+        }
+    }
+
+    if(!hit)
+        return false;
+
+    double path_length = min_length + MIN_LEN_STEP * min_len;
+    pp->setPosition(p + d * path_length);
+    pp->setDirectionID(MAX_UINT);
+    return positionPhotonInGrid(pp);
 }

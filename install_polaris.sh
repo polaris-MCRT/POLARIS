@@ -48,7 +48,7 @@ while getopts "hrduD" opt; do
             echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
 	    cd ${install_directory}
 	    make clean 
-            make CXXFLAGS='-O0 -g -Wall -Weffc++ -Wextra -Wsign-conversion' && make install
+            make CXXFLAGS='-O0 -g'  && make install #'-Wall -Weffc++ -Wextra -Wsign-conversion'
             if [ -d "tools" ]
             then
 	        cd "tools"
@@ -84,7 +84,7 @@ while getopts "hrduD" opt; do
                         sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
                     fi
 	                cd ${install_directory}/../
-	                rm -rv polaris/
+	                rm -rv ${install_directory}
 			local_python_lib="$(python -m site --user-base 2>&1)"
 			rm "${local_python_lib}/lib"
 	                echo -e  "${TC}-> Deletion of POLARIS ${NC}[${GREEN}done${NC}]"
@@ -150,7 +150,7 @@ function install_fits_support {
 
 function check_python_packages {
     echo -e  "Looking for required Python packages"
-    for package_name in pandas numpy scipy matplotlib astropy os array struct argparse
+    for package_name in numpy scipy matplotlib astropy os array struct argparse
     do
         if ! python -c "import ${package_name}" &> /dev/null
         then
@@ -260,7 +260,7 @@ function install_polaris_tools {
      
     echo -ne "Creating links to Python packages ..."\\r
     local_python_lib="$(python -m site --user-base 2>&1)"
-    mkdir -p ${local_python_lib}
+    mkdir -p "${local_python_lib}/lib"
     ln -isn ${install_directory}/lib/python* "${local_python_lib}/lib/"
     echo -e "Creating links to Python packages [${GREEN}done${NC}]"
 }

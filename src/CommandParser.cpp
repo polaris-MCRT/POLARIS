@@ -1702,8 +1702,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
-    
-    
+
     if(cmd.compare("<detector_sync_slice nr_pixel = >") == 0)
     {
         string str = seperateString(data);
@@ -2281,6 +2280,43 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<source_laser nr_photons = >") == 0)
+    {
+        string str = seperateString(data);
+        ullong nr_of_photons = ullong(atof(str.c_str()));
+
+        if(nr_of_photons <= 0)
+        {
+            cout << "\nERROR: Number of laser photons could not be recognized!" << endl;
+            return false;
+        }
+
+        dlist values = parseValues(data);
+
+        if(values.size() == NR_OF_LASER_SOURCES - 3)
+        {
+            values.push_back(0);
+            values.push_back(0);
+        }
+        else if(values.size() != NR_OF_LASER_SOURCES - 1)
+        {
+            cout << "\nERROR: False amount of parameters for source laser in line " << line_counter << "!"
+                 << endl;
+            return false;
+        }
+
+        double P_l = sqrt(pow(values[9], 2) + pow(values[10], 2));
+        if(P_l > 1.0)
+        {
+            cout << "\nERROR: Chosen polarization of source laser is larger than 1!" << endl;
+            return false;
+        }
+
+        values.push_back(double(nr_of_photons));
+        param->addLaserSource(values);
+        return true;
+    }
+
     if(cmd.compare("<axis1>") == 0)
     {
         dlist values = parseValues(data);
@@ -2381,6 +2417,23 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         string label = seperateString(data);
         param->setXYLabel(label);
         param->setAutoScale(false);
+        return true;
+    }
+
+    if(cmd.compare("<healpix_orientation>") == 0)
+    {
+        if(data.compare("HEALPIX_FIXED") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_FIXED);
+        }
+        else if(data.compare("HEALPIX_YAXIS") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_YAXIS);
+        }
+        else if(data.compare("HEALPIX_CENTER") == 0)
+        {
+            param->setHealpixOrientation(HEALPIX_CENTER);
+        }
         return true;
     }
 
@@ -2503,7 +2556,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else if(path.size() > 3 && nr_size_parameter == 0)
         {
-            size_parameter.push_back(-3.5);
+            size_parameter.push_back(0); // Default is a flat profile now (not -3.5)!
             for(uint i = 1; i < NR_OF_SIZE_DIST_PARAM; i++)
                 size_parameter.push_back(0);
             if(fr.size() == 4)
@@ -2981,15 +3034,16 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<write_radiation_field>") == 0)
     {
-        uint val=atoi(data.c_str());
-        
-        if(val>3)
+        uint val = atoi(data.c_str());
+
+        if(val > 3)
         {
-            cout << "\nWARNING: Command \"<write_radiation_field>\" accepts only paramers between 0 to 3!" << endl;
+            cout << "\nWARNING: Command \"<write_radiation_field>\" accepts only paramers between 0 to 3!"
+                 << endl;
             param->setWriteRadiationField(0);
             return true;
         }
-        
+
         param->setWriteRadiationField(val);
 
         return true;

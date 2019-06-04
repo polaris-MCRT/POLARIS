@@ -12,7 +12,7 @@
 using namespace std;
 
 // Header and Version of POLARIS
-#define PROG_ID "POLARIS    V4.04.00        "
+#define PROG_ID "POLARIS    V4.05.00        "
 
 // Flags to activate WINDOWS support, some DEBUG messages, and CAMPS BENCHMARK
 //#define DEBUG
@@ -94,6 +94,7 @@ using namespace std;
 // Number of entries for different sources
 #define NR_OF_POINT_SOURCES 8
 #define NR_OF_DIFF_SOURCES 9
+#define NR_OF_LASER_SOURCES 12
 #define NR_OF_BG_SOURCES 8
 
 #define TEMP_MIN 2.728
@@ -237,6 +238,11 @@ using namespace std;
 // Type of calorimetry data
 #define CALO_HEAT_CAP 0
 #define CALO_ENTHALPY 1
+
+// Type of healpix orientation
+#define HEALPIX_FIXED 0
+#define HEALPIX_YAXIS 1
+#define HEALPIX_CENTER 2
 
 // Mie-scattering calculation
 #define MIE_SIZE_STEPS 100

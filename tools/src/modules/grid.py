@@ -38,6 +38,10 @@ class Grid:
         else:
             self.data = model
 
+        # Set the position to an arbitrary value to check get_density functions
+        self.data.position = [0, 0, 0]
+        self.data.volume = 0.
+
         #: float: Total gas mass of the grid nodes
         self.total_gas_mass = None
 
@@ -64,25 +68,21 @@ class Grid:
         # Check if get_density functions provide fitting arrays
         self.check_density_arrays()
 
-        #: bool: Should dust indizes be written into the grid
-        self.dust_id_used = False
-
-        #: bool: Should size limits be written into the grid
-        self.dust_limits_used = False
-
         #: int: Number of quantities per grid cell
-        self.data_length = 8 + self.nr_gas_densities + self.nr_dust_densities
-        if parse_args.variable_dust or self.model.parameter['variable_dust']:
-            if self.nr_gas_densities == 1 and self.nr_dust_densities <= 1:
-                self.dust_id_used = True
-                self.data_length += 1
-        else:
-            if self.nr_gas_densities != 1 or self.nr_dust_densities > 1:
+        self.data_length = self.nr_gas_densities + self.nr_dust_densities + \
+            (self.data.get_dust_temperature() is not None) + \
+            (self.data.get_gas_temperature() is not None) + \
+            (self.data.get_magnetic_field() is not None) * 3 + \
+            (self.data.get_velocity_field() is not None) * 3 + \
+            (self.data.dust_min_size() is not None) + \
+            (self.data.dust_max_size() is not None) + \
+            (self.data.dust_size_param() is not None)
+        if self.data.get_dust_id() is not None:
+            if self.nr_gas_densities > 1 or self.nr_dust_densities > 1:
                 raise ValueError(
-                    'Too many density distributions defined, but variable dust not activated!')
-        if parse_args.variable_size_limits or self.model.parameter['variable_size_limits']:
-            self.dust_limits_used = True
-            self.data_length += 2
+                    'Multiple density distributions and dust_id function defined')
+            else:
+                self.data_length += 1
 
     def update_mass_measurement(self, node, remove=False):
         """Updates the total mass for normalization and allows the definition
@@ -92,35 +92,34 @@ class Grid:
             node: A grid cell.
             remove (bool): Remove the density instead of adding?
         """
-        gas_mass = np.multiply(
-            node.parameter['gas_density'], node.parameter['volume'])
-        dust_mass = np.multiply(
-            node.parameter['dust_density'], node.parameter['volume'])
-        if remove:
-            gas_mass *= -1
-            dust_mass *= -1
+        if self.nr_gas_densities > 0:
+            gas_mass = np.multiply(
+                node.parameter['gas_density'], node.parameter['volume'])
+            if remove:
+                gas_mass *= -1
+            if self.total_gas_mass is None:
+                self.total_gas_mass = gas_mass
+            else:
+                self.total_gas_mass += gas_mass
 
-        if self.total_gas_mass is None:
-            self.total_gas_mass = gas_mass
-        else:
-            self.total_gas_mass += gas_mass
-
-        if self.total_dust_mass is None:
-            self.total_dust_mass = dust_mass
-        else:
-            self.total_dust_mass += dust_mass
+        if self.nr_dust_densities > 0:
+            dust_mass = np.multiply(
+                node.parameter['dust_density'], node.parameter['volume'])
+            if remove:
+                dust_mass *= -1
+            if self.total_dust_mass is None:
+                self.total_dust_mass = dust_mass
+            else:
+                self.total_dust_mass += dust_mass
 
     def check_density_arrays(self):
         """Check if get_density functions provide fitting arrays.
         """
-        # Set the position to an arbitrary value to check get_density functions
-        self.data.position = [0, 0, 0]
-        self.data.volume = 0.
-
         # Check for errors
         try:
             if self.nr_gas_densities == 1:
-                if not isinstance(self.data.get_gas_density_distribution(), (float, int)):
+                if self.data.get_gas_density_distribution() is not None and \
+                        not isinstance(self.data.get_gas_density_distribution(), (float, int)):
                     if len(self.data.get_gas_density_distribution()[0]) != \
                             len(self.model.parameter['gas_mass'][0]):
                         raise ValueError("gas_density_distribution does not provied the same array than "
@@ -136,7 +135,8 @@ class Grid:
                 "the gas_density function and the defined gas_mass do not fit!")
         try:
             if self.nr_dust_densities == 1:
-                if not isinstance(self.data.get_dust_density_distribution(), (float, int)):
+                if self.data.get_dust_density_distribution() is not None and \
+                        not isinstance(self.data.get_dust_density_distribution(), (float, int)):
                     raise ValueError(
                         "get_dust_density_distribution provides not float!")
             elif self.nr_dust_densities > 1:
@@ -207,31 +207,39 @@ class Grid:
         # Dust density index: 1 or dust mass density index: 29
         for i_dust_dens in range(self.nr_dust_densities):
             grid_file.write(struct.pack('H', 29))
-        # Dust temperature index: 2
-        grid_file.write(struct.pack('H', 2))
-        # Gas temperature index: 3
-        grid_file.write(struct.pack('H', 3))
-        # Magnetic field x-component index: 4
-        grid_file.write(struct.pack('H', 4))
-        # Magnetic field y-component index: 5
-        grid_file.write(struct.pack('H', 5))
-        # Magnetic field z-component index: 6
-        grid_file.write(struct.pack('H', 6))
-        # Velocity field x-component index: 7
-        grid_file.write(struct.pack('H', 7))
-        # Velocity field y-component index: 8
-        grid_file.write(struct.pack('H', 8))
-        # Velocity field z-component index: 9
-        grid_file.write(struct.pack('H', 9))
+        if self.data.get_dust_temperature() is not None:
+            # Dust temperature index: 2
+            grid_file.write(struct.pack('H', 2))
+        if self.data.get_gas_temperature() is not None:
+            # Gas temperature index: 3
+            grid_file.write(struct.pack('H', 3))
+        if self.data.get_magnetic_field() is not None:
+            # Magnetic field x-component index: 4
+            grid_file.write(struct.pack('H', 4))
+            # Magnetic field y-component index: 5
+            grid_file.write(struct.pack('H', 5))
+            # Magnetic field z-component index: 6
+            grid_file.write(struct.pack('H', 6))
+        if self.data.get_velocity_field() is not None:
+            # Velocity field x-component index: 7
+            grid_file.write(struct.pack('H', 7))
+            # Velocity field y-component index: 8
+            grid_file.write(struct.pack('H', 8))
+            # Velocity field z-component index: 9
+            grid_file.write(struct.pack('H', 9))
         # Add an index for the dust choice in a certain cell
-        if self.dust_id_used:
+        if self.data.get_dust_id() is not None:
             # Dust choice index: 21
             grid_file.write(struct.pack('H', 21))
-        if self.dust_limits_used:
+        if self.data.dust_min_size() is not None:
             # Minimum dust grain size: 14
             grid_file.write(struct.pack('H', 14))
+        if self.data.dust_max_size() is not None:
             # Maximum dust grain size: 15
             grid_file.write(struct.pack('H', 15))
+        if self.data.dust_size_param() is not None:
+            # Size distribution parameter: 16
+            grid_file.write(struct.pack('H', 16))    
         if grid_type == 'octree':
             if root is not None:
                 grid_file.write(struct.pack(
@@ -268,45 +276,61 @@ class Grid:
 
         # Transmit the cell position to the model to obtain the cell quantities
         self.data.init_position(node, cell_IDs)
-        node.parameter['gas_density'] = self.data.get_gas_density_distribution()
-        node.parameter['dust_density'] = self.data.get_dust_density_distribution()
-        dust_temperature = self.data.get_dust_temperature()
-        gas_temperature = self.data.get_gas_temperature()
-        mag_field = self.data.get_magnetic_field()
-        velocity = self.data.get_velocity_field()
-        dust_id = self.data.get_dust_id()
-        a_min = self.data.get_dust_min_size()
-        a_max = self.data.get_dust_max_size()
+
         # Write gas density to grid for each defined distribution
-        for i_gas_dens in range(self.nr_gas_densities):
-            if isinstance(node.parameter['gas_density'], (float, int)):
-                grid_file.write(struct.pack(
-                    data_type, node.parameter['gas_density']))
-            else:
-                grid_file.write(struct.pack(data_type, np.sum(
-                    node.parameter['gas_density'][i_gas_dens])))
+        if self.nr_gas_densities > 0:
+            node.parameter['gas_density'] = self.data.get_gas_density_distribution()
+            for i_gas_dens in range(self.nr_gas_densities):
+                if isinstance(node.parameter['gas_density'], (float, int)):
+                    grid_file.write(struct.pack(
+                        data_type, node.parameter['gas_density']))
+                else:
+                    grid_file.write(struct.pack(data_type, np.sum(
+                        node.parameter['gas_density'][i_gas_dens])))
         # Write dust density to grid for each defined distribution
-        for i_dust_dens in range(self.nr_dust_densities):
-            if isinstance(node.parameter['dust_density'], (float, int)):
-                grid_file.write(struct.pack(
-                    data_type, node.parameter['dust_density']))
-            else:
-                grid_file.write(struct.pack(data_type, np.sum(
-                    node.parameter['dust_density'][i_dust_dens])))
-        grid_file.write(struct.pack(data_type, dust_temperature))
-        grid_file.write(struct.pack(data_type, gas_temperature))
-        grid_file.write(struct.pack(data_type, mag_field[0]))
-        grid_file.write(struct.pack(data_type, mag_field[1]))
-        grid_file.write(struct.pack(data_type, mag_field[2]))
-        grid_file.write(struct.pack(data_type, velocity[0]))
-        grid_file.write(struct.pack(data_type, velocity[1]))
-        grid_file.write(struct.pack(data_type, velocity[2]))
-        # Add an index for the dust choice in a certain cell
-        if self.dust_id_used:
+        if self.nr_dust_densities > 0:
+            node.parameter['dust_density'] = self.data.get_dust_density_distribution()
+            for i_dust_dens in range(self.nr_dust_densities):
+                if isinstance(node.parameter['dust_density'], (float, int)):
+                    grid_file.write(struct.pack(
+                        data_type, node.parameter['dust_density']))
+                else:
+                    grid_file.write(struct.pack(data_type, np.sum(
+                        node.parameter['dust_density'][i_dust_dens])))
+
+        # Set additional quantities
+        dust_temperature = self.data.get_dust_temperature()
+        if dust_temperature is not None:
+            grid_file.write(struct.pack(
+                data_type, dust_temperature))
+        gas_temperature = self.data.get_gas_temperature()
+        if gas_temperature is not None:
+            grid_file.write(struct.pack(
+                data_type, gas_temperature))
+
+        mag_field = self.data.get_magnetic_field()
+        if mag_field is not None:
+            grid_file.write(struct.pack(data_type, mag_field[0]))
+            grid_file.write(struct.pack(data_type, mag_field[1]))
+            grid_file.write(struct.pack(data_type, mag_field[2]))
+        velocity = self.data.get_velocity_field()
+        if velocity is not None:
+            grid_file.write(struct.pack(data_type, velocity[0]))
+            grid_file.write(struct.pack(data_type, velocity[1]))
+            grid_file.write(struct.pack(data_type, velocity[2]))
+
+        dust_id = self.data.get_dust_id()
+        if dust_id is not None:
             grid_file.write(struct.pack(data_type, dust_id))
-        if self.dust_limits_used:
+        a_min = self.data.get_dust_min_size()
+        if a_min is not None:
             grid_file.write(struct.pack(data_type, a_min))
+        a_max = self.data.get_dust_max_size()
+        if a_max is not None:
             grid_file.write(struct.pack(data_type, a_max))
+        size_param = self.data.get_dust_size_param()
+        if size_param is not None:
+            grid_file.write(struct.pack(data_type, size_param))
 
     def read_write_node_data(self, tmp_file, grid_file, data_type='f'):
         """Read node data to binary grid_file.
@@ -1332,18 +1356,15 @@ class Cylindrical(Grid):
                                  str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
                     stdout.flush()
                     # Calculate the cell midpoint in cylindrical coordinates
-                    cylindrical_coord = np.zeros(3)
-                    cylindrical_coord[0] = (
-                        radius_list[i_r] + radius_list[i_r + 1]) / 2.
-                    cylindrical_coord[1] = (
-                        phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.
-                    cylindrical_coord[2] = (
-                        z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
+                    cylindrical_coord = np.array([
+                        (radius_list[i_r] + radius_list[i_r + 1]) / 2.,
+                        (phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.,
+                        (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
+                    ])
                     # Convert the cylindrical coordinate into carthesian node position
-                    position = self.math.cylindrical_to_carthesian(
-                        cylindrical_coord)
                     node = Node('cylindrical')
-                    node.parameter['position'] = position
+                    node.parameter['position'] = self.math.cylindrical_to_carthesian(
+                        cylindrical_coord)
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
                                                 phi_list[i_r][i_p], phi_list[i_r][i_p + 1],
                                                 z_list[i_r][i_z], z_list[i_r][i_z + 1]]
