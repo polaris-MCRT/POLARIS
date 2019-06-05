@@ -778,6 +778,8 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
     string filename = param.getISRFPath();
     radius = param.getISRFRadius();
 
+    spline sp_ext_wl;
+
     ifstream reader(filename.c_str());
     int line_counter = -2;
     string line;
@@ -818,8 +820,6 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
                 return false;
             }
 
-            c_w = new double[getNrOfWavelength()];
-            c_f = new double[getNrOfWavelength()];
             c_q = value[0];
             c_u = value[1];
             c_v = value[2];
@@ -828,8 +828,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
         {
             if(value.size() == 2)
             {
-                g_zero = param.getISRFGZero();
-                sp_ext.setDynValue(value[0], value[1] * g_zero * dust->getForegroundExtinction(value[0]));
+                sp_ext_wl.setDynValue(value[0], value[1]);
 
                 if(w_min > value[0])
                     w_min = value[0];
@@ -846,8 +845,23 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
         }
     }
 
-    sp_ext.createDynSpline();
+    sp_ext_wl.createDynSpline();
     reader.close();
+
+    sp_ext.resize(getNrOfWavelength());
+    for(uint w = 0; w < getNrOfWavelength(); w++)
+    {
+        double rad_field = 0;
+        if(wavelength_list[w] > w_min && wavelength_list[w] < w_max)
+        {
+            // Get radiation field from dynamic spline
+            rad_field = sp_ext_wl.getValue(wavelength_list[w]);
+        }
+
+        // Calculate final emission
+        sp_ext.setValue(w, wavelength_list[w], rad_field * dust->getForegroundExtinction(wavelength_list[w]));
+    }
+    sp_ext.createSpline();
 
     return true;
 }

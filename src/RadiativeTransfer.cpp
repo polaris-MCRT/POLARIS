@@ -358,6 +358,13 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 else
                     tm_source->createNextRay(pp, ullong(r));
 
+                if(pp->getStokesVector().I() < 1e-200)
+                {
+                    kill_counter++;
+                    delete pp;
+                    continue;
+                }
+
                 if(!grid->positionPhotonInGrid(pp))
                     if(!grid->findStartingPoint(pp))
                     {
