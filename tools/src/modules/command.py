@@ -100,7 +100,7 @@ class CmdPolaris:
                 cmd_file.write('\n')
         cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
         if self.parse_args.midplane_rad_field:
-            cmd_file.write('\t<write_radiation_field>\t1\n')
+            cmd_file.write('\t<write_radiation_field>\t2\n')
         cmd_file.write('\n')
         cmd_file.write('\t<mass_fraction>\t\t' + str(mass_fraction) + '\n')
         cmd_file.write('\t<mu>\t\t\t' + str(mu) + '\n')
@@ -108,7 +108,8 @@ class CmdPolaris:
         cmd_file.write('\t<phase_function>\tPH_' + str(scattering) + '\n')
         cmd_file.write('\n')
         if self.parse_args.healpix_orientation is not None:
-            cmd_file.write('\t<healpix_orientation>\t' + str(self.parse_args.healpix_orientation) + '\n')
+            cmd_file.write('\t<healpix_orientation>\t' +
+                           str(self.parse_args.healpix_orientation) + '\n')
         cmd_file.write('\n')
         cmd_file.write('\t<nr_threads>\t\t' + str(nr_threads) + '\n')
         cmd_file.write('</common>\n')
