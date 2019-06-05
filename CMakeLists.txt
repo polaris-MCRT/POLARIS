@@ -16,11 +16,6 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
 INCLUDE_DIRECTORIES(${CFITSIO_INCLUDE_DIR})
 
 add_subdirectory (src)
-
-set_property(TARGET polaris 
-        PROPERTY CXX_STANDARD 98)
-set_property(TARGET polaris 
-        PROPERTY CXX_STANDARD_REQUIRED ON)
         
 install(TARGETS polaris
         DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/)

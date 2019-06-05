@@ -2,9 +2,9 @@ set(CMAKE_CXX_STANDARD 98)
 set(CXX_STANDARD_REQUIRED ON)
 
 if(BUILD_STATIC_LIBS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -MMD -MP -MF -static-libgcc -static-libstdc++ -static")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -O2 -g -fopenmp -MMD -MP -MF -static-libgcc -static-libstdc++ -static")
 else(BUILD_STATIC_LIBS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -MMD -MP -MF")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -O2 -g -fopenmp -MMD -MP -MF")
 endif(BUILD_STATIC_LIBS)
 
 SET(SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp 
