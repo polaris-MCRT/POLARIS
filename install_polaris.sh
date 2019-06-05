@@ -287,6 +287,11 @@ cd ${install_directory}
 # Make shell scripts executable (should not be necessary)
 chmod +x *.sh
 
+if [ ! -d "projects" ]
+then
+    mkdir "projects"
+fi
+
 function command_exists {
     type "$1" &> /dev/null ;
 }

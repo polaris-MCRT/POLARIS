@@ -67,19 +67,21 @@ cp -rv --parents \
     tools/AUTHORS \
     tools/README \
     tools/ChangeLog \
-    tools/setup.py.txt \
+    tools/setup.py \
     tools/polaris-run.in \
     tools/polaris-plot.in \
     tools/polaris-gen.in \
     tools/polaris-remote.in \
     tools/polaris-extra.in \
     tools/polaris-test.in \
+    tools/polaris_tools_modules/__init__.py \
     tools/polaris_tools_modules/*.py \
+    tools/polaris_tools_custom/__init__.py \
     tools/polaris_tools_custom/*.py.empty \
     bin/polaris \
     /tmp/polaris/
     
-for f in /tmp/polaris/tools/src/custom/*py.empty; do 
+for f in /tmp/polaris/tools/polaris_tools_custom/*py.empty; do 
     mv -- "$f" "${f%.py.empty}.py"
 done
 
