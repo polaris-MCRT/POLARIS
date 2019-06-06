@@ -2684,10 +2684,10 @@ class CustomPlots:
             # plot imshow
             plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
                              norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
-            #for i_pos, center_pos in enumerate(measurement_position_list):
-            #    plot.plot_text(text_pos=center_pos,
-            #        text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
-            #        bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
+            for i_pos, center_pos in enumerate(measurement_position_list):
+                plot.plot_text(text_pos=center_pos,
+                    text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
+                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot], horizontalalignment='left',
@@ -2706,5 +2706,13 @@ class CustomPlots:
             # plot imshow
             plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=0, set_bad_to_min=True,
                              norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+            for i_pos, center_pos in enumerate(measurement_position_list):
+                if i_pos == 5:
+                    pos = [center_pos[0], center_pos[1] + 0.1]
+                else:
+                    pos = center_pos
+                plot.plot_text(text_pos=pos,
+                    text=str(i_pos + 1), ax_index=0, color='white', fontsize=10,
+                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
