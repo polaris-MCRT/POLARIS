@@ -4416,7 +4416,7 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
             temp = grid->getDustTemperature(pp, i_density);
 
         // Calculate energy of current grain size
-        rel_weight[a] = getCabsMean(a, w) * getTabPlanck(w, temp);
+        rel_weight[a] *= getCabsMean(a, w) * getTabPlanck(w, temp);
     }
 
     // Calclate the total energy via interpolation

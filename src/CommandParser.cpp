@@ -2238,9 +2238,9 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         string str = seperateString(data);
         ullong nr_of_photons = ullong(atof(str.c_str()));
 
-        if(nr_of_photons <= 0)
+        if(nr_of_photons < 0)
         {
-            cout << "\nERROR: Number of point source photons could not be recognized!" << endl;
+            cout << "\nERROR: Number of background source photons could not be recognized!" << endl;
             return false;
         }
 
