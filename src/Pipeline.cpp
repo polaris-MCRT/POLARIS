@@ -1242,7 +1242,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
         case CMD_DUST_SCATTERING:
             cout << "- Command          : DUST SCATTERING (Monte-Carlo)" << endl;
             printPathParameters(param);
-            printSourceParameters(param);
+            printSourceParameters(param, true);
             printConversionParameters(param);
             printAlignmentParameters(param);
             printDetectorParameters(param, true);

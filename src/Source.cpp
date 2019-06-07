@@ -1034,6 +1034,9 @@ bool CSourceDust::initSource(uint w)
     // Init variables
     ulong nr_of_cells = grid->getMaxDataCells();
     photon_package * pp = new photon_package();
+    uint max_counter = nr_of_cells;
+    ullong per_counter = 0;
+    float last_percentage = 0;
 
     // Init variables
     total_energy = new double[getNrOfWavelength()];
@@ -1047,8 +1050,28 @@ bool CSourceDust::initSource(uint w)
     total_energy[w] = 0;
     cell_prob[w].setValue(0, total_energy[w]);
 
+    // Show Initial message
+    cout << "-> Initiating dust grain emission          \r" << flush;
+
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
+        // Increase counter used to show progress
+        per_counter++;
+
+        // Calculate percentage of total progress
+        float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+#pragma omp critical
+            {
+                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                     << flush;
+                last_percentage = percentage;
+            }
+        }
+
         // Put photon package into current cell
         pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
