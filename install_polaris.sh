@@ -6,6 +6,10 @@ install_directory=$(pwd)
 fits_support=false
 polaris_tools=false
 
+function command_exists {
+    type "$1" &> /dev/null ;
+}
+
 # Define colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -309,10 +313,6 @@ if [ ! -d "projects" ]
 then
     mkdir "projects"
 fi
-
-function command_exists {
-    type "$1" &> /dev/null ;
-}
 
 # Ask for additional features
 echo -e "${PC}--- Additional features ---${NC}"
