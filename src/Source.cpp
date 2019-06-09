@@ -1053,6 +1053,7 @@ bool CSourceDust::initSource(uint w)
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
+#pragma omp parallel for schedule(dynamic)
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
         // Increase counter used to show progress

@@ -17,3 +17,6 @@ add_executable (polaris ${SRC_FILES})
 
 target_link_libraries(polaris ${CCFITS_LIBRARY})
 target_link_libraries(polaris ${CFITSIO_LIBRARY})
+
+install(TARGETS polaris
+        DESTINATION ${CMAKE_CURRENT_LIST_DIR}/../bin/)

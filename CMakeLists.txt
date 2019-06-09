@@ -15,8 +15,4 @@ find_package(CCFITS REQUIRED)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
 INCLUDE_DIRECTORIES(${CFITSIO_INCLUDE_DIR})
 
-add_subdirectory (src)
-        
-install(TARGETS polaris
-        DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/)
-
+add_subdirectory(src)
