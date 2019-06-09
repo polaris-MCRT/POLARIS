@@ -72,8 +72,26 @@ while getopts "hrducD" opt; do
     c)
 	    echo -e "${TC}------ create pre-compiled POLARIS ------${NC}"
         cd ${install_directory}
-        cmake . -DBUILD_STATIC_LIBS=ON
-        make && make install
+        # Check for necessary programms
+        if ! command_exists cmake
+        then
+            echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
+            exit
+        fi
+        # Installing fits libraries
+        install_fits_support
+        sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
+        cmake . -DBUILD_STATIC_LIBS=ON > /dev/null 2>&1 \
+            && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
+            || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
+        echo -ne "Compiling POLARIS ... "\\r
+        make > /dev/null 2>&1 \
+            && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
+            || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
+        echo -ne "Installing POLARIS ... "\\r
+        make install > /dev/null 2>&1 \
+            && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
+            || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
         exit
         ;;
     D)
