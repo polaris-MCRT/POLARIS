@@ -1105,12 +1105,14 @@ class FileIO:
                             tbldata[i_quantity, i_channel, ...] = np.absolute(tbldata[i_quantity, i_channel, ...])
         return tbldata
 
-    def read_polarization_vectors(self, tbldata):
+    def read_polarization_vectors(self, tbldata, min_intensity=0.):
         """Creates polarization vectors from raytrace results.
 
         Args:
             tbldata: 3 dimensional numpy array with results
                 from raytrace simulations.
+            min_intensity (float): Minimum flux (in Jy) that is required 
+                to obtain the corresponding vector.
 
         Returns:
             Numpy array with 2 dimensions for the pixel coordinates
@@ -1155,8 +1157,14 @@ class FileIO:
                     p_vec_count[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += 1
         for i_x_vec in range(vector_bins_x):
             for i_y_vec in range(vector_bins_y):
-                if p_vec_count[i_x_vec, i_y_vec] != 0:
-                    p_vec_avg[i_x_vec, i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
+                if p_vec_count[i_x_vec, i_y_vec] <= 0:
+                    p_vec_avg[i_x_vec, i_y_vec] = np.nan
+                else:
+                    i_vec_avg[i_x_vec, i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
+                    if i_vec_avg[i_x_vec, i_y_vec] < min_intensity:
+                        p_vec_avg[i_x_vec, i_y_vec] = np.nan                    
+                    else:
+                        p_vec_avg[i_x_vec, i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
                 # Calculating the polarization angle from averaged Q and U components
                 pol_angle[i_x_vec, i_y_vec] = self.math.angle_from_stokes(
                     q_vec_avg[i_x_vec, i_y_vec], u_vec_avg[i_x_vec, i_y_vec])

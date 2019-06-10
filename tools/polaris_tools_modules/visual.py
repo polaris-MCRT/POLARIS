@@ -1067,7 +1067,9 @@ class Plot:
 
         # Add minimum vector size if vmin is set
         if self.vmin is not None:
-            vmin = float(self.vmin)
+            vmin = self.vmin
+        if self.vmax is not None:
+            vmax = self.vmax
         if index is None:
             if 'xy' in self.label_plane:
                 index = [0, 1]
@@ -1135,10 +1137,10 @@ class Plot:
                     plot_vector = False
                 if vmin is not None and z[i_x, i_y] < vmin:
                     plot_vector = False
-                if vmax is None:
-                    norm = np.nanmax(z)
+                if vmax is not None:
+                    norm = vmax  # np.max(z[i_x, i_y], vmax)
                 else:
-                    norm = max(z[i_x, i_y], vmax)
+                    norm = np.nanmax(z)  
                 # Plot vector if plot_vector is true
                 if plot_vector:
                     if const_quiver:
@@ -1199,6 +1201,9 @@ class Plot:
             color (str): Color of the text and line.
             round_lvl (int): How many digits for rounding the number.
         """
+        # Override maximum with vmin
+        if self.vmax is not None and self.vmax < max_pol_degree:
+            max_pol_degree = self.vmax
         # Position of the text object in image coordinates
         if self.limits is not None:
             text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
@@ -1443,14 +1448,14 @@ class Plot:
         self.ax_list[ax_index].add_patch(patches.Wedge(
             pos, radius, theta1, theta2, width, **args))
 
-    def plot_title(self, text, ax_index=0):
+    def plot_title(self, text, ax_index=0, **args):
         """Plot title on top of an image.
 
         Args:
             text (str): Text that will be plotted.
             ax_index (int): Index of subplot image.
         """
-        self.ax_list[ax_index].set_title(text)
+        self.ax_list[ax_index].set_title(text, **args)
 
     def plot_arrow(self, arrow_origin, arrow_offset, ax_index=0, head_width=0.1, head_length=0.1,
                    width=0.03, color='black'):
