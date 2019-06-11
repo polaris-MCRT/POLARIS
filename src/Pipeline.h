@@ -367,6 +367,12 @@ class CPipeline
         dust->setScatteringToRay(param.getScatteringToRay());
     }
 
+    double getNrOfRayDetector(parameters & param)
+    {
+        dlist dust_ray_detectors = param.getDustRayDetectors();
+        return uint(dust_ray_detectors.size()) / NR_OF_RAY_DET;
+    }
+
   private:
     bool writeSources(parameters & param, CGridBasic * grid);
     void createSourceLists(parameters & param, CDustMixture * dust, CGridBasic * grid);

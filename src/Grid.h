@@ -81,6 +81,7 @@ class CGridBasic
         gas_is_mass_density = false;
         velocity_field_needed = false;
         spec_length_as_vector = false;
+        rad_field_as_stokes = false;
 
         nrOfGnuPoints = 1000;
         nrOfGnuVectors = 1000;
@@ -689,6 +690,18 @@ class CGridBasic
         }
     }
 
+    void updateSpecLength(photon_package * pp, uint i_det, StokesVector stokes)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        stokes /= getVolume(cell);
+        uint data_pos = data_offset + 4 * i_det * pp->getWavelengthID();
+        cell->updateData(data_pos + 0, stokes.I());
+        cell->updateData(data_pos + 1, stokes.Q());
+        cell->updateData(data_pos + 2, stokes.U());
+        cell->updateData(data_pos + 3, stokes.V());
+        rad_field_as_stokes = true;
+    }
+
     inline double getSpecLength(cell_basic * cell, uint wID)
     {
 #ifdef CAMPS_BENCHMARK
@@ -861,6 +874,19 @@ class CGridBasic
 
         // Normalize the radiation field vector
         e_dir.normalize();
+    }
+
+    StokesVector getStokesFromRadiationField(photon_package * pp, uint w)
+    {
+        StokesVector scattering_stokes;
+        cell_basic * cell = pp->getPositionCell();
+        uint data_pos = data_offset + 4 * w;
+
+        scattering_stokes.setI(cell->getData(data_pos + 0));
+        scattering_stokes.setQ(cell->getData(data_pos + 1));
+        scattering_stokes.setU(cell->getData(data_pos + 2));
+        scattering_stokes.setV(cell->getData(data_pos + 3));
+        return scattering_stokes;
     }
 
     void getRadiationFieldInterp(photon_package * pp, double wavelength, double & us, Vector3D & e_dir)
@@ -2356,6 +2382,11 @@ class CGridBasic
         return true;
     }
 
+    bool getRadFieldAsStokes()
+    {
+        return rad_field_as_stokes;
+    }
+
     double getTotalGasMass()
     {
         return total_gas_mass;
@@ -3291,7 +3322,8 @@ class CGridBasic
             }
             else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
             {
-                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for RATs!"
+                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for "
+                        "RATs!"
                      << endl;
                 cout << "        No dust emission with RAT alignment possible." << endl;
                 return MAX_UINT;
@@ -3378,7 +3410,8 @@ class CGridBasic
             }
             else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
             {
-                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for RATs!"
+                cout << "\nERROR: Grid contains not the correct amount of minimum alignment radii for "
+                        "RATs!"
                      << endl;
                 cout << "        No dust scattering calculations with RAT alignment "
                         "possible."
@@ -3757,6 +3790,7 @@ class CGridBasic
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
     bool spec_length_as_vector;
+    bool rad_field_as_stokes;
 
     double delta0;
     double larm_f;

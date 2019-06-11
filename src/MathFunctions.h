@@ -2088,6 +2088,37 @@ class CMathFunctions
         return atan3(cos_angle_1, cos_angle_2);
     }
 
+    static inline void getDetCoordSystem(Vector3D n1,
+                                         Vector3D n2,
+                                         double rot_angle1,
+                                         double rot_angle2,
+                                         Vector3D & ex,
+                                         Vector3D & ey,
+                                         Vector3D & ez)
+    {
+        ex.set(1, 0, 0);
+        ey.set(0, 1, 0);
+        ez.set(0, 0, 1);
+
+        double cos_a = cos(rot_angle1);
+        double sin_a = sin(rot_angle1);
+
+        ex.rot(n1, cos_a, sin_a);
+        ey.rot(n1, cos_a, sin_a);
+        ez.rot(n1, cos_a, sin_a);
+
+        cos_a = cos(rot_angle2);
+        sin_a = sin(rot_angle2);
+
+        ex.rot(n2, cos_a, sin_a);
+        ey.rot(n2, cos_a, sin_a);
+        ez.rot(n2, cos_a, sin_a);
+
+        ex.normalize();
+        ey.normalize();
+        ez.normalize();
+    }
+
     static inline Matrix2D getPropMatrixASigmaP(double cos_theta,
                                                 double sin_theta,
                                                 double cos_2_phi,

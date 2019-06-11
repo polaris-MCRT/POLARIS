@@ -1045,6 +1045,12 @@ class CDustComponent
         }
     }
 
+    StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
+                                              photon_package * pp,
+                                              uint i_density,
+                                              Vector3D en_dir,
+                                              double energy);
+
     double getScatteredFraction(uint a, uint w, double theta)
     {
         double res = 1;
@@ -3030,6 +3036,11 @@ class CDustMixture
             // Get radiation field and calculate angle to the photon package direction
             if(grid->getRadiationFieldAvailable())
                 grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
+            else if(grid->getRadFieldAsStokes())
+            {
+                // Use the rad field as stokes vector if all necessary things were already calculated
+                tmp_stokes += grid->getStokesFromRadiationField(pp, w);
+            }
             else
                 grid->getRadiationField(pp, w, energy, en_dir);
         }
@@ -3039,12 +3050,36 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes = mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, 0, phi, energy, en_dir);
+                tmp_stokes +=
+                    mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                     tmp_stokes += mixed_component[i_mixture].calcEmissivitiesEmi(
                         grid, pp, i_mixture, phi, energy, en_dir);
+        }
+        return tmp_stokes;
+    }
+
+    StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
+                                              photon_package * pp,
+                                              Vector3D en_dir,
+                                              double energy)
+    {
+        StokesVector tmp_stokes;
+
+        if(mixed_component != 0)
+        {
+            if(grid->useDustChoice())
+            {
+                uint i_mixture = getMixtureID(grid, pp);
+                tmp_stokes =
+                    mixed_component[i_mixture].getRadFieldScatteredFraction(grid, pp, 0, en_dir, energy);
+            }
+            else
+                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    tmp_stokes += mixed_component[i_mixture].getRadFieldScatteredFraction(
+                        grid, pp, i_mixture, en_dir, energy);
         }
         return tmp_stokes;
     }

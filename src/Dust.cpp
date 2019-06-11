@@ -3979,6 +3979,101 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     return pl_abs;
 }
 
+StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
+                                                          photon_package * pp,
+                                                          uint i_density,
+                                                          Vector3D en_dir,
+                                                          double energy)
+{
+    if(energy > 1e-200)
+    {
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, pp);
+        double a_max = getSizeMax(grid, pp);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
+
+        // Init  and calculate the cross-sections
+        cross_sections cs;
+
+        // Get wavelength index of photon package
+        uint w = pp->getWavelengthID();
+
+        // Get theta of scattering
+        double scattering_theta = acos(en_dir * pp->getDirection());
+
+        // Get angle between the magnetic field and the photon direction
+        double mag_field_theta = grid->getThetaMag(pp);
+
+        // Get rotation angle to rotate back into the map/detector frame
+        double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        uint thID;
+        if(phID == PH_MIE)
+        {
+            // Get index of theta scattering
+            thID = getScatThetaID(scattering_theta);
+        }
+
+        // Init temporary Stokes array for integration
+        StokesVector * scatter_stokes = new StokesVector[nr_of_dust_species];
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+        {
+            if(sizeIndexUsed(a, a_min, a_max))
+            {
+                // Get cross sections and relative weight of the current dust grain size
+                calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+
+                // Multiply energy with scattered fraction in the theta angle and the
+                // scattering cross-section
+                scatter_stokes[a].setI(energy * rel_weight[a] * cs.Csca *
+                                       getScatteredFraction(a, w, scattering_theta));
+
+                if(phID == PH_MIE)
+                {
+                    // Get scattering matrix
+                    const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
+
+                    // Multiply Stokes vector with scattering matrix
+                    double i_1 = scatter_stokes[a].I();
+                    if(i_1 > 1e-200)
+                    {
+                        scatter_stokes[a] = mat_sca * scatter_stokes[a];
+                        scatter_stokes[a] *= i_1 / scatter_stokes[a].I();
+                    }
+                    else
+                        scatter_stokes[a].clear();
+                }
+
+                // Rotate Stokes Vector to be in agreement with the detector plane
+                scatter_stokes[a].rot(phi_map);
+            }
+        }
+
+        // Perform integration for the emission
+        StokesVector final_stokes(
+            CMathFunctions::integ_dust_size(a_eff, scatter_stokes, nr_of_dust_species, a_min, a_max));
+
+        // Delete pointer arrays
+        delete[] rel_weight;
+        delete[] scatter_stokes;
+
+        // Multiply with number density
+        final_stokes *= getNumberDensity(grid, pp, i_density);
+
+        return final_stokes;
+    }
+    else
+    {
+        return StokesVector();
+    }
+}
+
 StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                                                  photon_package * pp,
                                                  uint i_density,

@@ -15,37 +15,86 @@
 
 bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
 {
+    // Check if grid was loaded
     if(grid == 0)
     {
         cout << "\nERROR: No Grid loaded!" << endl;
         return false;
     }
 
+    // Check if dust was loaded
     if(dust == 0)
     {
         cout << "\nERROR: No dust model!" << endl;
         return false;
     }
 
+    // Get list of dust raytracing detector parameters
     dlist dust_ray_detectors = param.getDustRayDetectors();
 
+    // No raytracing without detectors
     if(dust_ray_detectors.size() == 0)
     {
         cout << "\nERROR: No sequence defined!" << endl;
         return false;
     }
 
-    uint map_max = uint(dust_ray_detectors.size()) / NR_OF_RAY_DET;
+    // Get number of dust raytracing detectors
+    nr_ray_detectors = uint(dust_ray_detectors.size()) / NR_OF_RAY_DET;
 
+    // Get start and stop id of detectors
     start = param.getStart();
     stop = param.getStop();
 
-    for(uint i = 0; i < map_max; i++)
+    // Get rotation axes
+    axis1 = param.getAxis1();
+    axis2 = param.getAxis2();
+
+    if(param.getScatteringToRay())
+    {
+        // Check if one of the detectors is using the healpix background grid
+        bool detector_uses_healpix = false;
+        for(uint i = 0; i < nr_ray_detectors; i++)
+        {
+            uint pos = i * NR_OF_RAY_DET;
+            uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
+
+            if(detector_id == DET_SPHER)
+                detector_uses_healpix = true;
+        }
+
+        // Set up a list of all detector directions to use for the scattering via radiation field
+        if(!detector_uses_healpix)
+        {
+            det_coord_systems = new Vector3D *[nr_ray_detectors];
+
+            for(uint i = 0; i < nr_ray_detectors; i++)
+            {
+                uint pos = i * NR_OF_RAY_DET;
+                uint nr_spectral_bins = uint(dust_ray_detectors[pos + 2]);
+                double rot_angle1 = PI / 180.0 * dust_ray_detectors[pos + 4];
+                double rot_angle2 = PI / 180.0 * dust_ray_detectors[pos + 5];
+
+                det_coord_systems[i] = new Vector3D[3];
+                CMathFunctions::getDetCoordSystem(axis1,
+                                                  axis2,
+                                                  rot_angle1,
+                                                  rot_angle2,
+                                                  det_coord_systems[i][0],
+                                                  det_coord_systems[i][1],
+                                                  det_coord_systems[i][2]);
+            }
+        }
+    }
+
+    // Check other parameters for raytracing
+    for(uint i = 0; i < nr_ray_detectors; i++)
     {
         uint pos = i * NR_OF_RAY_DET;
         uint nr_source = uint(dust_ray_detectors[pos + 3]);
         uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
 
+        // Check for wrong choice of emission source
         if(nr_source > sources_ray.size())
         {
             cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
@@ -53,6 +102,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
             return false;
         }
 
+        // Polar raytracing background grid can only be used with cylindrical or spherical grids
         if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
         {
             cout << "\nERROR: Polar RT grid can only be used with spherical and "
@@ -62,9 +112,7 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
         }
     }
 
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
-
+    // Initiate RKF coefficients for numerical solving the radiative transfer equation
     initiateRungeKuttaFehlberg();
 
     return true;
@@ -92,12 +140,12 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
         return false;
     }
 
-    uint map_max = uint(sync_ray_detectors.size()) / NR_OF_RAY_DET;
+    nr_ray_detectors = uint(sync_ray_detectors.size()) / NR_OF_RAY_DET;
 
     start = param.getStart();
     stop = param.getStop();
 
-    for(uint i = 0; i < map_max; i++)
+    for(uint i = 0; i < nr_ray_detectors; i++)
     {
         uint pos = i * NR_OF_RAY_DET;
         uint nr_source = uint(sync_ray_detectors[pos + 3]);
@@ -223,7 +271,7 @@ bool CRadiativeTransfer::initiateOPIATE(parameters & param)
 
 void CRadiativeTransfer::initiateDustMC(parameters & param)
 {
-    nr_ofMCDetectors = param.getNrOfDustMCDetectors();
+    nr_mc_detectors = param.getNrOfDustMCDetectors();
     b_forced = param.getEnfScattering();
     peel_off = param.getPeelOff();
     mrw_step = param.getMRW();
@@ -844,7 +892,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                 if(peel_off)
                                 {
                                     // Transport a separate photon to each detector
-                                    for(uint d = 0; d < nr_ofMCDetectors; d++)
+                                    for(uint d = 0; d < nr_mc_detectors; d++)
                                     {
                                         // Get index of wavelength in current detector
                                         uint wID_det =
@@ -911,7 +959,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         pp->resetPositionToLastInteraction();
 
                         // Transport photon to observer for each detector
-                        for(uint d = 0; d < nr_ofMCDetectors; d++)
+                        for(uint d = 0; d < nr_mc_detectors; d++)
                         {
                             // Get index of wavelength in current detector
                             uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
@@ -983,7 +1031,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             if(peel_off && tm_source->getStringID() != "dust source")
             {
                 // Transport photon to observer for each detector
-                for(uint d = 0; d < nr_ofMCDetectors; d++)
+                for(uint d = 0; d < nr_mc_detectors; d++)
                 {
                     // Get index of wavelength in current detector
                     uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
@@ -1055,7 +1103,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     }
 
     // Write results either as text or fits file
-    for(uint d = 0; d < nr_ofMCDetectors; d++)
+    for(uint d = 0; d < nr_mc_detectors; d++)
     {
         if(!detector[d].writeMap(d, RESULTS_MC))
             return false;

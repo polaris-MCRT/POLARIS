@@ -14,6 +14,7 @@ from polaris_tools_modules.base import Model
 def update_model_dict(dictionary):
     model_dict = {
         'cube': Cube,
+        'ring': Ring,
         'filament': Filament,
         'galaxy': Galaxy,
         'mhd_binary': MhdFlock,
@@ -143,6 +144,70 @@ class Cube(Model):
             position.
         """
         return self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+
+
+class Ring(Model):
+    """A ring model with sinus shaped density
+    """
+
+    def __init__(self):
+        """Initialisation of the model parameters.
+        """
+        Model.__init__(self)
+
+        #: Set parameters of the sphere model
+        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        # 2.8e-14 * self.math.const['M_sun']
+        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
+        self.parameter['grid_type'] = 'cylindrical'
+        self.parameter['inner_radius'] = 50.0 * self.math.const['au']
+        self.parameter['outer_radius'] = 100.0 * self.math.const['au']
+        # Define the used sources, dust composition and gas species
+        self.parameter['radiation_source'] = 't_tauri'
+        self.parameter['dust_composition'] = 'mrn'
+        self.parameter['detector'] = 'cartesian'
+        # In the case of a cylindrical grid
+        self.cylindrical_parameter['n_r'] = 100
+        self.cylindrical_parameter['n_z'] = 181
+        self.cylindrical_parameter['n_ph'] = 1
+        self.cylindrical_parameter['sf_r'] = 1.03
+        # sf_z = -1 is using scale height; sf_z = 1 is sinus;
+        # sf_z > 1 is exp with step width sf_z and rest is linear
+        self.cylindrical_parameter['sf_z'] = -1
+
+    def gas_density_distribution(self):
+        """Calculates the gas density at a given position.
+
+        Returns:
+            float: Gas density at a given position.
+        """
+        # Calculate cylindrical radius
+        radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+        if radius_cy >= self.parameter['inner_radius']:
+            # Calculate sinus angle from position
+            sin_angle = np.pi * (radius_cy - self.parameter['inner_radius']) / \
+                (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+            scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+            gas_density = np.sin(sin_angle) * \
+                np.exp(-0.5 * (self.position[2] / scale_height) ** 2)
+        else:
+            gas_density = 0
+        return gas_density
+
+    def scale_height(self, radius):
+        """Calculates the scale height at a certain position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Scale height.
+        """
+        # Calculate sinus angle from position
+        sin_angle = np.pi * (radius - self.parameter['inner_radius']) \
+            / (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+        scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+        return scale_height
 
 
 class Galaxy(Model):

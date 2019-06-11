@@ -407,7 +407,10 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     {
         // Add fields to store the radiation field of each considered wavelength
         grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries += 4 * dust->getNrOfWavelength();
+        if(param.getNrOfDustPhotons() > 0)
+            nr_of_offset_entries += 4 * dust->getNrOfWavelength() * getNrOfRayDetector(param);
+        else
+            nr_of_offset_entries += 4 * dust->getNrOfWavelength();
     }
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
@@ -661,7 +664,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 {
     CDetector * detector;
     dlist dust_mc_detectors = param.getDustMCDetectors();
-    uint nr_ofMCDetectors = param.getNrOfDustMCDetectors();
+    uint nr_mc_detectors = param.getNrOfDustMCDetectors();
 
     Vector3D axis1 = param.getAxis1();
     Vector3D axis2 = param.getAxis2();
@@ -671,7 +674,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
     cout << CLR_LINE;
     cout << "-> Creating Monte-Carlo detector list           \r";
 
-    detector = new CDetector[nr_ofMCDetectors];
+    detector = new CDetector[nr_mc_detectors];
 
     if(dust_mc_detectors.size() <= 0)
     {

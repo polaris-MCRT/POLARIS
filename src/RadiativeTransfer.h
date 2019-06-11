@@ -33,7 +33,8 @@ class CRadiativeTransfer
 
         probing_points = 0;
         detector = 0;
-        nr_ofMCDetectors = 0;
+        nr_mc_detectors = 0;
+        nr_ray_detectors = 0;
 
         axis1.set(1, 0, 0);
         axis2.set(0, 1, 0);
@@ -43,6 +44,7 @@ class CRadiativeTransfer
         RK_b2 = 0;
 
         probing_points = 0;
+        det_coord_systems = 0;
 
         synchrotron = 0;
 
@@ -53,6 +55,13 @@ class CRadiativeTransfer
     {
         if(probing_points != 0)
             delete[] probing_points;
+
+        if(det_coord_systems != 0)
+        {
+            for(uint i = 0; i < nr_ray_detectors; i++)
+                delete[] det_coord_systems[i];
+            delete[] det_coord_systems;
+        }
 
         if(RK_c != 0)
             delete[] RK_c;
@@ -204,7 +213,23 @@ class CRadiativeTransfer
     void updateRadiationField(photon_package * pp)
     {
         double energy = pp->getTmpPathLength() * pp->getStokesVector().I();
-        grid->updateSpecLength(pp, energy);
+
+        if(det_coord_systems != 0)
+        {
+            photon_package dir_pp = *pp;
+            for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
+            {
+                dir_pp.setEX(det_coord_systems[i_det][0]);
+                dir_pp.setEY(det_coord_systems[i_det][1]);
+                dir_pp.setDirection(det_coord_systems[i_det][2]);
+                grid->updateSpecLength(
+                    pp, i_det, dust->getRadFieldScatteredFraction(grid, &dir_pp, pp->getDirection(), energy));
+            }
+        }
+        else
+        {
+            grid->updateSpecLength(pp, energy);
+        }
     }
 
     void setGrid(CGridBasic * _grid)
@@ -291,6 +316,10 @@ class CRadiativeTransfer
 
     int * probing_points;
 
+    Vector3D ** det_coord_systems;
+    uint nr_ray_detectors;
+    uint nr_mc_detectors;
+
     CRaytracingBasic * tracer;
     CGridBasic * grid;
     // COpiate * op;
@@ -298,7 +327,6 @@ class CRadiativeTransfer
     CGasMixture * gas;
     slist sources_mc, sources_ray;
     CDetector * detector;
-    uint nr_ofMCDetectors;
 
     double * RK_c;
     double * RK_b1;
