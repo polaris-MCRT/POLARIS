@@ -357,6 +357,7 @@ echo -e "${PC}--- Install POLARIS ---${NC}"
 if ${install_directory}/src/polaris > /dev/null
 then 
     echo -e "POLARIS pre-compiled binary can be used [${GREEN}done${NC}]"
+    cmake . > /dev/null
     make install > /dev/null
 else
     install_fits_support
