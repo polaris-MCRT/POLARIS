@@ -4,7 +4,6 @@
 .dirstamp
 
 autom4te.cache/
-bin/
 CCfits/
 cfitsio/
 lib/

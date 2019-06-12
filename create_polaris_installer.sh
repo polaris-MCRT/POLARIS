@@ -18,7 +18,7 @@ for files in 'CCfits.tar.gz' \
             'manual.pdf' \
             'install_polaris.sh' \
             'src/CMakeLists.txt' \
-            'src/polaris' \
+            'bin/polaris' \
             'tools/COPYING' \
             'tools/AUTHORS' \
             'tools/README' \
@@ -64,7 +64,7 @@ cp -rv --parents \
     src/*.hh \
     src/*.cc \
     src/CMakeLists.txt \
-    src/polaris \
+    bin/polaris \
     tools/COPYING \
     tools/AUTHORS \
     tools/README \
