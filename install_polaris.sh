@@ -354,10 +354,10 @@ esac
 
 # Install Polaris
 echo -e "${PC}--- Install POLARIS ---${NC}"
-if ${install_directory}/bin/polaris > /dev/null
+if ${install_directory}/src/polaris > /dev/null
 then 
     echo -e "POLARIS pre-compiled binary can be used [${GREEN}done${NC}]"
-    make install
+    make install > /dev/null
 else
     install_fits_support
     install_polaris 'OFF'
