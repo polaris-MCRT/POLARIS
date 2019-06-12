@@ -18,6 +18,7 @@ for files in 'CCfits.tar.gz' \
             'manual.pdf' \
             'install_polaris.sh' \
             'src/CMakeLists.txt' \
+            'src/polaris' \
             'tools/COPYING' \
             'tools/AUTHORS' \
             'tools/README' \
@@ -27,8 +28,8 @@ for files in 'CCfits.tar.gz' \
             'tools/polaris-gen.in' \
             'tools/polaris-remote.in' \
             'tools/polaris-extra.in' \
-            'tools/polaris-test.in' \
-            'bin/polaris'
+            'tools/polaris-test.in'
+
 do
     if [ ! -f $files ]
     then
@@ -63,6 +64,7 @@ cp -rv --parents \
     src/*.hh \
     src/*.cc \
     src/CMakeLists.txt \
+    src/polaris \
     tools/COPYING \
     tools/AUTHORS \
     tools/README \
@@ -78,7 +80,6 @@ cp -rv --parents \
     tools/polaris_tools_modules/*.py \
     tools/polaris_tools_custom/__init__.py \
     tools/polaris_tools_custom/*.py.empty \
-    bin/polaris \
     /tmp/polaris/
     
 for f in /tmp/polaris/tools/polaris_tools_custom/*py.empty; do 

@@ -14,6 +14,12 @@ function command_exists {
 # ------------------------- Routines for installations ----------------------------
 # ---------------------------------------------------------------------------------
 function install_fits_support {
+    # Check for necessary programms
+    if ! command_exists cmake
+    then
+        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
+        exit
+    fi
     # Install Libraries
     echo -e "${PC}--- Install required libraries for fits support ---${NC}"
     echo -e "Install cfitsio"
@@ -177,6 +183,37 @@ function install_polaris_tools {
     fi
 }
 
+function install_polaris {
+    # Check for necessary programms
+    if ! command_exists cmake
+    then
+        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
+        exit
+    fi
+    sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
+    cmake . -DBUILD_STATIC_LIBS=$1 > /dev/null 2>&1 \
+        && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
+    echo -ne "Compiling POLARIS ... "\\r
+    make > /dev/null 2>&1 \
+        && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
+    echo -ne "Installing POLARIS ... "\\r
+    make install > /dev/null 2>&1 \
+        && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
+        || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
+
+    export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
+    if grep -q "${export_str}" ${HOME}/.bashrc
+    then
+            true
+    else
+            echo -ne "Updating bashrc ..."\\r
+            echo "${export_str}" >> ${HOME}/.bashrc
+            echo -e "Updating bashrc [${GREEN}done${NC}]"
+    fi
+}
+
 # Define colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -207,7 +244,7 @@ while getopts "hrducD" opt; do
 	r)
 	    echo -e "${TC}------ clean and compile POLARIS (${GREEN}release mode!${TC}) ------${NC}"
 	    cd ${install_directory}
-	    cmake .
+	    make clean
         make && make install
         if [ -d "tools" ]
         then
@@ -219,7 +256,7 @@ while getopts "hrducD" opt; do
 	d)
             echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
 	    cd ${install_directory}
-	    cmake .
+	    make clean
         make CXXFLAGS='-O0 -g'  && make install #'-Wall -Weffc++ -Wextra -Wsign-conversion'
         if [ -d "tools" ]
         then
@@ -231,7 +268,6 @@ while getopts "hrducD" opt; do
     u)
 	    echo -e "${TC}------ compile POLARIS ------${NC}"
         cd ${install_directory}
-        cmake .
         make && make install
         if [ -d "tools" ]
         then
@@ -251,49 +287,38 @@ while getopts "hrducD" opt; do
         fi
         # Installing fits libraries
         install_fits_support
-        sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
-        cmake . -DBUILD_STATIC_LIBS=ON > /dev/null 2>&1 \
-            && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
-            || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
-        echo -ne "Compiling POLARIS ... "\\r
-        make > /dev/null 2>&1 \
-            && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
-            || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
-        echo -ne "Installing POLARIS ... "\\r
-        make install > /dev/null 2>&1 \
-            && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
-            || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
+        install_polaris 'ON'
         exit
         ;;
     D)
-            printf '%s\n' "Do you really want to delete your POLARIS installation [y/N]?"
-            read really_delete
-            case ${really_delete:=n} in
-                [yY]*) 
-                    echo -e "${TC}------ delete POLARIS ------${NC}"
-                    export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
-                    if grep -q "${export_str}" ${HOME}/.bashrc
-                    then
-                        sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
-                    fi
-                    export_str="export LD_LIBRARY_PATH=\"${install_directory}/CCfits/.libs/:${install_directory}/cfitsio:"'${LD_LIBRARY_PATH}'"\""
-                    if grep -q "${export_str}" ${HOME}/.bashrc
-                    then
-                        sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
-                    fi
-	                cd ${install_directory}/../
-	                rm -rv ${install_directory}
-                    pip uninstall PolarisTools
-	                exit
-                    ;;
-                *) 
-                    exit
-                    ;; 
-            esac
-	        ;;
-        \?)
-            usage
-            ;;
+        printf '%s\n' "Do you really want to delete your POLARIS installation [y/N]?"
+        read really_delete
+        case ${really_delete:=n} in
+            [yY]*) 
+                echo -e "${TC}------ delete POLARIS ------${NC}"
+                export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
+                if grep -q "${export_str}" ${HOME}/.bashrc
+                then
+                    sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
+                fi
+                export_str="export LD_LIBRARY_PATH=\"${install_directory}/CCfits/.libs/:${install_directory}/cfitsio:"'${LD_LIBRARY_PATH}'"\""
+                if grep -q "${export_str}" ${HOME}/.bashrc
+                then
+                    sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
+                fi
+                cd ${install_directory}/../
+                rm -rv ${install_directory}
+                pip uninstall PolarisTools
+                exit
+                ;;
+            *) 
+                exit
+                ;; 
+        esac
+	    ;;
+    \?)
+        usage
+        ;;
     esac
 done
 
@@ -332,41 +357,10 @@ echo -e "${PC}--- Install POLARIS ---${NC}"
 if ${install_directory}/bin/polaris > /dev/null
 then 
     echo -e "POLARIS pre-compiled binary can be used [${GREEN}done${NC}]"
+    make install
 else
-    # Check for necessary programms
-    if ! command_exists cmake
-    then
-        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
-        exit
-    fi
-
-    # Installing fits libraries
     install_fits_support
-    sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
-
-    cmake . > /dev/null 2>&1 \
-        && echo -e "Configuring POLARIS [${GREEN}done${NC}]" \
-        || { echo -e  "Configuring POLARIS [${RED}Error${NC}]"; exit; }
-
-    echo -ne "Compiling POLARIS ... "\\r
-    make > /dev/null 2>&1 \
-        && echo -e "Compiling POLARIS [${GREEN}done${NC}]" \
-        || { echo -e  "Compiling POLARIS [${RED}Error${NC}]"; exit; }
-
-    echo -ne "Installing POLARIS ... "\\r
-    make install > /dev/null 2>&1 \
-        && echo -e "Installing POLARIS [${GREEN}done${NC}]" \
-        || { echo -e  "Installing POLARIS [${RED}Error${NC}]"; exit; }
-fi
-
-export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
-if grep -q "${export_str}" ${HOME}/.bashrc
-then
-        true
-else
-        echo -ne "Updating bashrc ..."\\r
-        echo "${export_str}" >> ${HOME}/.bashrc
-        echo -e "Updating bashrc [${GREEN}done${NC}]"
+    install_polaris 'OFF'
 fi
 
 # install PolarisTools
