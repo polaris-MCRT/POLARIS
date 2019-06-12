@@ -517,6 +517,17 @@ class GGTauDisk(Model):
         n_ph_list_2 = [180] * 51
         self.cylindrical_parameter['n_ph'] = np.hstack(
             (n_ph_list_1, n_ph_list_2)).ravel()
+        # ----------------------------------
+        # ---- Init dust layers profile ----
+        # ----------------------------------
+        from scipy import interpolate
+        self.layer_function = dict()
+        wl_list = ['800', '1250',]
+        for wl in wl_list:
+            data = np.genfromtxt('/home/rbrauer/Documents/'
+                'projects/005_gg_tau/dust_settling_gg_tau/' + wl + '_nm_layers.dat')
+            self.layer_function[wl] = interpolate.interp1d(data[0,:], data[1,:])
+        
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -735,6 +746,9 @@ class GGTauDisk(Model):
         # Return the densities of each region
         return [[disk_density_Aa, disk_density_Ab1, disk_density_Ab2, disk_density]]
 
+    def dust_temperature(self):
+        return 10
+
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
         The dust ID is related to the dust composition. With this, one can
@@ -745,9 +759,13 @@ class GGTauDisk(Model):
         """
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
-
         if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
-            dust_id = 1
+            if abs(self.position[2]) > self.layer_function['800'](radius_cy):
+                dust_id = 1
+            elif abs(self.position[2]) > self.layer_function['1250'](radius_cy):
+                dust_id = 2
+            else:
+                dust_id = 3
         else:
             dust_id = 0
         return dust_id

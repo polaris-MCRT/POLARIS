@@ -75,8 +75,10 @@ class FileIO:
             #: bool: Convert unit of maps into unit/arcsec instead of unit/pixel
             if parse_args.cmap_unit is not None:
                 self.cmap_unit = parse_args.cmap_unit
+            elif self.beam_size is not None:
+                self.cmap_unit = 'beam'
             else:
-                self.cmap_unit = None
+                self.cmap_unit = 'arcsec'
             if parse_args.ax_unit is not None:
                 self.ax_unit = parse_args.ax_unit
             elif ax_unit is None:
@@ -285,18 +287,16 @@ class FileIO:
 
         # If beam_label is True or a beam convolution is performed, change to Jy/beam
         quantity = r'\mathit{F}'
-        if self.cmap_unit is not None:
-            if self.cmap_unit == 'arcsec':
-                unit = 'Jy/as^2'
-            elif self.cmap_unit == 'px':
-                unit = 'Jy/px'
-            elif self.cmap_unit == 'total':
-                unit = 'Jy'
-            elif self.cmap_unit == 'nuF':
-                unit = r'\watt\per\metre\squared'
-                quantity = r'\mathit{\nu F}'
-        elif self.beam_size is not None:
-            self.cmap_unit = 'beam'
+        if self.cmap_unit == 'arcsec':
+            unit = 'Jy/as^2'
+        elif self.cmap_unit == 'px':
+            unit = 'Jy/px'
+        elif self.cmap_unit == 'total':
+            unit = 'Jy'
+        elif self.cmap_unit == 'nuF':
+            unit = r'\watt\per\metre\squared'
+            quantity = r'\mathit{\nu F}'
+        elif self.cmap_unit == 'beam':
             unit = 'Jy/beam'
         else:
             self.cmap_unit = 'arcsec'
@@ -562,8 +562,6 @@ class FileIO:
                 wmap_map[6:7, i_wl, :] = data[i_col + 4 : i_col + 5, :]
                 wmap_map[4, i_wl, :] = np.sqrt(np.add(np.power(data[i_col + 1, :], 2),
                     np.power(data[i_col + 2, :], 2)))
-                wmap_map[5, i_wl, :] = 1e2 * np.divide(wmap_map[4, i_wl, :], data[i_col, :],
-                    out=np.zeros_like(wmap_map[4, i_wl, :]), where=data[i_col, :] != 0)
             # Apply intensity unit conversion
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
@@ -576,6 +574,9 @@ class FileIO:
             wmap_map[7, :, :] = data[int(self.n_quantities_map - 3) * header['nr_wavelengths'], :]
             # Apply beam convolution if chosen
             wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            # Calculate degree of polarization
+            wmap_map[5, i_wl, :] = 1e2 * np.divide(wmap_map[4, i_wl, :], wmap_map[0, i_wl, :],
+                out=np.zeros_like(wmap_map[4, i_wl, :]), where=wmap_map[0, i_wl, :] != 0)
             return wmap_map, header, plot_data_type
         else:
             #: Data from the file with the monte carlo results
@@ -590,8 +591,6 @@ class FileIO:
             tbldata[0:4, :, :, :] = data[0:4, :, :, :]
             tbldata[6:8, :, :, :] = data[4:6, :, :, :]
             tbldata[4, :, :, :] = np.sqrt(np.add(np.power(data[1, :, :, :], 2), np.power(data[2, :, :, :], 2)))
-            tbldata[5, :, :, :] = 1e2 * np.divide(tbldata[4, :, :, :], data[0, :, :, :],
-                out=np.zeros_like(tbldata[4, :, :, :]), where=data[0, :, :, :] != 0)
             # Apply intensity unit conversion
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass                
@@ -607,6 +606,9 @@ class FileIO:
                     tbldata[6:8, :, :, :] /= arcsec_squared_per_pixel
             # Apply beam convolution if chosen
             tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            # Calculate degree of polarization
+            tbldata[5, :, :, :] = 1e2 * np.divide(tbldata[4, :, :, :], tbldata[0, :, :, :],
+                out=np.zeros_like(tbldata[4, :, :, :]), where=tbldata[0, :, :, :] != 0)
             if plot_data_type == 'map':
                 return tbldata, header, plot_data_type
             elif plot_data_type == 'cut':

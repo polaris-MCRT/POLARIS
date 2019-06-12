@@ -1274,34 +1274,44 @@ class CustomPlots:
     def plot_80(self):
         """Plot self-scattering results as map from POLARIS simulations.
         """
-        # Create pdf file if show_plot is not chosen and read map data from file
-        plot_data, header, plot_data_type = self.file_io.read_emission_map('polaris_detector_nr0001')
+        # Set output filename
         self.file_io.init_plot_output('self_scattering_map')
         # Choose wavelength and quantity
         i_wl = 0
         i_quantity = 4
-        # Take colorbar label from quantity id
-        cbar_label = self.file_io.get_quantity_labels(i_quantity)
-        # Take data for current quantity
-        tbldata = plot_data[i_quantity, i_wl, :, :]
-        # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args)
-        # Add title
-        plot.plot_title('Self-scattering at $\lambda=\SI{850}{\micro\metre}$ (ALMA band 7)', fontsize=12)
-        # polarization plots
-        plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True, cmap='magma')
-        if not self.parse_args.no_vec:
-            # For PI and P, plot polarization vectors
-            vec_field_data = self.file_io.read_polarization_vectors(plot_data[:, i_wl, :, :], min_intensity=1e-4)
-            if vec_field_data is not None:
-                vector_color = self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
-                    cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
-                plot.plot_quiver(vec_field_data, color=vector_color)
-                plot.plot_pol_vector_text(vec_per_width=len(vec_field_data[:, 0, 0]),
-                    color=vector_color, max_pol_degree=float(
-                        np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2))))
-        # Save figure to pdf file or print it on screen
-        plot.save_figure(self.file_io)
+        fits_offset = 400
+        # Define titles
+        title = [
+            'Self-scattering at $\lambda=\SI{850}{\micro\metre}$ (ALMA band 7)',
+            'Self-scattering at $\lambda=\SI{3}{\milli\metre}$ (ALMA band 3)',
+        ]
+        for i_det in range(2):
+            # Create pdf file if show_plot is not chosen and read map data from file
+            plot_data, header, plot_data_type = self.file_io.read_emission_map(
+                'polaris_detector_nr' + str(i_det + 1 + fits_offset).zfill(4))
+            # Take colorbar label from quantity id
+            cbar_label = self.file_io.get_quantity_labels(i_quantity)
+            # Take data for current quantity
+            tbldata = plot_data[i_quantity, i_wl, :, :]
+            # Create Matplotlib figure
+            plot = Plot(self.model, self.parse_args)
+            # Add title
+            plot.plot_title(title[i_det], fontsize=12)
+            # polarization plots
+            plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True, cmap='magma')
+            if not self.parse_args.no_vec:
+                # For PI and P, plot polarization vectors
+                vec_field_data = self.file_io.read_polarization_vectors(plot_data[:, i_wl, :, :], 
+                    min_intensity=np.nanmax(plot_data[0, i_wl, :, :]) * 1e-5)
+                if vec_field_data is not None:
+                    vector_color = self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
+                        cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                    plot.plot_quiver(vec_field_data, color=vector_color)
+                    plot.plot_pol_vector_text(vec_per_width=len(vec_field_data[:, 0, 0]),
+                        color=vector_color, round_lvl=1,
+                        max_pol_degree=float(np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2))))
+            # Save figure to pdf file or print it on screen
+            plot.save_figure(self.file_io)
 
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------

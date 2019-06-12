@@ -271,10 +271,16 @@ class PlotRoutines:
                         if vec_field_data is not None:
                             vector_color = self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
                                 cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
-                            plot.plot_quiver(vec_field_data, color=vector_color)
+                            max_pol_degree = float(np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2)))
+                            if i_quantity == 4:
+                                plot.plot_quiver(vec_field_data, color=vector_color)
+                            else:
+                                plot.plot_quiver(vec_field_data, color=vector_color, vmax=plot.vmax)
+                                # Override max_pol_degree with vmax
+                                if plot.vmax is not None and plot.vmax < max_pol_degree:
+                                    max_pol_degree = plot.vmax
                             plot.plot_pol_vector_text(vec_per_width=len(vec_field_data[:, 0, 0]),
-                                color=vector_color, max_pol_degree=float(np.nanmax(
-                                np.linalg.norm(vec_field_data[:, :, :], axis=2))))
+                                color=vector_color, max_pol_degree=max_pol_degree)
                 elif plot_data_type in ['cut', 'radial']:
                     # Extract 1D information from data
                     [position, data] = plot_data

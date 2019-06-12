@@ -1068,8 +1068,8 @@ class Plot:
         # Add minimum vector size if vmin is set
         if self.vmin is not None:
             vmin = self.vmin
-        if self.vmax is not None:
-            vmax = self.vmax
+        #if self.vmax is not None:
+        #    vmax = self.vmax
         if index is None:
             if 'xy' in self.label_plane:
                 index = [0, 1]
@@ -1201,9 +1201,6 @@ class Plot:
             color (str): Color of the text and line.
             round_lvl (int): How many digits for rounding the number.
         """
-        # Override maximum with vmin
-        if self.vmax is not None and self.vmax < max_pol_degree:
-            max_pol_degree = self.vmax
         # Position of the text object in image coordinates
         if self.limits is not None:
             text_pos = [self.limits[0] + (self.limits[1] - self.limits[0]) * 0.9,
@@ -1225,11 +1222,12 @@ class Plot:
         if self.zoom_x_factor is not None or self.zoom_y_factor is not None:
             length *= min(self.zoom_x_factor, self.zoom_y_factor)
         # Text including the maximum degree of polarization
-        if round_lvl == 0:
-            text = r'$\SI{' + str(int(max_pol_degree)) + r'}{\percent}$'
-        else:
+        if round_lvl > 0:
             text = r'$\SI{' + str(round(max_pol_degree,
                                         round_lvl)) + r'}{\percent}$'
+        else:
+            text = r'$\SI{' + str(int(max_pol_degree)) + r'}{\percent}$'
+
         # Plot the text
         self.plot_text(text_pos, text, color=color,
                        verticalalignment='bottom', ax_index=ax_index, zorder=1)
