@@ -369,6 +369,7 @@ then
     install_polaris_tools
     echo -ne "Setting up PolarisTools ... "\\r
     cd "tools/"
+    # Check symbolic link under ~/.local/lib and remove it if necessary
     python setup.py install --user > /dev/null 2>&1 \
         || { echo -e  "Setting up PolarisTools [${RED}Error${NC}]"; exit; }
 fi  

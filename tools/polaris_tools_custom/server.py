@@ -10,9 +10,6 @@ from polaris_tools_modules.base import Server
 
 def update_server_dict(dictionary):
     server_dict = {
-        'herschel': HerschelServer,
-        'calculus': CalculusServer,
-        'cea': CeaServer,
         'custom': CustomServer,
     }
     dictionary.update(server_dict)
@@ -73,47 +70,3 @@ class CustomServer(Server):
                             + ' -N ' + \
             self.parse_args.simulation_name[0:15] + '\n'
         return new_command_line
-
-
-class CeaServer(Server):
-    """This is the server class for the Astro cluster at the ITAP at Kiel university
-    """
-
-    def __init__(self, parse_args):
-        """Initialisation of the server/cluster parameters.
-        """
-        Server.__init__(self, parse_args)
-
-        self.parameter['node_name'] = 'sappcw5'
-        self.parameter['address'] = 'cea_server:~/'
-        self.parameter['server_polaris_dir'] = 'astrophysics/polaris/'
-
-
-class HerschelServer(Server):
-    """This is the server class for the herschel server at IAS Orsay
-    """
-
-    def __init__(self, parse_args):
-        """Initialisation of the server/cluster parameters.
-        """
-        Server.__init__(self, parse_args)
-
-        self.parameter['node_name'] = 'glx-herschel'
-        self.parameter['address'] = 'herschel_gateway:~/'
-        self.parameter['server_polaris_dir'] = 'polaris/'
-        self.parameter['queue_system'] = None
-
-
-class CalculusServer(Server):
-    """This is the server class for the calculus server at IAS Orsay
-    """
-
-    def __init__(self, parse_args):
-        """Initialisation of the server/cluster parameters.
-        """
-        Server.__init__(self, parse_args)
-
-        self.parameter['node_name'] = 'glx-calcul1'
-        self.parameter['address'] = 'glx-calcul1.ias.u-psud.fr:~/'
-        self.parameter['server_polaris_dir'] = 'polaris/'
-        self.parameter['queue_system'] = None
