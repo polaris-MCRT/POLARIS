@@ -117,132 +117,244 @@
     {
         line.erase(0, 1);
     }
-}
+}*/
 
-bool OPIATE::loadDataFile(string filename)
+bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
 {
-    uint line_counter = 0;
-    uint char_counter = 0;
-    string line;
-
-    ifstream reader(filename.c_str());
-
-    cout << CLR_LINE1;
-
-    if(reader.fail())
-    {
-        cout << "\nERROR: Cannot load OPIAE data file:" << endl;
-        cout << filename << "\n" << endl;
-        return false;
-    }
-
-    while(getline(reader, line))
-    {
-        if(line_counter % 1000 == 0)
+        cout << CLR_LINE; 
+        cout << "Reading OPIATE fits data from:\n       " << filename <<  "               \n" << flush;
+        auto_ptr<FITS> pInfile(0);
+      
+        cout << "-> Reading fits ...              \r" << flush;
+        
+        try
         {
-            char_counter++;
-            cout << " -> Loading OPIATE data file:"
-                    << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
+            pInfile.reset(new FITS(filename.c_str(),Read,true));
         }
-
-        formatLine(line);
-
-        if(line.size() == 0)
-            continue;
-
-        dlist values = parseValues(line);
-
-        if(line_counter == 0)
+        catch(CCfits::FITS::CantOpen)
         {
-            if(values.size() < 2)
-            {
-                cout << "\nERROR in line: " << line_counter << endl;
-                cout << "Opiate data files rquire more than one column! \n" << endl;
-                return false;
-            }
-
-            max_entries = uint(values.size());
-            column_length = max_entries - 1;
-        }
-        else
-        {
-            if(values.size() != max_entries)
-            {
-                cout << "\nERROR in line: " << line_counter << endl;
-                cout << " Wrong amount of columns. \n" << endl;
-                return false;
-            }
-        }
-
-        opiate_data * data = new opiate_data(values);
-
-        insertInList(data);
-
-        line_counter++;
-    }
-
-    reader.close();
-    cout << CLR_LINE1;
-    cout << " Loading OPIATE data file              : done" << endl;
-    return true;
-}
-
-bool OPIATE::loadUniqueParamFile(string filename)
-{
-    uint line_counter = 0;
-    uint char_counter = 0;
-    string line;
-
-    ifstream reader(filename.c_str());
-
-    if(reader.fail())
-    {
-        cout << "\nERROR: Cannot load unique parameters file:" << endl;
-        cout << filename << "\n" << endl;
-        return false;
-    }
-
-    while(getline(reader, line))
-    {
-        line_counter++;
-
-        if(line_counter % 1000 == 0)
-        {
-            char_counter++;
-            cout << "-> Loading unique parameters file:"
-                    << ru[(unsigned int) char_counter % 4] << "           \r" << flush;
-        }
-
-        formatLine(line);
-
-        if(line.size() == 0)
-            continue;
-
-        dlist values = parseValues(line);
-
-        if(values.size() != 9)
-        {
-            cout << "\nERROR: in line: " << line_counter << endl;
-            cout << " Wrong amount of columns. \n" << endl;
+            cout << CLR_LINE; 
+            cout << "\nERROR: Cannot open OPIATE file!               \n" ;
+            cout << "         Check path and file name!                   \n" ;
             return false;
         }
+        
+        PHDU& image = pInfile->pHDU();
+        valarray<double>  contents;
+        
+        image.readAllKeys();
+        image.read(contents);
+                
+        long max_row=image.axis(1);
+        long max_col=image.axis(0);
+        
+        if(database_counter==0)
+        {
+            max_species=max_col-1;
+            max_ids=max_row;
 
-        uint UniqID = uint(values[0]);
-        double dx = values[1];
-        double dens = values[2];
-        double temp = values[3];
-        double flge = values[4];
-        double fluv = values[5];
-        double flih = values[6];
-        double fli2 = values[7];
-        uint N = uint(values[8]);
-
-        insertInIDList(UniqID, dx, dens, temp, flge, fluv, flih, fli2, N);
-    }
-
-    reader.close();
-
-    cout << CLR_LINE1;
-    cout << " Loading OPIATE unique parameters file: done" << endl;
+            list_freq=new double[max_species];
+            list_weight=new double[max_species];
+            list_IDs=new double[max_row];
+        }
+        
+        if(database_counter==1)
+        {
+            if(max_species!=max_col-1)
+            {
+                cout << CLR_LINE; 
+                cout << "\nERROR: Ammount of species in differen OPIATE files do not match!            \n" ;
+                cout << "         Identical order and values are required in all files!           \n" ;
+                return false;
+            }
+              
+            if(max_ids!=max_row)
+            {
+                cout << CLR_LINE; 
+                cout << "\nERROR: Ammount of unique OPIATE files do not match!            \n" ;
+                cout << "         Identical order and values are required in all files!           \n" ;
+                return false;            
+            }
+        }
+        
+        if(database_counter>1)
+        {
+            cout << CLR_LINE; 
+            cout << "\nERROR: Only two databases are currently supported!              \n" ;
+            return false; 
+        }
+        
+        cout << "-> Scanning for keys ...              \r" << flush;
+        
+        for(uint i=0; i<max_species;i++)
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+            
+            //copy for WINDOWS has to be adjusted here
+            
+            strcpy(str_tmp, "%03d");
+            sprintf(str_end, str_tmp, i+1);
+            
+            string key_name="SNA_";
+            string key_weight="SWE_";
+            string key_freq="SFR_";
+            
+            key_name+=str_end;
+            key_weight+=str_end;
+            key_freq+=str_end;
+            
+            string s_name;
+            double s_weight;
+            double s_frequ;
+            
+            try
+            {
+                image.readKey(key_name, s_name);
+            }
+            catch(CCfits::HDU::NoSuchKeyword)
+            {
+                cout << CLR_LINE; 
+                cout << "\nERROR: Keyword \""<< key_name << "\" is required in file:\n       " << filename <<  "               \n" ;
+                return false;
+            }
+            
+            try
+            {
+                image.readKey(key_weight, s_weight);
+            }
+            catch(CCfits::HDU::NoSuchKeyword)
+            {
+                cout << CLR_LINE; 
+                cout << "\nERROR: Keyword \""<< key_weight << "\" is required in file:\n       " << filename <<  "               \n" ;
+                return false;
+            }
+            
+            try
+            {
+                image.readKey(key_freq, s_frequ);
+            }
+            catch(CCfits::HDU::NoSuchKeyword)
+            {
+                cout << CLR_LINE; 
+                cout << "\nERROR: Keyword \""<< key_freq << "\" is required in file:\n       " << filename <<  "               \n" ;
+                return false;
+            }
+            
+            cout << "Data:" << key_name << ":\t\"" << s_name << "\"\n" << flush; 
+            cout << "Data:" << key_weight << ":\t\"" << s_weight << "\"\n" << flush; 
+            cout << "Data:" << key_freq << ":\t\"" << s_frequ << "\"\n" << flush; 
+            
+            if(database_counter==0)
+            {
+                list_names.push_back(s_name);
+                list_freq[i]=s_frequ;
+                list_weight[i]=s_weight;
+            }
+            else
+            {
+                if(list_freq[i]!=s_frequ)
+                {
+                    cout << CLR_LINE; 
+                    cout << "\nERROR: Frequencies of different OPIATE files do not match!            \n" ;
+                    cout << "         Identical order and values are required in all files!           \n" ;
+                    return false;
+                }
+                
+                if(list_names[i].compare(s_name)!=0)
+                {
+                    cout << CLR_LINE; 
+                    cout << "\nERROR: Names of different OPIATE files do not match!            \n" ;
+                    cout << "         Identical order and values are required in all files!           \n" ;
+                    return false;
+                }
+                
+                if(list_weight[i]!=s_weight)
+                {
+                    cout << CLR_LINE; 
+                    cout << "\nERROR: Weigths of different OPIATE files do not match!            \n" ;
+                    cout << "         Identical order and values are required in all files!           \n" ;
+                    return false;
+                }
+                
+                
+            }
+        }
+        
+        Matrix2D tmp_mat;
+        
+        cout << "row: " << max_row << "\n";
+        cout << "col: " << max_col << "\n";
+        
+        mat.resize(max_row,max_col-1);
+        tmp_mat.resize(max_row,max_col);
+        cout << contents.size() << "\n";
+        
+        cout << "Creating matrix ...                \r" << flush; 
+        for (long i = 0; i < max_col*max_row; i++)
+        {
+            tmp_mat.set(i,contents[i]);
+        }
+        
+        cout << "\n";
+        
+        tmp_mat.printMatrix();
+        
+        cout << "-> Creating ID table ...              \r" << flush;
+        for (long i = 0; i < max_row; i++)
+        {
+            if(database_counter==0)
+            {
+                list_IDs[i]=tmp_mat(i,0);
+            }
+            else
+            {
+                if(list_IDs[i]!=tmp_mat(i,0))
+                {
+                    cout << "\nERROR: Unique OPIATE IDs of different OPIATE files do not match!            \n" ;
+                    return false;
+                }
+            }
+            
+            cout << i << "\t" <<list_IDs[i] << "\n";
+            
+            if(i>0)
+            {
+                if(list_IDs[i-1]>list_IDs[i])
+                {
+                    cout << CLR_LINE; 
+                    cout << "\nERROR: OPIATE IDs are not in ascending order!               \n" ;
+                    cout << "         Check first column of your input fits file!                   \n" ;
+                    return false;
+                }
+                
+                if(list_IDs[i-1]==list_IDs[i])
+                {
+                    cout << CLR_LINE; 
+                    cout << "\nERROR: Identical OPIATE IDs detected!               \n" ;
+                    cout << "         Check first column of your input fits file!                   \n" ;
+                    return false;
+                }
+            }
+        } 
+        
+        cout << "\nMatrix:\n";
+        
+        for (long i = 0; i < max_row; i++)
+        {
+            for (long j = 1; j < max_col; j++)
+            {
+                mat(i,j-1) = tmp_mat(i,j);
+            }
+        } 
+        
+        cout << "\n";
+        
+        mat.printMatrix();
+        
+            
+    database_counter++;
     return true;
-}*/
+}
+
+
