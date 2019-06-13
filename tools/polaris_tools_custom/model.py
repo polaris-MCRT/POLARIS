@@ -522,7 +522,7 @@ class GGTauDisk(Model):
         # ----------------------------------
         from scipy import interpolate
         self.layer_function = dict()
-        wl_list = ['800', '1250',]
+        wl_list = ['800', '1250', '1650', '3800', '7700']
         for wl in wl_list:
             data = np.genfromtxt('/home/rbrauer/Documents/'
                 'projects/005_gg_tau/dust_settling_gg_tau/' + wl + '_nm_layers.dat')
@@ -764,8 +764,14 @@ class GGTauDisk(Model):
                 dust_id = 1
             elif abs(self.position[2]) > self.layer_function['1250'](radius_cy):
                 dust_id = 2
-            else:
+            elif abs(self.position[2]) > self.layer_function['1650'](radius_cy):
                 dust_id = 3
+            elif abs(self.position[2]) > self.layer_function['3800'](radius_cy):
+                dust_id = 4
+            elif abs(self.position[2]) > self.layer_function['7700'](radius_cy):
+                dust_id = 5
+            else:
+                dust_id = 6
         else:
             dust_id = 0
         return dust_id
