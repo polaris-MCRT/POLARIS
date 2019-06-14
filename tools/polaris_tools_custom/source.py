@@ -3,6 +3,7 @@
 
 import numpy as np
 from polaris_tools_modules.base import StellarSource
+from polaris_tools_modules.base import LaserSource
 
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.

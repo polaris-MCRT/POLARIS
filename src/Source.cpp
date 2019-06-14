@@ -1159,16 +1159,44 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
     cout << CLR_LINE << flush;
     cout << "-> Initiating source laser         \r" << flush;
 
-    if(!use_energy_density)
+    if(use_energy_density)
     {
-        cout << "\nERROR: Laser source cannot be used for dust temperature calculation!\n" << endl;
-        return false;
+        // For using energy density, only the photon number is required
+        cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
+             << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
+        cout << "    photons per wavelength: " << nr_of_photons << "      " << endl;
+        // cout << "\nERROR: Laser source cannot be used for dust temperature calculation!\n" << endl;
+        // return false;
     }
+    else
+    {
+        // Init variables
+        dlist star_emi;
+        double tmp_luminosity;
 
-    // For using energy density, only the photon number is required
-    cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << L << " [W] (wavelength = " << wl
-         << " [m], FWHM = " << fwhm << " [m])" << endl;
-    cout << "    photons per wavelength: " << nr_of_photons << "      " << endl;
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            double line_shape =
+                1 / sqrt(2 * PI * sigma_sq) * exp(-pow(wavelength_list[w] - wl, 2) / (2 * sigma_sq));
+            star_emi.push_back(L * line_shape);
+        }
+
+        tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        // L = tmp_luminosity;
+
+        // For using energy density, only the photon number is required
+        cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
+             << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
+        cout << "    photons: " << nr_of_photons << "      " << endl;
+
+        double fr;
+        lam_pf.resize(getNrOfWavelength());
+        for(uint l = 0; l < getNrOfWavelength(); l++)
+        {
+            fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
+            lam_pf.setValue(l, fr, double(l));
+        }
+    }
 
     return true;
 }
@@ -1177,7 +1205,7 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
-    double energy;
+    uint wID = 0;
 
     pp->initRandomGenerator(i_pos);
     pp->setDirection(dir);
@@ -1185,12 +1213,19 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
 
     if(pp->getWavelengthID() != MAX_UINT)
     {
-        uint wID = pp->getWavelengthID();
-        double line_shape =
-            1 / sqrt(2 * PI * sigma_sq) * exp(-pow(wavelength_list[wID] - wl, 2) / (2 * sigma_sq));
-        tmp_stokes_vector = L / double(nr_of_photons) * line_shape * StokesVector(1.0, q, u, 0);
+        wID = pp->getWavelengthID();
+    }
+    else
+    {
+        wID = lam_pf.getXIndex(pp->getRND());
+        // Mol3D uses the upper value of the wavelength interval,
+        // used for the selection of the emitting wavelengths from source!
+        pp->setWavelengthID(wID + 1);
     }
 
+    double line_shape =
+        1 / sqrt(2 * PI * sigma_sq) * exp(-pow(wavelength_list[wID] - wl, 2) / (2 * sigma_sq));
+    tmp_stokes_vector = L / double(nr_of_photons) * line_shape * StokesVector(1.0, q, u, 0);
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
 }
@@ -1199,7 +1234,6 @@ void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
-    double energy;
 
     pp->setDirection(dir);
     pp->setPosition(pos);

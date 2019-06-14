@@ -1010,7 +1010,7 @@ class Server:
         return self.get_command_line()
 
 
-# ----- radiation source class -----
+# ----- radiation source class (for stars) -----
 class StellarSource:
     """The StellarSource class is the base version for each stellar sources.
     """
@@ -1075,6 +1075,72 @@ class StellarSource:
                + str(self.parameter['position'][0]) + '\t' + str(self.parameter['position'][1]) + '\t' \
                + str(self.parameter['position'][2]) + '\t' + str(radius / self.math.const['R_sun']) + '\t' \
                + str(self.parameter['temperature']) + '\n'
+
+    def get_command(self):
+        """Provides radiation source command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the stellar source.
+        """
+        return self.get_command_line()
+
+
+# ----- radiation source class (for laser) -----
+class LaserSource:
+    """The LaserSource class is the base version for each laser source.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the radiation source parameters.
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        self.file_io = file_io
+        self.parse_args = parse_args
+
+        # Get math module
+        from polaris_tools_modules.math import Math
+        self.math = Math()
+
+        #: dict: Includes parameters of a specific stellar source
+        self.parameter = {
+            'position': [0., 0., 0.],
+            'direction': [1., 0., 0.],
+            'power': 0.,
+            'lambda_0': 0.,
+            'fwhm': 0.,
+            'stokes_q': 0.,
+            'stokes_u': 0.,
+            'nr_photons': 0,
+            'kepler_usable': False,
+        }
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set radiation source parameter with the extra parameters and update
+        radiation source parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the radiation source without changing the source.py file
+
+    def get_command_line(self):
+        """Provides radiation source command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the stellar source.
+        """
+        return '\t<source_laser nr_photons = "' + str(int(self.parameter['nr_photons'])) + '">\t' \
+                + str(self.parameter['position'][0]) + '\t' \
+                + str(self.parameter['position'][1]) + '\t' \
+                + str(self.parameter['position'][2]) + '\t' \
+                + str(self.parameter['direction'][0]) + '\t' \
+                + str(self.parameter['direction'][1]) + '\t' \
+                + str(self.parameter['direction'][2]) + '\t' \
+                + str(self.parameter['power']) + '\t' \
+                + str(self.parameter['lambda_0']) + '\t' \
+                + str(self.parameter['fwhm']) + '\t' \
+                + str(self.parameter['stokes_q']) + '\t' \
+                + str(self.parameter['stokes_u']) + '\n'
 
     def get_command(self):
         """Provides radiation source command line for POLARIS .cmd file.

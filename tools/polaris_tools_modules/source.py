@@ -4,6 +4,7 @@
 import numpy as np
 from polaris_tools_custom.source import update_sources_dict
 from polaris_tools_modules.base import StellarSource
+from polaris_tools_modules.base import LaserSource
 from polaris_tools_modules.math import Math
 
 
@@ -42,6 +43,7 @@ class SourceChooser:
             'herbig_ae': HerbigAe,
             'binary': BinaryStar,
             'sun': Sun,
+            'laser': Laser,
         }
         update_sources_dict(self.sources_dict)
 
@@ -328,3 +330,29 @@ class BinaryStar(StellarSource):
         self.parameter['position'] = self.parameter['position_star_2']
         new_command_line += self.get_command_line()
         return new_command_line
+
+
+class Laser(LaserSource):
+    """Change this to the star you want to use.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the radiation source parameters.
+
+        Args:
+            file_io : Handles file input/output and all necessary paths.
+        """
+        LaserSource.__init__(self, file_io, parse_args)
+
+        # Position of the laser [m, m, m]
+        self.parameter['position'] = [0, 0, 0]
+        # Direction of the laser
+        self.parameter['direction'] = [1, 0, 0]
+        # Power of the laser
+        self.parameter['power'] = 1e-3
+        # Central emitting wavelength of the laser
+        self.parameter['lambda_0'] = 650e-9
+        # FWHM of the laser emission
+        self.parameter['fwhm'] = 3e-9
+        # Number of photons if no number is chosen via --photons
+        self.parameter['nr_photons'] = 1e6
