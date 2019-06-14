@@ -166,12 +166,11 @@ class MultiSilicate(Dust):
             str: Command line to consider the MRN dust composition.
         """
         amax_list = [1e-6, 1e-3]
-        choice_id = [0, 1]
         new_command_line = str()
         for i in range(len(amax_list)):
             self.parameter['amin'] = 5e-9
             self.parameter['amax'] = amax_list[i]
-            self.parameter['choice_id'] = choice_id[i]
+            self.parameter['choice_id'] = i
             new_command_line += self.get_command_line()
         return new_command_line
 
@@ -202,27 +201,27 @@ class MultiMRN(Dust):
         Returns:
             str: Command line to consider the MRN dust composition.
         """
-        amax_list = [0.25e-6, 2.5e-6]  # [0.25e-6, 0.5e-6]
-        choice_id = [0, 1]
+        # amax_list = [0.25e-6, 2.5e-6]  # [0.25e-6, 0.5e-6]
+        amax_list = [2.5e-07, 0.3e-6, 0.4e-6, 0.5e-6, 2.0e-6, 3.5e-6, 300e-6]
         new_command_line = str()
         for i in range(len(amax_list)):
             dust = self.dust_chooser.get_module_from_name('silicate')
             dust.parameter['fraction'] = 0.625
             dust.parameter['amin'] = 5e-9
             dust.parameter['amax'] = amax_list[i]
-            dust.parameter['choice_id'] = choice_id[i]
+            dust.parameter['choice_id'] = i
             new_command_line += dust.get_command_line()
             dust = self.dust_chooser.get_module_from_name('graphite_perpend')
             dust.parameter['fraction'] = 0.25
             dust.parameter['amin'] = 5e-9
             dust.parameter['amax'] = amax_list[i]
-            dust.parameter['choice_id'] = choice_id[i]
+            dust.parameter['choice_id'] = i
             new_command_line += dust.get_command_line()
             dust = self.dust_chooser.get_module_from_name('graphite_parallel')
             dust.parameter['fraction'] = 0.125
             dust.parameter['amin'] = 5e-9
             dust.parameter['amax'] = amax_list[i]
-            dust.parameter['choice_id'] = choice_id[i]
+            dust.parameter['choice_id'] = i
             new_command_line += dust.get_command_line()
         return new_command_line
 

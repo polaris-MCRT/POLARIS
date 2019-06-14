@@ -524,8 +524,8 @@ class GGTauDisk(Model):
         self.layer_function = dict()
         wl_list = ['800', '1250', '1650', '3800', '7700']
         for wl in wl_list:
-            data = np.genfromtxt('/home/rbrauer/Documents/'
-                'projects/005_gg_tau/dust_settling_gg_tau/' + wl + '_nm_layers.dat')
+            data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
+                'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
             self.layer_function[wl] = interpolate.interp1d(data[0,:], data[1,:])
         
 
