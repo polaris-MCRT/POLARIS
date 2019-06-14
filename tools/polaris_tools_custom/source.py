@@ -181,13 +181,13 @@ class GGTauStars(StellarSource):
             (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 +
             np.sin(rot_angle_2 / 180 * np.pi)**2)
         self.a_Ab12 = 5. / 2.
-        self.a_planet = 260. + 20.
+        self.a_planet = 256.  # 260. + 20.
 
         # Cite: position angle (Di Folco et al. 1999)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab = self.angle_Aa + np.pi
         # Cite: position of planet (Dutrey et al. 2014)
-        self.angle_planet = np.pi * (360. - 127. - 25.) / 180.
+        self.angle_planet = np.pi * (-144.) / 180.  # (- 127. - 25.)
 
         self.potential_planet = None
 
