@@ -70,6 +70,8 @@ class SourceChooser:
         radiation_source = self.sources_dict[source_name](
             self.file_io, self.parse_args)
         # Overwrite default values with user input
+        radiation_source.update_parameter(
+            self.parse_args.rad_source_extra_parameter)
         if self.parse_args.nr_photons is not None:
             radiation_source.parameter['nr_photons'] = int(
                 self.parse_args.nr_photons)
@@ -88,8 +90,6 @@ class SourceChooser:
         if self.parse_args.rad_source_mass is not None:
             radiation_source.parameter['mass'] = self.math.parse(
                 self.parse_args.rad_source_mass, 'mass')
-        radiation_source.update_parameter(
-            self.parse_args.rad_source_extra_parameter)
         return radiation_source
 
     def get_module_from_name(self, radiation_source_name):

@@ -56,6 +56,7 @@ class ModelChooser:
             model = self.model_dict['default']()
         # Set user input variables
         if 'grid_type' in vars(self.parse_args).keys():
+            model.update_parameter(self.parse_args.extra_parameter)
             if self.parse_args.grid_type is not None:
                 model.parameter['grid_type'] = self.parse_args.grid_type
             if self.parse_args.gas_mass is not None:
@@ -98,7 +99,6 @@ class ModelChooser:
             if self.parse_args.split_first_cell is not None:
                 model.spherical_parameter['split_first_cell'] = self.parse_args.split_first_cell
                 model.cylindrical_parameter['split_first_cell'] = self.parse_args.split_first_cell
-            model.update_parameter(self.parse_args.extra_parameter)
         # Set the grid extent if global extent is set
         if model.parameter['grid_type'] == 'octree' and model.parameter['outer_radius'] is not None:
             model.octree_parameter['sidelength'] = 2. * \

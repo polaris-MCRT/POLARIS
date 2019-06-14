@@ -526,8 +526,9 @@ class GGTauDisk(Model):
         for wl in wl_list:
             data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
                 'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
-            self.layer_function[wl] = interpolate.interp1d(data[0,:], data[1,:])
-        
+            self.layer_function[wl] = interpolate.interp1d(
+                data[0,:], data[1,:], fill_value="extrapolate")
+ 
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
