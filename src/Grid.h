@@ -869,7 +869,7 @@ class CGridBasic
             tmp_dir.setZ(cell->getData(data_pos_rz_list[w]));
         }
 
-        // Rotate vector to cell center
+        // Rotate vector from cell center to position
         e_dir = rotateToCenter(pp, tmp_dir, true);
 
         // Normalize the radiation field vector
@@ -1703,21 +1703,21 @@ class CGridBasic
                     tx = double(j) * xy_step - sg * off_xy;
                 }
                 else
-                    tx = 0.1;
+                    tx = numeric_limits<double>::min();
                 if(k != 0)
                 {
                     double sg = CMathFunctions::sgn(k);
                     ty = double(k) * xy_step - sg * off_xy;
                 }
                 else
-                    ty = 0.1;
+                    ty = numeric_limits<double>::min();
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
                     tz = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
-                    tz = 0.1;
+                    tz = numeric_limits<double>::min();
                 tz += shift_z;
                 break;
 
@@ -1728,14 +1728,14 @@ class CGridBasic
                     tx = double(j) * xy_step - sg * off_xy;
                 }
                 else
-                    tx = 0.1;
+                    tx = numeric_limits<double>::min();
                 if(l != 0)
                 {
                     double sg = CMathFunctions::sgn(l);
                     ty = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
-                    ty = 0.1;
+                    ty = numeric_limits<double>::min();
                 ty += shift_z;
                 if(k != 0)
                 {
@@ -1743,7 +1743,7 @@ class CGridBasic
                     tz = double(k) * xy_step - sg * off_xy;
                 }
                 else
-                    tz = 0.1;
+                    tz = numeric_limits<double>::min();
                 break;
 
             case PROJ_YZ:
@@ -1753,7 +1753,7 @@ class CGridBasic
                     tx = double(l) * z_step - sg * off_z + shift_z;
                 }
                 else
-                    tx = 0.1;
+                    tx = numeric_limits<double>::min();
                 tx += shift_z;
                 if(j != 0)
                 {
@@ -1761,14 +1761,14 @@ class CGridBasic
                     ty = double(j) * xy_step - sg * off_xy;
                 }
                 else
-                    ty = 0.1;
+                    ty = numeric_limits<double>::min();
                 if(k != 0)
                 {
                     double sg = CMathFunctions::sgn(k);
                     tz = double(k) * xy_step - sg * off_xy;
                 }
                 else
-                    tz = 0.1;
+                    tz = numeric_limits<double>::min();
                 break;
 
             default:
@@ -2279,9 +2279,11 @@ class CGridBasic
 
     Vector3D getVelocityField(photon_package * pp)
     {
-        return Vector3D(pp->getPositionCell()->getData(data_pos_vx),
-                        pp->getPositionCell()->getData(data_pos_vy),
-                        pp->getPositionCell()->getData(data_pos_vz));
+        Vector3D tmp_dir(pp->getPositionCell()->getData(data_pos_vx),
+                         pp->getPositionCell()->getData(data_pos_vy),
+                         pp->getPositionCell()->getData(data_pos_vz));
+        // Rotate vector from cell center to position
+        return rotateToCenter(pp, tmp_dir, true);
     }
 
     Vector3D getVelocityField(cell_basic * cell)
@@ -2327,9 +2329,11 @@ class CGridBasic
 
     Vector3D getMagField(photon_package * pp)
     {
-        return Vector3D(pp->getPositionCell()->getData(data_pos_mx),
-                        pp->getPositionCell()->getData(data_pos_my),
-                        pp->getPositionCell()->getData(data_pos_mz));
+        Vector3D tmp_dir(pp->getPositionCell()->getData(data_pos_mx),
+                         pp->getPositionCell()->getData(data_pos_my),
+                         pp->getPositionCell()->getData(data_pos_mz));
+        // Rotate vector from cell center to position
+        return rotateToCenter(pp, tmp_dir, true);
     }
 
     void setMagField(cell_basic * cell, const Vector3D & mag)

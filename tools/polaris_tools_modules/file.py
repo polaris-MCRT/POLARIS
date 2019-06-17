@@ -14,7 +14,7 @@ class FileIO:
     """
 
     def __init__(self, model, server, parse_args, polaris_dir, tool_type, beam_size=None,
-                 cmap_unit='arcsec', vec_field_size=16, ax_unit=None):
+                 cmap_unit='arcsec', vec_field_size=None, ax_unit=None):
         """Initialisation of the input/output parameters.
 
         Args:
@@ -64,14 +64,20 @@ class FileIO:
             self.n_quantities_sed = 7
             #: float: Size of the beam, if used [arcsec].
             if parse_args.beam_size is not None:
-                self.beam_size = self.math.parse(parse_args.beam_size, 'angle', 'arcsec')
+                self.beam_size = self.math.parse(
+                    parse_args.beam_size, 'angle', 'arcsec')
             else:
                 self.beam_size = beam_size
             #: int: Number of pixel in one dimension for vector plot
             if parse_args.vec_field_size is not None:
                 self.vec_field_size = parse_args.vec_field_size
-            else:
+            elif vec_field_size is not None:
                 self.vec_field_size = vec_field_size
+            else:
+                if self.parse_args.visualization_type == 'midplane':
+                    self.vec_field_size = 8
+                else:
+                    self.vec_field_size = 10
             #: bool: Convert unit of maps into unit/arcsec instead of unit/pixel
             if parse_args.cmap_unit is not None:
                 self.cmap_unit = parse_args.cmap_unit
@@ -90,7 +96,8 @@ class FileIO:
         self.path = {}
 
         #: List: Main simulation types to choose from
-        self.main_simu_types = ['temp', 'rat', 'dust_mc', 'dust_full', 'dust', 'line', 'zeeman']
+        self.main_simu_types = ['temp', 'rat', 'dust_mc',
+                                'dust_full', 'dust', 'line', 'zeeman']
 
         #: List: alignment methods to choose from
         self.alignment_mechanisms = ['pa', 'rat', 'gold', 'idg', 'internal']
@@ -146,7 +153,8 @@ class FileIO:
                 os.mkdir(self.path['model'])
         if tool_type in ['plot', 'run', 'remote']:
             # Path to the directory of the chosen simulation name
-            self.path['simulation'] = self.path['model'] + str(simulation_name) + '/'
+            self.path['simulation'] = self.path['model'] + \
+                str(simulation_name) + '/'
             if tool_type == 'run':
                 # Create simulation directory, if it does not exist
                 if not os.path.lexists(self.path['simulation']):
@@ -184,9 +192,11 @@ class FileIO:
         elif tool_type in ['remote']:
             self.server.check_for_remote()
             # Server address to push/pull files to/from
-            self.path['server'] = self.server.parameter['user_id'] + '@' + self.server.parameter['address']
+            self.path['server'] = self.server.parameter['user_id'] + \
+                '@' + self.server.parameter['address']
             # Path to polaris package on the server
-            self.path['server_polaris'] = self.path['server'] + self.server.parameter['server_polaris_dir']
+            self.path['server_polaris'] = self.path['server'] + \
+                self.server.parameter['server_polaris_dir']
             # Path to the POLARIS model on the server
             self.path['server_model'] = self.path['model'].replace(
                 self.path['polaris'], self.path['server_polaris'])
@@ -215,7 +225,8 @@ class FileIO:
             # If path is not set, use default value
             if path is None:
                 path = self.path['plots']
-            self.plot_output_filename = path + filename + '_image_' + str(self.image_index) + '.tex'
+            self.plot_output_filename = path + filename + \
+                '_image_' + str(self.image_index) + '.tex'
         elif self.plot_output == 'pdf':
             # Load necessary modules
             from matplotlib.backends.backend_pdf import PdfPages
@@ -226,7 +237,8 @@ class FileIO:
             # Create PDF file. Images are saved to this file
             self.pdf_file_instance = PdfPages(self.plot_output_filename)
         elif self.plot_output != 'show':
-            raise ValueError('Output option ' + self.plot_output + ' is not known!')
+            raise ValueError('Output option ' +
+                             self.plot_output + ' is not known!')
 
     def close_plot_output(self):
         if self.plot_output == 'pdf' and self.pdf_file_instance is not None:
@@ -251,11 +263,12 @@ class FileIO:
         """
         if dust_parameter_dict['dust_cat_file'] is None or '.nk' in dust_parameter_dict['dust_cat_file']:
             raise ValueError('The chosen dust component has no related dust catalog '
-                'or is a refractive index file!')
+                             'or is a refractive index file!')
         size_list = []
         wavelength_list = []
         # Get dust data from catalog file
-        dust_file = open(self.path['dust'] + dust_parameter_dict['dust_cat_file'], 'r')
+        dust_file = open(self.path['dust'] +
+                         dust_parameter_dict['dust_cat_file'], 'r')
         i_line = 0
         i_print_dust_size = -1
         i_print_wavelength = -1
@@ -307,9 +320,12 @@ class FileIO:
         if self.parse_args.simulation_type == 'dust_mc':
             #: list: List with all available colorbar labels for monte_carlo plots
             quantity_labels = [r'$' + quantity + r'_\mathsf{I}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{Q}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{U}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{V}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{Q}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{U}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{V}\ [\si{' + unit + '}]$',
                                r'$\mathit{PI}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{P}_\mathsf{l}\ [\%]$',
                                r'$\mathit{I}_\mathsf{direct}\ [\si{' + unit + '}]$',
@@ -317,9 +333,12 @@ class FileIO:
         elif 'dust' in self.parse_args.simulation_type:
             #: list: List with all available colorbar labels for raytrace plots
             quantity_labels = [r'$' + quantity + r'_\mathsf{I}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{Q}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{U}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{V}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{Q}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{U}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{V}\ [\si{' + unit + '}]$',
                                r'$\mathit{PI}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{P}_\mathsf{l}\ [\%]$',
                                r'$\tau$',
@@ -327,16 +346,20 @@ class FileIO:
         elif self.parse_args.simulation_type in ['line', 'zeeman']:
             #: list: List with all available colorbar labels for spectral line plots
             quantity_labels = [r'$' + quantity + r'_\mathsf{I}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{Q}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{U}\ [\si{' + unit + '}]$',
-                               r'$' + quantity + r'_\mathsf{V}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{Q}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{U}\ [\si{' + unit + '}]$',
+                               r'$' + quantity +
+                               r'_\mathsf{V}\ [\si{' + unit + '}]$',
                                r'$\tau$',
                                r'$\mathit{n}_\mathsf{H}\ [\si{m^{-2}}]$']
         else:
             raise ValueError('Error: For the simulation_type: ' + str(self.parse_args.simulation_type) +
                              ' is no automatic label generation for the colorbar available!')
         if len(quantity_labels) <= i_quantity or i_quantity < 0:
-            raise ValueError('For the quantity number ' + str(i_quantity) + ', no label is providable!')
+            raise ValueError('For the quantity number ' +
+                             str(i_quantity) + ', no label is providable!')
         return quantity_labels[i_quantity]
 
     def read_emission_map_header(self, hdulist):
@@ -365,8 +388,10 @@ class FileIO:
         )
         if plot_data_type == 'healpix':
             header_dict['nsides'] = int(hdulist[hdu_index].header['NSIDE'])
-            header_dict['nr_pixel_x'] = int(hdulist[hdu_index].header['LASTPIX'] - hdulist[hdu_index].header['FIRSTPIX'] + 1)
-            header_dict['nr_wavelengths'] = int(hdulist[hdu_index].header['TFIELDS'] / 6)
+            header_dict['nr_pixel_x'] = int(
+                hdulist[hdu_index].header['LASTPIX'] - hdulist[hdu_index].header['FIRSTPIX'] + 1)
+            header_dict['nr_wavelengths'] = int(
+                hdulist[hdu_index].header['TFIELDS'] / 6)
             # Put the wavelengths in list
             for i_wl in range(header_dict['nr_wavelengths']):
                 header_dict['wavelengths'].append(float(
@@ -375,20 +400,23 @@ class FileIO:
             # Update dictionary with parameters from header
             header_dict['angle1'] = hdulist[hdu_index].header['RANGLE1']
             header_dict['angle2'] = hdulist[hdu_index].header['RANGLE2']
-            header_dict['sidelength_x'] = hdulist[hdu_index].header['CDELT1'] * hdulist[hdu_index].header['NAXIS1']
-            header_dict['sidelength_y'] = hdulist[hdu_index].header['CDELT2'] * hdulist[hdu_index].header['NAXIS2']
+            header_dict['sidelength_x'] = hdulist[hdu_index].header['CDELT1'] * \
+                hdulist[hdu_index].header['NAXIS1']
+            header_dict['sidelength_y'] = hdulist[hdu_index].header['CDELT2'] * \
+                hdulist[hdu_index].header['NAXIS2']
             header_dict['nr_pixel_x'] = hdulist[hdu_index].header['NAXIS1']
             header_dict['nr_pixel_y'] = hdulist[hdu_index].header['NAXIS2']
             header_dict['nr_wavelengths'] = hdulist[hdu_index].header['NAXIS3']
             header_dict['distance'] = hdulist[hdu_index].header['DISTANCE']
             # Adjust the unit of the sidelengths
             header_dict['sidelength_x'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT1'].lower(),
-                header_dict['distance'])
+                                                                        header_dict['distance'])
             header_dict['sidelength_y'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT2'].lower(),
-                header_dict['distance'])
+                                                                        header_dict['distance'])
             # Put the wavelengths in list
             for i_wl in range(header_dict['nr_wavelengths']):
-                header_dict['wavelengths'].append(hdulist[0].header['WAVELENGTH' + str(i_wl + 1)])
+                header_dict['wavelengths'].append(
+                    hdulist[0].header['WAVELENGTH' + str(i_wl + 1)])
             # Check if the sidelength of the image ist the same as of the model
             self.check_sidelengths(header_dict)
             # Check if the distance in the fits file is the same as in the model
@@ -420,7 +448,8 @@ class FileIO:
         )
         # Put the wavelengths in list
         for i_wl in range(header_dict['nr_wavelengths']):
-            header_dict['wavelengths'].append(hdulist[0].header['WAVELENGTH' + str(i_wl + 1)])
+            header_dict['wavelengths'].append(
+                hdulist[0].header['WAVELENGTH' + str(i_wl + 1)])
         # Check if the distance in the fits file is the same as in the model
         self.check_distance(header_dict)
         return header_dict, plot_data_type
@@ -442,16 +471,21 @@ class FileIO:
         header_dict = dict(
             nr_pixel_x=hdulist[0].header['NAXIS1'],
             nr_pixel_y=hdulist[0].header['NAXIS2'],
-            sidelength_x=hdulist[0].header['CDELT1'] * hdulist[0].header['NAXIS1'],
-            sidelength_y=hdulist[0].header['CDELT2'] * hdulist[0].header['NAXIS2'],
+            sidelength_x=hdulist[0].header['CDELT1'] *
+            hdulist[0].header['NAXIS1'],
+            sidelength_y=hdulist[0].header['CDELT2'] *
+            hdulist[0].header['NAXIS2'],
             midplane_quantities=[],
         )
         # Put the midplane quantities in list
         for i in range(hdulist[0].header['NAXIS4']):
-            header_dict['midplane_quantities'].append(hdulist[0].header['MIDPLANE' + str(i + 1)])
+            header_dict['midplane_quantities'].append(
+                hdulist[0].header['MIDPLANE' + str(i + 1)])
         # Adjust the unit of the sidelengths
-        header_dict['sidelength_x'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT1'].lower())
-        header_dict['sidelength_y'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT2'].lower())
+        header_dict['sidelength_x'] *= self.math.conv_length_factor(
+            hdulist[0].header['CUNIT1'].lower())
+        header_dict['sidelength_y'] *= self.math.conv_length_factor(
+            hdulist[0].header['CUNIT2'].lower())
         # Check if the sidelength of the image ist the same as of the model
         self.check_sidelengths(header_dict)
         return header_dict, plot_data_type
@@ -483,22 +517,26 @@ class FileIO:
         )
         if plot_data_type == 'healpix':
             header_dict['nsides'] = int(hdulist[hdu_index].header['NSIDE'])
-            header_dict['nr_pixel_x'] = int(hdulist[hdu_index].header['LASTPIX'] - hdulist[hdu_index].header['FIRSTPIX'] + 1)
-            header_dict['nr_columns'] = int(hdulist[hdu_index].header['TFIELDS'])
+            header_dict['nr_pixel_x'] = int(
+                hdulist[hdu_index].header['LASTPIX'] - hdulist[hdu_index].header['FIRSTPIX'] + 1)
+            header_dict['nr_columns'] = int(
+                hdulist[hdu_index].header['TFIELDS'])
         else:
             # Update dictionary with parameters from header
             header_dict['angle1'] = hdulist[hdu_index].header['RANGLE1']
             header_dict['angle2'] = hdulist[hdu_index].header['RANGLE2']
-            header_dict['sidelength_x'] = hdulist[hdu_index].header['CDELT1'] * hdulist[hdu_index].header['NAXIS1']
-            header_dict['sidelength_y'] = hdulist[hdu_index].header['CDELT2'] * hdulist[hdu_index].header['NAXIS2']
+            header_dict['sidelength_x'] = hdulist[hdu_index].header['CDELT1'] * \
+                hdulist[hdu_index].header['NAXIS1']
+            header_dict['sidelength_y'] = hdulist[hdu_index].header['CDELT2'] * \
+                hdulist[hdu_index].header['NAXIS2']
             header_dict['nr_pixel_x'] = hdulist[hdu_index].header['NAXIS1']
             header_dict['nr_pixel_y'] = hdulist[hdu_index].header['NAXIS2']
             header_dict['distance'] = hdulist[hdu_index].header['DISTANCE']
             # Adjust the unit of the sidelengths
             header_dict['sidelength_x'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT1'].lower(),
-                header_dict['distance'])
+                                                                        header_dict['distance'])
             header_dict['sidelength_y'] *= self.math.conv_length_factor(hdulist[0].header['CUNIT2'].lower(),
-                header_dict['distance'])
+                                                                        header_dict['distance'])
             # Check if the sidelength of the image ist the same as of the model
             self.check_sidelengths(header_dict)
             # Check if the distance in the fits file is the same as in the model
@@ -549,80 +587,92 @@ class FileIO:
         if plot_data_type == 'healpix':
             if header['simulation_type'] == 'dust_full':
                 raise ValueError('Emission maps with the healpix background raytracing grid cannot be '
-                    'combined with Monte-Carlo results!')
+                                 'combined with Monte-Carlo results!')
             import healpy as hp
-            data = hp.read_map(self.path['results'] + filename + '.fits', field=None, verbose=False)
-            wmap_map = np.zeros((self.n_quantities_map, header['nr_wavelengths'], data.shape[1]))
+            data = hp.read_map(
+                self.path['results'] + filename + '.fits', field=None, verbose=False)
+            wmap_map = np.zeros(
+                (self.n_quantities_map, header['nr_wavelengths'], data.shape[1]))
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
-            arcsec_squared_per_pixel = 4 * np.pi * (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
+            arcsec_squared_per_pixel = 4 * np.pi * \
+                (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             for i_wl in range(header['nr_wavelengths']):
                 i_col = i_wl * int(self.n_quantities_map - 3)
                 # Set the data array from fits input
                 wmap_map[0:4, i_wl, :] = data[i_col:i_col + 4, :]
-                wmap_map[6:7, i_wl, :] = data[i_col + 4 : i_col + 5, :]
+                wmap_map[6:7, i_wl, :] = data[i_col + 4: i_col + 5, :]
                 wmap_map[4, i_wl, :] = np.sqrt(np.add(np.power(data[i_col + 1, :], 2),
-                    np.power(data[i_col + 2, :], 2)))
+                                                      np.power(data[i_col + 2, :], 2)))
             # Apply intensity unit conversion
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             elif self.cmap_unit == 'nuF':
                 for i_wl in range(header['nr_wavelengths']):
-                    wmap_map[0:5, i_wl, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+                    wmap_map[0:5, i_wl, :] *= 1e-26 * \
+                        self.math.const['c'] / header['wavelengths'][i_wl]
             else:
                 wmap_map[0:5, :, :] /= arcsec_squared_per_pixel
             # Add column density at the end
-            wmap_map[7, :, :] = data[int(self.n_quantities_map - 3) * header['nr_wavelengths'], :]
+            wmap_map[7, :, :] = data[int(
+                self.n_quantities_map - 3) * header['nr_wavelengths'], :]
             # Apply beam convolution if chosen
-            wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            wmap_map = self.beam_conv(
+                wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             # Calculate degree of polarization
             wmap_map[5, i_wl, :] = 1e2 * np.divide(wmap_map[4, i_wl, :], wmap_map[0, i_wl, :],
-                out=np.zeros_like(wmap_map[4, i_wl, :]), where=wmap_map[0, i_wl, :] != 0)
+                                                   out=np.zeros_like(wmap_map[4, i_wl, :]), where=wmap_map[0, i_wl, :] != 0)
             return wmap_map, header, plot_data_type
         else:
             #: Data from the file with the monte carlo results
             data = np.transpose(hdulist[0].data, (0, 1, 3, 2))
             #: 3 dimensional numpy array to save the results into
             tbldata = np.zeros((self.n_quantities_map, header['nr_wavelengths'],
-                header['nr_pixel_x'], header['nr_pixel_y']))
+                                header['nr_pixel_x'], header['nr_pixel_y']))
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
-                (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+                (2. *
+                 self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
             # Set the data array from fits input
             tbldata[0:4, :, :, :] = data[0:4, :, :, :]
             tbldata[6:8, :, :, :] = data[4:6, :, :, :]
-            tbldata[4, :, :, :] = np.sqrt(np.add(np.power(data[1, :, :, :], 2), np.power(data[2, :, :, :], 2)))
+            tbldata[4, :, :, :] = np.sqrt(
+                np.add(np.power(data[1, :, :, :], 2), np.power(data[2, :, :, :], 2)))
             # Apply intensity unit conversion
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
-                pass                
+                pass
             elif self.cmap_unit == 'nuF':
                 for i_wl in range(header['nr_wavelengths']):
-                    tbldata[0:5, i_wl, :, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+                    tbldata[0:5, i_wl, :, :] *= 1e-26 * \
+                        self.math.const['c'] / header['wavelengths'][i_wl]
                 if header['simulation_type'] in ['dust_mc', 'dust_full']:
                     for i_wl in range(header['nr_wavelengths']):
-                        tbldata[6:8, i_wl, :, :] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+                        tbldata[6:8, i_wl, :, :] *= 1e-26 * \
+                            self.math.const['c'] / header['wavelengths'][i_wl]
             else:
                 tbldata[0:5, :, :, :] /= arcsec_squared_per_pixel
                 if header['simulation_type'] in ['dust_mc', 'dust_full']:
                     tbldata[6:8, :, :, :] /= arcsec_squared_per_pixel
             # Apply beam convolution if chosen
-            tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            tbldata = self.beam_conv(
+                tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             # Calculate degree of polarization
             tbldata[5, :, :, :] = 1e2 * np.divide(tbldata[4, :, :, :], tbldata[0, :, :, :],
-                out=np.zeros_like(tbldata[4, :, :, :]), where=tbldata[0, :, :, :] != 0)
+                                                  out=np.zeros_like(tbldata[4, :, :, :]), where=tbldata[0, :, :, :] != 0)
             if plot_data_type == 'map':
                 return tbldata, header, plot_data_type
             elif plot_data_type == 'cut':
                 # Create cuts instead of returning the map data
                 position, data = self.create_cut(tbldata, cut_parameter=self.parse_args.cut_parameter,
-                    N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
+                                                 N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
                 return [position, data], header, plot_data_type
             elif plot_data_type == 'radial':
                 # Create cuts instead of returning the map data
                 position, data = self.create_radial_profile(tbldata,
-                    radial_parameter=self.parse_args.radial_parameter)
+                                                            radial_parameter=self.parse_args.radial_parameter)
                 return [position, data], header, plot_data_type
             else:
-                raise ValueError('The emission map data cannot be delivered in the chosen format!')
+                raise ValueError(
+                    'The emission map data cannot be delivered in the chosen format!')
 
     def read_emission_sed(self, filename):
         """Reads the data of a fits file with POLARIS Raytrace or Monte-Carlo SED results.
@@ -637,7 +687,7 @@ class FileIO:
             2) Dictionary with information of the file header.
         """
         # Load data and header from fits if available
-        if os.path.isfile(self.path['results'] + filename  + '.fits'):
+        if os.path.isfile(self.path['results'] + filename + '.fits'):
             hdulist = fits.open(self.path['results'] + filename + '.fits')
         else:
             raise FileExistsError('--- Hint: No emission sed fits file exists (' +
@@ -651,14 +701,16 @@ class FileIO:
         # Set the data array from fits input
         tbldata[0:4, :] = data[0:4, :]
         tbldata[6, :] = data[4, :]
-        tbldata[4, :] = np.sqrt(np.add(np.power(data[1, :], 2), np.power(data[2, :], 2)))
+        tbldata[4, :] = np.sqrt(
+            np.add(np.power(data[1, :], 2), np.power(data[2, :], 2)))
         # Ignore divide by zero
         with np.errstate(divide='ignore', invalid='ignore'):
             tbldata[5, :] = 1e2 * np.divide(tbldata[4, :], data[0, :])
         # Apply intensity unit conversion
         if self.cmap_unit == 'nuF':
             for i_wl in range(header['nr_wavelengths']):
-                tbldata[0:5, i_wl] *= 1e-26 * self.math.const['c'] / header['wavelengths'][i_wl]
+                tbldata[0:5, i_wl] *= 1e-26 * \
+                    self.math.const['c'] / header['wavelengths'][i_wl]
         return tbldata, header, plot_data_type
 
     def read_midplane_file(self, visualization_input, skip_not_known=False, filename=None):
@@ -687,23 +739,57 @@ class FileIO:
                 raise FileExistsError('Error: No midplane file exists!')
         elif 'input' in visualization_input:
             if os.path.isfile(self.path['results'] + 'input_midplane.fits'):
-                hdulist = fits.open(self.path['results'] + 'input_midplane.fits')
+                hdulist = fits.open(
+                    self.path['results'] + 'input_midplane.fits')
             else:
                 raise FileExistsError('Error: No midplane file exists!')
         elif 'output' in visualization_input:
             if os.path.isfile(self.path['results'] + 'output_midplane.fits'):
-                hdulist = fits.open(self.path['results'] + 'output_midplane.fits')
+                hdulist = fits.open(
+                    self.path['results'] + 'output_midplane.fits')
             else:
                 raise FileExistsError('Error: No midplane file exists!')
         else:
-            raise ValueError('Error: visualization_input is not set correctly (try \'all\')!')
+            raise ValueError(
+                'Error: visualization_input is not set correctly (try \'all\')!')
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_midplane_file_header(hdulist)
         #: int: Number of bins per dimension per polarization vector
-        vector_bins_x = int(np.ceil(header['nr_pixel_x'] / self.vec_field_size))
-        vector_bins_y = int(np.ceil(header['nr_pixel_y'] / self.vec_field_size))
+        if header['nr_pixel_x'] % 2 == 0:
+            vector_bins_x = int(
+                np.ceil(header['nr_pixel_x'] / self.vec_field_size))
+            offset_x = 0
+        else:
+            if self.vec_field_size % 2 == 0:
+                offset_x = header['nr_pixel_x'] % self.vec_field_size - 1
+                if int((header['nr_pixel_x'] - offset_x) / self.vec_field_size) % 2 != 0:
+                    offset_x += self.vec_field_size
+            else:
+                offset_x = header['nr_pixel_x'] % self.vec_field_size
+                if int((header['nr_pixel_x'] - offset_x) / self.vec_field_size) % 2 == 0:
+                    offset_x += self.vec_field_size
+            vector_bins_x = int(
+                (header['nr_pixel_x'] - offset_x) / self.vec_field_size)
+            offset_x = int(offset_x / 2)
+
+        if header['nr_pixel_y'] % 2 == 0:
+            vector_bins_y = int(
+                np.ceil(header['nr_pixel_y'] / self.vec_field_size))
+            offset_y = 0
+        else:
+            if self.vec_field_size % 2 == 0:
+                offset_y = header['nr_pixel_y'] % self.vec_field_size - 1
+                if int((header['nr_pixel_y'] - offset_y) / self.vec_field_size) % 2 != 0:
+                    offset_y += self.vec_field_size
+            else:
+                offset_y = header['nr_pixel_y'] % self.vec_field_size
+                if int((header['nr_pixel_y'] - offset_y) / self.vec_field_size) % 2 == 0:
+                    offset_y += self.vec_field_size
+            vector_bins_y = int(
+                (header['nr_pixel_y'] - offset_y) / self.vec_field_size)
+            offset_y = int(offset_y / 2)
         #: Numpy array for the vector data
-        vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 3))
+        vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 5))
         # Get index for different cuts through the model
         if 'xy' in visualization_input:
             cut_index = 0
@@ -721,125 +807,183 @@ class FileIO:
             if 'gas_number_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_number_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'gas_mass_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_mass_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'dust_number_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_number_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
                     elif 'gas_number_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         midplane_mod = self.model.parameter['mass_fraction']
                         break
             elif 'dust_mass_density' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_mass_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
                     elif 'gas_mass_density ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         midplane_mod = self.model.parameter['mass_fraction']
                         break
             elif 'gas_temperature' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'gas_temperature ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'dust_temperature' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_temperature ' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'rat_aalig' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'rat_aalig' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'delta' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'delta' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'mag' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'mag_total' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'vel' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'vel_total' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'mach' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'mach' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'larm' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'larm' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'dust_choice' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'dust_choice' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'a_min' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'a_min' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             elif 'a_max' in visualization_input:
                 for quantity in header['midplane_quantities']:
                     if 'a_max' in quantity:
-                        midlane_index = header['midplane_quantities'].index(quantity)
+                        midlane_index = header['midplane_quantities'].index(
+                            quantity)
                         break
             if midlane_index == -1:
-                raise ValueError('visualization_input: ' + visualization_input + ' not found!')
+                raise ValueError('visualization_input: ' +
+                                 visualization_input + ' not found!')
         except:
             if skip_not_known:
                 return None, None, plot_data_type
             else:
                 raise ValueError('Midplane file does not include the chosen quantity! '
-                    'Choose another quantity or try \'all\'.')
+                                 'Choose another quantity or try \'all\'.')
         data = np.transpose(hdulist[0].data, (0, 1, 3, 2))
+        # Init steps to jump over the middle row/column is necessary
+        middle_step_x = 0
+        middle_step_y = 0
         if 'vel' in visualization_input or 'mag' in visualization_input:
-            for i_x in range(header['nr_pixel_x']):
-                for i_y in range(header['nr_pixel_y']):
+            for i_x in range(offset_x, header['nr_pixel_x'] - offset_x):
+                # Skip middle cell if vector size is even and pixel size is odd
+                if header['nr_pixel_x'] % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_x == int((header['nr_pixel_x'] - 1) / 2):
+                    if middle_step_x == 0:
+                        middle_step_x = 1
+                    continue
+                # Next axis loop
+                for i_y in range(offset_y, header['nr_pixel_y'] - offset_y):
+                    # Skip middle cell if vector size is even and pixel size is odd
+                    if header['nr_pixel_y'] % 2 != 0 and self.vec_field_size % 2 == 0 \
+                            and i_y == int((header['nr_pixel_y'] - 1) / 2):
+                        if middle_step_y == 0:
+                            middle_step_y = 1
+                        continue
                     #: int: X-axis index to the vector
-                    i_x_vec = int(i_x / self.vec_field_size)
+                    i_x_vec = int(
+                        (i_x - offset_x - middle_step_x) / self.vec_field_size)
                     #: int: Y-axis index to the vector
-                    i_y_vec = int(i_y / self.vec_field_size)
+                    i_y_vec = int(
+                        (i_y - offset_y - middle_step_y) / self.vec_field_size)
                     # Calculating the vectors and average over vec_field_size^2
                     vec_field_data[i_x_vec, i_y_vec, 0] += midplane_mod * \
-                        data[midlane_index + 1, cut_index, i_x, i_y] / self.vec_field_size ** 2
+                        data[midlane_index + 1, cut_index, i_x, i_y] / \
+                        self.vec_field_size ** 2
                     vec_field_data[i_x_vec, i_y_vec, 1] += midplane_mod * \
-                        data[midlane_index + 2, cut_index, i_x, i_y] / self.vec_field_size ** 2
+                        data[midlane_index + 2, cut_index, i_x, i_y] / \
+                        self.vec_field_size ** 2
                     vec_field_data[i_x_vec, i_y_vec, 2] += midplane_mod * \
-                        data[midlane_index + 3, cut_index, i_x, i_y] / self.vec_field_size ** 2
+                        data[midlane_index + 3, cut_index, i_x, i_y] / \
+                        self.vec_field_size ** 2
+        # Calculating the x and y positions
+        for i_x_vec in range(vector_bins_x):
+            for i_y_vec in range(vector_bins_y):
+                # X axis
+                vec_field_data[i_x_vec, i_y_vec, 3] = ((
+                    i_x_vec + 0.5) * self.vec_field_size + offset_x) / header['nr_pixel_x']
+                if header['nr_pixel_x'] % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_x_vec < int(vector_bins_x / 2):
+                    vec_field_data[i_x_vec, i_y_vec, 3] += 1 / \
+                        header['nr_pixel_x']
+                # Y axis
+                vec_field_data[i_x_vec, i_y_vec, 4] = ((
+                    i_y_vec + 0.5) * self.vec_field_size + offset_y) / header['nr_pixel_y']
+                if header['nr_pixel_y'] % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_y_vec < int(vector_bins_y / 2):
+                    vec_field_data[i_x_vec, i_y_vec, 4] += 1 / \
+                        header['nr_pixel_y']
         #: Numpy array for the midplane data
-        tbldata = hdulist[0].data[midlane_index, cut_index, :, :].T * midplane_mod
+        tbldata = hdulist[0].data[midlane_index,
+                                  cut_index, :, :].T * midplane_mod
         if plot_data_type == 'map':
             return [tbldata, vec_field_data], header, plot_data_type
         elif plot_data_type == 'cut':
             # Create cuts instead of returning the map data
             position, data = self.create_cut(tbldata, cut_parameter=self.parse_args.cut_parameter,
-                N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
+                                             N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
             return [position, data], header, plot_data_type
         elif plot_data_type == 'radial':
             # Create cuts instead of returning the map data
             position, data = self.create_radial_profile(tbldata,
-                radial_parameter=self.parse_args.radial_parameter)
+                                                        radial_parameter=self.parse_args.radial_parameter)
             return [position, data], header, plot_data_type
         else:
-            raise ValueError('The midplane map data cannot be delivered in the chosen format!')
+            raise ValueError(
+                'The midplane map data cannot be delivered in the chosen format!')
 
     def read_vel_maps(self, filename):
         """Reads the data of a file with velocity channel maps.
@@ -855,22 +999,27 @@ class FileIO:
         """
         if os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits'):
             # Load data and header from extra data fits if available
-            hdulist_extra = fits.open(self.path['results'] + filename + '_extra.fits')
+            hdulist_extra = fits.open(
+                self.path['results'] + filename + '_extra.fits')
         else:
-            raise ValueError('Error: The chosen fits file ' + filename + ' does not exist!')
+            raise ValueError('Error: The chosen fits file ' +
+                             filename + ' does not exist!')
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_vel_maps_header(hdulist_extra)
         if plot_data_type == 'healpix':
             import healpy as hp
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
-            arcsec_squared_per_pixel = 4 * np.pi * (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
+            arcsec_squared_per_pixel = 4 * np.pi * \
+                (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             #: List: Load the velocity channels into a list
             data_list = [hp.read_map(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) +
-                '.fits', field=None, verbose=False) for vch in range(header['nr_channels'])]
+                                     '.fits', field=None, verbose=False) for vch in range(header['nr_channels'])]
             # Load the extra data (zeeman, column dens)
-            data_extra = hp.read_map(self.path['results'] + filename + '_extra.fits', field=None, verbose=False)
+            data_extra = hp.read_map(
+                self.path['results'] + filename + '_extra.fits', field=None, verbose=False)
             #: Numpy array for the vel_map data
-            wmap_map = np.zeros((self.n_quantities_map, header['nr_channels'], header['nr_pixel_x']))
+            wmap_map = np.zeros(
+                (self.n_quantities_map, header['nr_channels'], header['nr_pixel_x']))
             # Fill the tbldata with the input data
             for vch in range(header['nr_channels']):
                 wmap_map[0:5, vch, ...] = data_list[vch][0:5, ...]
@@ -886,44 +1035,51 @@ class FileIO:
                 pass
             else:
                 wmap_map[0:4, :, :] /= arcsec_squared_per_pixel
-            wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            wmap_map = self.beam_conv(
+                wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             return wmap_map, header, plot_data_type
         else:
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
-                (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+                (2. *
+                 self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
             #: List: Load the velocity channels into a list
             hdulist_list = [fits.open(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits')
-                for vch in range(0, header['nr_channels'])]
+                            for vch in range(0, header['nr_channels'])]
             #: Numpy array for the vel_map data
-            tbldata = np.zeros((6, header['nr_channels'], header['nr_pixel_x'], header['nr_pixel_y']))
+            tbldata = np.zeros(
+                (6, header['nr_channels'], header['nr_pixel_x'], header['nr_pixel_y']))
             # Fill the tbldata with the input data
             for vch in range(header['nr_channels']):
-                tbldata[0:5, vch, :, :] = np.transpose(hdulist_list[vch][0].data, (0, 2, 1))
+                tbldata[0:5, vch, :, :] = np.transpose(
+                    hdulist_list[vch][0].data, (0, 2, 1))
                 # Add the extra data
                 if vch < hdulist_extra[0].data.shape[0]:
-                    tbldata[5, vch, :, :] = np.transpose(hdulist_extra[0].data, (0, 2, 1))[vch, ...]
+                    tbldata[5, vch, :, :] = np.transpose(
+                        hdulist_extra[0].data, (0, 2, 1))[vch, ...]
             # Change unit if per arcseconds was chosen
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             else:
                 tbldata[0:4, :, :, :] /= arcsec_squared_per_pixel
             # Convolve with beam if necessary
-            tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            tbldata = self.beam_conv(
+                tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             if plot_data_type == 'map':
                 return tbldata, header, plot_data_type
             elif plot_data_type == 'cut':
                 # Create cuts instead of returning the map data
                 position, data = self.create_cut(tbldata, cut_parameter=self.parse_args.cut_parameter,
-                    N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
+                                                 N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
                 return [position, data], header, plot_data_type
             elif plot_data_type == 'radial':
                 # Create cuts instead of returning the map data
                 position, data = self.create_radial_profile(tbldata,
-                    radial_parameter=self.parse_args.radial_parameter)
+                                                            radial_parameter=self.parse_args.radial_parameter)
                 return [position, data], header, plot_data_type
             else:
-                raise ValueError('The velocity map data cannot be delivered in the chosen format!')
+                raise ValueError(
+                    'The velocity map data cannot be delivered in the chosen format!')
 
     def read_int_vel_map(self, filename):
         """Reads the data of a file with integrated velocity channel map.
@@ -941,45 +1097,52 @@ class FileIO:
             # Load data and header from fits if available
             hdulist = fits.open(self.path['results'] + filename + '.fits')
         else:
-            raise ValueError('Error: hdulist cannot be returned if no fits file exists!')
+            raise ValueError(
+                'Error: hdulist cannot be returned if no fits file exists!')
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_vel_maps_header(hdulist)
         if plot_data_type == 'healpix':
             import healpy as hp
-            wmap_map = hp.read_map(self.path['results'] + filename + '.fits', field=None, verbose=False)
+            wmap_map = hp.read_map(
+                self.path['results'] + filename + '.fits', field=None, verbose=False)
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
-            arcsec_squared_per_pixel = 4 * np.pi * (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
+            arcsec_squared_per_pixel = 4 * np.pi * \
+                (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             else:
                 wmap_map[0:4, :] /= arcsec_squared_per_pixel
-            wmap_map = self.beam_conv(wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            wmap_map = self.beam_conv(
+                wmap_map, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             return wmap_map, header, plot_data_type
         else:
             #: Numpy array for the midplane data
             tbldata = np.transpose(hdulist[0].data, (0, 2, 1))
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
-                (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+                (2. *
+                 self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             else:
                 tbldata[0:4, :, :] /= arcsec_squared_per_pixel
-            tbldata = self.beam_conv(tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
+            tbldata = self.beam_conv(
+                tbldata, plot_data_type, np.sqrt(arcsec_squared_per_pixel))
             if plot_data_type == 'map':
                 return tbldata, header, plot_data_type
             elif plot_data_type == 'cut':
                 # Create cuts instead of returning the map data
                 position, data = self.create_cut(tbldata, cut_parameter=self.parse_args.cut_parameter,
-                    N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
+                                                 N_r=2 * (header['nr_pixel_x'] + header['nr_pixel_y']))
                 return [position, data], header, plot_data_type
             elif plot_data_type == 'radial':
                 # Create cuts instead of returning the map data
                 position, data = self.create_radial_profile(tbldata,
-                    radial_parameter=self.parse_args.radial_parameter)
+                                                            radial_parameter=self.parse_args.radial_parameter)
                 return [position, data], header, plot_data_type
             else:
-                raise ValueError('The integrated velocity map data cannot be delivered in the chosen format!')
+                raise ValueError(
+                    'The integrated velocity map data cannot be delivered in the chosen format!')
 
     def read_spectrum(self, filename):
         """Reads data from spectrum file into a numpy array.
@@ -1040,7 +1203,8 @@ class FileIO:
             #: float: Standard deviation of the beam size [pixel]
             stddev_px = fwhm_px / (2. * np.sqrt(2 * np.log(2)))
             #: 2D gaussian kernel to convolve the raytrace results
-            gauss = Gaussian2DKernel(stddev_px, x_size=int(20 * stddev_px), y_size=int(20 * stddev_px))
+            gauss = Gaussian2DKernel(stddev_px, x_size=int(
+                20 * stddev_px), y_size=int(20 * stddev_px))
         # Only convolve quantities related to a flux
         if 'dust' in self.parse_args.simulation_type:
             quantity_list = [0, 1, 2, 3, 4, 5]
@@ -1050,19 +1214,23 @@ class FileIO:
                 if plot_data_type == 'healpix':
                     for i_wl in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_wl, ...] = smoothing(tbldata[i_quantity, i_wl, ...], verbose=False,
-                            fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
+                                                                   fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
                         # P is not flux / beam but should be convolved
                         if i_quantity != 5 and self.cmap_unit == 'beam':
-                            tbldata[i_quantity, i_wl, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                            tbldata[i_quantity, i_wl, ...] *= np.pi * \
+                                (self.beam_size / 2.) ** 2
                 else:
                     for i_wl in range(np.size(tbldata, 1)):
-                        tbldata[i_quantity, i_wl, ...] = convolve_fft(tbldata[i_quantity, i_wl, ...], gauss)
+                        tbldata[i_quantity, i_wl, ...] = convolve_fft(
+                            tbldata[i_quantity, i_wl, ...], gauss)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 5 and self.cmap_unit == 'beam':
-                            tbldata[i_quantity, i_wl, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                            tbldata[i_quantity, i_wl, ...] *= np.pi * \
+                                (self.beam_size / 2.) ** 2
                         # Due to FFT, some values are negativ but very small. Make them positive again
                         if i_quantity in [0, 4, 5, 6, 7]:
-                            tbldata[i_quantity, i_wl, ...] = np.absolute(tbldata[i_quantity, i_wl, ...])
+                            tbldata[i_quantity, i_wl, ...] = np.absolute(
+                                tbldata[i_quantity, i_wl, ...])
             # Set the vector field size to match nearly with the beam size
             i_vec_size = 1
             while True:
@@ -1070,41 +1238,48 @@ class FileIO:
                 if i_vec_size > int(fwhm_px):
                     self.vec_field_size = int(i_vec_size / 2)
                     break
-        elif self.parse_args.visualization_type  == 'int_map':
+        elif self.parse_args.visualization_type == 'int_map':
             for i_quantity in [0, 1, 2, 3, 4]:
                 if plot_data_type == 'healpix':
                     tbldata[i_quantity, ...] = smoothing(tbldata[i_quantity, ...], verbose=False,
-                        fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
+                                                         fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
                     # P is not flux / beam but should be convolved
                     if i_quantity != 4:
-                        tbldata[i_quantity, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                        tbldata[i_quantity, ...] *= np.pi * \
+                            (self.beam_size / 2.) ** 2
                 else:
-                    tbldata[i_quantity, ...] = convolve_fft(tbldata[i_quantity, ...], gauss, nan_treatment='fill')
+                    tbldata[i_quantity, ...] = convolve_fft(
+                        tbldata[i_quantity, ...], gauss, nan_treatment='fill')
                     # P is not flux / beam but should be convolved
                     if i_quantity != 4 and self.cmap_unit == 'beam':
-                        tbldata[i_quantity, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                        tbldata[i_quantity, ...] *= np.pi * \
+                            (self.beam_size / 2.) ** 2
                     # Due to FFT, some values are negativ but very small. Make them positive again
                     if i_quantity in [0, 4]:
-                        tbldata[i_quantity, ...] = np.absolute(tbldata[i_quantity, ...])
+                        tbldata[i_quantity, ...] = np.absolute(
+                            tbldata[i_quantity, ...])
         elif self.parse_args.visualization_type == 'vel_map':
             for i_quantity in [0, 1, 2, 3, 5]:
                 if plot_data_type == 'healpix':
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = smoothing(tbldata[i_quantity, i_channel, ...],
-                            verbose=False, fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
+                                                                        verbose=False, fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
                         # P is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
-                            tbldata[i_quantity, i_channel, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                            tbldata[i_quantity, i_channel, ...] *= np.pi * \
+                                (self.beam_size / 2.) ** 2
                 else:
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = convolve_fft(
                             tbldata[i_quantity, i_channel, ...], gauss, normalize_kernel=True)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
-                            tbldata[i_quantity, ...] *= np.pi * (self.beam_size / 2.) ** 2
+                            tbldata[i_quantity, ...] *= np.pi * \
+                                (self.beam_size / 2.) ** 2
                         # Due to FFT, some values are negativ but very small. Make them positive again
                         if i_quantity in [0, 4]:
-                            tbldata[i_quantity, i_channel, ...] = np.absolute(tbldata[i_quantity, i_channel, ...])
+                            tbldata[i_quantity, i_channel, ...] = np.absolute(
+                                tbldata[i_quantity, i_channel, ...])
         return tbldata
 
     def read_polarization_vectors(self, tbldata, min_intensity=0.):
@@ -1124,8 +1299,39 @@ class FileIO:
         bins_x = len(tbldata[0, 0, :])
         bins_y = len(tbldata[0, :, 0])
         #: int: Number of bins per dimension per polarization vector
-        vector_bins_x = int(np.ceil(bins_x / self.vec_field_size))
-        vector_bins_y = int(np.ceil(bins_y / self.vec_field_size))
+        if bins_x % 2 == 0:
+            vector_bins_x = int(
+                np.ceil(bins_x / self.vec_field_size))
+            offset_x = 0
+        else:
+            if self.vec_field_size % 2 == 0:
+                offset_x = bins_x % self.vec_field_size - 1
+                if int((bins_x - offset_x) / self.vec_field_size) % 2 != 0:
+                    offset_x += self.vec_field_size
+            else:
+                offset_x = bins_x % self.vec_field_size
+                if int((bins_x - offset_x) / self.vec_field_size) % 2 == 0:
+                    offset_x += self.vec_field_size
+            vector_bins_x = int(
+                (bins_x - offset_x) / self.vec_field_size)
+            offset_x = int(offset_x / 2)
+
+        if bins_y % 2 == 0:
+            vector_bins_y = int(
+                np.ceil(bins_y / self.vec_field_size))
+            offset_y = 0
+        else:
+            if self.vec_field_size % 2 == 0:
+                offset_y = bins_y % self.vec_field_size - 1
+                if int((bins_y - offset_y) / self.vec_field_size) % 2 != 0:
+                    offset_y += self.vec_field_size
+            else:
+                offset_y = bins_y % self.vec_field_size
+                if int((bins_y - offset_y) / self.vec_field_size) % 2 == 0:
+                    offset_y += self.vec_field_size
+            vector_bins_y = int(
+                (bins_y - offset_y) / self.vec_field_size)
+            offset_y = int(offset_y / 2)
         #: Stokes I flux averaged over the polarization vector area
         i_vec_avg = np.zeros((vector_bins_x, vector_bins_y))
         #: Stokes Q flux averaged over the polarization vector area
@@ -1136,27 +1342,52 @@ class FileIO:
         p_vec_avg = i_vec_avg.copy()
         #: Count how many pixel with intensity are added to the vector
         p_vec_count = i_vec_avg.copy()
+        #: x center position of the averaged vector area
+        x_vec_avg = i_vec_avg.copy()
+        #: y center position of the averaged vector area
+        y_vec_avg = i_vec_avg.copy()
         #: Polarization angle calculated from the averaged Q and U components
         pol_angle = i_vec_avg.copy()
         #: Numpy array that includes the polarization vectors for the whole map
-        vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 3))
-        for i_x in range(bins_x):
-            for i_y in range(bins_y):
+        vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 5))
+        # Init steps to jump over the middle row/column is necessary
+        middle_step_x = 0
+        middle_step_y = 0
+        for i_x in range(offset_x, bins_x - offset_x):
+            # Skip middle cell if vector size is even and pixel size is odd
+            if bins_x % 2 != 0 and self.vec_field_size % 2 == 0 \
+                    and i_x == int((bins_x - 1) / 2):
+                if middle_step_x == 0:
+                    middle_step_x = 1
+                continue
+            for i_y in range(offset_y, bins_y - offset_y):
+                # Skip middle cell if vector size is even and pixel size is odd
+                if bins_y % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_y == int((bins_y - 1) / 2):
+                    if middle_step_y == 0:
+                        middle_step_y = 1
+                    continue
+                #: int: X-axis index to the vector
+                i_x_vec = int((i_x - offset_x - middle_step_x) /
+                              self.vec_field_size)
+                #: int: Y-axis index to the vector
+                i_y_vec = int((i_y - offset_y - middle_step_y) /
+                              self.vec_field_size)
                 # Averaging Stokes I
-                i_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
-                    tbldata[0, i_x, i_y] / self.vec_field_size ** 2
+                i_vec_avg[i_x_vec, i_y_vec] += tbldata[0,
+                                                       i_x, i_y] / self.vec_field_size ** 2
                 # Averaging Stokes Q
-                q_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
-                    tbldata[1, i_x, i_y] / self.vec_field_size ** 2
+                q_vec_avg[i_x_vec, i_y_vec] += tbldata[1,
+                                                       i_x, i_y] / self.vec_field_size ** 2
                 # Averaging Stokes U
-                u_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
-                    tbldata[2, i_x, i_y] / self.vec_field_size ** 2
+                u_vec_avg[i_x_vec, i_y_vec] += tbldata[2,
+                                                       i_x, i_y] / self.vec_field_size ** 2
                 # Calculating pol vector length
                 if tbldata[0, i_x, i_y] > 1e-200:
-                    p_vec_avg[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += \
-                        1e2 * np.sqrt(tbldata[1, i_x, i_y] ** 2 + tbldata[2, i_x, i_y] ** 2) \
-                        / (tbldata[0, i_x, i_y])
-                    p_vec_count[int(i_x / self.vec_field_size), int(i_y / self.vec_field_size)] += 1
+                    p_vec_avg[i_x_vec, i_y_vec] += 1e2 * np.sqrt(
+                        tbldata[1, i_x, i_y] ** 2 + tbldata[2, i_x, i_y] ** 2) / (tbldata[0, i_x, i_y])
+                    p_vec_count[i_x_vec,
+                                i_y_vec] += 1
         for i_x_vec in range(vector_bins_x):
             for i_y_vec in range(vector_bins_y):
                 if p_vec_count[i_x_vec, i_y_vec] <= 0:
@@ -1164,9 +1395,23 @@ class FileIO:
                 else:
                     i_vec_avg[i_x_vec, i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
                     if i_vec_avg[i_x_vec, i_y_vec] < min_intensity:
-                        p_vec_avg[i_x_vec, i_y_vec] = np.nan                    
+                        p_vec_avg[i_x_vec, i_y_vec] = np.nan
                     else:
-                        p_vec_avg[i_x_vec, i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
+                        p_vec_avg[i_x_vec,
+                                  i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
+                # Calculating the x and y positions
+                # X axis
+                x_vec_avg[i_x_vec, i_y_vec] = (
+                    i_x_vec + 0.5) * self.vec_field_size / bins_x
+                if bins_x % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_x_vec < int(vector_bins_x / 2):
+                    x_vec_avg[i_x_vec, i_y_vec] += 1 / bins_x
+                # Y axis
+                y_vec_avg[i_x_vec, i_y_vec] = (
+                    i_y_vec + 0.5) * self.vec_field_size / bins_y
+                if bins_y % 2 != 0 and self.vec_field_size % 2 == 0 \
+                        and i_y_vec < int(vector_bins_y / 2):
+                    y_vec_avg[i_x_vec, i_y_vec] += 1 / bins_y
                 # Calculating the polarization angle from averaged Q and U components
                 pol_angle[i_x_vec, i_y_vec] = self.math.angle_from_stokes(
                     q_vec_avg[i_x_vec, i_y_vec], u_vec_avg[i_x_vec, i_y_vec])
@@ -1175,6 +1420,8 @@ class FileIO:
         # Put the 2D polarization vector data into numpy array
         vec_field_data[:, :, 0] = np.cos(pol_angle) * p_vec_avg
         vec_field_data[:, :, 1] = np.sin(pol_angle) * p_vec_avg
+        vec_field_data[:, :, 3] = x_vec_avg
+        vec_field_data[:, :, 4] = y_vec_avg
         return vec_field_data
 
     def read_polarization_vectors_healpix(self, tbldata, header_dict):
@@ -1193,7 +1440,7 @@ class FileIO:
             #x = np.linspace(-np.pi, np.pi, 101)
             initial_guess = 0.0
 
-            func = lambda x : np.pi * np.sin(x) - 2.0 * phi - np.sin(2 * phi)
+            def func(x): return np.pi * np.sin(x) - 2.0 * phi - np.sin(2 * phi)
 
             solution = fsolve(func, initial_guess, xtol=0.001)
             Phi = solution[0]
@@ -1243,13 +1490,15 @@ class FileIO:
                 if in_ellipse(x[i_x], y[i_y], 2, 1):
                     lon1, lat1 = plane2mollweide(-x[i_x], -y[i_y], np.pi)
                     hp_id = hp.ang2pix(header_dict['nsides'],
-                        lat1 + np.pi / 2., lon1 + np.pi)
+                                       lat1 + np.pi / 2., lon1 + np.pi)
 
                     # Calculating the polarization angle from averaged Q and U components
-                    pol_angle[i_x, i_y] = self.math.angle_from_stokes(tbldata[1, hp_id], tbldata[2, hp_id])
+                    pol_angle[i_x, i_y] = self.math.angle_from_stokes(
+                        tbldata[1, hp_id], tbldata[2, hp_id])
 
                     if tbldata[0, hp_id] > 1e-200:
-                        p_vec_avg = np.sqrt(tbldata[1, hp_id] ** 2 + tbldata[2, hp_id] ** 2) / tbldata[0, hp_id] * 0.04
+                        p_vec_avg = np.sqrt(
+                            tbldata[1, hp_id] ** 2 + tbldata[2, hp_id] ** 2) / tbldata[0, hp_id] * 0.04
                     else:
                         p_vec_avg = 0
 
@@ -1281,7 +1530,6 @@ class FileIO:
 
                     pol_y1.append(y[i_y] - dy)
                     pol_y2.append(y[i_y] + dy)
-
 
         for i in range(0, len(pol_x1)):
             dx1 = pol_x1[i]
@@ -1323,9 +1571,12 @@ class FileIO:
             width = float(cut_parameter[3])
             n_width = int(cut_parameter[4])
         else:
-            raise ValueError('Cut parameter have to be the cut angle and optionally the cut center positions!')
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
+            raise ValueError(
+                'Cut parameter have to be the cut angle and optionally the cut center positions!')
+        sidelength_x = 2. * \
+            self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * \
+            self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Calc maximum length in map
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
@@ -1339,10 +1590,13 @@ class FileIO:
                 d_width = 0.5 * width * (i_width + 0.5) / (n_width)
                 pos = [cut_position[i_r] * np.cos(cut_angle) + d_width * np.sin(cut_angle) + center_pos[0],
                        cut_position[i_r] * np.sin(cut_angle) + d_width * np.cos(cut_angle) + center_pos[1]]
-                pos_id_x = np.multiply(np.divide(np.add(pos[0], sidelength_x / 2.), sidelength_x), nr_pixel_x)
-                pos_id_y = np.multiply(np.divide(np.add(pos[1], sidelength_y / 2.), sidelength_y), nr_pixel_y)
+                pos_id_x = np.multiply(
+                    np.divide(np.add(pos[0], sidelength_x / 2.), sidelength_x), nr_pixel_x)
+                pos_id_y = np.multiply(
+                    np.divide(np.add(pos[1], sidelength_y / 2.), sidelength_y), nr_pixel_y)
                 if pos_id_x < nr_pixel_x and pos_id_x >= 0 and pos_id_y < nr_pixel_y and pos_id_y >= 0:
-                    cut_data[..., i_r] += tbldata[..., int(pos_id_x), int(pos_id_y)] / n_width
+                    cut_data[..., i_r] += tbldata[...,
+                                                  int(pos_id_x), int(pos_id_y)] / n_width
                 else:
                     cut_position[i_r] = np.nan
         # Remove nan values
@@ -1381,8 +1635,10 @@ class FileIO:
         """
         # Get cut parameter
         center_pos = radial_parameter[0:2]
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
+        sidelength_x = 2. * \
+            self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * \
+            self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Calc maximum length in map
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
@@ -1401,12 +1657,13 @@ class FileIO:
             for i_y in range(subpixel * nr_pixel_y):
                 index = [i_x, i_y]
                 pos = np.subtract(np.multiply(np.divide(np.add(index, 0.5),
-                    [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
-                    [sidelength_x, sidelength_y]),
-                    np.divide([sidelength_x, sidelength_y], 2.))
+                                                        [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
+                                              [sidelength_x, sidelength_y]),
+                                  np.divide([sidelength_x, sidelength_y], 2.))
                 pos_r = np.linalg.norm(np.subtract(pos, center_pos))
                 i_r = int(pos_r / max_len * (N_r - 1))
-                radial_data[..., i_r] += tbldata[..., int(i_x / float(subpixel)), int(i_y / float(subpixel))]
+                radial_data[..., i_r] += tbldata[...,
+                                                 int(i_x / float(subpixel)), int(i_y / float(subpixel))]
                 radial_number[i_r] += 1
         # Normalization
         for i_r in range(N_r):
@@ -1433,8 +1690,10 @@ class FileIO:
         """
         # Get cut parameter
         center_pos = azimuthal_parameter[0:2]
-        sidelength_x = 2. * self.model.tmp_parameter['radius_x_' + self.ax_unit]
-        sidelength_y = 2. * self.model.tmp_parameter['radius_y_' + self.ax_unit]
+        sidelength_x = 2. * \
+            self.model.tmp_parameter['radius_x_' + self.ax_unit]
+        sidelength_y = 2. * \
+            self.model.tmp_parameter['radius_y_' + self.ax_unit]
         # Convert input limits to used unit
         R_min = self.math.length_conv(azimuthal_parameter[4], self.ax_unit)
         R_max = self.math.length_conv(azimuthal_parameter[5], self.ax_unit)
@@ -1448,19 +1707,19 @@ class FileIO:
             for i_y in range(subpixel * nr_pixel_y):
                 index = [i_x, i_y]
                 pos = np.subtract(np.multiply(np.divide(np.add(index, 0.5),
-                    [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
-                    [sidelength_x, sidelength_y]),
-                    np.divide([sidelength_x, sidelength_y], 2.))
+                                                        [subpixel * nr_pixel_x, subpixel * nr_pixel_y]),
+                                              [sidelength_x, sidelength_y]),
+                                  np.divide([sidelength_x, sidelength_y], 2.))
                 real_pos = self.math.apply_inclination(
                     pos=np.subtract(pos, center_pos),
                     inclination=azimuthal_parameter[2],
-                    inc_PA=azimuthal_parameter[3], 
+                    inc_PA=azimuthal_parameter[3],
                     inc_offset=azimuthal_parameter[6], inv=True)
                 if(R_min <= np.linalg.norm(real_pos) <= R_max):
                     pos_ph = np.arctan2(-real_pos[1], -real_pos[0])
                     i_ph = int((pos_ph + np.pi) / (2. * np.pi) * N_ph)
-                    azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)), 
-                        int(i_y / float(subpixel))]
+                    azimuthal_data[..., i_ph] += tbldata[..., int(i_x / float(subpixel)),
+                                                         int(i_y / float(subpixel))]
                     azimuthal_number[i_ph] += 1
 
         # Normalization
@@ -1495,7 +1754,7 @@ class FileIO:
         # In the case of ray, multiple additions are valid to choose aligment
         if 'dust_' in simulation_type and simulation_type not in ['dust_mc', 'dust_full']:
             # Sort the list of aligment mechanisms to have a unique name for each combination
-            simu_list = simulation_type.replace('dust_','').split('_')
+            simu_list = simulation_type.replace('dust_', '').split('_')
             simu_list.sort()
             simulation_type = 'dust_' + '_'.join(simu_list)
             # Each chosen alignment mechanisms needs to be valid
@@ -1503,7 +1762,8 @@ class FileIO:
                 found = False
         # Error message if chosen simulation_types are not valid
         if not found:
-            raise ValueError('Wrong simulation_type chosen (run_plaris -h for info)')
+            raise ValueError(
+                'Wrong simulation_type chosen (run_plaris -h for info)')
         return simulation_type
 
     def check_fits_data(self, hdulist):
@@ -1545,8 +1805,9 @@ class FileIO:
                 abs(header_dict['sidelength_y'] - 2. * self.model.tmp_parameter['radius_y_m']) > \
                 (header_dict['sidelength_y'] + 2. * self.model.tmp_parameter['radius_y_m']) * 1e-10:
             print('HINT: The map sidelengths are not the same as the model extent defined in model.py!\n'
-                'This occurs usually if a zoom_factor was chosen, but it might be a problem if not.')
-            self.model.adjust_extent(header_dict['sidelength_x'], header_dict['sidelength_y'])
+                  'This occurs usually if a zoom_factor was chosen, but it might be a problem if not.')
+            self.model.adjust_extent(
+                header_dict['sidelength_x'], header_dict['sidelength_y'])
 
     def check_distance(self, header_dict):
         """Check if distance in the fits header is the same as set in the model.
@@ -1556,5 +1817,6 @@ class FileIO:
         """
         # Check if the distance in the fits file is the same as in the model
         if abs(header_dict['distance'] - self.model.parameter['distance']) > header_dict['distance'] * 1e-10:
-            print('HINT: The distance set in model.py is not the same as in the Polaris fits output file!')
+            print(
+                'HINT: The distance set in model.py is not the same as in the Polaris fits output file!')
             self.model.adjust(header_dict['distance'], 'distance')

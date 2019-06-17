@@ -1407,7 +1407,8 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             cell_basic * cell = grid->getCellFromIndex(i_cell);
             total_species_mass += getMassDensity(grid, cell, i_species) * grid->getVolume(cell);
         }
-        cout << "- Total mass                    : " << total_species_mass / M_sun << " [M_sun]" << endl;
+        cout << "- Total mass                    : " << total_species_mass / M_sun << " [M_sun], "
+             << total_species_mass << " [kg]" << endl;
 
         for(uint i = 0; i < getUniqueTransitions(i_species).size(); i++)
         {

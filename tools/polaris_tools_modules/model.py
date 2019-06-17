@@ -99,6 +99,10 @@ class ModelChooser:
             if self.parse_args.split_first_cell is not None:
                 model.spherical_parameter['split_first_cell'] = self.parse_args.split_first_cell
                 model.cylindrical_parameter['split_first_cell'] = self.parse_args.split_first_cell
+        elif 'distance' in vars(self.parse_args).keys():
+            if self.parse_args.distance is not None:
+                model.parameter['distance'] = self.math.parse(
+                    self.parse_args.distance, 'length')
         # Set the grid extent if global extent is set
         if model.parameter['grid_type'] == 'octree' and model.parameter['outer_radius'] is not None:
             model.octree_parameter['sidelength'] = 2. * \
@@ -256,24 +260,6 @@ class Sphere(Model):
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['detector'] = 'cartesian'
 
-    def dust_temperature(self):
-        """Calculates the dust temperature at a given position.
-
-        Returns:
-            float: Dust temperature at a given position.
-        """
-        dust_temperature = 13.
-        return dust_temperature
-
-    def gas_temperature(self):
-        """Calculates the gas temperature at a given position.
-
-        Returns:
-            float: Gas temperature at a given position.
-        """
-        gas_temperature = 13.
-        return gas_temperature
-
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
 
@@ -289,12 +275,10 @@ class Sphere(Model):
         """Calculates the magnetic field strength at a given position.
 
         Returns:
-            List[float, float, float]: Magnetic field strength at the given
-            position.
+            List[float, float, float]: Magnetic field strength at a given position.
         """
-        magnetic_field = self.math.simple_mag_field(
-            mag_field_strength=1e-10, axis='z')
-        #magnetic_field = self.math.toroidal_mag_field(self.position, mag_field_strength=1e-10)
+        magnetic_field = self.math.toroidal_mag_field(
+            self.position, mag_field_strength=1e-10)
         return magnetic_field
 
 

@@ -541,7 +541,7 @@ class Plot:
         elif limits is not None:
             self.limits = limits
         else:
-            self.limits = None
+            self.limits = self.extent
 
     def update_all(self, extent=None, limits=None, model=None, label_plane=None,
                    nr_x_images=1, nr_y_images=1, xlabel=None, ylabel=None, zlabel=None, labelpad=None, language='english'):
@@ -1068,7 +1068,7 @@ class Plot:
         # Add minimum vector size if vmin is set
         if self.vmin is not None:
             vmin = self.vmin
-        #if self.vmax is not None:
+        # if self.vmax is not None:
         #    vmax = self.vmax
         if index is None:
             if 'xy' in self.label_plane:
@@ -1111,11 +1111,11 @@ class Plot:
         for i_x in range(bins):
             for i_y in range(bins):
                 # Set the x-axis positions
-                x[i_x, i_y] = float(self.extent[0]) + 1 / \
-                    bins * (i_x + 0.5) * dx
+                x[i_x, i_y] = float(self.extent[0]) + \
+                    vec_field_data[i_x, i_y, 3] * dx
                 # Set the y-axis positions
-                y[i_x, i_y] = float(self.extent[2]) + 1 / \
-                    bins * (i_y + 0.5) * dy
+                y[i_x, i_y] = float(self.extent[2]) + \
+                    vec_field_data[i_x, i_y, 4] * dy
                 # Set the vector component in the x-direction
                 vx[i_x, i_y] = vec_field_data[i_x, i_y, index[0]]
                 # Set the vector component in the y-direction
@@ -1140,7 +1140,7 @@ class Plot:
                 if vmax is not None:
                     norm = vmax  # np.max(z[i_x, i_y], vmax)
                 else:
-                    norm = np.nanmax(z)  
+                    norm = np.nanmax(z)
                 # Plot vector if plot_vector is true
                 if plot_vector:
                     if const_quiver:
@@ -1222,6 +1222,8 @@ class Plot:
         if self.zoom_x_factor is not None or self.zoom_y_factor is not None:
             length *= min(self.zoom_x_factor, self.zoom_y_factor)
         # Text including the maximum degree of polarization
+        if round_lvl == 0 and max_pol_degree < 1.0:
+            round_lvl = 1
         if round_lvl > 0:
             text = r'$\SI{' + str(round(max_pol_degree,
                                         round_lvl)) + r'}{\percent}$'
@@ -1429,7 +1431,8 @@ class Plot:
             ax_index (int): Index of subplot image.
             args: Additional arguments.
         """
-        self.ax_list[ax_index].add_patch(patches.Ellipse(xy, width, height, angle, **args))
+        self.ax_list[ax_index].add_patch(
+            patches.Ellipse(xy, width, height, angle, **args))
 
     def plot_wedge(self, pos, radius, theta1, theta2, width=None, ax_index=0, **args):
         """Plot wedge in the image.

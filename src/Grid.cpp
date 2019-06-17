@@ -450,7 +450,8 @@ void CGridBasic::printPhysicalParameters()
 {
     cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume << " [m^3], "
          << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume)) << " [%]" << endl;
-    cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun]" << endl;
+    cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun], " << total_gas_mass
+         << " [kg]" << endl;
     cout << "- Grid length         (min,max) : [" << min_len << ", " << max_len << "] [m]" << endl;
     if(gas_is_mass_density)
         cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]"

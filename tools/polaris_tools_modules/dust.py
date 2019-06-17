@@ -106,8 +106,10 @@ class DustChooser:
             dust : Instance of chosen dust composition.
         """
         if self.parse_args.dust_size is not None:
-            dust.parameter['amin'] = self.parse_args.dust_size[0]
-            dust.parameter['amax'] = self.parse_args.dust_size[1]
+            dust.parameter['amin'] = self.math.parse(
+                self.parse_args.dust_size[0], 'length')
+            dust.parameter['amax'] = self.math.parse(
+                self.parse_args.dust_size[1], 'length')
         if self.parse_args.dust_size_distribution is not None:
             if len(self.parse_args.dust_size_distribution) < 2:
                 raise ValueError('Defined dust size distribution not usable!')
@@ -129,8 +131,8 @@ class DustChooser:
                 else:
                     dust.parameter['size_parameter'] = []
                     for i in range(min_len):
-                        dust.parameter['size_parameter'].append(
-                            float(self.parse_args.dust_size_distribution[i + 1]))
+                        dust.parameter['size_parameter'].append(self.math.parse(
+                            self.parse_args.dust_size_distribution[i + 1], 'length'))
 
 
 class GraphiteOblate(Dust):

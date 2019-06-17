@@ -148,12 +148,26 @@ class Math:
                 ('length', 'mass', 'angle', 'velocity', 'luminosity')
             unit (str): Unit to convert to (SI if None).
         """
+        # Make lower case to ensure comparability
+        if unit is not None:
+            unit = unit.lower()
+        # Check input unit for different quantity types
         if unit_type == 'length':
             parsed_value = self.parse_length(value)
             if unit == 'au':
                 return parsed_value / self.const['au']
             elif unit == 'pc':
                 return parsed_value / self.const['pc']
+            elif unit == 'km':
+                return parsed_value / 1e3
+            elif unit == 'cm':
+                return parsed_value / 1e-2
+            elif unit == 'mm':
+                return parsed_value / 1e-3
+            elif unit == 'microns':
+                return parsed_value / 1e-6
+            elif unit == 'nm':
+                return parsed_value / 1e-9
             elif unit == 'm' or unit is None:
                 return parsed_value
             else:
@@ -172,9 +186,9 @@ class Math:
                     'There is no unit type available for conversion!')
         elif unit_type == 'mass':
             parsed_value = self.parse_mass(value)
-            if unit == 'm_jup':
+            if unit == 'm_jup' or unit == 'mjup':
                 return parsed_value / self.const['M_jup']
-            elif unit == 'm_sun':
+            elif unit == 'm_sun' or unit == 'msun':
                 return parsed_value / self.const['M_sun']
             elif unit == 'kg' or unit is None:
                 return parsed_value
@@ -183,7 +197,7 @@ class Math:
                     'There is no unit type available for conversion!')
         elif unit_type == 'luminosity':
             parsed_value = self.parse_luminosity(value)
-            if unit == 'l_sun':
+            if unit == 'l_sun' or unit == 'lsun':
                 return parsed_value / self.const['L_sun']
             elif unit == 'w' or unit is None:
                 return parsed_value
@@ -192,7 +206,7 @@ class Math:
                     'There is no unit type available for conversion!')
         elif unit_type == 'angle':
             parsed_value = self.parse_angle(value)
-            if unit == 'arcsec':
+            if unit == 'arcsec' or unit == 'arc_sec':
                 return parsed_value * 3600
             elif unit == 'rad':
                 return parsed_value / 180. * np.pi
@@ -201,6 +215,9 @@ class Math:
             else:
                 raise ValueError(
                     'There is no unit type available for conversion!')
+        else:
+            raise ValueError(
+                'There is no unit type available for conversion!')
 
     def parse_length(self, length):
         """Convert input length string into length in meters.
@@ -210,7 +227,22 @@ class Math:
                 the unit (e.g. 13au).
         """
         conv = 1
-        if 'm' in length.lower():
+        if 'km' in length.lower():
+            conv = 1e3
+            length = length.lower().replace('km', '')
+        elif 'cm' in length.lower():
+            conv = 1e-2
+            length = length.lower().replace('cm', '')
+        elif 'mm' in length.lower():
+            conv = 1e-3
+            length = length.lower().replace('mm', '')
+        elif 'microns' in length.lower():
+            conv = 1e-6
+            length = length.lower().replace('microns', '')
+        elif 'nm' in length.lower():
+            conv = 1e-9
+            length = length.lower().replace('nm', '')
+        elif 'm' in length.lower():
             length = length.lower().replace('m', '')
         elif 'au' in length.lower():
             conv = self.const['au']
@@ -257,6 +289,12 @@ class Math:
         conv = 1
         if 'kg' in mass.lower():
             mass = mass.lower().replace('kg', '')
+        elif 'mg' in mass.lower():
+            conv = 1e-6
+            mass = mass.lower().replace('mg', '')
+        elif 'g' in mass.lower():
+            conv = 1e-3
+            mass = mass.lower().replace('g', '')
         elif 'm_jup' in mass.lower() or 'mjup' in mass.lower():
             conv = self.const['M_jup']
             mass = mass.lower().replace('m_jup', '').replace('mjup', '')
@@ -297,7 +335,16 @@ class Math:
                 the unit (e.g. 13L_sun).
         """
         conv = 1
-        if 'w' in luminosity.lower():
+        if 'mW' in luminosity:
+            conv = 1e-3
+            luminosity = luminosity.lower().replace('mw', '')
+        elif 'kW' in luminosity:
+            conv = 1e3
+            luminosity = luminosity.lower().replace('kw', '')
+        elif 'MW' in luminosity:
+            conv = 1e6
+            luminosity = luminosity.lower().replace('mw', '')
+        elif 'w' in luminosity.lower():
             luminosity = luminosity.lower().replace('w', '')
         elif 'l_sun' in luminosity.lower() or 'lsun' in luminosity.lower():
             conv = self.const['L_sun']
@@ -348,8 +395,10 @@ class Math:
         if vec_color is not None:
             return vec_color
         # White has a good contrast for viridis
+        '''
         if cmap in ['viridis', 'magma']:
             return 'white'
+        '''
         # Return black as the vector color if no or negative data is used
         if cmap_scaling == 'log' and np.min(tbldata) < 0.:
             return 'black'
@@ -788,14 +837,14 @@ class Math:
         rot_cos = np.cos(rotation_angle)
         rot_sin = np.sin(rotation_angle)
         rotation_matrix = np.array([[rot_cos + u_x ** 2 * (1 - rot_cos),
-                                    u_x * u_y * (1 - rot_cos) - u_z * rot_sin,
-                                    u_x * u_z * (1 - rot_cos) + u_y * rot_sin],
+                                     u_x * u_y * (1 - rot_cos) - u_z * rot_sin,
+                                     u_x * u_z * (1 - rot_cos) + u_y * rot_sin],
                                     [u_y * u_x * (1 - rot_cos) + u_z * rot_sin,
-                                    rot_cos + u_y ** 2 * (1 - rot_cos),
-                                    u_y * u_z * (1 - rot_cos) - u_x * rot_sin],
+                                     rot_cos + u_y ** 2 * (1 - rot_cos),
+                                     u_y * u_z * (1 - rot_cos) - u_x * rot_sin],
                                     [u_z * u_x * (1 - rot_cos) - u_y * rot_sin,
-                                    u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
-                                    rot_cos + u_z ** 2 * (1 - rot_cos)]])
+                                     u_z * u_y * (1 - rot_cos) + u_x * rot_sin,
+                                     rot_cos + u_z ** 2 * (1 - rot_cos)]])
         if inv:
             rotation_matrix = rotation_matrix.T
         rotated_position = np.dot(position, rotation_matrix)
@@ -1257,7 +1306,7 @@ class Math:
                 np.exp(-0.5 * (vert_height / scale_height) ** 2)
         else:
             density = 0.
-            
+
         if tappered_gamma is not None:
             density *= np.exp(-(radius_cy / ref_radius)
                               ** (2 + tappered_gamma))

@@ -78,6 +78,9 @@ class SourceChooser:
         if self.parse_args.rad_source_position is not None:
             radiation_source.parameter['position'] = [self.math.parse(self.parse_args.rad_source_position[i], 'length')
                                                       for i in range(3)]
+        if self.parse_args.rad_source_direction is not None:
+            radiation_source.parameter['direction'] = [self.math.parse(self.parse_args.rad_source_direction[i], 'length')
+                                                       for i in range(3)]
         if self.parse_args.rad_source_temperature is not None:
             radiation_source.parameter['temperature'] = self.parse_args.rad_source_temperature
         if self.parse_args.rad_source_luminosity is not None:
@@ -87,6 +90,15 @@ class SourceChooser:
         elif self.parse_args.rad_source_radius is not None:
             radiation_source.parameter['radius'] = self.math.parse(
                 self.parse_args.rad_source_radius, 'length')
+        if self.parse_args.rad_source_power is not None:
+            radiation_source.parameter['power'] = self.math.parse(
+                self.parse_args.rad_source_power, 'luminosity')
+        if self.parse_args.rad_source_center_wl is not None:
+            radiation_source.parameter['center_wl'] = self.math.parse(
+                self.parse_args.rad_source_center_wl, 'length')
+        if self.parse_args.rad_source_fwhm is not None:
+            radiation_source.parameter['fwhm'] = self.math.parse(
+                self.parse_args.rad_source_fwhm, 'length')
         if self.parse_args.rad_source_mass is not None:
             radiation_source.parameter['mass'] = self.math.parse(
                 self.parse_args.rad_source_mass, 'mass')
@@ -294,7 +306,7 @@ class BinaryStar(StellarSource):
         """
         StellarSource.__init__(self, file_io, parse_args)
 
-        self.parameter['nr_photons'] = 1e5
+        self.parameter['nr_photons'] = 1e6
 
         from math import fmod
         a = 5.0  # AU
@@ -351,7 +363,7 @@ class Laser(LaserSource):
         # Power of the laser
         self.parameter['power'] = 1e-3
         # Central emitting wavelength of the laser
-        self.parameter['lambda_0'] = 650e-9
+        self.parameter['center_wl'] = 650e-9
         # FWHM of the laser emission
         self.parameter['fwhm'] = 3e-9
         # Number of photons if no number is chosen via --photons

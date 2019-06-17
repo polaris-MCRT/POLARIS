@@ -61,21 +61,21 @@ class DetectorChooser:
         if self.parse_args.wavelength is not None:
             if len(self.parse_args.wavelength) == 1:
                 detector.parameter['wavelength_min'] = float(
-                    self.parse_args.wavelength[0])
+                    self.math.parse(self.parse_args.wavelength[0], 'length'))
                 detector.parameter['wavelength_max'] = float(
-                    self.parse_args.wavelength[0])
+                    self.math.parse(self.parse_args.wavelength[0], 'length'))
                 detector.parameter['nr_of_wavelength'] = 1
             elif len(self.parse_args.wavelength) == 2:
                 detector.parameter['wavelength_min'] = float(
-                    self.parse_args.wavelength[0])
+                    self.math.parse(self.parse_args.wavelength[0], 'length'))
                 detector.parameter['wavelength_max'] = float(
-                    self.parse_args.wavelength[1])
+                    self.math.parse(self.parse_args.wavelength[1], 'length'))
                 detector.parameter['nr_of_wavelength'] = 2
             elif len(self.parse_args.wavelength) == 3:
                 detector.parameter['wavelength_min'] = float(
-                    self.parse_args.wavelength[0])
+                    self.math.parse(self.parse_args.wavelength[0], 'length'))
                 detector.parameter['wavelength_max'] = float(
-                    self.parse_args.wavelength[1])
+                    self.math.parse(self.parse_args.wavelength[1], 'length'))
                 detector.parameter['nr_of_wavelength'] = int(
                     self.parse_args.wavelength[2])
             else:

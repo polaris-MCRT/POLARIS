@@ -89,7 +89,6 @@ class Detector:
             'wavelength_max': 1e-6,
             'nr_of_wavelength': 1,
             'wavelength_list': None,
-            'distance': model.parameter['distance'],
             'nr_pixel_x': 201,
             'nr_pixel_y': 201,
             'max_subpixel_lvl': 0,
@@ -167,11 +166,13 @@ class Detector:
             str: Command line to consider the detector configuration.
         """
         param_name_list = ['wavelength_min', 'wavelength_max', 'nr_of_wavelength',
-                           'rot_angle_1', 'rot_angle_2', 'distance']
+                           'rot_angle_1', 'rot_angle_2']
         cmd_string = '\t<detector_dust_mc nr_pixel = "' + self.get_nr_pixel_cmd() + \
             '">'
         for param_name in param_name_list:
             cmd_string += '\t' + str(self.parameter[param_name])
+        # Add distance to model/object
+        cmd_string += '\t' + str(self.model.parameter['distance'])
         # Zooming but not shifting is possible with the MC detector
         cmd_string += self.get_zoom_cmd() + '\n'
         return cmd_string
@@ -201,6 +202,7 @@ class Detector:
         """
         param_name_list = ['wavelength_min',
                            'wavelength_max', 'nr_of_wavelength', 'source_id']
+        param_tail = ''
         if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
                 self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
             cmd_string = '\t<detector_dust_healpix nr_sides = "' + \
@@ -214,17 +216,23 @@ class Detector:
         elif self.parameter['shape'] == 'polar':
             cmd_string = '\t<detector_dust_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
                 '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         elif self.parameter['shape'] == 'slice':
             cmd_string = '\t<detector_dust_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
                 '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         else:
             cmd_string = '\t<detector_dust nr_pixel = "' + self.get_nr_pixel_cmd() + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         # Create cmd string for detector
         for param_name in param_name_list:
             cmd_string += '\t' + str(self.parameter[param_name])
+        # Add extra params at the end
+        cmd_string += param_tail
+        # Add zoom and shift´
         cmd_string += self.get_zoom_cmd() + self.get_shift_cmd() + '\n'
         return cmd_string
 
@@ -253,6 +261,7 @@ class Detector:
         """
         param_name_list = ['gas_species_id',
                            'transition_id', 'source_id', 'max_velocity']
+        param_tail = ''
         if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
                 self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
             cmd_string = '\t<detector_line_healpix nr_sides = "' + str(int(self.parameter['nr_sides'])) + \
@@ -272,20 +281,26 @@ class Detector:
             cmd_string = '\t<detector_line_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
                 '" vel_channels = "' + \
                 str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         elif self.parameter['shape'] == 'slice':
             cmd_string = '\t<detector_line_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
                 '" vel_channels = "' + \
                 str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         else:
             cmd_string = '\t<detector_line nr_pixel = "' + self.get_nr_pixel_cmd() + \
                 '" vel_channels = "' + \
                 str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2', 'distance'])
+            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+            param_tail += '\t' + str(self.model.parameter['distance'])
         # Create cmd string for detector
         for param_name in param_name_list:
             cmd_string += '\t' + str(self.parameter[param_name])
+        # Add extra params at the end
+        cmd_string += param_tail
+        # Add zoom and shift´
         cmd_string += self.get_zoom_cmd() + self.get_shift_cmd() + '\n'
         return cmd_string
 
@@ -1082,6 +1097,12 @@ class StellarSource:
         Returns:
             str: Command line to consider the stellar source.
         """
+        # Decrease the number of photons for the radiation field,
+        #  if no number of photons is set
+        if 'dust' in self.parse_args.simulation_type \
+                and self.parse_args.simulation_type != 'dust_mc' \
+                and self.parse_args.nr_photons is None:
+            self.parameter['nr_photons'] *= 1e-2
         return self.get_command_line()
 
 
@@ -1109,7 +1130,7 @@ class LaserSource:
             'position': [0., 0., 0.],
             'direction': [1., 0., 0.],
             'power': 0.,
-            'lambda_0': 0.,
+            'center_wl': 0.,
             'fwhm': 0.,
             'stokes_q': 0.,
             'stokes_u': 0.,
@@ -1130,17 +1151,17 @@ class LaserSource:
             str: Command line to consider the stellar source.
         """
         return '\t<source_laser nr_photons = "' + str(int(self.parameter['nr_photons'])) + '">\t' \
-                + str(self.parameter['position'][0]) + '\t' \
-                + str(self.parameter['position'][1]) + '\t' \
-                + str(self.parameter['position'][2]) + '\t' \
-                + str(self.parameter['direction'][0]) + '\t' \
-                + str(self.parameter['direction'][1]) + '\t' \
-                + str(self.parameter['direction'][2]) + '\t' \
-                + str(self.parameter['power']) + '\t' \
-                + str(self.parameter['lambda_0']) + '\t' \
-                + str(self.parameter['fwhm']) + '\t' \
-                + str(self.parameter['stokes_q']) + '\t' \
-                + str(self.parameter['stokes_u']) + '\n'
+            + str(self.parameter['position'][0]) + '\t' \
+            + str(self.parameter['position'][1]) + '\t' \
+            + str(self.parameter['position'][2]) + '\t' \
+            + str(self.parameter['direction'][0]) + '\t' \
+            + str(self.parameter['direction'][1]) + '\t' \
+            + str(self.parameter['direction'][2]) + '\t' \
+            + str(self.parameter['power']) + '\t' \
+            + str(self.parameter['center_wl']) + '\t' \
+            + str(self.parameter['fwhm']) + '\t' \
+            + str(self.parameter['stokes_q']) + '\t' \
+            + str(self.parameter['stokes_u']) + '\n'
 
     def get_command(self):
         """Provides radiation source command line for POLARIS .cmd file.
@@ -1148,6 +1169,12 @@ class LaserSource:
         Returns:
             str: Command line to consider the stellar source.
         """
+        # Decrease the number of photons for the radiation field,
+        #  if no number of photons is set
+        if 'dust' in self.parse_args.simulation_type \
+                and self.parse_args.simulation_type != 'dust_mc' \
+                and self.parse_args.nr_photons is None:
+            self.parameter['nr_photons'] *= 1e-2
         return self.get_command_line()
 
 

@@ -59,7 +59,7 @@ model_args.add_argument('--grid_cgs', dest='grid_cgs_filename', default=None,
                         help='define input grid filename (assumes grid in cgs units).')
 
 source_args = parser.add_argument_group('source')
-source_args.add_argument('--radiation_source', dest='radiation_source', default=None,
+source_args.add_argument('--source', dest='radiation_source', default=None,
                          help='define the blackbody radiation source for temp, dust_mc, and rat simulations.\n')
 source_args.add_argument('--bg_source', dest='bg_source', default=None,
                          help='define background radiation source for dust and line raytracing simulations.\n')
@@ -78,6 +78,8 @@ detector_args.add_argument('--wavelength', dest='wavelength', default=None, type
                                 '        wavelength (only this one)\n'
                                 '        wavelength_min + wavelength_max (only these two)\n'
                                 '        wl_min + wl_max + nr_wl (log distribution)')
+detector_args.add_argument('--distance', dest='distance', default=None, type=str,
+                           help='define the distance to the object.')
 detector_args.add_argument('--pixel', dest='nr_pixel', default=None, type=int,
                            help='define the number of detector pixel (in x- and y-direction)')
 detector_args.add_argument('--pixel_x', dest='nr_pixel_x', default=None, type=int,
@@ -128,19 +130,27 @@ detector_args.add_argument('--healpix_orientation', dest='healpix_orientation', 
                            '(HEALPIX_CENTER, HEALPIX_YAXIS, HEALPIX_FIXED).')
 
 rad_source_args = parser.add_argument_group('radiation source')
-rad_source_args.add_argument('--rad_source_position', dest='rad_source_position', default=None, type=str, nargs=3,
-                             help='define position of all used stellar radiation sources')
-rad_source_args.add_argument('--rad_source_temperature', dest='rad_source_temperature', default=None, type=float,
-                             help='define effective temperature of all used stellar radiation sources')
-rad_source_args.add_argument('--rad_source_radius', dest='rad_source_radius', default=None, type=str,
-                             help='define radius of all used stellar radiation sources')
-rad_source_args.add_argument('--rad_source_luminosity', dest='rad_source_luminosity', default=None, type=str,
-                             help='define lumimosity of all used stellar radiation sources\n'
-                                  '(overwrites radius information)')
-rad_source_args.add_argument('--rad_source_mass', dest='rad_source_mass', default=None, type=str,
-                             help='define mass for Keplerian rotation')
-rad_source_args.add_argument('--rad_source_extra', dest='rad_source_extra_parameter', type=str, default=None, nargs='+',
-                             help='additional parameter to vary stellar radiation characteristics\n'
+rad_source_args.add_argument('--source_position', dest='rad_source_position', default=None, type=str, nargs=3,
+                             help='define position of all used radiation sources')
+rad_source_args.add_argument('--source_direction', dest='rad_source_direction', default=None, type=str, nargs=3,
+                             help='define direction of all used radiation sources (only laser)')
+rad_source_args.add_argument('--source_temperature', dest='rad_source_temperature', default=None, type=float,
+                             help='define effective temperature of all used radiation sources (only stars)')
+rad_source_args.add_argument('--source_radius', dest='rad_source_radius', default=None, type=str,
+                             help='define radius of all used radiation sources (only stars)')
+rad_source_args.add_argument('--source_luminosity', dest='rad_source_luminosity', default=None, type=str,
+                             help='define lumimosity of all used radiation sources\n'
+                                  '(only stars, overwrites radius information)')
+rad_source_args.add_argument('--source_power', dest='rad_source_power', default=None, type=str,
+                             help='define emission power of all used radiation sources (only laser)')
+rad_source_args.add_argument('--source_center_wl', dest='rad_source_center_wl', default=None, type=str,
+                             help='define central wavelength of all used radiation sources (only laser)')
+rad_source_args.add_argument('--source_fwhm', dest='rad_source_fwhm', default=None, type=str,
+                             help='define FWHM of all used radiation sources (only laser)')
+rad_source_args.add_argument('--source_mass', dest='rad_source_mass', default=None, type=str,
+                             help='define mass for Keplerian rotation (only stars)')
+rad_source_args.add_argument('--source_extra', dest='rad_source_extra_parameter', type=str, default=None, nargs='+',
+                             help='additional parameter to vary radiation characteristics\n'
                              '(multiple values possible, no unit strings!).')
 
 dust_args = parser.add_argument_group('dust component')

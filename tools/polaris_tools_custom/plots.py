@@ -290,8 +290,6 @@ class CustomPlots:
         # Read raytrace results from file
         raytrace_data, header = self.file_io.read_emission_map(
             'polaris_detector_nr0001')
-        # Set vector size to match with 64 x 64 pixel sized image
-        self.file_io.vec_field_size = 8
         # Number of angles
         n_ph = 181
         # Degree of polarization
