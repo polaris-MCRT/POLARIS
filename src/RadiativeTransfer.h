@@ -219,11 +219,15 @@ class CRadiativeTransfer
             photon_package dir_pp = *pp;
             for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
             {
+                // Rotate vector of radiation field to cell center
+                Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection(), false);
+                // Set coordinate system of temporary photon package for the map direction
                 dir_pp.setEX(det_coord_systems[i_det][0]);
                 dir_pp.setEY(det_coord_systems[i_det][1]);
                 dir_pp.setDirection(det_coord_systems[i_det][2]);
+                // Save the scattering Stokes vector in the grid
                 grid->updateSpecLength(
-                    pp, i_det, dust->getRadFieldScatteredFraction(grid, &dir_pp, pp->getDirection(), energy));
+                    pp, i_det, dust->getRadFieldScatteredFraction(grid, &dir_pp, rad_field_dir, energy));
             }
         }
         else

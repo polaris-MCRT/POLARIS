@@ -462,6 +462,12 @@ class CGridBasic
         return Vector3D(0, 0, 0);
     }
 
+    Vector3D getCenter(photon_package * pp)
+    {
+        cell_basic * cell = pp->getPositionCell();
+        return getCenter(cell);
+    }
+
     uint getDataLength()
     {
         return data_len;
@@ -886,6 +892,17 @@ class CGridBasic
         scattering_stokes.setQ(cell->getData(data_pos + 1));
         scattering_stokes.setU(cell->getData(data_pos + 2));
         scattering_stokes.setV(cell->getData(data_pos + 3));
+
+        // Rotate vector from cell center to position
+        Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
+
+        // Get rotation angle to rotate back into the map/detector frame
+        double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
+                         getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
+
+        // Rotate Stokes Vector to be in agreement with the detector plane
+        scattering_stokes.rot(phi_map);
+
         return scattering_stokes;
     }
 

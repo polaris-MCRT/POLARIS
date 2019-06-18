@@ -4006,9 +4006,6 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
         // Get angle between the magnetic field and the photon direction
         double mag_field_theta = grid->getThetaMag(pp);
 
-        // Get rotation angle to rotate back into the map/detector frame
-        double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
-
         // Get integration over the dust size distribution
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
@@ -4049,9 +4046,6 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
                     else
                         scatter_stokes[a].clear();
                 }
-
-                // Rotate Stokes Vector to be in agreement with the detector plane
-                scatter_stokes[a].rot(phi_map);
             }
         }
 
@@ -4062,6 +4056,12 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
         // Delete pointer arrays
         delete[] rel_weight;
         delete[] scatter_stokes;
+
+        // Get rotation angle to rotate back into the map/detector frame
+        double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+
+        // Rotate Stokes Vector to be in agreement with the detector plane
+        final_stokes.rot(phi_map);
 
         // Multiply with number density
         final_stokes *= getNumberDensity(grid, pp, i_density);
@@ -5112,7 +5112,8 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
             cell_basic * cell = grid->getCellFromIndex(i_cell);
             total_dust_mass += getMassDensity(grid, cell, i_mixture) * grid->getVolume(cell);
         }
-        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass << " [kg]" << endl;
+        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass
+             << " [kg]" << endl;
         cout << mixed_component[i_mixture].getStringID();
     }
     cout << SEP_LINE;
