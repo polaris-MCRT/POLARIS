@@ -884,24 +884,30 @@ class CGridBasic
 
     StokesVector getStokesFromRadiationField(photon_package * pp, uint w)
     {
+        // Init variables
         StokesVector scattering_stokes;
-        cell_basic * cell = pp->getPositionCell();
-        uint data_pos = data_offset + 4 * w;
 
-        scattering_stokes.setI(cell->getData(data_pos + 0));
-        scattering_stokes.setQ(cell->getData(data_pos + 1));
-        scattering_stokes.setU(cell->getData(data_pos + 2));
-        scattering_stokes.setV(cell->getData(data_pos + 3));
+        if(rad_field_as_stokes)
+        {
+            // Init further variables
+            cell_basic * cell = pp->getPositionCell();
+            uint data_pos = data_offset + 4 * w;
 
-        // Rotate vector from cell center to position
-        Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
+            scattering_stokes.setI(cell->getData(data_pos + 0));
+            scattering_stokes.setQ(cell->getData(data_pos + 1));
+            scattering_stokes.setU(cell->getData(data_pos + 2));
+            scattering_stokes.setV(cell->getData(data_pos + 3));
 
-        // Get rotation angle to rotate back into the map/detector frame
-        double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
-                         getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
+            // Rotate vector from cell center to position
+            Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
 
-        // Rotate Stokes Vector to be in agreement with the detector plane
-        scattering_stokes.rot(phi_map);
+            // Get rotation angle to rotate back into the map/detector frame
+            double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
+                             getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
+
+            // Rotate Stokes Vector to be in agreement with the detector plane
+            scattering_stokes.rot(phi_map);
+        }
 
         return scattering_stokes;
     }
@@ -2294,8 +2300,18 @@ class CGridBasic
         return false;
     };
 
+    bool getVelocityFieldAvailable()
+    {
+        if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return false;
+        return true;
+    }
+
     Vector3D getVelocityField(photon_package * pp)
     {
+        if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return Vector3D();
+
         Vector3D tmp_dir(pp->getPositionCell()->getData(data_pos_vx),
                          pp->getPositionCell()->getData(data_pos_vy),
                          pp->getPositionCell()->getData(data_pos_vz));
@@ -2305,6 +2321,9 @@ class CGridBasic
 
     Vector3D getVelocityField(cell_basic * cell)
     {
+        if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return Vector3D();
+
         return Vector3D(cell->getData(data_pos_vx), cell->getData(data_pos_vy), cell->getData(data_pos_vz));
     }
 
@@ -3522,27 +3541,28 @@ class CGridBasic
             }
         }
 
-        if(param.getKeplerStarMass() == 0)
-        {
-            if(data_pos_vx == MAX_UINT)
-            {
-                cout << "\nERROR: Grid contains no velocity vx component!" << endl;
-                cout << "        No line transfer possible." << endl;
-                return MAX_UINT;
-            }
-            if(data_pos_vy == MAX_UINT)
-            {
-                cout << "\nERROR: Grid contains no velocity vy component!" << endl;
-                cout << "        No line transfer possible." << endl;
-                return MAX_UINT;
-            }
-            if(data_pos_vz == MAX_UINT)
-            {
-                cout << "\nERROR: Grid contains no velocity vz component!" << endl;
-                cout << "        No line transfer possible." << endl;
-                return MAX_UINT;
-            }
-        }
+        // Velocity field should be simply zero then.
+        // if(param.getKeplerStarMass() == 0)
+        // {
+        //     if(data_pos_vx == MAX_UINT)
+        //     {
+        //         cout << "\nERROR: Grid contains no velocity vx component!" << endl;
+        //         cout << "        No line transfer possible." << endl;
+        //         return MAX_UINT;
+        //     }
+        //     if(data_pos_vy == MAX_UINT)
+        //     {
+        //         cout << "\nERROR: Grid contains no velocity vy component!" << endl;
+        //         cout << "        No line transfer possible." << endl;
+        //         return MAX_UINT;
+        //     }
+        //     if(data_pos_vz == MAX_UINT)
+        //     {
+        //         cout << "\nERROR: Grid contains no velocity vz component!" << endl;
+        //         cout << "        No line transfer possible." << endl;
+        //         return MAX_UINT;
+        //     }
+        // }
         return 0;
     }
 

@@ -1318,8 +1318,10 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
     if(getKeplerStarMass() > 0)
         cout << "kepler rotation, M_star: " << getKeplerStarMass() << " [M_sun]\n"
              << "    HINT: only available with one central star" << endl;
-    else
+    else if(grid->getVelocityFieldAvailable())
         cout << "velocity field of the grid is used" << endl;
+    else
+        cout << "velocity field is zero" << endl;
     cout << "- Turbulent Velocity            : ";
     if(param.getTurbulentVelocity() > 0)
         cout << param.getTurbulentVelocity() << " [m/s]" << endl;
