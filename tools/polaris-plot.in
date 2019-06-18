@@ -667,7 +667,7 @@ class PlotRoutines:
             for i_quantity in range(self.quantity_index_start - 1, self.quantity_index_stop):
                 cbar_label = self.file_io.get_quantity_labels(i_quantity)
                 # Create Matplotlib figure
-                if i_quantity == int(self.file_io.n_quantities_map) - 1:
+                if i_quantity == int(self.file_io.n_quantities_gas) - 1:
                     vch_list = [0]
                     nr_y_images = 1
                     nr_x_images = 1

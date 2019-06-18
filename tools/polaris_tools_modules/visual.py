@@ -908,10 +908,12 @@ class Plot:
                     gamma = float(self.cmap_scaling[1])
             elif self.cmap_scaling[0] == 'log':
                 if not any(i < 0. for i in tbldata.flatten()) \
-                        and not all(i == 0. for i in tbldata.flatten()) \
-                        and (vmin is None or vmin > 0) \
-                        and (vmax is None or vmax > 0):
+                        and not all(i == 0. for i in tbldata.flatten()):
                     norm = 'LogNorm'
+                    if vmin <= 0:
+                        vmin = None
+                    if vmax <= 0:
+                        vmax = None
 
         # Set the norm related to chosen norm
         from matplotlib.colors import Normalize, LogNorm, PowerNorm, SymLogNorm
