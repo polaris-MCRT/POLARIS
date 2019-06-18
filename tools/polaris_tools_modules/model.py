@@ -163,10 +163,10 @@ class Disk(Model):
 
         #: Set parameters of the disk model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
-        self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
+        self.parameter['gas_mass'] = 1e-3 * self.math.const['M_sun']
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
-        self.parameter['outer_radius'] = 300. * self.math.const['au']
+        self.parameter['outer_radius'] = 100. * self.math.const['au']
         # Define the used sources, dust composition and gas species
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'

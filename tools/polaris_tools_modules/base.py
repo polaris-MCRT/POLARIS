@@ -1102,7 +1102,7 @@ class StellarSource:
         if 'dust' in self.parse_args.simulation_type \
                 and self.parse_args.simulation_type != 'dust_mc' \
                 and self.parse_args.nr_photons is None:
-            self.parameter['nr_photons'] *= 1e-2
+            self.parameter['nr_photons'] *= 1e-1
         return self.get_command_line()
 
 
@@ -1174,7 +1174,7 @@ class LaserSource:
         if 'dust' in self.parse_args.simulation_type \
                 and self.parse_args.simulation_type != 'dust_mc' \
                 and self.parse_args.nr_photons is None:
-            self.parameter['nr_photons'] *= 1e-2
+            self.parameter['nr_photons'] *= 1e-1
         return self.get_command_line()
 
 
