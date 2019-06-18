@@ -679,8 +679,6 @@ class PlotRoutines:
                 # Find minima and maxima of all images per quantity
                 global_vmin = np.min(plot_data[i_quantity, vch_list, :, :])
                 global_vmax = np.max(plot_data[i_quantity, vch_list, :, :])
-                if global_vmin <= 0 and self.parse_args.cmap_scaling == 'log':
-                    global_vmin = global_vmax * 1e-12
                 # Init plot instance
                 plot = Plot(self.model, self.parse_args,
                     nr_x_images=nr_x_images, nr_y_images=nr_y_images)
@@ -741,8 +739,6 @@ class PlotRoutines:
                 # Find minima and maxima of all images per quantity
                 global_vmin = np.min(plot_data[i_quantity, :, ...])
                 global_vmax = np.max(plot_data[i_quantity, :, ...])
-                if global_vmin <= 0 and self.parse_args.cmap_scaling == 'log':
-                    global_vmin = global_vmax * 1e-12
                 for vch in range(header['nr_channels']):
                     cbar_label = self.file_io.get_quantity_labels(i_quantity)
                     # Take data for current quantity
@@ -1230,7 +1226,7 @@ class PlotRoutines:
                 self.gas_species_index = 1
                 self.spectral_line_index = int(self.parse_args.visualization_input[0])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities_map)
+                self.quantity_index_stop = int(self.file_io.n_quantities_gas)
             elif len(self.parse_args.visualization_input) == 2:
                 '''
                 Use all quantities
@@ -1240,7 +1236,7 @@ class PlotRoutines:
                 self.gas_species_index = int(self.parse_args.visualization_input[0])
                 self.spectral_line_index = int(self.parse_args.visualization_input[1])
                 self.quantity_index_start = 1
-                self.quantity_index_stop = int(self.file_io.n_quantities_map)
+                self.quantity_index_stop = int(self.file_io.n_quantities_gas)
             elif len(self.parse_args.visualization_input) == 3:
                 # Use one quantities
                 # gas species index = visualization_input_0
@@ -1265,8 +1261,8 @@ class PlotRoutines:
             else:
                 raise ValueError('Too many visualization_input values with: ' +
                     str(self.parse_args.visualization_input) +  ' !')
-            if 1 > self.quantity_index_start > int(self.file_io.n_quantities_map) or \
-                    1 > self.quantity_index_stop > int(self.file_io.n_quantities_map):
+            if 1 > self.quantity_index_start > int(self.file_io.n_quantities_gas) or \
+                    1 > self.quantity_index_stop > int(self.file_io.n_quantities_gas):
                 raise ValueError('The chosen quantity range does not exist!')
 
 

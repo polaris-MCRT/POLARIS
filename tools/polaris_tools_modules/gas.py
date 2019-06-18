@@ -187,6 +187,7 @@ class Gas13CO(Gas):
         #: dict: Parameters which are different to the default values
         gas_species_13co_parameter = {
             'filename': '13co.dat',
+            'nr_velocity_channels': 35,
         }
 
         # Updates the parameter dictionary
@@ -209,6 +210,8 @@ class GasC18O(Gas):
         #: dict: Parameters which are different to the default values
         gas_species_c18o_parameter = {
             'filename': 'c18o.dat',
+            'nr_velocity_channels': 35,
+            'abundance': 2e-7,
         }
 
         # Updates the parameter dictionary
@@ -231,6 +234,8 @@ class GasHCO(Gas):
         #: dict: Parameters which are different to the default values
         gas_species_hco_parameter = {
             'filename': 'hco+@xpol.dat',
+            'nr_velocity_channels': 35,
+            'abundance': 1e-8,
         }
 
         # Updates the parameter dictionary

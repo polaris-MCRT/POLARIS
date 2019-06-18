@@ -95,7 +95,7 @@ class Detector:
             'source_id': 1,
             'gas_species_id': 1,
             'transition_id': 1,
-            'max_velocity': 3000,
+            'max_velocity': 5e3,
             'nr_velocity_channels': 35,
             'sidelength_zoom_x': 1,
             'sidelength_zoom_y': 1,
@@ -483,7 +483,6 @@ class Gas:
             'filename': None,
             'level_pop_type': 1,
             'abundance': 1e-5,
-            'max_velocity': 3000,
             'zeeman_usable': False,
         }
 

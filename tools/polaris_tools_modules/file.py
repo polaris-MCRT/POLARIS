@@ -62,6 +62,7 @@ class FileIO:
             #: int: Number of quantities
             self.n_quantities_map = 8
             self.n_quantities_sed = 7
+            self.n_quantities_gas = 6
             #: float: Size of the beam, if used [arcsec].
             if parse_args.beam_size is not None:
                 self.beam_size = self.math.parse(
