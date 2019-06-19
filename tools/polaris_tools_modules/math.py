@@ -266,14 +266,14 @@ class Math:
                 the unit (e.g. 13m/s).
         """
         conv = 1
-        if 'm/s' in velocity.lower():
-            velocity = velocity.lower().replace('m/s', '')
-        elif 'km/s' in velocity.lower():
+        if 'km/s' in velocity.lower():
             conv = 1e3
             velocity = velocity.lower().replace('km/s', '')
         elif 'km/h' in velocity.lower():
             conv = 1e3 / 3600.
             velocity = velocity.lower().replace('km/h', '')
+        elif 'm/s' in velocity.lower():
+            velocity = velocity.lower().replace('m/s', '')
         try:
             return float(velocity) * conv
         except ValueError:

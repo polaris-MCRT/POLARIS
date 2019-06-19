@@ -156,7 +156,7 @@ rad_source_args.add_argument('--source_extra', dest='rad_source_extra_parameter'
 dust_args = parser.add_argument_group('dust component')
 dust_args.add_argument('--dust', dest='dust_composition', default=None,
                        help='define dust composition for POLARIS simulations.\n')
-dust_args.add_argument('--dust_size', dest='dust_size', default=None, type=float, nargs=2,
+dust_args.add_argument('--dust_size', dest='dust_size', default=None, type=str, nargs=2,
                        help='define minimum and maximum dust grain size index for simulations.')
 dust_args.add_argument('--size_dist', dest='dust_size_distribution', default=None, type=str, nargs='+',
                        help='define the dust grain size exponent.')

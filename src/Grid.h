@@ -886,28 +886,23 @@ class CGridBasic
     {
         // Init variables
         StokesVector scattering_stokes;
+        cell_basic * cell = pp->getPositionCell();
+        uint data_pos = data_offset + 4 * w;
 
-        if(rad_field_as_stokes)
-        {
-            // Init further variables
-            cell_basic * cell = pp->getPositionCell();
-            uint data_pos = data_offset + 4 * w;
+        scattering_stokes.setI(cell->getData(data_pos + 0));
+        scattering_stokes.setQ(cell->getData(data_pos + 1));
+        scattering_stokes.setU(cell->getData(data_pos + 2));
+        scattering_stokes.setV(cell->getData(data_pos + 3));
 
-            scattering_stokes.setI(cell->getData(data_pos + 0));
-            scattering_stokes.setQ(cell->getData(data_pos + 1));
-            scattering_stokes.setU(cell->getData(data_pos + 2));
-            scattering_stokes.setV(cell->getData(data_pos + 3));
+        // Rotate vector from cell center to position
+        Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
 
-            // Rotate vector from cell center to position
-            Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
+        // Get rotation angle to rotate back into the map/detector frame
+        double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
+                         getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
 
-            // Get rotation angle to rotate back into the map/detector frame
-            double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
-                             getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
-
-            // Rotate Stokes Vector to be in agreement with the detector plane
-            scattering_stokes.rot(phi_map);
-        }
+        // Rotate Stokes Vector to be in agreement with the detector plane
+        scattering_stokes.rot(phi_map);
 
         return scattering_stokes;
     }
