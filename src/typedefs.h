@@ -20,38 +20,38 @@ using namespace std;
 //#define CAMPS_BENCHMARK
 
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
-#define PI 3.141592653589793238462643383279502884L // PI
-#define PIsq 1.77245385090551602731093888687397L   // sqrt(PI)
-#define PI2 1.57079632679489661925640447970309L    // PI / 2
-#define PI4 0.78539816339744830962820223985155L    // PI / 4
-#define invPI2 0.63661977236758134307634954263122L // 2 / PI
-#define PIx2 6.28318530717958647702561791881237    // 2 * PI
-#define PIx4 12.56637061435917295405123583762474L  // 4 * PI
-#define PI4x3 2.35619449019234492893881682817891L  // 3 * PI / 4
-#define TWOTHIRD 0.6666666666666666666666666666666 // 2 / 3
-#define m_H 1.66053904e-27                         // Atomic mass unit [kg]
-#define con_h 6.62607004e-34                       // Planck constant [Js]
-#define con_hq 1.0545718e-34                       // Reduced Planck constant [Js]
-#define con_kB 1.38064852e-23                      // Boltzmann constant [J / K]
-#define con_c 299792458.0                          // Speed of light in vacuum [m / s]
-#define PIx4_c PIx4 / con_c                        // (4 * PI / c)
-#define con_e 1.6021766208e-19                     // Electron charge [C]
-#define con_Ryd 10973731.568508                    // Rydberg constant [1 / m]
-#define con_AU 149597870700.0                      // Astronomical Unit [m]
-#define con_pc 3.0856775814671916e+16              // Parsec [m]
-#define con_ly 9460730472580800.0                  // Lightyear [m]
-#define con_G 6.67408e-11                          // Gravitational constant [m^3 / (kg * s^2)]
-#define con_sigma 5.670367e-08                     // Stefan-Boltzmann constant [W / (m^2 * K^4)]
-#define L_sun 3.828e+26                            // Nominal solar luminosity [W]
-#define M_sun 1.9884754153381438e+30               // Solar mass [kg]
-#define R_sun 695700000.0                          // Nominal solar radius [m]
-#define con_Na 6.02214129e23                       // Avogadro's number [1 / mol]
-#define con_mb 9.274009994e-24                     // Bohr magneton [J / T]
-#define con_r_bohr 5.2917721067e-11                // Bohr radius [m]
-#define con_m_e 9.10938356e-31                     // Electron mass [kg]
-#define con_m_p 1.672621898e-27                    // Proton mass [kg]
-#define con_epsilon_0 8.854187817620389e-12        // Vacuum permittivity [F / m]
-#define con_eps con_h * con_c / (4.0 * PI)         // (h * c / (4 * PI))
+#define PI 3.1415926535897932384626433832795028841971 // PI
+#define PIsq sqrt(PI)                                 // sqrt(PI)
+#define PI2 PI / 2.0                                  // PI / 2
+#define PI4 PI / 4.0                                  // PI / 4
+#define invPI2 2.0 / PI                               // 2 / PI
+#define PIx2 PI * 2.0                                 // 2 * PI
+#define PIx4 PI * 4.0                                 // 4 * PI
+#define PI4x3 PI * 3.0 / 4.0                          // 3 * PI / 4
+#define TWOTHIRD 0.6666666666666666666666666666666    // 2 / 3
+#define m_H 1.66053904e-27                            // Atomic mass unit [kg]
+#define con_h 6.62607004e-34                          // Planck constant [Js]
+#define con_hq 1.0545718e-34                          // Reduced Planck constant [Js]
+#define con_kB 1.38064852e-23                         // Boltzmann constant [J / K]
+#define con_c 299792458.0                             // Speed of light in vacuum [m / s]
+#define PIx4_c PIx4 / con_c                           // (4 * PI / c)
+#define con_e 1.6021766208e-19                        // Electron charge [C]
+#define con_Ryd 10973731.568508                       // Rydberg constant [1 / m]
+#define con_AU 149597870700.0                         // Astronomical Unit [m]
+#define con_pc 3.0856775814671916e+16                 // Parsec [m]
+#define con_ly 9460730472580800.0                     // Lightyear [m]
+#define con_G 6.67408e-11                             // Gravitational constant [m^3 / (kg * s^2)]
+#define con_sigma 5.670367e-08                        // Stefan-Boltzmann constant [W / (m^2 * K^4)]
+#define L_sun 3.828e+26                               // Nominal solar luminosity [W]
+#define M_sun 1.9884754153381438e+30                  // Solar mass [kg]
+#define R_sun 695700000.0                             // Nominal solar radius [m]
+#define con_Na 6.02214129e23                          // Avogadro's number [1 / mol]
+#define con_mb 9.274009994e-24                        // Bohr magneton [J / T]
+#define con_r_bohr 5.2917721067e-11                   // Bohr radius [m]
+#define con_m_e 9.10938356e-31                        // Electron mass [kg]
+#define con_m_p 1.672621898e-27                       // Proton mass [kg]
+#define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
+#define con_eps con_h * con_c / (4.0 * PI)            // (h * c / (4 * PI))
 
 #ifdef CAMPS_BENCHMARK
 // Part to perform Camps et. al (2015) benchmark (adjust definition below, if

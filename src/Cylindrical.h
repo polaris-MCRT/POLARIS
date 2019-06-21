@@ -393,7 +393,7 @@ class CGridCylindrical : public CGridBasic
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv = false)
+    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
         double phi = pp->getPosition().getPhiCoord();

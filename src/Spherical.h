@@ -398,33 +398,37 @@ class CGridSpherical : public CGridBasic
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv)
+    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
         Vector3D pos = pp->getPosition();
         pos.cart2spher();
+        dir.cart2spher();
 
-        double theta = pos.Theta();
         double phi = pos.Phi();
-
-        double theta_center = PI2, phi_center = 0;
+        double phi_center = 0;
         if(cell_pos->getRID() != MAX_UINT)
-        {
-            theta_center = 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
             phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
-        }
 
-        double dth = theta_center - theta;
         double dph = phi_center - phi;
         if(inv)
-        {
-            dth *= -1;
             dph *= -1;
-        }
 
-        dir.cart2spher();
         dir.setPhi(dir.Phi() + dph);
-        dir.setTheta(dir.Theta() + dth);
+
+        if(!phi_only)
+        {
+            double theta = pos.Theta();
+            double theta_center = PI2;
+            if(cell_pos->getRID() != MAX_UINT)
+                theta_center = 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
+
+            double dth = theta_center - theta;
+            if(inv)
+                dth *= -1;
+
+            dir.setTheta(dir.Theta() + dth);
+        }
         dir.spher2cart();
         return dir;
     }

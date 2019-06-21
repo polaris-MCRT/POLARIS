@@ -683,7 +683,7 @@ class CGridBasic
         if(spec_length_as_vector)
         {
             data_pos = data_offset + 4 * pp->getWavelengthID();
-            Vector3D e_dir = len * rotateToCenter(pp, pp->getDirection(), false);
+            Vector3D e_dir = len * rotateToCenter(pp, pp->getDirection());
             cell->updateData(data_pos + 0, len);
             cell->updateData(data_pos + 1, e_dir.X());
             cell->updateData(data_pos + 2, e_dir.Y());
@@ -1065,7 +1065,10 @@ class CGridBasic
         pp->setPosition(Vector3D(0, 0, 0));
     }
 
-    virtual Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv)
+    virtual Vector3D rotateToCenter(photon_package * pp,
+                                    Vector3D dir,
+                                    bool inv = false,
+                                    bool phi_only = false)
     {
         return dir;
     }
@@ -2311,7 +2314,7 @@ class CGridBasic
                          pp->getPositionCell()->getData(data_pos_vy),
                          pp->getPositionCell()->getData(data_pos_vz));
         // Rotate vector from cell center to position
-        return rotateToCenter(pp, tmp_dir, true);
+        return rotateToCenter(pp, tmp_dir, true, true);
     }
 
     Vector3D getVelocityField(cell_basic * cell)
@@ -2364,7 +2367,7 @@ class CGridBasic
                          pp->getPositionCell()->getData(data_pos_my),
                          pp->getPositionCell()->getData(data_pos_mz));
         // Rotate vector from cell center to position
-        return rotateToCenter(pp, tmp_dir, true);
+        return rotateToCenter(pp, tmp_dir, true, true);
     }
 
     void setMagField(cell_basic * cell, const Vector3D & mag)
