@@ -139,8 +139,8 @@ class Plot:
             self.animation_images = []
         elif image_type == 'image':
             # Create figure with a size fitting to one or multiple plots
-            self.fig = plt.figure(figsize=(np.power(nr_x_images, 0.7) * size_x,
-                                           np.power(nr_y_images, 0.7) * size_y))
+            self.fig = plt.figure(figsize=(np.power(nr_x_images, 0.5) * size_x,
+                                           np.power(nr_y_images, 0.5) * size_y))
             if self.with_cbar:
                 self.ax_list = AxesGrid(self.fig, 111, nrows_ncols=(nr_y_images, nr_x_images),
                                         axes_pad=0.1, cbar_mode='single', cbar_location='right', cbar_pad=0.1,
@@ -910,9 +910,9 @@ class Plot:
                 if not any(i < 0. for i in tbldata.flatten()) \
                         and not all(i == 0. for i in tbldata.flatten()):
                     norm = 'LogNorm'
-                    if vmin <= 0:
+                    if vmin is not None and vmin <= 0:
                         vmin = None
-                    if vmax <= 0:
+                    if vmax is not None and vmax <= 0:
                         vmax = None
 
         # Set the norm related to chosen norm

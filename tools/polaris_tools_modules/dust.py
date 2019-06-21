@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from polaris_tools_modules.base import Dust, NoDust
+from polaris_tools_modules.math import Math
 from polaris_tools_custom.dust import *
 import numpy as np
 
@@ -29,6 +30,9 @@ class DustChooser:
         self.file_io = file_io
         self.parse_args = parse_args
         self.model = model
+
+        # Get math module
+        self.math = Math()
 
         #: dict: Dictionary with all usable dust compositions
         self.dust_dict = {
