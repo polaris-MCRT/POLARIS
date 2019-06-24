@@ -287,6 +287,7 @@ while getopts "hrduD" opt; do
     u)
         echo -e "${TC}------ compile POLARIS ------${NC}"
         cd ${install_directory}
+        cmake .
         make && make install
         if [ -d "tools" ]; then
             cd "tools"
@@ -357,7 +358,7 @@ esac
 
 # Install Polaris
 if ${install_directory}/bin/polaris >/dev/null; then
-    echo -e "POLARIS pre-compiled binary can be used [${GREEN}done${NC}]"
+    echo -e "POLARIS binary found and can be executed (use -u to recompile) [${GREEN}done${NC}]"
 else
     install_fits_support
     install_polaris 'OFF'
