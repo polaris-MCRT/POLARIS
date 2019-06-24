@@ -1217,8 +1217,11 @@ bool CDustComponent::readScatteringMatrices(string path,
                             if(pos > 0)
                             {
                                 for(int w = 0; w < nr_of_wavelength; w++)
+                                {
                                     sca_mat[a][w][inc][sph][sth](e) =
-                                        sign * sca_mat_wl[a][inc][sph][sth][pos].getValue(wavelength_list[w]);
+                                        sign *
+                                        sca_mat_wl[a][inc][sph][sth][pos - 1].getValue(wavelength_list[w]);
+                                }
                             }
                         }
                         delete[] sca_mat_wl[a][inc][sph][sth];
