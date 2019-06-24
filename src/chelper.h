@@ -521,7 +521,7 @@ class parameters
 
         plot_inp_points = false;
         plot_out_points = false;
-        write_radiation_field1 = 0;
+        write_radiation_field = 0;
         write_g_zero = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
@@ -984,7 +984,7 @@ class parameters
 
     uint getWriteRadiationField()
     {
-        return write_radiation_field1;
+        return write_radiation_field;
     }
 
     bool getWriteGZero()
@@ -1461,7 +1461,7 @@ class parameters
 
     void setWriteRadiationField(uint val)
     {
-        write_radiation_field1 = val;
+        write_radiation_field = val;
     }
 
     void setWriteGZero(double val)
@@ -2477,7 +2477,7 @@ class parameters
 
     bool plot_inp_points;
     bool plot_out_points;
-    uint write_radiation_field1;
+    uint write_radiation_field;
     bool write_g_zero;
 
     dlist midplane_3d_param;
