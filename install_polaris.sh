@@ -175,7 +175,7 @@ function install_polaris_tools() {
         python_installed=true
         check_python_packages
     fi
-    export_str="export PATH=\"/home/rbrauer/.local/bin:"'$PATH'"\""
+    export_str="export PATH=\"${HOME}/.local/bin:"'$PATH'"\""
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
