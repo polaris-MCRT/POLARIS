@@ -12,7 +12,7 @@
 using namespace std;
 
 // Header and Version of POLARIS
-#define PROG_ID "POLARIS    V4.05.00        "
+#define PROG_ID "POLARIS    V4.06.00        "
 
 // Flags to activate WINDOWS support, some DEBUG messages, and CAMPS BENCHMARK
 //#define DEBUG
