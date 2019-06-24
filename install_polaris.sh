@@ -22,6 +22,9 @@ function install_fits_support() {
     # Install Libraries
     echo -e "${PC}--- Install required libraries for fits support ---${NC}"
     echo -e "Install cfitsio"
+    if [ ! -f "cfitsio/CMakeCache.txt" ]; then
+        rm -r "cfitsio/"
+    fi
     if [ ! -d "cfitsio" ]; then
         tar -xf cfitsio.tar.gz
     fi
@@ -43,6 +46,9 @@ function install_fits_support() {
     cd ..
 
     echo -e "Install CCfits"
+    if [ ! -f "CCfits/CMakeCache.txt" ]; then
+        rm -r "CCfits/"
+    fi
     if [ ! -d "CCfits" ]; then
         tar -xf CCfits.tar.gz
     fi
@@ -257,7 +263,7 @@ while getopts "hrduD" opt; do
     r)
         echo -e "${TC}------ clean and compile POLARIS (${GREEN}release mode!${TC}) ------${NC}"
         cd ${install_directory}
-        make clean
+        make clean &>/dev/null
         install_fits_support
         install_polaris "ON" "release"
         if [ -d "tools" ]; then
@@ -272,7 +278,7 @@ while getopts "hrduD" opt; do
     d)
         echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
         cd ${install_directory}
-        make clean
+        make clean &>/dev/null
         install_fits_support
         install_polaris "ON" "debug"
         if [ -d "tools" ]; then
@@ -358,7 +364,7 @@ esac
 
 # Install Polaris
 if ${install_directory}/bin/polaris >/dev/null; then
-    echo -e "POLARIS binary found and can be executed (use -u to recompile) [${GREEN}done${NC}]"
+    echo -e "POLARIS binary found and can be executed (use -r to recompile) [${GREEN}done${NC}]"
 else
     install_fits_support
     install_polaris 'OFF'
