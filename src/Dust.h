@@ -1048,7 +1048,7 @@ class CDustComponent
     StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
                                               photon_package * pp,
                                               uint i_density,
-                                              Vector3D en_dir,
+                                              const Vector3D & en_dir,
                                               double energy);
 
     double getScatteredFraction(uint a, uint w, double theta)
@@ -3063,7 +3063,7 @@ class CDustMixture
 
     StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
                                               photon_package * pp,
-                                              Vector3D en_dir,
+                                              const Vector3D & en_dir,
                                               double energy)
     {
         StokesVector tmp_stokes;

@@ -216,11 +216,12 @@ class CRadiativeTransfer
 
         if(det_coord_systems != 0)
         {
-            photon_package dir_pp = *pp;
+            // Rotate vector of radiation field to cell center
+            Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection());
             for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
             {
-                // Rotate vector of radiation field to cell center
-                Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection());
+                // Create a copy with the same values as in the photon package
+                photon_package dir_pp = *pp;
                 // Set coordinate system of temporary photon package for the map direction
                 dir_pp.setEX(det_coord_systems[i_det][0]);
                 dir_pp.setEY(det_coord_systems[i_det][1]);

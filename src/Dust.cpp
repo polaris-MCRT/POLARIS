@@ -3985,7 +3985,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
 StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
                                                           photon_package * pp,
                                                           uint i_density,
-                                                          Vector3D en_dir,
+                                                          const Vector3D & en_dir,
                                                           double energy)
 {
     // Get local min and max grain sizes

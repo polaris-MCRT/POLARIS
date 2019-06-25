@@ -407,10 +407,9 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     {
         // Add fields to store the radiation field of each considered wavelength
         grid->setSpecLengthAsVector(true);
-        if(param.getNrOfDustPhotons() > 0)
-            nr_of_offset_entries += 4 * dust->getNrOfWavelength() * getNrOfRayDetector(param);
-        else
-            nr_of_offset_entries += 4 * dust->getNrOfWavelength();
+        nr_of_offset_entries += 4 * dust->getNrOfWavelength() * getNrOfRayDetector(param);
+        // FIX HERE LATER (OPTIMIZATION)
+        // nr_of_offset_entries += 4 * dust->getNrOfWavelength();
     }
 
     if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
