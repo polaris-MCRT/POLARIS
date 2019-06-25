@@ -398,27 +398,14 @@ class CGridCylindrical : public CGridBasic
         cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
         double phi = pp->getPosition().getPhiCoord();
 
-        double phi_center = 0;
-        if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
-                                listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
+        double phi_center = cell_pos->getRID() == MAX_UINT
+                                ? 0
+                                : 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
+                                         listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
+        dir.rot(Vector3D(0, 0, 1), inv ? phi - phi_center : phi_center - phi);
 
-        double dph = phi_center - phi;
-        if(inv)
-            dph *= -1;
-
-        dir.cart2cyl();
-        dir.setPhi(dir.Phi() + dph);
-        dir.cyl2cart();
         return dir;
     }
-
-    /*double getMinArea(photon_package * pp)
-    {
-        //tbd
-        cell_oc * cell_pos = (cell_oc *) pp->getPositionCell();
-        return 0;
-    }*/
 
     bool positionPhotonInGrid(photon_package * pp);
 

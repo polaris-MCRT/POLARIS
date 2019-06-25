@@ -13,6 +13,7 @@ testing/
 
 .tags
 callgrind.out*
+cachegrind.out*
 Makefile
 polaris.run
 /build/

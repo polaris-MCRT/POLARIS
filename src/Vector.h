@@ -240,7 +240,7 @@ class Vector3D
         return ph;
     }
 
-    void rot(Vector3D & n, double ang)
+    void rot(const Vector3D & n, double ang)
     {
         Vector3D cx(x, y, z);
         Vector3D cr = cross(n, cx);
@@ -316,7 +316,7 @@ class Vector3D
         return true;
     }
 
-    Vector3D operator*(double val)
+    Vector3D operator*(double val) const
     {
         Vector3D tmp(x * val, y * val, z * val);
         return tmp;

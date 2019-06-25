@@ -2153,9 +2153,9 @@ class CDustComponent
                               double & avg_Ccirc);
     void calcCrossSections(CGridBasic * grid,
                            photon_package * pp,
-                           double theta,
                            uint i_density,
                            uint a,
+                           double mag_field_theta,
                            cross_sections & cs);
     double calcGoldReductionFactor(Vector3D & v, Vector3D & B);
 

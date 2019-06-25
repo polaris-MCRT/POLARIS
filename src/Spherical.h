@@ -401,44 +401,26 @@ class CGridSpherical : public CGridBasic
     Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
-        Vector3D pos = pp->getPosition();
-        pos.cart2spher();
-        dir.cart2spher();
+        Vector3D pos = pp->getPosition().getSphericalCoord();
 
-        double phi = pos.Phi();
-        double phi_center = 0;
-        if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
-
-        double dph = phi_center - phi;
-        if(inv)
-            dph *= -1;
-
-        dir.setPhi(dir.Phi() + dph);
+        double phi_center = cell_pos->getRID() == MAX_UINT
+                                ? 0
+                                : 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
+        dir.rot(Vector3D(0, 0, 1), inv ? pos.Phi() - phi_center : phi_center - pos.Phi());
 
         if(!phi_only)
         {
-            double theta = pos.Theta();
-            double theta_center = PI2;
-            if(cell_pos->getRID() != MAX_UINT)
-                theta_center = 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
+            double theta_center = cell_pos->getRID() == MAX_UINT
+                                      ? PI2
+                                      : 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
 
-            double dth = theta_center - theta;
-            if(inv)
-                dth *= -1;
-
-            dir.setTheta(dir.Theta() + dth);
+            Vector3D n = Vector3D(dir.Y(), -dir.X(), 0);
+            n.normalize();
+            dir.rot(n, inv ? pos.Theta() - theta_center : theta_center - pos.Theta());
         }
-        dir.spher2cart();
+
         return dir;
     }
-
-    /*double getMinArea(photon_package * pp)
-    {
-        //tbd
-        cell_oc * cell_pos = (cell_oc *) pp->getPositionCell();
-        return 0;
-    }*/
 
     bool positionPhotonInGrid(photon_package * pp);
 

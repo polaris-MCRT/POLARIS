@@ -3025,9 +3025,9 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
 
 void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        photon_package * pp,
-                                       double theta,
                                        uint i_density,
                                        uint a,
+                                       double mag_field_theta,
                                        cross_sections & cs)
 {
     // Get wavelength index
@@ -3045,7 +3045,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     // Perfect alignment can be calculated efficiently
     if((alignment & ALIG_PA) == ALIG_PA)
     {
-        calcPACrossSections(a, w, cs, theta);
+        calcPACrossSections(a, w, cs, mag_field_theta);
         return;
     }
 
@@ -3131,7 +3131,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
         Rent = Ridg;
 
     // Calculate sin(theta)^2
-    double sinsq_theta = sin(theta);
+    double sinsq_theta = sin(mag_field_theta);
     sinsq_theta *= sinsq_theta;
 
     double c_s_ext = getCext1(a, w);
@@ -3988,93 +3988,82 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
                                                           Vector3D en_dir,
                                                           double energy)
 {
-    if(energy > 1e-200)
+    // Get local min and max grain sizes
+    double a_min = getSizeMin(grid, pp);
+    double a_max = getSizeMax(grid, pp);
+
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Init  and calculate the cross-sections
+    cross_sections cs;
+
+    // Get wavelength index of photon package
+    uint w = pp->getWavelengthID();
+
+    // Get angle between the magnetic field and the photon direction
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+
+    // Get theta of scattering
+    double scattering_theta = acos(en_dir * pp->getDirection());
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+    // Get index of theta scattering
+    uint thID = phID == PH_MIE ? getScatThetaID(scattering_theta) : 0;
+
+    // Init temporary Stokes array for integration
+    StokesVector * scatter_stokes = new StokesVector[nr_of_dust_species];
+
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
-        // Get local min and max grain sizes
-        double a_min = getSizeMin(grid, pp);
-        double a_max = getSizeMax(grid, pp);
-
-        // Get local size parameter for size distribution
-        double size_param = getSizeParam(grid, pp);
-
-        // Init  and calculate the cross-sections
-        cross_sections cs;
-
-        // Get wavelength index of photon package
-        uint w = pp->getWavelengthID();
-
-        // Get theta of scattering
-        double scattering_theta = acos(en_dir * pp->getDirection());
-
-        // Get angle between the magnetic field and the photon direction
-        double mag_field_theta = grid->getThetaMag(pp);
-
-        // Get integration over the dust size distribution
-        double * rel_weight = getRelWeight(a_min, a_max, size_param);
-
-        uint thID;
-        if(phID == PH_MIE)
+        if(sizeIndexUsed(a, a_min, a_max))
         {
-            // Get index of theta scattering
-            thID = getScatThetaID(scattering_theta);
-        }
+            // Get cross sections and relative weight of the current dust grain size
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
-        // Init temporary Stokes array for integration
-        StokesVector * scatter_stokes = new StokesVector[nr_of_dust_species];
+            // Multiply energy with scattered fraction in the theta angle and the
+            // scattering cross-section
+            scatter_stokes[a].setI(energy * rel_weight[a] * cs.Csca *
+                                   getScatteredFraction(a, w, scattering_theta));
 
-        for(uint a = 0; a < nr_of_dust_species; a++)
-        {
-            if(sizeIndexUsed(a, a_min, a_max))
+            if(phID == PH_MIE)
             {
-                // Get cross sections and relative weight of the current dust grain size
-                calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+                // Get scattering matrix
+                const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
-                // Multiply energy with scattered fraction in the theta angle and the
-                // scattering cross-section
-                scatter_stokes[a].setI(energy * rel_weight[a] * cs.Csca *
-                                       getScatteredFraction(a, w, scattering_theta));
-
-                if(phID == PH_MIE)
+                // Multiply Stokes vector with scattering matrix
+                double i_1 = scatter_stokes[a].I();
+                if(i_1 > 1e-200)
                 {
-                    // Get scattering matrix
-                    const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
-
-                    // Multiply Stokes vector with scattering matrix
-                    double i_1 = scatter_stokes[a].I();
-                    if(i_1 > 1e-200)
-                    {
-                        scatter_stokes[a] = mat_sca * scatter_stokes[a];
-                        scatter_stokes[a] *= i_1 / scatter_stokes[a].I();
-                    }
-                    else
-                        scatter_stokes[a].clear();
+                    scatter_stokes[a] = mat_sca * scatter_stokes[a];
+                    scatter_stokes[a] *= i_1 / scatter_stokes[a].I();
                 }
+                else
+                    scatter_stokes[a].clear();
             }
         }
-
-        // Perform integration for the emission
-        StokesVector final_stokes(
-            CMathFunctions::integ_dust_size(a_eff, scatter_stokes, nr_of_dust_species, a_min, a_max));
-
-        // Delete pointer arrays
-        delete[] rel_weight;
-        delete[] scatter_stokes;
-
-        // Get rotation angle to rotate back into the map/detector frame
-        double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
-
-        // Rotate Stokes Vector to be in agreement with the detector plane
-        final_stokes.rot(phi_map);
-
-        // Multiply with number density
-        final_stokes *= getNumberDensity(grid, pp, i_density);
-
-        return final_stokes;
     }
-    else
-    {
-        return StokesVector();
-    }
+
+    // Perform integration for the emission
+    StokesVector final_stokes(
+        CMathFunctions::integ_dust_size(a_eff, scatter_stokes, nr_of_dust_species, a_min, a_max));
+
+    // Delete pointer arrays
+    delete[] rel_weight;
+    delete[] scatter_stokes;
+
+    // Get rotation angle to rotate back into the map/detector frame
+    double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+
+    // Rotate Stokes Vector to be in agreement with the detector plane
+    final_stokes.rot(phi_map);
+
+    // Multiply with number density
+    final_stokes *= getNumberDensity(grid, pp, i_density);
+
+    return final_stokes;
 }
 
 StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
@@ -4086,21 +4075,18 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
-    double scattering_theta = 0, mag_field_theta = 0, phi_map = 0;
+    double scattering_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
-    uint thID = 0;
 
     // Precalculate values for scattering
     if(energy > 1e-200)
     {
         scattering_theta = acos(en_dir * pp->getDirection());
         phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
-        if(phID == PH_MIE)
-        {
-            // Get index of theta scattering
-            thID = getScatThetaID(scattering_theta);
-        }
     }
+
+    // Get index of theta scattering
+    uint thID = phID == PH_MIE ? getScatThetaID(scattering_theta) : 0;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -4116,7 +4102,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     uint w = pp->getWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
-    mag_field_theta = grid->getThetaMag(pp);
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Calculate orientation of the Stokes vector in relation to the magnetic field
     double sin_2ph = sin(2.0 * phi);
@@ -4133,7 +4119,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
             // Calculate emission/extinction according to the information inside of the
             // grid
@@ -4251,14 +4237,14 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
+    // Get angle between the magnetic field and the photon direction
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+
     // Get local size parameter for size distribution
     double size_param = getSizeParam(grid, pp);
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
-
-    // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = grid->getThetaMag(pp);
 
     // Init temporary cross-section array for integration
     double * Cext = new double[nr_of_dust_species];
@@ -4270,7 +4256,7 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
             // Add relative cross-sections for integration
             Cext[a] = cs.Cext * rel_weight[a];
