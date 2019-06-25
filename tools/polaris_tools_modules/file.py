@@ -1200,7 +1200,7 @@ class FileIO:
             from healpy import smoothing
         else:
             # Load necessary modules
-            from astropy.convolution import Gaussian2DKernel, convolve_fft
+            from astropy.convolution import Gaussian2DKernel, convolve
             #: float: Standard deviation of the beam size [pixel]
             stddev_px = fwhm_px / (2. * np.sqrt(2 * np.log(2)))
             #: 2D gaussian kernel to convolve the raytrace results
@@ -1222,8 +1222,9 @@ class FileIO:
                                 (self.beam_size / 2.) ** 2
                 else:
                     for i_wl in range(np.size(tbldata, 1)):
-                        tbldata[i_quantity, i_wl, ...] = convolve_fft(
-                            tbldata[i_quantity, i_wl, ...], gauss)
+                        tbldata[i_quantity, i_wl, ...] = convolve(
+                            tbldata[i_quantity, i_wl, ...], gauss,
+                            mask=tbldata[0, i_wl, ...]==0)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 5 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * \
@@ -1233,12 +1234,7 @@ class FileIO:
                             tbldata[i_quantity, i_wl, ...] = np.absolute(
                                 tbldata[i_quantity, i_wl, ...])
             # Set the vector field size to match nearly with the beam size
-            i_vec_size = 1
-            while True:
-                i_vec_size *= 2
-                if i_vec_size > int(fwhm_px):
-                    self.vec_field_size = int(i_vec_size / 2)
-                    break
+            self.vec_field_size = int(fwhm_px)
         elif self.parse_args.visualization_type == 'int_map':
             for i_quantity in [0, 1, 2, 3, 4]:
                 if plot_data_type == 'healpix':
@@ -1249,8 +1245,9 @@ class FileIO:
                         tbldata[i_quantity, ...] *= np.pi * \
                             (self.beam_size / 2.) ** 2
                 else:
-                    tbldata[i_quantity, ...] = convolve_fft(
-                        tbldata[i_quantity, ...], gauss, nan_treatment='fill')
+                    tbldata[i_quantity, ...] = convolve(
+                        tbldata[i_quantity, ...], gauss,
+                        mask=tbldata[0, ...]==0)
                     # P is not flux / beam but should be convolved
                     if i_quantity != 4 and self.cmap_unit == 'beam':
                         tbldata[i_quantity, ...] *= np.pi * \
@@ -1271,8 +1268,9 @@ class FileIO:
                                 (self.beam_size / 2.) ** 2
                 else:
                     for i_channel in range(np.size(tbldata, 1)):
-                        tbldata[i_quantity, i_channel, ...] = convolve_fft(
-                            tbldata[i_quantity, i_channel, ...], gauss, normalize_kernel=True)
+                        tbldata[i_quantity, i_channel, ...] = convolve(
+                            tbldata[i_quantity, i_channel, ...], gauss,
+                            mask=tbldata[0, i_channel, ...]==0)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, ...] *= np.pi * \
@@ -1402,14 +1400,14 @@ class FileIO:
                                   i_y_vec] /= p_vec_count[i_x_vec, i_y_vec]
                 # Calculating the x and y positions
                 # X axis
-                x_vec_avg[i_x_vec, i_y_vec] = (
-                    i_x_vec + 0.5) * self.vec_field_size / bins_x
+                x_vec_avg[i_x_vec, i_y_vec] = ((
+                    i_x_vec + 0.5) * self.vec_field_size + offset_x) / bins_x
                 if bins_x % 2 != 0 and self.vec_field_size % 2 == 0 \
                         and i_x_vec < int(vector_bins_x / 2):
                     x_vec_avg[i_x_vec, i_y_vec] += 1 / bins_x
                 # Y axis
-                y_vec_avg[i_x_vec, i_y_vec] = (
-                    i_y_vec + 0.5) * self.vec_field_size / bins_y
+                y_vec_avg[i_x_vec, i_y_vec] = ((
+                    i_y_vec + 0.5) * self.vec_field_size + offset_y) / bins_y
                 if bins_y % 2 != 0 and self.vec_field_size % 2 == 0 \
                         and i_y_vec < int(vector_bins_y / 2):
                     y_vec_avg[i_x_vec, i_y_vec] += 1 / bins_y
