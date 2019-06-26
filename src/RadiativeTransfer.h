@@ -25,7 +25,7 @@ class CRadiativeTransfer
         b_forced = true;
         peel_off = false;
         mrw_step = false;
-        stokes_dust_rad_field = true;
+        stokes_dust_rad_field = false;
 
         start = MAX_UINT;
         stop = MAX_UINT;

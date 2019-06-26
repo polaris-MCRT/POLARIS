@@ -109,7 +109,7 @@ function install_fits_support() {
         }
     cd ${install_directory}
 
-    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/.libs/:${install_directory}/lib/cfitsio:"'${LD_LIBRARY_PATH}'"\""
+    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
     if ! grep -q "${export_str}" ${HOME}/.bashrc; then
         echo "${export_str}" >>${HOME}/.bashrc
         echo -e "- Updating bashrc [${GREEN}done${NC}]"
@@ -383,7 +383,8 @@ while getopts "hrducxD" opt; do
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi
-            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/.libs/:${install_directory}/lib/cfitsio:"'${LD_LIBRARY_PATH}'"\""
+            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
+
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi

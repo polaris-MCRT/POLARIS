@@ -86,6 +86,9 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
             return false;
         }
 
+        // Enable Stokes rad field for all but HealPix detector
+        stokes_dust_rad_field = true;
+
         // Create detector for current simulation
         switch(detector_id)
         {
