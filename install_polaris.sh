@@ -12,9 +12,17 @@ function command_exists() {
 
 function clean_all() {
     for directories in "lib/cfitsio/build/" "lib/CCfits/build/" "src/build/"; do
+        cd ${directories}
         make clean
         cd ${install_directory}
     done
+}
+
+function delete_build() {
+    for directories in "lib/cfitsio/build/" "lib/CCfits/build/" "src/build/"; do
+        rm -rv ${directories}
+    done
+
 }
 
 # ---------------------------------------------------------------------------------
@@ -290,7 +298,7 @@ function usage() {
     exit
 }
 
-while getopts "hrducD" opt; do
+while getopts "hrducxD" opt; do
     case $opt in
     h)
         usage
@@ -359,6 +367,10 @@ while getopts "hrducD" opt; do
                 python setup.py install --user &>/dev/null
             fi
         fi
+        exit
+        ;;
+    x)
+        delete_build
         exit
         ;;
     D)

@@ -18,8 +18,11 @@ FIND_PATH(CFITSIO_INCLUDE_DIR fitsio.h)
 # Find the library
 #
 FIND_LIBRARY(CFITSIO_LIBRARY 
-    NAMES libcfitsio.a libcfitsio.so libcfitsio.la libcfitsio.dylib
-    PATH_SUFFIXES build)
+   NAMES libcfitsio.a libcfitsio.so libcfitsio.la libcfitsio.dylib
+   LIB_TYPE
+   PATHS ${CMAKE_PREFIX_PATH}
+   PATH_SUFFIXES build
+   NO_DEFAULT_PATH)
 
 SET(CFITSIO_FOUND false)
 IF(CFITSIO_INCLUDE_DIR AND CFITSIO_LIBRARY)

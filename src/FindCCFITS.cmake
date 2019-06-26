@@ -17,7 +17,9 @@ if(NOT CCFITS_FOUND)
     find_library(CCFITS_LIBRARY 
         NAMES libCCfits.a libCCfits.so libCCfits.la libCCfits.dylib
         LIB_TYPE
-        PATH_SUFFIXES build)
+        PATHS ${CMAKE_PREFIX_PATH}
+        PATH_SUFFIXES build
+        NO_DEFAULT_PATH)
         
     find_package(CFITSIO REQUIRED)
 
