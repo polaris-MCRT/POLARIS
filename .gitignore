@@ -6,7 +6,6 @@
 autom4te.cache/
 CCfits/
 cfitsio/
-lib/
 projects
 nbproject/
 testing/
