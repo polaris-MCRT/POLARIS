@@ -2174,13 +2174,21 @@ class parameters
         return uint(gas_species_abundance.size());
     }
 
-    uint getMaxNrOfTransitions()
+    uint getMaxNrOfLineTransitions()
     {
         uint max_transitions = 0;
         for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
             if(getNrOfGasSpeciesTransitions(i_species) > max_transitions)
                 max_transitions = getNrOfGasSpeciesTransitions(i_species);
         return max_transitions;
+    }
+
+    uint getTotalNrOfLineTransitions()
+    {
+        uint total_transitions = 0;
+        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
+            total_transitions += getNrOfGasSpeciesTransitions(i_species);
+        return total_transitions;
     }
 
     uint getNrOfGasSpeciesTransitions(uint i_species)

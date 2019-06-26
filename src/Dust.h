@@ -2671,6 +2671,11 @@ class CDustMixture
         scattering_to_raytracing = val;
     }
 
+    bool getScatteringToRay()
+    {
+        return scattering_to_raytracing;
+    }
+
     dlist getWavelengthList()
     {
         return wavelength_list;
@@ -2679,6 +2684,11 @@ class CDustMixture
     double getWavelength(uint wID)
     {
         return wavelength_list[wID];
+    }
+
+    double getWavelength(photon_package * pp)
+    {
+        return wavelength_list[pp->getWavelengthID()];
     }
 
     uint getNrOfWavelength()
@@ -3019,7 +3029,7 @@ class CDustMixture
         return dust_matrix;
     }
 
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid, photon_package * pp)
+    StokesVector calcEmissivitiesEmi(CGridBasic * grid, photon_package * pp, uint i_offset = MAX_UINT)
     {
         // Init variables
         double energy = 0;
@@ -3036,10 +3046,10 @@ class CDustMixture
             // Get radiation field and calculate angle to the photon package direction
             if(grid->getRadiationFieldAvailable())
                 grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
-            else if(grid->getRadFieldAsStokes())
+            else if(i_offset != MAX_UINT)
             {
                 // Use the rad field as stokes vector if all necessary things were already calculated
-                tmp_stokes += grid->getStokesFromRadiationField(pp, w);
+                tmp_stokes += grid->getStokesFromRadiationField(pp, i_offset);
             }
             else
                 grid->getRadiationField(pp, w, energy, en_dir);

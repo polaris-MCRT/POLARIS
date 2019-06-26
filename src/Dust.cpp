@@ -4759,15 +4759,6 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             fraction_sum += fraction;
         }
 
-        /* Not necessary
-        if(!param.getIndividualDustMassFractions() && fraction_sum != 1.0)
-        {
-            cout << "\nERROR: Fractions of dust materials do not add up to 100 % "
-                 << "(" << sum << "%)!" << endl;
-            return false;
-        }
-        */
-
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
@@ -4892,7 +4883,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
     if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-       param.getScatteringToRay())
+       scattering_to_raytracing)
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps
@@ -4962,7 +4953,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         cout << "- Include scattered light : ";
         if(grid->getRadiationFieldAvailable())
         {
-            if(param.getScatteringToRay())
+            if(scattering_to_raytracing)
             {
                 cout << "yes, based on the radiation field" << endl
                      << "    HINT: Only one dominant radiation source and mostly single "
@@ -4977,7 +4968,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         }
         else
         {
-            if(param.getScatteringToRay())
+            if(scattering_to_raytracing)
                 cout << "yes, radiation field will be calculated before raytracing" << endl;
             else
             {

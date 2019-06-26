@@ -81,7 +81,6 @@ class CGridBasic
         gas_is_mass_density = false;
         velocity_field_needed = false;
         spec_length_as_vector = false;
-        rad_field_as_stokes = false;
 
         nrOfGnuPoints = 1000;
         nrOfGnuVectors = 1000;
@@ -696,16 +695,15 @@ class CGridBasic
         }
     }
 
-    void updateSpecLength(photon_package * pp, uint i_det, StokesVector stokes)
+    void updateSpecLength(photon_package * pp, uint i_offset, StokesVector stokes)
     {
         cell_basic * cell = pp->getPositionCell();
         stokes /= getVolume(cell);
-        uint data_pos = data_offset + 4 * i_det * pp->getWavelengthID();
+        uint data_pos = data_offset + 4 * i_offset;
         cell->updateData(data_pos + 0, stokes.I());
         cell->updateData(data_pos + 1, stokes.Q());
         cell->updateData(data_pos + 2, stokes.U());
         cell->updateData(data_pos + 3, stokes.V());
-        rad_field_as_stokes = true;
     }
 
     inline double getSpecLength(cell_basic * cell, uint wID)
@@ -882,12 +880,12 @@ class CGridBasic
         e_dir.normalize();
     }
 
-    StokesVector getStokesFromRadiationField(photon_package * pp, uint w)
+    StokesVector getStokesFromRadiationField(photon_package * pp, uint i_offset)
     {
         // Init variables
         StokesVector scattering_stokes;
         cell_basic * cell = pp->getPositionCell();
-        uint data_pos = data_offset + 4 * w;
+        uint data_pos = data_offset + 4 * i_offset;
 
         scattering_stokes.setI(cell->getData(data_pos + 0));
         scattering_stokes.setQ(cell->getData(data_pos + 1));
@@ -2420,11 +2418,6 @@ class CGridBasic
         return true;
     }
 
-    bool getRadFieldAsStokes()
-    {
-        return rad_field_as_stokes;
-    }
-
     double getTotalGasMass()
     {
         return total_gas_mass;
@@ -3829,7 +3822,6 @@ class CGridBasic
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
     bool spec_length_as_vector;
-    bool rad_field_as_stokes;
 
     double delta0;
     double larm_f;

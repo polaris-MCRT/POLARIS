@@ -46,52 +46,27 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
     start = param.getStart();
     stop = param.getStop();
 
-    // Get rotation axes
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
 
-    if(param.getScatteringToRay())
-    {
-        // Check if one of the detectors is using the healpix background grid
-        bool detector_uses_healpix = false;
-        for(uint i = 0; i < nr_ray_detectors; i++)
-        {
-            uint pos = i * NR_OF_RAY_DET;
-            uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
+    // Init array of tracer base class pointer
+    tracer = new CRaytracingBasic *[nr_ray_detectors];
 
-            if(detector_id == DET_SPHER)
-                detector_uses_healpix = true;
-        }
-
-        // Set up a list of all detector directions to use for the scattering via radiation field
-        if(!detector_uses_healpix)
-        {
-            det_coord_systems = new Vector3D *[nr_ray_detectors];
-
-            for(uint i = 0; i < nr_ray_detectors; i++)
-            {
-                uint pos = i * NR_OF_RAY_DET;
-                uint nr_spectral_bins = uint(dust_ray_detectors[pos + 2]);
-                double rot_angle1 = PI / 180.0 * dust_ray_detectors[pos + 4];
-                double rot_angle2 = PI / 180.0 * dust_ray_detectors[pos + 5];
-
-                det_coord_systems[i] = new Vector3D[3];
-                CMathFunctions::getDetCoordSystem(axis1,
-                                                  axis2,
-                                                  rot_angle1,
-                                                  rot_angle2,
-                                                  det_coord_systems[i][0],
-                                                  det_coord_systems[i][1],
-                                                  det_coord_systems[i][2]);
-            }
-        }
-    }
+    // Init 2D list to get the offset index to obtain data from grid
+    detector_wl_index.push_back(0);
 
     // Check other parameters for raytracing
-    for(uint i = 0; i < nr_ray_detectors; i++)
+    for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
     {
-        uint pos = i * NR_OF_RAY_DET;
+        // Calculate the starting position of each sequence
+        uint pos = i_det * NR_OF_RAY_DET;
+
+        // Push back the number of wavelengths of the current detector (plus the one before)
+        detector_wl_index.push_back(detector_wl_index.back() + uint(dust_ray_detectors[pos + 2]));
+
         uint nr_source = uint(dust_ray_detectors[pos + 3]);
+
+        // Get the ID of the chosen source
         uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
 
         // Check for wrong choice of emission source
@@ -109,6 +84,61 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
                     "cylindrical grids!"
                  << endl;
             return false;
+        }
+
+        // Create detector for current simulation
+        switch(detector_id)
+        {
+            case DET_PLANE:
+                tracer[i_det] = new CRaytracingCartesian(grid);
+                if(!tracer[i_det]->setDustDetector(pos,
+                                                   dust_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getMaxSubpixelLvl(),
+                                                   param.getAxis1(),
+                                                   param.getAxis2(),
+                                                   param.getAlignmentMechanism()))
+                    return false;
+                break;
+
+            case DET_SPHER:
+                tracer[i_det] = new CRaytracingHealPix(grid);
+                if(!tracer[i_det]->setDustDetector(pos,
+                                                   dust_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getAlignmentMechanism(),
+                                                   param.getHealpixOrientation()))
+                    return false;
+                // Disable Stokes rad field for HealPix detector
+                stokes_dust_rad_field = false;
+                break;
+
+            case DET_POLAR:
+                tracer[i_det] = new CRaytracingPolar(grid);
+                if(!tracer[i_det]->setDustDetector(pos,
+                                                   dust_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getMaxSubpixelLvl(),
+                                                   param.getAxis1(),
+                                                   param.getAxis2(),
+                                                   param.getAlignmentMechanism()))
+                    return false;
+                break;
+
+            case DET_SLICE:
+                tracer[i_det] = new CRaytracingSlice(grid);
+                if(!tracer[i_det]->setDustDetector(pos,
+                                                   dust_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getAxis1(),
+                                                   param.getAxis2(),
+                                                   param.getAlignmentMechanism()))
+                    return false;
+                break;
         }
     }
 
@@ -142,13 +172,24 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
 
     nr_ray_detectors = uint(sync_ray_detectors.size()) / NR_OF_RAY_DET;
 
+    // Get start and stop id of detectors
     start = param.getStart();
     stop = param.getStop();
 
-    for(uint i = 0; i < nr_ray_detectors; i++)
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    // Init array of tracer base class pointer
+    tracer = new CRaytracingBasic *[nr_ray_detectors];
+
+    for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
     {
-        uint pos = i * NR_OF_RAY_DET;
+        // Calculate the starting position of each sequence
+        uint pos = i_det * NR_OF_RAY_DET;
+
         uint nr_source = uint(sync_ray_detectors[pos + 3]);
+
+        // Get the ID of the chosen source
         uint detector_id = uint(sync_ray_detectors[pos + NR_OF_RAY_DET - 3]);
 
         if(nr_source > sources_ray.size())
@@ -165,12 +206,51 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
                  << endl;
             return false;
         }
+
+        // Create detector for current simulation
+        switch(detector_id)
+        {
+            case DET_PLANE:
+                tracer[i_det] = new CRaytracingCartesian(grid);
+                if(!tracer[i_det]->setSyncDetector(pos,
+                                                   sync_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getMaxSubpixelLvl(),
+                                                   param.getAxis1(),
+                                                   param.getAxis2()))
+                    return false;
+                break;
+
+            case DET_SPHER:
+                tracer[i_det] = new CRaytracingHealPix(grid);
+                if(!tracer[i_det]->setSyncDetector(
+                       pos, sync_ray_detectors, max_length, pathOutput, param.getHealpixOrientation()))
+                    return false;
+                break;
+
+            case DET_POLAR:
+                tracer[i_det] = new CRaytracingPolar(grid);
+                if(!tracer[i_det]->setSyncDetector(pos,
+                                                   sync_ray_detectors,
+                                                   max_length,
+                                                   pathOutput,
+                                                   param.getMaxSubpixelLvl(),
+                                                   param.getAxis1(),
+                                                   param.getAxis2()))
+                    return false;
+                break;
+
+            case DET_SLICE:
+                tracer[i_det] = new CRaytracingSlice(grid);
+                if(!tracer[i_det]->setSyncDetector(
+                       pos, sync_ray_detectors, max_length, pathOutput, param.getAxis1(), param.getAxis2()))
+                    return false;
+                break;
+        }
     }
 
     synchrotron = new CSynchrotron();
-
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
 
     initiateRungeKuttaFehlberg();
 
@@ -199,8 +279,16 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
 
     uint nrOfGasSpecies = param.getNrOfGasSpecies();
 
+    // Get start and stop id of detectors
     start = param.getStart();
     stop = param.getStop();
+
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    // Init array of tracer base class pointer
+    nr_ray_detectors = param.getTotalNrOfLineTransitions();
+    tracer = new CRaytracingBasic *[nr_ray_detectors];
 
     if(nrOfGasSpecies == 0)
     {
@@ -208,14 +296,19 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
         return false;
     }
 
+    uint i_det = 0;
     for(uint i_species = 0; i_species < nrOfGasSpecies; i_species++)
     {
         dlist line_ray_detectors = param.getLineRayDetector(i_species);
 
         for(uint i_line = 0; i_line < param.getNrOfGasSpeciesTransitions(i_species); i_line++)
         {
+            // Calculate the starting position of each detector for a gas species
             uint pos = NR_OF_LINE_DET * i_line;
+
             uint nr_source = uint(line_ray_detectors[pos + 1]);
+
+            // Get the ID of the chosen detector
             uint detector_id = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 4]);
 
             if(nr_source > sources_ray.size())
@@ -233,11 +326,64 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
                      << endl;
                 return false;
             }
+
+            // Create detector for current simulation
+            switch(detector_id)
+            {
+                case DET_PLANE:
+                    tracer[i_det] = new CRaytracingCartesian(grid);
+                    if(!tracer[i_det]->setLineDetector(pos,
+                                                       line_ray_detectors,
+                                                       pathOutput,
+                                                       max_length,
+                                                       param.getVelMaps(),
+                                                       param.getMaxSubpixelLvl(),
+                                                       param.getAxis1(),
+                                                       param.getAxis2()))
+                        return false;
+                    break;
+
+                case DET_SPHER:
+                    tracer[i_det] = new CRaytracingHealPix(grid);
+                    if(!tracer[i_det]->setLineDetector(pos,
+                                                       line_ray_detectors,
+                                                       pathOutput,
+                                                       max_length,
+                                                       param.getVelMaps(),
+                                                       param.getHealpixOrientation()))
+                        return false;
+                    break;
+
+                case DET_POLAR:
+                    tracer[i_det] = new CRaytracingPolar(grid);
+                    if(!tracer[i_det]->setLineDetector(pos,
+                                                       line_ray_detectors,
+                                                       pathOutput,
+                                                       max_length,
+                                                       param.getVelMaps(),
+                                                       param.getMaxSubpixelLvl(),
+                                                       param.getAxis1(),
+                                                       param.getAxis2()))
+                        return false;
+                    break;
+
+                case DET_SLICE:
+                    tracer[i_det] = new CRaytracingSlice(grid);
+                    if(!tracer[i_det]->setLineDetector(pos,
+                                                       line_ray_detectors,
+                                                       pathOutput,
+                                                       max_length,
+                                                       param.getVelMaps(),
+                                                       param.getAxis1(),
+                                                       param.getAxis2()))
+                        return false;
+                    break;
+            }
+
+            // Increment index for line RT since its distributed over species and transitions
+            i_det++;
         }
     }
-
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
 
     initiateRungeKuttaFehlberg();
 
@@ -258,11 +404,9 @@ bool CRadiativeTransfer::initiateOPIATE(parameters & param)
         return false;
     }
 
+    // Get start and stop id of detectors
     start = param.getStart();
     stop = param.getStop();
-
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
 
     initiateRungeKuttaFehlberg();
 
@@ -275,9 +419,6 @@ void CRadiativeTransfer::initiateDustMC(parameters & param)
     b_forced = param.getEnfScattering();
     peel_off = param.getPeelOff();
     mrw_step = param.getMRW();
-
-    axis1 = param.getAxis1();
-    axis2 = param.getAxis2();
 }
 
 void CRadiativeTransfer::initiateRadFieldMC(parameters & param)
@@ -1331,62 +1472,14 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
     {
         for(uint i_det = start; i_det <= stop; i_det++)
         {
-            // Calculate the starting position of each sequence
-            uint pos = NR_OF_RAY_DET * i_det;
-
-            // Get the ID of the chosen source
-            uint detector_id = uint(sync_ray_detectors[pos + NR_OF_RAY_DET - 3]);
-
-            // Create detector for current simulation
-            switch(detector_id)
-            {
-                case DET_PLANE:
-                    tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setSyncDetector(pos,
-                                                sync_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2))
-                        return false;
-                    break;
-
-                case DET_SPHER:
-                    tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setSyncDetector(
-                           pos, sync_ray_detectors, max_length, pathOutput, param.getHealpixOrientation()))
-                        return false;
-                    break;
-
-                case DET_POLAR:
-                    tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setSyncDetector(pos,
-                                                sync_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2))
-                        return false;
-                    break;
-
-                case DET_SLICE:
-                    tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setSyncDetector(
-                           pos, sync_ray_detectors, max_length, pathOutput, axis1, axis2))
-                        return false;
-                    break;
-            }
-
             // Init source object
             CSourceBasic * tmp_source;
-            uint sID = tracer->getSourceIndex();
+            uint sID = tracer[i_det]->getSourceIndex();
             tmp_source = sources_ray[sID];
             tmp_source->setSideLength(max_length);
 
             // Calculate total number of pixel
-            uint per_max = tracer->getNpix();
+            uint per_max = tracer[i_det]->getNpix();
 
             // Init counter and percentage to show progress
             ullong per_counter = 0;
@@ -1402,10 +1495,10 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             for(int i_pix = 0; i_pix < int(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
-                if(!tracer->getRelPosition(i_pix, cx, cy))
+                if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
-                getSyncPixelIntensity(tmp_source, cx, cy, 0, i_pix);
+                getSyncPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
 
                 // Increase counter used to show progress
                 per_counter++;
@@ -1432,15 +1525,12 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer->postProcessing())
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
             // Write results either as text or fits file
-            if(!tracer->writeSyncResults())
+            if(!tracer[i_det]->writeSyncResults())
                 return false;
-
-            // delete Raytracing instance
-            delete tracer;
         }
     }
 
@@ -1454,18 +1544,19 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
                                                double cx,
                                                double cy,
+                                               uint i_det,
                                                uint subpixel_lvl,
                                                int i_pix)
 {
     bool subpixel = false;
 
-    subpixel = tracer->getUseSubpixel(cx, cy, subpixel_lvl);
+    subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
 
     // If any subpixel traveled through other cells, perform subpixelling
     if(subpixel == false)
     {
         // Init variables
-        uint nr_used_wavelengths = tracer->getNrSpectralBins();
+        uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
         // cout << i_pix << endl;
 
         // Create new photon package
@@ -1476,13 +1567,13 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
         pp1->initMultiStokesVector(nr_used_wavelengths);
         pp2->initMultiStokesVector(nr_used_wavelengths);
 
-        tracer->preparePhoton(pp1, cx, cy);
-        tracer->preparePhoton(pp2, cx, cy);
+        tracer[i_det]->preparePhoton(pp1, cx, cy);
+        tracer[i_det]->preparePhoton(pp2, cx, cy);
 
         // Calculate continuum emission along one path
-        getSyncIntensity(pp1, pp2, tmp_source, cx, cy, subpixel_lvl);
+        getSyncIntensity(pp1, pp2, tmp_source, cx, cy, i_det, subpixel_lvl);
 
-        tracer->addToDetector(pp1, pp2, i_pix);
+        tracer[i_det]->addToDetector(pp1, pp2, i_pix);
 
         // Delete photon package after usage
         delete pp1;
@@ -1497,10 +1588,10 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
             {
                 // Calculate positions of each subpixel
                 double tmp_cx, tmp_cy;
-                tracer->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
+                tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getSyncPixelIntensity(tmp_source, tmp_cx, tmp_cy, (subpixel_lvl + 1), i_pix);
+                getSyncPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix);
             }
         }
     }
@@ -1511,13 +1602,14 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                                           CSourceBasic * tmp_source,
                                           double cx,
                                           double cy,
+                                          uint i_det,
                                           uint subpixel_lvl)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
 
     // Get chosen wavelength parameter
-    uint nr_used_wavelengths = tracer->getNrSpectralBins();
+    uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
 
     // Init multiple Stokes vectors
     MultiStokesVector WMap_cr(nr_used_wavelengths);
@@ -1527,7 +1619,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get current wavelength index
-        uint wID = dust->getWavelengthID(tracer->getWavelength(i_wave));
+        uint wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
 
         // Set wavelength index in photon package
         pp1->setWavelengthID(wID);
@@ -1542,7 +1634,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp1))
     {
-        while(grid->next(pp1) && tracer->isNotAtCenter(pp1, cx, cy))
+        while(grid->next(pp1) && tracer[i_det]->isNotAtCenter(pp1, cx, cy))
         {
             double n_th = grid->getThermalElectronDensity(pp1);
             double T_e = 0.0; // grid->getElectronTemperature(pp1); //reserved for later use
@@ -1570,7 +1662,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
                     // Get wavelength/frequency of the photon package
-                    double wavelength = tracer->getWavelength(i_wave);
+                    double wavelength = tracer[i_det]->getWavelength(i_wave);
 
                     syn_param syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, wavelength, B, theta);
                     syn_param syn_cr =
@@ -1831,13 +1923,13 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get wavelength/frequency of the photon package
-        double wavelength = tracer->getWavelength(i_wave);
+        double wavelength = tracer[i_det]->getWavelength(i_wave);
         double frequency = con_c / wavelength;
-        double mult =
-            1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
+        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                      (frequency * frequency);
 
         // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(tracer->getWavelength(wavelength));
+        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(wavelength));
 
         // Update the photon package with the multi Stokes vectors
 
@@ -1877,72 +1969,13 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     {
         for(uint i_det = start; i_det <= stop; i_det++)
         {
-            // Calculate the starting position of each sequence
-            uint pos = NR_OF_RAY_DET * i_det;
-
-            // Get the ID of the chosen source
-            uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
-
-            // Create detector for current simulation
-            switch(detector_id)
-            {
-                case DET_PLANE:
-                    tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setDustDetector(pos,
-                                                dust_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2,
-                                                param.getAlignmentMechanism()))
-                        return false;
-                    break;
-
-                case DET_SPHER:
-                    tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setDustDetector(pos,
-                                                dust_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                param.getAlignmentMechanism(),
-                                                param.getHealpixOrientation()))
-                        return false;
-                    break;
-
-                case DET_POLAR:
-                    tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setDustDetector(pos,
-                                                dust_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2,
-                                                param.getAlignmentMechanism()))
-                        return false;
-                    break;
-
-                case DET_SLICE:
-                    tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setDustDetector(pos,
-                                                dust_ray_detectors,
-                                                max_length,
-                                                pathOutput,
-                                                axis1,
-                                                axis2,
-                                                param.getAlignmentMechanism()))
-                        return false;
-                    break;
-            }
-
             // Init source object
             CSourceBasic * tmp_source;
-            uint sID = tracer->getSourceIndex();
+            uint sID = tracer[i_det]->getSourceIndex();
             tmp_source = sources_ray[sID];
 
             // Calculate total number of pixel
-            uint per_max = tracer->getNpix();
+            uint per_max = tracer[i_det]->getNpix();
 
             // Init counter and percentage to show progress
             ullong per_counter = 0;
@@ -1958,10 +1991,10 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             for(int i_pix = 0; i_pix < int(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
-                if(!tracer->getRelPosition(i_pix, cx, cy))
+                if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
-                getDustPixelIntensity(tmp_source, cx, cy, 0, i_pix);
+                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
 
                 // Increase counter used to show progress
                 per_counter++;
@@ -1982,28 +2015,25 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             }
 
             // Include stellar emission, if chosen
-            if(tracer->considerPointSources())
-                calcStellarEmission();
+            if(tracer[i_det]->considerPointSources())
+                calcStellarEmission(i_det);
 
             // Show final progress
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer->postProcessing())
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
             // Does the raytracing simulation considered the scattered light?
             uint ray_result_type = RESULTS_RAY;
-            if(param.getScatteringToRay())
+            if(dust->getScatteringToRay())
                 ray_result_type = RESULTS_FULL;
 
             // Write results either as text or fits file
-            if(!tracer->writeDustResults(ray_result_type))
+            if(!tracer[i_det]->writeDustResults(ray_result_type))
                 return false;
-
-            // delete Raytracing instance
-            delete tracer;
         }
     }
 
@@ -2017,31 +2047,32 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                double cx,
                                                double cy,
+                                               uint i_det,
                                                uint subpixel_lvl,
                                                int i_pix)
 {
     bool subpixel = false;
     photon_package * pp;
 
-    subpixel = tracer->getUseSubpixel(cx, cy, subpixel_lvl);
+    subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
 
     // If any subpixel traveled through other cells, perform subpixelling
     if(subpixel == false)
     {
         // Init variables
-        uint nr_used_wavelengths = tracer->getNrOfSpectralBins();
+        uint nr_used_wavelengths = tracer[i_det]->getNrOfSpectralBins();
 
         // Create new photon package
         pp = new photon_package();
 
         // Init photon package
         pp->initMultiStokesVector(nr_used_wavelengths);
-        tracer->preparePhoton(pp, cx, cy);
+        tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, subpixel_lvl);
+        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl);
 
-        tracer->addToDetector(pp, i_pix);
+        tracer[i_det]->addToDetector(pp, i_pix);
 
         // Delete photon package after usage
         delete pp;
@@ -2055,10 +2086,10 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
             {
                 // Calculate positions of each subpixel
                 double tmp_cx, tmp_cy;
-                tracer->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
+                tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, (subpixel_lvl + 1), i_pix);
+                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix);
             }
         }
     }
@@ -2068,13 +2099,14 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                                           CSourceBasic * tmp_source,
                                           double cx,
                                           double cy,
+                                          uint i_det,
                                           uint subpixel_lvl)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
 
     // Get chosen wavelength parameter
-    uint nr_used_wavelengths = tracer->getNrSpectralBins();
+    uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
 
     // Init multiple Stokes vectors
     MultiStokesVector WMap(nr_used_wavelengths);
@@ -2083,7 +2115,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get current wavelength index
-        double wID = dust->getWavelengthID(tracer->getWavelength(i_wave));
+        double wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
 
         // Set wavelength index in photon package
         pp->setWavelengthID(wID);
@@ -2095,7 +2127,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp))
     {
-        while(grid->next(pp) && tracer->isNotAtCenter(pp, cx, cy))
+        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
         {
             // Get necessary quantities from current cell
             double dens_gas = grid->getGasNumberDensity(pp);
@@ -2130,7 +2162,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
                     // Get current wavelength
-                    double wavelength = tracer->getWavelength(i_wave);
+                    double wavelength = tracer[i_det]->getWavelength(i_wave);
 
                     // Get current wavelength index
                     double wID = dust->getWavelengthID(wavelength);
@@ -2150,14 +2182,15 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
                     // Get current wavelength index
-                    double wID = dust->getWavelengthID(tracer->getWavelength(i_wave));
+                    double wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
 
                     // Set wavelength index in photon package
                     pp->setWavelengthID(wID);
 
                     // Set stokes vector with thermal emission of the dust grains and
                     // radiation scattered at dust grains
-                    S_dust = dust->calcEmissivitiesEmi(grid, pp);
+                    S_dust = dust->calcEmissivitiesEmi(
+                        grid, pp, stokes_dust_rad_field ? detector_wl_index[i_det] + wID : MAX_UINT);
 
                     // Get the extinction matrix of the dust grains in the current cell
                     alpha_dust = -1 * dust->calcEmissivitiesExt(grid, pp);
@@ -2280,12 +2313,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get frequency at background grid position
-        double frequency = con_c / tracer->getWavelength(i_wave);
-        double mult =
-            1.0e+26 * subpixel_fraction * tracer->getDistanceFactor() * con_c / (frequency * frequency);
+        double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                      (frequency * frequency);
 
         // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(tracer->getWavelength(i_wave));
+        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
 
         if(WMap.S(i_wave).I() < 0)
             WMap.S(i_wave).setI(0);
@@ -2299,7 +2332,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     }
 }
 
-void CRadiativeTransfer::calcStellarEmission()
+void CRadiativeTransfer::calcStellarEmission(uint i_det)
 {
     // Init variables for photon positioning on detector
     int i_pix;
@@ -2312,7 +2345,7 @@ void CRadiativeTransfer::calcStellarEmission()
             continue;
 
         // Get chosen wavelength parameter
-        uint nr_used_wavelengths = tracer->getNrOfSpectralBins();
+        uint nr_used_wavelengths = tracer[i_det]->getNrOfSpectralBins();
 
         // Init multiple Stokes vectors
         MultiStokesVector WMap(nr_used_wavelengths);
@@ -2327,7 +2360,7 @@ void CRadiativeTransfer::calcStellarEmission()
         for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
         {
             // Get frequency at background grid position
-            double wavelength = tracer->getWavelength(i_wave);
+            double wavelength = tracer[i_det]->getWavelength(i_wave);
             double frequency = con_c / wavelength;
             double mult = 1.0e+26 * con_c / (frequency * frequency);
 
@@ -2341,7 +2374,7 @@ void CRadiativeTransfer::calcStellarEmission()
             Vector3D source_pos = sources_mc[s]->getPosition();
 
             // Set direction of the photon package to the observer
-            tracer->preparePhotonWithPosition(pp, source_pos, i_pix);
+            tracer[i_det]->preparePhotonWithPosition(pp, source_pos, i_pix);
 
             // Launch photon package
             sources_mc[s]->createDirectRay(pp, pp->getDirection());
@@ -2366,13 +2399,13 @@ void CRadiativeTransfer::calcStellarEmission()
                 // Increase the optical depth by the current cell
                 tau_obs += Cext * len * dens;
             }
-            mult *= exp(-tau_obs) * tracer->getDistanceFactor(source_pos);
+            mult *= exp(-tau_obs) * tracer[i_det]->getDistanceFactor(source_pos);
 
             // Update the photon package with the multi Stokes vectors
             pp->setMultiStokesVector(WMap.S(i_wave) * mult, i_wave);
         }
 
-        tracer->addToDetector(pp, i_pix, true);
+        tracer[i_det]->addToDetector(pp, i_pix, true);
 
         // Delete photon package after usage
         delete pp;
@@ -2391,6 +2424,9 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     // Create a list for all gas species
     maplist line_ray_detector_list = param.getLineRayDetectors();
     maplist::iterator it;
+
+    // Index to the current detector/tracer
+    uint i_det = 0;
 
     // Perform radiative transfer for each chosen gas species
     for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
@@ -2425,61 +2461,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         // Perform radiative transfer for each chosen spectral line transition
         for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
         {
-            // Calculate the starting position of each detector for a gas species
-            uint pos = NR_OF_LINE_DET * i_line;
-
-            // Get the ID of the chosen detector
-            uint detector_id = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 4]);
-
-            // Create detector for current simulation
-            switch(detector_id)
-            {
-                case DET_PLANE:
-                    tracer = new CRaytracingCartesian(grid);
-                    if(!tracer->setLineDetector(pos,
-                                                line_ray_detectors,
-                                                pathOutput,
-                                                max_length,
-                                                param.getVelMaps(),
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2))
-                        return false;
-                    break;
-
-                case DET_SPHER:
-                    tracer = new CRaytracingHealPix(grid);
-                    if(!tracer->setLineDetector(pos,
-                                                line_ray_detectors,
-                                                pathOutput,
-                                                max_length,
-                                                param.getVelMaps(),
-                                                param.getHealpixOrientation()))
-                        return false;
-                    break;
-
-                case DET_POLAR:
-                    tracer = new CRaytracingPolar(grid);
-                    if(!tracer->setLineDetector(pos,
-                                                line_ray_detectors,
-                                                pathOutput,
-                                                max_length,
-                                                param.getVelMaps(),
-                                                param.getMaxSubpixelLvl(),
-                                                axis1,
-                                                axis2))
-                        return false;
-                    break;
-
-                case DET_SLICE:
-                    tracer = new CRaytracingSlice(grid);
-                    if(!tracer->setLineDetector(
-                           pos, line_ray_detectors, pathOutput, max_length, param.getVelMaps(), axis1, axis2))
-                        return false;
-                    break;
-            }
-
-            uint nr_velocity_channels = tracer->getNrSpectralBins();
+            uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
             if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 6)
             {
                 cout << "\nERROR: The magnetic field information requires at least 6 "
@@ -2489,7 +2471,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             }
 
             // Select source as specified in the detector
-            uint sID = tracer->getSourceIndex();
+            uint sID = tracer[i_det]->getSourceIndex();
             CSourceBasic * tmp_source;
             tmp_source = sources_ray[sID];
 
@@ -2498,7 +2480,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
                  << i_line + 1 << " of " << nr_of_transitions << ": 0.0[%]  \r" << flush;
 
-            uint per_max = tracer->getNpix();
+            uint per_max = tracer[i_det]->getNpix();
 
             // Init counter and percentage to show progress
             ullong per_counter = 0;
@@ -2509,7 +2491,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             for(int i_pix = 0; i_pix < int(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
-                if(!tracer->getRelPosition(i_pix, cx, cy))
+                if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
                 // Increase counter used to show progress
@@ -2529,18 +2511,18 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                         last_percentage = percentage;
                     }
                 }
-                getLinePixelIntensity(tmp_source, cx, cy, i_species, i_line, uint(0), i_pix);
+                getLinePixelIntensity(tmp_source, cx, cy, i_det, i_species, i_line, uint(0), i_pix);
             }
 
             // post-process raytracing simulation
-            if(!tracer->postProcessing())
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
-            if(!tracer->writeLineResults(gas, i_species, i_line))
+            if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))
                 return false;
 
-            // delete Raytracing instance
-            delete tracer;
+            // Increment index for line RT
+            i_det++;
         }
     }
 
@@ -2553,15 +2535,16 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
                                                double cx,
                                                double cy,
-                                               const uint i_species,
-                                               const uint i_line,
+                                               uint i_species,
+                                               uint i_line,
+                                               uint i_det,
                                                uint subpixel_lvl,
                                                int i_pix)
 {
     bool subpixel = false;
     photon_package * pp;
 
-    subpixel = tracer->getUseSubpixel(cx, cy, subpixel_lvl);
+    subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
 
     // If any subpixel traveled through other cells, perform subpixelling
     if(subpixel == false)
@@ -2570,14 +2553,14 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
         pp = new photon_package();
 
         // Init photon package
-        uint nr_velocity_channels = tracer->getNrSpectralBins();
+        uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
         pp->initMultiStokesVector(nr_velocity_channels);
-        tracer->preparePhoton(pp, cx, cy);
+        tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate line emission along one path
-        getLineIntensity(pp, tmp_source, cx, cy, subpixel_lvl, i_species, i_line);
+        getLineIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_species, i_line);
 
-        tracer->addToDetector(pp, i_pix);
+        tracer[i_det]->addToDetector(pp, i_pix);
 
         // Delete photon package after usage
         delete pp;
@@ -2591,12 +2574,12 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
             {
                 // Calculate positions of each subpixel
                 double tmp_cx, tmp_cy;
-                tracer->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
+                tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
 
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
                 getLinePixelIntensity(
-                    tmp_source, tmp_cx, tmp_cy, i_species, i_line, (subpixel_lvl + 1), i_pix);
+                    tmp_source, tmp_cx, tmp_cy, i_species, i_line, i_det, (subpixel_lvl + 1), i_pix);
             }
         }
     }
@@ -2610,13 +2593,14 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                                           CSourceBasic * tmp_source,
                                           double cx,
                                           double cy,
+                                          uint i_det,
                                           uint subpixel_lvl,
-                                          const uint i_species,
-                                          const uint i_line)
+                                          uint i_species,
+                                          uint i_line)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
-    Vector3D obs_vel = tracer->getObserverVelocity();
+    Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
 
     // Get transition frequency from current species and line
     double frequency = gas->getTransitionFrequencyFromIndex(i_species, i_line);
@@ -2630,7 +2614,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     bool zero_vel_field = true;
     bool grid_has_vel_field = grid->hasVelocityField();
 
-    uint nr_velocity_channels = tracer->getNrSpectralBins();
+    uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
     MultiStokesVector CHMap(nr_velocity_channels);
 
     // Set photon package to current wavelength
@@ -2642,7 +2626,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     if(grid_has_vel_field && gas->getKeplerStarMass() == 0)
     {
         photon_package * tmp_pp = new photon_package();
-        tracer->preparePhoton(tmp_pp, cx, cy);
+        tracer[i_det]->preparePhoton(tmp_pp, cx, cy);
         if(grid->findStartingPoint(tmp_pp))
         {
             Vector3D pos_in_grid_0 = tmp_pp->getPosition();
@@ -2677,7 +2661,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         delete tmp_pp;
     }
 
-    tracer->preparePhoton(pp, cx, cy);
+    tracer[i_det]->preparePhoton(pp, cx, cy);
     if(grid->findStartingPoint(pp))
     {
         // Save the starting position, to obtain relative positions
@@ -2690,7 +2674,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         Matrix2D alpha_ges;
 
         // Transport the photon package through the model
-        while(grid->next(pp) && tracer->isNotAtCenter(pp, cx, cy))
+        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
         {
             // Get gas temperature from grid
             double temp_gas = grid->getGasTemperature(pp);
@@ -2797,7 +2781,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                                                    pp,
                                                    i_species,
                                                    i_line,
-                                                   tracer->getVelocityChannel(vch) - velo_dir,
+                                                   tracer[i_det]->getVelocityChannel(vch) - velo_dir,
                                                    mag_field,
                                                    cos_theta,
                                                    sin_theta,
@@ -2948,10 +2932,10 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     // Update the multi Stokes vectors for each velocity channel
     for(uint vch = 0; vch < nr_velocity_channels; vch++)
     {
-        double mult = 1.0e+26 * subpixel_fraction * tracer->getDistanceFactor();
+        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor();
 
         // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(tracer->getWavelength(wavelength));
+        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(wavelength));
 
         if(CHMap.S(vch).I() < 0)
             CHMap.S(vch).setI(0);

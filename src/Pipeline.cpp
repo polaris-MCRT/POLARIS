@@ -217,14 +217,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
         return false;
 
     grid->setSIConversionFactors(param);
-    uint nr_of_offset_entries = WL_STEPS;
-    if(use_energy_density)
-    {
-        grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries = 4 * WL_STEPS;
-    }
 
-    if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
+    grid->setSpecLengthAsVector(use_energy_density);
+    if(!grid->loadGridFromBinrayFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
         return false;
 
     // Print helpfull information
@@ -389,30 +384,9 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     if(!assignDustMixture(param, dust, grid))
         return false;
 
-    // Check if the scattered light can be added to the raytracing
-    if(param.getScatteringToRay())
-        checkScatteringToRay(param, dust, grid);
-
     grid->setSIConversionFactors(param);
 
-    uint nr_of_offset_entries = 0;
-    if(param.getStochasticHeatingMaxSize() > 0)
-    {
-        // Add fields to store the stochastic heating propabilities for each cell
-        for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-            nr_of_offset_entries +=
-                dust->getNrOfStochasticSizes(i_mixture) * dust->getNrOfCalorimetryTemperatures(i_mixture);
-    }
-    else if(param.getScatteringToRay())
-    {
-        // Add fields to store the radiation field of each considered wavelength
-        grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries += 4 * dust->getNrOfWavelength() * getNrOfRayDetector(param);
-        // FIX HERE LATER (OPTIMIZATION)
-        // nr_of_offset_entries += 4 * dust->getNrOfWavelength();
-    }
-
-    if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
+    if(!grid->loadGridFromBinrayFile(param, getNrOffsetEntriesRay(param, dust, grid)))
         return false;
 
     // Print helpfull information
@@ -452,7 +426,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 
     // Calculate radiation field before raytracing (if sources defined and no radiation
     // field in grid)
-    if(!grid->getRadiationFieldAvailable() && param.getScatteringToRay() && !sources_mc.empty())
+    if(!grid->getRadiationFieldAvailable() && dust->getScatteringToRay() && !sources_mc.empty())
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
@@ -497,7 +471,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 6 * param.getMaxNrOfTransitions()))
+    if(!grid->loadGridFromBinrayFile(param, 6 * param.getMaxNrOfLineTransitions()))
         return false;
 
     // Print helpfull information
@@ -806,7 +780,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getISRFSource())
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: ISRF source cannot be considered in line or synchrotron emission!"
@@ -834,7 +808,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getNrOfPointSources() > 0)
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Point sources cannot be considered in line or "
@@ -869,7 +843,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getNrOfLaserSources() > 0)
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources -= param.getNrOfLaserSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Laser sources cannot be considered in line or "
@@ -889,7 +863,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getDustSource())
         {
-            if(!param.getScatteringToRay() && grid->getRadiationFieldAvailable())
+            if(!dust->getScatteringToRay() && grid->getRadiationFieldAvailable())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Dust source cannot be considered in line or "
@@ -1169,6 +1143,14 @@ bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust, CGrid
         return false;
 
     dust->setGridRequirements(grid, param);
+
+    // Check if either the radiation field is present or the radiation field can be
+    // calculated otherwise, disable scattering added to the raytracing then
+    !grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 &&
+            param.getNrOfDiffuseSources() == 0 && param.getNrOfLaserSources() == 0 &&
+            !param.getISRFSource() && !param.getDustSource()
+        ? dust->setScatteringToRay(false)
+        : dust->setScatteringToRay(true);
 
     return true;
 }

@@ -25,6 +25,7 @@ class CRadiativeTransfer
         b_forced = true;
         peel_off = false;
         mrw_step = false;
+        stokes_dust_rad_field = true;
 
         start = MAX_UINT;
         stop = MAX_UINT;
@@ -36,15 +37,11 @@ class CRadiativeTransfer
         nr_mc_detectors = 0;
         nr_ray_detectors = 0;
 
-        axis1.set(1, 0, 0);
-        axis2.set(0, 1, 0);
-
         RK_c = 0;
         RK_b1 = 0;
         RK_b2 = 0;
 
         probing_points = 0;
-        det_coord_systems = 0;
 
         synchrotron = 0;
 
@@ -56,11 +53,11 @@ class CRadiativeTransfer
         if(probing_points != 0)
             delete[] probing_points;
 
-        if(det_coord_systems != 0)
+        if(tracer != 0)
         {
             for(uint i = 0; i < nr_ray_detectors; i++)
-                delete[] det_coord_systems[i];
-            delete[] det_coord_systems;
+                delete tracer[i];
+            delete[] tracer;
         }
 
         if(RK_c != 0)
@@ -167,20 +164,23 @@ class CRadiativeTransfer
     void getDustPixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
+                               uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
     void getDustIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
+                          uint i_det,
                           uint subpixel_lvl);
-    void calcStellarEmission();
+    void calcStellarEmission(uint i_det);
 
     // Synchrontron emission
     bool calcSyncMapsViaRaytracing(parameters & param);
     void getSyncPixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
+                               uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
     void getSyncIntensity(photon_package * pp1,
@@ -188,6 +188,7 @@ class CRadiativeTransfer
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
+                          uint i_det,
                           uint subpixel_lvl);
 
     // Line meission
@@ -195,17 +196,19 @@ class CRadiativeTransfer
     void getLinePixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
-                               const uint i_species,
-                               const uint i_line,
+                               uint i_det,
+                               uint i_species,
+                               uint i_line,
                                uint subpixel_lvl,
                                int pos_id);
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
+                          uint i_det,
                           uint subpixel_lvl,
-                          const uint i_species,
-                          const uint i_line);
+                          uint i_species,
+                          uint i_line);
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);
@@ -214,21 +217,35 @@ class CRadiativeTransfer
     {
         double energy = pp->getTmpPathLength() * pp->getStokesVector().I();
 
-        if(det_coord_systems != 0)
+        if(stokes_dust_rad_field)
         {
             // Rotate vector of radiation field to cell center
             Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection());
+
+            // Init index for offset entries
+            uint i_offset = 0;
+
+            // For each detector check if wavelength fits
             for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
             {
-                // Create a copy with the same values as in the photon package
-                photon_package dir_pp = *pp;
-                // Set coordinate system of temporary photon package for the map direction
-                dir_pp.setEX(det_coord_systems[i_det][0]);
-                dir_pp.setEY(det_coord_systems[i_det][1]);
-                dir_pp.setDirection(det_coord_systems[i_det][2]);
-                // Save the scattering Stokes vector in the grid
-                grid->updateSpecLength(
-                    pp, i_det, dust->getRadFieldScatteredFraction(grid, &dir_pp, rad_field_dir, energy));
+                // Go through each wavelength
+                for(uint i_wave = 0; i_wave < tracer[i_det]->getNrSpectralBins(); i_wave++)
+                {
+                    // If the wavelengths fit, save Stokes
+                    if(dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave)) == pp->getWavelengthID())
+                    {
+                        // Create a copy with the same values as in the photon package
+                        photon_package dir_pp = *pp;
+                        // Set coordinate system of temporary photon package for the map direction
+                        tracer[i_det]->setDirection(&dir_pp);
+                        // Save the scattering Stokes vector in the grid
+                        grid->updateSpecLength(
+                            pp,
+                            i_offset,
+                            dust->getRadFieldScatteredFraction(grid, &dir_pp, rad_field_dir, energy));
+                    }
+                    i_offset++;
+                }
             }
         }
         else
@@ -321,11 +338,10 @@ class CRadiativeTransfer
 
     int * probing_points;
 
-    Vector3D ** det_coord_systems;
     uint nr_ray_detectors;
     uint nr_mc_detectors;
 
-    CRaytracingBasic * tracer;
+    CRaytracingBasic ** tracer;
     CGridBasic * grid;
     // COpiate * op;
     CDustMixture * dust;
@@ -345,8 +361,9 @@ class CRadiativeTransfer
     bool b_forced;
     bool peel_off;
     bool mrw_step;
+    bool stokes_dust_rad_field;
+
+    uilist detector_wl_index;
 
     CSynchrotron * synchrotron;
-
-    Vector3D axis1, axis2;
 };

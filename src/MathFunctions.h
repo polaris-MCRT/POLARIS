@@ -373,7 +373,7 @@ class spline
         {
             while(max - min > 1)
             {
-                const uint i = min + (max - min) / 2;
+                uint i = min + (max - min) / 2;
                 if(x[i] >= v)
                     max = i;
                 else
@@ -397,7 +397,7 @@ class spline
 
         while(max_ID - min_ID > 1)
         {
-            const uint i = min_ID + (max_ID - min_ID) / 2;
+            uint i = min_ID + (max_ID - min_ID) / 2;
             if(x[i] > v)
                 max_ID = i;
             else
@@ -472,7 +472,7 @@ class spline
 
         while(max - min > 1)
         {
-            const uint i = min + (max - min) / 2; // /2 only for positive!!
+            uint i = min + (max - min) / 2; // /2 only for positive!!
             if(x[i] > v)
                 max = i;
             else
@@ -491,7 +491,7 @@ class spline
 
         while(max - min > 1)
         {
-            const uint i = min + (max - min) / 2; // /2 only for positive!!
+            uint i = min + (max - min) / 2; // /2 only for positive!!
             if(y[i] > v)
                 max = i;
             else
@@ -632,7 +632,7 @@ class interp
             {
                 while(max - min > 1)
                 {
-                    const uint i = min + (max - min) / 2;
+                    uint i = min + (max - min) / 2;
                     if(x[i] >= v)
                         max = i;
                     else
@@ -727,7 +727,7 @@ class prob_list
 
         while(max - min > 1)
         {
-            const uint i = min + (max - min) / 2; // /2 only for positive!!
+            uint i = min + (max - min) / 2; // /2 only for positive!!
             if(x[i] > v)
                 max = i;
             else
@@ -1259,7 +1259,7 @@ class CMathFunctions
 
         while(max - min > 1)
         {
-            const uint i = min + uint((max - min) / 2);
+            uint i = min + uint((max - min) / 2);
             if(list[i] >= val)
                 max = i;
             else
