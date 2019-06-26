@@ -222,29 +222,27 @@ class CRadiativeTransfer
             // Rotate vector of radiation field to cell center
             Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection());
 
-            // Init index for offset entries
-            uint i_offset = 0;
+            // Create a copy with the same values as in the photon package
+            photon_package dir_pp = *pp;
 
             // For each detector check if wavelength fits
             for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
             {
+                // Set coordinate system of temporary photon package for the map direction
+                tracer[i_det]->setDirection(&dir_pp);
+
                 // Go through each wavelength
                 for(uint i_wave = 0; i_wave < tracer[i_det]->getNrSpectralBins(); i_wave++)
                 {
                     // If the wavelengths fit, save Stokes
                     if(dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave)) == pp->getWavelengthID())
                     {
-                        // Create a copy with the same values as in the photon package
-                        photon_package dir_pp = *pp;
-                        // Set coordinate system of temporary photon package for the map direction
-                        tracer[i_det]->setDirection(&dir_pp);
                         // Save the scattering Stokes vector in the grid
                         grid->updateSpecLength(
                             pp,
-                            i_offset,
+                            detector_wl_index[i_det] + i_wave,
                             dust->getRadFieldScatteredFraction(grid, &dir_pp, rad_field_dir, energy));
                     }
-                    i_offset++;
                 }
             }
         }
