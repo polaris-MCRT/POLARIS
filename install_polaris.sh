@@ -10,9 +10,27 @@ function command_exists() {
     type "$1" &>/dev/null
 }
 
+function clean_all() {
+    for directories in "lib/cfitsio/build/" "lib/CCfits/build/" "src/build/"; do
+        make clean
+        cd ${install_directory}
+    done
+}
+
 # ---------------------------------------------------------------------------------
 # ------------------------- Routines for installations ----------------------------
 # ---------------------------------------------------------------------------------
+function initial_check() {
+    if ! command_exists cmake; then
+        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
+        exit
+    fi
+    if [ ! -d "src" ]; then
+        echo -e "--- ${RED}Error:${NC} src directory not found (incomplete polaris package?)"
+        exit
+    fi
+}
+
 function install_fits_support() {
     # Check for necessary programms
     if ! command_exists cmake; then
@@ -21,16 +39,26 @@ function install_fits_support() {
     fi
     # Install Libraries
     echo -e "${PC}--- Install required libraries for fits support ---${NC}"
+    if [ ! -d "lib" ]; then
+        echo -e "--- ${RED}Error:${NC} lib directory not found (incomplete polaris package?)"
+        exit
+    fi
+    cd "lib"
+
     echo -e "Install cfitsio"
-    if [ ! -f "cfitsio/CMakeCache.txt" ]; then
+    if [ ! -f "cfitsio/build/CMakeCache.txt" ] && [ -d "cfitsio/" ]; then
         rm -r "cfitsio/"
     fi
     if [ ! -d "cfitsio" ]; then
         tar -xf cfitsio.tar.gz
     fi
-    cd cfitsio
+    cd "cfitsio"
     echo -ne "- Configuring cfitsio ... "\\r
-    cmake . -DBUILD_SHARED_LIBS=OFF >/dev/null 2>&1 &&
+    if [ ! -d "build" ]; then
+        mkdir "build"
+    fi
+    cd "build"
+    cmake .. -DBUILD_SHARED_LIBS=$1 >/dev/null 2>&1 &&
         echo -e "- Configuring cfitsio [${GREEN}done${NC}]" ||
         {
             echo -e "- Configuring cfitsio [${RED}Error${NC}]"
@@ -43,18 +71,22 @@ function install_fits_support() {
             echo -e "- Compiling cfitsio [${RED}Error${NC}]"
             exit
         }
-    cd ..
+    cd ../..
 
     echo -e "Install CCfits"
-    if [ ! -f "CCfits/CMakeCache.txt" ]; then
+    if [ ! -f "CCfits/build/CMakeCache.txt" ] && [ -d "CCfits/" ]; then
         rm -r "CCfits/"
     fi
     if [ ! -d "CCfits" ]; then
         tar -xf CCfits.tar.gz
     fi
-    cd CCfits
+    cd "CCfits"
     echo -ne "- Configuring CCfits ... "\\r
-    cmake . -DCMAKE_PREFIX_PATH=${install_directory}/cfitsio >/dev/null 2>&1 &&
+    if [ ! -d "build" ]; then
+        mkdir "build"
+    fi
+    cd "build"
+    cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_PREFIX_PATH="${install_directory}/lib/cfitsio" >/dev/null 2>&1 &&
         echo -e "- Configuring CCfits [${GREEN}done${NC}]" ||
         {
             echo -e "- Configuring CCfits [${RED}Error${NC}]"
@@ -67,9 +99,9 @@ function install_fits_support() {
             echo -e "- Compiling CCfits [${RED}Error${NC}]"
             exit
         }
-    cd ..
+    cd ${install_directory}
 
-    export_str="export LD_LIBRARY_PATH=\"${install_directory}/CCfits/.libs/:${install_directory}/cfitsio:"'${LD_LIBRARY_PATH}'"\""
+    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/.libs/:${install_directory}/lib/cfitsio:"'${LD_LIBRARY_PATH}'"\""
     if ! grep -q "${export_str}" ${HOME}/.bashrc; then
         echo "${export_str}" >>${HOME}/.bashrc
         echo -e "- Updating bashrc [${GREEN}done${NC}]"
@@ -187,35 +219,37 @@ function install_polaris_tools() {
 
 function install_polaris() {
     # Check for necessary programms
-    if ! command_exists cmake; then
-        echo -e "--- ${RED}Error:${NC} cmake not found. Please install cmake!"
-        exit
-    fi
-    sed -i.bak 's,^//#define FITS_EXPORT,#define FITS_EXPORT,g' "${install_directory}/src/typedefs.h"
+    initial_check
+    cd "src"
+
     echo -e "${PC}--- Install POLARIS ---${NC}"
-    cmake . -DBUILD_STATIC_LIBS=$1 >/dev/null 2>&1 &&
-        echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
-        {
-            echo -e "Configuring POLARIS [${RED}Error${NC}]"
-            exit
-        }
-    echo -ne "Compiling POLARIS ... "\\r
+    if [ ! -d "build" ]; then
+        mkdir "build"
+    fi
+    cd "build"
+    echo -ne "Configuring POLARIS ... "\\r
     if [ $2 == "debug" ]; then
-        #'-Wall -Weffc++ -Wextra -Wsign-conversion'
-        make CXXFLAGS='-O0 -g' >/dev/null 2>&1 &&
-            echo -e "Compiling POLARIS [${GREEN}done${NC}]" ||
+        cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_CXX_FLAGS='-O0 -g -fopenmp' >/dev/null 2>&1 &&
+            echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
             {
-                echo -e "Compiling POLARIS [${RED}Error${NC}]"
+                echo -e "Configuring POLARIS [${RED}Error${NC}]"
                 exit
             }
     else
-        make >/dev/null 2>&1 &&
-            echo -e "Compiling POLARIS [${GREEN}done${NC}]" ||
+        cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_CXX_FLAGS='-O2 -g -fopenmp' >/dev/null 2>&1 &&
+            echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
             {
-                echo -e "Compiling POLARIS [${RED}Error${NC}]"
+                echo -e "Configuring POLARIS [${RED}Error${NC}]"
                 exit
             }
     fi
+    echo -ne "Compiling POLARIS ... "\\r
+    make >/dev/null 2>&1 &&
+        echo -e "Compiling POLARIS [${GREEN}done${NC}]" ||
+        {
+            echo -e "Compiling POLARIS [${RED}Error${NC}]"
+            exit
+        }
     echo -ne "Installing POLARIS ... "\\r
     make install >/dev/null 2>&1 &&
         echo -e "Installing POLARIS [${GREEN}done${NC}]" ||
@@ -251,11 +285,12 @@ function usage() {
     echo "-r      clean and compile POLARIS including PolarisTools if enabled (release mode)"
     echo "-d      clean and compile POLARIS including PolarisTools if enabled (debug mode)"
     echo "-u      compile POLARIS including PolarisTools if necessary (using release mode)"
+    echo "-c      pre-compile POLARIS to be portable on other machines (using release mode)"
     echo "-D      delete POLARIS from your computer"
     exit
 }
 
-while getopts "hrduD" opt; do
+while getopts "hrducD" opt; do
     case $opt in
     h)
         usage
@@ -263,8 +298,8 @@ while getopts "hrduD" opt; do
     r)
         echo -e "${TC}------ clean and compile POLARIS (${GREEN}release mode!${TC}) ------${NC}"
         cd ${install_directory}
-        make clean &>/dev/null
-        install_fits_support
+        clean_all &>/dev/null
+        install_fits_support "ON"
         install_polaris "ON" "release"
         if [ -d "tools" ]; then
             cd "tools"
@@ -278,8 +313,8 @@ while getopts "hrduD" opt; do
     d)
         echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
         cd ${install_directory}
-        make clean &>/dev/null
-        install_fits_support
+        clean_all &>/dev/null
+        install_fits_support "ON"
         install_polaris "ON" "debug"
         if [ -d "tools" ]; then
             cd "tools"
@@ -293,8 +328,30 @@ while getopts "hrduD" opt; do
     u)
         echo -e "${TC}------ compile POLARIS ------${NC}"
         cd ${install_directory}
-        cmake .
+        initial_check
+        cd "src"
+        if [ ! -d "build" ]; then
+            mkdir "build"
+        fi
+        cd "build"
+        cmake ..
         make && make install
+        cd ${install_directory}
+        if [ -d "tools" ]; then
+            cd "tools"
+            if python -c "import polaris_tools_modules" &>/dev/null; then
+                echo -e "${TC}Update PolarisTools...${NC}"
+                python setup.py install --user &>/dev/null
+            fi
+        fi
+        exit
+        ;;
+    c)
+        echo -e "${TC}------ create pre-compiled POLARIS ------${NC}"
+        cd ${install_directory}
+        clean_all &>/dev/null
+        install_fits_support "OFF"
+        install_polaris "OFF" "release"
         if [ -d "tools" ]; then
             cd "tools"
             if python -c "import polaris_tools_modules" &>/dev/null; then
@@ -314,7 +371,7 @@ while getopts "hrduD" opt; do
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi
-            export_str="export LD_LIBRARY_PATH=\"${install_directory}/CCfits/.libs/:${install_directory}/cfitsio:"'${LD_LIBRARY_PATH}'"\""
+            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/.libs/:${install_directory}/lib/cfitsio:"'${LD_LIBRARY_PATH}'"\""
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi

@@ -1,22 +1,43 @@
-set(CMAKE_CXX_STANDARD 98)
-set(CXX_STANDARD_REQUIRED ON)
+cmake_minimum_required (VERSION 2.8.11)
+PROJECT (POLARIS)
 
-if(BUILD_STATIC_LIBS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -O2 -g -fopenmp -MMD -MP -MF -static-libgcc -static-libstdc++ -static")
-else(BUILD_STATIC_LIBS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -O2 -g -fopenmp -MMD -MP -MF")
-endif(BUILD_STATIC_LIBS)
+SET (${PROJECT_NAME}_MAJOR_VERSION 5)
+SET (${PROJECT_NAME}_MINOR_VERSION 05)
+SET (${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
 
-SET(SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp 
+SET (CMAKE_CXX_STANDARD 98)
+SET (CXX_STANDARD_REQUIRED ON)
+
+SET (PROJECT_PATH ${CMAKE_CURRENT_LIST_DIR}/../)
+
+OPTION(BUILD_SHARED_LIBS "Build Static Libraries" ON)
+
+SET (LIB_TYPE SHARED)
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MMD -MP -MF -std=c++98")
+IF(NOT BUILD_SHARED_LIBS)
+    SET (LIB_TYPE STATIC)
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
+ENDIF(NOT BUILD_SHARED_LIBS)
+
+SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR})
+SET (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${PROJECT_PATH}/lib/cfitsio)
+SET (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${PROJECT_PATH}/lib/CCfits)
+
+FIND_PACKAGE (CCFITS REQUIRED)
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_LIST_DIR})
+INCLUDE_DIRECTORIES (${PROJECT_PATH}/lib/)
+INCLUDE_DIRECTORIES (${PROJECT_PATH}/lib/cfitsio/)
+
+SET (SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp 
     Faddeeva.cc Grid.cpp MathFunctions.cpp GasSpecies.cpp  
     OcTree.cpp Pipeline.cpp RadiativeTransfer.cpp Source.cpp 
     Spherical.cpp Voronoi.cpp main.cpp Synchrotron.cpp
 )
 
-add_executable (polaris ${SRC_FILES})
+ADD_EXECUTABLE (polaris ${SRC_FILES})
 
-target_link_libraries(polaris ${CCFITS_LIBRARY})
-target_link_libraries(polaris ${CFITSIO_LIBRARY})
+TARGET_LINK_LIBRARIES (polaris ${CCFITS_LIBRARY})
+TARGET_LINK_LIBRARIES (polaris ${CFITSIO_LIBRARY})
 
-install(TARGETS polaris
-        DESTINATION ${CMAKE_CURRENT_LIST_DIR}/../bin/)
+INSTALL (TARGETS polaris
+         DESTINATION ${CMAKE_CURRENT_LIST_DIR}/../bin/)

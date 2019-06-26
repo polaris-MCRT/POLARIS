@@ -17,7 +17,9 @@ FIND_PATH(CFITSIO_INCLUDE_DIR fitsio.h)
 #
 # Find the library
 #
-FIND_LIBRARY(CFITSIO_LIBRARY libcfitsio.a libcfitsio.la)
+FIND_LIBRARY(CFITSIO_LIBRARY 
+    NAMES libcfitsio.a libcfitsio.so libcfitsio.la libcfitsio.dylib
+    PATH_SUFFIXES build)
 
 SET(CFITSIO_FOUND false)
 IF(CFITSIO_INCLUDE_DIR AND CFITSIO_LIBRARY)

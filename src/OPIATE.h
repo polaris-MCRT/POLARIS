@@ -23,14 +23,14 @@
 /* History:   05.12.2016                                                    */
 /****************************************************************************/
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <stdlib.h> 
+#include <CCfits/CCfits>
 #include <algorithm>
 #include <fstream>
-#include <CCfits>
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "CommandParser.h"
 
@@ -42,20 +42,19 @@ using namespace CCfits;
 
 class COpiateDataBase
 {
-public:
-
+  public:
     COpiateDataBase()
-    {       
+    {
         current_index = MAX_UINT;
-        list_freq=0;
-        list_IDs=0;
-        list_weight=0;
-        max_species=0;
-        max_ids=0;
-        
-        database_counter=0;
-         
-        max_velocity=1;
+        list_freq = 0;
+        list_IDs = 0;
+        list_weight = 0;
+        max_species = 0;
+        max_ids = 0;
+
+        database_counter = 0;
+
+        max_velocity = 1;
         velocity_channel = 0;
     }
 
@@ -63,23 +62,23 @@ public:
     {
         cout << CLR_LINE;
         cout << "Final OPIATE data cleanup ...   \r" << flush;
-    
-        if(list_freq!=0)
+
+        if(list_freq != 0)
         {
             delete[] list_freq;
-            list_freq=0;
+            list_freq = 0;
         }
-        
-        if(list_IDs!=0)
+
+        if(list_IDs != 0)
         {
             delete[] list_IDs;
-            list_IDs=0;
+            list_IDs = 0;
         }
-        
-        if(list_weight!=0)
+
+        if(list_weight != 0)
         {
             delete[] list_weight;
-            list_weight=0;
+            list_weight = 0;
         }
 
         if(velocity_channel != 0)
@@ -90,65 +89,65 @@ public:
 
         cout << CLR_LINE;
     }
-    
+
     bool findIndexByName(string name)
     {
-        for(uint i=0;i<list_names.size();i++)
+        for(uint i = 0; i < list_names.size(); i++)
         {
-            if(name.compare(list_names[i])==0)
+            if(name.compare(list_names[i]) == 0)
             {
-                current_index=i;
+                current_index = i;
                 return true;
             }
         }
-        
+
         cout << CLR_LINE;
-        cout << "ERROR: A species by the name of \"" << name << "\" is not listed in loaded OPIATE file!              \n" ;
+        cout << "ERROR: A species by the name of \"" << name
+             << "\" is not listed in loaded OPIATE file!              \n";
         return false;
     }
-    
+
     bool readEmissivityData(string filename)
     {
         return readFitsData(filename, mat_emissivity);
     }
-    
+
     bool readExtincitonData(string filename)
     {
         return readFitsData(filename, mat_extinction);
     }
-    
+
     bool readFitsData(string filename, Matrix2D & mat);
-    
+
     double getFrequency()
     {
         return list_freq[current_index];
     }
-    
+
     double getMolecularWeight()
     {
         return list_weight[current_index];
     }
-    
+
     bool initVelChannels(uint nr_of_channels, double max_vel)
     {
-        if(velocity_channel!=0)
+        if(velocity_channel != 0)
         {
             delete[] velocity_channel;
-            velocity_channel=0;
+            velocity_channel = 0;
         }
-        
+
         nr_of_velocity_channels = nr_of_channels;
         max_velocity = max_vel;
-		
+
         velocity_channel = new double[nr_of_velocity_channels];
 
         if(nr_of_velocity_channels > 1)
         {
             for(uint i = 0; i < nr_of_velocity_channels; i++)
             {
-                velocity_channel[i] = 2 * (float) i
-                        / ((float) nr_of_velocity_channels - 1) * max_velocity
-                        - max_velocity;
+                velocity_channel[i] =
+                    2 * (float)i / ((float)nr_of_velocity_channels - 1) * max_velocity - max_velocity;
             };
         }
         else if(nr_of_velocity_channels == 1)
@@ -156,43 +155,42 @@ public:
             velocity_channel[0] = 0;
         }
         else
-        { 
+        {
             cout << CLR_LINE;
             cout << "ERROR: Number of velocity channels is not larger than zero!                 \n";
             return false;
         }
 
-       return true;
+        return true;
     }
-    
+
     double getVelocityChannel(uint vch)
-    { 
+    {
         return velocity_channel[vch];
     }
-    
+
     uint getNrOfVelChannels()
-    { 
+    {
         return nr_of_velocity_channels;
     }
-    
+
     double getMaxVelocity()
     {
         return max_velocity;
     }
-    
-    
+
     uint biListIndexDataSearch(uint id)
     {
         uint N = max_ids;
         uint min = 0, max = N - 1;
 
-        //cout << list_IDs[0] << "\n";
-        //cout << list_IDs[N-1] << "\n";
-        
-        if(N==0)
+        // cout << list_IDs[0] << "\n";
+        // cout << list_IDs[N-1] << "\n";
+
+        if(N == 0)
             return MAX_UINT;
-        
-        if(id < list_IDs[0] || id > list_IDs[N-1])
+
+        if(id < list_IDs[0] || id > list_IDs[N - 1])
             return MAX_UINT;
 
         while(max - min > 1)
@@ -224,12 +222,10 @@ public:
             return upper;
 
         return MAX_UINT;
-    }/**/
-    
-private:  
-    //void formatLine(string &line);
+    } /**/
 
-   
+  private:
+    // void formatLine(string &line);
 
     /*dlist parseValues(string & str)
     {
@@ -254,25 +250,24 @@ private:
 
         return values;
     }/**/
-    
+
     Matrix2D mat_emissivity;
     Matrix2D mat_extinction;
-        
+
     uint current_index;
     uint max_species;
     uint max_ids;
-    
+
     double * list_freq;
     double * list_IDs;
     double * list_weight;
     strlist list_names;
-    
+
     double * velocity_channel;
     uint nr_of_velocity_channels;
     double max_velocity;
-    
+
     uint database_counter;
 };
 
 #endif
-

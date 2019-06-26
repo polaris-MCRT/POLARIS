@@ -15,7 +15,9 @@ if(NOT CCFITS_FOUND)
         NAMES CCfits.h)
         
     find_library(CCFITS_LIBRARY 
-        NAMES libCCfits.a libCCfits.so libCCfits.la libCCfits.dylib)
+        NAMES libCCfits.a libCCfits.so libCCfits.la libCCfits.dylib
+        LIB_TYPE
+        PATH_SUFFIXES build)
         
     find_package(CFITSIO REQUIRED)
 
