@@ -756,39 +756,25 @@ class FileIO:
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_midplane_file_header(hdulist)
         #: int: Number of bins per dimension per polarization vector
-        if header['nr_pixel_x'] % 2 == 0:
-            vector_bins_x = int(
-                np.ceil(header['nr_pixel_x'] / self.vec_field_size))
-            offset_x = 0
+        if header['nr_pixel_x'] % 2 != 0 and self.vec_field_size % 2 == 0:
+            offset_x = (header['nr_pixel_x'] - 1) % self.vec_field_size
         else:
-            if self.vec_field_size % 2 == 0:
-                offset_x = header['nr_pixel_x'] % self.vec_field_size - 1
-                if int((header['nr_pixel_x'] - offset_x) / self.vec_field_size) % 2 != 0:
-                    offset_x += self.vec_field_size
-            else:
-                offset_x = header['nr_pixel_x'] % self.vec_field_size
-                if int((header['nr_pixel_x'] - offset_x) / self.vec_field_size) % 2 == 0:
-                    offset_x += self.vec_field_size
-            vector_bins_x = int(
-                (header['nr_pixel_x'] - offset_x) / self.vec_field_size)
-            offset_x = int(offset_x / 2)
+            offset_x = header['nr_pixel_x'] % self.vec_field_size
+        while offset_x % 2 != 0:
+            offset_x += self.vec_field_size
+        vector_bins_x = int(
+            (header['nr_pixel_x'] - offset_x) / self.vec_field_size)
+        offset_x = int(offset_x / 2)
 
-        if header['nr_pixel_y'] % 2 == 0:
-            vector_bins_y = int(
-                np.ceil(header['nr_pixel_y'] / self.vec_field_size))
-            offset_y = 0
+        if header['nr_pixel_y'] % 2 != 0 and self.vec_field_size % 2 == 0:
+            offset_y = (header['nr_pixel_y'] - 1) % self.vec_field_size
         else:
-            if self.vec_field_size % 2 == 0:
-                offset_y = header['nr_pixel_y'] % self.vec_field_size - 1
-                if int((header['nr_pixel_y'] - offset_y) / self.vec_field_size) % 2 != 0:
-                    offset_y += self.vec_field_size
-            else:
-                offset_y = header['nr_pixel_y'] % self.vec_field_size
-                if int((header['nr_pixel_y'] - offset_y) / self.vec_field_size) % 2 == 0:
-                    offset_y += self.vec_field_size
-            vector_bins_y = int(
-                (header['nr_pixel_y'] - offset_y) / self.vec_field_size)
-            offset_y = int(offset_y / 2)
+            offset_y = header['nr_pixel_y'] % self.vec_field_size
+        while offset_y % 2 != 0:
+            offset_y += self.vec_field_size
+        vector_bins_y = int(
+            (header['nr_pixel_y'] - offset_y) / self.vec_field_size)
+        offset_y = int(offset_y / 2)
         #: Numpy array for the vector data
         vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 5))
         # Get index for different cuts through the model
@@ -956,17 +942,23 @@ class FileIO:
                 # X axis
                 vec_field_data[i_x_vec, i_y_vec, 3] = ((
                     i_x_vec + 0.5) * self.vec_field_size + offset_x) / header['nr_pixel_x']
-                if header['nr_pixel_x'] % 2 != 0 and self.vec_field_size % 2 == 0 \
-                        and i_x_vec < int(vector_bins_x / 2):
-                    vec_field_data[i_x_vec, i_y_vec, 3] += 1 / \
-                        header['nr_pixel_x']
+                if header['nr_pixel_x'] % 2 != 0 and self.vec_field_size % 2 == 0:
+                    if i_x_vec == int(vector_bins_x / 2):
+                        vec_field_data[i_x_vec, i_y_vec,
+                                       3] += 0.5 / header['nr_pixel_x']
+                    elif i_x_vec > int(vector_bins_x / 2):
+                        vec_field_data[i_x_vec, i_y_vec,
+                                       3] += 1 / header['nr_pixel_x']
                 # Y axis
                 vec_field_data[i_x_vec, i_y_vec, 4] = ((
                     i_y_vec + 0.5) * self.vec_field_size + offset_y) / header['nr_pixel_y']
-                if header['nr_pixel_y'] % 2 != 0 and self.vec_field_size % 2 == 0 \
-                        and i_y_vec < int(vector_bins_y / 2):
-                    vec_field_data[i_x_vec, i_y_vec, 4] += 1 / \
-                        header['nr_pixel_y']
+                if header['nr_pixel_y'] % 2 != 0 and self.vec_field_size % 2 == 0:
+                    if i_y_vec == int(vector_bins_y / 2):
+                        vec_field_data[i_x_vec, i_y_vec,
+                                       4] += 1 / header['nr_pixel_y']
+                    if i_y_vec > int(vector_bins_y / 2):
+                        vec_field_data[i_x_vec, i_y_vec,
+                                       4] += 1 / header['nr_pixel_y']
         #: Numpy array for the midplane data
         tbldata = hdulist[0].data[midlane_index,
                                   cut_index, :, :].T * midplane_mod
@@ -1224,7 +1216,7 @@ class FileIO:
                     for i_wl in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_wl, ...] = convolve(
                             tbldata[i_quantity, i_wl, ...], gauss,
-                            mask=tbldata[0, i_wl, ...]==0)
+                            mask=tbldata[0, i_wl, ...] == 0)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 5 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * \
@@ -1247,7 +1239,7 @@ class FileIO:
                 else:
                     tbldata[i_quantity, ...] = convolve(
                         tbldata[i_quantity, ...], gauss,
-                        mask=tbldata[0, ...]==0)
+                        mask=tbldata[0, ...] == 0)
                     # P is not flux / beam but should be convolved
                     if i_quantity != 4 and self.cmap_unit == 'beam':
                         tbldata[i_quantity, ...] *= np.pi * \
@@ -1270,7 +1262,7 @@ class FileIO:
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = convolve(
                             tbldata[i_quantity, i_channel, ...], gauss,
-                            mask=tbldata[0, i_channel, ...]==0)
+                            mask=tbldata[0, i_channel, ...] == 0)
                         # P is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, ...] *= np.pi * \
@@ -1298,39 +1290,25 @@ class FileIO:
         bins_x = len(tbldata[0, 0, :])
         bins_y = len(tbldata[0, :, 0])
         #: int: Number of bins per dimension per polarization vector
-        if bins_x % 2 == 0:
-            vector_bins_x = int(
-                np.ceil(bins_x / self.vec_field_size))
-            offset_x = 0
+        if bins_x % 2 != 0 and self.vec_field_size % 2 == 0:
+            offset_x = (bins_x - 1) % self.vec_field_size
         else:
-            if self.vec_field_size % 2 == 0:
-                offset_x = bins_x % self.vec_field_size - 1
-                if int((bins_x - offset_x) / self.vec_field_size) % 2 != 0:
-                    offset_x += self.vec_field_size
-            else:
-                offset_x = bins_x % self.vec_field_size
-                if int((bins_x - offset_x) / self.vec_field_size) % 2 == 0:
-                    offset_x += self.vec_field_size
-            vector_bins_x = int(
-                (bins_x - offset_x) / self.vec_field_size)
-            offset_x = int(offset_x / 2)
+            offset_x = bins_x % self.vec_field_size
+        while offset_x % 2 != 0:
+            offset_x += self.vec_field_size
+        vector_bins_x = int(
+            (bins_x - offset_x) / self.vec_field_size)
+        offset_x = int(offset_x / 2)
 
-        if bins_y % 2 == 0:
-            vector_bins_y = int(
-                np.ceil(bins_y / self.vec_field_size))
-            offset_y = 0
+        if bins_y % 2 != 0 and self.vec_field_size % 2 == 0:
+            offset_y = (bins_y - 1) % self.vec_field_size
         else:
-            if self.vec_field_size % 2 == 0:
-                offset_y = bins_y % self.vec_field_size - 1
-                if int((bins_y - offset_y) / self.vec_field_size) % 2 != 0:
-                    offset_y += self.vec_field_size
-            else:
-                offset_y = bins_y % self.vec_field_size
-                if int((bins_y - offset_y) / self.vec_field_size) % 2 == 0:
-                    offset_y += self.vec_field_size
-            vector_bins_y = int(
-                (bins_y - offset_y) / self.vec_field_size)
-            offset_y = int(offset_y / 2)
+            offset_y = bins_y % self.vec_field_size
+        while offset_y % 2 != 0:
+            offset_y += self.vec_field_size
+        vector_bins_y = int(
+            (bins_y - offset_y) / self.vec_field_size)
+        offset_y = int(offset_y / 2)
         #: Stokes I flux averaged over the polarization vector area
         i_vec_avg = np.zeros((vector_bins_x, vector_bins_y))
         #: Stokes Q flux averaged over the polarization vector area
@@ -1402,15 +1380,19 @@ class FileIO:
                 # X axis
                 x_vec_avg[i_x_vec, i_y_vec] = ((
                     i_x_vec + 0.5) * self.vec_field_size + offset_x) / bins_x
-                if bins_x % 2 != 0 and self.vec_field_size % 2 == 0 \
-                        and i_x_vec < int(vector_bins_x / 2):
-                    x_vec_avg[i_x_vec, i_y_vec] += 1 / bins_x
+                if bins_x % 2 != 0 and self.vec_field_size % 2 == 0:
+                    if i_x_vec == int(vector_bins_x / 2):
+                        x_vec_avg[i_x_vec, i_y_vec] += 0.5 / bins_x
+                    elif i_x_vec > int(vector_bins_x / 2):
+                        x_vec_avg[i_x_vec, i_y_vec] += 1 / bins_x
                 # Y axis
                 y_vec_avg[i_x_vec, i_y_vec] = ((
                     i_y_vec + 0.5) * self.vec_field_size + offset_y) / bins_y
-                if bins_y % 2 != 0 and self.vec_field_size % 2 == 0 \
-                        and i_y_vec < int(vector_bins_y / 2):
-                    y_vec_avg[i_x_vec, i_y_vec] += 1 / bins_y
+                if bins_y % 2 != 0 and self.vec_field_size % 2 == 0:
+                    if i_y_vec == int(vector_bins_y / 2):
+                        y_vec_avg[i_x_vec, i_y_vec] += 0.5 / bins_y
+                    elif i_y_vec > int(vector_bins_y / 2):
+                        y_vec_avg[i_x_vec, i_y_vec] += 1 / bins_y
                 # Calculating the polarization angle from averaged Q and U components
                 pol_angle[i_x_vec, i_y_vec] = self.math.angle_from_stokes(
                     q_vec_avg[i_x_vec, i_y_vec], u_vec_avg[i_x_vec, i_y_vec])
@@ -1436,7 +1418,7 @@ class FileIO:
         import healpy as hp
 
         def aux_angle(phi):
-            #x = np.linspace(-np.pi, np.pi, 101)
+            # x = np.linspace(-np.pi, np.pi, 101)
             initial_guess = 0.0
 
             def func(x): return np.pi * np.sin(x) - 2.0 * phi - np.sin(2 * phi)
@@ -1475,7 +1457,7 @@ class FileIO:
         #: Polarization angle calculated from the averaged Q and U components
         pol_angle = np.zeros((vector_bins_x, vector_bins_y))
         #: Numpy array that includes the polarization vectors for the whole map
-        #vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 3))
+        # vec_field_data = np.zeros((vector_bins_x, vector_bins_y, 3))
 
         pol_x1 = []
         pol_x2 = []
@@ -1579,7 +1561,7 @@ class FileIO:
         # Calc maximum length in map
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
-        #nr_offset_index = len(tbldata.shape) - 2
+        # nr_offset_index = len(tbldata.shape) - 2
         nr_pixel_x = tbldata.shape[-2]
         nr_pixel_y = tbldata.shape[-1]
         cut_position = np.linspace(-max_len, max_len, N_r)
@@ -1642,7 +1624,7 @@ class FileIO:
         max_len = np.sqrt(abs(center_pos[0] + sidelength_x / 2) ** 2 +
                           abs(center_pos[1] + sidelength_y / 2) ** 2)
         # Get number of axes not used for the pixel
-        #nr_offset_index = len(tbldata.shape) - 2
+        # nr_offset_index = len(tbldata.shape) - 2
         # Get number of pixel per axis
         nr_pixel_x = tbldata.shape[-2]
         nr_pixel_y = tbldata.shape[-1]
