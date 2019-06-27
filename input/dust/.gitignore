@@ -6,5 +6,5 @@ thomas*
 trust*
 olivine*
 
-*test/
-*_test.*
+test_*/
+test_*

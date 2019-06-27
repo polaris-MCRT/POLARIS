@@ -1192,7 +1192,8 @@ class Plot:
         if self.image_type == 'animation':
             self.animation_images.append(quiver_image)
 
-    def plot_pol_vector_text(self, vec_per_width, max_pol_degree, ax_index=0, color='black', round_lvl=0):
+    def plot_pol_vector_text(self, vec_per_width, max_pol_degree, ax_index=0, color='black',
+                             bg_color='white', round_lvl=0):
         """Plot a line equivalent to the largest vector size with the
         corresponding degree of polarization.
 
@@ -1236,7 +1237,7 @@ class Plot:
         self.plot_text(text_pos, text, color=color,
                        verticalalignment='bottom', ax_index=ax_index, zorder=1)
         self.text.set_bbox(
-            dict(facecolor='black', alpha=0.8, edgecolor='black'))
+            dict(facecolor=bg_color, alpha=0.8, edgecolor=bg_color))
         # Plot the line
         self.plot_line([line_pos[0] - (length / 2.), line_pos[0] + (length / 2.)], [line_pos[1], line_pos[1]],
                        log='never', color=color, ax_index=ax_index, zorder=2, no_grid=True)

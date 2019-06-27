@@ -10,14 +10,6 @@ function command_exists() {
     type "$1" &>/dev/null
 }
 
-function clean_all() {
-    for directories in "lib/cfitsio/build/" "lib/CCfits/build/" "src/build/"; do
-        cd ${directories}
-        make clean
-        cd ${install_directory}
-    done
-}
-
 function delete_build() {
     for directories in "lib/cfitsio/build/" "lib/CCfits/build/" "src/build/"; do
         rm -rv ${directories}
@@ -109,7 +101,7 @@ function install_fits_support() {
         }
     cd ${install_directory}
 
-    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
+    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:""${LD_LIBRARY_PATH}""\""
     if ! grep -q "${export_str}" ${HOME}/.bashrc; then
         echo "${export_str}" >>${HOME}/.bashrc
         echo -e "- Updating bashrc [${GREEN}done${NC}]"
@@ -155,7 +147,7 @@ function install_anaconda() {
     case "${unameOut}" in
     Linux*)
         MACHINE_TYPE=$(uname -m)
-        if [ "${MACHINE_TYPE}" == 'x86_64' ]; then
+        if [ "${MACHINE_TYPE}" == "x86_64" ]; then
             if [ ! -f "Miniconda3-latest-Linux-x86_64.sh" ]; then
                 wget "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
             fi
@@ -192,7 +184,7 @@ function install_polaris_tools() {
     python_version="$(python -V 2>&1)"
     if [ "${python_version:7:1}" -lt 3 ] || [ "${python_version:9:1}" -lt 5 ]; then
         echo -e "${RED}Error:${NC} No python >= 3.5 installation found!"
-        printf '%s\n' "Do you want to install anaconda python package? [Y/n]  "
+        printf "%s\n" "Do you want to install anaconda python package? [Y/n]  "
         read install_anaconda_ans
         case ${install_anaconda_ans:=y} in
         [yY]*)
@@ -215,7 +207,7 @@ function install_polaris_tools() {
         python_installed=true
         check_python_packages
     fi
-    export_str="export PATH=\"${HOME}/.local/bin:"'$PATH'"\""
+    export_str="export PATH=\"${HOME}/.local/bin:""$PATH""\""
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
@@ -236,21 +228,12 @@ function install_polaris() {
     fi
     cd "build"
     echo -ne "Configuring POLARIS ... "\\r
-    if [ $2 == "debug" ]; then
-        cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_CXX_FLAGS='-O0 -g -fopenmp' >/dev/null 2>&1 &&
-            echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
-            {
-                echo -e "Configuring POLARIS [${RED}Error${NC}]"
-                exit
-            }
-    else
-        cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_CXX_FLAGS='-O2 -g -fopenmp' >/dev/null 2>&1 &&
-            echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
-            {
-                echo -e "Configuring POLARIS [${RED}Error${NC}]"
-                exit
-            }
-    fi
+    cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_BUILD_TYPE=$2 -DCMAKE_CXX_FLAGS="-fopenmp" >/dev/null 2>&1 &&
+        echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
+        {
+            echo -e "Configuring POLARIS [${RED}Error${NC}]"
+            exit
+        }
     echo -ne "Compiling POLARIS ... "\\r
     make >/dev/null 2>&1 &&
         echo -e "Compiling POLARIS [${GREEN}done${NC}]" ||
@@ -266,7 +249,7 @@ function install_polaris() {
             exit
         }
 
-    export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
+    export_str="export PATH=\"${install_directory}/bin:""$PATH""\""
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
@@ -277,11 +260,11 @@ function install_polaris() {
 }
 
 # Define colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-PC='\033[0;35m'
-TC='\033[0;36m'
-NC='\033[0m'
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+PC="\033[0;35m"
+TC="\033[0;36m"
+NC="\033[0m"
 
 function usage() {
     echo "usage: install_polaris.sh [-u] [-h]"
@@ -298,7 +281,7 @@ function usage() {
     exit
 }
 
-while getopts "hrducxD" opt; do
+while getopts "hrducD" opt; do
     case $opt in
     h)
         usage
@@ -306,9 +289,9 @@ while getopts "hrducxD" opt; do
     r)
         echo -e "${TC}------ clean and compile POLARIS (${GREEN}release mode!${TC}) ------${NC}"
         cd ${install_directory}
-        clean_all &>/dev/null
+        delete_build &>/dev/null
         install_fits_support "ON"
-        install_polaris "ON" "release"
+        install_polaris "ON" "Release"
         if [ -d "tools" ]; then
             cd "tools"
             if python -c "import polaris_tools_modules" &>/dev/null; then
@@ -321,9 +304,9 @@ while getopts "hrducxD" opt; do
     d)
         echo -e "${TC}------ clean and compile POLARIS (${RED}debug mode!${TC}) ------${NC}"
         cd ${install_directory}
-        clean_all &>/dev/null
+        delete_build &>/dev/null
         install_fits_support "ON"
-        install_polaris "ON" "debug"
+        install_polaris "ON" "Debug"
         if [ -d "tools" ]; then
             cd "tools"
             if python -c "import polaris_tools_modules" &>/dev/null; then
@@ -342,7 +325,7 @@ while getopts "hrducxD" opt; do
             mkdir "build"
         fi
         cd "build"
-        cmake ..
+        cmake .. -DBUILD_SHARED_LIBS="ON" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_CXX_FLAGS="-fopenmp"
         make && make install
         cd ${install_directory}
         if [ -d "tools" ]; then
@@ -357,9 +340,9 @@ while getopts "hrducxD" opt; do
     c)
         echo -e "${TC}------ create pre-compiled POLARIS ------${NC}"
         cd ${install_directory}
-        clean_all &>/dev/null
+        delete_build &>/dev/null
         install_fits_support "OFF"
-        install_polaris "OFF" "release"
+        install_polaris "OFF" "Release"
         if [ -d "tools" ]; then
             cd "tools"
             if python -c "import polaris_tools_modules" &>/dev/null; then
@@ -369,21 +352,17 @@ while getopts "hrducxD" opt; do
         fi
         exit
         ;;
-    x)
-        delete_build
-        exit
-        ;;
     D)
-        printf '%s\n' "Do you really want to delete your POLARIS installation [y/N]?"
+        printf "%s\n" "Do you really want to delete your POLARIS installation [y/N]?"
         read really_delete
         case ${really_delete:=n} in
         [yY]*)
             echo -e "${TC}------ delete POLARIS ------${NC}"
-            export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
+            export_str="export PATH=\"${install_directory}/bin:""$PATH""\""
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi
-            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
+            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:""${LD_LIBRARY_PATH}""\""
 
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
@@ -421,7 +400,7 @@ fi
 
 # Ask for additional features
 echo -e "${PC}--- Additional features ---${NC}"
-printf '%s\n' "Do you want to enable PolarisTools [y/N]? (Python scripts collection)"
+printf "%s\n" "Do you want to enable PolarisTools [y/N]? (Python scripts collection)"
 read install_tools
 case ${install_tools:=n} in
 [yY]*)
@@ -436,8 +415,8 @@ esac
 if ${install_directory}/bin/polaris >/dev/null; then
     echo -e "POLARIS binary found and can be executed (use -r to recompile) [${GREEN}done${NC}]"
 else
-    install_fits_support
-    install_polaris 'OFF'
+    install_fits_support "ON"
+    install_polaris "ON" "Release"
 fi
 
 # install PolarisTools
