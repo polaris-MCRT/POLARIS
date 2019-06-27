@@ -1200,7 +1200,7 @@ class FileIO:
                 20 * stddev_px), y_size=int(20 * stddev_px))
         # Only convolve quantities related to a flux
         if 'dust' in self.parse_args.simulation_type:
-            quantity_list = [0, 1, 2, 3, 4, 5]
+            quantity_list = [0, 1, 2, 3, 4]
             if self.parse_args.simulation_type in ['dust_mc', 'dust_full']:
                 quantity_list.extend([6, 7])
             for i_quantity in quantity_list:
@@ -1208,21 +1208,20 @@ class FileIO:
                     for i_wl in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_wl, ...] = smoothing(tbldata[i_quantity, i_wl, ...], verbose=False,
                                                                    fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
-                        # P is not flux / beam but should be convolved
-                        if i_quantity != 5 and self.cmap_unit == 'beam':
+                        # P_l is not flux / beam but should be convolved
+                        if self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * \
                                 (self.beam_size / 2.) ** 2
                 else:
                     for i_wl in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_wl, ...] = convolve(
-                            tbldata[i_quantity, i_wl, ...], gauss,
-                            mask=tbldata[0, i_wl, ...] == 0)
-                        # P is not flux / beam but should be convolved
-                        if i_quantity != 5 and self.cmap_unit == 'beam':
+                            tbldata[i_quantity, i_wl, ...], gauss)
+                        # P_l is not flux / beam but should be convolved
+                        if self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_wl, ...] *= np.pi * \
                                 (self.beam_size / 2.) ** 2
                         # Due to FFT, some values are negativ but very small. Make them positive again
-                        if i_quantity in [0, 4, 5, 6, 7]:
+                        if i_quantity in [0, 4, 6, 7]:
                             tbldata[i_quantity, i_wl, ...] = np.absolute(
                                 tbldata[i_quantity, i_wl, ...])
             # Set the vector field size to match nearly with the beam size
@@ -1232,15 +1231,14 @@ class FileIO:
                 if plot_data_type == 'healpix':
                     tbldata[i_quantity, ...] = smoothing(tbldata[i_quantity, ...], verbose=False,
                                                          fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
-                    # P is not flux / beam but should be convolved
+                    # P_l is not flux / beam but should be convolved
                     if i_quantity != 4:
                         tbldata[i_quantity, ...] *= np.pi * \
                             (self.beam_size / 2.) ** 2
                 else:
                     tbldata[i_quantity, ...] = convolve(
-                        tbldata[i_quantity, ...], gauss,
-                        mask=tbldata[0, ...] == 0)
-                    # P is not flux / beam but should be convolved
+                        tbldata[i_quantity, ...], gauss)
+                    # P_l is not flux / beam but should be convolved
                     if i_quantity != 4 and self.cmap_unit == 'beam':
                         tbldata[i_quantity, ...] *= np.pi * \
                             (self.beam_size / 2.) ** 2
@@ -1254,16 +1252,15 @@ class FileIO:
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = smoothing(tbldata[i_quantity, i_channel, ...],
                                                                         verbose=False, fwhm=self.math.angle_conv(self.beam_size, 'arcsec'))
-                        # P is not flux / beam but should be convolved
+                        # P_l is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, i_channel, ...] *= np.pi * \
                                 (self.beam_size / 2.) ** 2
                 else:
                     for i_channel in range(np.size(tbldata, 1)):
                         tbldata[i_quantity, i_channel, ...] = convolve(
-                            tbldata[i_quantity, i_channel, ...], gauss,
-                            mask=tbldata[0, i_channel, ...] == 0)
-                        # P is not flux / beam but should be convolved
+                            tbldata[i_quantity, i_channel, ...], gauss)
+                        # P_l is not flux / beam but should be convolved
                         if i_quantity != 4 and self.cmap_unit == 'beam':
                             tbldata[i_quantity, ...] *= np.pi * \
                                 (self.beam_size / 2.) ** 2

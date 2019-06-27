@@ -411,10 +411,9 @@ class Math:
         else:
             mean_value = (np.max(tbldata) + np.min(tbldata)) / 2.
         if np.mean(tbldata) >= mean_value:
-            vec_color = colormap(0)
+            return colormap(0), colormap(256)
         else:
-            vec_color = colormap(256)
-        return vec_color
+            return colormap(256), colormap(0)
 
     def flux_2_mag(self, flux, filter_system='V'):
         """Calculates the magnitude of a given flux in a given filter system.

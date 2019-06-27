@@ -323,7 +323,7 @@ class CustomPlots:
             # For PI and P, plot polarization vectors
             vec_field_data = self.file_io.read_polarization_vectors(
                 raytrace_data)
-            vector_color = self.math.get_vector_color(
+            vector_color, _ = self.math.get_vector_color(
                 tbldata_list[i_phi, :, :], log=self.parse_args.log)
             plot.plot_quiver(vec_field_data, color=vector_color,
                              vmin=vmin, vmax=vmax)
@@ -1302,11 +1302,12 @@ class CustomPlots:
                 vec_field_data = self.file_io.read_polarization_vectors(plot_data[:, i_wl, :, :], 
                     min_intensity=np.nanmax(plot_data[0, i_wl, :, :]) * 1e-5)
                 if vec_field_data is not None:
-                    vector_color = self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
+                    vector_color, vector_color_opposite = \
+                        self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
                         cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                     plot.plot_quiver(vec_field_data, color=vector_color)
                     plot.plot_pol_vector_text(vec_per_width=len(vec_field_data[:, 0, 0]),
-                        color=vector_color, round_lvl=1,
+                        color=vector_color, bg_color=vector_color_opposite, round_lvl=1,
                         max_pol_degree=float(np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2))))
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
