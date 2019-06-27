@@ -5,15 +5,16 @@ function missing_file () {
     exit
 }
 
-for files in 'CCfits.tar.gz' \
-            'cfitsio.tar.gz' \
+rm -rv /tmp/polaris
+
+for files in 'lib/CCfits.tar.gz' \
+            'lib/cfitsio.tar.gz' \
             'examples.tar.xz' \
             'AUTHORS' \
             'COPYING' \
             'ChangeLog' \
             'INSTALL' \
             'README' \
-            'CMakeLists.txt' \
             'NEWS' \
             'manual.pdf' \
             'install_polaris.sh' \
@@ -40,15 +41,14 @@ done
 mkdir /tmp/polaris
 
 cp -rv --parents \
-    CCfits.tar.gz \
-    cfitsio.tar.gz \
+    lib/CCfits.tar.gz \
+    lib/cfitsio.tar.gz \
     examples.tar.xz \
     AUTHORS \
     COPYING \
     ChangeLog \
     INSTALL \
     README \
-    CMakeLists.txt \
     NEWS \
     manual.pdf \
     install_polaris.sh \
