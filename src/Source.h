@@ -132,7 +132,7 @@ class CSourceBasic
     virtual void createNextRay(photon_package * pp, ullong i_pos)
     {}
 
-    virtual void createDirectRay(photon_package * pp, Vector3D dir_obs)
+    virtual void createDirectRay(photon_package * pp, Vector3D dir_obs = Vector3D())
     {}
 
     virtual ullong getNrOfPhotons()

@@ -2359,6 +2359,9 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
         // Init photon package
         pp->initMultiStokesVector(nr_used_wavelengths);
 
+        // Get position of source
+        Vector3D source_pos = sources_mc[s]->getPosition();
+
         // Update Stokes vectors with emission from background source
         for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
         {
@@ -2373,14 +2376,11 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
             // Set wavelength index in photon package
             pp->setWavelengthID(wID);
 
-            // Get position of source
-            Vector3D source_pos = sources_mc[s]->getPosition();
-
             // Set direction of the photon package to the observer
             tracer[i_det]->preparePhotonWithPosition(pp, source_pos, i_pix);
 
             // Launch photon package
-            sources_mc[s]->createDirectRay(pp, pp->getDirection());
+            sources_mc[s]->createDirectRay(pp);
 
             // Consider the distance to the source
             WMap.setS(pp->getStokesVector(), i_wave);

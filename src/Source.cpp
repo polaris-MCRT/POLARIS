@@ -244,11 +244,14 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
     }
 
     // Set direction of the photon package to the observer
-    pp->setDirection(dir_obs);
+    if(dir_obs.length() > 0)
+    {
+        pp->setDirection(dir_obs);
+        pp->initCoordSystem();
+    }
 
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
-    pp->initCoordSystem();
 }
 
 bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
@@ -483,11 +486,14 @@ void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
     }
 
     // Set direction of the photon package to the observer
-    pp->setDirection(dir_obs);
+    if(dir_obs.length() > 0)
+    {
+        pp->setDirection(dir_obs);
+        pp->initCoordSystem();
+    }
 
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
-    pp->initCoordSystem();
 }
 
 bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
@@ -940,10 +946,12 @@ void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
     l.setY(e.Y() * sqrt(3) * radius * grid->getMaxLength() / 2);
     l.setZ(e.Z() * sqrt(3) * radius * grid->getMaxLength() / 2);
 
-    pp->calcRandomDirection();
-    while(pp->getDirection() * e >= 0)
-        pp->calcRandomDirection();
-    pp->initCoordSystem();
+    // Set direction of the photon package to the observer
+    if(dir_obs.length() > 0)
+    {
+        pp->setDirection(dir_obs);
+        pp->initCoordSystem();
+    }
 
     pos.set(l.X(), l.Y(), l.Z());
 
@@ -1147,10 +1155,11 @@ void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));
 
     // Set direction of the photon package to the observer
-    pp->setDirection(dir_obs);
-
-    // Init coordinate System for scattering
-    pp->initCoordSystem();
+    if(dir_obs.length() > 0)
+    {
+        pp->setDirection(dir_obs);
+        pp->initCoordSystem();
+    }
 }
 
 bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
@@ -1247,5 +1256,10 @@ void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
     }
 
     pp->setStokesVector(tmp_stokes_vector);
-    pp->initCoordSystem();
+
+    // Set direction of the photon package to the observer
+    if(dir_obs.length() > 0)
+    {
+        pp->initCoordSystem();
+    }
 }
