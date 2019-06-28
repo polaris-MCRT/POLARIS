@@ -181,13 +181,13 @@ class GGTauStars(StellarSource):
             (np.cos(rot_angle_2 / 180 * np.pi) / np.cos(37 / 180 * np.pi))**2 +
             np.sin(rot_angle_2 / 180 * np.pi)**2)
         self.a_Ab12 = 5. / 2.
-        self.a_planet = 256.  # 260. + 20.
-
         # Cite: position angle (Di Folco et al. 1999)
         self.angle_Aa = 3. / 2. * np.pi
         self.angle_Ab = self.angle_Aa + np.pi
+
         # Cite: position of planet (Dutrey et al. 2014)
-        self.angle_planet = np.pi * (-144. + 25.) / 180.  # (- 127. - 25.)
+        self.a_planet = np.array([220., 256., 304.])  # 260. + 20.
+        self.angle_planet = (np.array([212, 216, 222]) - 25) * np.pi / 180.
 
         self.potential_planet = None
 
@@ -237,11 +237,12 @@ class GGTauStars(StellarSource):
             self.parameter['position'] = self.tmp_parameter['position_star'][i_comp]
             new_command_line += self.get_command_line()
         if self.potential_planet in self.T_planet.keys():
-            self.parameter['temperature'] = self.T_planet[self.potential_planet]
-            self.parameter['luminosity'] = self.L_planet[self.potential_planet]
-            self.parameter['position'] = [self.a_planet * self.math.const['au'] * np.cos(self.angle_planet),
-                                          self.a_planet * self.math.const['au'] * np.sin(self.angle_planet), 0.]
-            new_command_line += self.get_command_line()
+            for i_pl in range(len(self.a_planet)):
+                self.parameter['temperature'] = self.T_planet[self.potential_planet]
+                self.parameter['luminosity'] = self.L_planet[self.potential_planet]
+                self.parameter['position'] = [self.a_planet[i_pl] * self.math.const['au'] * np.sin(self.angle_planet[i_pl]),
+                                              self.a_planet[i_pl] * self.math.const['au'] * np.cos(self.angle_planet[i_pl]), 0.]
+                new_command_line += self.get_command_line()
         return new_command_line
 
 
