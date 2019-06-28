@@ -101,7 +101,7 @@ function install_fits_support() {
         }
     cd ${install_directory}
 
-    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'\""
+    export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
     if ! grep -q "${export_str}" ${HOME}/.bashrc; then
         echo "${export_str}" >>${HOME}/.bashrc
         echo -e "- Updating bashrc [${GREEN}done${NC}]"
@@ -183,7 +183,7 @@ function install_polaris_tools() {
     echo -ne "Checking for Python installation ...${NC}"\\r
     python_version="$(python -V 2>&1)"
     if [ "${python_version:7:1}" -lt 3 ] || [ "${python_version:9:1}" -lt 5 ]; then
-        echo -e "${RED}Error:${NC} No python 3.5 installation found!"
+        echo -e "${RED}Error:${NC} No python >= 3.5 installation found!"
         printf "%s\n" "Do you want to install anaconda python package? [Y/n] "
         read install_anaconda_ans
         case ${install_anaconda_ans:=y} in
@@ -249,7 +249,7 @@ function install_polaris() {
             exit
         }
 
-    export_str="export PATH=\"${install_directory}/bin:"'$PATH'\"" >=
+    export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
@@ -362,7 +362,7 @@ while getopts "hrducD" opt; do
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
             fi
-            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'\""
+            export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
 
             if grep -q "${export_str}" ${HOME}/.bashrc; then
                 sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
