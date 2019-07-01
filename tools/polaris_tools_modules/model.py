@@ -292,13 +292,16 @@ class Sphere(Model):
         """Use this function to set model parameter with the extra parameters and update 
         model parameter that depend on other parameter.
         """
-        if len(extra_parameter) == 1:
-            if extra_parameter[0] == 'toroidal_mag_field':
-                self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
-                print('HINT: The toroidal magnetic field is used (change with --extra)!')
-            elif extra_parameter[0] == 'vertical_mag_field':
-                self.tmp_parameter['mag_field_geometrie'] = 'vertical'
-                print('HINT: The vertical magnetic field is used (change with --extra)!')
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                if extra_parameter[0] == 'toroidal_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
+                    print(
+                        'HINT: The toroidal magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'vertical_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'vertical'
+                    print(
+                        'HINT: The vertical magnetic field is used (change with --extra)!')
 
 
 class BokGlobule(Model):
