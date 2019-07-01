@@ -247,6 +247,9 @@ class Plot:
             language (str): Language for decimal separation.
         """
         preamble = mpl.rcParams['text.latex.preamble']
+        # Make preamble a list if it is not
+        if isinstance(preamble, str):
+            preamble = [preamble]
         if language == 'english':
             locale.setlocale(locale.LC_NUMERIC, "en_US.UTF-8")
             preamble.append(r'\sisetup{locale=US}')
