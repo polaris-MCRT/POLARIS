@@ -13,40 +13,12 @@ from polaris_tools_modules.base import BGSource
 def update_bg_source_dict(dictionary):
     bg_source_dict = {
         'custom': CustomBGsource,
-        'bg_pol_plane': BackgroundPlanePol,
     }
     dictionary.update(bg_source_dict)
 
 
 class CustomBGsource(BGSource):
     """Change this to the background source you want to use.
-    """
-
-    def __init__(self, file_io, parse_args):
-        """Initialisation of the background source parameters.
-
-        Args:
-            file_io : Handles file input/output and all
-                necessary paths.
-        """
-
-        BGSource.__init__(self, file_io, parse_args)
-
-        #: dict: Parameters which are different to the default values
-        bg_source_parameter = {
-            'A': 1.0e-3,
-            'T': 1000.,
-            'Q': 1.,
-            'U': 0.,
-            'V': 0.,
-        }
-
-        # Updates the parameter dictionary
-        self.parameter.update(bg_source_parameter)
-
-
-class BackgroundPlanePol(BGSource):
-    """The BackgroundPlane class is a radiating plane behind the model space with polarization.
     """
 
     def __init__(self, file_io, parse_args):
