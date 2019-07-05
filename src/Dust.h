@@ -3020,8 +3020,8 @@ class CDustMixture
         dust_matrix.setValue(1, 0, Cpol * cos_2ph);
         dust_matrix.setValue(2, 0, Cpol * sin_2ph);
 
-        dust_matrix.setValue(1, 3, -Ccirc * sin_2ph);
-        dust_matrix.setValue(2, 3, Ccirc * cos_2ph);
+        dust_matrix.setValue(1, 3, Ccirc * sin_2ph);
+        dust_matrix.setValue(2, 3, -Ccirc * cos_2ph);
 
         dust_matrix.setValue(3, 1, -Ccirc * sin_2ph);
         dust_matrix.setValue(3, 2, Ccirc * cos_2ph);
