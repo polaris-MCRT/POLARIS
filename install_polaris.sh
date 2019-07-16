@@ -53,22 +53,22 @@ function install_fits_support() {
         tar -xf cfitsio.tar.gz
     fi
     cd "cfitsio"
-    echo -ne "- Configuring cfitsio ... "\\r
+    echo -ne "- Configure cfitsio ... "\\r
     if [ ! -d "build" ]; then
         mkdir "build"
     fi
     cd "build"
     cmake .. -DBUILD_SHARED_LIBS=$1 >/dev/null 2>&1 &&
-        echo -e "- Configuring cfitsio [${GREEN}done${NC}]" ||
+        echo -e "- Configure cfitsio [${GREEN}done${NC}]" ||
         {
-            echo -e "- Configuring cfitsio [${RED}Error${NC}]"
+            echo -e "- Configure cfitsio [${RED}Error${NC}]"
             exit
         }
-    echo -ne "- Compiling cfitsio ... "\\r
+    echo -ne "- Compile cfitsio ... "\\r
     make >/dev/null 2>&1 &&
-        echo -e "- Compiling cfitsio [${GREEN}done${NC}]" ||
+        echo -e "- Compile cfitsio [${GREEN}done${NC}]" ||
         {
-            echo -e "- Compiling cfitsio [${RED}Error${NC}]"
+            echo -e "- Compile cfitsio [${RED}Error${NC}]"
             exit
         }
     cd ../..
@@ -81,22 +81,22 @@ function install_fits_support() {
         tar -xf CCfits.tar.gz
     fi
     cd "CCfits"
-    echo -ne "- Configuring CCfits ... "\\r
+    echo -ne "- Configure CCfits ... "\\r
     if [ ! -d "build" ]; then
         mkdir "build"
     fi
     cd "build"
     cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_PREFIX_PATH="${install_directory}/lib/cfitsio" >/dev/null 2>&1 &&
-        echo -e "- Configuring CCfits [${GREEN}done${NC}]" ||
+        echo -e "- Configure CCfits [${GREEN}done${NC}]" ||
         {
-            echo -e "- Configuring CCfits [${RED}Error${NC}]"
+            echo -e "- Configure CCfits [${RED}Error${NC}]"
             exit
         }
-    echo -ne "- Compiling CCfits ... "\\r
+    echo -ne "- Compile CCfits ... "\\r
     make >/dev/null 2>&1 &&
-        echo -e "- Compiling CCfits [${GREEN}done${NC}]" ||
+        echo -e "- Compile CCfits [${GREEN}done${NC}]" ||
         {
-            echo -e "- Compiling CCfits [${RED}Error${NC}]"
+            echo -e "- Compile CCfits [${RED}Error${NC}]"
             exit
         }
     cd ${install_directory}
@@ -104,13 +104,13 @@ function install_fits_support() {
     export_str="export LD_LIBRARY_PATH=\"${install_directory}/lib/CCfits/build:${install_directory}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
     if ! grep -q "${export_str}" ${HOME}/.bashrc; then
         echo "${export_str}" >>${HOME}/.bashrc
-        echo -e "- Updating bashrc [${GREEN}done${NC}]"
+        echo -e "- Update bashrc [${GREEN}done${NC}]"
     fi
     source ~/.bashrc
 }
 
 function check_python_packages() {
-    echo -e "Looking for required Python packages"
+    echo -e "Search for required Python packages"
     for package_name in numpy scipy matplotlib astropy os array struct argparse; do
         if ! python -c "import ${package_name}" &>/dev/null; then
             echo -e "- Required python package ${package_name} [${RED}not found${NC}]"
@@ -180,7 +180,7 @@ function install_anaconda() {
 
 function install_polaris_tools() {
     # Check for installation of python
-    echo -ne "Checking for Python installation ...${NC}"\\r
+    echo -ne "Check for Python installation ...${NC}"\\r
     python_version="$(python -V 2>&1)"
     if [ "${python_version:7:1}" -lt 3 ] || [ "${python_version:9:1}" -lt 5 ]; then
         echo -e "${RED}Error:${NC} No python >= 3.5 installation found!"
@@ -193,7 +193,7 @@ function install_polaris_tools() {
                 exit
             fi
             install_anaconda
-            echo -e "Checking for Python installation [${GREEN}found${NC}]"
+            echo -e "Check for Python installation [${GREEN}found${NC}]"
             check_python_packages
             ;;
 
@@ -203,7 +203,7 @@ function install_polaris_tools() {
         esac
         python_installed=false
     else
-        echo -e "Checking for Python installation [${GREEN}found${NC}]"
+        echo -e "Check for Python installation [${GREEN}found${NC}]"
         python_installed=true
         check_python_packages
     fi
@@ -211,9 +211,9 @@ function install_polaris_tools() {
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
-        echo -ne "Updating bashrc ..."\\r
+        echo -ne "Update bashrc ..."\\r
         echo "${export_str}" >>${HOME}/.bashrc
-        echo -e "Updating bashrc [${GREEN}done${NC}]"
+        echo -e "Update bashrc [${GREEN}done${NC}]"
     fi
 }
 
@@ -227,35 +227,37 @@ function install_polaris() {
         mkdir "build"
     fi
     cd "build"
-    echo -ne "Configuring POLARIS ... "\\r
+    echo -ne "Configure POLARIS ... "\\r
     cmake .. -DBUILD_SHARED_LIBS=$1 -DCMAKE_BUILD_TYPE=$2 -DCMAKE_CXX_FLAGS="-fopenmp" >/dev/null 2>&1 &&
-        echo -e "Configuring POLARIS [${GREEN}done${NC}]" ||
+        echo -e "Configure POLARIS [${GREEN}done${NC}]" ||
         {
-            echo -e "Configuring POLARIS [${RED}Error${NC}]"
+            echo -e "Configure POLARIS [${RED}Error${NC}]"
             exit
         }
-    echo -ne "Compiling POLARIS ... "\\r
+    echo -ne "Compile POLARIS ... "\\r
     make >/dev/null 2>&1 &&
-        echo -e "Compiling POLARIS [${GREEN}done${NC}]" ||
+        echo -e "Compile POLARIS [${GREEN}done${NC}]" ||
         {
-            echo -e "Compiling POLARIS [${RED}Error${NC}]"
+            echo -e "Compile POLARIS [${RED}Error${NC}]"
             exit
         }
-    echo -ne "Installing POLARIS ... "\\r
+    echo -ne "Install POLARIS ... "\\r
     make install >/dev/null 2>&1 &&
-        echo -e "Installing POLARIS [${GREEN}done${NC}]" ||
+        echo -e "Install POLARIS [${GREEN}done${NC}]" ||
         {
-            echo -e "Installing POLARIS [${RED}Error${NC}]"
+            echo -e "Install POLARIS [${RED}Error${NC}]"
             exit
         }
+
+    cd ${install_directory}
 
     export_str="export PATH=\"${install_directory}/bin:"'$PATH'"\""
     if grep -q "${export_str}" ${HOME}/.bashrc; then
         true
     else
-        echo -ne "Updating bashrc ..."\\r
+        echo -ne "Update bashrc ..."\\r
         echo "${export_str}" >>${HOME}/.bashrc
-        echo -e "Updating bashrc [${GREEN}done${NC}]"
+        echo -e "Update bashrc [${GREEN}done${NC}]"
     fi
 }
 
@@ -423,12 +425,12 @@ fi
 if [ "${polaris_tools}" == true ]; then
     echo -e "${PC}--- Install PolarisTools ---${NC}"
     install_polaris_tools
-    echo -ne "Setting up PolarisTools ... "\\r
+    echo -ne "Set up PolarisTools ... "\\r
     cd "tools/"
     # Check symbolic link under ~/.local/lib and remove it if necessary
     python setup.py install --user >/dev/null 2>&1 ||
         {
-            echo -e "Setting up PolarisTools [${RED}Error${NC}]"
+            echo -e "Set up PolarisTools [${RED}Error${NC}]"
             exit
         }
 fi
