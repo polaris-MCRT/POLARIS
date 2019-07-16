@@ -358,7 +358,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
         }
 
         // Check for a valid combination between densities and dust mixtures
-        if(nr_densities > 1 && nr_mixtures != nr_densities)
+        if(nr_densities > 1 && nr_mixtures < nr_densities)
         {
             cout << "\nERROR: Amount of densities in the grid (" << nr_densities
                  << ") does not fit with the defined dust mixtures (" << nr_mixtures << ")!\n"
