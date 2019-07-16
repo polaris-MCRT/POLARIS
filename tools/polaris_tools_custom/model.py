@@ -520,14 +520,14 @@ class GGTauDisk(Model):
         # ----------------------------------
         # ---- Init dust layers profile ----
         # ----------------------------------
-        from scipy import interpolate
-        self.layer_function = dict()
-        wl_list = ['800', '1250', '1650', '3800', '7700']
-        for wl in wl_list:
-            data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
-                'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
-            self.layer_function[wl] = interpolate.interp1d(
-                data[0,:], data[1,:], fill_value="extrapolate")
+        #from scipy import interpolate
+        #self.layer_function = dict()
+        #wl_list = ['800', '1250', '1650', '3800', '7700']
+        #for wl in wl_list:
+        #    data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
+        #        'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
+        #    self.layer_function[wl] = interpolate.interp1d(
+        #        data[0,:], data[1,:], fill_value="extrapolate")
  
 
     def update_parameter(self, extra_parameter):
@@ -759,6 +759,7 @@ class GGTauDisk(Model):
             int: dust ID.
         """
         # Calculate cylindrical radius
+        '''
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
             if abs(self.position[2]) > self.layer_function['800'](radius_cy):
@@ -774,7 +775,8 @@ class GGTauDisk(Model):
             else:
                 dust_id = 6
         else:
-            dust_id = 0
+        '''
+        dust_id = 0
         return dust_id
 
     def scale_height(self, radius):

@@ -166,7 +166,7 @@ class MultiSilicate(Dust):
         Returns:
             str: Command line to consider the MRN dust composition.
         """
-        amax_list = [1e-6, 1e-3]
+        amax_list = [1e-6, 2.5e-6]
         new_command_line = str()
         for i in range(len(amax_list)):
             self.parameter['amin'] = 5e-9

@@ -4876,8 +4876,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
     cout << SEP_LINE;
 
     // Show the full wavelength grid for temo and RAT calculation
-    if(param.isMonteCarloSimulation() ||
-       (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0))
+    if(param.isMonteCarloSimulation())
         cout << "- Number of wavelengths   : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX
              << " [m])" << endl;
 
