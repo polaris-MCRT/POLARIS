@@ -203,7 +203,8 @@ class MultiMRN(Dust):
             str: Command line to consider the MRN dust composition.
         """
         # amax_list = [0.25e-6, 2.5e-6]  # [0.25e-6, 0.5e-6]
-        amax_list = [2.5e-07, 0.3e-6, 0.4e-6, 0.5e-6, 2.0e-6, 3.5e-6, 300e-6]
+        #amax_list = [2.5e-07, 0.3e-6, 0.4e-6, 0.5e-6, 2.0e-6, 3.5e-6, 300e-6]
+        amax_list = [1e-6, 2.5e-6]
         new_command_line = str()
         for i in range(len(amax_list)):
             dust = self.dust_chooser.get_module_from_name('silicate')
