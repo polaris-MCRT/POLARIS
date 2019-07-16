@@ -16,6 +16,7 @@ def update_dust_dict(dictionary):
         'multi_sil': MultiSilicate,
         'multi_mrn': MultiMRN,
         'multi_themis': MultiThemis,
+        'themis_sil': ThemisLargeSilicate,
         'olivine': Olivine,
         'silicate_pah': SilicatePAH,
         'olivine_pah': OlivinePAH,
@@ -278,6 +279,61 @@ class MultiThemis(Dust):
         dust = self.dust_chooser.get_module_from_name('CM20_1')
         dust.parameter['fraction'] = 1.0
         dust.parameter['choice_id'] = self.choice_id[1]
+        new_command_line += dust.get_command_line()
+        return new_command_line
+
+
+class ThemisLargeSilicate(Dust):
+    """Dust class for themis dust grains plus larger silicates.
+    """
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Note:
+            Link: https://www.ias.u-psud.fr/themis/
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        #: dict: Parameters which are different to the default values
+        self.parameter['scattering'] = 'HG'
+        self.parameter['material_density'] = 0
+        # Set the name of one component to allow print of sizes and wavelengths
+        self.parameter['dust_cat_file'] = 'CM20.dat'
+
+    def get_command(self):
+        """Provides dust composition command line for POLARIS .cmd file.
+
+        Returns:
+            str: Command line to consider the MRN dust composition.
+        """
+        new_command_line = str()
+        # First dust choice is the full themis model
+        dust = self.dust_chooser.get_module_from_name('CM20')
+        dust.parameter['choice_id'] = 0
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('CM20')
+        dust.parameter['material_density'] = 1570
+        dust.parameter['size_keyword'] = 'logn'
+        dust.parameter['size_parameter'] = [7e-9, 1.0]
+        dust.parameter['amin'] = 0.5e-9
+        dust.parameter['choice_id'] = 1
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('aPyM5')
+        dust.parameter['choice_id'] = 2
+        new_command_line += dust.get_command_line()
+        dust = self.dust_chooser.get_module_from_name('aOlM5')
+        dust.parameter['choice_id'] = 3
+        new_command_line += dust.get_command_line()
+        # Adding larger silicates to the THEMIS model
+        dust = self.dust_chooser.get_module_from_name('silicate')
+        dust.parameter['amin'] = 10e-6
+        dust.parameter['amax'] = 1e-3
+        dust.parameter['choice_id'] = 4
         new_command_line += dust.get_command_line()
         return new_command_line
 

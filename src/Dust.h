@@ -1286,7 +1286,7 @@ class CDustComponent
         }
         else
         {
-            cout << "\nERROR: Minimum grain size must be smaller than" << a_eff[nr_of_dust_species - 1]
+            cout << "\nERROR: Minimum grain size must be smaller than " << a_eff[nr_of_dust_species - 1]
                  << "!        " << endl;
             return false;
         }

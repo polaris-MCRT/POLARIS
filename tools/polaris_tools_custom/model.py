@@ -1167,6 +1167,9 @@ class ThemisDisk(Model):
                 elif self.parameter['model_number'] == 7:
                     self.parameter['gas_mass'] = np.array(
                         [[0.17e-3], [0.63e-3], [0.255e-2], [0.255e-2]])
+                elif self.parameter['model_number'] == 10:
+                    self.parameter['gas_mass'] = np.array(
+                        [[0.17e-3], [0.63e-4], [0.255e-3], [0.255e-3], [0.743e-3]])
                 self.parameter['mass_fraction'] = np.sum(
                     self.parameter['gas_mass'])
                 print('--mass_fraction', self.parameter['mass_fraction'])
@@ -1213,6 +1216,8 @@ class ThemisDisk(Model):
             # Set density of larger grains to zero to create a gap
             if r_min * self.math.const['au'] <= radius_cy <= r_max * self.math.const['au']:
                 density_list[:, 0] = 0.
+        elif self.parameter['model_number'] == 10:
+            density_list = np.ones((5, 1)) * gas_density
         return density_list
 
     def scale_height(self, radius):
