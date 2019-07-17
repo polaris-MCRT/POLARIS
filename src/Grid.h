@@ -1202,7 +1202,7 @@ class CGridBasic
     {
         if(data_pos_dt_list.size() == 1)
             return cell->getData(data_pos_dt_list[0]);
-        else if(data_pos_dt_list.size() > 1)
+        else if(data_pos_dt_list.size() > i_density)
             return cell->getData(data_pos_dt_list[i_density]);
         else
             return 0;
@@ -1259,10 +1259,12 @@ class CGridBasic
 
     double getAlignedRadius(cell_basic * cell, uint i_density)
     {
-        if(data_pos_aalg_list.size() > 1)
+        if(data_pos_aalg_list.size() == 1)
+            return cell->getData(data_pos_aalg_list[0]);
+        else if(data_pos_aalg_list.size() > i_density)
             return cell->getData(data_pos_aalg_list[i_density]);
         else
-            return cell->getData(data_pos_aalg_list[0]);
+            return 0;
     }
 
     double getAlignedRadius(photon_package * pp, uint i_density)
@@ -1641,10 +1643,9 @@ class CGridBasic
 
     double getDustTemperature(cell_basic * cell, uint i_density)
     {
-
         if(data_pos_dt_list.size() == 1)
             return cell->getData(data_pos_dt_list[0]);
-        else if(data_pos_dt_list.size() > 1)
+        else if(data_pos_dt_list.size() > i_density)
             return cell->getData(data_pos_dt_list[i_density]);
         else
             return 0;
@@ -2105,7 +2106,7 @@ class CGridBasic
 
     inline double getGasDensity(cell_basic * cell, uint i_density)
     {
-        if(!data_pos_gd_list.empty())
+        if(data_pos_gd_list.size() > i_density)
             return cell->getData(data_pos_gd_list[i_density]);
         else
             return 0;
@@ -2135,7 +2136,9 @@ class CGridBasic
 
     inline double getGasNumberDensity(cell_basic * cell, uint i_density)
     {
-        double dens = cell->getData(data_pos_gd_list[i_density]);
+        double dens = 0;
+        if(data_pos_gd_list.size() > i_density)
+            dens = cell->getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
             dens /= (mu * m_H);
         return dens;
@@ -2165,7 +2168,9 @@ class CGridBasic
 
     inline double getGasMassDensity(cell_basic * cell, uint i_density)
     {
-        double dens = cell->getData(data_pos_gd_list[i_density]);
+        double dens = 0;
+        if(data_pos_gd_list.size() > i_density)
+            dens = cell->getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
             dens *= (mu * m_H);
         return dens;
@@ -2249,7 +2254,7 @@ class CGridBasic
 
     double getDustDensity(cell_basic * cell, uint i_density)
     {
-        if(!data_pos_dd_list.empty())
+        if(data_pos_dd_list.size() > i_density)
             return cell->getData(data_pos_dd_list[i_density]);
         else
             return 0;
