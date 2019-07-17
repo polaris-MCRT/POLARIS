@@ -1106,7 +1106,7 @@ class ThemisDisk(Model):
         Model.__init__(self)
 
         #: Set parameters of the disk model
-        self.parameter['distance'] = 109.0 * self.math.const['pc']
+        self.parameter['distance'] = 110.0 * self.math.const['pc']
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.2 * self.math.const['au']
         self.parameter['outer_radius'] = 350. * self.math.const['au']
@@ -1126,8 +1126,10 @@ class ThemisDisk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 1.625
-        self.parameter['beta'] = 1.125
+        #self.parameter['alpha'] = 1.625
+        #self.parameter['beta'] = 1.125
+        self.parameter['alpha'] = 2.357
+        self.parameter['beta'] = 1.286
         # Init new parameter
         self.parameter['model_number'] = 0
 
