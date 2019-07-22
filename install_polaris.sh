@@ -58,7 +58,7 @@ function install_fits_support() {
         mkdir "build"
     fi
     cd "build"
-    cmake .. -DBUILD_SHARED_LIBS=$1 >/dev/null 2>&1 &&
+    cmake .. -DBUILD_SHARED_LIBS=$1 -DCURL_LIBRARY=NONE >/dev/null 2>&1 &&
         echo -e "- Configure cfitsio [${GREEN}done${NC}]" ||
         {
             echo -e "- Configure cfitsio [${RED}Error${NC}]"
