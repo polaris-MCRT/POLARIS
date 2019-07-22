@@ -1146,10 +1146,11 @@ bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust, CGrid
 
     // Check if either the radiation field is present or the radiation field can be
     // calculated otherwise, disable scattering added to the raytracing then
-    if(dust->getScatteringToRay() && !grid->getRadiationFieldAvailable() &&
-       param.getNrOfPointSources() == 0 && param.getNrOfDiffuseSources() == 0 &&
-       param.getNrOfLaserSources() == 0 && !param.getISRFSource() && !param.getDustSource())
-        dust->setScatteringToRay(false);
+    dust->getScatteringToRay() && !grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 &&
+            param.getNrOfDiffuseSources() == 0 && param.getNrOfLaserSources() == 0 &&
+            !param.getISRFSource() && !param.getDustSource()
+        ? dust->setScatteringToRay(false)
+        : dust->setScatteringToRay(true);
 
     return true;
 }
