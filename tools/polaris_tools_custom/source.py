@@ -191,7 +191,7 @@ class GGTauStars(StellarSource):
         self.a_planet = np.empty(1)
         self.angle_planet = np.empty(1)
         for i in range(10):
-            self.a_planet = np.append(self.a_planet, 252. + (2 * i - 2))
+            self.a_planet = np.append(self.a_planet, 252. + (2 * i - 20))
             self.angle_planet = np.append(
                 self.angle_planet, (231 - 25) * np.pi / 180.)
 
