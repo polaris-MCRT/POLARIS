@@ -188,8 +188,8 @@ class GGTauStars(StellarSource):
         # Cite: position of planet (Dutrey et al. 2014)
         #self.a_planet = np.array([252.])
         #self.angle_planet = (np.array([231.]) - 25) * np.pi / 180.
-        self.a_planet = np.empty()
-        self.angle_planet = np.empty()
+        self.a_planet = np.empty(1)
+        self.angle_planet = np.empty(1)
         for i in range(10):
             self.a_planet = np.append(self.a_planet, 252. + (2 * i - 2))
             self.angle_planet = np.append(
