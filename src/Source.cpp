@@ -9,6 +9,28 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     cout << CLR_LINE << flush;
     cout << "-> Initiating source star         \r" << flush;
 
+    // Init variables
+    dlist star_emi;
+    double tmp_luminosity, diff_luminosity, max_flux = 0;
+    ullong kill_counter = 0;
+
+    for(uint w = 0; w < getNrOfWavelength(); w++)
+    {
+        double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
+        double sp_energy;
+
+        if(is_ext)
+            sp_energy = sp_ext.getValue(wavelength_list[w]);
+        else
+            sp_energy =
+                4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
+
+        star_emi.push_back(sp_energy);
+    }
+
+    tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+    L = tmp_luminosity;
+
     if(use_energy_density)
     {
         // For using energy density, only the photon number is required
@@ -17,28 +39,6 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     }
     else
     {
-        // Init variables
-        dlist star_emi;
-        double tmp_luminosity, diff_luminosity, max_flux = 0;
-        ullong kill_counter = 0;
-
-        for(uint w = 0; w < getNrOfWavelength(); w++)
-        {
-            double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
-            double sp_energy;
-
-            if(is_ext)
-                sp_energy = sp_ext.getValue(wavelength_list[w]);
-            else
-                sp_energy =
-                    4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
-
-            star_emi.push_back(sp_energy);
-        }
-
-        tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
-        L = tmp_luminosity;
-
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
              << " [L_sun], photons: " << nr_of_photons << endl;
 
