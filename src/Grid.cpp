@@ -1313,9 +1313,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     try
     {
-        string path_out = data_path + "midplane.fits";
+        string path_out = data_path + "midplane" + FITS_COMPRESS_EXT;
         if(midplane_3d_param.size() == 4)
-            path_out = data_path + "midplane_3d.fits";
+            path_out = data_path + "midplane_3d" + FITS_COMPRESS_EXT;
         remove(path_out.c_str());
         pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
     }

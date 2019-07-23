@@ -738,7 +738,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 4;
@@ -958,7 +958,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 3;
@@ -1096,7 +1096,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 1;
@@ -1267,7 +1267,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 4;
@@ -1475,7 +1475,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 1;
@@ -1688,7 +1688,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 3;
@@ -1801,7 +1801,7 @@ class CDetector
                 sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
 #endif
 
-                string path_out = path + str_end + ".fits";
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
                 remove(path_out.c_str());
                 pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
             }
@@ -1990,7 +1990,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2206,7 +2206,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2410,7 +2410,7 @@ class CDetector
                 sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
 #endif
 
-                string path_out = path + str_end + ".fits";
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
                 remove(path_out.c_str());
                 pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
             }
@@ -2538,7 +2538,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2704,7 +2704,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
