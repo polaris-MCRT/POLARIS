@@ -877,11 +877,13 @@ class CustomPlots:
             self.file_io.set_path_from_str(
                 'plot', 'cube', simulation_names[i_mag_field], 'line')
             # Read spectrum data
-            plot_data, header = self.file_io.read_spectrum('line_spectrum_species_0001_line_0001')
+            plot_data, header = self.file_io.read_spectrum(
+                'line_spectrum_species_0001_line_0001')
             velocity = []
             for vch in range(header['nr_channels']):
                 # Get velocity of current channel
-                velocity.append(1e-3 * self.math.get_velocity(vch, header['nr_channels'], header['max_velocity']))
+                velocity.append(1e-3 * self.math.get_velocity(vch,
+                                                              header['nr_channels'], header['max_velocity']))
 
             for i_quantity in range(0, 4, 3):
                 tmp_xdata = velocity
@@ -890,10 +892,12 @@ class CustomPlots:
                 if i_quantity == 0:
                     # Plot spectrum as line
                     tmp_ydata *= 1.5
-                    plot.plot_line(ax_index=i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color='blue', label=r'$I$')
+                    plot.plot_line(ax_index=i_mag_field, xdata=tmp_xdata,
+                                   ydata=tmp_ydata, color='blue', label=r'$I$')
                 elif i_quantity == 3:
                     # Plot spectrum as line
-                    plot.plot_line(ax_index=2 + i_mag_field, xdata=tmp_xdata, ydata=tmp_ydata, color='#ff8000', label=r'$V$')
+                    plot.plot_line(ax_index=2 + i_mag_field, xdata=tmp_xdata,
+                                   ydata=tmp_ydata, color='#ff8000', label=r'$V$')
                 channel_width = tmp_xdata[1] - tmp_xdata[0]
                 tmp_ydata = np.gradient(plot_data[0, :], channel_width)
 
@@ -902,7 +906,8 @@ class CustomPlots:
                     return prop_factor * tmp_ydata[vch]
 
                 # Calculate best-fit parameter
-                popt, pcov = curve_fit(fit_function, range(header['nr_channels']), plot_data[3, :])
+                popt, pcov = curve_fit(fit_function, range(
+                    header['nr_channels']), plot_data[3, :])
                 tmp_ydata *= popt[0]
                 tmp_ydata /= np.max(tmp_ydata)
                 tmp_ydata *= 0.2
@@ -1296,19 +1301,20 @@ class CustomPlots:
             # Add title
             plot.plot_title(title[i_det], fontsize=12)
             # polarization plots
-            plot.plot_imshow(tbldata, cbar_label=cbar_label, set_bad_to_min=True, cmap='magma')
+            plot.plot_imshow(tbldata, cbar_label=cbar_label,
+                             set_bad_to_min=True, cmap='magma')
             if not self.parse_args.no_vec:
                 # For PI and P, plot polarization vectors
-                vec_field_data = self.file_io.read_polarization_vectors(plot_data[:, i_wl, :, :], 
-                    min_intensity=np.nanmax(plot_data[0, i_wl, :, :]) * 1e-5)
+                vec_field_data = self.file_io.read_polarization_vectors(plot_data[:, i_wl, :, :],
+                                                                        min_intensity=np.nanmax(plot_data[0, i_wl, :, :]) * 1e-5)
                 if vec_field_data is not None:
                     vector_color, vector_color_opposite = \
                         self.math.get_vector_color(plot_data[i_quantity, i_wl, :, :],
-                        cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                                                   cmap=plot.cmap, cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                     plot.plot_quiver(vec_field_data, color=vector_color)
                     plot.plot_pol_vector_text(vec_per_width=len(vec_field_data[:, 0, 0]),
-                        color=vector_color, bg_color=vector_color_opposite, round_lvl=1,
-                        max_pol_degree=float(np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2))))
+                                              color=vector_color, bg_color=vector_color_opposite, round_lvl=1,
+                                              max_pol_degree=float(np.nanmax(np.linalg.norm(vec_field_data[:, :, :], axis=2))))
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
 
@@ -1327,131 +1333,6 @@ class CustomPlots:
     # ------------------------------------------------------------------------------------------------
     # -------------------------------------- WORK IN PROGRESS ----------------------------------------
     # ------------------------------------------------------------------------------------------------
-
-    def plot_2005001(self):
-        """Plot midplane data from POLARIS simulations (from MHD simulations).
-        """
-        # Set vector size to match with 2048 x 2048 pixel sized image
-        self.file_io.init_plot_output(
-            'talk_bordeaux_midplane_cuts', path=self.file_io.path['simulation'])
-        visualization_input_list = ['input_dust_number_density_xy']
-        # For each item in visualization_input_list create a separate figure
-        for visualization_input in visualization_input_list:
-            # Read midplane data including a vector field
-            tbldata, header, vec_field_data = self.file_io.read_midplane_file(
-                visualization_input)
-            if tbldata is not None and vec_field_data is not None:
-                # Update the axes label to fit the axes used in the midplane file
-                if 'xy' in visualization_input:
-                    label_plane = 'xy'
-                elif 'xz' in visualization_input:
-                    label_plane = 'xz'
-                elif 'yz' in visualization_input:
-                    label_plane = 'yz'
-                else:
-                    raise ValueError(
-                        'The chosen midplane file has no valid cut through a plane (xy, xz, yz?)!')
-                # Create Matplotlib figure
-                plot = Plot(self.model, self.parse_args,
-                            label_plane=label_plane)
-                # Limit data to reasonable values
-                tbldata[np.where(tbldata <= 1e-30)] = 0
-                # Plot midplane data depending on quantity derived from filename
-                self.basic_plots.plot_midplane_map_base(
-                    visualization_input, plot, tbldata, vec_field_data)
-                # Load radiation source to get position of the binary stars
-                from polaris_tools_modules.source import SourceChooser
-                radiation_source_chooser = SourceChooser(
-                    self.model, self.file_io, self.parse_args)
-                radiation_source = radiation_source_chooser.get_module_from_name(
-                    'gg_tau_binary')
-                # Plot position of binary stars (with conversion from m to au)
-                radiation_source.tmp_parameter['position_star'][0] = np.divide(radiation_source.tmp_parameter['position_star'][0],
-                                                                               self.math.const['au'])
-                plot.plot_text(
-                    radiation_source.tmp_parameter['position_star'][0], r'$+$')
-                radiation_source.tmp_parameter['position_star'][1] = np.divide(radiation_source.tmp_parameter['position_star'][1],
-                                                                               self.math.const['au'])
-                plot.plot_text(
-                    radiation_source.tmp_parameter['position_star'][1], r'$+$')
-                # Save figure to pdf file or print it on screen
-                plot.save_figure(self.file_io)
-
-    def plot_2005002(self):
-        """Plot Raytrace and Monte-Carlo results as SED from POLARIS simulations.
-                """
-        # Set data input to Jy/px to calculate the total flux
-        if self.parse_args.cmap_unit is None:
-            self.file_io.cmap_unit = 'total'
-        # Plot only the intensity as a full sed plot
-        i_quantity = 0
-        # Create pdf file if show_plot is not chosen
-        self.file_io.init_plot_output('sed_plus_vizir')
-        # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
-                    ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
-        # Set paths of each simulation
-        self.file_io.set_path_from_str(
-            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
-        # Read raytrace results from file
-        ray_data, ray_header = self.file_io.read_emission_sed(
-            'polaris_detector_nr0001_sed')
-        # Plot spectral energy distribution
-        plot.plot_line(ray_header['wavelengths'], ray_data[i_quantity, :], log='y',
-                       label=r'$\mathsf{thermal\ emission}$')
-
-        # Set paths of each simulation
-        self.file_io.set_path_from_str(
-            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
-        # Read raytrace results from file
-        mc_data, mc_header = self.file_io.read_emission_sed(
-            'polaris_detector_nr0001_sed')
-        # Plot spectral energy distribution (direct)
-        plot.plot_line(mc_header['wavelengths'], mc_data[6, :],
-                       log='y', label=r'$\mathsf{direct\ starlight}$')
-        # Plot spectral energy distribution (scattered)
-        plot.plot_line(mc_header['wavelengths'], mc_data[7, :],
-                       log='y', label=r'$\mathsf{scattered\ starlight}$')
-        wavelengths_total = []
-        quantity_total = []
-        offset = 0
-        for i_wl in range(mc_header['nr_wavelengths'] + ray_header['nr_wavelengths']):
-            if i_wl - offset >= ray_header['nr_wavelengths']:
-                break
-            elif i_wl >= mc_header['nr_wavelengths']:
-                wavelengths_total.append(
-                    ray_header['wavelengths'][i_wl - offset])
-                quantity_total.append(ray_data[i_quantity, i_wl - offset])
-            elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
-                wavelengths_total.append(mc_header['wavelengths'][i_wl])
-                quantity_total.append(
-                    mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
-            elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
-                offset += 1
-                wavelengths_total.append(mc_header['wavelengths'][i_wl])
-                quantity_total.append(mc_data[i_quantity, i_wl])
-        # Plot total spectral energy distribution
-        plot.plot_line(np.array(wavelengths_total), np.array(quantity_total), log='xy', linestyle='--',
-                       label=r'$\mathsf{total\ SED}$')
-
-        # Set paths of each simulation
-        self.file_io.set_path_from_str(
-            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
-        # Plot vizier data
-        from astropy.io.votable import parse_single_table
-        table = parse_single_table(
-            self.file_io.path['results'] + 'vizier_votable.vot')
-        data_flux = table.array['sed_flux']
-        data_flux_error = table.array['sed_eflux'].filled(0)
-        data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
-        # Plot total spectral energy distribution
-        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='purple',
-                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
-
-        # Plot the legend
-        plot.plot_legend()
-        # Save figure to pdf file or print it on screen
-        plot.save_figure(self.file_io)
 
     def plot_1006001(self):
         """Plot zoom in midplane of density distribution of GG Tau disk
@@ -1743,28 +1624,36 @@ class CustomPlots:
                 plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=i_subplot, set_bad_to_min=True,
                                  norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma')
                 if i_plot == 1:
-                    x=np.linspace(0, 2*np.pi, 100)
+                    x = np.linspace(0, 2*np.pi, 100)
                     inc_pa = 7./180.*np.pi
                     pos_x = []
                     pos_y = []
                     for angle in x:
-                        pos_x.append(0.05 + 0.5*2.65*np.cos(angle) * np.cos(inc_pa) - 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
-                        pos_y.append(-0.3 + 0.5*2.65*np.cos(angle) * np.sin(inc_pa) + 0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
-                    plot.plot_line(pos_x, pos_y, ax_index=0, color='cyan', linestyle=':', no_grid=True)
-                    plot.plot_line(pos_x, pos_y, ax_index=2, color='cyan', linestyle=':', no_grid=True)
-                    #plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
+                        pos_x.append(0.05 + 0.5*2.65*np.cos(angle) *
+                                     np.cos(inc_pa) - 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
+                        pos_y.append(-0.3 + 0.5*2.65*np.cos(angle) *
+                                     np.sin(inc_pa) + 0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
+                    plot.plot_line(pos_x, pos_y, ax_index=0,
+                                   color='cyan', linestyle=':', no_grid=True)
+                    plot.plot_line(pos_x, pos_y, ax_index=2,
+                                   color='cyan', linestyle=':', no_grid=True)
+                    # plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
                     #             ax_index=0, edgecolor='cyan', linestyle=':')
-                    #plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
+                    # plot.plot_ellipse([0.05, -0.3], 2.65, 2.1, angle=7, facecolor='none',
                     #             ax_index=2, edgecolor='cyan', linestyle=':')
-                    x=np.linspace(np.pi*1.17, 1.97*np.pi, 100)
-                    inc_pa = 0 # 7./180.*np.pi
+                    x = np.linspace(np.pi*1.17, 1.97*np.pi, 100)
+                    inc_pa = 0  # 7./180.*np.pi
                     pos_x = []
                     pos_y = []
                     for angle in x:
-                        pos_x.append(-0.1 + 0.5*2.65*np.cos(angle) * np.cos(inc_pa) + 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
-                        pos_y.append(0.3 + 0.5*2.65*np.cos(angle) * np.sin(inc_pa) + 0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
-                    plot.plot_line(pos_x, pos_y, ax_index=0, color='orange', linestyle=':', no_grid=True)
-                    plot.plot_line(pos_x, pos_y, ax_index=2, color='orange', linestyle=':', no_grid=True)
+                        pos_x.append(-0.1 + 0.5*2.65*np.cos(angle) *
+                                     np.cos(inc_pa) + 0.5*2.1 * np.sin(angle) * np.sin(inc_pa))
+                        pos_y.append(0.3 + 0.5*2.65*np.cos(angle) * np.sin(inc_pa) +
+                                     0.5*2.1 * np.sin(angle) * np.cos(inc_pa))
+                    plot.plot_line(pos_x, pos_y, ax_index=0,
+                                   color='orange', linestyle=':', no_grid=True)
+                    plot.plot_line(pos_x, pos_y, ax_index=2,
+                                   color='orange', linestyle=':', no_grid=True)
                 for i_pos, center_pos in enumerate(measurement_position_list):
                     plot.plot_text(text_pos=center_pos,
                                    text=str(i_pos + 1), ax_index=i_subplot, color='white', fontsize=10,
@@ -2127,7 +2016,7 @@ class CustomPlots:
         from scipy.ndimage.interpolation import zoom
         # Set some variables
         detector_index = 101  # 104
-        i_quantity = 0 #4
+        i_quantity = 0  # 4
         i_subplot = 9
         #vmin = 1e-7
         #vmax = 1e-4
@@ -2212,7 +2101,8 @@ class CustomPlots:
             plot.plot_text(pos_arcsec,
                            text=r'$\text{' + star_descr[i_star] + r'}$', ax_index=1, color='white')
         for i_pos, center_pos in enumerate(measurement_position_list):
-            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white', fontsize=10, bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
+            plot.plot_text(text_pos=center_pos, text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
+                           bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
         # Plot map description
         plot.plot_text(text_pos=[0.03, 0.97], relative_position=True, text=r'$\text{' +
                        model_descr[i_subplot] + r'}$', horizontalalignment='left', verticalalignment='top',
@@ -2557,6 +2447,197 @@ class CustomPlots:
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
+    def plot_1007001(self):
+        """Plot dust optical properties for GG Tau A planet project.
+        """
+        # --- Variables ---
+        mixture_indices = [1, 2]
+        i_property = 2
+        simu_name = 'planet_saturn'
+        extent = [1e-6, 2e-5, 1e1, 1e3]
+        # Different dust optical properties
+        properties = [
+            r'$\text{Cross-section}\ [\si{\metre\squared}]$',
+            r'$\text{Efficiency}$',
+            r'$\text{Mass cross-section}\ [\si{\metre\squared\per\kilo\gram}]$',
+        ]
+        mixture_label = [
+            r'a_\text{max}=\SI{3}{\micro\metre}',
+            r'a_\text{max}=\SI{100}{\micro\metre}',
+        ]
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', 'gg_tau_disk', simu_name, 'dust')
+        # Create pdf file if show_plot is not chosen
+        self.file_io.init_plot_output('gg_tau_dust_optical_properties',
+                                      path=self.file_io.path['model'])
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$', size_y=3, size_x=7,
+                    ylabel=properties[i_property], extent=extent, with_cbar=False)
+        for i_mix in mixture_indices:
+            # Read optical properties
+            with open(self.file_io.path['results'] + 'dust_mixture_' + str(i_mix + 1).zfill(3) + '.dat', "r") as data:
+                while True:
+                    line = data.readline()
+                    if line.startswith('#can align'):
+                        elongated = bool(int(data.readline()))
+                    elif line.startswith('#wavelength'):
+                        break
+                dust_opt_data = np.genfromtxt(data, delimiter=None)
+            if dust_opt_data.ndim < 2:
+                raise ValueError(
+                    'Only a single wavelength found. Please use a simulation with at least 2 simulated wavelengths!')
+            # Set wavelength list
+            wavelengths = self.math.length_conv(dust_opt_data[:, 0], unit='m')
+            n_property_type = 6
+            for i_type in range(n_property_type):
+                if not elongated and i_type in [1, 3, 5]:
+                    continue
+                # Plot spectrum as line
+                index = i_property * n_property_type + i_type + 1
+                if i_property > 0:
+                    index += 2
+                if i_type == 0:
+                    plot.plot_line(
+                        [], [], linestyle='None', label=r'$\underline{' + mixture_label[i_mix - 1] + '}$')
+                label = self.file_io.get_dust_prop_labels(
+                    i_property, i_type, elongated=elongated)
+                plot.plot_line(wavelengths, dust_opt_data[:, index], log='y',
+                               linestyle=plot.linestyles[i_mix - 1],
+                               color=plot.colors[int(i_type / 2)], label=label)
+        # Plot line of minimum optical depth
+        plot.plot_line([7.65e-6, 7.65e-6], extent[2:], linestyle=':', color=plot.colors[3])
+        plot.plot_text([9.3e-6, 8e2], r'$\lambda=\SI{7.65}{\micro\metre}$', color=plot.colors[3])
+        # Plot the legend
+        plot.plot_legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_2005001(self):
+        """Plot midplane data from POLARIS simulations (from MHD simulations).
+        """
+        # Set vector size to match with 2048 x 2048 pixel sized image
+        self.file_io.init_plot_output(
+            'talk_bordeaux_midplane_cuts', path=self.file_io.path['simulation'])
+        visualization_input_list = ['input_dust_number_density_xy']
+        # For each item in visualization_input_list create a separate figure
+        for visualization_input in visualization_input_list:
+            # Read midplane data including a vector field
+            tbldata, header, vec_field_data = self.file_io.read_midplane_file(
+                visualization_input)
+            if tbldata is not None and vec_field_data is not None:
+                # Update the axes label to fit the axes used in the midplane file
+                if 'xy' in visualization_input:
+                    label_plane = 'xy'
+                elif 'xz' in visualization_input:
+                    label_plane = 'xz'
+                elif 'yz' in visualization_input:
+                    label_plane = 'yz'
+                else:
+                    raise ValueError(
+                        'The chosen midplane file has no valid cut through a plane (xy, xz, yz?)!')
+                # Create Matplotlib figure
+                plot = Plot(self.model, self.parse_args,
+                            label_plane=label_plane)
+                # Limit data to reasonable values
+                tbldata[np.where(tbldata <= 1e-30)] = 0
+                # Plot midplane data depending on quantity derived from filename
+                self.basic_plots.plot_midplane_map_base(
+                    visualization_input, plot, tbldata, vec_field_data)
+                # Load radiation source to get position of the binary stars
+                from polaris_tools_modules.source import SourceChooser
+                radiation_source_chooser = SourceChooser(
+                    self.model, self.file_io, self.parse_args)
+                radiation_source = radiation_source_chooser.get_module_from_name(
+                    'gg_tau_binary')
+                # Plot position of binary stars (with conversion from m to au)
+                radiation_source.tmp_parameter['position_star'][0] = np.divide(radiation_source.tmp_parameter['position_star'][0],
+                                                                               self.math.const['au'])
+                plot.plot_text(
+                    radiation_source.tmp_parameter['position_star'][0], r'$+$')
+                radiation_source.tmp_parameter['position_star'][1] = np.divide(radiation_source.tmp_parameter['position_star'][1],
+                                                                               self.math.const['au'])
+                plot.plot_text(
+                    radiation_source.tmp_parameter['position_star'][1], r'$+$')
+                # Save figure to pdf file or print it on screen
+                plot.save_figure(self.file_io)
+
+    def plot_2005002(self):
+        """Plot Raytrace and Monte-Carlo results as SED from POLARIS simulations.
+                """
+        # Set data input to Jy/px to calculate the total flux
+        if self.parse_args.cmap_unit is None:
+            self.file_io.cmap_unit = 'total'
+        # Plot only the intensity as a full sed plot
+        i_quantity = 0
+        # Create pdf file if show_plot is not chosen
+        self.file_io.init_plot_output('sed_plus_vizir')
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
+                    ylabel=self.file_io.get_quantity_labels(0), with_cbar=False)
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust')
+        # Read raytrace results from file
+        ray_data, ray_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
+        # Plot spectral energy distribution
+        plot.plot_line(ray_header['wavelengths'], ray_data[i_quantity, :], log='y',
+                       label=r'$\mathsf{thermal\ emission}$')
+
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        # Read raytrace results from file
+        mc_data, mc_header = self.file_io.read_emission_sed(
+            'polaris_detector_nr0001_sed')
+        # Plot spectral energy distribution (direct)
+        plot.plot_line(mc_header['wavelengths'], mc_data[6, :],
+                       log='y', label=r'$\mathsf{direct\ starlight}$')
+        # Plot spectral energy distribution (scattered)
+        plot.plot_line(mc_header['wavelengths'], mc_data[7, :],
+                       log='y', label=r'$\mathsf{scattered\ starlight}$')
+        wavelengths_total = []
+        quantity_total = []
+        offset = 0
+        for i_wl in range(mc_header['nr_wavelengths'] + ray_header['nr_wavelengths']):
+            if i_wl - offset >= ray_header['nr_wavelengths']:
+                break
+            elif i_wl >= mc_header['nr_wavelengths']:
+                wavelengths_total.append(
+                    ray_header['wavelengths'][i_wl - offset])
+                quantity_total.append(ray_data[i_quantity, i_wl - offset])
+            elif mc_header['wavelengths'][i_wl] == ray_header['wavelengths'][i_wl - offset]:
+                wavelengths_total.append(mc_header['wavelengths'][i_wl])
+                quantity_total.append(
+                    mc_data[i_quantity, i_wl] + ray_data[0, i_wl - offset])
+            elif mc_header['wavelengths'][i_wl] < ray_header['wavelengths'][i_wl - offset]:
+                offset += 1
+                wavelengths_total.append(mc_header['wavelengths'][i_wl])
+                quantity_total.append(mc_data[i_quantity, i_wl])
+        # Plot total spectral energy distribution
+        plot.plot_line(np.array(wavelengths_total), np.array(quantity_total), log='xy', linestyle='--',
+                       label=r'$\mathsf{total\ SED}$')
+
+        # Set paths of each simulation
+        self.file_io.set_path_from_str(
+            'plot', self.parse_args.model_name, self.parse_args.simulation_name, 'dust_mc')
+        # Plot vizier data
+        from astropy.io.votable import parse_single_table
+        table = parse_single_table(
+            self.file_io.path['results'] + 'vizier_votable.vot')
+        data_flux = table.array['sed_flux']
+        data_flux_error = table.array['sed_eflux'].filled(0)
+        data_wl = self.math.const['c'] / (table.array['sed_freq'] * 1e9)
+        # Plot total spectral energy distribution
+        plot.plot_line(data_wl, data_flux, yerr=data_flux_error, log='xy', linestyle='none', marker='.', color='purple',
+                       alpha=0.7, label=r'$\mathsf{VizieR\ SED}$')
+
+        # Plot the legend
+        plot.plot_legend()
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
     def plot_3001001(self):
         """Plot GG Tau A observation and one configuration
         """
@@ -2606,7 +2687,7 @@ class CustomPlots:
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
             'polaris_detector_nr' + str(detector_index).zfill(4))
         # Create Matplotlib figure
-        #plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
+        # plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
         #            nr_x_images=1, nr_y_images=1)
         plot = Plot(self.model, self.parse_args, ax_unit='arcsec',
                     nr_x_images=2, nr_y_images=1)
@@ -2614,8 +2695,8 @@ class CustomPlots:
         tbldata = plot_data[i_quantity, 0, :, :]
         # plot imshow
         plot.plot_imshow(tbldata, cbar_label=cbar_label, ax_index=1, set_bad_to_min=True,
-                        norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
-        #Load radiation source to get position of the binary stars
+                         norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
+        # Load radiation source to get position of the binary stars
         from polaris_tools_modules.source import SourceChooser
         radiation_source_chooser = SourceChooser(
             self.model, self.file_io, self.parse_args)
@@ -2727,8 +2808,8 @@ class CustomPlots:
                              norm='LogNorm', vmin=vmin, vmax=vmax, cmap='magma', extend='neither')
             for i_pos, center_pos in enumerate(measurement_position_list):
                 plot.plot_text(text_pos=center_pos,
-                    text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
-                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
+                               text=str(i_pos + 1), ax_index=1, color='white', fontsize=10,
+                               bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Plot map description
             plot.plot_text(text_pos=[0.03, 0.97], relative_position=True,
                            text=model_descr[i_subplot], horizontalalignment='left',
@@ -2753,7 +2834,7 @@ class CustomPlots:
                 else:
                     pos = center_pos
                 plot.plot_text(text_pos=pos,
-                    text=str(i_pos + 1), ax_index=0, color='white', fontsize=10,
-                    bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
+                               text=str(i_pos + 1), ax_index=0, color='white', fontsize=10,
+                               bbox=dict(boxstyle='circle, pad=0.2', facecolor='none', edgecolor='white', alpha=0.5))
             # Save figure to pdf file or print it on screen
             plot.save_figure(self.file_io)
