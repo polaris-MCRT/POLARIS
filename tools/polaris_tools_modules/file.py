@@ -363,6 +363,30 @@ class FileIO:
                              str(i_quantity) + ', no label is providable!')
         return quantity_labels[i_quantity]
 
+    def get_dust_prop_labels(self, i_property, i_type, elongated=False):
+        properties = [r'C', r'Q', r'\kappa']
+        if elongated:
+            property_types = [
+                r'\text{ext,1}',
+                r'\text{ext,2}$',
+                r'\text{abs,1}$',
+                r'\text{abs,2}$',
+                r'\text{sca,1}$',
+                r'\text{sca,2}$',
+            ]
+        else:
+            if i_type in [1, 3, 5]:
+                raise ValueError('No dust optical properties label found for ' + str(i_type))
+            property_types = [
+                r'\text{ext}',
+                None,
+                r'\text{abs}',
+                None,
+                r'\text{sca}',
+                None,
+            ]
+        return r'$' + properties[i_property] + '_' + property_types[i_type] + r'(\lambda)$'
+
     def read_emission_map_header(self, hdulist):
         """Reads the header of a fits file with POLARIS Raytrace or Monte-Carlo map results.
 

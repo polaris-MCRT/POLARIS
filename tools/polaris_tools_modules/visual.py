@@ -193,12 +193,19 @@ class Plot:
 
         # Create linestyle cycler
         from itertools import cycle
-        lines = ['-', '--', '-.', ':']
-        self.linecycler = cycle(lines)
+        self.linestyles = ['-', '--', '-.', ':']
+        self.linecycler = cycle(self.linestyles)
+
+        self.colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        self.colorscycler = cycle(self.colors)
 
     def get_linestyle(self):
-        """ Get linestyle from rotation"""
+        """ Get line style from rotation"""
         return next(self.linecycler)
+
+    def get_linecolor(self):
+        """ Get line color from rotation"""
+        return next(self.colorscycler)
 
     @staticmethod
     def set_style(font_size_env=None, gray_background=False, font=None):

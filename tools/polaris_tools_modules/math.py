@@ -108,6 +108,10 @@ class Math:
             new_length = np.divide(length, self.const['au'])
         elif unit == 'pc':
             new_length = np.divide(length, self.const['pc'])
+        elif unit == 'microns':
+            new_length = np.multiply(length, 1e6)
+        elif unit == 'mm':
+            new_length = np.multiply(length, 1e3)
         elif unit == 'm':
             new_length = length
         else:

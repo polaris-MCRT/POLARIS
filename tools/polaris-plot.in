@@ -55,8 +55,8 @@ req_args.add_argument('simulation_type', metavar='simulation_type', type=str,
                            '    line     : radiative line transfer\n'
                            '    zeeman   : radiative line transfer (zeeman splitting)')
 req_args.add_argument('visualization_type', metavar='visualization_type', type=str,
-                      choices=['midplane', 'map', 'sed', 'vel_map', 'int_map',
-                               'spectrum', 'mag_field', 'velocity', 'tau', 'custom'],
+                      choices=['midplane', 'map', 'sed', 'vel_map', 'int_map', 'spectrum',
+                               'mag_field', 'velocity', 'tau', 'dust_prop', 'custom'],
                       help='visualization routine.\n'
                            '    midplane  : plot midplane data\n'
                            '    map       : plot polarization maps from RT or MC simulations\n'
@@ -66,6 +66,7 @@ req_args.add_argument('visualization_type', metavar='visualization_type', type=s
                            '    spectrum  : plot line spectrum\n'
                            '    velocity  : plot mean line-of-sight velocity\n'
                            '    mag_field : plot magnetic field from zeeman splitting\n'
+                           '    dust_prop : plot optical properties of dust grains\n'
                            '    tau       : plot optical depth map\n'
                            '    custom    : execute custom plotting routines')
 req_args.add_argument('visualization_input', metavar='visualization_input', nargs='+',
@@ -81,6 +82,7 @@ req_args.add_argument('visualization_input', metavar='visualization_input', narg
                            '        gas species ID + spectral line ID + QuantityID\n'
                            '        gas species ID + spectral line ID + Quantity: minID + maxID\n'
                            '    tau       : mass extinction coefficient\n'
+                           '    dust_prop : index of dust mixture\n'
                            '    custom    : plot routine index')
 
 plot_mod_args = parser.add_argument_group('plot modification')
@@ -610,7 +612,7 @@ class PlotRoutines:
             if not self.parse_args.no_vec:
                 # Plot vector field
                 vector_color, _ = self.math.get_vector_color(tbldata, cmap=plot.cmap,
-                                                          cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                                                             cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                 plot.plot_quiver(
                     vec_field_data, color=vector_color, const_quiver=True)
         elif 'vel' in midplane_name:
@@ -625,7 +627,7 @@ class PlotRoutines:
             if not self.parse_args.no_vec:
                 # Plot vector field
                 vector_color, _ = self.math.get_vector_color(tbldata, cmap=plot.cmap,
-                                                          cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                                                             cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                 plot.plot_quiver(
                     vec_field_data, color=vector_color, const_quiver=True)
         elif 'rat_aalig' in midplane_name:
@@ -764,7 +766,7 @@ class PlotRoutines:
                     # Print velocity into image if title is enabled
                     if self.parse_args.plot_title or nr_images > 1:
                         vector_color, _ = self.math.get_vector_color(tbldata, cmap=plot.cmap,
-                                                                  cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                                                                     cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                         plot.plot_text(text_pos=[0.5, 0.94], relative_position=True,
                                        text=r'$v=\SI{' + str(round(velocity * 1e-3, 2)) +
                                        r'}{\kilo\metre\per\second}$',
@@ -814,7 +816,7 @@ class PlotRoutines:
                     # Print velocity into image if title is enabled
                     if self.parse_args.plot_title:
                         vector_color, _ = self.math.get_vector_color(tbldata, cmap=plot.cmap,
-                                                                  cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
+                                                                     cmap_scaling=self.parse_args.cmap_scaling, vec_color=self.parse_args.vec_color)
                         plot.plot_text(text_pos=[0.5, 0.94], relative_position=True,
                                        text=r'$v=\SI{' + str(round(velocity, 1)) + r'}{\metre\per\second}$', color=vector_color)
                     if i_quantity in [1, 2, 3]:
@@ -1141,6 +1143,55 @@ class PlotRoutines:
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
+    def plot_dust_optical_properties(self):
+        """Plot dust optical properties from POLARIS gnuplot files.
+        """
+        mixture_index = self.parse_args.visualization_input[0]
+        n_dust_properties = 3
+        n_property_type = 6
+        # Read optical properties
+        with open(self.file_io.path['results'] + 'dust_mixture_' + str(mixture_index).zfill(3) + '.dat', "r") as data:
+            while True:
+                line = data.readline()
+                if line.startswith('#can align'):
+                    elongated = bool(int(data.readline()))
+                elif line.startswith('#wavelength'):
+                    break
+            dust_opt_data = np.genfromtxt(data, delimiter=None)
+        if dust_opt_data.ndim < 2:
+            raise ValueError(
+                'Only a single wavelength found. Please use a simulation with at least 2 simulated wavelengths!')
+
+        # Create pdf file if show_plot is not chosen
+        self.file_io.init_plot_output(
+            'dust_optical_properties_mixture_' + str(mixture_index).zfill(4))
+        # Set wavelength list
+        wavelengths = self.math.length_conv(dust_opt_data[:, 0], unit='m')
+        # Different dust optical properties
+        properties = [
+            r'$\text{Cross-section}\ [\si{\metre\squared}]$',
+            r'$\text{Efficiency}$',
+            r'$\text{Mass cross-section}\ [\si{\metre\squared\per\kilo\gram}]$',
+        ]
+        for i_property in range(n_dust_properties):
+            # Create Matplotlib figure
+            plot = Plot(self.model, self.parse_args, xlabel=r'$\lambda\ [\si{\metre}]$',
+                        ylabel=properties[i_property],
+                        extent=[wavelengths[0], wavelengths[-1], None, None], with_cbar=False)
+            for i_type in range(n_property_type):
+                if not elongated and i_type in [1, 3, 5]:
+                    continue
+                # Plot spectrum as line
+                index = i_property * n_property_type + i_type + 1
+                if i_property > 0:
+                    index += 2
+                plot.plot_line(wavelengths, dust_opt_data[:, index], log='y',
+                               label=self.file_io.get_dust_prop_labels(i_property, i_type, elongated=elongated))
+            # Plot the legend
+            plot.plot_legend()
+            # Save figure to pdf file or print it on screen
+            plot.save_figure(self.file_io)
+
     def combine_emission_maps(self):
         """Combining (adding) the resulting fits of Monte-Carlo and raytracing simulations together.
         """
@@ -1396,12 +1447,16 @@ if __name__ == '__main__':
             # Heat and rat simulations offer only midplane results
             if parser_options.visualization_type == 'midplane':
                 plot_routines.plot_midplane()
+            elif parser_options.visualization_type == 'dust_prop':
+                plot_routines.plot_dust_optical_properties()
             else:
                 error = True
         elif parser_options.simulation_type == 'dust_mc':
             # Ray simulations offer midplane and raytrace results
             if parser_options.visualization_type == 'midplane':
                 plot_routines.plot_midplane()
+            elif parser_options.visualization_type == 'dust_prop':
+                plot_routines.plot_dust_optical_properties()
             elif parser_options.visualization_type == 'map':
                 plot_routines.plot_map()
             elif parser_options.visualization_type == 'sed':
@@ -1412,7 +1467,9 @@ if __name__ == '__main__':
                 error = True
         elif parser_options.simulation_type == 'dust_full':
             # Ray simulations offer midplane and raytrace results
-            if parser_options.visualization_type == 'map':
+            if parser_options.visualization_type == 'dust_prop':
+                plot_routines.plot_dust_optical_properties()
+            elif parser_options.visualization_type == 'map':
                 plot_routines.combine_emission_maps()
                 plot_routines.plot_map()
             elif parser_options.visualization_type == 'sed':
@@ -1425,6 +1482,8 @@ if __name__ == '__main__':
             # dust emission simulations offer midplane and raytrace results
             if parser_options.visualization_type == 'midplane':
                 plot_routines.plot_midplane()
+            elif parser_options.visualization_type == 'dust_prop':
+                plot_routines.plot_dust_optical_properties()
             elif parser_options.visualization_type == 'map':
                 plot_routines.plot_map()
             elif parser_options.visualization_type == 'sed':
