@@ -608,7 +608,7 @@ class FileIO:
         elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
             extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission map fits file exists (' +
+            raise FileExistsError('--- No emission map fits file exists (' +
                                   self.path['results'] + filename + ' [.fits/.fits.gz])')
         hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
@@ -721,7 +721,7 @@ class FileIO:
         elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
             extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission map fits file exists (' +
+            raise FileExistsError('--- No emission sed fits file exists (' +
                                   self.path['results'] + filename + ' [.fits/.fits.gz])')
         hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
@@ -1202,7 +1202,7 @@ class FileIO:
         elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
             extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission map fits file exists (' +
+            raise FileExistsError('--- No emission spectrum fits file exists (' +
                                   self.path['results'] + filename + ' [.fits/.fits.gz])')
         hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
