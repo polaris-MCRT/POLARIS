@@ -1480,9 +1480,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
         path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
-        path_data += "dust_mixture_";
-        path_data += str_mix_ID_end;
-        path_data += ".dat";
+        path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
 
@@ -1532,9 +1530,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
-        path_data += "dust_comp_";
-        path_data += str_comp_ID_end;
-        path_data += ".dat";
+        path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
     // Init text file writer for cross-sections
@@ -1977,28 +1973,32 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     data_writer << "#can align" << endl;
     data_writer << is_align << endl;
     data_writer << "#density [kg]" << endl;
-    data_writer << material_density << endl;
+    data_writer << getMaterialDensity() << endl;
     data_writer << "#gold g factor" << endl;
     data_writer << gold_g_factor << endl;
     data_writer << "#f_highJ" << endl;
     data_writer << f_highJ << endl;
     data_writer << "#f_correlation" << endl;
     data_writer << f_cor << endl;
-    data_writer << "#min. ID\tmax. ID" << endl;
-    data_writer << a_min_global + 1 << "\t" << a_max_global + 1 << endl;
+    data_writer << "#min. grain size\tmax. grain size" << endl;
+    data_writer << a_min_global << "\t" << a_max_global << endl;
     data_writer << "#min. radius\tmax. radius [m]" << endl;
     data_writer << getSizeMin() << "\t" << getSizeMax() << endl;
 
     // Add data header to file
-    data_writer << "#wavelength\tavgCext1\tavgCext2\tavgCabs1\tavgCabs2\tavgCsca1\tavgCsc"
-                   "a2\tCcirc\tavgHGg"
+    data_writer << "#wavelength\tavgCext1\tavgCext2\tavgCabs1\tavgCabs2\tavgCsca1\tavgCsca2\tCcirc\tavgHGg\t"
+                   "avgQext1\tavgQext2\tavgQabs1\tavgQabs2\tavgQsca1\tavgQsca2\tavgKext1\tavgKext2\tavgKabs1"
+                   "\tavgKabs2\tavgKsca1\tavgKsca2"
                 << endl;
 
     // Add cross-sections to file
     for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         data_writer << wavelength_list[i] << "\t" << getCext1(i) << "\t" << getCext2(i) << "\t" << getCabs1(i)
                     << "\t" << getCabs2(i) << "\t" << getCsca1(i) << "\t" << getCsca2(i) << "\t"
-                    << getCcirc(i) << "\t" << getHGg(i) << endl;
+                    << getCcirc(i) << "\t" << getHGg(i) << "\t" << getQext1(i) << "\t" << getQext2(i) << "\t"
+                    << getQabs1(i) << "\t" << getQabs2(i) << "\t" << getQsca1(i) << "\t" << getQsca2(i)
+                    << "\t" << getKappaExt1(i) << "\t" << getKappaExt2(i) << "\t" << getKappaAbs1(i) << "\t"
+                    << getKappaAbs2(i) << "\t" << getKappaSca1(i) << "\t" << getKappaSca2(i) << endl;
 
     // Close text file writer
     data_writer.close();

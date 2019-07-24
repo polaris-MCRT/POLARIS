@@ -1982,8 +1982,25 @@ class CDustComponent
 
     double getMaterialDensity(uint a)
     {
-
         return mass[a] / getVolume(a);
+    }
+
+    double getMaterialDensity()
+    {
+        // Get local min and max grain sizes
+        double a_min = getSizeMin();
+        double a_max = getSizeMax();
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam();
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= mass[a] / getVolume(a);
+
+        return CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
     }
 
     double getFHighJ()

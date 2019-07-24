@@ -80,6 +80,11 @@ using namespace std;
 #define abs_err 1.0e-30
 #define MAX_SOLVER_STEPS 1500000
 
+// Define the fits file extension
+// ".fits" normal fits file
+// ".fits.gz" compressed fits file
+#define FITS_COMPRESS_EXT ".fits.gz"
+
 // Number of quantities in dust component file (C_{x,abs}, C_{x,ext}, C_{x,sca}, ...)
 #define NR_OF_EFF 8
 

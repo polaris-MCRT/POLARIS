@@ -363,6 +363,31 @@ class FileIO:
                              str(i_quantity) + ', no label is providable!')
         return quantity_labels[i_quantity]
 
+    def get_dust_prop_labels(self, i_property, i_type, elongated=False):
+        properties = [r'C', r'Q', r'\kappa']
+        if elongated:
+            property_types = [
+                r'\text{ext,1}',
+                r'\text{ext,2}$',
+                r'\text{abs,1}$',
+                r'\text{abs,2}$',
+                r'\text{sca,1}$',
+                r'\text{sca,2}$',
+            ]
+        else:
+            if i_type in [1, 3, 5]:
+                raise ValueError(
+                    'No dust optical properties label found for ' + str(i_type))
+            property_types = [
+                r'\text{ext}',
+                None,
+                r'\text{abs}',
+                None,
+                r'\text{sca}',
+                None,
+            ]
+        return r'$' + properties[i_property] + '_' + property_types[i_type] + r'(\lambda)$'
+
     def read_emission_map_header(self, hdulist):
         """Reads the header of a fits file with POLARIS Raytrace or Monte-Carlo map results.
 
@@ -579,10 +604,13 @@ class FileIO:
         """
         # Load data and header from fits if available
         if os.path.isfile(self.path['results'] + filename + '.fits'):
-            hdulist = fits.open(self.path['results'] + filename + '.fits')
+            extension =  '.fits'
+        elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
+            extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission map fits file exists (' +
-                                  self.path['results'] + filename + '.fits' + ')')
+            raise FileExistsError('--- No emission map fits file exists (' +
+                                  self.path['results'] + filename + ' [.fits/.fits.gz])')
+        hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_emission_map_header(hdulist)
         if plot_data_type == 'healpix':
@@ -591,7 +619,7 @@ class FileIO:
                                  'combined with Monte-Carlo results!')
             import healpy as hp
             data = hp.read_map(
-                self.path['results'] + filename + '.fits', field=None, verbose=False)
+                self.path['results'] + filename + extension, field=None, verbose=False)
             wmap_map = np.zeros(
                 (self.n_quantities_map, header['nr_wavelengths'], data.shape[1]))
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
@@ -689,10 +717,13 @@ class FileIO:
         """
         # Load data and header from fits if available
         if os.path.isfile(self.path['results'] + filename + '.fits'):
-            hdulist = fits.open(self.path['results'] + filename + '.fits')
+            extension =  '.fits'
+        elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
+            extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission sed fits file exists (' +
-                                  self.path['results'] + filename + '.fits)')
+            raise FileExistsError('--- No emission sed fits file exists (' +
+                                  self.path['results'] + filename + ' [.fits/.fits.gz])')
+        hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_emission_sed_header(hdulist)
         #: Data from the file with the monte carlo results
@@ -740,16 +771,20 @@ class FileIO:
                 raise FileExistsError('Error: No midplane file exists!')
         elif 'input' in visualization_input:
             if os.path.isfile(self.path['results'] + 'input_midplane.fits'):
-                hdulist = fits.open(
-                    self.path['results'] + 'input_midplane.fits')
+                extension = '.fits'
+            elif os.path.isfile(self.path['results'] + 'input_midplane.fits.gz'):
+                extension = '.fits.gz'
             else:
                 raise FileExistsError('Error: No midplane file exists!')
+            hdulist = fits.open(self.path['results'] + 'input_midplane' + extension)
         elif 'output' in visualization_input:
             if os.path.isfile(self.path['results'] + 'output_midplane.fits'):
-                hdulist = fits.open(
-                    self.path['results'] + 'output_midplane.fits')
+                extension = '.fits'
+            elif os.path.isfile(self.path['results'] + 'output_midplane.fits.gz'):
+                extension = '.fits.gz'
             else:
                 raise FileExistsError('Error: No midplane file exists!')
+            hdulist = fits.open(self.path['results'] + 'output_midplane' + extension)
         else:
             raise ValueError(
                 'Error: visualization_input is not set correctly (try \'all\')!')
@@ -992,11 +1027,15 @@ class FileIO:
         """
         if os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits'):
             # Load data and header from extra data fits if available
-            hdulist_extra = fits.open(
-                self.path['results'] + filename + '_extra.fits')
+            extension_extra = '_extra.fits'
+        elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits.gz'):
+            # Load data and header from extra data fits if available
+            extension_extra = '_extra.fits.gz'
         else:
             raise ValueError('Error: The chosen fits file ' +
                              filename + ' does not exist!')
+        hdulist_extra = fits.open(
+            self.path['results'] + filename + extension_extra)
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_vel_maps_header(hdulist_extra)
         if plot_data_type == 'healpix':
@@ -1005,11 +1044,18 @@ class FileIO:
             arcsec_squared_per_pixel = 4 * np.pi * \
                 (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             #: List: Load the velocity channels into a list
-            data_list = [hp.read_map(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) +
-                                     '.fits', field=None, verbose=False) for vch in range(header['nr_channels'])]
+            if os.path.isfile(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits'):
+                extension = '.fits'
+            elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits.gz'):
+                extension = '.fits.gz'
+            else:
+                raise ValueError('Error: The chosen fits file ' +
+                                 filename + ' does not exist!')
+            data_list = [hp.read_map(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + extension,
+                                     field=None, verbose=False) for vch in range(header['nr_channels'])]
             # Load the extra data (zeeman, column dens)
             data_extra = hp.read_map(
-                self.path['results'] + filename + '_extra.fits', field=None, verbose=False)
+                self.path['results'] + filename + extension_extra, field=None, verbose=False)
             #: Numpy array for the vel_map data
             wmap_map = np.zeros(
                 (self.n_quantities_map, header['nr_channels'], header['nr_pixel_x']))
@@ -1088,16 +1134,20 @@ class FileIO:
         """
         if os.path.isfile(self.path['results'] + filename + '.fits'):
             # Load data and header from fits if available
-            hdulist = fits.open(self.path['results'] + filename + '.fits')
+            extension = '.fits'
+        if os.path.isfile(self.path['results'] + filename + '.fits.gz'):
+            # Load data and header from fits if available
+            extension = '.fits.gz'
         else:
             raise ValueError(
                 'Error: hdulist cannot be returned if no fits file exists!')
+        hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
         header, plot_data_type = self.read_vel_maps_header(hdulist)
         if plot_data_type == 'healpix':
             import healpy as hp
             wmap_map = hp.read_map(
-                self.path['results'] + filename + '.fits', field=None, verbose=False)
+                self.path['results'] + filename + extension, field=None, verbose=False)
             #: Amount of arcseconds per pixel squared to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = 4 * np.pi * \
                 (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
@@ -1148,10 +1198,13 @@ class FileIO:
         """
         # Load data and header from fits if available
         if os.path.isfile(self.path['results'] + filename + '.fits'):
-            hdulist = fits.open(self.path['results'] + filename + '.fits')
+            extension =  '.fits'
+        elif os.path.isfile(self.path['results'] + filename + '.fits.gz'):
+            extension =  '.fits.gz'
         else:
-            raise FileExistsError('--- Hint: No emission sed fits file exists (' +
-                                  self.path['results'] + filename + '.fits' + ')')
+            raise FileExistsError('--- No emission spectrum fits file exists (' +
+                                  self.path['results'] + filename + ' [.fits/.fits.gz])')
+        hdulist = fits.open(self.path['results'] + filename + extension)
         #: dict: Dictionary with the information in the header.
         header = self.read_spectrum_header(hdulist)
         #: Data from the file with the monte carlo results
