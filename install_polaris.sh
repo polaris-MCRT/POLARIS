@@ -414,7 +414,7 @@ case ${install_tools:=n} in
 esac
 
 # Install Polaris
-if ${install_directory}/bin/polaris >/dev/null; then
+if ${install_directory}/bin/polaris >/dev/null 2>&1; then
     echo -e "POLARIS binary found and can be executed (use -r to recompile) [${GREEN}done${NC}]"
 else
     install_fits_support "ON"
