@@ -142,7 +142,7 @@ class VincentMrnOblate(Dust):
         return new_command_line
 
 
-class SilicateOblate(Dust):
+class SilicateOblateVG(Dust):
     """Dust class for silicate grains."""
 
     def __init__(self, file_io, parse_args):

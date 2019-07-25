@@ -1216,15 +1216,18 @@ class ExternalInput:
     def init_data(self):
         self.data = None
 
-    def init_position(self, position, cell_IDs=None):
+    def init_position(self, node, cell_IDs=None):
         """Initialise the grid position to calculate the nessecary cell data.
 
         Args:
-            position (List[float, float, float]): position in model space.
+            node (node class instance)): instance of node.
             cell_IDs (List): cell_IDs of the cells (alternative to the grid position).
                 Spherical -> [i_r, i_t, i_p]
                 Cylindrical -> [i_r, i_p, i_z]
         """
+        self.position = node.parameter['position']
+        self.volume = node.parameter['volume']
+
         if cell_IDs is not None:
             self.i_r = cell_IDs[0]
             self.i_t = cell_IDs[1]
@@ -1302,6 +1305,30 @@ class ExternalInput:
         """
         return self.dust_id()
 
+    def get_dust_min_size(self):
+        """The minimum dust grain size can be modified by the code here if neccessary.
+
+        Returns:
+            float: minimum grain size
+        """
+        return self.dust_min_size()
+
+    def get_dust_max_size(self):
+        """The maximum dust grain size can be modified by the code here if neccessary.
+
+        Returns:
+            float: minimum grain size
+        """
+        return self.dust_max_size()
+
+    def get_dust_size_param(self):
+        """The size distribution parameter can be modified by the code here if neccessary.
+
+        Returns:
+            float: minimum grain size
+        """
+        return self.dust_size_param()
+
     def adjust(self, value, name):
         """Adjust a parameter of the model.
 
@@ -1332,8 +1359,7 @@ class ExternalInput:
         Returns:
             float: Gas temperature at a given position.
         """
-        gas_temperature = 0.
-        return gas_temperature
+        return None
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
@@ -1341,8 +1367,7 @@ class ExternalInput:
         Returns:
             float: Dust temperature at a given position.
         """
-        dust_temperature = 0.
-        return dust_temperature
+        return None
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -1357,8 +1382,7 @@ class ExternalInput:
         Returns:
             float: Gas density at a given position.
         """
-        gas_density = 0.
-        return gas_density
+        return None
 
     def dust_density_distribution(self):
         """Calculates the dust density at a given position.
@@ -1373,8 +1397,7 @@ class ExternalInput:
         Returns:
             float: Dust density at a given position.
         """
-        dust_density = 0.
-        return dust_density
+        return None
 
     def velocity_field(self):
         """Calculates the velocity at a given position.
@@ -1387,8 +1410,7 @@ class ExternalInput:
         Returns:
             List[float, float, float]: Velocity at a given position.
         """
-        velocity = [0., 0., 0.]
-        return velocity
+        return None
 
     def magnetic_field(self):
         """Calculates the magnetic field strength at a given position.
@@ -1405,8 +1427,7 @@ class ExternalInput:
         Returns:
             List[float, float, float]: Magnetic field strength at a given position.
         """
-        magnetic_field = [0., 0., 0.]
-        return magnetic_field
+        return None
 
     def dust_id(self):
         """Calculates the dust ID depending on the position in the grid.
@@ -1416,5 +1437,31 @@ class ExternalInput:
         Returns:
             int: dust ID.
         """
-        dust_id = 0
-        return dust_id
+        return None
+
+    def dust_min_size(self):
+        """Calculates the minimum dust grain size depending on the position in the grid.
+        This overwrites the global minimum grain size, but has no effect if it is smaller than it.
+
+        Returns:
+            float: minimum grain size
+        """
+        return None
+
+    def dust_max_size(self):
+        """Calculates the maximum dust grain size depending on the position in the grid.
+        This overwrites the global maximum grain size, but has no effect if it is larger than it.
+
+        Returns:
+            float: maximum grain size
+        """
+        return None
+
+    def dust_size_param(self):
+        """Calculates the size distribution parameter depending on the position in the grid.
+        This overwrites the global size distribution parameter.
+
+        Returns:
+            float: minimum grain size
+        """
+        return None
