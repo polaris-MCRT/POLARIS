@@ -103,16 +103,16 @@ class TestRoutines:
 
         #: dict: results file to the quantities
         self.results_files = {
-            'temperature': ['output_midplane.fits'],
-            'a_align': ['output_midplane.fits'],
-            'scattering_map': ['polaris_detector_nr0001.fits'],
-            'emission_map': ['polaris_detector_nr0001.fits'],
-            'emission_sed': ['polaris_detector_nr0001_sed.fits'],
-            'healpix_map': ['polaris_detector_nr0001.fits'],
-            'healpix_vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
-                                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
-            'vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + '.fits'
-                        for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra.fits'],
+            'temperature': ['output_midplane'],
+            'a_align': ['output_midplane'],
+            'scattering_map': ['polaris_detector_nr0001'],
+            'emission_map': ['polaris_detector_nr0001'],
+            'emission_sed': ['polaris_detector_nr0001_sed'],
+            'healpix_map': ['polaris_detector_nr0001'],
+            'healpix_vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + ''
+                                for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra'],
+            'vel_map': ['vel_channel_maps_species_0001_line_0001_vel_' + str(i + 1).zfill(4) + ''
+                        for i in range(15)] + ['vel_channel_maps_species_0001_line_0001_extra'],
         }
 
     def check(self, diff, max_diff):
@@ -149,10 +149,22 @@ class TestRoutines:
                       'test_' + str(self.test_index) + '/POLARIS.cmd')
         result = 0
         for filename in self.results_files[quantity]:
+            if os.path.isfile(self.file_io.path['testing'] + 'test_' +
+                              str(self.test_index) + '/results_correct/' + filename + '.fits'):
+                extension_correct = '.fits'
+            elif os.path.isfile(self.file_io.path['testing'] + 'test_' +
+                                str(self.test_index) + '/results_correct/' + filename + '.fits.gz'):
+                extension_correct = '.fits.gz'
             hdul_correct = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
-                                          '/results_correct/' + filename)
+                                          '/results_correct/' + filename + extension_correct)
+            if os.path.isfile(self.file_io.path['testing'] + 'test_' +
+                              str(self.test_index) + '/results/data/' + filename + '.fits'):
+                extension = '.fits'
+            elif os.path.isfile(self.file_io.path['testing'] + 'test_' +
+                                str(self.test_index) + '/results/data/' + filename + '.fits.gz'):
+                extension = '.fits.gz'
             hdul = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
-                                  '/results/data/' + filename)
+                                  '/results/data/' + filename + extension)
             if 'healpix' in quantity:
                 data_correct = hdul_correct[1].data.tolist()
                 data = hdul[1].data.tolist()
