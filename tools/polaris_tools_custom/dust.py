@@ -13,6 +13,7 @@ import numpy as np
 def update_dust_dict(dictionary):
     dust_dict = {
         'vincent_mrn_oblate': VincentMrnOblate,
+        'silicate_oblate_vg': SilicateOblateVG,
         'multi_sil': MultiSilicate,
         'multi_mrn': MultiMRN,
         'multi_themis': MultiThemis,
@@ -139,6 +140,28 @@ class VincentMrnOblate(Dust):
         dust.parameter['size_parameter'] = [-3.9]
         new_command_line += dust.get_command_line()
         return new_command_line
+
+
+class SilicateOblate(Dust):
+    """Dust class for silicate grains."""
+
+    def __init__(self, file_io, parse_args):
+        """Initialisation of the dust parameters.
+
+        Args:
+            file_io : Handles file input/output and all
+                necessary paths.
+        """
+        Dust.__init__(self, file_io, parse_args)
+
+        # Parameters which are different to the default values
+        self.parameter['dust_cat_file'] = 'test_silicate_prolate_vg.dat'
+        self.parameter['scattering'] = 'HG'
+        self.parameter['material_density'] = 3800
+        # Minimum dust grain size
+        self.parameter['amin'] = 3e-9
+        # Maximum dust grain size
+        self.parameter['amax'] = 2e-6
 
 
 class MultiSilicate(Dust):

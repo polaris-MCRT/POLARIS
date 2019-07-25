@@ -2506,10 +2506,102 @@ class CustomPlots:
                                linestyle=plot.linestyles[i_mix - 1],
                                color=plot.colors[int(i_type / 2)], label=label)
         # Plot line of minimum optical depth
-        plot.plot_line([7.65e-6, 7.65e-6], extent[2:], linestyle=':', color=plot.colors[3])
-        plot.plot_text([9.3e-6, 8e2], r'$\lambda=\SI{7.65}{\micro\metre}$', color=plot.colors[3])
+        plot.plot_line([7.65e-6, 7.65e-6], extent[2:],
+                       linestyle=':', color=plot.colors[3])
+        plot.plot_text(
+            [9.3e-6, 8e2], r'$\lambda=\SI{7.65}{\micro\metre}$', color=plot.colors[3])
         # Plot the legend
         plot.plot_legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1007002(self):
+        """Plot optical depth slice.
+        """
+        # Simulatuion parameter
+        detector_index = 1
+        limits = [-300, -100, -200, 0]
+        i_quantity = 6  # Optical depth
+        i_wl = 0  # First wavelength
+        # Plot planet into figure
+        circle_size = 1
+        circle_color = 'white'
+        def planet_position(PA_planet=231., distance_planet=260.):
+            inclination = -37. / 180 * np.pi
+            PA_inclination = 360. - 270. - 7.
+            PA_diff = (PA_planet - PA_inclination) / 180 * np.pi
+            pos = distance_planet * np.array(
+                [-np.sqrt(np.sin(PA_diff)**2 * np.cos(inclination)**2 + np.cos(PA_diff)**2), 
+                np.sin(PA_diff) * np.sin(inclination)] 
+            )
+            return pos
+        # Create pdf file if show_plot is not chosen and read map data from file
+        plot_data, header, plot_data_type = self.file_io.read_emission_map(
+            'polaris_detector_nr' + str(detector_index).zfill(4))
+        self.file_io.init_plot_output(
+            'optical_depth_check', path=self.file_io.path['model'])
+        # Take data for current quantity
+        tbldata_tau = plot_data[i_quantity, i_wl, :, :]
+        tbldata_delta_tau = plot_data[i_quantity, i_wl, :, :].copy()
+        for i_x in range(header['nr_pixel_x']):
+            ref_value = tbldata_delta_tau[i_x, 0]
+            for i_z in range(header['nr_pixel_y']):
+                tbldata_delta_tau[i_x, i_z] = ref_value - tbldata_delta_tau[i_x, i_z]
+                ref_value -= tbldata_delta_tau[i_x, i_z]
+
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args)
+        # polarization plots
+        plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
+                         set_bad_to_min=True)
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, limits=limits)
+        # polarization plots
+        plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
+                         set_bad_to_min=True)
+        plot.plot_circle(planet_position(), size=circle_size, color=circle_color)
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args)
+        # polarization plots
+        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau$',
+                         set_bad_to_min=True, cmap='magma')
+        #for PA in range(173, 264):
+        #    pos = planet_position(PA)
+        #    plot.plot_circle(pos, size=circle_size, color=circle_color)
+        #    plot.plot_circle([-pos[0], -pos[1]], size=circle_size, color=circle_color)
+        for R in range(180, 270):
+            plot.plot_circle(planet_position(228, R), size=circle_size, color='white', alpha=0.3)
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, limits=limits)
+        # polarization plots
+        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau$',
+                         set_bad_to_min=True, cmap='magma')
+        #for PA in range(173, 264):
+        #    plot.plot_circle(planet_position(PA), size=circle_size, color=circle_color, alpha=0.3)
+        def planet_position2(PA_planet=231., distance_planet=[260., 0]):
+            inclination = -37. / 180 * np.pi
+            PA_inclination = 360. - 270. - 7.
+            PA_diff = (PA_planet - PA_inclination) / 180 * np.pi
+            pos = distance_planet[0] * np.array(
+                [-np.sqrt(np.sin(PA_diff)**2 * np.cos(inclination)**2 + np.cos(PA_diff)**2), 
+                np.sin(PA_diff) * np.sin(inclination)]
+            ) + \
+                distance_planet[1] * np.array([-np.sin(inclination), np.cos(inclination)]
+                )
+            return pos
+        for R in range(180, 270):
+            plot.plot_circle(planet_position2(228, [R, -5]), size=circle_size, color='white', alpha=0.3)
+            plot.plot_circle(planet_position2(228, [R, 0]), size=circle_size, color='white', alpha=0.3)
+            plot.plot_circle(planet_position2(228, [R, 5]), size=circle_size, color='white', alpha=0.3)
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
