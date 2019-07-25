@@ -368,11 +368,11 @@ class FileIO:
         if elongated:
             property_types = [
                 r'\text{ext,1}',
-                r'\text{ext,2}$',
-                r'\text{abs,1}$',
-                r'\text{abs,2}$',
-                r'\text{sca,1}$',
-                r'\text{sca,2}$',
+                r'\text{ext,2}',
+                r'\text{abs,1}',
+                r'\text{abs,2}',
+                r'\text{sca,1}',
+                r'\text{sca,2}',
             ]
         else:
             if i_type in [1, 3, 5]:
