@@ -4953,15 +4953,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         if(grid->getRadiationFieldAvailable())
         {
             if(scattering_to_raytracing)
-            {
-                cout << "yes, based on the radiation field" << endl
-                     << "    HINT: Only one dominant radiation source and mostly single "
-                        "scattering?"
-                     << endl
-                     << "          -> If not, use <rt_scattering> 0                      "
-                        "          "
-                     << endl;
-            }
+                cout << "yes, based on the radiation field" << endl;
             else
                 cout << "no, disabled via <rt_scattering> 0" << endl;
         }
@@ -4969,6 +4961,8 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         {
             if(scattering_to_raytracing)
                 cout << "yes, radiation field will be calculated before raytracing" << endl;
+            else if(!param.getScatteringToRay())
+                cout << "no, disabled via <rt_scattering> 0" << endl;
             else
             {
                 cout << "no, radiation field not found in grid and radiation sources "
