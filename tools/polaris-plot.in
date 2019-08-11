@@ -106,9 +106,9 @@ zoom_scaling_args.add_argument('--xzoom', dest='zoom_x_factor', default=None, ty
                                help='define zoom factor to shrink X-axis range of raytrace outputs.')
 zoom_scaling_args.add_argument('--yzoom', dest='zoom_y_factor', default=None, type=float,
                                help='define zoom factor to shrink Y-axis range of raytrace outputs.')
-zoom_scaling_args.add_argument('--xscaling', dest='x_scaling', default=None, type=str, choices=['linear', 'log'],
+zoom_scaling_args.add_argument('--xscaling', dest='x_scaling', default='linear', type=str, choices=['linear', 'log'],
                                help='plot x-axis with \"linear\" or \"log\" scaling.')
-zoom_scaling_args.add_argument('--yscaling', dest='y_scaling', default=None, type=str, choices=['linear', 'log'],
+zoom_scaling_args.add_argument('--yscaling', dest='y_scaling', default='linear', type=str, choices=['linear', 'log'],
                                help='plot y-axis with \"linear\" or \"log\" scaling.')
 zoom_scaling_args.add_argument('--cmap_scaling', dest='cmap_scaling', default=None, type=str, nargs='+',
                                help='plot colomap with \"linear\", \"log\", \"symlog\" (+ linthresh), '
