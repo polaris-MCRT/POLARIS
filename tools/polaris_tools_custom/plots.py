@@ -2519,42 +2519,119 @@ class CustomPlots:
         """Plot optical depth slice.
         """
         # Simulatuion parameter
-        detector_index = 1
-        limits = [-300, -100, -200, 0]
+        model = 1
+        detector_index = model * 100
+        vmax = 100
+        limits = [-270, -160, -130, -20]
         i_quantity = 6  # Optical depth
         i_wl = 0  # First wavelength
         # Plot planet into figure
-        circle_size = 3
-        def planet_position(PA_planet=231., distance_planet=252.):
+        circle_size = 2
+        circle_size_large = 6
+        color_1 = 'cyan'
+        cmap_1 = 'magma_r'
+        color_2 = 'cyan'
+        cmap_2 = 'magma_r'
+        def planet_position(distance_planet=252.):
+            PA_planet = 231.
             inclination = -37. / 180 * np.pi
             PA_inclination = 360. - 270. - 7.
             PA_diff = (PA_planet - PA_inclination) / 180 * np.pi
             PA_new = np.arctan(np.tan(PA_diff) / np.cos(inclination))
             pos = -distance_planet * np.array(
-                [np.sqrt(np.sin(PA_new)**2 * np.cos(inclination)**2 + np.cos(PA_new)**2), 
-                np.sin(PA_new) * np.sin(inclination)] 
+                [np.sqrt(np.sin(PA_new)**2 * np.cos(inclination)**2 + np.cos(PA_new)**2),
+                 np.sin(PA_new) * np.sin(inclination)]
             )
             return pos
+        def planet_angle():
+            PA_planet = 231.
+            inclination = -37. / 180 * np.pi
+            PA_inclination = 360. - 270. - 7.
+            PA_diff = (PA_planet - PA_inclination) / 180 * np.pi
+            PA_new = np.arctan(np.tan(PA_diff) / np.cos(inclination))
+            angle = np.arctan(
+                np.sin(PA_new) * np.sin(inclination) /
+                np.sqrt(np.sin(PA_new)**2 * np.cos(inclination)
+                        ** 2 + np.cos(PA_new)**2)
+            )
+            return angle / np.pi * 180
+        pos_center = planet_position(-400)
+        pos_edge = planet_position(400)
+        pos_fwhm_plus = planet_position(252) + np.array([25, 0])
+        pos_fwhm_minus = planet_position(252) - np.array([25, 0])
+        v_pos1 = planet_position(30)
+        v_pos1 = planet_position() + np.array([-v_pos1[1], v_pos1[0]])
+        v_pos2 = planet_position(-50)
+        v_pos2 = planet_position() + np.array([-v_pos2[1], v_pos2[0]])
         # Create pdf file if show_plot is not chosen and read map data from file
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
             'polaris_detector_nr' + str(detector_index).zfill(4))
         self.file_io.init_plot_output(
-            'optical_depth_check', path=self.file_io.path['model'])
+            'optical_depth_check_' + str(model), path=self.file_io.path['model'])
         # Take data for current quantity
         tbldata_tau = plot_data[i_quantity, i_wl, :, :]
         tbldata_delta_tau = plot_data[i_quantity, i_wl, :, :].copy()
         for i_x in range(header['nr_pixel_x']):
             ref_value = tbldata_delta_tau[i_x, 0]
             for i_z in range(header['nr_pixel_y']):
-                tbldata_delta_tau[i_x, i_z] = ref_value - tbldata_delta_tau[i_x, i_z]
+                tbldata_delta_tau[i_x, i_z] = ref_value - \
+                    tbldata_delta_tau[i_x, i_z]
                 ref_value -= tbldata_delta_tau[i_x, i_z]
 
+        def plot_large(_plot, color):
+            _plot.plot_line([pos_center[0], pos_edge[0]], [pos_center[1], pos_edge[1]],
+                            color=color, linestyle='--', no_grid=True, linewidth=0.75, zorder=1)
+            _plot.plot_circle(
+                planet_position(), size=circle_size_large, fc=color, ec='none', zorder=2)
+
+        def plot_small(_plot, color, lw=1):
+            _plot.plot_line([pos_center[0], pos_edge[0]], [pos_center[1], pos_edge[1]],
+                            color=color, linestyle='--', no_grid=True, linewidth=1, zorder=1)
+            _plot.plot_line([v_pos1[0], v_pos2[0]], [v_pos1[1], v_pos2[1]],
+                            color=color, linestyle='--', no_grid=True, linewidth=1, zorder=1)
+            _plot.plot_line([pos_fwhm_plus[0], pos_fwhm_minus[0]], [pos_fwhm_plus[1], pos_fwhm_minus[1]], alpha=0.3,
+                            color=color, linestyle='-', no_grid=True, linewidth=9, zorder=1, solid_capstyle='round')
+            _plot.plot_circle(planet_position(), size=circle_size,
+                              fc=color, ec='none', zorder=2)
+            plot_axis_numbers(_plot, color, lw=lw)
+            plot_axis_numbers_2(_plot, color, lw=lw)
+
+        def plot_axis_numbers(_plot, color, lw=1):
+            for dist in [200, 220, 240, 260, 280]:
+                pos = planet_position(dist)
+                tmp_pos = planet_position(2)
+                text_pos = pos + np.array([-tmp_pos[1], tmp_pos[0]])
+                _plot.plot_line([pos[0], text_pos[0]], [pos[1], text_pos[1]], color=color,
+                                linestyle='-', no_grid=True, linewidth=lw, zorder=1, solid_capstyle='round')
+                tmp_pos = planet_position(6)
+                _plot.plot_text(pos + np.array([-tmp_pos[1], tmp_pos[0]]), r'$\SI{' + str(dist) + '}{au}$',
+                                color=color, rotation=planet_angle(), fontsize=10)
+
+        def plot_axis_numbers_2(_plot, color, lw=1):
+            for dist in [-40, -20, 20]:
+                pos = planet_position(dist)
+                pos = planet_position() + np.array([-pos[1], pos[0]])
+                text_pos = pos - planet_position(2)
+                _plot.plot_line([pos[0], text_pos[0]], [pos[1], text_pos[1]], color=color,
+                                linestyle='-', no_grid=True, linewidth=lw, zorder=1, solid_capstyle='round')
+                _plot.plot_text(pos - planet_position(10), r'$\SI{' + str(-dist) + '}{au}$',
+                                color=color, rotation=planet_angle(), fontsize=10)
+
+        def plot_tau(_plot, color):
+            if model == 1:
+                text = r'Single size distribution with $a_\text{max}=\SI{3}{\micro\metre}$'
+            else:
+                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
+            _plot.plot_text([0.97, 0.97], text, color=color, relative_position=True,
+                            horizontalalignment='right', verticalalignment='top')
+
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args)
         # polarization plots
         plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
-                         set_bad_to_min=True, vmax=100)
-        plot.plot_circle(planet_position(), size=circle_size * 2, fc='red', ec='white', alpha=0.7)
+                         set_bad_to_min=True, vmax=vmax, cmap=cmap_1)
+        plot_large(plot, color_1)
+        plot_tau(plot, 'black')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
@@ -2562,30 +2639,29 @@ class CustomPlots:
         plot = Plot(self.model, self.parse_args, limits=limits)
         # polarization plots
         plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
-                         set_bad_to_min=True, vmax=100)
-        plot.plot_circle(planet_position(), size=circle_size, fc='red', ec='white', alpha=0.7)
+                         set_bad_to_min=True, vmax=vmax, cmap=cmap_1)
+        plot_small(plot, color_1)
+        plot_tau(plot, 'black')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args)
         # polarization plots
-        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau$',
-                         set_bad_to_min=True, cmap='magma')
-        plot.plot_circle(planet_position(), size=circle_size * 2, fc='red', ec='white', alpha=0.7)
-        #for R in range(180, 270):
-        #    plot.plot_circle(planet_position(218, R), size=circle_size, color='black', alpha=0.3)
+        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau\ [\text{arb. units}]$',
+                         set_bad_to_min=True, cmap=cmap_2)
+        plot_large(plot, color_2)
+        plot_tau(plot, 'black')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
         plot = Plot(self.model, self.parse_args, limits=limits)
         # polarization plots
-        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau$',
-                         set_bad_to_min=True, cmap='magma')
-        plot.plot_circle(planet_position(), size=circle_size, fc='red', ec='white', alpha=0.7)
-        #for R in range(180, 270):
-        #    plot.plot_circle(planet_position(218, R), size=circle_size, color='black', alpha=0.3)
+        plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau\ [\text{arb. units}]$',
+                         set_bad_to_min=True, cmap=cmap_2)
+        plot_small(plot, color_2)
+        plot_tau(plot, 'black')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 

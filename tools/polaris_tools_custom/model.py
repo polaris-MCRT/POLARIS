@@ -520,14 +520,14 @@ class GGTauDisk(Model):
         # ----------------------------------
         # ---- Init dust layers profile ----
         # ----------------------------------
-        #from scipy import interpolate
-        #self.layer_function = dict()
-        #wl_list = ['800', '1250', '1650', '3800', '7700']
-        #for wl in wl_list:
-        #    data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
-        #        'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
-        #    self.layer_function[wl] = interpolate.interp1d(
-        #        data[0,:], data[1,:], fill_value="extrapolate")
+        from scipy import interpolate
+        self.layer_function = dict()
+        wl_list = ['7700']  # ['800', '1250', '1650', '3800', '7700']
+        for wl in wl_list:
+            data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
+                'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
+            self.layer_function[wl] = interpolate.interp1d(
+                data[0,:], data[1,:], fill_value="extrapolate")
  
 
     def update_parameter(self, extra_parameter):
@@ -553,27 +553,6 @@ class GGTauDisk(Model):
                                                        241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
                         (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
-                    # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
-                    self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
-                    # Phi cells
-                    n_ph_list_1 = [600] * 250
-                    n_ph_list_2 = [180] * 51
-                    n_ph_list_3 = [600] * 40
-                    self.cylindrical_parameter['n_ph'] = np.hstack(
-                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
-                elif extra_parameter[0] == 'planet_extra':
-                    # Enable all disks
-                    self.disk_Aa = True
-                    self.disk_Ab1 = True
-                    # Radial cells
-                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 250)
-                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                                        260. * self.math.const['au'], 50, 1.03)
-                    r_list_planet = np.linspace(261. * self.math.const['au'],
-                                                300. * self.math.const['au'], 40)
-                    self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet)).ravel()
                     # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     # Phi cells
@@ -759,9 +738,13 @@ class GGTauDisk(Model):
             int: dust ID.
         """
         # Calculate cylindrical radius
-        '''
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
+            if abs(self.position[2]) > self.layer_function['7700'](radius_cy):
+                dust_id = 1
+            else:
+                dust_id = 2
+            '''
             if abs(self.position[2]) > self.layer_function['800'](radius_cy):
                 dust_id = 1
             elif abs(self.position[2]) > self.layer_function['1250'](radius_cy):
@@ -774,9 +757,9 @@ class GGTauDisk(Model):
                 dust_id = 5
             else:
                 dust_id = 6
+            '''
         else:
-        '''
-        dust_id = 0
+            dust_id = 0
         return dust_id
 
     def scale_height(self, radius):

@@ -1373,7 +1373,7 @@ class Plot:
         self.ax_list[ax_index].quiver3D(xmesh, ymesh, zmesh, u, v, w, length=length, pivot=pivot, color=color,
                                         arrow_length_ratio=arrow_length_ratio)
 
-    def plot_text(self, text_pos, text, ax_index=0, color='k', relative_position=False,
+    def plot_text(self, text_pos, text, ax_index=0, relative_position=False,
                   horizontalalignment='center', verticalalignment='center', zdir=(0, 0, 1), **args):
         """Plot text in the image.
 
@@ -1381,7 +1381,6 @@ class Plot:
             text_pos (List[float, float]): List with the 2D text positions.
             text (str): Text that will be plotted.
             ax_index (int): Index of subplot image.
-            color (str): Color of the text.
             relative_position (bool): Position of text is in relation to the axes extent.
                 (x in [0, 1], y in [0, 1])
             horizontalalignment (str): Horizontal alignment of the text.
@@ -1392,18 +1391,24 @@ class Plot:
         """
         # Calculate relative positions inside the image if chosen
         if relative_position:
-            text_pos[0] = text_pos[0] * \
-                (self.extent[1] - self.extent[0]) + self.extent[0]
-            text_pos[1] = text_pos[1] * \
-                (self.extent[3] - self.extent[2]) + self.extent[2]
+            if self.limits is not None:
+                text_pos[0] = text_pos[0] * \
+                    (self.limits[1] - self.limits[0]) + self.limits[0]
+                text_pos[1] = text_pos[1] * \
+                    (self.limits[3] - self.limits[2]) + self.limits[2]
+            else:
+                text_pos[0] = text_pos[0] * \
+                    (self.extent[1] - self.extent[0]) + self.extent[0]
+                text_pos[1] = text_pos[1] * \
+                    (self.extent[3] - self.extent[2]) + self.extent[2]
         # Plot text
         if self.image_type == 'projection_3d':
-            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text_pos[2], text, zdir, color=color,
-                                                    horizontalalignment=horizontalalignment, verticalalignment=verticalalignment, **args)
+            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text_pos[2], text, zdir,
+                                                    ha=horizontalalignment, va=verticalalignment, **args)
         else:
             # Plot the text object
-            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, color=color, horizontalalignment=horizontalalignment,
-                                                    verticalalignment=verticalalignment, **args)
+            self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, ha=horizontalalignment,
+                                                    va=verticalalignment, **args)
 
     def plot_rectangle(self, pos, width, height, ax_index=0, facecolor=None, edgecolor='none', alpha=0.1, hatch=None):
         """Plot rectangle in the image.
@@ -1484,7 +1489,7 @@ class Plot:
         self.ax_list[ax_index].arrow(arrow_origin[0], arrow_origin[1], arrow_offset[0], arrow_offset[1],
                                      head_width=head_width, head_length=head_length, width=width, fc=color, ec=color)
 
-    def plot_annotate(self, text, pos, text_pos, ax_index=0, color=None, ha='center', va='center'):
+    def plot_annotate(self, text, pos, text_pos, ax_index=0, color=None, arrow=True, **args):
         """Plot an arrow in the image.
 
         Args:
@@ -1493,13 +1498,15 @@ class Plot:
             text_pos (List): Position of the text (dx, dy).
             ax_index (int): Index of subplot image.
             color (str): Color of the annotation.
-            ha (str): Horizontal alignment.
-            va (str): Vertical alignment.
         """
-        self.ax_list[ax_index].annotate(text, xy=pos, xytext=text_pos, color=color,
-                                        arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
-                                                        arrowstyle="-|>", color=color, shrinkA=4),
-                                        horizontalalignment=ha, verticalalignment=va)
+        if arrow:
+            self.ax_list[ax_index].annotate(text, xy=pos, xytext=text_pos, color=color,
+                                            arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],
+                                                            arrowstyle="-|>", color=color, shrinkA=4), **args)
+        else:
+            self.ax_list[ax_index].annotate(
+                text, xy=pos, xytext=text_pos, color=color, **args,
+                arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],arrowstyle="-", color=color))
 
     def plot_double_arrow(self, arrow_origin, arrow_offset, ax_index=0, color='black'):
         """Plot an arrow in the image.
