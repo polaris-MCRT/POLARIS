@@ -3275,7 +3275,31 @@ class CDustMixture
         {
             uint i_mixture = getScatteringMixture(grid, pp);
             uint a = mixed_component[i_mixture].getInteractingDust(grid, pp, CROSS_SCA);
-            return mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs);
+            photon_package pp_res = mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs);
+
+            // Init variables for optical depth calculation
+            double len, dens, Cext, tau_obs = 0;
+
+            // Transport the photon package through the grid
+            while(grid->next(&pp_res))
+            {
+                // Get the traveled distance
+                len = pp_res.getTmpPathLength();
+
+                // Get the current density
+                dens = getNumberDensity(grid, &pp_res);
+
+                // Get the current mean extinction cross-section
+                Cext = getCextMean(grid, &pp_res);
+
+                // Add the optical depth of the current path to the total optical depth
+                tau_obs += Cext * len * dens;
+            }
+
+            // Reduce the Stokes vector by the optical depth
+            pp_res.getStokesVector() *= exp(-tau_obs);
+
+            return pp_res;
         }
         return photon_package();
     }

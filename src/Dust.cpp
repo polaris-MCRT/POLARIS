@@ -4297,9 +4297,6 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
 
         default:
         {
-            // Init variables
-            double len, dens, Cext, tau_obs = 0;
-
             // Get wavelength index of the photon package
             uint w = pp->getWavelengthID();
 
@@ -4333,25 +4330,6 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
             pp_res.setDirection(dir_obs);
             pp_res.setWavelengthID(w);
 
-            // Transport the photon package through the grid
-            while(grid->next(&pp_res))
-            {
-                // Get the traveled distance
-                len = pp_res.getTmpPathLength();
-
-                // Get the current density
-                dens = getNumberDensity(grid, &pp_res);
-
-                // Get the current mean extinction cross-section
-                Cext = getCextMean(grid, &pp_res);
-
-                // Add the optical depth of the current path to the total optical depth
-                tau_obs += Cext * len * dens;
-            }
-
-            // Reduce the Stokes vector by the optical depth
-            tmp_stokes *= exp(-tau_obs);
-
             // Set the new Stokes vector to the photon package
             pp_res.setStokesVector(tmp_stokes);
 
@@ -4366,9 +4344,6 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
                                                   Vector3D obs_ex,
                                                   Vector3D dir_obs)
 {
-    // Init variables
-    double len, dens, Cext, phi_fraction = 1, tau_obs = 0;
-
     // Get wavelength index of the photon package
     uint w = pp->getWavelengthID();
 
@@ -4405,6 +4380,8 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Create the scattering matrix with the local parameters
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
+    // Default phi distribution is isotrope
+    double phi_fraction = 1;
     if(phID == PH_MIE)
     {
         // Get PHIPAR to take non equal distribution of phi angles into account
@@ -4435,25 +4412,6 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Normalize Stokes vector to preserve total intensity
     tmp_stokes *= stokes_1_bak / tmp_stokes.I();
-
-    // Transport the photon package through the grid
-    while(grid->next(&pp_res))
-    {
-        // Get the traveled distance
-        len = pp_res.getTmpPathLength();
-
-        // Get the current density
-        dens = getNumberDensity(grid, &pp_res);
-
-        // Get the current mean extinction cross-section
-        Cext = getCextMean(grid, &pp_res);
-
-        // Add the optical depth of the current path to the total optical depth
-        tau_obs += Cext * len * dens;
-    }
-
-    // Reduce the Stokes vector by the optical depth
-    tmp_stokes *= exp(-tau_obs);
 
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
