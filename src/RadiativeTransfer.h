@@ -153,6 +153,8 @@ class CRadiativeTransfer
 
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
+    bool calcMonteCarloLvlPopulation(parameters & param);
+
     // Set temperature (old!)
     bool setTemperatureDistribution();
 

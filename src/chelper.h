@@ -2595,20 +2595,17 @@ class photon_package
   public:
     photon_package()
     {
-        sc_counter = 0;
         cell_pos = 0;
         tmp_path = 0;
+
+        frequency = 0;
+        wavelength = 0;
 
         wID = MAX_UINT;
         dirID = MAX_UINT;
 
-        sh_distance = 0;
-
         stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
-
-        sc_counter = 0;
-        abs_counter = 0;
 
         hasSpare = false;
         rand1 = 0.5;
@@ -2685,11 +2682,6 @@ class photon_package
         rand_gen.setSeed(seed);
     }
 
-    uint getAbsorptionEvents()
-    {
-        return abs_counter;
-    }
-
     void setD(Matrix2D & _mD)
     {
         mD = _mD;
@@ -2725,24 +2717,40 @@ class photon_package
         return tmp_path;
     }
 
-    uint getScatteringEvents()
-    {
-        return sc_counter;
-    }
-
     cell_basic * getPositionCell()
     {
         return cell_pos;
     }
 
-    double getWavelengthID()
+    uint getWavelengthID()
     {
         return wID;
     }
 
-    double getShortestDistance()
+    double getFrequency()
     {
-        return sh_distance;
+        if(frequency > 0)
+            return frequency;
+        else if(wavelength != 0)
+            return con_c / wavelength;
+        else
+        {
+            cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
+            return 0;
+        }
+    }
+
+    double getWavelength()
+    {
+        if(wavelength > 0)
+            return wavelength;
+        else if(frequency != 0)
+            return con_c / frequency;
+        else
+        {
+            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
+            return 0;
+        }
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2864,16 +2872,6 @@ class photon_package
         multi_stokes[i] = st;
     }
 
-    void scattered()
-    {
-        sc_counter++;
-    }
-
-    void absorbed()
-    {
-        abs_counter++;
-    }
-
     void addStokesVector(StokesVector val)
     {
         stokes += val;
@@ -2928,11 +2926,6 @@ class photon_package
         tmp_path = val;
     }
 
-    void setScatteringEvents(uint val)
-    {
-        sc_counter = val;
-    }
-
     void setPositionCell(cell_basic * val)
     {
         cell_pos = val;
@@ -2948,14 +2941,18 @@ class photon_package
         return dirID;
     }
 
-    void setWavelengthID(uint val)
+    void setWavelength(uint _wID, double val)
     {
-        wID = val;
+        wID = _wID;
+        wavelength = val;
+        frequency = 0;
     }
 
-    void setShortestDistance(double val)
+    void setFrequency(uint _wID, double val)
     {
-        sh_distance = val;
+        wID = _wID;
+        frequency = val;
+        wavelength = 0;
     }
 
   private:
@@ -2969,13 +2966,14 @@ class photon_package
     StokesVector stokes;
     StokesVector * multi_stokes;
 
+    double frequency;
+    double wavelength;
+
     uint wID;
     uint dirID;
 
-    uint sc_counter;
-    uint abs_counter;
     double tmp_path;
-    double sh_distance;
+
     cell_basic * cell_pos;
 
     bool hasSpare;

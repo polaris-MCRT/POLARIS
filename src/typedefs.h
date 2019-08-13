@@ -112,6 +112,16 @@ using namespace std;
 #define DET_SPHER 2
 #define DET_SLICE 3
 
+// sources ids
+#define SRC_BASIC 0
+#define SRC_POINT 1
+#define SRC_SFIELD 2
+#define SRC_BACKGROUND 3
+#define SRC_ISRF 4
+#define SRC_DUST 5
+#define SRC_GASLVL 6
+#define SRC_LASER 7
+
 // phase functions
 #define PH_ISO 0
 #define PH_HG 1

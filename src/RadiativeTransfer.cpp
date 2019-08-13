@@ -544,7 +544,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 // Launch a new photon package from the source
                 if(use_energy_density)
                 {
-                    pp->setWavelengthID(wID);
+                    pp->setWavelength(wID, dust->getWavelength(wID));
                     tm_source->createNextRay(pp, ullong(nr_of_photons * wID + r));
                 }
                 else
@@ -708,6 +708,130 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                  << endl;
             break;
     }
+    return true;
+}
+
+bool CRadiativeTransfer::calcMonteCarloLvlPopulation(parameters & param)
+{
+    // Check the source
+    if(sources_mc.size() != 1 || sources_mc[0]->getID() != SRC_GASLVL)
+    {
+        cout << "Error: Level population can only be calculated with the GAS MC source!" << endl;
+        return false;
+    }
+
+    // Init variables
+    uint kill_counter = 0;
+
+    // How many doppler width to cover random frequency
+    double doppler_mult = 5;
+
+    // Create a list for all gas species
+    maplist line_ray_detector_list = param.getLineRayDetectors();
+    maplist::iterator it;
+
+    // Perform radiative transfer for each chosen gas species
+    for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
+    {
+        // Get ID of the current gas species
+        uint i_species = it->first;
+
+        // Get number of spectral line transitions that have to be simulated
+        uint nr_of_transitions = param.getNrOfGasSpeciesTransitions(i_species);
+
+        // If no spectral line transitions are chosen for the current gas species, skip
+        if(nr_of_transitions == 0)
+            continue;
+
+        // Calculate the line broadening for each cell
+        gas->calcLineBroadening(grid, i_species);
+
+        // Perform radiative transfer for each chosen spectral line transition
+        for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+        {
+            // Init variables
+            ullong per_counter = 0;
+            float last_percentage = 0;
+
+            double trans_frequency = gas->getTransitionFrequency(i_species, i_line);
+
+            // Init source from sources list
+            CSourceBasic * tm_source = sources_mc[0];
+
+            // Init luminosity and probability for a given wavelength to be chosen
+            if(!tm_source->initSource(0, 1))
+                continue;
+
+            // Number of photons per wavelength
+            ullong nr_of_photons = tm_source->getNrOfPhotons();
+
+            // Number of cells in grid
+            ulong nr_of_cells = grid->getMaxDataCells();
+
+            // Init progress visualization
+            cout << CLR_LINE;
+            cout << "-> MC lvl population: 0 [%]                                                    \r"
+                 << flush;
+
+            // A loop for each wavelength
+#pragma omp parallel for schedule(dynamic) collapse(2)
+            for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
+            {
+                // A loop for each photon
+                for(llong r = 0; r < llong(nr_of_photons); r++)
+                {
+                    // Increase counter used to show progress
+                    per_counter++;
+
+                    // Calculate percentage of total progress per source
+                    float percentage = 100 * float(per_counter) / float(nr_of_photons * nr_of_cells);
+
+                    // Show only new percentage number if it changed
+                    if((percentage - last_percentage) > PERCENTAGE_STEP)
+                    {
+#pragma omp critical
+                        {
+                            cout << "-> MC lvl population: " << percentage << " [%]      \r" << flush;
+                            last_percentage = percentage;
+                        }
+                    }
+
+                    // Init photon package
+                    photon_package * pp = new photon_package();
+
+                    tm_source->createNextRay(pp, ullong(nr_of_photons * i_cell + r));
+
+                    // Set random frequency
+                    pp->setFrequency(0,
+                                     (pp->getRND() - 0.5) *
+                                             (doppler_mult * grid->getDopplerWidth(pp, i_line)) +
+                                         trans_frequency);
+
+                    if(!grid->positionPhotonInGrid(pp))
+                        if(!grid->findStartingPoint(pp))
+                        {
+                            kill_counter++;
+                            delete pp;
+                            continue;
+                        }
+
+                    // Delete the pp pointer
+                    delete pp;
+                }
+            }
+        }
+    }
+
+    // Format prints
+    cout << CLR_LINE;
+    cout << SEP_LINE;
+
+    // Show amount of killed photons
+    if(kill_counter > 0)
+        cout << "- Photons killed                    : " << kill_counter << endl;
+
+    cout << "- MC calculation of lvl population : done                          " << endl;
+
     return true;
 }
 
@@ -911,7 +1035,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     if(ph_i == 0)
                     {
                         // Set current wavelength
-                        pp->setWavelengthID(wID);
+                        pp->setWavelength(wID, dust->getWavelength(wID));
 
                         // Launch a new photon package from the source
                         tm_source->createNextRay(pp, ullong(r));
@@ -1012,7 +1136,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             if(b_forced && interactions == 1 && ph_i == 0)
                             {
                                 rays[1].initRandomGenerator(int(r * pp->getRND()));
-                                rays[1].setWavelengthID(pp->getWavelengthID());
+                                rays[1].setWavelength(pp->getWavelengthID(), pp->getWavelength());
                                 rays[1].setPosition(pp->getPosition());
                                 rays[1].setPositionCell(pp->getPositionCell());
                                 rays[1].setPositionLastInteraction(start_pos);
@@ -1172,7 +1296,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             }
 
             // If peel-off is used, add direct source emission to each detector
-            if(peel_off && tm_source->getStringID() != "dust source")
+            if(peel_off && tm_source->getID() != SRC_DUST)
             {
                 // Transport photon to observer for each detector
                 for(uint d = 0; d < nr_mc_detectors; d++)
@@ -1187,7 +1311,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         photon_package tmp_pp;
 
                         // Set current wavelength to temporary photon package
-                        tmp_pp.setWavelengthID(wID);
+                        tmp_pp.setWavelength(wID, dust->getWavelength(wID));
 
                         // Get direction to the current detector
                         Vector3D dir_obs = detector[d].getDirection();
@@ -1237,7 +1361,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 }
             }
         }
-        if(peel_off && tm_source->getStringID() == "dust source")
+        if(peel_off && tm_source->getID() == SRC_DUST)
         {
             cout << CLR_LINE;
             cout << "\nHINT: MC simulations with dust source and peel-off include only "
@@ -1621,11 +1745,9 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     // Update Stokes vectors with emission from background source
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
-        // Get current wavelength index
-        uint wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
-
         // Set wavelength index in photon package
-        pp1->setWavelengthID(wID);
+        double wavelength = tracer[i_det]->getWavelength(i_wave);
+        pp1->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
         // Set related index of the multi wavelength map to the wavelength ID
 
@@ -1926,13 +2048,12 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get wavelength/frequency of the photon package
-        double wavelength = tracer[i_det]->getWavelength(i_wave);
-        double frequency = con_c / wavelength;
+        pp1->setWavelength(i_wave, tracer[i_det]->getWavelength(i_wave));
         double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                      (frequency * frequency);
+                      (pp1->getFrequency() * pp1->getFrequency());
 
         // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(wavelength));
+        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(pp1->getWavelength()));
 
         // Update the photon package with the multi Stokes vectors
 
@@ -2117,11 +2238,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     // Update Stokes vectors with emission from background source
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
-        // Get current wavelength index
-        double wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
-
         // Set wavelength index in photon package
-        pp->setWavelengthID(wID);
+        double wavelength = tracer[i_det]->getWavelength(i_wave);
+        pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
         // Get emission from background source
         WMap.setS(tmp_source->getStokesVector(pp), i_wave);
@@ -2164,14 +2283,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                        << endl;
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
-                    // Get current wavelength
-                    double wavelength = tracer[i_det]->getWavelength(i_wave);
-
-                    // Get current wavelength index
-                    double wID = dust->getWavelengthID(wavelength);
-
                     // Set wavelength index in photon package
-                    pp->setWavelengthID(wID);
+                    double wavelength = tracer[i_det]->getWavelength(i_wave);
+                    pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
                     StokesVector tmp_stokes = dust->calcEmissivitiesEmi(grid, pp);
                     myfile << wavelength << TAB << corr_factor * wavelength * tmp_stokes.I() << TAB
@@ -2184,16 +2298,16 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
 
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
-                    // Get current wavelength index
-                    double wID = dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave));
-
                     // Set wavelength index in photon package
-                    pp->setWavelengthID(wID);
+                    double wavelength = tracer[i_det]->getWavelength(i_wave);
+                    pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
                     // Set stokes vector with thermal emission of the dust grains and
                     // radiation scattered at dust grains
                     S_dust = dust->calcEmissivitiesEmi(
-                        grid, pp, stokes_dust_rad_field ? detector_wl_index[i_det] + wID : MAX_UINT);
+                        grid,
+                        pp,
+                        stokes_dust_rad_field ? detector_wl_index[i_det] + pp->getWavelengthID() : MAX_UINT);
 
                     // Get the extinction matrix of the dust grains in the current cell
                     alpha_dust = -1 * dust->calcEmissivitiesExt(grid, pp);
@@ -2316,9 +2430,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get frequency at background grid position
-        double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+        pp->setWavelength(i_wave, con_c / tracer[i_det]->getWavelength(i_wave));
         double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                      (frequency * frequency);
+                      (pp->getFrequency() * pp->getFrequency());
 
         // Include foreground extinction if necessary
         mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
@@ -2344,7 +2458,7 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
     for(uint s = 0; s < sources_mc.size(); s++)
     {
         // Ignore dust as Monte-Carle radiation source
-        if(sources_mc[s]->getStringID() == "dust source")
+        if(sources_mc[s]->getID() == SRC_DUST)
             continue;
 
         // Get chosen wavelength parameter
@@ -2367,14 +2481,8 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
         {
             // Get frequency at background grid position
             double wavelength = tracer[i_det]->getWavelength(i_wave);
-            double frequency = con_c / wavelength;
-            double mult = 1.0e+26 * con_c / (frequency * frequency);
-
-            // Get current wavelength index
-            double wID = dust->getWavelengthID(wavelength);
-
-            // Set wavelength index in photon package
-            pp->setWavelengthID(wID);
+            pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
+            double mult = 1.0e+26 * con_c / (pp->getFrequency() * pp->getFrequency());
 
             // Set direction of the photon package to the observer
             tracer[i_det]->preparePhotonWithPosition(pp, source_pos, i_pix);
@@ -2606,11 +2714,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
 
     // Get transition frequency from current species and line
-    double frequency = gas->getTransitionFrequencyFromIndex(i_species, i_line);
-
-    // Calculate wavelength and index
-    double wavelength = con_c / frequency;
-    uint wID = dust->getWavelengthID(wavelength);
+    double wavelength = con_c / gas->getTransitionFrequencyFromIndex(i_species, i_line);
+    pp->setFrequency(dust->getWavelengthID(wavelength), wavelength);
 
     // velocity interpolation
     spline vel_field;
@@ -2620,11 +2725,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
     MultiStokesVector CHMap(nr_velocity_channels);
 
-    // Set photon package to current wavelength
-    pp->setWavelengthID(wID);
-
     for(uint vch = 0; vch < nr_velocity_channels; vch++)
-        CHMap.setS(tmp_source->getStokesVector(pp) * con_c / (frequency * frequency), vch);
+        CHMap.setS(tmp_source->getStokesVector(pp) * con_c / (pp->getFrequency() * pp->getFrequency()), vch);
 
     if(grid_has_vel_field && gas->getKeplerStarMass() == 0)
     {
@@ -2669,9 +2771,6 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     {
         // Save the starting position, to obtain relative positions
         Vector3D pos_in_grid_0 = pp->getPosition();
-
-        // Set photon package to current wavelength
-        pp->setWavelengthID(wID);
 
         // Init matrices
         Matrix2D alpha_ges;

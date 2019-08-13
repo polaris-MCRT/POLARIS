@@ -3288,7 +3288,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
 
     // Mol3D uses the upper value of the wavelength interval,
     // used for the selection of the emitting wavelengths from source!
-    pp->setWavelengthID(wIDnew + 1);
+    pp->setWavelength(wIDnew + 1, wavelength_list[wIDnew + 1]);
 
     return true;
 }
@@ -4328,7 +4328,7 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
 
             // Synchronize the direction and wavelength as well
             pp_res.setDirection(dir_obs);
-            pp_res.setWavelengthID(w);
+            pp_res.setWavelength(w, wavelength_list[w]);
 
             // Set the new Stokes vector to the photon package
             pp_res.setStokesVector(tmp_stokes);
@@ -4359,7 +4359,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Synchronize the direction and wavelength as well
     pp_res.setD(pp->getD());
-    pp_res.setWavelengthID(w);
+    pp_res.setWavelength(w, wavelength_list[w]);
 
     // Determination of the scattering angle (phi, theta) towards the observing map in the
     // photon frame. Get the rotation matrix of the photon (photon space to lab space)
@@ -4546,11 +4546,8 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
-        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
-    else
-        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-                 (-mat_sca(0, 1) / mat_sca(0, 0));
+    PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+             (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;
@@ -4625,20 +4622,12 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     if(adjust_stokes)
     {
-        if(getCextMean(a, w) > 0)
-        {
-            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+        tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
-            double i_1 = tmp_stokes.I();
-            tmp_stokes.rot(phi);
-            tmp_stokes = mat_sca * tmp_stokes;
-            tmp_stokes *= i_1 / tmp_stokes.I();
-        }
-        else
-        {
-            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
-        }
+        double i_1 = tmp_stokes.I();
+        tmp_stokes.rot(phi);
+        tmp_stokes = mat_sca * tmp_stokes;
+        tmp_stokes *= i_1 / tmp_stokes.I();
 
         pp->setStokesVector(tmp_stokes);
     }

@@ -1388,7 +1388,7 @@ bool CGridVoronoi::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 

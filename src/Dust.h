@@ -1559,7 +1559,7 @@ class CDustComponent
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Set wavelength of photon package
-            pp->setWavelengthID(w);
+            pp->setWavelength(w, wavelength_list[w]);
 
             // Pre calculate absorption cross-sections
             tmpCabs[w] = getCabsMean(grid, pp);
