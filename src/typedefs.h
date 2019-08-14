@@ -211,10 +211,10 @@ using namespace std;
 #define GRID_ID_CYL 40
 #define GRID_ID_VOR 50
 
-#define POP_MC 1
-#define POP_LTE 2
-#define POP_FEP 3
-#define POP_LVG 4
+#define POP_MC 0
+#define POP_LTE 1
+#define POP_FEP 2
+#define POP_LVG 3
 
 #define COL_H2_FULL 1
 #define COL_H2_PARA 2
