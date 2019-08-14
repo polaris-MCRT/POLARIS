@@ -153,7 +153,7 @@ class CRadiativeTransfer
 
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
-    bool calcMonteCarloLvlPopulation(parameters & param);
+    bool calcMonteCarloLvlPopulation();
 
     // Set temperature (old!)
     bool setTemperatureDistribution();
@@ -328,6 +328,21 @@ class CRadiativeTransfer
 
             epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
             dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
+        }
+    }
+
+    void calcStepWidthOnlyI(StokesVector & stokes_new,
+                            StokesVector & stokes_new2,
+                            double cell_d_l,
+                            double & epsi,
+                            double & dz_new)
+    {
+        epsi = 2.0;
+        dz_new = 0.9 * cell_d_l;
+        if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
+        {
+            epsi = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
+            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
         }
     }
 

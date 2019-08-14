@@ -971,6 +971,20 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                 sources_mc.push_back(tmp_source);
             }
         }
+
+        if(param.gasSpeciesLevelPopTypeIsMC())
+        {
+            if(param.isTemperatureSimulation())
+            {
+                nr_ofSources--;
+            }
+            else
+            {
+                CSourceBasic * tmp_source = new CSourceGas();
+                tmp_source->setParameter(param, grid, dust, 0);
+                sources_mc.push_back(tmp_source);
+            }
+        }
     }
 
     if((sources_mc.size() + sources_ray.size()) != nr_ofSources)

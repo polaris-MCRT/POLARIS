@@ -501,7 +501,7 @@ class CSourceGas : public CSourceBasic
   public:
     CSourceGas(void)
     {
-        source_id = SRC_GASLVL;
+        source_id = SRC_GAS_LVL;
     }
 
     bool initSource(uint id, uint max, bool use_energy_density);

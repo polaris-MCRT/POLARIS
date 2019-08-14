@@ -658,6 +658,11 @@ class CGasMixture
         return single_species[i_species].getUniqueTransitions();
     }
 
+    uint getNrOfSpecies()
+    {
+        return nr_of_species;
+    }
+
     uint getUniqueTransitions(uint i_species, uint i)
     {
         return single_species[i_species].getUniqueTransitions(i);
@@ -813,6 +818,15 @@ class CGasMixture
     {
         return single_species[i_species].getLineMatrix(
             grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+    }
+
+    Matrix2D getGaussLineMatrix(CGridBasic * grid,
+                                photon_package * pp,
+                                uint i_species,
+                                uint i_line,
+                                double velocity)
+    {
+        return single_species[i_species].getGaussLineMatrix(grid, pp, i_line, velocity);
     }
 
     StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_species, uint i_line)

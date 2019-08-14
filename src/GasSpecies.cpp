@@ -85,7 +85,6 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
     uint nr_of_total_transitions = getNrOfTotalTransitions();
     uint nr_of_transitions = getNrOfTransitions();
     float last_percentage = 0;
-    long cell_count = 0;
     long max_cells = grid->getMaxDataCells();
     double * J_mid = new double[nr_of_total_transitions];
     bool no_error = true;
@@ -104,7 +103,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         double gas_number_density = grid->getGasNumberDensity(cell);
 
         // Calculate percentage of total progress per source
-        float percentage = 100 * float(cell_count) / float(max_cells);
+        float percentage = 100 * float(i_cell) / float(max_cells);
 
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -121,15 +120,14 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
         {
             Matrix2D final_col_para, A;
             double * b = new double[nr_of_energy_levels];
-
             A.resize(nr_of_energy_levels, nr_of_energy_levels);
 
-            cell_count++;
             final_col_para = calc_collision_parameter(grid, cell);
             createMatrix(J_mid, A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_energy_levels);
 
             delete[] b;
+
             double sum_p = 0;
             for(uint i = 0; i < nr_of_energy_levels; i++)
             {
@@ -447,29 +445,20 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, cell_basic * c
                 break;
         }
 
-        bool br = false;
+        bool skip = false;
         for(uint i_col_transition = 0; i_col_transition < nr_col_trans; i_col_transition++)
             if(getUpperCollision(i_col_partner, i_col_transition) == 0)
-                br = true;
+                skip = true;
 
-        if(br == false)
+        if(!skip)
         {
             if(temp_gas < getCollisionTemp(i_col_partner, 0))
                 hi_i = 0;
             else if(temp_gas > getCollisionTemp(i_col_partner, getNrCollisionTemps(i_col_partner) - 1))
                 hi_i = getNrCollisionTemps(i_col_partner) - 2;
             else
-            {
-                for(uint i_col_temp = 1; i_col_temp < getNrCollisionTemps(i_col_partner); i_col_temp++)
-                {
-                    if(temp_gas < getCollisionTemp(i_col_partner, i_col_temp) &&
-                       temp_gas >= getCollisionTemp(i_col_partner, i_col_temp - 1))
-                    {
-                        hi_i = i_col_temp - 1;
-                        break;
-                    }
-                }
-            }
+                hi_i = CMathFunctions::biListIndexSearch(
+                    temp_gas, collision_temp[i_col_partner], getNrCollisionTemps(i_col_partner));
 
             for(uint i_col_transition = 0; i_col_transition < nr_col_trans; i_col_transition++)
             {

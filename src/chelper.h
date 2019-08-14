@@ -1146,6 +1146,10 @@ class parameters
         if(nr_ofISRFPhotons > 0)
             res++;
 
+        // Add gas source for levl population calculation
+        if(gasSpeciesLevelPopTypeIsMC())
+            res++;
+
         return res;
     }
 
@@ -2331,6 +2335,14 @@ class parameters
         return gas_species_level_pop_type[i];
     }
 
+    bool gasSpeciesLevelPopTypeIsMC()
+    {
+        for(uint i_species = 0; i_species < gas_species_level_pop_type.size(); i_species++)
+            if(gas_species_level_pop_type[i_species] == POP_MC)
+                return true;
+        return false;
+    }
+
     uint getNrVelocityChannel(uint i)
     {
         return nr_ofVelocityChannels[i];
@@ -2727,6 +2739,19 @@ class photon_package
         return wID;
     }
 
+    double getWavelength()
+    {
+        if(wavelength > 0)
+            return wavelength;
+        else if(frequency != 0)
+            return con_c / frequency;
+        else
+        {
+            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
+            return 0;
+        }
+    }
+
     double getFrequency()
     {
         if(frequency > 0)
@@ -2740,17 +2765,9 @@ class photon_package
         }
     }
 
-    double getWavelength()
+    double getVelocity(double rest_frequency)
     {
-        if(wavelength > 0)
-            return wavelength;
-        else if(frequency != 0)
-            return con_c / frequency;
-        else
-        {
-            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
-            return 0;
-        }
+        return getFrequency() * con_c / rest_frequency;
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2825,19 +2842,26 @@ class photon_package
         pos = val;
     }
 
-    void setPositionLastInteraction(Vector3D val)
+    void setBackupPosition(Vector3D val)
     {
-        pos_li = val;
+        backup_pos = val;
     }
 
-    void updatePositionLastInteraction()
+    void updateBackupPosition()
     {
-        pos_li = pos;
+        backup_pos = pos;
     }
 
-    void resetPositionToLastInteraction()
+    void resetPositionToBackupPos()
     {
-        pos = pos_li;
+        pos = backup_pos;
+    }
+
+    bool reachedBackupPosition()
+    {
+        if(ez * (backup_pos - pos) <= 0)
+            return true;
+        return false;
     }
 
     void setDetectorProjection()
@@ -2958,7 +2982,7 @@ class photon_package
   private:
     CRandomGenerator rand_gen;
     Vector3D pos;
-    Vector3D pos_li;
+    Vector3D backup_pos;
     Vector3D ex;
     Vector3D ey;
     Vector3D ez;

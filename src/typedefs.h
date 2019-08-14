@@ -72,6 +72,7 @@ using namespace std;
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e-6
 #define ACC_SELECT_LEVEL 1.0e-6
+#define MC_LVL_POP_CONV 1.0e-3
 #define DIFF_GAMMA 7.00
 #define PERCENTAGE_STEP 0.001
 
@@ -119,7 +120,7 @@ using namespace std;
 #define SRC_BACKGROUND 3
 #define SRC_ISRF 4
 #define SRC_DUST 5
-#define SRC_GASLVL 6
+#define SRC_GAS_LVL 6
 #define SRC_LASER 7
 
 // phase functions
@@ -210,9 +211,10 @@ using namespace std;
 #define GRID_ID_CYL 40
 #define GRID_ID_VOR 50
 
-#define POP_LTE 1
-#define POP_FEP 2
-#define POP_LVG 3
+#define POP_MC 1
+#define POP_LTE 2
+#define POP_FEP 3
+#define POP_LVG 4
 
 #define COL_H2_FULL 1
 #define COL_H2_PARA 2

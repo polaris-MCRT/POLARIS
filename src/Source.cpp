@@ -1186,6 +1186,9 @@ void CSourceGas::createNextRay(photon_package * pp, ulong i_cell, ullong i_pos)
     // Set random position in cell
     grid->setRndPositionInCell(pp);
 
+    // Save final position as position of last interaction
+    pp->setBackupPosition(pp->getPosition());
+
     // Move photon along the path outwards the grid
     pp->getPosition() -= pp->getDirection() * grid->maxLength();
 }
