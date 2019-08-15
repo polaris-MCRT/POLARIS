@@ -3319,6 +3319,25 @@ class CDustMixture
         return 0;
     }
 
+    double getTotalCellEmission(CGridBasic * grid, photon_package * pp)
+    {
+        double sum = 0;
+        if(mixed_component != 0)
+        {
+            if(grid->useDustChoice())
+            {
+                uint i_mixture = getMixtureID(grid, pp);
+                sum = mixed_component[i_mixture].getCellEmission(grid, pp, 0);
+            }
+            else
+            {
+                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    sum += mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
+            }
+        }
+        return sum;
+    }
+
     double getTabPlanck(uint w, double temp)
     {
         return mixed_component[0].getTabPlanck(w, temp);

@@ -1017,7 +1017,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
             // Get total energy of thermal emission
-            total_energy[w] += dust->getCellEmission(grid, pp);
+            total_energy[w] += dust->getTotalCellEmission(grid, pp);
 
             // Add energy to probability distribution
             cell_prob[w].setValue(i_cell + 1, total_energy[w]);
@@ -1085,7 +1085,7 @@ bool CSourceDust::initSource(uint w)
         pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
         // Get total energy of thermal emission
-        total_energy[w] += dust->getCellEmission(grid, pp);
+        total_energy[w] += dust->getTotalCellEmission(grid, pp);
 
         // Add energy to probability distribution
         cell_prob[w].setValue(i_cell + 1, total_energy[w]);
