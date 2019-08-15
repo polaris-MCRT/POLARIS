@@ -2610,8 +2610,9 @@ class photon_package
         cell_pos = 0;
         tmp_path = 0;
 
-        frequency = 0;
         wavelength = 0;
+        frequency = 0;
+        velocity = 0;
 
         wID = MAX_UINT;
         dirID = MAX_UINT;
@@ -2743,7 +2744,7 @@ class photon_package
     {
         if(wavelength > 0)
             return wavelength;
-        else if(frequency != 0)
+        else if(frequency > 0)
             return con_c / frequency;
         else
         {
@@ -2756,7 +2757,7 @@ class photon_package
     {
         if(frequency > 0)
             return frequency;
-        else if(wavelength != 0)
+        else if(wavelength > 0)
             return con_c / wavelength;
         else
         {
@@ -2765,9 +2766,27 @@ class photon_package
         }
     }
 
-    double getVelocity(double rest_frequency)
+    double getVelocity(double rest_frequency = 0)
     {
-        return getFrequency() * con_c / rest_frequency;
+        if(velocity > 0)
+            return velocity;
+        else if(rest_frequency > 0)
+        {
+            if(frequency > 0)
+                return frequency * con_c / rest_frequency;
+            else if(wavelength > 0)
+                return (con_c / wavelength) * con_c / rest_frequency;
+            else
+            {
+                cout << "ERROR: Velocity not set correctly in photon package!" << endl;
+                return 0;
+            }
+        }
+        else
+        {
+            cout << "ERROR: Velocity not set correctly in photon package!" << endl;
+            return 0;
+        }
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2970,12 +2989,22 @@ class photon_package
         wID = _wID;
         wavelength = val;
         frequency = 0;
+        velocity = 0;
     }
 
     void setFrequency(uint _wID, double val)
     {
         wID = _wID;
         frequency = val;
+        wavelength = 0;
+        velocity = 0;
+    }
+
+    void setVelocity(uint _wID, double val, double rest_frequency)
+    {
+        velocity = val;
+        wID = _wID;
+        frequency = val / con_c * rest_frequency;
         wavelength = 0;
     }
 
@@ -2990,8 +3019,9 @@ class photon_package
     StokesVector stokes;
     StokesVector * multi_stokes;
 
-    double frequency;
     double wavelength;
+    double frequency;
+    double velocity;
 
     uint wID;
     uint dirID;

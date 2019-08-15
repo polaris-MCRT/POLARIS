@@ -331,21 +331,6 @@ class CRadiativeTransfer
         }
     }
 
-    void calcStepWidthOnlyI(StokesVector & stokes_new,
-                            StokesVector & stokes_new2,
-                            double cell_d_l,
-                            double & epsi,
-                            double & dz_new)
-    {
-        epsi = 2.0;
-        dz_new = 0.9 * cell_d_l;
-        if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
-        {
-            epsi = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
-            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-        }
-    }
-
     void convertTempInQB(double min_gas_density, bool use_gas_temp);
 
   private:

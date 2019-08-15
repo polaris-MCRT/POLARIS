@@ -540,6 +540,7 @@ class CGasSpecies
     }
 
     Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity);
+    double getGaussLineShape(CGridBasic * grid, photon_package * pp, uint i_line, double velocity);
 
     Matrix2D getZeemanSplittingMatrix(CGridBasic * grid,
                                       photon_package * pp,
@@ -556,6 +557,7 @@ class CGasSpecies
     bool calcLTE(CGridBasic * grid);
     bool calcFEP(CGridBasic * grid);
     bool calcLVG(CGridBasic * grid, double kepler_star_mass);
+    bool calcLevelPopulation(CGridBasic * grid, photon_package * pp);
 
     double elem_LVG(CGridBasic * grid,
                     double dens_species,
@@ -579,6 +581,8 @@ class CGasSpecies
     double ** line_strength_sigma_m;
 
     double *** col_matrix;
+
+    prob_list frequency_prob;
 
     double molecular_weight;
     double abundance;
@@ -647,6 +651,7 @@ class CGasMixture
     bool createGasSpecies(parameters & param);
 
     bool calcLevelPopulation(CGridBasic * grid, uint i_species);
+    bool updateLevelPopulation(CGridBasic * grid, photon_package * pp, uint i_species);
 
     bool getZeemanSplitting(uint i_species)
     {
@@ -827,6 +832,15 @@ class CGasMixture
                                 double velocity)
     {
         return single_species[i_species].getGaussLineMatrix(grid, pp, i_line, velocity);
+    }
+
+    double getGaussLineShape(CGridBasic * grid,
+                             photon_package * pp,
+                             uint i_species,
+                             uint i_line,
+                             double velocity)
+    {
+        return single_species[i_species].getGaussLineShape(grid, pp, i_line, velocity);
     }
 
     StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_species, uint i_line)

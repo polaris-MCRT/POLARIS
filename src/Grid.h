@@ -1348,12 +1348,12 @@ class CGridBasic
         return pp->getPositionCell()->getData(data_offset + 6 * i_line + 2);
     }
 
-    double getGamma(photon_package * pp, uint i_line)
+    double getDopplerWidth(photon_package * pp, uint i_line)
     {
         return pp->getPositionCell()->getData(data_offset + 6 * i_line + 3);
     }
 
-    double getDopplerWidth(photon_package * pp, uint i_line)
+    double getGamma(photon_package * pp, uint i_line)
     {
         return pp->getPositionCell()->getData(data_offset + 6 * i_line + 4);
     }
@@ -1395,16 +1395,26 @@ class CGridBasic
         cell->setData(data_offset + 6 * i_line + 1, lvl_upper);
     }
 
+    void setLvlPopLower(photon_package * pp, uint i_line, double lvl_lower)
+    {
+        pp->getPositionCell()->setData(data_offset + 6 * i_line, lvl_lower);
+    }
+
+    void setLvlPopUpper(photon_package * pp, uint i_line, double lvl_upper)
+    {
+        pp->getPositionCell()->setData(data_offset + 6 * i_line + 1, lvl_upper);
+    }
+
     void setLineBroadening(cell_basic * cell,
                            uint i_line,
                            double gauss_a,
-                           double Gamma,
                            double doppler_width,
+                           double Gamma,
                            double voigt_a)
     {
         cell->setData(data_offset + 6 * i_line + 2, gauss_a);
-        cell->setData(data_offset + 6 * i_line + 3, Gamma);
-        cell->setData(data_offset + 6 * i_line + 4, doppler_width);
+        cell->setData(data_offset + 6 * i_line + 3, doppler_width);
+        cell->setData(data_offset + 6 * i_line + 4, Gamma);
         cell->setData(data_offset + 6 * i_line + 5, voigt_a);
     }
 

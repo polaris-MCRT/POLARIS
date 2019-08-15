@@ -354,6 +354,60 @@ double CGasSpecies::elem_LVG(CGridBasic * grid,
     return J_mid;
 }
 
+bool CGasSpecies::calcLevelPopulation(CGridBasic * grid, photon_package * pp)
+{
+    uint nr_of_energy_levels = getNrEnergyLevels();
+    uint nr_of_total_transitions = getNrOfTotalTransitions();
+    uint nr_of_transitions = getNrOfTransitions();
+    bool no_error = true;
+    double J_mid = pp->getStokesVector().I();
+    double * tmp_lvl_pop = new double[nr_of_energy_levels];
+
+    double gas_number_density = grid->getGasNumberDensity(pp);
+    if(gas_number_density > 1e-200)
+    {
+        Matrix2D final_col_para, A;
+        double * b = new double[nr_of_energy_levels];
+        A.resize(nr_of_energy_levels, nr_of_energy_levels);
+
+        final_col_para = calc_collision_parameter(grid, cell);
+        createMatrix(J_mid, A, b, final_col_para);
+        CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_energy_levels);
+
+        delete[] b;
+
+        double sum_p = 0;
+        for(uint i = 0; i < nr_of_energy_levels; i++)
+        {
+            if(tmp_lvl_pop[i] >= 0)
+                sum_p += tmp_lvl_pop[i];
+            else
+            {
+                cout << "WARNING: Level population element not greater than zero!" << endl;
+                no_error = false;
+            }
+        }
+        for(uint i = 0; i < nr_of_energy_levels; i++)
+            tmp_lvl_pop[i] /= sum_p;
+    }
+    else
+    {
+        for(uint i = 0; i < nr_of_energy_levels; i++)
+            tmp_lvl_pop[i] = 0;
+        tmp_lvl_pop[0] = 1;
+    }
+
+    for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+    {
+        grid->setLvlPopLower(pp, i_line, tmp_lvl_pop[getLowerTransition(getTransition(i_line))]);
+        grid->setLvlPopUpper(pp, i_line, tmp_lvl_pop[getUpperTransition(getTransition(i_line))]);
+    }
+
+    delete[] tmp_lvl_pop;
+
+    return no_error;
+}
+
 // This function is based on
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
@@ -514,6 +568,12 @@ Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp,
     for(uint i = 0; i < 4; i++)
         line_matrix(i, i) = line_amplitude;
     return line_matrix;
+}
+
+double CGasSpecies::getGaussLineShape(CGridBasic * grid, photon_package * pp, uint i_line, double velocity)
+{
+    double gauss_a = grid->getGaussA(pp, i_line);
+    return exp(-(pow(velocity, 2) * pow(gauss_a, 2))) / PIsq;
 }
 
 Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic * grid,
@@ -1223,14 +1283,14 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
             double frequency = getTransitionFrequency(i_trans);
 
             double gauss_a = getGaussA(temp_gas, turbulent_velocity);
-            double Gamma = 0, doppler_width = 0, voigt_a = 0;
+            double doppler_width = frequency / (con_c * gauss_a);
+            double Gamma = 0, voigt_a = 0;
             if(getZeemanSplitting())
             {
                 Gamma = getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
-                doppler_width = frequency / (con_c * gauss_a);
                 voigt_a = Gamma / (4 * PI * doppler_width);
             }
-            grid->setLineBroadening(cell, i_line, gauss_a, Gamma, doppler_width, voigt_a);
+            grid->setLineBroadening(cell, i_line, gauss_a, doppler_width, Gamma, voigt_a);
         }
     }
 }
@@ -1274,11 +1334,15 @@ bool CGasMixture::createGasSpecies(parameters & param)
 
 bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
 {
+    // Set way of level population calculation, if not set by function call
     uint lvl_pop_type = getLevelPopType(i_species);
-    double kepler_star_mass = getKeplerStarMass();
 
     switch(lvl_pop_type)
     {
+        case POP_MC:
+            if(!single_species[i_species].calcLTE(grid))
+                return false;
+            break;
         case POP_LTE:
             if(!single_species[i_species].calcLTE(grid))
                 return false;
@@ -1288,7 +1352,25 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
                 return false;
             break;
         case POP_LVG:
-            if(!single_species[i_species].calcLVG(grid, kepler_star_mass))
+            if(!single_species[i_species].calcLVG(grid, getKeplerStarMass()))
+                return false;
+            break;
+        default:
+            return false;
+            break;
+    }
+    return true;
+}
+
+bool CGasMixture::updateLevelPopulation(CGridBasic * grid, photon_package * pp, uint i_species)
+{
+    uint lvl_pop_type = getLevelPopType(i_species);
+
+    // Only used for MC level population calculations
+    switch(lvl_pop_type)
+    {
+        case POP_MC:
+            if(!single_species[i_species].calcLevelPopulation(grid, pp))
                 return false;
             break;
         default:
