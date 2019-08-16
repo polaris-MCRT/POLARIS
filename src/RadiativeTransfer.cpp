@@ -290,7 +290,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
     double max_length = grid->getMaxLength();
 
     // Init array of tracer base class pointer
-    nr_ray_detectors = param.getTotalNrOfLineTransitions();
+    nr_ray_detectors = param.getTotalNrOfSpectralLines();
     tracer = new CRaytracingBasic *[nr_ray_detectors];
 
     if(nr_gas_species == 0)
@@ -304,7 +304,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
     {
         dlist line_ray_detectors = param.getLineRayDetector(i_species);
 
-        for(uint i_line = 0; i_line < param.getNrOfGasSpeciesTransitions(i_species); i_line++)
+        for(uint i_line = 0; i_line < param.getNrOfSpectralLines(i_species); i_line++)
         {
             // Calculate the starting position of each detector for a gas species
             uint pos = NR_OF_LINE_DET * i_line;
@@ -721,7 +721,25 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
     }
 
     // Init variables
+    ullong per_counter = 0;
+    float last_percentage = 0;
     uint kill_counter = 0;
+
+    // Number of simulated gas species
+    uint nr_gas_species = gas->getNrOfSpecies();
+
+    // Number of cells in grid
+    ulong nr_of_cells = grid->getMaxDataCells();
+
+    // Init source from sources list
+    CSourceBasic * tm_source = sources_mc[0];
+
+    // Init luminosity and probability for a given wavelength to be chosen
+    if(!tm_source->initSource(0, 1))
+        return false;
+
+    // Number of photons per wavelength
+    ullong nr_of_photons = tm_source->getNrOfPhotons();
 
     // How many doppler width to cover random frequency
     double doppler_mult = 5;
@@ -730,20 +748,20 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
     uint nr_frequency_channels = 100;
 
     // Perform radiative transfer for each chosen gas species
-    for(uint i_species = 0; i_species < gas->getNrOfSpecies(); i_species++)
+    for(uint i_species = 0; i_species < nr_gas_species; i_species++)
     {
         // Skip species with non MC level populations
         if(gas->getLevelPopType(i_species) != POP_MC)
             continue;
 
         // Get number of spectral line transitions that have to be simulated
-        uint nr_of_transitions = gas->getNrOfTransitions(i_species);
+        uint nr_of_spectral_lines = gas->getNrOfSpectralLines(i_species);
 
         // If no spectral line transitions are chosen for the current gas species, skip
-        if(nr_of_transitions == 0)
+        if(nr_of_spectral_lines == 0)
             continue;
 
-        // Calculate the level populations for each cell (initial guess)
+        // Calculate the level populations for each cell (initial guess, LTE)
         if(!gas->calcLevelPopulation(grid, i_species))
         {
             cout << "\nERROR: Level population cannot be calculated!";
@@ -754,37 +772,36 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
         gas->calcLineBroadening(grid, i_species);
 
         // Perform radiative transfer for each chosen spectral line transition
-        for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
         {
-            // Init variables
-            ullong per_counter = 0;
-            float last_percentage = 0;
-
-            // Get rest frequency of current transition
-            double trans_frequency = gas->getTransitionFrequency(i_species, i_line);
-
-            // Init source from sources list
-            CSourceBasic * tm_source = sources_mc[0];
-
-            // Init luminosity and probability for a given wavelength to be chosen
-            if(!tm_source->initSource(0, 1))
-                continue;
-
-            // Number of photons per wavelength
-            ullong nr_of_photons = tm_source->getNrOfPhotons();
-
-            // Number of cells in grid
-            ulong nr_of_cells = grid->getMaxDataCells();
-
             // Init progress visualization
             cout << CLR_LINE;
-            cout << "-> MC lvl population: 0 [%]                                                    \r"
-                 << flush;
+            cout << "-> MC lvl population: gas species " << i_species + 1 << " of " << nr_gas_species
+                 << ", line " << i_line + 1 << " of " << nr_of_spectral_lines << ": 0.0[%]  \r" << flush;
 
-            // A loop for each wavelength
-#pragma omp parallel for schedule(dynamic) collapse(2)
+            // Get rest frequency of current transition
+            double trans_frequency = gas->getTransitionFrequencyFromIndex(i_species, i_line);
+
+            // A loop for each cell
+#pragma omp parallel for schedule(dynamic)
             for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
             {
+                // Pointer to final cell
+                cell_basic * final_cell = grid->getCellFromIndex(i_cell);
+
+                // Maximum max_frequency to either side
+                double max_frequency = 2.5 * grid->getDopplerWidth(final_cell, i_line);
+
+                // frequency channels
+                dlist frequency_channel =
+                    CMathFunctions::LinearList(-max_frequency, max_frequency, nr_frequency_channels);
+
+                // Each cell automatically converged except the last one for local iteration
+                // See Pavlyuchenkov & Shustov (2003)
+                bool converged = false;
+                dlist J_nu_ext(nr_frequency_channels);
+                dlist J_nu_in(nr_frequency_channels);
+
                 // A loop for each photon
                 for(llong r = 0; r < llong(nr_of_photons); r++)
                 {
@@ -792,14 +809,16 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
                     per_counter++;
 
                     // Calculate percentage of total progress per source
-                    float percentage = 100 * float(per_counter) / float(nr_of_photons * nr_of_cells);
+                    float percentage = 100 * float(per_counter) / float(nr_of_cells * nr_of_photons);
 
                     // Show only new percentage number if it changed
                     if((percentage - last_percentage) > PERCENTAGE_STEP)
                     {
 #pragma omp critical
                         {
-                            cout << "-> MC lvl population: " << percentage << " [%]      \r" << flush;
+                            cout << "-> MC lvl population: gas species " << i_species + 1 << " of "
+                                 << nr_gas_species << ", line " << i_line + 1 << " of "
+                                 << nr_of_spectral_lines << ": " << percentage << " [%]      \r" << flush;
                             last_percentage = percentage;
                         }
                     }
@@ -808,22 +827,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
                     photon_package * pp = new photon_package();
 
                     // Set backup pos to current cell and move photon package out of the grid
-                    tm_source->createNextRay(pp, ullong(nr_of_photons * i_cell + r));
-
-                    // Calculate velocity channels and set initial Stokes vector
-                    double max_velocity = 2.5 * grid->getDopplerWidth(pp, i_line);
-                    double channel_width = (2.0 * max_velocity) / (nr_frequency_channels - 1);
-                    dlist frequency_channel(nr_frequency_channels);
-                    dlist CHMap(nr_frequency_channels);
-                    for(uint fch = 0; fch < nr_frequency_channels; fch++)
-                    {
-                        // Set velocity channel list
-                        frequency_channel[fch] =
-                            2 * (float)fch / ((float)nr_frequency_channels - 1) * max_velocity - max_velocity;
-
-                        // Set initial background radiation field to CMB
-                        CHMap[fch] = CMathFunctions::planck_hz(frequency_channel[fch], 2.75);
-                    }
+                    ullong seed = nr_of_cells * nr_of_photons * i_line + nr_of_photons * i_cell + r;
+                    tm_source->createNextRay(pp, seed, i_cell);
 
                     // Position photon at the grid border
                     if(!grid->positionPhotonInGrid(pp))
@@ -833,6 +838,11 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
                             delete pp;
                             continue;
                         }
+
+                    // Set initial background radiation field to CMB
+                    dlist CHMap(nr_frequency_channels);
+                    for(uint fch = 0; fch < nr_frequency_channels; fch++)
+                        CHMap[fch] = CMathFunctions::planck_hz(trans_frequency, 2.75);
 
                     // Transport the photon package through the model
                     while(grid->next(pp))
@@ -854,197 +864,172 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation()
                             // Calculate the emission of the dust grains
                             StokesVector S_dust = dust->calcEmissivitiesHz(grid, pp);
 
-                            // Each cell automatically converged except the last one for local iteration
-                            // See Pavlyuchenkov & Shustov (2003)
-                            bool converged = true;
-                            double J_ext = 0;
-                            double J_diff_old = 0;
-
-                            // Local iteration for final cell
-                            if(pp->reachedBackupPosition())
-                                converged = false;
-
-                            // Save last Stokes Vector
-                            if(!converged)
+                            // Calculate the emission of the gas particles
+                            StokesVector S_gas;
+                            if(dens_species > 0)
                             {
-                                J_diff_old = 0;
-                                J_ext = CMathFunctions::integ(
-                                    frequency_channel, CHMap, 0, nr_frequency_channels - 1);
+                                // i_line should be i_trans in this case
+                                // Somehow save efficiently the level populations in the grid
+                                S_gas = gas->calcEmissivities(grid, pp, i_species, i_line) * dens_species;
+                                S_gas.setT(S_gas.T() * dens_species);
                             }
 
-                            // Make local iteration
-                            do
+                            for(uint fch = 0; fch < nr_frequency_channels; fch++)
                             {
-                                // Calculate the emission of the gas particles
-                                StokesVector S_gas;
-                                if(dens_species > 0)
+                                // Init variables
+                                double velocity_dir, cell_sum = 0, cell_d_l = len;
+                                double channel_velocity =
+                                    CMathFunctions::Freq2Velo(frequency_channel[fch], trans_frequency);
+                                ullong kill_counter = 0;
+
+                                // Get direction and entry position of the current cell
+                                Vector3D dir_map_xyz = pp->getDirection();
+                                Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
+                                Vector3D tmp_pos;
+
+                                // Make sub steps until cell is completely crossed
+                                // If the error of a sub step is too high, make the step smaller
+                                while(cell_sum < len)
                                 {
-                                    S_gas = gas->calcEmissivities(grid, pp, i_species, i_line) * dens_species;
-                                    S_gas.setT(S_gas.T() * dens_species);
-                                }
+                                    // Increase the kill counter
+                                    kill_counter++;
 
-                                for(uint fch = 0; fch < nr_frequency_channels; fch++)
-                                {
-                                    // Init variables
-                                    double velo_dir, cell_sum = 0, cell_d_l = len;
-                                    ullong kill_counter = 0;
-
-                                    // Set photon package to random frequency (inside of current spectral
-                                    // line)
-                                    pp->setFrequency(0, frequency_channel[fch]);
-
-                                    // Get direction and entry position of the current cell
-                                    Vector3D dir_map_xyz = pp->getDirection();
-                                    Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
-                                    Vector3D tmp_pos;
-
-                                    // Make sub steps until cell is completely crossed
-                                    // If the error of a sub step is too high, make the step smaller
-                                    while(cell_sum < len)
+                                    // If too many sub steps are needed, kill the photon
+                                    if(kill_counter >= MAX_SOLVER_STEPS)
                                     {
-                                        // Increase the kill counter
-                                        kill_counter++;
+                                        cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS
+                                             << ". Too many steps." << endl;
+                                        break;
+                                    }
 
-                                        // If too many sub steps are needed, kill the photon
-                                        if(kill_counter >= MAX_SOLVER_STEPS)
+                                    // Init Runge-Kutta parameters and set it to zero
+                                    // (see
+                                    // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                                    double * RK_k = new double[6];
+                                    double * S_ges = new double[6];
+
+                                    // Calculate result of the radiative transfer equation at each
+                                    // Runge-Kutta sub position
+                                    for(uint k = 0; k < 6; k++)
+                                    {
+                                        // Calculate Runge-Kutta position
+                                        tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
+
+                                        // Get the velocity in the photon
+                                        // direction of the current position
+                                        if(gas->getKeplerStarMass() > 0)
                                         {
-                                            cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS
-                                                 << ". Too many steps." << endl;
-                                            break;
-                                        }
-
-                                        // Init Runge-Kutta parameters and set it to zero
-                                        // (see
-                                        // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
-                                        double * RK_k = new double[6];
-
-                                        // Calculate result of the radiative transfer equation at each
-                                        // Runge-Kutta sub position
-                                        for(uint k = 0; k < 6; k++)
-                                        {
-                                            // Calculate Runge-Kutta position
-                                            tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
-
-                                            // Get the velocity in the photon
-                                            // direction of the current position
-                                            if(gas->getKeplerStarMass() > 0)
-                                            {
-                                                // Get velocity from Kepler rotation
-                                                velo_dir = CMathFunctions::calcKeplerianVelocity(
+                                            // Get velocity from Kepler rotation
+                                            velocity_dir = CMathFunctions::calcKeplerianVelocity(
                                                                tmp_pos, gas->getKeplerStarMass()) *
                                                            dir_map_xyz;
-                                            }
-                                            else if(grid->hasVelocityField())
-                                                velo_dir = grid->getVelocityField(pp) * dir_map_xyz;
-                                            else
-                                                velo_dir = 0;
-
-                                            double line_shape = gas->getGaussLineShape(
-                                                grid,
-                                                pp,
-                                                i_species,
-                                                i_line,
-                                                pp->getVelocity(trans_frequency) - velo_dir);
-
-                                            // Combine the Stokes vectors from gas and dust
-                                            // for emission and extinction
-                                            double S_ges = line_shape * S_gas.I() + S_dust.I();
-                                            double alpha_ges = S_gas.T() * line_shape;
-
-                                            if(S_dust.T() != 0)
-                                                alpha_ges += S_dust.T();
-                                            alpha_ges *= -1;
-
-                                            // Init scalar product
-                                            double scalar_product;
-
-                                            // Calculate multiplication between Runge-Kutta parameter
-                                            for(uint i = 0; i <= k; i++)
-                                                scalar_product += (RK_k[i] * RK_a(i, k));
-
-                                            // Calculate new Runge-Kutta parameters as the result of the
-                                            // radiative transfer equation at the Runge-Kutta sub
-                                            // positions
-                                            RK_k[k] =
-                                                alpha_ges * (scalar_product * cell_d_l + CHMap[fch]) + S_ges;
                                         }
-                                        // Init two temporary Stokes vectors
-                                        double stokes_new = CHMap[fch];
-                                        double stokes_new2 = CHMap[fch];
-
-                                        for(uint i = 0; i < 6; i++)
-                                        {
-                                            stokes_new += (RK_k[i] * cell_d_l) * RK_b1[i];
-                                            stokes_new2 += (RK_k[i] * cell_d_l) * RK_b2[i];
-                                        }
-
-                                        // Delete the Runge-Kutta pointer
-                                        delete[] RK_k;
-
-                                        // Ignore very small values
-                                        if(abs(stokes_new < 1e-200))
-                                            stokes_new = 0;
-                                        if(abs(stokes_new2 < 1e-200))
-                                            stokes_new2 = 0;
-
-                                        // Calculate the difference between the results with two
-                                        // different precisions to see if smaller steps are needed
-                                        double epsi = 2.0, dz_new = 0.9 * cell_d_l;
-                                        if(stokes_new2 >= 0 && stokes_new >= 0)
-                                        {
-                                            epsi = abs(stokes_new2 - stokes_new) /
-                                                   (rel_err * abs(stokes_new) + abs_err);
-                                            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-                                        }
-
-                                        // Is a smaller step width needed
-                                        if(epsi <= 1.0)
-                                        {
-                                            // Stokes_new is the current flux of this line-of-sight
-                                            CHMap[fch] = stokes_new;
-
-                                            // Update the position of the photon package
-                                            pos_xyz_cell += cell_d_l * dir_map_xyz;
-
-                                            // Increase the sum of the cell path lengths
-                                            cell_sum += cell_d_l;
-
-                                            // Find a new path length
-                                            cell_d_l = min(dz_new, 4 * cell_d_l);
-
-                                            // If the new step would exceed the cell, make it smaller
-                                            if(cell_sum + cell_d_l > len)
-                                                cell_d_l = len - cell_sum;
-                                        }
+                                        else if(grid->hasVelocityField())
+                                            velocity_dir = grid->getVelocityField(pp) * dir_map_xyz;
                                         else
-                                        {
-                                            // Find a smaller path length
-                                            cell_d_l = max(dz_new, 0.25 * cell_d_l);
-                                        }
-                                    }
-                                }
-                                // Check if the local lvl populations converged
-                                if(!converged)
-                                {
-                                    double J_new = CMathFunctions::integ(
-                                        frequency_channel, CHMap, 0, nr_frequency_channels - 1);
+                                            velocity_dir = 0;
 
-                                    if(abs(J_new - J_ext) < MC_LVL_POP_CONV * J_diff_old)
-                                        converged = true;
+                                        double line_shape = gas->getGaussLineShape(
+                                            grid, pp, i_species, i_line, channel_velocity - velocity_dir);
+
+                                        // Combine the Stokes vectors from gas and dust
+                                        // for emission and extinction
+                                        S_ges[k] = line_shape * S_gas.I() + S_dust.I();
+                                        double alpha_ges = S_gas.T() * line_shape;
+
+                                        if(S_dust.T() != 0)
+                                            alpha_ges += S_dust.T();
+                                        alpha_ges *= -1;
+
+                                        // Calculate multiplication between Runge-Kutta parameter
+                                        double scalar_product = 0;
+                                        for(uint i = 0; i <= k; i++)
+                                            scalar_product += (RK_k[i] * RK_a(i, k));
+
+                                        // Calculate new Runge-Kutta parameters as the result of the
+                                        // radiative transfer equation at the Runge-Kutta sub
+                                        // positions
+                                        RK_k[k] =
+                                            alpha_ges * (scalar_product * cell_d_l + CHMap[fch]) + S_ges[k];
+                                    }
+                                    // Init two temporary Stokes vectors
+                                    double stokes_new = CHMap[fch];
+                                    double stokes_new2 = CHMap[fch];
+                                    double stokes_new_in = 0;
+                                    for(uint i = 0; i < 6; i++)
+                                    {
+                                        stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                                        stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
+                                        stokes_new_in += S_ges[i] * cell_d_l * RK_b2[i];
+                                    }
+
+                                    // Delete the Runge-Kutta pointer
+                                    delete[] RK_k;
+                                    delete[] S_ges;
+
+                                    // Ignore very small values
+                                    if(abs(stokes_new) < 1e-200)
+                                        stokes_new = 0;
+                                    if(abs(stokes_new2) < 1e-200)
+                                        stokes_new2 = 0;
+
+                                    // Calculate the difference between the results with two
+                                    // different precisions to see if smaller steps are needed
+                                    double epsi = 2.0, dz_new = 0.9 * cell_d_l;
+                                    if(stokes_new2 >= 0 && stokes_new >= 0)
+                                    {
+                                        epsi = abs(stokes_new2 - stokes_new) /
+                                               (rel_err * abs(stokes_new) + abs_err);
+                                        dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
+                                    }
+
+                                    // Is a smaller step width needed
+                                    if(epsi <= 1.0)
+                                    {
+                                        // Stokes_new is the current flux of this line-of-sight
+                                        CHMap[fch] = stokes_new;
+
+                                        // Local iteration for final cell (start converging)
+                                        if(pp->reachedBackupPosition())
+                                        {
+                                            J_nu_ext[fch] += stokes_new - stokes_new_in;
+                                            J_nu_in[fch] += stokes_new_in;
+                                        }
+
+                                        // Update the position of the photon package
+                                        pos_xyz_cell += cell_d_l * dir_map_xyz;
+
+                                        // Increase the sum of the cell path lengths
+                                        cell_sum += cell_d_l;
+
+                                        // Find a new path length
+                                        cell_d_l = min(dz_new, 4 * cell_d_l);
+
+                                        // If the new step would exceed the cell, make it smaller
+                                        if(cell_sum + cell_d_l > len)
+                                            cell_d_l = len - cell_sum;
+                                    }
                                     else
                                     {
-                                        J_diff_old = abs(J_new - J_ext);
-                                        gas->updateLevelPopulation(grid, pp, i_species);
+                                        // Find a smaller path length
+                                        cell_d_l = max(dz_new, 0.25 * cell_d_l);
                                     }
                                 }
-                            } while(!converged);
+                            }
                         }
-                        // Do not go further than the final cell
-                        if(pp->reachedBackupPosition())
-                            break;
                     }
                     // Delete the pp pointer
                     delete pp;
+                }
+                // Check if the local lvl populations converged
+                while(!converged)
+                {
+                    double J_ext =
+                        CMathFunctions::integ(frequency_channel, J_nu_ext, 0, nr_frequency_channels - 1);
+                    double J_in =
+                        CMathFunctions::integ(frequency_channel, J_nu_in, 0, nr_frequency_channels - 1);
+
+                    gas->updateLevelPopulation(grid, final_cell, i_species, J_ext + J_in);
                 }
             }
         }
@@ -2125,13 +2110,13 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
                         // to the total Stokes vector (Using Runge-Kutta Fehlberg)
                         for(uint i = 0; i < 6; i++)
                         {
-                            stokes_new_cr += (RK_k_cr[i] * cell_d_l) * RK_b1[i];
-                            stokes_new2_cr += (RK_k_cr[i] * cell_d_l) * RK_b2[i];
+                            stokes_new_cr += RK_k_cr[i] * cell_d_l * RK_b1[i];
+                            stokes_new2_cr += RK_k_cr[i] * cell_d_l * RK_b2[i];
 
                             if(!fail)
                             {
-                                stokes_new_ca += (RK_k_ca[i] * cell_d_l) * RK_b1[i];
-                                stokes_new2_ca += (RK_k_ca[i] * cell_d_l) * RK_b2[i];
+                                stokes_new_ca += RK_k_ca[i] * cell_d_l * RK_b1[i];
+                                stokes_new2_ca += RK_k_ca[i] * cell_d_l * RK_b2[i];
                             }
                         }
 
@@ -2600,8 +2585,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                         // to the total Stokes vector (Using Runge-Kutta Fehlberg)
                         for(uint i = 0; i < 6; i++)
                         {
-                            stokes_new += (RK_k[i] * cell_d_l) * RK_b1[i];
-                            stokes_new2 += (RK_k[i] * cell_d_l) * RK_b2[i];
+                            stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                            stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
                         }
 
                         // Delete the Runge-Kutta pointer
@@ -2773,10 +2758,10 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         uint i_species = it->first;
 
         // Get number of spectral line transitions that have to be simulated
-        uint nr_of_transitions = param.getNrOfGasSpeciesTransitions(i_species);
+        uint nr_of_spectral_lines = param.getNrOfSpectralLines(i_species);
 
         // If no spectral line transitions are chosen for the current gas species, skip
-        if(nr_of_transitions == 0)
+        if(nr_of_spectral_lines == 0)
             continue;
 
         // Get the detectors of the current gas species
@@ -2797,7 +2782,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         gas->calcLineBroadening(grid, i_species);
 
         // Perform radiative transfer for each chosen spectral line transition
-        for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
         {
             uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
             if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 6)
@@ -2816,10 +2801,9 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
             cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
-                 << i_line + 1 << " of " << nr_of_transitions << ": 0.0[%]  \r" << flush;
+                 << i_line + 1 << " of " << nr_of_spectral_lines << ": 0.0[%]  \r" << flush;
 
             uint per_max = tracer[i_det]->getNpix();
-
             // Init counter and percentage to show progress
             ullong per_counter = 0;
             float last_percentage = 0;
@@ -2844,8 +2828,8 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 #pragma omp critical
                     {
                         cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1
-                             << ", line " << i_line + 1 << " of " << nr_of_transitions << ": " << percentage
-                             << " [%]      \r" << flush;
+                             << ", line " << i_line + 1 << " of " << nr_of_spectral_lines << ": "
+                             << percentage << " [%]      \r" << flush;
                         last_percentage = percentage;
                     }
                 }
@@ -3145,8 +3129,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
 
                         for(uint i = 0; i < 6; i++)
                         {
-                            stokes_new += (RK_k[i] * cell_d_l) * RK_b1[i];
-                            stokes_new2 += (RK_k[i] * cell_d_l) * RK_b2[i];
+                            stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                            stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
                         }
 
                         // Delete the Runge-Kutta pointer

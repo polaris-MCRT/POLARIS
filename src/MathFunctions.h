@@ -1883,6 +1883,22 @@ class CMathFunctions
         list[N - 1] = stop;
     }
 
+    static inline dlist LinearList(double start, double stop, uint N)
+    {
+        dlist list(N);
+
+        double dx = (stop - start) / (N - 1);
+
+        list[0] = start;
+
+        for(uint i_x = 1; i_x < N - 1; i_x++)
+            list[i_x] = start + i_x * dx;
+
+        list[N - 1] = stop;
+
+        return list;
+    }
+
     static inline void ExpList(double start, double stop, double * list, uint N, double base)
     {
         if(N == 1)

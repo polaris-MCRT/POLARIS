@@ -471,7 +471,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 6 * param.getMaxNrOfLineTransitions()))
+    if(!grid->loadGridFromBinrayFile(param, gas->getNrOffsetEntries(grid, param)))
         return false;
 
     // Print helpfull information
@@ -1344,10 +1344,10 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 uint i_species = it->first;
 
                 // Get number of spectral line transitions that have to be simulated
-                uint nr_of_transitions = param.getNrOfGasSpeciesTransitions(i_species);
+                uint nr_of_spectral_lines = param.getNrOfSpectralLines(i_species);
 
                 // Perform radiative transfer for each chosen spectral line transition
-                for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+                for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
                 {
                     // Calculate from frequency
                     double wavelength = con_c / gas->getTransitionFrequencyFromIndex(i_species, i_line);

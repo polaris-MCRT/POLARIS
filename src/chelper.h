@@ -2178,40 +2178,40 @@ class parameters
         return uint(gas_species_abundance.size());
     }
 
-    uint getMaxNrOfLineTransitions()
+    uint getMaxNrOfSpectralLines()
     {
-        uint max_transitions = 0;
+        uint max_spectral_lines = 0;
         for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            if(getNrOfGasSpeciesTransitions(i_species) > max_transitions)
-                max_transitions = getNrOfGasSpeciesTransitions(i_species);
-        return max_transitions;
+            if(getNrOfSpectralLines(i_species) > max_spectral_lines)
+                max_spectral_lines = getNrOfSpectralLines(i_species);
+        return max_spectral_lines;
     }
 
-    uint getTotalNrOfLineTransitions()
+    uint getTotalNrOfSpectralLines()
     {
-        uint total_transitions = 0;
+        uint total_spectral_lines = 0;
         for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            total_transitions += getNrOfGasSpeciesTransitions(i_species);
-        return total_transitions;
+            total_spectral_lines += getNrOfSpectralLines(i_species);
+        return total_spectral_lines;
     }
 
-    uint getNrOfGasSpeciesTransitions(uint i_species)
+    uint getNrOfSpectralLines(uint i_species)
     {
         return uint(line_ray_detector_list[i_species].size() / NR_OF_LINE_DET);
     }
 
-    int * getGasSpeciesTransitions(uint i_species)
+    int * getSpectralLines(uint i_species)
     {
-        uint nr_of_transitions = getNrOfGasSpeciesTransitions(i_species);
-        int * transitions = new int[nr_of_transitions];
+        uint nr_of_spectral_lines = getNrOfSpectralLines(i_species);
+        int * spectral_lines = new int[nr_of_spectral_lines];
         dlist line_ray_detector = getLineRayDetector(i_species);
         for(uint i = 0; i < line_ray_detector_list[i_species].size(); i += NR_OF_LINE_DET)
         {
             uint pos = i / NR_OF_LINE_DET;
 
-            transitions[pos] = int(line_ray_detector[i]);
+            spectral_lines[pos] = int(line_ray_detector[i]);
         }
-        return transitions;
+        return spectral_lines;
     }
 
     uint getNrOfDustRayDetectors()
@@ -2612,7 +2612,6 @@ class photon_package
 
         wavelength = 0;
         frequency = 0;
-        velocity = 0;
 
         wID = MAX_UINT;
         dirID = MAX_UINT;
@@ -2762,29 +2761,6 @@ class photon_package
         else
         {
             cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
-            return 0;
-        }
-    }
-
-    double getVelocity(double rest_frequency = 0)
-    {
-        if(velocity > 0)
-            return velocity;
-        else if(rest_frequency > 0)
-        {
-            if(frequency > 0)
-                return frequency * con_c / rest_frequency;
-            else if(wavelength > 0)
-                return (con_c / wavelength) * con_c / rest_frequency;
-            else
-            {
-                cout << "ERROR: Velocity not set correctly in photon package!" << endl;
-                return 0;
-            }
-        }
-        else
-        {
-            cout << "ERROR: Velocity not set correctly in photon package!" << endl;
             return 0;
         }
     }
@@ -2989,22 +2965,12 @@ class photon_package
         wID = _wID;
         wavelength = val;
         frequency = 0;
-        velocity = 0;
     }
 
     void setFrequency(uint _wID, double val)
     {
         wID = _wID;
         frequency = val;
-        wavelength = 0;
-        velocity = 0;
-    }
-
-    void setVelocity(uint _wID, double val, double rest_frequency)
-    {
-        velocity = val;
-        wID = _wID;
-        frequency = val / con_c * rest_frequency;
         wavelength = 0;
     }
 
@@ -3021,7 +2987,6 @@ class photon_package
 
     double wavelength;
     double frequency;
-    double velocity;
 
     uint wID;
     uint dirID;

@@ -1174,7 +1174,7 @@ bool CSourceGas::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceGas::createNextRay(photon_package * pp, ulong i_cell, ullong i_pos)
+void CSourceGas::createNextRay(photon_package * pp, ullong i_pos, ulong i_cell)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
