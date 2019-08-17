@@ -645,7 +645,7 @@ class CGridBasic
         nr_stochastic_temps = _nr_stochastic_temps;
     }
 
-    void setGasInformation(uint * _level_to_pos, uint * _line_to_pos)
+    void setGasInformation(uint * _level_to_pos, uint ** _line_to_pos)
     {
         level_to_pos = _level_to_pos;
         line_to_pos = _line_to_pos;
@@ -1393,7 +1393,7 @@ class CGridBasic
 
     double getLvlPopLower(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + line_to_pos[i_line]);
+        return cell->getData(data_offset + line_to_pos[i_line][0]);
     }
 
     double getLvlPopLower(photon_package * pp, uint i_line)
@@ -1403,12 +1403,24 @@ class CGridBasic
 
     double getLvlPopUpper(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + line_to_pos[i_line] + 1);
+        return cell->getData(data_offset + line_to_pos[i_line][1]);
     }
 
     double getLvlPopUpper(photon_package * pp, uint i_line)
     {
         return getLvlPopUpper(pp->getPositionCell(), i_line);
+    }
+
+    double getLvlPop(cell_basic * cell, uint i_lvl)
+    {
+        if(level_to_pos[i_lvl] != MAX_UINT)
+            return cell->getData(data_offset + level_to_pos[i_lvl]);
+        return 0;
+    }
+
+    double getLvlPop(photon_package * pp, uint i_lvl)
+    {
+        return getLvlPop(pp->getPositionCell(), i_lvl);
     }
 
     void setVelocityField(cell_basic * cell, const Vector3D & vel)
@@ -1435,7 +1447,7 @@ class CGridBasic
 
     void setLvlPopLower(cell_basic * cell, uint i_line, double lvl_lower)
     {
-        cell->setData(data_offset + line_to_pos[i_line], lvl_lower);
+        cell->setData(data_offset + line_to_pos[i_line][0], lvl_lower);
     }
 
     void setLvlPopLower(photon_package * pp, uint i_line, double lvl_lower)
@@ -1445,12 +1457,23 @@ class CGridBasic
 
     void setLvlPopUpper(cell_basic * cell, uint i_line, double lvl_upper)
     {
-        cell->setData(data_offset + line_to_pos[i_line] + 1, lvl_upper);
+        cell->setData(data_offset + line_to_pos[i_line][1], lvl_upper);
     }
 
     void setLvlPopUpper(photon_package * pp, uint i_line, double lvl_upper)
     {
         return setLvlPopUpper(pp->getPositionCell(), i_line, lvl_upper);
+    }
+
+    void setLvlPop(cell_basic * cell, uint i_lvl, double lvl_pop)
+    {
+        if(level_to_pos[i_lvl] != MAX_UINT)
+            cell->setData(data_offset + level_to_pos[i_lvl], lvl_pop);
+    }
+
+    void setLvlPop(photon_package * pp, uint i_lvl, double lvl_pop)
+    {
+        return setLvlPop(pp->getPositionCell(), i_lvl, lvl_pop);
     }
 
     void setLineBroadening(cell_basic * cell,
@@ -3807,7 +3830,7 @@ class CGridBasic
     uint * size_skip;
 
     uint * level_to_pos;
-    uint * line_to_pos;
+    uint ** line_to_pos;
 
     uilist data_pos_gd_list;
     uilist data_pos_dd_list;

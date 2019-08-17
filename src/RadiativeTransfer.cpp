@@ -290,7 +290,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
     double max_length = grid->getMaxLength();
 
     // Init array of tracer base class pointer
-    nr_ray_detectors = param.getTotalNrOfSpectralLines();
+    nr_ray_detectors = gas->getTotalNrOfSpectralLines();
     tracer = new CRaytracingBasic *[nr_ray_detectors];
 
     if(nr_gas_species == 0)
@@ -2833,7 +2833,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                         last_percentage = percentage;
                     }
                 }
-                getLinePixelIntensity(tmp_source, cx, cy, i_det, i_species, i_line, uint(0), i_pix);
+                getLinePixelIntensity(tmp_source, cx, cy, i_species, i_line, i_det, uint(0), i_pix);
             }
 
             // post-process raytracing simulation
@@ -2880,7 +2880,7 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
         tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate line emission along one path
-        getLineIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_species, i_line);
+        getLineIntensity(pp, tmp_source, cx, cy, i_species, i_line, i_det, subpixel_lvl);
 
         tracer[i_det]->addToDetector(pp, i_pix);
 
@@ -2915,10 +2915,10 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
                                           CSourceBasic * tmp_source,
                                           double cx,
                                           double cy,
-                                          uint i_det,
-                                          uint subpixel_lvl,
                                           uint i_species,
-                                          uint i_line)
+                                          uint i_line,
+                                          uint i_det,
+                                          uint subpixel_lvl)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));

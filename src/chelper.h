@@ -2178,23 +2178,6 @@ class parameters
         return uint(gas_species_abundance.size());
     }
 
-    uint getMaxNrOfSpectralLines()
-    {
-        uint max_spectral_lines = 0;
-        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            if(getNrOfSpectralLines(i_species) > max_spectral_lines)
-                max_spectral_lines = getNrOfSpectralLines(i_species);
-        return max_spectral_lines;
-    }
-
-    uint getTotalNrOfSpectralLines()
-    {
-        uint total_spectral_lines = 0;
-        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            total_spectral_lines += getNrOfSpectralLines(i_species);
-        return total_spectral_lines;
-    }
-
     uint getNrOfSpectralLines(uint i_species)
     {
         return uint(line_ray_detector_list[i_species].size() / NR_OF_LINE_DET);

@@ -15,7 +15,7 @@ class CGasSpecies
     CGasSpecies()
     {
         molecular_weight = 0;
-        lvl_pop_type = 1;
+        lvl_pop_type = POP_LTE;
 
         nr_of_energy_levels = 0;
         nr_of_transitions = 0;
@@ -33,7 +33,7 @@ class CGasSpecies
         j_level = 0;
         g_level = 0;
         energy_level = 0;
-        nr_of_collision_transition = 0;
+        nr_of_col_transition = 0;
 
         spectral_lines = 0;
 
@@ -81,9 +81,9 @@ class CGasSpecies
         {
             for(uint i = 0; i < nr_of_col_partner; i++)
             {
-                if(nr_of_collision_transition != 0)
+                if(nr_of_col_transition != 0)
                 {
-                    for(int j = 0; j < nr_of_collision_transition[i]; j++)
+                    for(int j = 0; j < nr_of_col_transition[i]; j++)
                     {
                         delete[] col_matrix[i][j];
                         col_matrix[i][j] = 0;
@@ -102,8 +102,8 @@ class CGasSpecies
         if(energy_level != 0)
             delete[] energy_level;
 
-        if(nr_of_collision_transition != 0)
-            delete[] nr_of_collision_transition;
+        if(nr_of_col_transition != 0)
+            delete[] nr_of_col_transition;
 
         if(trans_upper != 0)
             delete[] trans_upper;
@@ -238,7 +238,7 @@ class CGasSpecies
         return abundance;
     }
 
-    int getTransition(uint i_line)
+    int getTransitionFromSpectralLine(uint i_line)
     {
         return spectral_lines[i_line];
     }
@@ -250,7 +250,7 @@ class CGasSpecies
 
     double getTransitionFrequencyFromIndex(uint i_line)
     {
-        uint i_trans = getTransition(i_line);
+        uint i_trans = getTransitionFromSpectralLine(i_line);
         return getTransitionFrequency(i_trans);
     }
 
@@ -402,14 +402,14 @@ class CGasSpecies
         return nr_of_transitions;
     }
 
-    uint getNrCollisionPartner()
+    uint getNrOfCollisionPartner()
     {
         return nr_of_col_partner;
     }
 
     uint getNrCollisionTransitions(uint i_col_partner)
     {
-        return nr_of_collision_transition[i_col_partner];
+        return nr_of_col_transition[i_col_partner];
     }
 
     uint getNrCollisionTemps(uint i_col_partner)
@@ -567,9 +567,9 @@ class CGasSpecies
                     double J_ext,
                     uint i_trans);
 
-    void createMatrix(double * J_mid, Matrix2D & A, double * b, Matrix2D final_col_para);
+    void createMatrix(double * J_mid, Matrix2D & A, double * b, double *** final_col_para);
 
-    Matrix2D calcCollisionParameter(CGridBasic * grid, cell_basic * cell);
+    double *** calcCollisionParameter(CGridBasic * grid, cell_basic * cell);
     double getColPartnerDensity(CGridBasic * grid, cell_basic * cell, uint i_col_partner);
     dlist calcCollisionRate(uint i_col_partner, uint i_col_transition, uint hi_i, double temp_gas);
 
@@ -603,7 +603,7 @@ class CGasSpecies
 
     uilist unique_spectral_lines;
 
-    int * nr_of_collision_transition;
+    int * nr_of_col_transition;
     int * nr_of_col_temp;
     int *nr_sublevels_upper, *nr_sublevels_lower;
     int *nr_pi_spectral_lines, *nr_sigma_spectral_lines;
@@ -658,7 +658,11 @@ class CGasMixture
         if(line_to_pos != 0)
         {
             for(uint i_species = 0; i_species < nr_of_species; i_species++)
+            {
+                for(uint i_line = 0; i_line < getNrOfSpectralLines(i_species); i_line++)
+                    delete[] line_to_pos[i_species][i_line];
                 delete[] line_to_pos[i_species];
+            }
             delete[] line_to_pos;
         }
     }
@@ -788,7 +792,7 @@ class CGasMixture
 
     double getTransitionFrequencyFromIndex(uint i_species, uint i_line)
     {
-        uint i_trans = single_species[i_species].getTransition(i_line);
+        uint i_trans = single_species[i_species].getTransitionFromSpectralLine(i_line);
         return single_species[i_species].getTransitionFrequency(i_trans);
     }
 
@@ -797,9 +801,9 @@ class CGasMixture
         return single_species[i_species].getNrOfTransitions();
     }
 
-    uint getTransition(uint i_species, uint i_line)
+    uint getTransitionFromSpectralLine(uint i_species, uint i_line)
     {
-        return single_species[i_species].getTransition(i_line);
+        return single_species[i_species].getTransitionFromSpectralLine(i_line);
     }
 
     double getGaussA(uint i_species, double temp_gas, double v_turb)
@@ -880,13 +884,30 @@ class CGasMixture
         return single_species[i_species].calcEmissivities(grid, pp, i_line);
     }
 
+    uint getTotalNrOfSpectralLines()
+    {
+        uint total_spectral_lines = 0;
+        for(uint i_species = 0; i_species < nr_of_species; i_species++)
+            total_spectral_lines += getNrOfSpectralLines(i_species);
+        return total_spectral_lines;
+    }
+
+    uint getMaxNrOfSpectralLines()
+    {
+        uint max_spectral_lines = 0;
+        for(uint i_species = 0; i_species < nr_of_species; i_species++)
+            if(getNrOfSpectralLines(i_species) > max_spectral_lines)
+                max_spectral_lines = getNrOfSpectralLines(i_species);
+        return max_spectral_lines;
+    }
+
     uint getNrOffsetEntries(CGridBasic * grid, parameters & param)
     {
         // Init variables and pointer arrays
         uint offset_entries = 0;
-        uint line_broadening_offset = 4 * param.getMaxNrOfSpectralLines();
+        uint line_broadening_offset = 4 * getMaxNrOfSpectralLines();
         level_to_pos = new uint *[nr_of_species];
-        line_to_pos = new uint *[nr_of_species];
+        line_to_pos = new uint **[nr_of_species];
 
         for(uint i_species = 0; i_species < nr_of_species; i_species++)
         {
@@ -894,7 +915,10 @@ class CGasMixture
             uint nr_of_spectral_lines = getNrOfSpectralLines(i_species);
 
             level_to_pos[i_species] = new uint[nr_of_energy_level];
-            line_to_pos[i_species] = new uint[nr_of_spectral_lines];
+            line_to_pos[i_species] = new uint *[nr_of_spectral_lines];
+
+            for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                line_to_pos[i_species][i_line] = new uint[2];
 
             uint used_level_populations = 0;
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
@@ -907,17 +931,18 @@ class CGasMixture
 
                 for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
                 {
-                    uint i_trans = getTransition(i_species, i_line);
+                    uint i_trans = getTransitionFromSpectralLine(i_species, i_line);
 
                     if(i_lvl == getLowerTransition(i_species, i_trans))
                     {
                         level_to_pos[i_species][i_lvl] = line_broadening_offset + used_level_populations;
-                        line_to_pos[i_species][i_line] = line_broadening_offset + used_level_populations;
+                        line_to_pos[i_species][i_line][0] = line_broadening_offset + used_level_populations;
                         found = true;
                     }
                     else if(i_lvl == getUpperTransition(i_species, i_trans))
                     {
                         level_to_pos[i_species][i_lvl] = line_broadening_offset + used_level_populations;
+                        line_to_pos[i_species][i_line][1] = line_broadening_offset + used_level_populations;
                         found = true;
                     }
                 }
@@ -937,7 +962,7 @@ class CGasMixture
     CGasSpecies * single_species;
 
     uint ** level_to_pos;
-    uint ** line_to_pos;
+    uint *** line_to_pos;
 
     double kepler_star_mass;
     uint nr_of_species;

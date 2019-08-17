@@ -198,19 +198,19 @@ class CRadiativeTransfer
     void getLinePixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
-                               uint i_det,
                                uint i_species,
                                uint i_line,
+                               uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
-                          uint i_det,
-                          uint subpixel_lvl,
                           uint i_species,
-                          uint i_line);
+                          uint i_line,
+                          uint i_det,
+                          uint subpixel_lvl);
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);
