@@ -876,6 +876,20 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                 sources_mc.push_back(tmp_source);
             }
         }
+
+        if(param.gasSpeciesLevelPopTypeIsMC())
+        {
+            if(param.getCommand() != CMD_LINE_EMISSION)
+            {
+                nr_ofSources--;
+            }
+            else
+            {
+                CSourceBasic * tmp_source = new CSourceGas();
+                tmp_source->setParameter(param, grid, dust, 0);
+                sources_mc.push_back(tmp_source);
+            }
+        }
     }
     else
     {
@@ -967,20 +981,6 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             else
             {
                 CSourceBasic * tmp_source = new CSourceDust();
-                tmp_source->setParameter(param, grid, dust, 0);
-                sources_mc.push_back(tmp_source);
-            }
-        }
-
-        if(param.gasSpeciesLevelPopTypeIsMC())
-        {
-            if(param.isTemperatureSimulation())
-            {
-                nr_ofSources--;
-            }
-            else
-            {
-                CSourceBasic * tmp_source = new CSourceGas();
                 tmp_source->setParameter(param, grid, dust, 0);
                 sources_mc.push_back(tmp_source);
             }
@@ -1350,7 +1350,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
                 {
                     // Calculate from frequency
-                    double wavelength = con_c / gas->getTransitionFrequencyFromIndex(i_species, i_line);
+                    double wavelength = con_c / gas->getSpectralLineFrequency(i_species, i_line);
 
                     // Add wavelength to global list of wavelength
                     dust->addToWavelengthGrid(wavelength);

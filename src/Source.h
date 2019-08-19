@@ -132,10 +132,8 @@ class CSourceBasic
     virtual void createNextRay(photon_package * pp, ullong i_pos)
     {}
 
-    void createNextRay(photon_package * pp, ullong i_pos, ulong i_cell)
-    {
-        createNextRay(pp, i_pos);
-    }
+    virtual void createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, double extra)
+    {}
 
     virtual void createDirectRay(photon_package * pp, Vector3D dir_obs = Vector3D())
     {}
@@ -510,11 +508,11 @@ class CSourceGas : public CSourceBasic
     }
 
     bool initSource(uint id, uint max, bool use_energy_density);
-    void createNextRay(photon_package * pp, ullong i_pos, ulong i_cell);
+    void createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, double extra);
 
     void setParameter(parameters & param, uint p)
     {
-        nr_of_photons = param.getNrOfDustPhotons();
+        nr_of_photons = 1e2;
     }
 
     ullong getNrOfPhotons()

@@ -1749,10 +1749,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -1940,10 +1940,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_UPPER",
-                                 gas->getUpperTransition(i_species, i_trans) + 1,
+                                 gas->getUpperEnergyLevel(i_species, i_trans) + 1,
                                  "upper energy level index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_LOWER",
-                                 gas->getLowerTransition(i_species, i_trans) + 1,
+                                 gas->getLowerEnergyLevel(i_species, i_trans) + 1,
                                  "lower energy level index number (see leiden database)");
             pFits->pHDU().addKey("FREQ",
                                  gas->getTransitionFrequency(i_species, i_trans),
@@ -2157,10 +2157,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2357,10 +2357,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2491,10 +2491,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             newTable->addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
             newTable->addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
             newTable->addKey("FREQ",
                              gas->getTransitionFrequency(i_species, i_trans),
@@ -2652,10 +2652,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2796,10 +2796,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");

@@ -12,7 +12,7 @@
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-bool CGasSpecies::calcLTE(CGridBasic * grid)
+bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
 {
     uint nr_of_energy_levels = getNrOfEnergyLevels();
     uint nr_of_spectral_lines = getNrOfSpectralLines();
@@ -47,28 +47,36 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
         if(temp_gas == 0)
         {
             tmp_lvl_pop[0] = 1;
-            for(uint i = 1; i < nr_of_energy_levels; i++)
-                tmp_lvl_pop[i] = 0;
+            for(uint i_lvl = 1; i_lvl < nr_of_energy_levels; i_lvl++)
+                tmp_lvl_pop[i_lvl] = 0;
         }
         else
         {
             double sum = 0;
-            for(uint i = 0; i < nr_of_energy_levels; i++)
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
             {
-                tmp_lvl_pop[i] =
-                    getGLevel(i) * exp(-con_h * getEnergylevel(i) * con_c * 100.0 / (con_kB * temp_gas));
-                sum += tmp_lvl_pop[i];
+                tmp_lvl_pop[i_lvl] = getGLevel(i_lvl) * exp(-con_h * getEnergylevel(i_lvl) * con_c * 100.0 /
+                                                            (con_kB * temp_gas));
+                sum += tmp_lvl_pop[i_lvl];
             }
 
-            for(uint i = 0; i < nr_of_energy_levels; i++)
-                tmp_lvl_pop[i] /= sum;
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                tmp_lvl_pop[i_lvl] /= sum;
         }
 
-        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+        if(full)
         {
-            uint i_trans = getTransitionFromSpectralLine(i_line);
-            grid->setLvlPopLower(cell, i_line, tmp_lvl_pop[getLowerTransition(i_trans)]);
-            grid->setLvlPopUpper(cell, i_line, tmp_lvl_pop[getUpperTransition(i_trans)]);
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
+        }
+        else
+        {
+            for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+            {
+                uint i_trans = getTransitionFromSpectralLine(i_line);
+                grid->setLvlPopLower(cell, i_line, tmp_lvl_pop[getLowerEnergyLevel(i_trans)]);
+                grid->setLvlPopUpper(cell, i_line, tmp_lvl_pop[getUpperEnergyLevel(i_trans)]);
+            }
         }
 
         delete[] tmp_lvl_pop;
@@ -80,7 +88,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid)
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-bool CGasSpecies::calcFEP(CGridBasic * grid)
+bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
 {
     uint nr_of_energy_levels = getNrOfEnergyLevels();
     uint nr_of_spectral_lines = getNrOfSpectralLines();
@@ -138,31 +146,39 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
             delete[] final_col_para;
 
             double sum_p = 0;
-            for(uint i = 0; i < nr_of_energy_levels; i++)
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
             {
-                if(tmp_lvl_pop[i] >= 0)
-                    sum_p += tmp_lvl_pop[i];
+                if(tmp_lvl_pop[i_lvl] >= 0)
+                    sum_p += tmp_lvl_pop[i_lvl];
                 else
                 {
                     cout << "WARNING: Level population element not greater than zero!" << endl;
                     no_error = false;
                 }
             }
-            for(uint i = 0; i < nr_of_energy_levels; i++)
-                tmp_lvl_pop[i] /= sum_p;
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                tmp_lvl_pop[i_lvl] /= sum_p;
         }
         else
         {
-            for(uint i = 0; i < nr_of_energy_levels; i++)
-                tmp_lvl_pop[i] = 0;
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                tmp_lvl_pop[i_lvl] = 0;
             tmp_lvl_pop[0] = 1;
         }
 
-        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+        if(full)
         {
-            uint i_trans = getTransitionFromSpectralLine(i_line);
-            grid->setLvlPopLower(cell, i_line, tmp_lvl_pop[getLowerTransition(i_trans)]);
-            grid->setLvlPopUpper(cell, i_line, tmp_lvl_pop[getUpperTransition(i_trans)]);
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
+        }
+        else
+        {
+            for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+            {
+                uint i_trans = getTransitionFromSpectralLine(i_line);
+                grid->setLvlPopLower(cell, i_line, tmp_lvl_pop[getLowerEnergyLevel(i_trans)]);
+                grid->setLvlPopUpper(cell, i_line, tmp_lvl_pop[getUpperEnergyLevel(i_trans)]);
+            }
         }
 
         delete[] tmp_lvl_pop;
@@ -177,7 +193,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid)
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 // and based on Pavlyuchenkov et. al (2007)
 
-bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
+bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
 {
     CMathFunctions mf;
     uint nr_of_energy_levels = getNrOfEnergyLevels();
@@ -202,16 +218,16 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
 
         double * J_mid = new double[nr_of_transitions];
         double * b = new double[nr_of_energy_levels];
-        double * new_pop = new double[nr_of_energy_levels];
+        double * tmp_lvl_pop = new double[nr_of_energy_levels];
         double * old_pop = new double[nr_of_energy_levels];
 
         for(uint i = 1; i < nr_of_energy_levels; i++)
         {
-            new_pop[i] = 0.0;
+            tmp_lvl_pop[i] = 0.0;
             old_pop[i] = 0.0;
         }
         old_pop[0] = 1.0;
-        new_pop[0] = 1.0;
+        tmp_lvl_pop[0] = 1.0;
 
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
@@ -261,13 +277,13 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
 
         for(i_iter = 0; i_iter < MAX_LVG_ITERATIONS; i_iter++)
         {
-            for(uint i = 0; i < nr_of_energy_levels; i++)
-                old_pop[i] = new_pop[i];
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                old_pop[i_lvl] = tmp_lvl_pop[i_lvl];
 
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                 J_mid[i_trans] = elem_LVG(grid,
                                           dens_species,
-                                          new_pop,
+                                          tmp_lvl_pop,
                                           getGaussA(temp_gas, turbulent_velocity),
                                           L,
                                           J_ext[i_trans],
@@ -275,31 +291,33 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
 
             createMatrix(J_mid, A, b, final_col_para);
 
-            mf.gauss(A, b, new_pop, nr_of_energy_levels);
+            mf.gauss(A, b, tmp_lvl_pop, nr_of_energy_levels);
 
             double sum_p = 0;
-            for(uint j = 0; j < nr_of_energy_levels; j++)
+            for(uint j_lvl = 0; j_lvl < nr_of_energy_levels; j_lvl++)
             {
-                if(new_pop[j] >= 0)
-                    sum_p += new_pop[j];
+                if(tmp_lvl_pop[j_lvl] >= 0)
+                    sum_p += tmp_lvl_pop[j_lvl];
                 else
                 {
                     cout << "WARNING: Level population element not greater than zero!" << endl;
-                    cout << new_pop[j] << endl;
+                    cout << tmp_lvl_pop[j_lvl] << endl;
                     no_error = false;
                 }
             }
-            for(uint j = 0; j < nr_of_energy_levels; j++)
-                new_pop[j] /= sum_p;
+            for(uint j_lvl = 0; j_lvl < nr_of_energy_levels; j_lvl++)
+                tmp_lvl_pop[j_lvl] /= sum_p;
 
-            uint j = 0;
-            for(uint i = 1; i < nr_of_energy_levels; i++)
-                if(new_pop[i] > new_pop[j])
-                    j = i;
+            uint j_lvl = 0;
+            for(uint i_lvl = 1; i_lvl < nr_of_energy_levels; i_lvl++)
+                if(tmp_lvl_pop[i_lvl] > tmp_lvl_pop[j_lvl])
+                    j_lvl = i_lvl;
 
             if(i_iter > 1)
             {
-                if(abs(new_pop[j] - old_pop[j]) / (old_pop[j] + numeric_limits<double>::epsilon()) < 1.0e-2)
+                if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
+                       (old_pop[j_lvl] + numeric_limits<double>::epsilon()) <
+                   1.0e-2)
                 {
                     break;
                 }
@@ -308,16 +326,24 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
         if(i_iter == MAX_LVG_ITERATIONS)
             cout << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
 
-        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+        if(full)
         {
-            uint i_trans = getTransitionFromSpectralLine(i_line);
-            grid->setLvlPopLower(cell, i_line, new_pop[getLowerTransition(i_trans)]);
-            grid->setLvlPopUpper(cell, i_line, new_pop[getUpperTransition(i_trans)]);
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
+        }
+        else
+        {
+            for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+            {
+                uint i_trans = getTransitionFromSpectralLine(i_line);
+                grid->setLvlPopLower(cell, i_line, tmp_lvl_pop[getLowerEnergyLevel(i_trans)]);
+                grid->setLvlPopUpper(cell, i_line, tmp_lvl_pop[getUpperEnergyLevel(i_trans)]);
+            }
         }
 
         delete[] J_mid;
         delete[] b;
-        delete[] new_pop;
+        delete[] tmp_lvl_pop;
         delete[] old_pop;
         for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
         {
@@ -340,14 +366,14 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass)
 
 double CGasSpecies::elem_LVG(CGridBasic * grid,
                              double dens_species,
-                             double * new_pop,
+                             double * tmp_lvl_pop,
                              double gauss_a,
                              double L,
                              double J_ext,
                              uint i_trans)
 {
-    double lvl_pop_u = new_pop[getUpperTransition(i_trans)];
-    double lvl_pop_l = new_pop[getLowerTransition(i_trans)];
+    double lvl_pop_u = tmp_lvl_pop[getUpperEnergyLevel(i_trans)];
+    double lvl_pop_l = tmp_lvl_pop[getLowerEnergyLevel(i_trans)];
     double Einst_A = getEinsteinA(i_trans);
     double Einst_B_u = getEinsteinBu(i_trans);
     double Einst_B_l = getEinsteinBl(i_trans);
@@ -375,8 +401,64 @@ double CGasSpecies::elem_LVG(CGridBasic * grid,
     return J_mid;
 }
 
-bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double J_total)
-{}
+bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total)
+{
+    uint nr_of_energy_levels = getNrOfEnergyLevels();
+    uint nr_of_spectral_lines = getNrOfSpectralLines();
+    bool no_error = true;
+
+    double * tmp_lvl_pop = new double[nr_of_energy_levels];
+
+    double gas_number_density = grid->getGasNumberDensity(cell);
+    if(gas_number_density > 1e-200)
+    {
+        Matrix2D A(nr_of_energy_levels, nr_of_energy_levels);
+        double * b = new double[nr_of_energy_levels];
+
+        double *** final_col_para = calcCollisionParameter(grid, cell);
+        createMatrix(J_total, A, b, final_col_para);
+        CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_energy_levels);
+
+        delete[] b;
+        for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
+        {
+            for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition[i_col_partner];
+                i_col_transition++)
+            {
+                delete[] final_col_para[i_col_partner][i_col_transition];
+            }
+            delete[] final_col_para[i_col_partner];
+        }
+        delete[] final_col_para;
+
+        double sum_p = 0;
+        for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+        {
+            if(tmp_lvl_pop[i_lvl] >= 0)
+                sum_p += tmp_lvl_pop[i_lvl];
+            else
+            {
+                cout << "WARNING: Level population element not greater than zero! ->" << tmp_lvl_pop[i_lvl]
+                     << endl;
+                no_error = false;
+            }
+        }
+        for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+            tmp_lvl_pop[i_lvl] /= sum_p;
+    }
+    else
+    {
+        for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+            tmp_lvl_pop[i_lvl] = 0;
+        tmp_lvl_pop[0] = 1;
+    }
+
+    for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+        grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
+
+    delete[] tmp_lvl_pop;
+    return no_error;
+}
 
 // This function is based on
 // Mol3d: 3D line and dust continuum radiative transfer code
@@ -489,21 +571,21 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
     uint nr_of_col_partner = getNrOfCollisionPartner();
     uint nr_of_energy_levels = getNrOfEnergyLevels();
 
-    for(uint i = 0; i < nr_of_energy_levels; i++)
+    for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
     {
-        for(uint j = 0; j < nr_of_transitions; j++)
+        for(uint j_lvl = 0; j_lvl < nr_of_transitions; j_lvl++)
         {
-            if(getUpperTransition(j) == i)
+            if(getUpperEnergyLevel(j_lvl) == i_lvl)
             {
-                uint k = getLowerTransition(j);
-                A(i, k) += getEinsteinBl(j) * J_mid[j];
-                A(i, i) -= getEinsteinA(j) + getEinsteinBu(j) * J_mid[j];
+                uint k_lvl = getLowerEnergyLevel(j_lvl);
+                A(i_lvl, k_lvl) += getEinsteinBl(j_lvl) * J_mid[j_lvl];
+                A(i_lvl, i_lvl) -= getEinsteinA(j_lvl) + getEinsteinBu(j_lvl) * J_mid[j_lvl];
             }
-            else if(getLowerTransition(j) == i)
+            else if(getLowerEnergyLevel(j_lvl) == i_lvl)
             {
-                uint k = getUpperTransition(j);
-                A(i, k) += getEinsteinA(j) + getEinsteinBu(j) * J_mid[j];
-                A(i, i) -= getEinsteinBl(j) * J_mid[j];
+                uint k_lvl = getUpperEnergyLevel(j_lvl);
+                A(i_lvl, k_lvl) += getEinsteinA(j_lvl) + getEinsteinBu(j_lvl) * J_mid[j_lvl];
+                A(i_lvl, i_lvl) -= getEinsteinBl(j_lvl) * J_mid[j_lvl];
             }
         }
         for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
@@ -514,42 +596,63 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
             // Add collision rates to the system of equations for each transition
             for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition; i_col_transition++)
             {
-                if(getLowerCollision(i_col_partner, i_col_transition) == i)
+                if(getLowerCollision(i_col_partner, i_col_transition) == i_lvl)
                 {
-                    uint k = getUpperCollision(i_col_partner, i_col_transition);
-                    A(i, k) += final_col_para[i_col_partner][i_col_transition][0];
-                    A(i, i) -= final_col_para[i_col_partner][i_col_transition][1];
+                    uint k_lvl = getUpperCollision(i_col_partner, i_col_transition);
+                    A(i_lvl, k_lvl) += final_col_para[i_col_partner][i_col_transition][0];
+                    A(i_lvl, i_lvl) -= final_col_para[i_col_partner][i_col_transition][1];
                 }
-                else if(getUpperCollision(i_col_partner, i_col_transition) == i)
+                else if(getUpperCollision(i_col_partner, i_col_transition) == i_lvl)
                 {
-                    uint k = getLowerCollision(i_col_partner, i_col_transition);
-                    A(i, k) += final_col_para[i_col_partner][i_col_transition][1];
-                    A(i, i) -= final_col_para[i_col_partner][i_col_transition][0];
+                    uint k_lvl = getLowerCollision(i_col_partner, i_col_transition);
+                    A(i_lvl, k_lvl) += final_col_para[i_col_partner][i_col_transition][1];
+                    A(i_lvl, i_lvl) -= final_col_para[i_col_partner][i_col_transition][0];
                 }
             }
         }
     }
 
-    for(uint i = 0; i < nr_of_energy_levels; i++)
+    for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
     {
-        A(0, i) = 1.0;
-        b[i] = 0;
+        A(0, i_lvl) = 1.0;
+        b[i_lvl] = 0;
     }
     b[0] = 1.0;
 }
 
-StokesVector CGasSpecies::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_line)
+StokesVector CGasSpecies::calcEmissivity(CGridBasic * grid, cell_basic * cell, uint i_line)
 {
-    double gauss_a = grid->getGaussA(pp, i_line);
+    // Get width of spectral line
+    double gauss_a = grid->getGaussA(cell);
 
+    // Get index of transition
     uint i_trans = getTransitionFromSpectralLine(i_line);
-    // Calculate the optical depth of the gas particles and the dust grains
-    double alpha_gas = (grid->getLvlPopLower(pp, i_line) * getEinsteinBl(i_trans) -
-                        grid->getLvlPopUpper(pp, i_line) * getEinsteinBu(i_trans)) *
+
+    // Calculate the optical depth of the gas particles in the current cell
+    double alpha_gas = (grid->getLvlPopLower(cell, i_line) * getEinsteinBl(i_trans) -
+                        grid->getLvlPopUpper(cell, i_line) * getEinsteinBu(i_trans)) *
+                       con_eps * gauss_a;
+    // Calculate the Emissivity of the gas particles in the current cell
+    double S_gas = grid->getLvlPopUpper(cell, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a;
+
+    return StokesVector(S_gas, 0, 0, 0, alpha_gas);
+}
+
+StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid, cell_basic * cell, uint i_trans)
+{
+    // Get width of spectral line
+    double gauss_a = grid->getGaussA(cell);
+
+    // Calculate the optical depth of the gas particles in the current cell
+    double alpha_gas = (grid->getLvlPop(cell, getLowerEnergyLevel(i_trans)) * getEinsteinBl(i_trans) -
+                        grid->getLvlPop(cell, getUpperEnergyLevel(i_trans)) * getEinsteinBu(i_trans)) *
                        con_eps * gauss_a;
 
-    return StokesVector(
-        grid->getLvlPopUpper(pp, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a, 0, 0, 0, alpha_gas);
+    // Calculate the Emissivity of the gas particles in the current cell
+    double S_gas =
+        grid->getLvlPop(cell, getUpperEnergyLevel(i_trans)) * getEinsteinA(i_trans) * con_eps * gauss_a;
+
+    return StokesVector(S_gas, 0, 0, 0, alpha_gas);
 }
 
 Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity)
@@ -558,7 +661,7 @@ Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp,
     Matrix2D line_matrix(4, 4);
 
     // Calculate gaussian shape
-    double line_amplitude = getGaussLineShape(grid, pp, i_line, velocity);
+    double line_amplitude = getGaussLineShape(grid, pp, velocity);
 
     // Only diagonal without polarization rotation matrix elements
     for(uint i = 0; i < 4; i++)
@@ -567,9 +670,9 @@ Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp,
     return line_matrix;
 }
 
-double CGasSpecies::getGaussLineShape(CGridBasic * grid, photon_package * pp, uint i_line, double velocity)
+double CGasSpecies::getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity)
 {
-    double gauss_a = grid->getGaussA(pp, i_line);
+    double gauss_a = grid->getGaussA(pp);
     return exp(-(pow(velocity, 2) * pow(gauss_a, 2))) / PIsq;
 }
 
@@ -587,7 +690,7 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic * grid,
     Matrix2D line_matrix(4, 4);
     double line_strength, freq_shift;
     double f_doppler, mult_A, mult_B;
-    double frequency = getTransitionFrequencyFromIndex(i_line);
+    double frequency = getSpectralLineFrequency(i_line);
     uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
 
     double Gamma = grid->getGamma(pp, i_line);
@@ -791,8 +894,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             nr_of_transitions = uint(values[0]);
             pos_counter = 0;
 
-            trans_upper = new int[nr_of_transitions];
-            trans_lower = new int[nr_of_transitions];
+            upper_level = new int[nr_of_transitions];
+            lower_level = new int[nr_of_transitions];
             trans_einstA = new double[nr_of_transitions];
             trans_freq = new double[nr_of_transitions];
             trans_inner_energy = new double[nr_of_transitions];
@@ -820,9 +923,9 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             }
 
             // UP (as index starting with 0)
-            trans_upper[pos_counter] = int(values[1] - 1);
+            upper_level[pos_counter] = int(values[1] - 1);
             // LOW (as index starting with 0)
-            trans_lower[pos_counter] = int(values[2] - 1);
+            lower_level[pos_counter] = int(values[2] - 1);
             // EINSTEINA(s^-1)
             trans_einstA[pos_counter] = values[3];
             // FREQ(GHz -> Hz)
@@ -834,8 +937,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
                                           pow(con_c / trans_freq[pos_counter], 2.0) /
                                           (2.0 * con_h * trans_freq[pos_counter]);
 
-            trans_einstB_l[pos_counter] = g_level[trans_upper[pos_counter]] /
-                                          g_level[trans_lower[pos_counter]] * trans_einstB_u[pos_counter];
+            trans_einstB_l[pos_counter] = g_level[upper_level[pos_counter]] /
+                                          g_level[lower_level[pos_counter]] * trans_einstB_u[pos_counter];
 
             pos_counter++;
         }
@@ -1342,7 +1445,7 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
     switch(lvl_pop_type)
     {
         case POP_MC:
-            if(!single_species[i_species].calcLTE(grid))
+            if(!single_species[i_species].calcLTE(grid, true))
                 return false;
             break;
         case POP_LTE:
@@ -1368,12 +1471,15 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
 bool CGasMixture::updateLevelPopulation(CGridBasic * grid,
                                         photon_package * pp,
                                         uint i_species,
-                                        double J_total)
+                                        double * J_total)
 {
     return updateLevelPopulation(grid, pp->getPositionCell(), i_species, J_total);
 }
 
-bool CGasMixture::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, uint i_species, double J_total)
+bool CGasMixture::updateLevelPopulation(CGridBasic * grid,
+                                        cell_basic * cell,
+                                        uint i_species,
+                                        double * J_total)
 {
     uint lvl_pop_type = getLevelPopType(i_species);
 
@@ -1503,14 +1609,14 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             cout << "- Transition number             : "
                  << uint(getTransitionFromSpectralLine(i_species, i_line) + 1) << endl;
             cout << "- Involved energy levels        : "
-                 << getUpperTransition(i_species, getTransitionFromSpectralLine(i_species, i_line)) + 1
+                 << getUpperEnergyLevel(i_species, getTransitionFromSpectralLine(i_species, i_line)) + 1
                  << " -> "
-                 << getLowerTransition(i_species, getTransitionFromSpectralLine(i_species, i_line)) + 1
+                 << getLowerEnergyLevel(i_species, getTransitionFromSpectralLine(i_species, i_line)) + 1
                  << endl;
-            cout << "- Transition frequency          : " << getTransitionFrequencyFromIndex(i_species, i_line)
+            cout << "- Transition frequency          : " << getSpectralLineFrequency(i_species, i_line)
                  << " [Hz]" << endl;
             cout << "- Transition wavelength         : "
-                 << (con_c / getTransitionFrequencyFromIndex(i_species, i_line)) << " [m]" << endl;
+                 << (con_c / getSpectralLineFrequency(i_species, i_line)) << " [m]" << endl;
             if(getZeemanSplitting(i_species) == true)
             {
                 cout << CLR_LINE;

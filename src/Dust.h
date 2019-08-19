@@ -2176,9 +2176,9 @@ class CDustComponent
                            cross_sections & cs);
     double calcGoldReductionFactor(Vector3D & v, Vector3D & B);
 
-    StokesVector calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density);
-    double calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density);
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid,
+    StokesVector calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density);
+    double calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density);
+    StokesVector calcEmissivityEmi(CGridBasic * grid,
                                      photon_package * pp,
                                      uint i_density,
                                      double phi,
@@ -2946,7 +2946,7 @@ class CDustMixture
         return sum;
     }
 
-    StokesVector calcEmissivitiesHz(CGridBasic * grid, photon_package * pp)
+    StokesVector calcEmissivityHz(CGridBasic * grid, photon_package * pp)
     {
         // Init Stokes vector
         StokesVector tmp_stokes;
@@ -2956,18 +2956,18 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes = mixed_component[i_mixture].calcEmissivitiesHz(grid, pp, 0);
+                tmp_stokes = mixed_component[i_mixture].calcEmissivityHz(grid, pp, 0);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesHz(grid, pp, i_mixture);
+                    tmp_stokes += mixed_component[i_mixture].calcEmissivityHz(grid, pp, i_mixture);
                 }
         }
         return tmp_stokes;
     }
 
-    double calcEmissivities(CGridBasic * grid, photon_package * pp)
+    double calcEmissivity(CGridBasic * grid, photon_package * pp)
     {
         // Init variables
         double pl_abs = 0;
@@ -2977,17 +2977,17 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                pl_abs = mixed_component[i_mixture].calcEmissivities(grid, pp, 0);
+                pl_abs = mixed_component[i_mixture].calcEmissivity(grid, pp, 0);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    pl_abs += mixed_component[i_mixture].calcEmissivities(grid, pp, i_mixture);
+                    pl_abs += mixed_component[i_mixture].calcEmissivity(grid, pp, i_mixture);
         }
 
         return pl_abs;
     }
 
-    Matrix2D calcEmissivitiesExt(CGridBasic * grid, photon_package * pp)
+    Matrix2D calcEmissivityExt(CGridBasic * grid, photon_package * pp)
     {
         // Init variables
         double Cext = 0, Cpol = 0, Ccirc = 0;
@@ -3046,7 +3046,7 @@ class CDustMixture
         return dust_matrix;
     }
 
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid, photon_package * pp, uint i_offset = MAX_UINT)
+    StokesVector calcEmissivityEmi(CGridBasic * grid, photon_package * pp, uint i_offset = MAX_UINT)
     {
         // Init variables
         double energy = 0;
@@ -3078,11 +3078,11 @@ class CDustMixture
             {
                 uint i_mixture = getMixtureID(grid, pp);
                 tmp_stokes +=
-                    mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, 0, phi, energy, en_dir);
+                    mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesEmi(
+                    tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(
                         grid, pp, i_mixture, phi, energy, en_dir);
         }
         return tmp_stokes;

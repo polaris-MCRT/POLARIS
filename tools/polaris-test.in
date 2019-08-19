@@ -287,6 +287,11 @@ class TestRoutines:
         """
         self.get_result('emission_map')
 
+    def test_1001013(self):
+        """Perform test simulation to check the line radiative transfer (MC).
+        """
+        self.get_result('vel_map')
+
     def test_1002001(self):
         """Perform test simulation to check temp_rat calculation.
         """

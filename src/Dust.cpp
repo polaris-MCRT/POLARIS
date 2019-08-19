@@ -3881,7 +3881,7 @@ long double * CDustComponent::getStochasticProbability(uint a, spline & abs_rate
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density)
+StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density)
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
@@ -3905,7 +3905,7 @@ StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_packag
     return tmp_stokes;
 }
 
-double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density)
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
@@ -4066,7 +4066,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     return final_stokes;
 }
 
-StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
+StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                                                  photon_package * pp,
                                                  uint i_density,
                                                  double phi,

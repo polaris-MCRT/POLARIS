@@ -2303,19 +2303,19 @@ class parameters
         return res;
     }
 
-    string getGasSpeciesCatalogPath(uint i)
+    string getGasSpeciesCatalogPath(uint i_species)
     {
-        return gas_species_cat_path[i];
+        return gas_species_cat_path[i_species];
     }
 
-    double getGasSpeciesAbundance(uint i)
+    double getGasSpeciesAbundance(uint i_species)
     {
-        return gas_species_abundance[i];
+        return gas_species_abundance[i_species];
     }
 
-    uint getGasSpeciesLevelPopType(uint i)
+    uint getGasSpeciesLevelPopType(uint i_species)
     {
-        return gas_species_level_pop_type[i];
+        return gas_species_level_pop_type[i_species];
     }
 
     bool gasSpeciesLevelPopTypeIsMC()
@@ -2324,11 +2324,6 @@ class parameters
             if(gas_species_level_pop_type[i_species] == POP_MC)
                 return true;
         return false;
-    }
-
-    uint getNrVelocityChannel(uint i)
-    {
-        return nr_ofVelocityChannels[i];
     }
 
     uint getMaxSubpixelLvl()
@@ -2515,8 +2510,6 @@ class parameters
     double extinction_magnitude;
     double extinction_magnitude_wavelength;
     uint extinction_i_mixture;
-
-    uilist nr_ofVelocityChannels;
 
     uint nrOfGnuPoints;
     uint nrOfGnuVectors;
@@ -2746,6 +2739,11 @@ class photon_package
             cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
             return 0;
         }
+    }
+
+    double getVelocity(double trans_frequency)
+    {
+        return CMathFunctions::Freq2Velo(getFrequency(), trans_frequency);
     }
 
     StokesVector & getMultiStokesVector(uint vch)
