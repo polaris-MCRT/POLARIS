@@ -1550,6 +1550,9 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
         uint lvl_pop_type = getLevelPopType(i_species);
         switch(lvl_pop_type)
         {
+            case POP_MC:
+                cout << "Monte-Carlo" << endl;
+                break;
             case POP_LTE:
                 cout << "LTE" << endl;
                 break;

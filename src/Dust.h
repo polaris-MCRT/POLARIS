@@ -2179,11 +2179,11 @@ class CDustComponent
     StokesVector calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density);
     double calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density);
     StokesVector calcEmissivityEmi(CGridBasic * grid,
-                                     photon_package * pp,
-                                     uint i_density,
-                                     double phi,
-                                     double energy,
-                                     Vector3D en_dir);
+                                   photon_package * pp,
+                                   uint i_density,
+                                   double phi,
+                                   double energy,
+                                   Vector3D en_dir);
 
     double getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl);
     long double * getStochasticProbability(uint a, spline & abs_rate_per_wl);
@@ -2719,7 +2719,7 @@ class CDustMixture
         if(it != wavelength_list.end())
             return distance(wavelength_list.begin(), it);
 
-        cout << "\nHINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
+        cout << "\nHINT: Wavelength not found!" << endl;
         return 0;
     }
 
@@ -3077,8 +3077,7 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes +=
-                    mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
+                tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)

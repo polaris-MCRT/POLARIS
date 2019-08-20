@@ -732,6 +732,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     CSourceBasic * tm_source = sources_mc[0];
 
     // Init luminosity and probability for a given wavelength to be chosen
+    cout << CLR_LINE;
     if(!tm_source->initSource(0, 1))
         return false;
 
@@ -759,45 +760,46 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     cout << CLR_LINE;
     cout << "-> Calculating MC level population  : 0.0[%]  \r" << flush;
 
-    // A loop for each cell
-#pragma omp parallel for schedule(dynamic)
-    for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
+    // Are level populations for this transition and cell converged (globally)
+    bool global_converged = false;
+
+    // Make global iterations till converged
+    while(!global_converged)
     {
-        // Pointer to final cell
-        cell_basic * tmp_cell = grid->getCellFromIndex(i_cell);
-
-        // Each cell automatically converged except the last one for local iteration
-        // See Pavlyuchenkov & Shustov (2003)
-        double * J_nu = new double[nr_of_transitions];
-
-        // Perform radiative transfer for each chosen spectral line transition
-        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+        // A loop for each cell
+#pragma omp parallel for schedule(dynamic)
+        for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
-            // Init radiation field and mean path through final cell
-            J_nu[i_trans] = 0;
-            double cell_sum = 0;
+            // Pointer to final cell
+            cell_basic * tmp_cell = grid->getCellFromIndex(i_cell);
 
-            // Are level populations for this transition and cell converged
-            bool converged = false;
+            // Each cell automatically converged except the last one for local iteration
+            // See Pavlyuchenkov & Shustov (2003)
+            double * J_nu_total = new double[nr_of_transitions];
 
-            // Get rest frequency of current transition
-            double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
-
-            // Maximum max_frequency to either side
-            double max_frequency = 2.5 * trans_frequency /
-                                   (con_c * gas->getGaussA(i_species,
-                                                           grid->getGasTemperature(tmp_cell),
-                                                           grid->getTurbulentVelocity(tmp_cell)));
-
-            // A loop for each photon
-            for(llong r = 0; r < llong(nr_of_photons); r++)
+            // Perform radiative transfer for each chosen spectral line transition
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
             {
+                // Are level populations for this transition and cell converged
+                bool converged = false;
+
+                // Get rest frequency of current transition
+                double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
+
+                // Maximum max_frequency to either side
+                double gauss_freq_width = 1 / grid->getGaussA(tmp_cell);
+                double max_frequency = 2.5 * CMathFunctions::Velo2Freq(gauss_freq_width, trans_frequency);
+
+                // Init radiation field
+                J_nu_total[i_trans] = CMathFunctions::planck_hz(trans_frequency, 2.75);
+                double J_nu_in = 0;
+                double J_nu_in_old = 0;
+
                 // Increase counter used to show progress
                 per_counter++;
 
                 // Calculate percentage of total progress per source
-                float percentage =
-                    100 * float(per_counter) / float(nr_of_cells * nr_of_transitions * nr_of_photons);
+                float percentage = 100 * float(per_counter) / float(nr_of_cells * nr_of_transitions);
 
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -810,38 +812,97 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     }
                 }
 
-                // Init photon package
-                photon_package * pp = new photon_package();
+                // Will be true when external radiation field is calculated
+                bool J_ext_calulated = false;
 
-                // Set backup pos to current cell and move photon package out of the grid
-                ullong seed = nr_of_transitions * nr_of_photons * i_cell + nr_of_photons * i_trans + r;
-                tm_source->createNextRayToCell(
-                    pp, seed, i_cell, trans_frequency + (pp->getRND() * 2 - 1) * max_frequency);
-
-                // Position photon at the grid border
-                if(!grid->positionPhotonInGrid(pp))
-                    if(!grid->findStartingPoint(pp))
+                while(!converged)
+                {
+                    // A loop for each photon
+                    for(llong r = 0; r < llong(nr_of_photons); r++)
                     {
-                        kill_counter++;
+                        // Init photon package
+                        photon_package * pp = new photon_package();
+
+                        // Set backup pos to current cell and move photon package out of the grid
+                        ullong seed = ullong(time(NULL)) + r;
+
+                        // Init photon package outside the grid or at the border of final cell
+                        tm_source->createNextRayToCell(pp, seed, i_cell, J_ext_calulated);
+
+                        // Position photon at the grid border
+                        if(!grid->positionPhotonInGrid(pp))
+                            if(!grid->findStartingPoint(pp))
+                            {
+                                kill_counter++;
+                                delete pp;
+                                continue;
+                            }
+
+                        // Calculate random frequency
+                        double frequency = trans_frequency + (pp->getRND() * 2 - 1) * max_frequency;
+
+                        // Set frequency of the photon package
+                        pp->setFrequency(dust->getWavelengthID(con_c / trans_frequency), frequency);
+
+                        // Set Starting energy
+                        if(!J_ext_calulated)
+                        {
+                            // Set external starting energy to CMB
+                            double energy = CMathFunctions::planck_hz(frequency, 2.75);
+                            pp->setStokesVector(StokesVector(energy, 0, 0, 0));
+                        }
+
+                        // Transport the photon package through the model
+                        while(!pp->reachedBackupPosition() && grid->next(pp))
+                        {
+                            // Solve radiative transfer equation by raytracing through cell
+                            rayThroughCellForLvlPop(pp, i_species, i_trans);
+                        }
+
+                        if(!J_ext_calulated)
+                        {
+                            // Add to external radiation field once
+                            J_nu_total[i_trans] +=
+                                pp->getStokesVector().I() * (2 * max_frequency) / nr_of_photons;
+                        }
+                        else
+                        {
+                            // Add the others to the inner radiation field
+                            J_nu_in += pp->getStokesVector().I() * (2 * max_frequency) / nr_of_photons;
+                        }
+
+                        // Delete the pp pointer
                         delete pp;
-                        continue;
                     }
 
-                // Transport the photon package through the model
-                while(grid->next(pp))
-                {
-                    // Solve radiative transfer equation by raytracing through cell
-                    cell_sum += rayThroughCellForLvlPop(pp, i_species, i_trans) / nr_of_photons;
+                    // Update level populations
+                    gas->updateLevelPopulation(grid, tmp_cell, i_species, J_nu_total);
+
+                    if(!J_ext_calulated)
+                    {
+                        // external radiation field was calculated
+                        J_ext_calulated = true;
+                    }
+                    else
+                    {
+                        // Check if limit is reached
+                        if(abs(J_nu_in - J_nu_in_old) < 1e-3)
+                            converged = true;
+                        else
+                        {
+                            // Backup last iteration and reset recent one
+                            J_nu_in_old = J_nu_in;
+                            J_nu_in = 0;
+                        }
+                    }
                 }
-                J_nu[i_trans] += pp->getStokesVector().I() / nr_of_photons;
-
-                // Delete the pp pointer
-                delete pp;
             }
-        }
 
-        // Delete the pointer arrays
-        delete[] J_nu;
+            // Delete the pointer arrays
+            delete[] J_nu_total;
+
+            global_converged = true;
+        }
     }
 
     // Format prints
@@ -856,7 +917,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     return true;
 }
 
-double CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
+void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
 {
     // Get gas temperature from grid
     double temp_gas = grid->getGasTemperature(pp);
@@ -1004,9 +1065,7 @@ double CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_s
 
                 // Local iteration for final cell (start converging)
                 if(pp->reachedBackupPosition(pos_xyz_cell))
-                {
-                    return cell_sum;
-                }
+                    break;
             }
             else
             {

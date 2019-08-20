@@ -154,9 +154,7 @@ class CRadiativeTransfer
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
     bool calcMonteCarloLvlPopulation(uint i_species);
-    double rayThroughCellForLvlPop(photon_package * pp,
-                                 uint i_species,
-                                 uint i_trans);
+    void rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans);
 
     // Set temperature (old!)
     bool setTemperatureDistribution();

@@ -1326,34 +1326,51 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             if(gas == 0)
                 return false;
 
-            // Get detector parameters list
-            maplist line_ray_detector_list = param.getLineRayDetectors();
-            maplist::iterator it;
-
-            // Check if a detector is defined
-            if(line_ray_detector_list.empty())
+            if(param.isGasSpeciesLevelPopMC())
             {
-                cout << "\nERROR: No spectral line detector of gas species defined!" << endl;
-                return false;
-            }
-
-            // Perform radiative transfer for each chosen gas species
-            for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
-            {
-                // Get ID of the current gas species
-                uint i_species = it->first;
-
-                // Get number of spectral line transitions that have to be simulated
-                uint nr_of_spectral_lines = param.getNrOfSpectralLines(i_species);
-
-                // Perform radiative transfer for each chosen spectral line transition
-                for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                for(uint i_species = 0; i_species < gas->getNrOfSpecies(); i_species++)
                 {
-                    // Calculate from frequency
-                    double wavelength = con_c / gas->getSpectralLineFrequency(i_species, i_line);
+                    for(uint i_trans = 0; i_trans < gas->getNrOfTransitions(i_species); i_trans++)
+                    {
+                        // Calculate from frequency
+                        double wavelength = con_c / gas->getTransitionFrequency(i_species, i_trans);
 
-                    // Add wavelength to global list of wavelength
-                    dust->addToWavelengthGrid(wavelength);
+                        // Add wavelength to global list of wavelength
+                        dust->addToWavelengthGrid(wavelength);
+                    }
+                }
+            }
+            else
+            {
+                // Get detector parameters list
+                maplist line_ray_detector_list = param.getLineRayDetectors();
+                maplist::iterator it;
+
+                // Check if a detector is defined
+                if(line_ray_detector_list.empty())
+                {
+                    cout << "\nERROR: No spectral line detector of gas species defined!" << endl;
+                    return false;
+                }
+
+                // Perform radiative transfer for each chosen gas species
+                for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
+                {
+                    // Get ID of the current gas species
+                    uint i_species = it->first;
+
+                    // Get number of spectral line transitions that have to be simulated
+                    uint nr_of_spectral_lines = param.getNrOfSpectralLines(i_species);
+
+                    // Perform radiative transfer for each chosen spectral line transition
+                    for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                    {
+                        // Calculate from frequency
+                        double wavelength = con_c / gas->getSpectralLineFrequency(i_species, i_line);
+
+                        // Add wavelength to global list of wavelength
+                        dust->addToWavelengthGrid(wavelength);
+                    }
                 }
             }
             break;

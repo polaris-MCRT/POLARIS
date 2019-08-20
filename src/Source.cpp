@@ -1174,7 +1174,7 @@ bool CSourceGas::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, double frequency)
+void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, bool cell_as_border)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
@@ -1189,15 +1189,22 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
     // Save final position as position of last interaction
     pp->setBackupPosition(pp->getPosition());
 
-    // Move photon along the path outwards the grid
-    pp->getPosition() -= pp->getDirection() * grid->maxLength();
+    if(cell_as_border)
+    {
+        // Go one cell outward
+        grid->next(pp);
 
-    // Set frequency of the photon package
-    pp->setFrequency(0, frequency);
+        // Invert direction
+        pp->getDirection() *= -1;
 
-    // Set Starting energy from CMB
-    double energy = CMathFunctions::planck_hz(frequency, 2.75);
-    pp->setStokesVector(StokesVector(energy, 0, 0, 0));
+        // Go into cell again
+        grid->next(pp);
+    }
+    else
+    {
+        // Move photon along the path outwards the grid
+        pp->getPosition() -= pp->getDirection() * grid->maxLength();
+    }
 }
 
 bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
