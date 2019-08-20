@@ -2588,6 +2588,7 @@ class photon_package
 
         wavelength = 0;
         frequency = 0;
+        velocity = 0;
 
         wID = MAX_UINT;
         dirID = MAX_UINT;

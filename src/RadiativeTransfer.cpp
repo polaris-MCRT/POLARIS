@@ -2005,7 +2005,6 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get wavelength/frequency of the photon package
-        pp1->setWavelength(i_wave, tracer[i_det]->getWavelength(i_wave));
         double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
                       (pp1->getFrequency() * pp1->getFrequency());
 
@@ -2471,6 +2470,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     {
         // Set wavelength index in photon package
         double wavelength = tracer[i_det]->getWavelength(i_wave);
+
         pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
         // Get emission from background source
@@ -2489,7 +2489,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get frequency at background grid position
-        pp->setWavelength(i_wave, con_c / tracer[i_det]->getWavelength(i_wave));
         double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
                       (pp->getFrequency() * pp->getFrequency());
 

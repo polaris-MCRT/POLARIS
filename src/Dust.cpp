@@ -4067,11 +4067,11 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
 }
 
 StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
-                                                 photon_package * pp,
-                                                 uint i_density,
-                                                 double phi,
-                                                 double energy,
-                                                 Vector3D en_dir)
+                                               photon_package * pp,
+                                               uint i_density,
+                                               double phi,
+                                               double energy,
+                                               Vector3D en_dir)
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
@@ -4384,9 +4384,14 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double phi_fraction = 1;
     if(phID == PH_MIE)
     {
+        double PHIPAR = 0;
         // Get PHIPAR to take non equal distribution of phi angles into account
-        double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                        (-mat_sca(0, 1) / mat_sca(0, 0));
+        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+            cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+        else
+            PHIPAR =
+                (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+                (-mat_sca(0, 1) / mat_sca(0, 0));
 
         // Get cos(2 * phi)
         double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
@@ -4622,14 +4627,20 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     if(adjust_stokes)
     {
-        tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+        if(getCextMean(a, w) > 0)
+        {
+            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
-        double i_1 = tmp_stokes.I();
-        tmp_stokes.rot(phi);
-        tmp_stokes = mat_sca * tmp_stokes;
-        tmp_stokes *= i_1 / tmp_stokes.I();
-
-        pp->setStokesVector(tmp_stokes);
+            double i_1 = tmp_stokes.I();
+            tmp_stokes.rot(phi);
+            tmp_stokes = mat_sca * tmp_stokes;
+            tmp_stokes *= i_1 / tmp_stokes.I();
+        }
+        else
+        {
+            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+            tmp_stokes.clear();
+        }
     }
 }
 
