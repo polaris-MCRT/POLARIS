@@ -1357,7 +1357,7 @@ class CGridBasic
 
     double getDopplerWidth(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + 1 + 3 * i_line);
+        return cell->getData(data_offset + 3 * i_line + 1);
     }
 
     double getDopplerWidth(photon_package * pp, uint i_line)
@@ -1367,7 +1367,7 @@ class CGridBasic
 
     double getGamma(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + 1 + 3 * i_line + 1);
+        return cell->getData(data_offset + 3 * i_line + 2);
     }
 
     double getGamma(photon_package * pp, uint i_line)
@@ -1377,7 +1377,7 @@ class CGridBasic
 
     double getVoigtA(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + 1 + 3 * i_line + 2);
+        return cell->getData(data_offset + 3 * i_line + 3);
     }
 
     double getVoigtA(photon_package * pp, uint i_line)
@@ -1480,9 +1480,9 @@ class CGridBasic
         // Gauss_a only has to be set once
         if(i_line == 0)
             cell->setData(data_offset, gauss_a);
-        cell->setData(data_offset + 1 + 3 * i_line, doppler_width);
-        cell->setData(data_offset + 1 + 3 * i_line + 1, Gamma);
-        cell->setData(data_offset + 1 + 3 * i_line + 2, voigt_a);
+        cell->setData(data_offset + 3 * i_line + 1, doppler_width);
+        cell->setData(data_offset + 3 * i_line + 2, Gamma);
+        cell->setData(data_offset + 3 * i_line + 3, voigt_a);
     }
 
     virtual double getPathLength(cell_basic * cell)

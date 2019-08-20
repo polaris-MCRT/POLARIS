@@ -925,7 +925,7 @@ class CGasMixture
         uint offset_entries = 0;
 
         // 1x Gauss_a + doppler_width, Gamma, voigt_a for each spectral line to simulate
-        uint line_broadening_offset = 1 + 3 * getMaxNrOfSpectralLines();
+        uint line_broadening_offset = 3 * getMaxNrOfSpectralLines() + 1;
 
         // Arrays to link energy levels, simulated spectral lines and position in the grid cells
         level_to_pos = new uint *[nr_of_species];
@@ -952,7 +952,7 @@ class CGasMixture
                 bool found = false;
 
                 // Add all energy levels to grid for MC level pop calculation
-                if(param.gasSpeciesLevelPopTypeIsMC())
+                if(param.isGasSpeciesLevelPopMC())
                 {
                     level_to_pos[i_species][i_lvl] = line_broadening_offset + used_level_populations;
                     found = true;

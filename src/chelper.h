@@ -1147,7 +1147,7 @@ class parameters
             res++;
 
         // Add gas source for levl population calculation
-        if(gasSpeciesLevelPopTypeIsMC())
+        if(isGasSpeciesLevelPopMC())
             res++;
 
         return res;
@@ -2318,7 +2318,7 @@ class parameters
         return gas_species_level_pop_type[i_species];
     }
 
-    bool gasSpeciesLevelPopTypeIsMC()
+    bool isGasSpeciesLevelPopMC()
     {
         for(uint i_species = 0; i_species < gas_species_level_pop_type.size(); i_species++)
             if(gas_species_level_pop_type[i_species] == POP_MC)

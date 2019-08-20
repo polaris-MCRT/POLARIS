@@ -877,9 +877,9 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             }
         }
 
-        if(param.gasSpeciesLevelPopTypeIsMC())
+        if(param.isGasSpeciesLevelPopMC())
         {
-            if(param.getCommand() != CMD_LINE_EMISSION)
+            if(param.getCommand() != CMD_LINE_EMISSION || !param.isGasSpeciesLevelPopMC())
             {
                 nr_ofSources--;
             }

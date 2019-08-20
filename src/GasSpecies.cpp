@@ -40,7 +40,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         }
 
         cell_count++;
-        double * tmp_lvl_pop; // , tmp_lvl_pop_u, tmp_lvl_pop_l;
+        double * tmp_lvl_pop;
         tmp_lvl_pop = new double[nr_of_energy_levels];
 
         double temp_gas = grid->getGasTemperature(cell);
