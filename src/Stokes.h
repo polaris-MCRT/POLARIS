@@ -356,6 +356,44 @@ class StokesVector
         sSp += _S.Sp();
     }
 
+    void multI(double _I)
+    {
+        sI *= _I;
+    }
+
+    void multQ(double _Q)
+    {
+        sQ *= _Q;
+    }
+
+    void multU(double _U)
+    {
+        sU *= _U;
+    }
+
+    void multV(double _V)
+    {
+        sV *= _V;
+    }
+
+    void multT(double _T)
+    {
+        sT *= _T;
+    }
+
+    void multSp(double _Sp)
+    {
+        sSp *= _Sp;
+    }
+
+    void multS(double _S)
+    {
+        sI *= _S;
+        sQ *= _S;
+        sU *= _S;
+        sV *= _S;
+    }
+
     double I() const
     {
         return sI;
@@ -471,100 +509,9 @@ class MultiStokesVector
     {
         s[_i] = _S;
     }
-
-    void setI(double _I, uint _i)
-    {
-        s[_i].setI(_I);
-    }
-
-    void setQ(double _Q, uint _i)
-    {
-        s[_i].setQ(_Q);
-    }
-
-    void setU(double _U, uint _i)
-    {
-        s[_i].setU(_U);
-    }
-
-    void setV(double _V, uint _i)
-    {
-        s[_i].setV(_V);
-    }
-
-    void setT(double _T, uint _i)
-    {
-        s[_i].setT(_T);
-    }
-
-    void setSp(double _Sp, uint _i)
-    {
-        s[_i].setSp(_Sp);
-    }
-
-    void addI(double _I, uint _i)
-    {
-        s[_i].addI(_I);
-    }
-
-    void addQ(double _Q, uint _i)
-    {
-        s[_i].addQ(_Q);
-    }
-
-    void addU(double _U, uint _i)
-    {
-        s[_i].addU(_U);
-    }
-
-    void addV(double _V, uint _i)
-    {
-        s[_i].addV(_V);
-    }
-
-    void addT(double _T, uint i)
-    {
-        s[i].addT(_T);
-    }
-
-    void addSp(double _Sp, uint _i)
-    {
-        s[_i].addSp(_Sp);
-    }
-
     StokesVector & S(uint _i)
     {
         return s[_i];
-    }
-
-    double I(uint _i)
-    {
-        return s[_i].I();
-    }
-
-    double Q(uint _i)
-    {
-        return s[_i].Q();
-    }
-
-    double U(uint _i)
-    {
-        return s[_i].U();
-    }
-
-    double V(uint _i)
-    {
-        return s[_i].V();
-    }
-
-    double T(uint _i)
-    {
-        return s[_i].T();
-    }
-
-    double Sp(uint _i)
-    {
-        return s[_i].Sp();
     }
 
   private:

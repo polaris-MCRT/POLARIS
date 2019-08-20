@@ -2741,9 +2741,17 @@ class photon_package
         }
     }
 
-    double getVelocity(double trans_frequency)
+    double getVelocity(double f_0 = 0)
     {
-        return CMathFunctions::Freq2Velo(getFrequency(), trans_frequency);
+        if(velocity > 0)
+            return velocity;
+        else if(getFrequency() > 0 && f_0 > 0)
+            return getFrequency() * con_c / f_0;
+        else
+        {
+            cout << "ERROR: Velocity not set correctly in photon package!" << endl;
+            return 0;
+        }
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2836,6 +2844,13 @@ class photon_package
     bool reachedBackupPosition()
     {
         if(ez * (backup_pos - pos) <= 0)
+            return true;
+        return false;
+    }
+
+    bool reachedBackupPosition(Vector3D tmp_pos)
+    {
+        if(ez * (backup_pos - tmp_pos) <= 0)
             return true;
         return false;
     }
@@ -2946,12 +2961,22 @@ class photon_package
         wID = _wID;
         wavelength = val;
         frequency = 0;
+        velocity = 0;
     }
 
     void setFrequency(uint _wID, double val)
     {
         wID = _wID;
         frequency = val;
+        wavelength = 0;
+        velocity = 0;
+    }
+
+    void setVelocity(uint _wID, double val)
+    {
+        wID = _wID;
+        velocity = val;
+        frequency = 0;
         wavelength = 0;
     }
 
@@ -2968,6 +2993,7 @@ class photon_package
 
     double wavelength;
     double frequency;
+    double velocity;
 
     uint wID;
     uint dirID;
