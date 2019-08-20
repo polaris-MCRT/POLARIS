@@ -201,6 +201,8 @@ class CGridBasic
         buffer_avg_dir = 0;
         buffer_avg_th = 0;
 
+        turbulent_velocity = 0;
+
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
     }
@@ -416,7 +418,7 @@ class CGridBasic
     {
         if(turbulent_velocity > 0)
             return turbulent_velocity;
-        else if(data_pos_vt != MAX_UINT)
+        else if(hasTurbulentVelocity())
             return cell->getData(data_pos_vt);
         return 0;
     }

@@ -768,16 +768,17 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
         // Each cell automatically converged except the last one for local iteration
         // See Pavlyuchenkov & Shustov (2003)
-        bool converged = true;
-        double * J_nu_total = new double[nr_of_transitions];
-        double * J_nu_in = new double[nr_of_transitions];
+        double * J_nu = new double[nr_of_transitions];
 
         // Perform radiative transfer for each chosen spectral line transition
         for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
         {
-            // Init separated radiation field
-            J_nu_total[i_trans] = 0;
-            J_nu_in[i_trans] = 0;
+            // Init radiation field and mean path through final cell
+            J_nu[i_trans] = 0;
+            double cell_sum = 0;
+
+            // Are level populations for this transition and cell converged
+            bool converged = false;
 
             // Get rest frequency of current transition
             double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
@@ -830,53 +831,17 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                 while(grid->next(pp))
                 {
                     // Solve radiative transfer equation by raytracing through cell
-                    rayThroughCellForLvlPop(pp, i_species, i_trans, J_nu_total, J_nu_in);
+                    cell_sum += rayThroughCellForLvlPop(pp, i_species, i_trans) / nr_of_photons;
                 }
+                J_nu[i_trans] += pp->getStokesVector().I() / nr_of_photons;
+
                 // Delete the pp pointer
                 delete pp;
             }
         }
-        // Init emissivity pointer array
-        double * mult_old = new double[nr_of_transitions];
-
-        // Check if the local lvl populations converged
-        do
-        {
-            // Backup old emissivities
-            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-            {
-                StokesVector stokes_old =
-                    gas->calcEmissivityForTransition(grid, tmp_cell, i_species, i_trans);
-                mult_old[i_trans] = stokes_old.I() * (1 - exp(-stokes_old.T()));
-            }
-
-            // Update all level populations
-            gas->updateLevelPopulation(grid, tmp_cell, i_species, J_nu_total);
-
-            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-            {
-                StokesVector stokes_new =
-                    gas->calcEmissivityForTransition(grid, tmp_cell, i_species, i_trans);
-
-                // Get factor of how much the emissivity changed
-                double iter_factor = stokes_new.I() * (1 - exp(-stokes_new.T())) / mult_old[i_trans];
-
-                // Check if level populations converged already
-                cout << i_trans << TAB << J_nu_total[i_trans] << TAB << stokes_new.I() << TAB << iter_factor
-                     << endl;
-                if((iter_factor - 1) > 1e-3)
-                    converged = false;
-
-                // Update radiation field
-                J_nu_total[i_trans] += J_nu_in[i_trans] * (iter_factor - 1);
-            }
-
-        } while(!converged);
 
         // Delete the pointer arrays
-        delete[] mult_old;
-        delete[] J_nu_total;
-        delete[] J_nu_in;
+        delete[] J_nu;
     }
 
     // Format prints
@@ -891,11 +856,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     return true;
 }
 
-void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
-                                                 uint i_species,
-                                                 uint i_trans,
-                                                 double * J_nu_total,
-                                                 double * J_nu_in)
+double CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
 {
     // Get gas temperature from grid
     double temp_gas = grid->getGasTemperature(pp);
@@ -951,7 +912,6 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
             // (see
             // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
             double * RK_k = new double[6];
-            double * RK_k_in = new double[6];
 
             // Calculate result of the radiative transfer equation at each
             // Runge-Kutta sub position
@@ -994,37 +954,19 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
                 // Calculate new Runge-Kutta parameters as the result of the
                 // radiative transfer equation at the Runge-Kutta sub positions
                 RK_k[k] = alpha_ges * (scalar_product * cell_d_l + pp->getStokesVector().I()) + S_ges;
-
-                // Reached cell in which the final position is
-                if(pp->reachedBackupPosition())
-                {
-                    // Calculate multiplication between Runge-Kutta parameter
-                    double scalar_product = 0;
-                    for(uint i = 0; i <= k; i++)
-                        scalar_product += (RK_k_in[i] * RK_a(i, k));
-
-                    // Calculate new Runge-Kutta parameters as the result of the
-                    // radiative transfer equation at the Runge-Kutta sub positions
-                    RK_k_in[k] = alpha_ges * scalar_product * cell_d_l + S_ges;
-                }
             }
 
             // Init two temporary Stokes vectors
             double stokes_new = pp->getStokesVector().I();
             double stokes_new2 = pp->getStokesVector().I();
-            double stokes_new_in = 0;
             for(uint i = 0; i < 6; i++)
             {
                 stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
                 stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
-                // Reached cell in which the final position is
-                if(pp->reachedBackupPosition())
-                    stokes_new_in += RK_k_in[i] * cell_d_l * RK_b2[i];
             }
 
             // Delete the Runge-Kutta pointer
             delete[] RK_k;
-            delete[] RK_k_in;
 
             // Ignore very small values
             if(abs(stokes_new) < 1e-200)
@@ -1063,9 +1005,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
                 // Local iteration for final cell (start converging)
                 if(pp->reachedBackupPosition(pos_xyz_cell))
                 {
-                    J_nu_total[i_trans] = stokes_new;
-                    J_nu_in[i_trans] = stokes_new_in;
-                    break;
+                    return cell_sum;
                 }
             }
             else

@@ -16,8 +16,6 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -28,6 +26,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     }
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     max_cells = 0;
 

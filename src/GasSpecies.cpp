@@ -1445,7 +1445,7 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
     switch(lvl_pop_type)
     {
         case POP_MC:
-            if(!single_species[i_species].calcLTE(grid, true))
+            if(!single_species[i_species].calcFEP(grid, true))
                 return false;
             break;
         case POP_LTE:
