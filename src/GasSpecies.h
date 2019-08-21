@@ -986,6 +986,16 @@ class CGasMixture
         return line_broadening_offset + offset_entries;
     }
 
+    double getProjCellVelocity(CGridBasic * grid, photon_package * pp)
+    {
+        return getCellVelocity(grid, pp->getPositionCell(), pp->getPosition()) * pp->getDirection();
+    }
+
+    double getProjCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)
+    {
+        return getCellVelocity(grid, pp->getPositionCell(), tmp_pos) * pp->getDirection();
+    }
+
     Vector3D getCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)
     {
         return getCellVelocity(grid, pp->getPositionCell(), tmp_pos);

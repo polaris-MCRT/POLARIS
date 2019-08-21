@@ -2593,7 +2593,6 @@ class photon_package
         wID = MAX_UINT;
         dirID = MAX_UINT;
 
-        stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
 
         hasSpare = false;
@@ -2742,17 +2741,9 @@ class photon_package
         }
     }
 
-    double getVelocity(double f_0 = 0)
+    double getVelocity()
     {
-        if(velocity > 0)
-            return velocity;
-        else if(getFrequency() > 0 && f_0 > 0)
-            return getFrequency() * con_c / f_0;
-        else
-        {
-            cout << "ERROR: Velocity not set correctly in photon package!" << endl;
-            return 0;
-        }
+        return velocity;
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2854,6 +2845,11 @@ class photon_package
         if(ez * (backup_pos - tmp_pos) <= 0)
             return true;
         return false;
+    }
+
+    const Vector3D & getBackupPosition() const
+    {
+        return backup_pos;
     }
 
     void setDetectorProjection()
@@ -2962,7 +2958,6 @@ class photon_package
         wID = _wID;
         wavelength = val;
         frequency = 0;
-        velocity = 0;
     }
 
     void setFrequency(uint _wID, double val)
@@ -2970,15 +2965,12 @@ class photon_package
         wID = _wID;
         frequency = val;
         wavelength = 0;
-        velocity = 0;
     }
 
     void setVelocity(uint _wID, double val)
     {
         wID = _wID;
         velocity = val;
-        frequency = 0;
-        wavelength = 0;
     }
 
   private:

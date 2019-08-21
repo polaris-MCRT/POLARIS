@@ -155,6 +155,8 @@ class TestRoutines:
             elif os.path.isfile(self.file_io.path['testing'] + 'test_' +
                                 str(self.test_index) + '/results_correct/' + filename + '.fits.gz'):
                 extension_correct = '.fits.gz'
+            else:
+                raise ValueError('Fits file not found!')
             hdul_correct = self.fits.open(self.file_io.path['testing'] + 'test_' + str(self.test_index) +
                                           '/results_correct/' + filename + extension_correct)
             if os.path.isfile(self.file_io.path['testing'] + 'test_' +

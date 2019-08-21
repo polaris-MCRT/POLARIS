@@ -81,7 +81,8 @@ using namespace std;
 #define MAX_SOLVER_STEPS 1500000
 
 // Limits for the Monte-Carlo level population calculation
-#define MC_LVL_POP_LIMIT 1.0e-3
+#define MC_LVL_POP_DIFF_LIMIT 1.0e-3
+#define MC_LVL_POP_LIMIT 1.0e-20
 #define MC_LVL_POP_PHOTONS 100
 
 // Define the fits file extension
