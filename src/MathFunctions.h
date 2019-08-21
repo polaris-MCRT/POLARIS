@@ -60,7 +60,7 @@ class spline
             delete[] y;
     }
 
-    uint size()
+    uint size() const
     {
         return N + 1;
     }
@@ -181,7 +181,7 @@ class spline
                 y[i] += spline2.getValue(x[i]);
     }
 
-    double f(double x)
+    double f(double x) const
     {
         return x * x * x - x;
     }
@@ -322,13 +322,13 @@ class spline
         return y[N];
     }
 
-    double getLinear(uint i, double v)
+    double getLinear(uint i, double v) const
     {
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
 
-    double getValue(double v, uint extrapolation = SPLINE)
+    double getValue(double v, uint extrapolation = SPLINE) const
     {
         uint min = 0, max = N;
 
@@ -501,7 +501,7 @@ class spline
         return min;
     }
 
-    double getValue(uint i)
+    double getValue(uint i) const
     {
         if(i < 0 || i > N)
             return 0;
@@ -1366,11 +1366,12 @@ class CMathFunctions
         Vector3D velo;
 
         double r = sqrt(pos.X() * pos.X() + pos.Y() * pos.Y());
-        double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
-
-        velo.setX(-1.0 * pos.Y() / r * kep_const);
-        velo.setY(pos.X() / r * kep_const);
-        velo.setZ(0.0);
+        if(r > 0)
+        {
+            double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
+            velo.setX(-1.0 * pos.Y() / r * kep_const);
+            velo.setY(pos.X() / r * kep_const);
+        }
 
         return velo;
     }
@@ -1881,6 +1882,22 @@ class CMathFunctions
             list[i_x] = start + i_x * dx;
 
         list[N - 1] = stop;
+    }
+
+    static inline dlist LinearList(double start, double stop, uint N)
+    {
+        dlist list(N);
+
+        double dx = (stop - start) / (N - 1);
+
+        list[0] = start;
+
+        for(uint i_x = 1; i_x < N - 1; i_x++)
+            list[i_x] = start + i_x * dx;
+
+        list[N - 1] = stop;
+
+        return list;
     }
 
     static inline void ExpList(double start, double stop, double * list, uint N, double base)

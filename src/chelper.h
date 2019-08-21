@@ -1146,6 +1146,10 @@ class parameters
         if(nr_ofISRFPhotons > 0)
             res++;
 
+        // Add gas source for levl population calculation
+        if(isGasSpeciesLevelPopMC())
+            res++;
+
         return res;
     }
 
@@ -2174,40 +2178,23 @@ class parameters
         return uint(gas_species_abundance.size());
     }
 
-    uint getMaxNrOfLineTransitions()
-    {
-        uint max_transitions = 0;
-        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            if(getNrOfGasSpeciesTransitions(i_species) > max_transitions)
-                max_transitions = getNrOfGasSpeciesTransitions(i_species);
-        return max_transitions;
-    }
-
-    uint getTotalNrOfLineTransitions()
-    {
-        uint total_transitions = 0;
-        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
-            total_transitions += getNrOfGasSpeciesTransitions(i_species);
-        return total_transitions;
-    }
-
-    uint getNrOfGasSpeciesTransitions(uint i_species)
+    uint getNrOfSpectralLines(uint i_species)
     {
         return uint(line_ray_detector_list[i_species].size() / NR_OF_LINE_DET);
     }
 
-    int * getGasSpeciesTransitions(uint i_species)
+    int * getSpectralLines(uint i_species)
     {
-        uint nr_of_transitions = getNrOfGasSpeciesTransitions(i_species);
-        int * transitions = new int[nr_of_transitions];
+        uint nr_of_spectral_lines = getNrOfSpectralLines(i_species);
+        int * spectral_lines = new int[nr_of_spectral_lines];
         dlist line_ray_detector = getLineRayDetector(i_species);
         for(uint i = 0; i < line_ray_detector_list[i_species].size(); i += NR_OF_LINE_DET)
         {
             uint pos = i / NR_OF_LINE_DET;
 
-            transitions[pos] = int(line_ray_detector[i]);
+            spectral_lines[pos] = int(line_ray_detector[i]);
         }
-        return transitions;
+        return spectral_lines;
     }
 
     uint getNrOfDustRayDetectors()
@@ -2316,24 +2303,27 @@ class parameters
         return res;
     }
 
-    string getGasSpeciesCatalogPath(uint i)
+    string getGasSpeciesCatalogPath(uint i_species)
     {
-        return gas_species_cat_path[i];
+        return gas_species_cat_path[i_species];
     }
 
-    double getGasSpeciesAbundance(uint i)
+    double getGasSpeciesAbundance(uint i_species)
     {
-        return gas_species_abundance[i];
+        return gas_species_abundance[i_species];
     }
 
-    uint getGasSpeciesLevelPopType(uint i)
+    uint getGasSpeciesLevelPopType(uint i_species)
     {
-        return gas_species_level_pop_type[i];
+        return gas_species_level_pop_type[i_species];
     }
 
-    uint getNrVelocityChannel(uint i)
+    bool isGasSpeciesLevelPopMC()
     {
-        return nr_ofVelocityChannels[i];
+        for(uint i_species = 0; i_species < gas_species_level_pop_type.size(); i_species++)
+            if(gas_species_level_pop_type[i_species] == POP_MC)
+                return true;
+        return false;
     }
 
     uint getMaxSubpixelLvl()
@@ -2521,8 +2511,6 @@ class parameters
     double extinction_magnitude_wavelength;
     uint extinction_i_mixture;
 
-    uilist nr_ofVelocityChannels;
-
     uint nrOfGnuPoints;
     uint nrOfGnuVectors;
     uint maxGridLines;
@@ -2595,20 +2583,18 @@ class photon_package
   public:
     photon_package()
     {
-        sc_counter = 0;
         cell_pos = 0;
         tmp_path = 0;
+
+        wavelength = 0;
+        frequency = 0;
+        velocity = 0;
 
         wID = MAX_UINT;
         dirID = MAX_UINT;
 
-        sh_distance = 0;
-
         stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
-
-        sc_counter = 0;
-        abs_counter = 0;
 
         hasSpare = false;
         rand1 = 0.5;
@@ -2685,11 +2671,6 @@ class photon_package
         rand_gen.setSeed(seed);
     }
 
-    uint getAbsorptionEvents()
-    {
-        return abs_counter;
-    }
-
     void setD(Matrix2D & _mD)
     {
         mD = _mD;
@@ -2725,24 +2706,53 @@ class photon_package
         return tmp_path;
     }
 
-    uint getScatteringEvents()
-    {
-        return sc_counter;
-    }
-
     cell_basic * getPositionCell()
     {
         return cell_pos;
     }
 
-    double getWavelengthID()
+    uint getWavelengthID()
     {
         return wID;
     }
 
-    double getShortestDistance()
+    double getWavelength()
     {
-        return sh_distance;
+        if(wavelength > 0)
+            return wavelength;
+        else if(frequency > 0)
+            return con_c / frequency;
+        else
+        {
+            cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
+            return 0;
+        }
+    }
+
+    double getFrequency()
+    {
+        if(frequency > 0)
+            return frequency;
+        else if(wavelength > 0)
+            return con_c / wavelength;
+        else
+        {
+            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
+            return 0;
+        }
+    }
+
+    double getVelocity(double f_0 = 0)
+    {
+        if(velocity > 0)
+            return velocity;
+        else if(getFrequency() > 0 && f_0 > 0)
+            return getFrequency() * con_c / f_0;
+        else
+        {
+            cout << "ERROR: Velocity not set correctly in photon package!" << endl;
+            return 0;
+        }
     }
 
     StokesVector & getMultiStokesVector(uint vch)
@@ -2817,19 +2827,33 @@ class photon_package
         pos = val;
     }
 
-    void setPositionLastInteraction(Vector3D val)
+    void setBackupPosition(Vector3D val)
     {
-        pos_li = val;
+        backup_pos = val;
     }
 
-    void updatePositionLastInteraction()
+    void updateBackupPosition()
     {
-        pos_li = pos;
+        backup_pos = pos;
     }
 
-    void resetPositionToLastInteraction()
+    void resetPositionToBackupPos()
     {
-        pos = pos_li;
+        pos = backup_pos;
+    }
+
+    bool reachedBackupPosition()
+    {
+        if(ez * (backup_pos - pos) <= 0)
+            return true;
+        return false;
+    }
+
+    bool reachedBackupPosition(Vector3D tmp_pos)
+    {
+        if(ez * (backup_pos - tmp_pos) <= 0)
+            return true;
+        return false;
     }
 
     void setDetectorProjection()
@@ -2862,16 +2886,6 @@ class photon_package
     void setMultiStokesVector(StokesVector st, uint i)
     {
         multi_stokes[i] = st;
-    }
-
-    void scattered()
-    {
-        sc_counter++;
-    }
-
-    void absorbed()
-    {
-        abs_counter++;
     }
 
     void addStokesVector(StokesVector val)
@@ -2928,11 +2942,6 @@ class photon_package
         tmp_path = val;
     }
 
-    void setScatteringEvents(uint val)
-    {
-        sc_counter = val;
-    }
-
     void setPositionCell(cell_basic * val)
     {
         cell_pos = val;
@@ -2948,20 +2957,34 @@ class photon_package
         return dirID;
     }
 
-    void setWavelengthID(uint val)
+    void setWavelength(uint _wID, double val)
     {
-        wID = val;
+        wID = _wID;
+        wavelength = val;
+        frequency = 0;
+        velocity = 0;
     }
 
-    void setShortestDistance(double val)
+    void setFrequency(uint _wID, double val)
     {
-        sh_distance = val;
+        wID = _wID;
+        frequency = val;
+        wavelength = 0;
+        velocity = 0;
+    }
+
+    void setVelocity(uint _wID, double val)
+    {
+        wID = _wID;
+        velocity = val;
+        frequency = 0;
+        wavelength = 0;
     }
 
   private:
     CRandomGenerator rand_gen;
     Vector3D pos;
-    Vector3D pos_li;
+    Vector3D backup_pos;
     Vector3D ex;
     Vector3D ey;
     Vector3D ez;
@@ -2969,13 +2992,15 @@ class photon_package
     StokesVector stokes;
     StokesVector * multi_stokes;
 
+    double wavelength;
+    double frequency;
+    double velocity;
+
     uint wID;
     uint dirID;
 
-    uint sc_counter;
-    uint abs_counter;
     double tmp_path;
-    double sh_distance;
+
     cell_basic * cell_pos;
 
     bool hasSpare;

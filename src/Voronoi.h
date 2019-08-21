@@ -146,8 +146,6 @@ class CGridVoronoi : public CGridBasic
         min_nrOfNeigbors = uint(1e6);
         max_nrOfNeigbors = 0;
         pos_counter = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridVoronoi()

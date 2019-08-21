@@ -1559,7 +1559,7 @@ class CDustComponent
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Set wavelength of photon package
-            pp->setWavelengthID(w);
+            pp->setWavelength(w, wavelength_list[w]);
 
             // Pre calculate absorption cross-sections
             tmpCabs[w] = getCabsMean(grid, pp);
@@ -2176,14 +2176,14 @@ class CDustComponent
                            cross_sections & cs);
     double calcGoldReductionFactor(Vector3D & v, Vector3D & B);
 
-    StokesVector calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density);
-    double calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density);
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid,
-                                     photon_package * pp,
-                                     uint i_density,
-                                     double phi,
-                                     double energy,
-                                     Vector3D en_dir);
+    StokesVector calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density);
+    double calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density);
+    StokesVector calcEmissivityEmi(CGridBasic * grid,
+                                   photon_package * pp,
+                                   uint i_density,
+                                   double phi,
+                                   double energy,
+                                   Vector3D en_dir);
 
     double getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl);
     long double * getStochasticProbability(uint a, spline & abs_rate_per_wl);
@@ -2719,7 +2719,7 @@ class CDustMixture
         if(it != wavelength_list.end())
             return distance(wavelength_list.begin(), it);
 
-        cout << "\nHINT: wavelength not found! -> " << distance(wavelength_list.begin(), it) << endl;
+        cout << "\nHINT: Wavelength not found!" << endl;
         return 0;
     }
 
@@ -2946,7 +2946,7 @@ class CDustMixture
         return sum;
     }
 
-    StokesVector calcEmissivitiesHz(CGridBasic * grid, photon_package * pp)
+    StokesVector calcEmissivityHz(CGridBasic * grid, photon_package * pp)
     {
         // Init Stokes vector
         StokesVector tmp_stokes;
@@ -2956,18 +2956,18 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes = mixed_component[i_mixture].calcEmissivitiesHz(grid, pp, 0);
+                tmp_stokes = mixed_component[i_mixture].calcEmissivityHz(grid, pp, 0);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesHz(grid, pp, i_mixture);
+                    tmp_stokes += mixed_component[i_mixture].calcEmissivityHz(grid, pp, i_mixture);
                 }
         }
         return tmp_stokes;
     }
 
-    double calcEmissivities(CGridBasic * grid, photon_package * pp)
+    double calcEmissivity(CGridBasic * grid, photon_package * pp)
     {
         // Init variables
         double pl_abs = 0;
@@ -2977,17 +2977,17 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                pl_abs = mixed_component[i_mixture].calcEmissivities(grid, pp, 0);
+                pl_abs = mixed_component[i_mixture].calcEmissivity(grid, pp, 0);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    pl_abs += mixed_component[i_mixture].calcEmissivities(grid, pp, i_mixture);
+                    pl_abs += mixed_component[i_mixture].calcEmissivity(grid, pp, i_mixture);
         }
 
         return pl_abs;
     }
 
-    Matrix2D calcEmissivitiesExt(CGridBasic * grid, photon_package * pp)
+    Matrix2D calcEmissivityExt(CGridBasic * grid, photon_package * pp)
     {
         // Init variables
         double Cext = 0, Cpol = 0, Ccirc = 0;
@@ -3046,7 +3046,7 @@ class CDustMixture
         return dust_matrix;
     }
 
-    StokesVector calcEmissivitiesEmi(CGridBasic * grid, photon_package * pp, uint i_offset = MAX_UINT)
+    StokesVector calcEmissivityEmi(CGridBasic * grid, photon_package * pp, uint i_offset = MAX_UINT)
     {
         // Init variables
         double energy = 0;
@@ -3077,12 +3077,11 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes +=
-                    mixed_component[i_mixture].calcEmissivitiesEmi(grid, pp, 0, phi, energy, en_dir);
+                tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivitiesEmi(
+                    tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(
                         grid, pp, i_mixture, phi, energy, en_dir);
         }
         return tmp_stokes;
@@ -3147,8 +3146,9 @@ class CDustMixture
                 double pb = 1.0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
-                          mixed_component[i_mixture].getCscaMean(grid, pp) / getCscaMean(grid, pp);
+                    if(mixed_component[i_mixture].getCscaMean(grid, pp) > 0)
+                        pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
+                              mixed_component[i_mixture].getCscaMean(grid, pp) / getCscaMean(grid, pp);
                     if(rnd > pb)
                         return i_mixture;
                 }
@@ -3172,8 +3172,9 @@ class CDustMixture
                 double pb = 1.0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
-                          mixed_component[i_mixture].getCabsMean(grid, pp) / getCabsMean(grid, pp);
+                    if(mixed_component[i_mixture].getCabsMean(grid, pp) > 0)
+                        pb -= getRelativeDustNumberDensity(grid, pp, i_mixture) *
+                              mixed_component[i_mixture].getCabsMean(grid, pp) / getCabsMean(grid, pp);
                     if(rnd > pb)
                         return i_mixture;
                 }
@@ -3315,6 +3316,25 @@ class CDustMixture
                 return mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
         }
         return 0;
+    }
+
+    double getTotalCellEmission(CGridBasic * grid, photon_package * pp)
+    {
+        double sum = 0;
+        if(mixed_component != 0)
+        {
+            if(grid->useDustChoice())
+            {
+                uint i_mixture = getMixtureID(grid, pp);
+                sum = mixed_component[i_mixture].getCellEmission(grid, pp, 0);
+            }
+            else
+            {
+                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    sum += mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
+            }
+        }
+        return sum;
     }
 
     double getTabPlanck(uint w, double temp)

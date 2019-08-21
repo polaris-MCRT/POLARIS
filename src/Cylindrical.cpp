@@ -17,8 +17,6 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -29,6 +27,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     }
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     min_len = 1e300;
 
@@ -1322,7 +1322,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1361,7 +1361,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1414,7 +1414,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 4; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1600,7 +1600,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
         {
             if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
             {

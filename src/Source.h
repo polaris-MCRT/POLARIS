@@ -27,7 +27,7 @@ class CSourceBasic
         dust = 0;
         grid = 0;
 
-        StringID = "Basic radiation source";
+        source_id = SRC_BASIC;
     }
 
     virtual ~CSourceBasic(void)
@@ -98,7 +98,7 @@ class CSourceBasic
         dust = _dust;
     }
 
-    virtual bool initSource(uint id, uint max, bool use_energy_density)
+    virtual bool initSource(uint id, uint max, bool use_energy_density = false)
     {
         return true;
     }
@@ -111,9 +111,9 @@ class CSourceBasic
     virtual void clean()
     {}
 
-    string getStringID()
+    uint getID()
     {
-        return StringID;
+        return source_id;
     }
 
     void setNrOfPhotons(ullong val)
@@ -130,6 +130,12 @@ class CSourceBasic
     {}
 
     virtual void createNextRay(photon_package * pp, ullong i_pos)
+    {}
+
+    virtual void createNextRayToCell(photon_package * pp,
+                                     ullong i_pos,
+                                     ulong i_cell,
+                                     bool cell_as_border = false)
     {}
 
     virtual void createDirectRay(photon_package * pp, Vector3D dir_obs = Vector3D())
@@ -180,7 +186,7 @@ class CSourceBasic
 
     bool is_ext;
 
-    string StringID;
+    uint source_id;
 };
 
 class CSourceStar : public CSourceBasic
@@ -189,7 +195,7 @@ class CSourceStar : public CSourceBasic
     CSourceStar()
     {
         pos = 0;
-        StringID = "point source";
+        source_id = SRC_POINT;
     }
 
     ~CSourceStar()
@@ -225,7 +231,7 @@ class CSourceStarField : public CSourceBasic
     {
         pos = 0;
         var = 0;
-        StringID = "diffuse source";
+        source_id = SRC_SFIELD;
     }
 
     ~CSourceStarField(void)
@@ -291,7 +297,7 @@ class CSourceBackground : public CSourceBasic
         rot_angle1 = 0;
         rot_angle2 = 0;
 
-        StringID = "background source";
+        source_id = SRC_BACKGROUND;
     }
 
     ~CSourceBackground()
@@ -408,7 +414,7 @@ class CSourceISRF : public CSourceBasic
 
         L = 0;
 
-        StringID = "isrf source";
+        source_id = SRC_ISRF;
     }
 
     ~CSourceISRF()
@@ -465,7 +471,7 @@ class CSourceDust : public CSourceBasic
         total_energy = 0;
         cell_prob = 0;
 
-        StringID = "dust source";
+        source_id = SRC_DUST;
     }
 
     ~CSourceDust(void)
@@ -496,12 +502,34 @@ class CSourceDust : public CSourceBasic
     prob_list * cell_prob;
 };
 
+class CSourceGas : public CSourceBasic
+{
+  public:
+    CSourceGas(void)
+    {
+        source_id = SRC_GAS_LVL;
+    }
+
+    bool initSource(uint id, uint max, bool use_energy_density);
+    void createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, bool cell_as_border);
+
+    void setParameter(parameters & param, uint p)
+    {
+        nr_of_photons = MC_LVL_POP_PHOTONS;
+    }
+
+    ullong getNrOfPhotons()
+    {
+        return nr_of_photons;
+    }
+};
+
 class CSourceLaser : public CSourceBasic
 {
   public:
     CSourceLaser()
     {
-        StringID = "laser source";
+        source_id = SRC_LASER;
     }
 
     ~CSourceLaser()

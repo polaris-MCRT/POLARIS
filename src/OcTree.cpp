@@ -388,8 +388,6 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -403,6 +401,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     cell_oc_pos = cell_oc_root;
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     line_counter = 1;
     char_counter = 0;
@@ -1676,7 +1676,7 @@ bool CGridOcTree::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 

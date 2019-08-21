@@ -80,6 +80,10 @@ using namespace std;
 #define abs_err 1.0e-30
 #define MAX_SOLVER_STEPS 1500000
 
+// Limits for the Monte-Carlo level population calculation
+#define MC_LVL_POP_LIMIT 1.0e-3
+#define MC_LVL_POP_PHOTONS 100
+
 // Define the fits file extension
 // ".fits" normal fits file
 // ".fits.gz" compressed fits file
@@ -111,6 +115,16 @@ using namespace std;
 #define DET_POLAR 1
 #define DET_SPHER 2
 #define DET_SLICE 3
+
+// sources ids
+#define SRC_BASIC 0
+#define SRC_POINT 1
+#define SRC_SFIELD 2
+#define SRC_BACKGROUND 3
+#define SRC_ISRF 4
+#define SRC_DUST 5
+#define SRC_GAS_LVL 6
+#define SRC_LASER 7
 
 // phase functions
 #define PH_ISO 0
@@ -200,6 +214,7 @@ using namespace std;
 #define GRID_ID_CYL 40
 #define GRID_ID_VOR 50
 
+#define POP_MC 0
 #define POP_LTE 1
 #define POP_FEP 2
 #define POP_LVG 3

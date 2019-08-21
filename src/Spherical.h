@@ -158,8 +158,6 @@ class CGridSpherical : public CGridBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridSpherical()

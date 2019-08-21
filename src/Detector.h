@@ -1749,10 +1749,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -1940,10 +1940,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_UPPER",
-                                 gas->getUpperTransition(i_species, i_trans) + 1,
+                                 gas->getUpperEnergyLevel(i_species, i_trans) + 1,
                                  "upper energy level index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_LOWER",
-                                 gas->getLowerTransition(i_species, i_trans) + 1,
+                                 gas->getLowerEnergyLevel(i_species, i_trans) + 1,
                                  "lower energy level index number (see leiden database)");
             pFits->pHDU().addKey("FREQ",
                                  gas->getTransitionFrequency(i_species, i_trans),
@@ -2030,7 +2030,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2038,7 +2038,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2046,7 +2046,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2054,7 +2054,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2157,10 +2157,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2247,13 +2247,11 @@ class CDetector
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 
-                if(matrixS[2](i_x, i_y) == 0)
+                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                 {
                     // LOS magnetic field strength
-                    array_S[i] = 0;
-                }
-                else if(matrixS[2](i_x, i_y) > 0)
                     array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                }
                 else
                     array_S[i] = 0;
                 i++;
@@ -2359,10 +2357,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2493,10 +2491,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             newTable->addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
             newTable->addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
             newTable->addKey("FREQ",
                              gas->getTransitionFrequency(i_species, i_trans),
@@ -2607,7 +2605,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2615,7 +2613,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2623,7 +2621,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2631,7 +2629,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2654,10 +2652,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
@@ -2768,7 +2766,7 @@ class CDetector
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 
-                if(matrixS[2](i_x, i_y) == 0.0)
+                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) == 0)
                 {
                     // LOS magnetic field strength
                     array_S[i] = 0.0;
@@ -2798,10 +2796,10 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");

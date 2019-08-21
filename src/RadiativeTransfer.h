@@ -153,6 +153,9 @@ class CRadiativeTransfer
 
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
+    bool calcMonteCarloLvlPopulation(uint i_species);
+    void rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans);
+
     // Set temperature (old!)
     bool setTemperatureDistribution();
 
@@ -173,6 +176,7 @@ class CRadiativeTransfer
                           double cy,
                           uint i_det,
                           uint subpixel_lvl);
+    void rayThroughCellDust(photon_package * pp, uint i_det, uint nr_used_wavelengths);
     void calcStellarEmission(uint i_det);
 
     // Synchrontron emission
@@ -190,25 +194,34 @@ class CRadiativeTransfer
                           double cy,
                           uint i_det,
                           uint subpixel_lvl);
+    void rayThroughCellSync(photon_package * pp1, photon_package * pp2, uint i_det, uint nr_used_wavelengths);
 
     // Line meission
     bool calcChMapsViaRaytracing(parameters & param);
     void getLinePixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
-                               uint i_det,
                                uint i_species,
                                uint i_line,
+                               uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
-                          uint i_det,
-                          uint subpixel_lvl,
                           uint i_species,
-                          uint i_line);
+                          uint i_line,
+                          uint i_det,
+                          uint subpixel_lvl);
+    void rayThroughCellLine(photon_package * pp,
+                            uint i_species,
+                            uint i_line,
+                            uint i_det,
+                            uint nr_velocity_channels,
+                            bool zero_vel_field = true,
+                            spline vel_field = spline(),
+                            Vector3D pos_in_grid_0 = Vector3D());
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);
