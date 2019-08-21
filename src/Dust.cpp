@@ -4524,8 +4524,16 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     if(adjust_stokes)
     {
         StokesVector tmp_stokes = pp->getStokesVector();
-        double theta_fraction = getScatteredFraction(w, a, theta);
-        tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+        if(getCextMean(a, w) > 0)
+        {
+            double theta_fraction = getScatteredFraction(w, a, theta);
+            tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+        }
+        else
+        {
+            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+            tmp_stokes.clear();
+        }
         pp->setStokesVector(tmp_stokes);
     }
 }
@@ -4551,8 +4559,11 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-             (-mat_sca(0, 1) / mat_sca(0, 0));
+    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+    else
+        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+                 (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;

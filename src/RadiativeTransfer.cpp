@@ -723,7 +723,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     // Init variables
     ullong per_counter = 0;
     float last_percentage = 0;
-    uint kill_counter = 0;
+    uint kill_counter = 0, iteration_counter = 0, max_local_iterations = 0;
 
     // Number of cells in grid
     ulong nr_of_cells = grid->getMaxDataCells();
@@ -758,7 +758,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
     // Init progress visualization
     cout << CLR_LINE;
-    cout << "-> Calculating MC level population  : 0.0[%]  \r" << flush;
+    cout << "-> Calculating MC level population : 0.0[%], global = 1, local (max) = 1  \r" << flush;
 
     // Are level populations for this transition and cell converged (globally)
     bool global_converged = false;
@@ -766,57 +766,78 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     // Make global iterations till converged
     while(!global_converged)
     {
+        // Set to true and revert it when not converged
+        global_converged = true;
+
+        // Increase counter
+        iteration_counter++;
+
         // A loop for each cell
 #pragma omp parallel for schedule(dynamic)
         for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100 * float(per_counter) / float(nr_of_cells);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+#pragma omp critical
+                {
+                    cout << "-> Calculating MC level population : " << percentage
+                         << " [%], global = " << iteration_counter
+                         << ", local (max) = " << max_local_iterations << "  \r" << flush;
+                    last_percentage = percentage;
+                }
+            }
+
             // Pointer to final cell
-            cell_basic * tmp_cell = grid->getCellFromIndex(i_cell);
+            cell_basic * final_cell = grid->getCellFromIndex(i_cell);
+
+            // Maximum velocity to either side (2 x Gauss width + cell velocity)
+            double max_velocity =
+                2.0 / grid->getGaussA(final_cell) +
+                gas->getCellVelocity(grid, final_cell, grid->getCenter(final_cell)).length();
 
             // Each cell automatically converged except the last one for local iteration
             // See Pavlyuchenkov & Shustov (2003)
             double * J_nu_total = new double[nr_of_transitions];
+            double * J_nu_in = new double[nr_of_transitions];
+            double * J_nu_in_old = new double[nr_of_transitions];
 
-            // Perform radiative transfer for each chosen spectral line transition
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                J_nu_in_old[i_trans] = 0;
+
+            // Are level populations for this transition and cell converged
+            bool local_converged = false;
+
+            // Will be true when only the inner rad field will be calculated
+            bool only_J_in = false;
+
+            // Local iteration counter
+            uint local_iteration_counter = 0;
+
+            while(!local_converged)
             {
-                // Are level populations for this transition and cell converged
-                bool converged = false;
+                // Increase counter
+                local_iteration_counter++;
 
-                // Get rest frequency of current transition
-                double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
-
-                // Maximum max_frequency to either side
-                double gauss_freq_width = 1 / grid->getGaussA(tmp_cell);
-                double max_frequency = 2.5 * CMathFunctions::Velo2Freq(gauss_freq_width, trans_frequency);
-
-                // Init radiation field
-                J_nu_total[i_trans] = CMathFunctions::planck_hz(trans_frequency, 2.75);
-                double J_nu_in = 0;
-                double J_nu_in_old = 0;
-
-                // Increase counter used to show progress
-                per_counter++;
-
-                // Calculate percentage of total progress per source
-                float percentage = 100 * float(per_counter) / float(nr_of_cells * nr_of_transitions);
-
-                // Show only new percentage number if it changed
-                if((percentage - last_percentage) > PERCENTAGE_STEP)
+                // Perform radiative transfer for each chosen spectral line transition
+                for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                 {
-#pragma omp critical
-                    {
-                        cout << "-> Calculating MC level population  : " << percentage << " [%]      \r"
-                             << flush;
-                        last_percentage = percentage;
-                    }
-                }
+                    // Init radiation field
+                    J_nu_total[i_trans] = 0;
+                    J_nu_in[i_trans] = 0;
 
-                // Will be true when external radiation field is calculated
-                bool J_ext_calulated = false;
+                    // Get rest frequency of current transition
+                    double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
 
-                while(!converged)
-                {
+                    // Maximum frequency to either side
+                    double max_frequency = CMathFunctions::Velo2Freq(max_velocity, trans_frequency);
+
                     // A loop for each photon
                     for(llong r = 0; r < llong(nr_of_photons); r++)
                     {
@@ -824,10 +845,11 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         photon_package * pp = new photon_package();
 
                         // Set backup pos to current cell and move photon package out of the grid
-                        ullong seed = ullong(time(NULL)) + r;
+                        ullong seed = local_iteration_counter * nr_of_photons * nr_of_transitions +
+                                      i_trans * nr_of_photons + r;
 
                         // Init photon package outside the grid or at the border of final cell
-                        tm_source->createNextRayToCell(pp, seed, i_cell, J_ext_calulated);
+                        tm_source->createNextRayToCell(pp, seed, i_cell, only_J_in);
 
                         // Position photon at the grid border
                         if(!grid->positionPhotonInGrid(pp))
@@ -845,7 +867,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         pp->setFrequency(dust->getWavelengthID(con_c / trans_frequency), frequency);
 
                         // Set Starting energy
-                        if(!J_ext_calulated)
+                        if(!only_J_in)
                         {
                             // Set external starting energy to CMB
                             double energy = CMathFunctions::planck_hz(frequency, 2.75);
@@ -859,49 +881,54 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                             rayThroughCellForLvlPop(pp, i_species, i_trans);
                         }
 
-                        if(!J_ext_calulated)
-                        {
-                            // Add to external radiation field once
-                            J_nu_total[i_trans] +=
-                                pp->getStokesVector().I() * (2 * max_frequency) / nr_of_photons;
-                        }
-                        else
-                        {
-                            // Add the others to the inner radiation field
-                            J_nu_in += pp->getStokesVector().I() * (2 * max_frequency) / nr_of_photons;
-                        }
+                        // Add energy to the corresponding part
+                        double energy = pp->getStokesVector().I() * (2 * max_frequency) / nr_of_photons;
+                        only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
 
                         // Delete the pp pointer
                         delete pp;
                     }
+                }
 
-                    // Update level populations
-                    gas->updateLevelPopulation(grid, tmp_cell, i_species, J_nu_total);
+                // Update level populations
+                global_converged = gas->updateLevelPopulation(grid, final_cell, i_species, J_nu_total);
 
-                    if(!J_ext_calulated)
-                    {
-                        // external radiation field was calculated
-                        J_ext_calulated = true;
-                    }
-                    else
+                if(!only_J_in)
+                {
+                    // external radiation field was calculated
+                    only_J_in = true;
+                }
+                else
+                {
+                    // Start with converged and set to false if error too high
+                    local_converged = true;
+
+                    // Each transition need to converge
+                    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                     {
                         // Check if limit is reached
-                        if(abs(J_nu_in - J_nu_in_old) < 1e-3)
-                            converged = true;
-                        else
+                        double error = abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) /
+                                       (J_nu_in[i_trans] + J_nu_in_old[i_trans]);
+                        if(error > MC_LVL_POP_LIMIT)
                         {
-                            // Backup last iteration and reset recent one
-                            J_nu_in_old = J_nu_in;
-                            J_nu_in = 0;
+                            // Not converged
+                            local_converged = false;
+
+                            // Backup last iteration
+                            J_nu_in_old[i_trans] = J_nu_in[i_trans];
                         }
                     }
                 }
             }
 
+            // Find maximum local iterations
+            if(local_iteration_counter > max_local_iterations)
+                max_local_iterations = local_iteration_counter;
+
             // Delete the pointer arrays
             delete[] J_nu_total;
-
-            global_converged = true;
+            delete[] J_nu_in;
+            delete[] J_nu_in_old;
         }
     }
 
@@ -912,7 +939,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     // Show amount of killed photons
     if(kill_counter > 0)
         cout << "- Photons killed                    : " << kill_counter << endl;
-    cout << "-> Calculating MC level population  : done                          " << endl;
+    cout << "-> Calculating MC level population : done                          " << endl;
+    cout << "    Number of iterations used: global = " << iteration_counter
+         << ", local (max) = " << max_local_iterations << endl;
 
     return true;
 }
@@ -981,18 +1010,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                 // Calculate Runge-Kutta position
                 tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
 
-                // Get the velocity in the photon
-                // direction of the current position
-                if(gas->getKeplerStarMass() > 0)
-                {
-                    // Get velocity from Kepler rotation
-                    cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, gas->getKeplerStarMass()) *
-                                    dir_map_xyz;
-                }
-                else if(grid->hasVelocityField())
-                    cell_velocity = grid->getVelocityField(pp) * dir_map_xyz;
-                else
-                    cell_velocity = 0;
+                cell_velocity = gas->getCellVelocity(grid, pp, tmp_pos) * dir_map_xyz;
 
                 double rel_velocity =
                     pp->getVelocity(gas->getTransitionFrequency(i_species, i_trans)) - cell_velocity;
@@ -3104,33 +3122,8 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     // Calculate Runge-Kutta position
                     tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
 
-                    // Get the velocity in the photon
-                    // direction of the current position
-                    if(gas->getKeplerStarMass() > 0)
-                    {
-                        // Get velocity from Kepler rotation
-                        cell_velocity =
-                            CMathFunctions::calcKeplerianVelocity(tmp_pos, gas->getKeplerStarMass()) *
-                            dir_map_xyz;
-                    }
-                    else if(grid->hasVelocityField())
-                    {
-                        // If the velocity field is zero, set velocity to zero
-                        // If not, use veloctiy field of the grid
-                        if(zero_vel_field)
-                            cell_velocity = 0.0;
-                        else
-                        {
-                            Vector3D rel_pos = tmp_pos - pos_in_grid_0;
-                            cell_velocity = vel_field.getValue(rel_pos.length());
-
-                            // Old version without spline interpolation
-                            // cell_velocity = grid->getVelocityField(pp) *
-                            // dir_map_xyz;
-                        }
-                    }
-                    else
-                        cell_velocity = 0.0;
+                    cell_velocity = gas->getProjCellVelocityInterp(
+                        tmp_pos, dir_map_xyz, pos_in_grid_0, vel_field, zero_vel_field);
 
                     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
                     if(obs_vel.length() > 0)

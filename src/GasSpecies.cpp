@@ -405,7 +405,6 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 {
     uint nr_of_energy_levels = getNrOfEnergyLevels();
     uint nr_of_spectral_lines = getNrOfSpectralLines();
-    bool no_error = true;
 
     double * tmp_lvl_pop = new double[nr_of_energy_levels];
 
@@ -440,7 +439,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
             {
                 cout << "WARNING: Level population element not greater than zero! ->" << tmp_lvl_pop[i_lvl]
                      << endl;
-                no_error = false;
+                return false;
             }
         }
         for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
@@ -453,11 +452,18 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
         tmp_lvl_pop[0] = 1;
     }
 
+    bool converged = true;
     for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+    {
+        double error = abs(grid->getLvlPop(cell, i_lvl) - tmp_lvl_pop[i_lvl]) /
+                       (grid->getLvlPop(cell, i_lvl) + tmp_lvl_pop[i_lvl]);
+        if(error > MC_LVL_POP_LIMIT)
+            converged = false;
         grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
+    }
 
     delete[] tmp_lvl_pop;
-    return no_error;
+    return converged;
 }
 
 // This function is based on
@@ -1487,8 +1493,7 @@ bool CGasMixture::updateLevelPopulation(CGridBasic * grid,
     switch(lvl_pop_type)
     {
         case POP_MC:
-            if(!single_species[i_species].updateLevelPopulation(grid, cell, J_total))
-                return false;
+            return single_species[i_species].updateLevelPopulation(grid, cell, J_total);
             break;
         default:
             return false;

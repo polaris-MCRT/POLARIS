@@ -515,7 +515,7 @@ class CSourceGas : public CSourceBasic
 
     void setParameter(parameters & param, uint p)
     {
-        nr_of_photons = 10;
+        nr_of_photons = MC_LVL_POP_PHOTONS;
     }
 
     ullong getNrOfPhotons()

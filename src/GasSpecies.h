@@ -986,6 +986,53 @@ class CGasMixture
         return line_broadening_offset + offset_entries;
     }
 
+    Vector3D getCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)
+    {
+        return getCellVelocity(grid, pp->getPositionCell(), tmp_pos);
+    }
+
+    Vector3D getCellVelocity(CGridBasic * grid, cell_basic * cell, const Vector3D & tmp_pos)
+    {
+        Vector3D cell_velocity;
+
+        // Get the velocity in the photon
+        // direction of the current position
+        if(getKeplerStarMass() > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass());
+        }
+        else if(grid->hasVelocityField())
+        {
+            // Get velocity from grid cell
+            cell_velocity = grid->getVelocityField(cell);
+        }
+        return cell_velocity;
+    }
+
+    double getProjCellVelocityInterp(const Vector3D & tmp_pos,
+                                     const Vector3D & dir_map_xyz,
+                                     const Vector3D & pos_in_grid_0,
+                                     const spline & vel_field,
+                                     bool zero_vel_field = false)
+    {
+        double cell_velocity = 0;
+
+        // Get the velocity in the photon direction of the current position
+        if(getKeplerStarMass() > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass()) * dir_map_xyz;
+        }
+        else if(vel_field.size() > 0 && !zero_vel_field)
+        {
+            // Get velocity from grid cell with interpolation
+            Vector3D rel_pos = tmp_pos - pos_in_grid_0;
+            cell_velocity = vel_field.getValue(rel_pos.length());
+        }
+        return cell_velocity;
+    }
+
     void printParameter(parameters & param, CGridBasic * grid);
 
   private:

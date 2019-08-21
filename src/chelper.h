@@ -2724,7 +2724,7 @@ class photon_package
             return con_c / frequency;
         else
         {
-            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
+            cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
             return 0;
         }
     }
@@ -2737,7 +2737,7 @@ class photon_package
             return con_c / wavelength;
         else
         {
-            cout << "ERROR: Wavelength not set correctly in photon package!" << endl;
+            cout << "ERROR: Frequency not set correctly in photon package!" << endl;
             return 0;
         }
     }
