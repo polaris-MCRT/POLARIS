@@ -138,17 +138,11 @@ class GGTauDetector(Detector):
         inc_PA = (360. - 270. - 7.) / 180. * np.pi  # (360. - 270. - 7.)
         if self.parameter['shape'] == 'slice' or \
                 self.parse_args.raytracing_shape == 'slice':
-            inc_PA += 39. / 180. * np.pi
+            inc_PA += (39.) / 180. * np.pi  # +39
         self.parameter['rot_axis_1'] = [np.sin(inc_PA), np.cos(inc_PA), 0]
         self.parameter['rot_axis_2'] = [0, 0, 1]
         self.parameter['nr_pixel_x'] = 512
         self.parameter['nr_pixel_y'] = 512
-        self.parameter['max_subpixel_lvl'] = 0
-        #self.parameter['sidelength_zoom_x'] = 600. / 686.
-        #self.parameter['sidelength_zoom_y'] = 600. / 686.
-        # Wavelengths
-        # self.parameter['wavelength_list'] = np.array(
-        #    [0.806, 1.22, 1.63, 2.15, 3.77, 10., 450., 1300.]) * 1e-6
         self.parameter['wavelength_list'] = np.array(
             [1.6, 2.2, 3.5, 4.0, 5.0, 7.7, 10.0, 11.3, 12.0, 15.5, 23.0]) * 1e-6
 
