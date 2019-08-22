@@ -781,9 +781,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             // Increase counter used to show progress
             per_counter++;
 
-            // Calculate percentage of total progress per source
-            float percentage = 100 * float(per_counter) / float(nr_of_cells);
-
             // Pointer to final cell
             cell_basic * final_cell = grid->getCellFromIndex(i_cell);
 
@@ -822,8 +819,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 #pragma omp critical
                 {
                     cout << "-> Calculating MC level population (global = " << global_iteration_counter
-                         << ", max local = " << max_local_iterations << ") : " << percentage << " [%]    \r"
-                         << flush;
+                         << ", max local = " << max_local_iterations
+                         << ") : " << 100 * float(per_counter) / float(nr_of_cells) << " [%]    \r" << flush;
                 }
 
                 // Perform radiative transfer for each chosen spectral line transition
@@ -839,6 +836,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         photon_package * pp = new photon_package();
 
                         // Set backup pos to current cell and move photon package out of the grid
+                        // CHANGE TO CHECK MC PRECISION !!!
                         ullong seed = global_iteration_counter * nr_of_photons * nr_of_transitions +
                                       i_trans * nr_of_photons + i_phot;
 
