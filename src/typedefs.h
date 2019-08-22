@@ -62,7 +62,7 @@ using namespace std;
 #else
 // Default parameters of the global wavelength grid
 #define WL_MIN 0.1e-6
-#define WL_MAX 2000.0e-6
+#define WL_MAX 2000e-6
 #define WL_STEPS 100
 #endif
 
@@ -71,19 +71,20 @@ using namespace std;
 #define MAX_INTERACTION 1500000
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e-6
-#define ACC_SELECT_LEVEL 1.0e-6
-#define DIFF_GAMMA 7.00
+#define ACC_SELECT_LEVEL 1e-6
+#define DIFF_GAMMA 7.0
 #define PERCENTAGE_STEP 0.001
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
-#define rel_err 1.0e-6
-#define abs_err 1.0e-30
+#define rel_err 1e-6
+#define abs_err 1e-30
 #define MAX_SOLVER_STEPS 1500000
 
 // Limits for the Monte-Carlo level population calculation
-#define MC_LVL_POP_DIFF_LIMIT 1.0e-3
-#define MC_LVL_POP_LIMIT 1.0e-20
-#define MC_LVL_POP_PHOTONS 100
+#define MC_LVL_POP_DIFF_LIMIT 1e-3
+#define MC_LVL_POP_LIMIT 1e-20
+#define MC_LVL_POP_PHOTONS 1e1
+#define MC_LVL_POP_MAX_ITER 3
 
 // Define the fits file extension
 // ".fits" normal fits file

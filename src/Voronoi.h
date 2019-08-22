@@ -866,7 +866,7 @@ class CGridVoronoi : public CGridBasic
                 {
                     if(node->getLeaf(i)->nodeIntersection(point, distance))
                     {
-                        double tmp_distance = 1.0e200;
+                        double tmp_distance = 1e200;
                         cell_vo * tmp_cell = checkNeighboringNodes(
                             node->getLeaf(i), f_node, p_node, point, distance, tmp_distance);
 

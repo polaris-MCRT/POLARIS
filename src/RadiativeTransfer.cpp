@@ -500,7 +500,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         for(int wID = 0; wID < int(nr_used_wavelengths); wID++)
         {
             // A loop for each photon
-            for(llong r = 0; r < llong(nr_of_photons); r++)
+            for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
             {
                 // Init variables
                 double end_tau, Cext, Csca;
@@ -545,10 +545,10 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 if(use_energy_density)
                 {
                     pp->setWavelength(wID, dust->getWavelength(wID));
-                    tm_source->createNextRay(pp, ullong(nr_of_photons * wID + r));
+                    tm_source->createNextRay(pp, ullong(nr_of_photons * wID + i_phot));
                 }
                 else
-                    tm_source->createNextRay(pp, ullong(r));
+                    tm_source->createNextRay(pp, ullong(i_phot));
 
                 if(pp->getStokesVector().I() < 1e-200)
                 {
@@ -721,11 +721,15 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     }
 
     // Init variables
-    bool no_error = true;
-    ullong per_counter = 0;
     float last_percentage = 0;
-    uint kill_counter = 0, global_iteration_counter = 0;
+    uint kill_counter = 0;
+
+    // Iteration counter
+    uint global_iteration_counter = 0;
     int max_local_iterations = 0;
+
+    // Are level populations for this transition and cell converged (globally)
+    bool global_converged = false;
 
     // Number of cells in grid
     ulong nr_of_cells = grid->getMaxDataCells();
@@ -760,15 +764,14 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
     // Init progress visualization
     cout << CLR_LINE;
-    cout << "-> Calculating MC level population (global = 1) : 0.0 [%] -> local (max) = 1         \r"
-         << flush;
-
-    // Are level populations for this transition and cell converged (globally)
-    bool global_converged = false;
+    cout << "-> Calculating MC level population (global = 1, max local = 1) : 0.0 [%]    \r" << flush;
 
     // Make global iterations till converged
-    while(!global_converged)
+    while(!global_converged && global_iteration_counter < MC_LVL_POP_MAX_ITER)
     {
+        // Init variables
+        ullong per_counter = 0;
+
         // Set to true and revert it when not converged
         global_converged = true;
 
@@ -791,8 +794,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 #pragma omp critical
                 {
                     cout << "-> Calculating MC level population (global = " << global_iteration_counter
-                         << ") : " << percentage << " [%] -> local (max) = " << max_local_iterations
-                         << "     \r" << flush;
+                         << ", max local = " << max_local_iterations << ") : " << percentage << " [%]    \r"
+                         << flush;
                     last_percentage = percentage;
                 }
             }
@@ -838,14 +841,14 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
 
                     // A loop for each photon
-                    for(llong r = 0; r < llong(nr_of_photons); r++)
+                    for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
                     {
                         // Init photon package
                         photon_package * pp = new photon_package();
 
                         // Set backup pos to current cell and move photon package out of the grid
-                        ullong seed = local_iteration_counter * nr_of_photons * nr_of_transitions +
-                                      i_trans * nr_of_photons + r;
+                        ullong seed = global_iteration_counter * nr_of_photons * nr_of_transitions +
+                                      i_trans * nr_of_photons + i_phot;
 
                         // Init photon package outside the grid or at the border of final cell
                         tm_source->createNextRayToCell(pp, seed, i_cell, only_J_in);
@@ -860,24 +863,23 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                             }
 
                         // Calculate random frequency
-                        double velocity =
-                            (pp->getRND() * 2 - 1) * max_velocity + gas->getProjCellVelocity(grid, pp);
+                        double velocity = (pp->getRND() * 2 - 1) * max_velocity +
+                                          gas->getProjCellVelocity(grid, pp, pp->getBackupPosition());
 
-                        // Set frequency of the photon package
+                        // Set frequency of the photon package (use transition frequency for dust wID)
                         pp->setVelocity(dust->getWavelengthID(con_c / trans_frequency), velocity);
 
-                        // Set Starting energy
+                        // Set external starting energy to CMB for total rad field
                         if(!only_J_in)
                         {
-                            // Set external starting energy to CMB
                             double tmp_energy = CMathFunctions::planck_hz(trans_frequency, 2.75);
                             pp->setStokesVector(StokesVector(tmp_energy, 0, 0, 0));
                         }
 
-                        // Transport the photon package through the model
+                        // Transport the photon package through the model to the current final cell
                         while(!pp->reachedBackupPosition() && grid->next(pp))
                         {
-                            // Solve radiative transfer equation by raytracing through cell
+                            // Solve radiative transfer equation by raytracing through a cell
                             rayThroughCellForLvlPop(pp, i_species, i_trans);
                         }
 
@@ -885,11 +887,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         double energy = pp->getStokesVector().I() / nr_of_photons *
                                         (2 * CMathFunctions::Velo2Freq(max_velocity, trans_frequency));
                         only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
-
-                        // if(only_J_in)
-                        //     cout << "i_trans = " << i_trans << TAB << "only_J_in = " << only_J_in << TAB
-                        //          << "energy = " << energy << TAB << "J_nu_in = " << J_nu_in[i_trans] << TAB
-                        //          << "J_nu_total = " << J_nu_total[i_trans] << endl;
 
                         // Delete the pp pointer
                         delete pp;
@@ -915,6 +912,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                             local_converged = false;
 
                             // Update total radiation field
+                            // if(J_nu_total[i_trans] + J_nu_in[i_trans] - J_nu_in_old[i_trans] < 0)
+                            //     cout << i_trans << TAB << J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
+                            //          << TAB << J_nu_in_old[i_trans] << endl;
                             J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
                         }
                     }
@@ -923,10 +923,13 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                 // Not at the first time, since J_in has to use the initial guess at the first time
                 if(only_J_in)
                 {
-                    // Update level populations (if false, global convergence not reached, only once)
+                    // Update level populations and save if changes were made at first local iteration
                     if(!gas->updateLevelPopulation(grid, final_cell, i_species, J_nu_total) &&
                        local_iteration_counter == 0)
+                    {
+                        // Not globally converged
                         global_converged = false;
+                    }
                 }
                 else
                 {
@@ -962,9 +965,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
         cout << "- Photons killed                    : " << kill_counter << endl;
     cout << "-> Calculating MC level population : done                          " << endl;
     cout << "    Number of iterations used: global = " << global_iteration_counter
-         << ", local (max) = " << max_local_iterations << endl;
+         << ", max local = " << max_local_iterations << endl;
 
-    return no_error;
+    return true;
 }
 
 void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
@@ -980,7 +983,6 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
         double len = pp->getTmpPathLength();
 
         // Get necessary quantities from the current cell
-        double dens_gas = grid->getGasNumberDensity(pp);
         double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
         // Calculate the emission of the dust grains
@@ -997,12 +999,11 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
         }
 
         // Init variables
-        double cell_velocity, cell_sum = 0, cell_d_l = len;
+        double cell_sum = 0, cell_d_l = len;
         ullong kill_counter = 0;
 
-        // Get direction and entry position of the current cell
+        // Get entry position of the current cell
         Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
-        Vector3D tmp_pos;
 
         // Make sub steps until cell is completely crossed
         // If the error of a sub step is too high, make the step smaller
@@ -1027,10 +1028,9 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             // Runge-Kutta sub position
             for(uint k = 0; k < 6; k++)
             {
-                // Calculate Runge-Kutta position
-                tmp_pos = pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k];
-
-                cell_velocity = gas->getProjCellVelocity(grid, pp, tmp_pos);
+                // Calculate projected velocity on each Runge-Kutta position
+                double cell_velocity = gas->getProjCellVelocity(
+                    grid, pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
 
                 double rel_velocity = pp->getVelocity() - cell_velocity;
                 double line_shape = gas->getGaussLineShape(grid, pp, i_species, rel_velocity);
@@ -1257,7 +1257,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Perform radiative transfer through the model for each photon
 #pragma omp parallel for schedule(dynamic)
-            for(llong r = 0; r < llong(nr_of_photons); r++)
+            for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
             {
                 // Init cross sections
                 double Cext;
@@ -1316,7 +1316,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         pp->setWavelength(wID, dust->getWavelength(wID));
 
                         // Launch a new photon package from the source
-                        tm_source->createNextRay(pp, ullong(r));
+                        tm_source->createNextRay(pp, ullong(i_phot));
 
                         // Position the photon inside the grid
                         if(!grid->positionPhotonInGrid(pp))
@@ -1413,7 +1413,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Modify second photon if enforced scattering is used
                             if(b_forced && interactions == 1 && ph_i == 0)
                             {
-                                rays[1].initRandomGenerator(int(r * pp->getRND()));
+                                rays[1].initRandomGenerator(int(i_phot * pp->getRND()));
                                 rays[1].setWavelength(pp->getWavelengthID(), pp->getWavelength());
                                 rays[1].setPosition(pp->getPosition());
                                 rays[1].setPositionCell(pp->getPositionCell());
@@ -2041,7 +2041,7 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get wavelength/frequency of the photon package
-        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
                       (pp1->getFrequency() * pp1->getFrequency());
 
         // Include foreground extinction if necessary
@@ -2525,7 +2525,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
         // Get frequency at background grid position
-        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
                       (pp->getFrequency() * pp->getFrequency());
 
         // Include foreground extinction if necessary
@@ -2749,7 +2749,7 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
             // Get frequency at background grid position
             double wavelength = tracer[i_det]->getWavelength(i_wave);
             pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
-            double mult = 1.0e+26 * con_c / (pp->getFrequency() * pp->getFrequency());
+            double mult = 1e+26 * con_c / (pp->getFrequency() * pp->getFrequency());
 
             // Set direction of the photon package to the observer
             tracer[i_det]->preparePhotonWithPosition(pp, source_pos, i_pix);
@@ -3048,7 +3048,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     // Update the multi Stokes vectors for each velocity channel
     for(uint vch = 0; vch < nr_velocity_channels; vch++)
     {
-        double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor();
+        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor();
 
         // Include foreground extinction if necessary
         mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(wavelength));

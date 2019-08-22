@@ -724,7 +724,7 @@ class CGridBasic
     {
 #ifdef CAMPS_BENCHMARK
         // To perform Camps et. al (2015) benchmark.
-        double res = 0, wavelength = wl_list[wID], mult = 1.0e6;
+        double res = 0, wavelength = wl_list[wID], mult = 1e6;
         res = mult * CMathFunctions::mathis_isrf(wavelength);
         // res = 2.99e-14 * CMathFunctions::planck(wl_list[wID], 9000.0);
         return PIx4 * res * getVolume(cell);

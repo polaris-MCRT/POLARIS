@@ -2240,10 +2240,10 @@ class CDetector
             {
                 for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
+                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 
@@ -2759,10 +2759,10 @@ class CDetector
             {
                 for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
+                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 

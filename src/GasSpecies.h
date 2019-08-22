@@ -487,7 +487,7 @@ class CGasSpecies
         //  ->
         //  Kinetics/Modeling_Reaction_Kinetics/Collision_Theory/Collisional_Cross_Section"
         // "http://www.phy.ohiou.edu/~mboett/astro401_fall12/broadening.pdf
-        double v_th = sqrt(2.0 * con_kB * temp_gas / (molecular_weight * 1.0e-3 / con_Na));
+        double v_th = sqrt(2.0 * con_kB * temp_gas / (molecular_weight * 1e-3 / con_Na));
         double col_param =
             dens_gas * PI * pow(con_r_bohr + gas_species_radius, 2) * sqrt(pow(v_th, 2) + pow(v_turb, 2));
 
@@ -496,7 +496,7 @@ class CGasSpecies
 
     double getGaussA(double temp_gas, double v_turb)
     {
-        double v_th = sqrt(2.0 * con_kB * temp_gas / (molecular_weight * 1.0e-3 / con_Na));
+        double v_th = sqrt(2.0 * con_kB * temp_gas / (molecular_weight * 1e-3 / con_Na));
         double gauss_a = 1.0 / sqrt(pow(v_th, 2) + pow(v_turb, 2));
         return gauss_a;
     }
@@ -984,11 +984,6 @@ class CGasMixture
         }
 
         return line_broadening_offset + offset_entries;
-    }
-
-    double getProjCellVelocity(CGridBasic * grid, photon_package * pp)
-    {
-        return getCellVelocity(grid, pp->getPositionCell(), pp->getPosition()) * pp->getDirection();
     }
 
     double getProjCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)

@@ -2258,7 +2258,7 @@ class CMathFunctions
 
         double freq = con_c / wavelength;             // [s^-1]
         double L = intensity * con_c / (freq * freq); // [W Hz^-1 sr^-1]
-        return L * 1.0e+26 / (distance * distance);   // [Jy]
+        return L * 1e+26 / (distance * distance);   // [Jy]
     }
 
     static inline void lum2Jy(class StokesVector & S, double wavelength, double distance)

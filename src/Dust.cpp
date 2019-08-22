@@ -4603,7 +4603,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
                 }
                 else
                 {
-                    if(abs(hd1 - hd2) < 1.0e-15)
+                    if(abs(hd1 - hd2) < 1e-15)
                     {
                         hl1 = true;
                         break;

@@ -724,7 +724,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         line_counter++;
 
         double p_size = 1.0;
-        double v_size = 1.0e-2;
+        double v_size = 1e-2;
 
         if(line_counter % nrOfGnuPoints == 0)
         {

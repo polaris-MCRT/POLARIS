@@ -152,7 +152,8 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
                     sum_p += tmp_lvl_pop[i_lvl];
                 else
                 {
-                    cout << "WARNING: Level population element not greater than zero!" << endl;
+                    cout << "WARNING: Level population element not greater than zero! Level = " << i_lvl
+                         << ", Level pop = " << tmp_lvl_pop[i_lvl] << endl;
                     no_error = false;
                 }
             }
@@ -248,7 +249,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         // Check temperature and density
         double temp_gas = grid->getGasTemperature(cell);
         double dens_species = getNumberDensity(grid, cell);
-        if(temp_gas < 1.0e-200 || dens_species < 1.0e-200)
+        if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
         Vector3D pos_xyz_cell = grid->getCenter(cell);
@@ -266,7 +267,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         else
             abs_vel = 0;
 
-        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1.0e-16)
+        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
             continue;
 
         double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
@@ -300,8 +301,8 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
                     sum_p += tmp_lvl_pop[j_lvl];
                 else
                 {
-                    cout << "WARNING: Level population element not greater than zero!" << endl;
-                    cout << tmp_lvl_pop[j_lvl] << endl;
+                    cout << "WARNING: Level population element not greater than zero! Level = " << j_lvl
+                         << ", Level pop = " << tmp_lvl_pop[j_lvl] << endl;
                     no_error = false;
                 }
             }
@@ -317,7 +318,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
             {
                 if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
                        (old_pop[j_lvl] + numeric_limits<double>::epsilon()) <
-                   1.0e-2)
+                   1e-2)
                 {
                     break;
                 }
@@ -392,7 +393,7 @@ double CGasSpecies::elem_LVG(CGridBasic * grid,
 
     tau = alpha * L;
 
-    if(tau < 1.0e-6)
+    if(tau < 1e-6)
         beta = 1.0 - 0.5 * tau;
     else
         beta = (1.0 - exp(-tau)) / tau;
@@ -437,8 +438,12 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
                 sum_p += tmp_lvl_pop[i_lvl];
             else
             {
-                cout << "WARNING: Level population element not greater than zero! ->" << tmp_lvl_pop[i_lvl]
-                     << endl;
+                cout << "WARNING: Level population element not greater than zero!" << endl;
+                for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
+                    cout << "    Level = " << i_lvl << ", Level pop = " << tmp_lvl_pop[i_lvl] << endl;
+                for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                    cout << "    Transition = " << i_trans << ", Radiation field = " << J_total[i_trans]
+                         << endl;
                 return false;
             }
         }
@@ -581,19 +586,19 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
 
     for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
     {
-        for(uint j_lvl = 0; j_lvl < nr_of_transitions; j_lvl++)
+        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
         {
-            if(getUpperEnergyLevel(j_lvl) == i_lvl)
+            if(getUpperEnergyLevel(i_trans) == i_lvl)
             {
-                uint k_lvl = getLowerEnergyLevel(j_lvl);
-                A(i_lvl, k_lvl) += getEinsteinBl(j_lvl) * J_mid[j_lvl];
-                A(i_lvl, i_lvl) -= getEinsteinA(j_lvl) + getEinsteinBu(j_lvl) * J_mid[j_lvl];
+                uint k_lvl = getLowerEnergyLevel(i_trans);
+                A(i_lvl, k_lvl) += getEinsteinBl(i_trans) * J_mid[i_trans];
+                A(i_lvl, i_lvl) -= getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_trans];
             }
-            else if(getLowerEnergyLevel(j_lvl) == i_lvl)
+            else if(getLowerEnergyLevel(i_trans) == i_lvl)
             {
-                uint k_lvl = getUpperEnergyLevel(j_lvl);
-                A(i_lvl, k_lvl) += getEinsteinA(j_lvl) + getEinsteinBu(j_lvl) * J_mid[j_lvl];
-                A(i_lvl, i_lvl) -= getEinsteinBl(j_lvl) * J_mid[j_lvl];
+                uint k_lvl = getUpperEnergyLevel(i_trans);
+                A(i_lvl, k_lvl) += getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_trans];
+                A(i_lvl, i_lvl) -= getEinsteinBl(i_trans) * J_mid[i_trans];
             }
         }
         for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
@@ -1059,7 +1064,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             col_matrix[i_col_partner][i_col_transition] = new double[nr_of_col_temp[i_col_partner]];
 
             for(uint i = 0; i < uint(nr_of_col_temp[i_col_partner]); i++)
-                col_matrix[i_col_partner][i_col_transition][i] = values[3 + i] * 1.0e-6;
+                col_matrix[i_col_partner][i_col_transition][i] = values[3 + i] * 1e-6;
         }
         else if(i_col_partner < nr_of_col_partner)
         {

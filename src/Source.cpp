@@ -1203,7 +1203,10 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
     else
     {
         // Move photon along the path outwards the grid
-        pp->getPosition() -= pp->getDirection() * grid->maxLength();
+        pp->getPosition() += pp->getDirection() * grid->maxLength();
+
+        // Invert direction
+        pp->getDirection() *= -1;
     }
 }
 

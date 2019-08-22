@@ -1423,7 +1423,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
     bool hit = false;
     double min_length = 1e300;
-    double tmp_length[4];
+    double tmp_length[2];
     uint dirID = MAX_UINT;
 
     uint rID = tmp_cell->getRID();
@@ -1434,17 +1434,10 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double C = p.sq_length() - Rmin * Rmin;
         double dscr = B * B - 4 * C;
 
-        if(dscr >= 0)
-        {
-            dscr = sqrt(dscr);
-            tmp_length[0] = (-B + dscr) / 2;
-            tmp_length[1] = (-B - dscr) / 2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        // dscr always positive for surrounding sphere [RBru 2019]
+        dscr = sqrt(dscr);
+        tmp_length[0] = (-B + dscr) / 2;
+        tmp_length[1] = (-B - dscr) / 2;
 
         for(uint i = 0; i < 2; i++)
         {
@@ -1473,31 +1466,23 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double dscr1 = B_sq - 4 * C1;
         double dscr2 = B_sq - 4 * C2;
 
-        if(dscr1 >= 0)
+        if(dscr1 > 0)
         {
             dscr1 = sqrt(dscr1);
-            tmp_length[0] = (-B + dscr1) / 2;
-            tmp_length[1] = (-B - dscr1) / 2;
+            // Only the smaller case (shortest distance) has to be checked [RBru 2019]
+            tmp_length[0] = (-B - dscr1) / 2;
         }
         else
         {
             tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
         }
 
-        if(dscr2 >= 0)
-        {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / 2;
-            tmp_length[3] = (-B - dscr2) / 2;
-        }
-        else
-        {
-            tmp_length[2] = 1e200;
-            tmp_length[3] = 1e200;
-        }
+        // dscr always positive for surrounding sphere [RBru 2019]
+        dscr2 = sqrt(dscr2);
+        // One negative and the other positive (take the highest case) [RBru 2019]
+        tmp_length[1] = (-B + dscr2) / 2;
 
-        for(uint i = 0; i < 4; i++)
+        for(uint i = 0; i < 2; i++)
         {
             if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
@@ -1520,7 +1505,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         double dscr3 = B1 * B1 - A1 * C3;
 
-        if(dscr3 >= 0)
+        if(dscr3 > 0)
         {
             dscr3 = sqrt(dscr3);
             tmp_length[0] = (-B1 + dscr3) / A1;
@@ -1555,7 +1540,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         double dscr4 = B2 * B2 - A2 * C4;
 
-        if(dscr4 >= 0)
+        if(dscr4 > 0)
         {
             dscr4 = sqrt(dscr4);
             tmp_length[0] = (-B2 + dscr4) / A2;
