@@ -84,7 +84,8 @@ using namespace std;
 #define MC_LVL_POP_DIFF_LIMIT 1e-3
 #define MC_LVL_POP_LIMIT 1e-20
 #define MC_LVL_POP_PHOTONS 1e1
-#define MC_LVL_POP_MAX_ITER 3
+#define MC_LVL_POP_MAX_LOCAL_ITER 1e3
+#define MC_LVL_POP_MAX_GLOBAL_ITER 3
 
 // Define the fits file extension
 // ".fits" normal fits file

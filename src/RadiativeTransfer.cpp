@@ -721,12 +721,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     }
 
     // Init variables
-    float last_percentage = 0;
     uint kill_counter = 0;
 
     // Iteration counter
     uint global_iteration_counter = 0;
-    int max_local_iterations = 0;
 
     // Are level populations for this transition and cell converged (globally)
     bool global_converged = false;
@@ -767,13 +765,11 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     cout << "-> Calculating MC level population (global = 1, max local = 1) : 0.0 [%]    \r" << flush;
 
     // Make global iterations till converged
-    while(!global_converged && global_iteration_counter < MC_LVL_POP_MAX_ITER)
+    while(!global_converged && global_iteration_counter < MC_LVL_POP_MAX_GLOBAL_ITER)
     {
         // Init variables
         ullong per_counter = 0;
-
-        // Set to true and revert it when not converged
-        global_converged = true;
+        int max_local_iterations = 0;
 
         // Increase counter
         global_iteration_counter++;
@@ -787,18 +783,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
             // Calculate percentage of total progress per source
             float percentage = 100 * float(per_counter) / float(nr_of_cells);
-
-            // Show only new percentage number if it changed
-            if((percentage - last_percentage) > PERCENTAGE_STEP)
-            {
-#pragma omp critical
-                {
-                    cout << "-> Calculating MC level population (global = " << global_iteration_counter
-                         << ", max local = " << max_local_iterations << ") : " << percentage << " [%]    \r"
-                         << flush;
-                    last_percentage = percentage;
-                }
-            }
 
             // Pointer to final cell
             cell_basic * final_cell = grid->getCellFromIndex(i_cell);
@@ -829,10 +813,18 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             // Local iteration counter (first two runs required for initial guess of rad field)
             int local_iteration_counter = -2;
 
-            while(!local_converged)
+            while(!local_converged && local_iteration_counter < MC_LVL_POP_MAX_LOCAL_ITER)
             {
                 // Increase counter
                 local_iteration_counter++;
+
+                // Show only new percentage number
+#pragma omp critical
+                {
+                    cout << "-> Calculating MC level population (global = " << global_iteration_counter
+                         << ", max local = " << max_local_iterations << ") : " << percentage << " [%]    \r"
+                         << flush;
+                }
 
                 // Perform radiative transfer for each chosen spectral line transition
                 for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
@@ -884,8 +876,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         }
 
                         // Add energy to the corresponding part
-                        double energy = pp->getStokesVector().I() / nr_of_photons *
-                                        (2 * CMathFunctions::Velo2Freq(max_velocity, trans_frequency));
+                        double energy = pp->getStokesVector().I() / nr_of_photons;
                         only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
 
                         // Delete the pp pointer
@@ -902,8 +893,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                     {
                         // Check if limit is reached
-                        // cout << local_iteration_counter << TAB << i_trans << TAB << J_nu_in[i_trans] << TAB
-                        //      << J_nu_in_old[i_trans] << endl;
                         if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
                                MC_LVL_POP_DIFF_LIMIT * (J_nu_in[i_trans] + J_nu_in_old[i_trans]) &&
                            J_nu_in[i_trans] > MC_LVL_POP_LIMIT)
@@ -912,9 +901,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                             local_converged = false;
 
                             // Update total radiation field
-                            // if(J_nu_total[i_trans] + J_nu_in[i_trans] - J_nu_in_old[i_trans] < 0)
-                            //     cout << i_trans << TAB << J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
-                            //          << TAB << J_nu_in_old[i_trans] << endl;
                             J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
                         }
                     }
@@ -923,21 +909,16 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                 // Not at the first time, since J_in has to use the initial guess at the first time
                 if(only_J_in)
                 {
-                    // Update level populations and save if changes were made at first local iteration
-                    if(!gas->updateLevelPopulation(grid, final_cell, i_species, J_nu_total) &&
-                       local_iteration_counter == 0)
-                    {
-                        // Not globally converged
-                        global_converged = false;
-                    }
+                    // Update level populations
+                    gas->updateLevelPopulation(grid, final_cell, i_species, J_nu_total);
                 }
                 else
                 {
-                    // external radiation field was calculated
+                    // external radiation field was calculated, only J_in from now on
                     only_J_in = true;
                 }
 
-                // Backup last iteration
+                // Backup last iteration and reset J_in for next one
                 for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                 {
                     J_nu_in_old[i_trans] = J_nu_in[i_trans];
@@ -954,6 +935,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             delete[] J_nu_in;
             delete[] J_nu_in_old;
         }
+
+        // If no local iterations were necessary, globally converged
+        if(max_local_iterations == 1)
+            global_converged = true;
     }
 
     // Format prints
@@ -964,8 +949,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
     if(kill_counter > 0)
         cout << "- Photons killed                    : " << kill_counter << endl;
     cout << "-> Calculating MC level population : done                          " << endl;
-    cout << "    Number of iterations used: global = " << global_iteration_counter
-         << ", max local = " << max_local_iterations << endl;
+    cout << "    Number of global iterations used: " << global_iteration_counter << endl;
 
     return true;
 }

@@ -457,20 +457,11 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
         tmp_lvl_pop[0] = 1;
     }
 
-    bool converged = true;
     for(uint i_lvl = 0; i_lvl < nr_of_energy_levels; i_lvl++)
-    {
-        // Calculate difference between old and new lvl populations
-        if(abs(grid->getLvlPop(cell, i_lvl) - tmp_lvl_pop[i_lvl]) >
-           MC_LVL_POP_LIMIT * (grid->getLvlPop(cell, i_lvl) + tmp_lvl_pop[i_lvl]))
-            converged = false;
-
-        // cout << i_lvl << TAB << grid->getLvlPop(cell, i_lvl) << TAB << tmp_lvl_pop[i_lvl] << endl;
         grid->setLvlPop(cell, i_lvl, tmp_lvl_pop[i_lvl]);
-    }
 
     delete[] tmp_lvl_pop;
-    return converged;
+    return true;
 }
 
 // This function is based on
