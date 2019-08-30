@@ -150,7 +150,7 @@ class RemoteRoutines:
         os.system(
             self.rsync_cmd + '--include=testing/ --include=testing/*/ ' +
             '--include=testing/*/results_correct/ --include=*.dat --include=template.cmd '
-            '--include=*.fits --exclude=* ' +
+            '--include=*.fits --include=*.fits.gz --exclude=* ' +
             self.file_io.path['polaris'] + ' ' + self.file_io.path['server_polaris'])
 
     def pull_polaris_tests(self):

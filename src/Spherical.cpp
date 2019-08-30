@@ -1441,7 +1441,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1484,7 +1484,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1519,7 +1519,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
                 {
@@ -1554,7 +1554,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
                 {
@@ -1707,7 +1707,7 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
         {
             min_length = tmp_length[i];
             hit = true;

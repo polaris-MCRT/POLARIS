@@ -1315,7 +1315,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1354,7 +1354,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1399,7 +1399,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1585,7 +1585,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
         {
             if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
             {

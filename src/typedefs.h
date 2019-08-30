@@ -76,13 +76,13 @@ using namespace std;
 #define PERCENTAGE_STEP 0.001
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
-#define rel_err 1e-6
-#define abs_err 1e-30
+#define REL_ERROR 1e-6
+#define ABS_ERROR 1e-30
 #define MAX_SOLVER_STEPS 1500000
 
 // Limits for the Monte-Carlo level population calculation
-#define MC_LVL_POP_DIFF_LIMIT 1e-6
-#define MC_LVL_POP_LIMIT 1e-60
+#define MC_LVL_POP_DIFF_LIMIT 1e-3
+#define MC_LVL_POP_LIMIT 1e-30
 #define MC_LVL_POP_PHOTONS 1e2
 #define MC_LVL_POP_MAX_LOCAL_ITER 1e3
 #define MC_LVL_POP_MAX_GLOBAL_ITER 1e2

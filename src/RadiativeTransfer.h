@@ -321,16 +321,17 @@ class CRadiativeTransfer
         dz_new = 0.9 * cell_d_l;
         if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
         {
-            double epsi_I = abs(stokes_new2.I() - stokes_new.I()) / (rel_err * abs(stokes_new.I()) + abs_err);
+            double epsi_I =
+                abs(stokes_new2.I() - stokes_new.I()) / (REL_ERROR * abs(stokes_new.I()) + ABS_ERROR);
 
-            double epsi_Q =
-                abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) / (rel_err * abs(stokes_new.Q()) + abs_err);
+            double epsi_Q = abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) /
+                            (REL_ERROR * abs(stokes_new.Q()) + ABS_ERROR);
 
-            double epsi_U =
-                abs(abs(stokes_new2.U()) - abs(stokes_new.U())) / (rel_err * abs(stokes_new.U()) + abs_err);
+            double epsi_U = abs(abs(stokes_new2.U()) - abs(stokes_new.U())) /
+                            (REL_ERROR * abs(stokes_new.U()) + ABS_ERROR);
 
-            double epsi_V =
-                abs(abs(stokes_new2.V()) - abs(stokes_new.V())) / (rel_err * abs(stokes_new.V()) + abs_err);
+            double epsi_V = abs(abs(stokes_new2.V()) - abs(stokes_new.V())) /
+                            (REL_ERROR * abs(stokes_new.V()) + ABS_ERROR);
 
             double dz_new_I = 0.9 * cell_d_l * pow(epsi_I, -0.2);
             double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);

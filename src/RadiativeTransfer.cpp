@@ -762,14 +762,14 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
     // Init progress visualization
     cout << CLR_LINE;
-    cout << "-> Calculating MC level population (global = 1, max local = 1) : 0.0 [%]    \r" << flush;
+    cout << "-> Calculating MC level population (global = 1, local = 1) : 0.0 [%]    \r" << flush;
 
     // Make global iterations till converged
     while(!global_converged && global_iteration_counter < MC_LVL_POP_MAX_GLOBAL_ITER)
     {
         // Init variables
         ullong per_counter = 0;
-        int max_local_iterations = 0;
+        int max_local_iterations = 1;
 
         // Increase counter
         global_iteration_counter++;
@@ -819,7 +819,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 #pragma omp critical
                 {
                     cout << "-> Calculating MC level population (global = " << global_iteration_counter
-                         << ", max local = " << max_local_iterations
+                         << ", local = " << max_local_iterations
                          << ") : " << 100 * float(per_counter) / float(nr_of_cells) << " [%]    \r" << flush;
                 }
 
@@ -836,9 +836,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         photon_package * pp = new photon_package();
 
                         // Set backup pos to current cell and move photon package out of the grid
-                        // CHANGE TO CHECK MC PRECISION !!!
-                        ullong seed = global_iteration_counter * nr_of_photons * nr_of_transitions +
-                                      i_trans * nr_of_photons + i_phot;
+                        ullong seed =
+                            i_trans * nr_of_photons +
+                            i_phot; // + global_iteration_counter * nr_of_photons * nr_of_transitions;
 
                         // Init photon package outside the grid or at the border of final cell
                         tm_source->createNextRayToCell(pp, seed, i_cell, only_J_in);
@@ -892,16 +892,34 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     {
                         // Check if limit is reached
                         if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
-                               MC_LVL_POP_DIFF_LIMIT * (J_nu_in[i_trans] + J_nu_in_old[i_trans]) &&
-                           J_nu_in[i_trans] > MC_LVL_POP_LIMIT)
+                           MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
                         {
                             // Not converged
                             local_converged = false;
-
-                            // Update total radiation field
-                            J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
+                            break;
                         }
                     }
+
+                    // If not converged, update full radiation field
+                    if(!local_converged)
+                        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                        {
+                            J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
+
+                            if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
+                               MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
+                                cout << "---> " << i_trans << TAB
+                                     << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
+                                     << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
+                                     << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
+                                     << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
+                            else
+                                cout << "     " << i_trans << TAB
+                                     << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
+                                     << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
+                                     << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
+                                     << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
+                        }
                 }
 
                 // Not at the first time, since J_in has to use the initial guess at the first time
@@ -922,11 +940,15 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     J_nu_in_old[i_trans] = J_nu_in[i_trans];
                     J_nu_in[i_trans] = 0;
                 }
+
+                // Find maximum local iterations
+                if(local_iteration_counter > max_local_iterations)
+                    max_local_iterations = local_iteration_counter;
             }
 
-            // Find maximum local iterations
-            if(local_iteration_counter > max_local_iterations)
-                max_local_iterations = local_iteration_counter;
+            // Mention if any cell was not converging
+            if(local_iteration_counter == MC_LVL_POP_MAX_LOCAL_ITER)
+                cout << "HINT: cell number " << i_cell + 1 << " was not converging!" << endl;
 
             // Delete the pointer arrays
             delete[] J_nu_total;
@@ -997,7 +1019,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             // If too many sub steps are needed, kill the photon
             if(kill_counter >= MAX_SOLVER_STEPS)
             {
-                cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
+                cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
                 break;
             }
 
@@ -1059,7 +1081,12 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             double epsi = 2.0, dz_new = 0.9 * cell_d_l;
             if(stokes_new2 >= 0 && stokes_new >= 0)
             {
-                epsi = abs(stokes_new2 - stokes_new) / (rel_err * abs(stokes_new) + abs_err);
+                // Add MC_LVL_POP_DIFF_LIMIT to achieve high precision required for convergence
+                double rel_error = REL_ERROR;
+                if(pp->reachedBackupPosition())
+                    rel_error *= MC_LVL_POP_DIFF_LIMIT;
+
+                epsi = abs(stokes_new2 - stokes_new) / (rel_error * abs(stokes_new) + ABS_ERROR);
                 dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
             }
 
@@ -2219,18 +2246,18 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp1,
                 else
                 {
                     double epsi_cr = abs(stokes_new2_cr.I() - stokes_new_cr.I()) /
-                                     (rel_err * abs(stokes_new_cr.I()) + abs_err);
+                                     (REL_ERROR * abs(stokes_new_cr.I()) + ABS_ERROR);
                     double epsi_ca = abs(stokes_new2_ca.I() - stokes_new_ca.I()) /
-                                     (rel_err * abs(stokes_new_ca.I()) + abs_err);
+                                     (REL_ERROR * abs(stokes_new_ca.I()) + ABS_ERROR);
 
                     double epsi_Q = abs(abs(stokes_new2_ca.Q()) - abs(stokes_new_ca.Q())) /
-                                    (rel_err * abs(stokes_new_ca.Q()) + abs_err);
+                                    (REL_ERROR * abs(stokes_new_ca.Q()) + ABS_ERROR);
 
                     double epsi_U = abs(abs(stokes_new2_ca.U()) - abs(stokes_new_ca.U())) /
-                                    (rel_err * abs(stokes_new_ca.U()) + abs_err);
+                                    (REL_ERROR * abs(stokes_new_ca.U()) + ABS_ERROR);
 
                     double epsi_V = abs(abs(stokes_new2_ca.V()) - abs(stokes_new_ca.V())) /
-                                    (rel_err * abs(stokes_new_ca.V()) + abs_err);
+                                    (REL_ERROR * abs(stokes_new_ca.V()) + ABS_ERROR);
 
                     double dz_new_cr = 0.9 * cell_d_l * pow(epsi_cr, -0.2);
                     double dz_new_ca = 0.9 * cell_d_l * pow(epsi_ca, -0.2);
@@ -3107,7 +3134,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                 // If too many sub steps are needed, kill the photon
                 if(kill_counter >= MAX_SOLVER_STEPS)
                 {
-                    cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps." << endl;
+                    cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
                     break;
                 }
 
