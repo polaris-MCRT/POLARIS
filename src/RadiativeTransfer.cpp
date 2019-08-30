@@ -762,7 +762,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
     // Init progress visualization
     cout << CLR_LINE;
-    cout << "-> Calculating MC level population (global = 1, local = 1) : 0.0 [%]    \r" << flush;
+    cout << "-> Calculating MC level population (global = 1, max local = 1) : 0.0 [%]    \r" << flush;
 
     // Make global iterations till converged
     while(!global_converged && global_iteration_counter < MC_LVL_POP_MAX_GLOBAL_ITER)
@@ -773,6 +773,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
         // Increase counter
         global_iteration_counter++;
+
+        // Set global iteration to true and check it
+        global_converged = true;
 
         // A loop for each cell
 #pragma omp parallel for schedule(dynamic)
@@ -819,7 +822,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 #pragma omp critical
                 {
                     cout << "-> Calculating MC level population (global = " << global_iteration_counter
-                         << ", local = " << max_local_iterations
+                         << ", max local = " << max_local_iterations
                          << ") : " << 100 * float(per_counter) / float(nr_of_cells) << " [%]    \r" << flush;
                 }
 
@@ -906,19 +909,21 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         {
                             J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
 
-                            if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
-                               MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
-                                cout << "---> " << i_trans << TAB
-                                     << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
-                                     << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
-                                     << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
-                                     << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
-                            else
-                                cout << "     " << i_trans << TAB
-                                     << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
-                                     << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
-                                     << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB << J_nu_in[i_trans]
-                                     << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
+                            // if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
+                            //    MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
+                            //     cout << "---> " << i_trans << TAB
+                            //          << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
+                            //          << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
+                            //          << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB <<
+                            //          J_nu_in[i_trans]
+                            //          << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
+                            // else
+                            //     cout << "     " << i_trans << TAB
+                            //          << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
+                            //          << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
+                            //          << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB <<
+                            //          J_nu_in[i_trans]
+                            //          << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
                         }
                 }
 
@@ -940,11 +945,14 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                     J_nu_in_old[i_trans] = J_nu_in[i_trans];
                     J_nu_in[i_trans] = 0;
                 }
-
-                // Find maximum local iterations
-                if(local_iteration_counter > max_local_iterations)
-                    max_local_iterations = local_iteration_counter;
             }
+            // Find maximum local iterations
+            if(local_iteration_counter > max_local_iterations)
+                max_local_iterations = local_iteration_counter;
+
+            // If no local iterations were necessary, globally converged
+            if(local_iteration_counter > 1 && local_iteration_counter != MC_LVL_POP_MAX_LOCAL_ITER)
+                global_converged = false;
 
             // Mention if any cell was not converging
             if(local_iteration_counter == MC_LVL_POP_MAX_LOCAL_ITER)
@@ -955,10 +963,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             delete[] J_nu_in;
             delete[] J_nu_in_old;
         }
-
-        // If no local iterations were necessary, globally converged
-        if(max_local_iterations == 1)
-            global_converged = true;
     }
 
     // Format prints

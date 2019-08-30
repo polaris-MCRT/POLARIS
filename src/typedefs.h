@@ -83,8 +83,8 @@ using namespace std;
 // Limits for the Monte-Carlo level population calculation
 #define MC_LVL_POP_DIFF_LIMIT 1e-3
 #define MC_LVL_POP_LIMIT 1e-30
-#define MC_LVL_POP_PHOTONS 1e2
-#define MC_LVL_POP_MAX_LOCAL_ITER 1e3
+#define MC_LVL_POP_PHOTONS 1e0
+#define MC_LVL_POP_MAX_LOCAL_ITER 1e2
 #define MC_LVL_POP_MAX_GLOBAL_ITER 1e2
 
 // Define the fits file extension
