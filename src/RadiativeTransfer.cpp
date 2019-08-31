@@ -958,7 +958,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
         cout << "- Photons killed                    : " << kill_counter << endl;
     cout << "-> Calculating MC level population : done                          " << endl;
     cout << "    Number of global iterations used  : " << global_iteration_counter << endl;
-    cout << "    Seed used for MC level population : " << global_iteration_counter << endl;
+    cout << "    Seed used for MC level population : " << global_seed << endl;
 
     return true;
 }
