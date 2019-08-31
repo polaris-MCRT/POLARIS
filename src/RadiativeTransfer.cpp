@@ -928,19 +928,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     J_nu_in[i_trans] = 0;
                 }
             }
-            // Mention if any cell was not converging
-            if(local_iteration_counter == MC_LVL_POP_MAX_LOCAL_ITER)
-            {
-                // Nonconvergence might happen, but vanishes in the next global iteration
-                // cout << CLR_LINE;
-                // cout << "HINT: cell number " << i_cell + 1 << " was not converging!" << endl;
-            }
-            else
-            {
-                // Find maximum local iterations
-                if(local_iteration_counter > max_local_iterations)
-                    max_local_iterations = local_iteration_counter;
-            }
+
+            // Find maximum local iterations
+            if(local_iteration_counter > max_local_iterations)
+                max_local_iterations = local_iteration_counter;
 
             // Delete the pointer arrays
             delete[] J_nu_total;
