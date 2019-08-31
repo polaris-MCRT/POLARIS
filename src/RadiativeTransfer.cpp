@@ -711,7 +711,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
     return true;
 }
 
-bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
+bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global_seed)
 {
     // Check the source
     if(sources_mc.size() != 1 || sources_mc[0]->getID() != SRC_GAS_LVL)
@@ -773,9 +773,6 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
         // Increase counter
         global_iteration_counter++;
-
-        // Set global iteration to true and check it
-        global_converged = true;
 
         // A loop for each cell
 #pragma omp parallel for schedule(dynamic)
@@ -839,21 +836,22 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
                         photon_package * pp = new photon_package();
 
                         // Set backup pos to current cell and move photon package out of the grid
-                        ullong seed =
-                            i_trans * nr_of_photons +
-                            i_phot; // + global_iteration_counter * nr_of_photons * nr_of_transitions;
+                        ullong seed = global_seed * nr_of_photons * nr_of_transitions +
+                                      i_trans * nr_of_photons + i_phot;
 
                         // Init photon package outside the grid or at the border of final cell
                         tm_source->createNextRayToCell(pp, seed, i_cell, only_J_in);
 
                         // Position photon at the grid border
                         if(!grid->positionPhotonInGrid(pp))
+                        {
                             if(!grid->findStartingPoint(pp))
                             {
                                 kill_counter++;
                                 delete pp;
                                 continue;
                             }
+                        }
 
                         // Calculate random frequency
                         double velocity = (pp->getRND() * 2 - 1) * max_velocity +
@@ -905,26 +903,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
 
                     // If not converged, update full radiation field
                     if(!local_converged)
+                    {
                         for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-                        {
                             J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
-
-                            // if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
-                            //    MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
-                            //     cout << "---> " << i_trans << TAB
-                            //          << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
-                            //          << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
-                            //          << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB <<
-                            //          J_nu_in[i_trans]
-                            //          << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
-                            // else
-                            //     cout << "     " << i_trans << TAB
-                            //          << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) / J_nu_total[i_trans]
-                            //          << TAB << abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) << TAB
-                            //          << MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] << TAB <<
-                            //          J_nu_in[i_trans]
-                            //          << TAB << J_nu_in_old[i_trans] << TAB << J_nu_total[i_trans] << endl;
-                        }
+                    }
                 }
 
                 // Not at the first time, since J_in has to use the initial guess at the first time
@@ -949,19 +931,15 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             // Mention if any cell was not converging
             if(local_iteration_counter == MC_LVL_POP_MAX_LOCAL_ITER)
             {
-                cout << "HINT: cell number " << i_cell + 1 << " was not converging!" << endl;
+                // Nonconvergence might happen, but vanishes in the next global iteration
+                // cout << CLR_LINE;
+                // cout << "HINT: cell number " << i_cell + 1 << " was not converging!" << endl;
             }
             else
             {
+                // Find maximum local iterations
                 if(local_iteration_counter > max_local_iterations)
-                {
-                    // Find maximum local iterations
                     max_local_iterations = local_iteration_counter;
-                }
-
-                // If no local iterations were necessary, globally converged
-                if(local_iteration_counter > 1)
-                    global_converged = false;
             }
 
             // Delete the pointer arrays
@@ -969,6 +947,15 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species)
             delete[] J_nu_in;
             delete[] J_nu_in_old;
         }
+        // If no local iterations were necessary, globally converged
+        if(max_local_iterations == 1)
+            global_converged = true;
+    }
+
+    if(global_iteration_counter == MC_LVL_POP_MAX_GLOBAL_ITER)
+    {
+        cout << CLR_LINE;
+        cout << "HINT: Global iteration not reached! Continue, but results might be wrong!" << endl;
     }
 
     // Format prints
@@ -2847,7 +2834,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
         // Calculate the level populations for each cell
         bool lvl_pop_error = gas->getLevelPopType(i_species) == POP_MC
-                                 ? !calcMonteCarloLvlPopulation(i_species)
+                                 ? !calcMonteCarloLvlPopulation(i_species, param.getMCLvlPopSeed())
                                  : !gas->calcLevelPopulation(grid, i_species);
         if(lvl_pop_error)
         {

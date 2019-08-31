@@ -1441,7 +1441,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1484,7 +1484,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1519,7 +1519,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
                 {
@@ -1554,7 +1554,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
                 {
@@ -1591,11 +1591,11 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             if(den1 != 0)
             {
                 double num = v_n1 * (p - v_a1);
-                double length = -num / den1;
+                double tmp_length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(tmp_length > 0 && tmp_length < min_length)
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1608,11 +1608,11 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             if(den2 != 0)
             {
                 double num = v_n2 * (p - v_a2);
-                double length = -num / den2;
+                double tmp_length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(tmp_length > 0 && tmp_length < min_length)
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                     dirID = 5;
                 }

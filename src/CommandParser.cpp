@@ -3084,6 +3084,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<mc_lvl_pop_photons>") == 0)
+    {
+        param->setMCLvlPopNrOfPhotons(uint(atof(data.c_str())));
+        return true;
+    }
+
+    if(cmd.compare("<mc_lvl_pop_seed>") == 0)
+    {
+        param->setMCLvlPopSeed(uint(atof(data.c_str())));
+        return true;
+    }
+
     return false;
 }
 

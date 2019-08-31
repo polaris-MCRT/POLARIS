@@ -515,7 +515,7 @@ class CSourceGas : public CSourceBasic
 
     void setParameter(parameters & param, uint p)
     {
-        nr_of_photons = MC_LVL_POP_PHOTONS;
+        nr_of_photons = param.getMCLvlPopNrOfPhotons();
     }
 
     ullong getNrOfPhotons()

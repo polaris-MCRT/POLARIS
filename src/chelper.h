@@ -480,6 +480,9 @@ class parameters
         delta0 = 8.28e23 * 2.5e-12 * 1e8 * 1e-6 * 1e6;
         larm_f = 4.1e-21;
 
+        nr_of_mc_lvl_pop_photons = 0;
+        mc_lvl_pop_seed = 0;
+
         kepler_star_mass = 0;
         turbulent_velocity = 0;
         offset_min_gas_dens = 0;
@@ -1035,6 +1038,16 @@ class parameters
     double getTurbulentVelocity()
     {
         return turbulent_velocity;
+    }
+
+    uint getMCLvlPopNrOfPhotons()
+    {
+        return nr_of_mc_lvl_pop_photons;
+    }
+
+    uint getMCLvlPopSeed()
+    {
+        return mc_lvl_pop_seed;
     }
 
     uint getTaskID()
@@ -1634,6 +1647,17 @@ class parameters
     void setKeplerStarMass(double val)
     {
         kepler_star_mass = val;
+    }
+
+    void setMCLvlPopNrOfPhotons(uint val)
+    {
+        nr_of_mc_lvl_pop_photons = val;
+    }
+
+    void setMCLvlPopSeed(uint val)
+    {
+        if(val > 0)
+            mc_lvl_pop_seed = val;
     }
 
     void setTurbulentVelocity(double val)
@@ -2514,6 +2538,9 @@ class parameters
     uint nrOfGnuPoints;
     uint nrOfGnuVectors;
     uint maxGridLines;
+
+    uint nr_of_mc_lvl_pop_photons;
+    uint mc_lvl_pop_seed;
 
     uint healpix_orientation;
 

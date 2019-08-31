@@ -1056,7 +1056,7 @@ class CGridVoronoi : public CGridBasic
             double oy = node->getYMin();
             double oz = node->getZMin();
 
-            double length = 0.5 * node->getLength();
+            double tmp_length = 0.5 * node->getLength();
             tree_node * leafs = new tree_node[8];
 
             leafs[0].setBranch(node);
@@ -1064,63 +1064,63 @@ class CGridVoronoi : public CGridBasic
             leafs[0].setYMin(oy);
             leafs[0].setZMin(oz);
 
-            leafs[0].setLength(length);
+            leafs[0].setLength(tmp_length);
             leafs[0].setLevel(next_level);
 
             leafs[1].setBranch(node);
-            leafs[1].setXMin(ox + length);
+            leafs[1].setXMin(ox + tmp_length);
             leafs[1].setYMin(oy);
             leafs[1].setZMin(oz);
 
-            leafs[1].setLength(length);
+            leafs[1].setLength(tmp_length);
             leafs[1].setLevel(next_level);
 
             leafs[2].setBranch(node);
             leafs[2].setXMin(ox);
-            leafs[2].setYMin(oy + length);
+            leafs[2].setYMin(oy + tmp_length);
             leafs[2].setZMin(oz);
 
-            leafs[2].setLength(length);
+            leafs[2].setLength(tmp_length);
             leafs[2].setLevel(next_level);
 
             leafs[3].setBranch(node);
-            leafs[3].setXMin(ox + length);
-            leafs[3].setYMin(oy + length);
+            leafs[3].setXMin(ox + tmp_length);
+            leafs[3].setYMin(oy + tmp_length);
             leafs[3].setZMin(oz);
 
-            leafs[3].setLength(length);
+            leafs[3].setLength(tmp_length);
             leafs[3].setLevel(next_level);
 
             leafs[4].setBranch(node);
             leafs[4].setXMin(ox);
             leafs[4].setYMin(oy);
-            leafs[4].setZMin(oz + length);
+            leafs[4].setZMin(oz + tmp_length);
 
-            leafs[4].setLength(length);
+            leafs[4].setLength(tmp_length);
             leafs[4].setLevel(next_level);
 
             leafs[5].setBranch(node);
-            leafs[5].setXMin(ox + length);
+            leafs[5].setXMin(ox + tmp_length);
             leafs[5].setYMin(oy);
-            leafs[5].setZMin(oz + length);
+            leafs[5].setZMin(oz + tmp_length);
 
-            leafs[5].setLength(length);
+            leafs[5].setLength(tmp_length);
             leafs[5].setLevel(next_level);
 
             leafs[6].setBranch(node);
             leafs[6].setXMin(ox);
-            leafs[6].setYMin(oy + length);
-            leafs[6].setZMin(oz + length);
+            leafs[6].setYMin(oy + tmp_length);
+            leafs[6].setZMin(oz + tmp_length);
 
-            leafs[6].setLength(length);
+            leafs[6].setLength(tmp_length);
             leafs[6].setLevel(next_level);
 
             leafs[7].setBranch(node);
-            leafs[7].setXMin(ox + length);
-            leafs[7].setYMin(oy + length);
-            leafs[7].setZMin(oz + length);
+            leafs[7].setXMin(ox + tmp_length);
+            leafs[7].setYMin(oy + tmp_length);
+            leafs[7].setZMin(oz + tmp_length);
 
-            leafs[7].setLength(length);
+            leafs[7].setLength(tmp_length);
             leafs[7].setLevel(next_level);
 
             node->setLeafs(leafs);
