@@ -787,6 +787,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
             // Maximum velocity to either side (2 x Gauss width)
             double max_velocity = 2.0 / grid->getGaussA(final_cell);
 
+            // Obtain magnetic field strength and orientation
+            double cos_theta = 0, sin_theta = 0, cos_2_phi = 0, sin_2_phi = 0;
+            Vector3D mag_field;
+
             // Each cell automatically converged except the last one for local iteration
             // See Pavlyuchenkov & Shustov (2003)
             double * J_nu_total = new double[nr_of_transitions];
@@ -824,14 +828,19 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                 }
 
                 // Perform radiative transfer for each chosen spectral line transition
+                // -> including Zeeman sublevel!
                 for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                 {
+                    uint i_lvl_u = gas->getUpperEnergyLevel(i_species, i_trans);
+                    uint i_lvl_l = gas->getLowerEnergyLevel(i_species, i_trans);
+
                     // Get rest frequency of current transition
                     double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
 
                     // A loop for each photon
                     for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
                     {
+
                         // Init photon package
                         photon_package * pp = new photon_package();
 
@@ -874,9 +883,40 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                             rayThroughCellForLvlPop(pp, i_species, i_trans);
                         }
 
-                        // Add energy to the corresponding part
-                        double energy = pp->getStokesVector().I() / nr_of_photons;
-                        only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
+                        // Two loops for each possible transition between sublevels
+                        for(uint i_sublvl_u = 0; i_sublvl_u < gas->getNrOfSublevel(i_species, i_lvl_u);
+                            i_sublvl_u++)
+                        {
+                            float sublvl_u = -gas->getMaxM(i_species, i_lvl_u) + i_sublvl_u;
+
+                            for(uint i_sublvl_l = 0; i_sublvl_l < gas->getNrOfSublevel(i_species, i_lvl_l);
+                                i_sublvl_l++)
+                            {
+                                float sublvl_l =
+                                    max(sublvl_u - 1, -gas->getMaxM(i_species, i_lvl_l)) + i_sublvl_l;
+
+                                // !!! LINE STRENGTH VIA TRANSITION AND NOT ONLY SPECTRAL LINE !!!
+                                double radiation_field_factor =
+                                    gas->getLineStrengthSigmaP(i_species, i_line, i_sublevel);
+                                if(int(sublvl_l - sublvl_u) == -1 || int(sublvl_l - sublvl_u) == 1)
+                                {
+                                    radiation_field_factor = (1 + cos_theta * cos_theta);
+                                }
+                                else if(int(sublvl_l - sublvl_u) == 0)
+                                {
+                                    radiation_field_factor = sin_theta * sin_theta;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+
+                                // Add energy to the corresponding part
+                                double energy =
+                                    pp->getStokesVector().I() * radiation_field_factor / nr_of_photons;
+                                only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
+                            }
+                        }
 
                         // Delete the pp pointer
                         delete pp;
@@ -968,6 +1008,8 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
     // Get gas temperature from grid
     double temp_gas = grid->getGasTemperature(pp);
 
+    Matrix2D alpha_ges;
+
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
     if(temp_gas >= 1e-200)
@@ -1015,7 +1057,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             // Init Runge-Kutta parameters and set it to zero
             // (see
             // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
-            double * RK_k = new double[6];
+            StokesVector * RK_k = new StokesVector[6];
 
             // Calculate result of the radiative transfer equation at each
             // Runge-Kutta sub position
@@ -1026,30 +1068,31 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                     grid, pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
 
                 double rel_velocity = pp->getVelocity() - cell_velocity;
-                double line_shape = gas->getGaussLineShape(grid, pp, i_species, rel_velocity);
+                Matrix2D line_matrix = gas->getGaussLineMatrix(grid, pp, i_species, rel_velocity);
 
                 // Combine the Stokes vectors from gas and dust
                 // for emission and extinction
-                double S_ges = line_shape * S_gas.I() + S_dust.I();
-                double alpha_ges = S_gas.T() * line_shape;
+                StokesVector S_ges = line_matrix * S_gas + S_dust;
+                alpha_ges = S_gas.T() * line_matrix;
 
                 if(S_dust.T() != 0)
-                    alpha_ges += S_dust.T();
+                    for(uint i = 0; i < 4; i++)
+                        alpha_ges(i, i) += S_dust.T();
                 alpha_ges *= -1;
 
                 // Calculate multiplication between Runge-Kutta parameter
-                double scalar_product = 0;
+                StokesVector scalar_product = 0;
                 for(uint i = 0; i <= k; i++)
                     scalar_product += (RK_k[i] * RK_a(i, k));
 
                 // Calculate new Runge-Kutta parameters as the result of the
                 // radiative transfer equation at the Runge-Kutta sub positions
-                RK_k[k] = alpha_ges * (scalar_product * cell_d_l + pp->getStokesVector().I()) + S_ges;
+                RK_k[k] = alpha_ges * (scalar_product * cell_d_l + pp->getStokesVector()) + S_ges;
             }
 
             // Init two temporary Stokes vectors
-            double stokes_new = pp->getStokesVector().I();
-            double stokes_new2 = pp->getStokesVector().I();
+            StokesVector stokes_new = pp->getStokesVector();
+            StokesVector stokes_new2 = pp->getStokesVector();
             for(uint i = 0; i < 6; i++)
             {
                 stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
@@ -1060,30 +1103,21 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             delete[] RK_k;
 
             // Ignore very small values
-            if(abs(stokes_new) < 1e-200)
+            if(abs(stokes_new.I()) < 1e-200)
                 stokes_new = 0;
-            if(abs(stokes_new2) < 1e-200)
+            if(abs(stokes_new2.I()) < 1e-200)
                 stokes_new2 = 0;
 
             // Calculate the difference between the results with two
             // different precisions to see if smaller steps are needed
-            double epsi = 2.0, dz_new = 0.9 * cell_d_l;
-            if(stokes_new2 >= 0 && stokes_new >= 0)
-            {
-                // Add MC_LVL_POP_DIFF_LIMIT to achieve high precision required for convergence
-                double rel_error = REL_ERROR;
-                if(pp->reachedBackupPosition())
-                    rel_error *= MC_LVL_POP_DIFF_LIMIT;
-
-                epsi = abs(stokes_new2 - stokes_new) / (rel_error * abs(stokes_new) + ABS_ERROR);
-                dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-            }
+            double epsi, dz_new;
+            calcStepWidthI(stokes_new, stokes_new2, cell_d_l, epsi, dz_new, pp->reachedBackupPosition());
 
             // Is a smaller step width needed
             if(epsi <= 1.0)
             {
                 // Stokes_new is the current flux of this line-of-sight
-                pp->setStokesVector(StokesVector(stokes_new, 0, 0, 0));
+                pp->setStokesVector(stokes_new);
 
                 // Update the position of the photon package
                 pos_xyz_cell += cell_d_l * pp->getDirection();
