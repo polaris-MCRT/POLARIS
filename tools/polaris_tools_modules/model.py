@@ -267,9 +267,9 @@ class Sphere(Model):
         Returns:
             float: Gas density at a given position.
         """
-        gas_density = self.math.sphere_density(self.position,
-                                               outer_radius=self.parameter['outer_radius'],
-                                               inner_radius=self.parameter['inner_radius'])
+        gas_density = self.math.const_sphere_density(self.position,
+                                                     outer_radius=self.parameter['outer_radius'],
+                                                     inner_radius=self.parameter['inner_radius'])
         return gas_density
 
     def magnetic_field(self):

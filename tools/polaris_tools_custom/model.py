@@ -265,10 +265,10 @@ class TestModel(Model):
         Returns:
             float: Gas density at a given position.
         """
-        gas_density1 = self.math.sphere_density(self.position,
+        gas_density1 = self.math.const_sphere_density(self.position,
                                                 inner_radius=self.parameter['inner_radius'],
                                                 outer_radius=self.parameter['outer_radius'])
-        # gas_density2 = self.math.sphere_density(self.position,
+        # gas_density2 = self.math.const_sphere_density(self.position,
         #                                         inner_radius=100. *
         #                                         self.parameter['inner_radius'],
         #                                         outer_radius=self.parameter['outer_radius'])

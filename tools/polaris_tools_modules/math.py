@@ -1336,7 +1336,7 @@ class Math:
         return scale_height
 
     @staticmethod
-    def sphere_density(position, outer_radius, inner_radius=None):
+    def const_sphere_density(position, outer_radius, inner_radius=None):
         """Density profile with a sphere of constant density.
 
         Args:

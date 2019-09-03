@@ -853,7 +853,7 @@ class Model:
             Possible options:
                 gas_density = 1.
                 gas_density = self.math.shakura_disk(self.position)
-                gas_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                gas_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 gas_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -868,7 +868,7 @@ class Model:
             Possible options:
                 dust_density = 1.
                 dust_density = self.math.shakura_disk(self.position)
-                dust_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                dust_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 dust_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -1376,7 +1376,7 @@ class ExternalInput:
             Possible options:
                 gas_density = 1.
                 gas_density = self.math.shakura_disk(self.position)
-                gas_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                gas_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 gas_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -1391,7 +1391,7 @@ class ExternalInput:
             Possible options:
                 dust_density = 1.
                 dust_density = self.math.shakura_disk(self.position)
-                dust_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                dust_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 dust_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
