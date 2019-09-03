@@ -3068,7 +3068,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                                             uint i_det,
                                             uint nr_velocity_channels,
                                             bool zero_vel_field,
-                                            spline vel_field,
+                                            const spline & vel_field,
                                             Vector3D pos_in_grid_0)
 {
     // Get gas temperature from grid

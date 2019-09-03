@@ -220,7 +220,7 @@ class CRadiativeTransfer
                             uint i_det,
                             uint nr_velocity_channels,
                             bool zero_vel_field = true,
-                            spline vel_field = spline(),
+                            const spline & vel_field = spline(),
                             Vector3D pos_in_grid_0 = Vector3D());
 
     // Calc radiation pressure
