@@ -27,9 +27,6 @@ class CGasSpecies
         gas_species_radius = 0;
 
         nr_zeeman_spectral_lines = 0;
-        zeeman_spectral_lines = 0;
-        zeeman_splitting = false;
-        level_is_zeeman_split = 0;
 
         j_level = 0;
         g_level = 0;
@@ -37,7 +34,9 @@ class CGasSpecies
         nr_of_col_transition = 0;
 
         spectral_lines = 0;
+
         level_to_index = 0;
+        trans_to_index = 0;
 
         upper_level = 0;
         lower_level = 0;
@@ -52,16 +51,8 @@ class CGasSpecies
         orientation_H2 = 0;
         nr_of_col_temp = 0;
 
-        lande_upper = 0;
-        lande_lower = 0;
-
-        nr_sublevels_upper = 0;
-        nr_sublevels_lower = 0;
-
-        nr_sublevels = 0;
-
-        nr_pi_spectral_lines = 0;
-        nr_sigma_spectral_lines = 0;
+        lande_factor = 0;
+        nr_of_sublevel = 0;
 
         collision_temp = 0;
 
@@ -113,6 +104,13 @@ class CGasSpecies
             delete[] level_to_index;
         }
 
+        if(trans_to_index != 0)
+        {
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                delete[] trans_to_index[i_trans];
+            delete[] trans_to_index;
+        }
+
         if(energy_level != 0)
             delete[] energy_level;
 
@@ -137,26 +135,8 @@ class CGasSpecies
         if(orientation_H2 != 0)
             delete[] orientation_H2;
 
-        if(lande_upper != 0)
-            delete[] lande_upper;
-
-        if(lande_lower != 0)
-            delete[] lande_lower;
-
-        if(nr_sublevels_upper != 0)
-            delete[] nr_sublevels_upper;
-
-        if(nr_sublevels_lower != 0)
-            delete[] nr_sublevels_lower;
-
-        if(nr_sublevels != 0)
-            delete[] nr_sublevels;
-
-        if(nr_pi_spectral_lines != 0)
-            delete[] nr_pi_spectral_lines;
-
-        if(nr_sigma_spectral_lines != 0)
-            delete[] nr_sigma_spectral_lines;
+        if(nr_of_sublevel != 0)
+            delete[] nr_of_sublevel;
 
         if(nr_of_col_temp != 0)
             delete[] nr_of_col_temp;
@@ -198,7 +178,7 @@ class CGasSpecies
 
         if(line_strength_pi != 0)
         {
-            for(uint i = 0; i < nr_of_spectral_lines; i++)
+            for(uint i = 0; i < nr_of_transitions; i++)
                 if(line_strength_pi[i] != 0)
                 {
                     delete[] line_strength_pi[i];
@@ -209,7 +189,7 @@ class CGasSpecies
 
         if(line_strength_sigma_p != 0)
         {
-            for(uint i = 0; i < nr_of_spectral_lines; i++)
+            for(uint i = 0; i < nr_of_transitions; i++)
                 if(line_strength_sigma_p[i] != 0)
                 {
                     delete[] line_strength_sigma_p[i];
@@ -220,7 +200,7 @@ class CGasSpecies
 
         if(line_strength_sigma_m != 0)
         {
-            for(uint i = 0; i < nr_of_spectral_lines; i++)
+            for(uint i = 0; i < nr_of_transitions; i++)
                 if(line_strength_sigma_m[i] != 0)
                 {
                     delete[] line_strength_sigma_m[i];
@@ -228,9 +208,6 @@ class CGasSpecies
                 }
             line_strength_sigma_m = 0;
         }
-
-        if(level_is_zeeman_split != 0)
-            delete[] level_is_zeeman_split;
     }
 
     string getGasSpeciesName()
@@ -238,19 +215,19 @@ class CGasSpecies
         return stringID;
     }
 
-    double getLineStrengthSigmaP(uint i_line, uint i_sublevel)
+    double getLineStrengthSigmaP(uint i_trans, uint i_sigma_p)
     {
-        return line_strength_sigma_p[i_line][i_sublevel];
+        return line_strength_sigma_p[i_trans][i_sigma_p];
     }
 
-    double getLineStrengthSigmaM(uint i_line, uint i_sublevel)
+    double getLineStrengthSigmaM(uint i_trans, uint i_sigma_m)
     {
-        return line_strength_sigma_m[i_line][i_sublevel];
+        return line_strength_sigma_m[i_trans][i_sigma_m];
     }
 
-    double getLineStrengthPi(uint i_line, uint i_sublevel)
+    double getLineStrengthPi(uint i_trans, uint i_pi)
     {
-        return line_strength_pi[i_line][i_sublevel];
+        return line_strength_pi[i_trans][i_pi];
     }
 
     double getAbundance()
@@ -329,14 +306,16 @@ class CGasSpecies
         return col_matrix[m][n][k];
     }
 
-    double getLandeUpper(uint i_line)
+    double getLandeUpper(uint i_trans)
     {
-        return lande_upper[i_line];
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+        return lande_factor[i_lvl_u];
     }
 
-    double getLandeLower(uint i_line)
+    double getLandeLower(uint i_trans)
     {
-        return lande_lower[i_line];
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
+        return lande_factor[i_lvl_l];
     }
 
     double getLande(uint i_lvl)
@@ -397,7 +376,7 @@ class CGasSpecies
         return dens_species;
     }
 
-    void initReferenceList()
+    void initReferenceLists()
     {
         // Init first dimension of 2D array
         level_to_index = new uint *[nr_of_energy_level];
@@ -416,11 +395,74 @@ class CGasSpecies
                 i_lvl_unique++;
             }
         }
+
+        // Init first dimension of 2D array
+        trans_to_index = new uint **[nr_of_transitions];
+
+        uint i_trans_unique = 0;
+        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+        {
+            // Get all indices and number of sublevels
+            uint i_lvl_u = getUpperEnergyLevel(i_trans);
+            uint i_lvl_l = getLowerEnergyLevel(i_trans);
+            uint nr_of_sublevel_u = getNrOfSublevel(i_lvl_u);
+            uint nr_of_sublevel_l = getNrOfSublevel(i_lvl_l);
+
+            // Init second dimension of 2D array
+            trans_to_index[i_trans] = new uint *[nr_of_sublevel_u];
+
+            for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel_u; i_sublvl_u++)
+            {
+                // Init third dimension of 2D array
+                trans_to_index[i_trans][i_sublvl_u] = new uint[nr_of_sublevel_l];
+
+                for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel_l; i_sublvl_l++)
+                {
+                    trans_to_index[i_trans][i_sublvl_u][i_sublvl_l] = i_trans_unique;
+                    i_trans_unique++;
+                }
+            }
+        }
+    }
+
+    bool isLevelZeemanSplit(uint i_lvl)
+    {
+        if(getNrOfSublevel(i_lvl) > 1)
+            return true;
+        return false;
+    }
+
+    bool isTransZeemanSplit(uint i_trans)
+    {
+        if(getNrOfSublevelLower(i_trans) > 1 || getNrOfSublevelUpper(i_trans) > 1)
+            return true;
+        return false;
+    }
+
+    bool isLineZeemanSplit(uint i_line)
+    {
+        uint i_trans = getTransitionFromSpectralLine(i_line);
+        return isTransZeemanSplit(i_trans);
+    }
+
+    bool isZeemanSplit()
+    {
+        for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        {
+            if(isLevelZeemanSplit(i_lvl))
+                return true;
+        }
+        return false;
     }
 
     uint getUniqueLevelIndex(uint i_lvl, uint i_sublvl)
     {
         return level_to_index[i_lvl][i_sublvl];
+    }
+
+    uint getUniqueTransitionIndex(uint i_trans, uint i_sublvl_u = 0, uint i_sublvl_l = 0)
+    {
+        return trans_to_index[i_trans][i_sublvl_u][i_sublvl_l];
     }
 
     uilist getUniqueTransitions()
@@ -462,6 +504,23 @@ class CGasSpecies
         return res;
     }
 
+    uint getNrOfTotalTransitions()
+    /*
+    Including Zeeman sublevels
+    */
+    {
+        uint res = 0;
+        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+        {
+            uint i_lvl_u = getUpperEnergyLevel(i_trans);
+            uint i_lvl_l = getLowerEnergyLevel(i_trans);
+
+            // Includes the 1 for no Zeeman split energy levels
+            res += getNrOfSublevel(i_lvl_u) * getNrOfSublevel(i_lvl_l);
+        }
+        return res;
+    }
+
     uint getNrOfTransitions()
     {
         return nr_of_transitions;
@@ -492,44 +551,38 @@ class CGasSpecies
         return orientation_H2[i_col_partner];
     }
 
-    int getNrOfSublevelUpper(uint i_line)
+    int getNrOfSublevelUpper(uint i_trans)
     {
-        return nr_sublevels_upper[i_line];
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+        return nr_of_sublevel[i_lvl_u];
     }
 
-    int getNrOfSublevelLower(uint i_line)
+    int getNrOfSublevelLower(uint i_trans)
     {
-        return nr_sublevels_lower[i_line];
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
+        return nr_of_sublevel[i_lvl_l];
     }
 
     int getNrOfSublevel(uint i_lvl)
     {
-        return nr_sublevels[i_lvl];
+        return nr_of_sublevel[i_lvl];
     }
 
-    float getMaxMUpper(uint i_line)
+    float getMaxMUpper(uint i_trans)
     {
-        return float((nr_sublevels_upper[i_line] - 1) / 2.0);
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+        return float((getNrOfSublevel(i_lvl_u) - 1) / 2.0);
     }
 
-    float getMaxMLower(uint i_line)
+    float getMaxMLower(uint i_trans)
     {
-        return float((nr_sublevels_lower[i_line] - 1) / 2.0);
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
+        return float((getNrOfSublevel(i_lvl_l) - 1) / 2.0);
     }
 
     float getMaxM(uint i_lvl)
     {
-        return float((nr_sublevels[i_lvl] - 1) / 2.0);
-    }
-
-    bool getZeemanSplitting()
-    {
-        return zeeman_splitting;
-    }
-
-    bool hasZeemanSplitting(uint i_lvl)
-    {
-        return level_is_zeeman_split[i_lvl];
+        return float((nr_of_sublevel[i_lvl] - 1) / 2.0);
     }
 
     void setLevelPopType(uint type)
@@ -612,9 +665,26 @@ class CGasSpecies
                            double cos_2_phi,
                            double sin_2_phi)
     {
-        if(getZeemanSplitting())
-            return getZeemanSplittingMatrix(
-                grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+        uint i_trans = getTransitionFromSpectralLine(i_line);
+
+        if(isTransZeemanSplit(i_trans))
+        {
+            double Gamma = grid->getGamma(pp, i_line);
+            double doppler_width = grid->getDopplerWidth(pp, i_line);
+            double voigt_a = grid->getVoigtA(pp, i_line);
+
+            return getZeemanSplittingMatrix(pp,
+                                            i_trans,
+                                            velocity,
+                                            Gamma,
+                                            doppler_width,
+                                            voigt_a,
+                                            mag_field,
+                                            cos_theta,
+                                            sin_theta,
+                                            cos_2_phi,
+                                            sin_2_phi);
+        }
         else
             return getGaussLineMatrix(grid, pp, velocity);
     }
@@ -622,10 +692,12 @@ class CGasSpecies
     Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity);
     double getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity);
 
-    Matrix2D getZeemanSplittingMatrix(CGridBasic * grid,
-                                      photon_package * pp,
-                                      uint i_line,
+    Matrix2D getZeemanSplittingMatrix(photon_package * pp,
+                                      uint i_trans,
                                       double velocity,
+                                      double Gamma,
+                                      double doppler_width,
+                                      double voigt_a,
                                       Vector3D mag_field,
                                       double cos_theta,
                                       double sin_theta,
@@ -638,6 +710,7 @@ class CGasSpecies
                                              uint i_trans,
                                              uint i_sublvl_u,
                                              uint i_sublvl_l);
+    StokesVector calcEmissivityForTransition(CGridBasic * grid, cell_basic * cell, uint i_trans);
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
@@ -650,7 +723,9 @@ class CGasSpecies
                     double doppler,
                     double L,
                     double J_ext,
-                    uint i_trans);
+                    uint i_trans,
+                    uint i_sublvl_u,
+                    uint i_sublvl_l);
 
     void createMatrix(double * J_mid, Matrix2D & A, double * b, double *** final_col_para);
 
@@ -660,6 +735,12 @@ class CGasSpecies
 
     bool readGasParamaterFile(string filename, uint id, uint max);
     bool readZeemanParamaterFile(string filename);
+
+    void applyRadiationFieldFactor(uint i_trans,
+                                   double sin_theta,
+                                   double cos_theta,
+                                   double energy,
+                                   double * J_nu);
 
   private:
     double ** collision_temp;
@@ -687,15 +768,13 @@ class CGasSpecies
     uint lvl_pop_type;
 
     uint ** level_to_index;
+    uint *** trans_to_index;
 
     uilist unique_spectral_lines;
 
     int * nr_of_col_transition;
     int * nr_of_col_temp;
-    int * nr_sublevels;
-    int *nr_sublevels_upper, *nr_sublevels_lower;
-    int *nr_pi_spectral_lines, *nr_sigma_spectral_lines;
-    int * zeeman_spectral_lines;
+    int * nr_of_sublevel;
     int * spectral_lines;
 
     double * energy_level;
@@ -705,16 +784,13 @@ class CGasSpecies
     double *trans_einstA, *trans_einstB_l, *trans_einstB_u;
     double *trans_freq, *trans_inner_energy;
     int * orientation_H2;
-    double *lande_upper, *lande_lower, *lande_factor;
+    double * lande_factor;
 
     string stringID;
     string filename;
     string catalog_path;
 
     ostringstream velocity_information;
-
-    bool zeeman_splitting;
-    bool * level_is_zeeman_split;
 };
 
 class CGasMixture
@@ -793,9 +869,24 @@ class CGasMixture
         return updateZeemanLevelPopulation(grid, pp->getPositionCell(), i_species, i_line, sublvl_fraction);
     }
 
-    bool getZeemanSplitting(uint i_species)
+    bool isLineZeemanSplit(uint i_species, uint i_line)
     {
-        return single_species[i_species].getZeemanSplitting();
+        return single_species[i_species].isLineZeemanSplit(i_line);
+    }
+
+    bool isTransZeemanSplit(uint i_species, uint i_trans)
+    {
+        return single_species[i_species].isTransZeemanSplit(i_trans);
+    }
+
+    bool isLevelZeemanSplit(uint i_species, uint i_lvl)
+    {
+        return single_species[i_species].isLevelZeemanSplit(i_lvl);
+    }
+
+    bool isZeemanSplit(uint i_species)
+    {
+        return single_species[i_species].isZeemanSplit();
     }
 
     uilist getUniqueTransitions(uint i_species)
@@ -838,24 +929,24 @@ class CGasMixture
         return single_species[i_species].getLowerEnergyLevel(i_trans);
     }
 
-    int getNrOfSublevelUpper(uint i_species, uint i_line)
+    int getNrOfSublevelUpper(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getNrOfSublevelUpper(i_line);
+        return single_species[i_species].getNrOfSublevelUpper(i_trans);
     }
 
-    int getNrOfSublevelLower(uint i_species, uint i_line)
+    int getNrOfSublevelLower(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getNrOfSublevelLower(i_line);
+        return single_species[i_species].getNrOfSublevelLower(i_trans);
     }
 
-    float getMaxMUpper(uint i_species, uint i_line)
+    float getMaxMUpper(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getMaxMUpper(i_line);
+        return single_species[i_species].getMaxMUpper(i_trans);
     }
 
-    float getMaxMLower(uint i_species, uint i_line)
+    float getMaxMLower(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getMaxMLower(i_line);
+        return single_species[i_species].getMaxMLower(i_trans);
     }
 
     float getMaxM(uint i_species, uint i_lvl)
@@ -868,14 +959,14 @@ class CGasMixture
         return single_species[i_species].getAbundance();
     }
 
-    double getLandeUpper(uint i_species, uint i_line)
+    double getLandeUpper(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getLandeUpper(i_line);
+        return single_species[i_species].getLandeUpper(i_trans);
     }
 
-    double getLandeLower(uint i_species, uint i_line)
+    double getLandeLower(uint i_species, uint i_trans)
     {
-        return single_species[i_species].getLandeLower(i_line);
+        return single_species[i_species].getLandeLower(i_trans);
     }
 
     double getLande(uint i_species, uint i_lvl)
@@ -888,19 +979,19 @@ class CGasMixture
         return single_species[i_species].getCollisionRadius();
     }
 
-    double getLineStrengthSigmaP(uint i_species, uint i_line, uint i_sublevel)
+    double getLineStrengthSigmaP(uint i_species, uint i_trans, uint i_sigma_p)
     {
-        return single_species[i_species].getLineStrengthSigmaP(i_line, i_sublevel);
+        return single_species[i_species].getLineStrengthSigmaP(i_trans, i_sigma_p);
     }
 
-    double getLineStrengthSigmaM(uint i_species, uint i_line, uint i_sublevel)
+    double getLineStrengthSigmaM(uint i_species, uint i_trans, uint i_sigma_m)
     {
-        return single_species[i_species].getLineStrengthSigmaM(i_line, i_sublevel);
+        return single_species[i_species].getLineStrengthSigmaM(i_trans, i_sigma_m);
     }
 
-    double getLineStrengthPi(uint i_species, uint i_line, uint i_sublevel)
+    double getLineStrengthPi(uint i_species, uint i_trans, uint i_pi)
     {
-        return single_species[i_species].getLineStrengthPi(i_line, i_sublevel);
+        return single_species[i_species].getLineStrengthPi(i_trans, i_pi);
     }
 
     double getMolecularWeight(uint i_species)
@@ -923,6 +1014,11 @@ class CGasMixture
     uint getNrOfTransitions(uint i_species)
     {
         return single_species[i_species].getNrOfTransitions();
+    }
+
+    uint getNrOfTotalTransitions(uint i_species)
+    {
+        return single_species[i_species].getNrOfTotalTransitions();
     }
 
     uint getTransitionFromSpectralLine(uint i_species, uint i_line)
@@ -968,6 +1064,16 @@ class CGasMixture
     void calcLineBroadening(CGridBasic * grid, uint i_species)
     {
         single_species[i_species].calcLineBroadening(grid);
+    }
+
+    void applyRadiationFieldFactor(uint i_species,
+                                   uint i_trans,
+                                   double sin_theta,
+                                   double cos_theta,
+                                   double energy,
+                                   double * J_nu)
+    {
+        single_species[i_species].applyRadiationFieldFactor(i_trans, sin_theta, cos_theta, energy, J_nu);
     }
 
     Matrix2D getLineMatrix(CGridBasic * grid,
@@ -1031,8 +1137,24 @@ class CGasMixture
                                              uint i_sublvl_u,
                                              uint i_sublvl_l)
     {
-        return single_species[i_species].calcEmissivityForTransition(
-            grid, pp->getPositionCell(), i_trans, i_sublvl_u, i_sublvl_l);
+        return calcEmissivityForTransition(
+            grid, pp->getPositionCell(), i_species, i_trans, i_sublvl_u, i_sublvl_l);
+    }
+
+    StokesVector calcEmissivityForTransition(CGridBasic * grid,
+                                             cell_basic * cell,
+                                             uint i_species,
+                                             uint i_trans)
+    {
+        return single_species[i_species].calcEmissivityForTransition(grid, cell, i_trans);
+    }
+
+    StokesVector calcEmissivityForTransition(CGridBasic * grid,
+                                             photon_package * pp,
+                                             uint i_species,
+                                             uint i_trans)
+    {
+        return calcEmissivityForTransition(grid, pp->getPositionCell(), i_species, i_trans);
     }
 
     uint getNrOfSublevel(uint i_species, uint i_lvl)

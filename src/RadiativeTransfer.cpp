@@ -745,9 +745,11 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
 
     // Get number of spectral line transitions that have to be simulated
     uint nr_of_transitions = gas->getNrOfTransitions(i_species);
+    // With Zeeman subtransitions
+    uint nr_of_total_transitions = gas->getNrOfTotalTransitions(i_species);
 
     // If no spectral line transitions are chosen for the current gas species, skip
-    if(nr_of_transitions == 0)
+    if(nr_of_total_transitions == 0)
         return false;
 
     // Calculate the level populations for each cell (initial guess, LTE)
@@ -793,12 +795,12 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
 
             // Each cell automatically converged except the last one for local iteration
             // See Pavlyuchenkov & Shustov (2003)
-            double * J_nu_total = new double[nr_of_transitions];
-            double * J_nu_in = new double[nr_of_transitions];
-            double * J_nu_in_old = new double[nr_of_transitions];
+            double * J_nu_total = new double[nr_of_total_transitions];
+            double * J_nu_in = new double[nr_of_total_transitions];
+            double * J_nu_in_old = new double[nr_of_total_transitions];
 
             // Init pointer arrays with zero
-            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            for(uint i_trans = 0; i_trans < nr_of_total_transitions; i_trans++)
             {
                 J_nu_total[i_trans] = 0;
                 J_nu_in[i_trans] = 0;
@@ -831,16 +833,12 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                 // -> including Zeeman sublevel!
                 for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
                 {
-                    uint i_lvl_u = gas->getUpperEnergyLevel(i_species, i_trans);
-                    uint i_lvl_l = gas->getLowerEnergyLevel(i_species, i_trans);
-
                     // Get rest frequency of current transition
                     double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
 
                     // A loop for each photon
                     for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
                     {
-
                         // Init photon package
                         photon_package * pp = new photon_package();
 
@@ -883,40 +881,13 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                             rayThroughCellForLvlPop(pp, i_species, i_trans);
                         }
 
-                        // Two loops for each possible transition between sublevels
-                        for(uint i_sublvl_u = 0; i_sublvl_u < gas->getNrOfSublevel(i_species, i_lvl_u);
-                            i_sublvl_u++)
-                        {
-                            float sublvl_u = -gas->getMaxM(i_species, i_lvl_u) + i_sublvl_u;
-
-                            for(uint i_sublvl_l = 0; i_sublvl_l < gas->getNrOfSublevel(i_species, i_lvl_l);
-                                i_sublvl_l++)
-                            {
-                                float sublvl_l =
-                                    max(sublvl_u - 1, -gas->getMaxM(i_species, i_lvl_l)) + i_sublvl_l;
-
-                                // !!! LINE STRENGTH VIA TRANSITION AND NOT ONLY SPECTRAL LINE !!!
-                                double radiation_field_factor =
-                                    gas->getLineStrengthSigmaP(i_species, i_line, i_sublevel);
-                                if(int(sublvl_l - sublvl_u) == -1 || int(sublvl_l - sublvl_u) == 1)
-                                {
-                                    radiation_field_factor = (1 + cos_theta * cos_theta);
-                                }
-                                else if(int(sublvl_l - sublvl_u) == 0)
-                                {
-                                    radiation_field_factor = sin_theta * sin_theta;
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-
-                                // Add energy to the corresponding part
-                                double energy =
-                                    pp->getStokesVector().I() * radiation_field_factor / nr_of_photons;
-                                only_J_in ? J_nu_in[i_trans] += energy : J_nu_total[i_trans] += energy;
-                            }
-                        }
+                        // Add energy to the corresponding radiation field entry
+                        gas->applyRadiationFieldFactor(i_species,
+                                                       i_trans,
+                                                       sin_theta,
+                                                       cos_theta,
+                                                       pp->getStokesVector().I() / nr_of_photons,
+                                                       only_J_in ? J_nu_in : J_nu_total);
 
                         // Delete the pp pointer
                         delete pp;
@@ -929,11 +900,11 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     local_converged = true;
 
                     // Each transition need to converge
-                    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                    for(uint i_trans_tot = 0; i_trans_tot < nr_of_total_transitions; i_trans_tot++)
                     {
                         // Check if limit is reached
-                        if(abs(J_nu_in[i_trans] - J_nu_in_old[i_trans]) >
-                           MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans] + MC_LVL_POP_LIMIT)
+                        if(abs(J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot]) >
+                           MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans_tot] + MC_LVL_POP_LIMIT)
                         {
                             // Not converged
                             local_converged = false;
@@ -944,8 +915,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     // If not converged, update full radiation field
                     if(!local_converged)
                     {
-                        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-                            J_nu_total[i_trans] += J_nu_in[i_trans] - J_nu_in_old[i_trans];
+                        for(uint i_trans_tot = 0; i_trans_tot < nr_of_total_transitions; i_trans_tot++)
+                            J_nu_total[i_trans_tot] += J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot];
                     }
                 }
 
@@ -962,10 +933,10 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                 }
 
                 // Backup last iteration and reset J_in for next one
-                for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                for(uint i_trans_tot = 0; i_trans_tot < nr_of_total_transitions; i_trans_tot++)
                 {
-                    J_nu_in_old[i_trans] = J_nu_in[i_trans];
-                    J_nu_in[i_trans] = 0;
+                    J_nu_in_old[i_trans_tot] = J_nu_in[i_trans_tot];
+                    J_nu_in[i_trans_tot] = 0;
                 }
             }
 
@@ -1896,9 +1867,6 @@ double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
 
 bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 {
-    // Init math environment
-    CMathFunctions mf;
-
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist sync_ray_detectors = param.getSyncRayDetectors();
 
@@ -2875,7 +2843,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
         for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
         {
             uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
-            if(gas->getZeemanSplitting(i_species) && nr_velocity_channels < 6)
+            if(gas->isLineZeemanSplit(i_species, i_line) && nr_velocity_channels < 6)
             {
                 cout << "\nERROR: The magnetic field information requires at least 6 "
                         "channels\n"
@@ -3114,7 +3082,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
     {
         double cos_theta = 0, sin_theta = 0, cos_2_phi = 0, sin_2_phi = 0;
         Vector3D mag_field;
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isLineZeemanSplit(i_species, i_line))
             grid->getMagFieldOrientation(pp, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
 
         // Get the path length through the current cell
@@ -3250,7 +3218,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     // Columns density
                     double column_density = dens_gas * cell_d_l;
 
-                    if(gas->getZeemanSplitting(i_species))
+                    if(gas->isLineZeemanSplit(i_species, i_line))
                     {
                         // Total increase of the intensity along the line-of-sight
                         double column_flux = (stokes_new.I() - old_stokes);

@@ -1759,7 +1759,7 @@ class CDetector
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -1953,7 +1953,7 @@ class CDetector
             pFits->pHDU().addKey(
                 "MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             pFits->pHDU().addKey("ZEEMAN",
-                                 gas->getZeemanSplitting(i_species),
+                                 gas->isTransZeemanSplit(i_species, i_trans),
                                  "is zeeman splitting in the simulations considered (1=yes/0=no)");
             pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
             pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -1968,7 +1968,7 @@ class CDetector
 
         // Writing extra fits file for Zeeman data or column density
         uint nr_of_quantities = 1;
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
             nr_of_quantities += 4;
 
         long naxis = 3;
@@ -2022,7 +2022,7 @@ class CDetector
                     if(i_extra == 0)
                     {
                         // column density of the total gas
-                        if(gas->getZeemanSplitting(i_species))
+                        if(gas->isTransZeemanSplit(i_species, i_trans))
                             array_S[i] = matrixS[5](i_x, i_y);
                         else
                             array_S[i] = matrixS[0](i_x, i_y);
@@ -2167,7 +2167,7 @@ class CDetector
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -2367,7 +2367,7 @@ class CDetector
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -2503,7 +2503,7 @@ class CDetector
             newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
             newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             newTable->addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
             newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
             newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -2556,7 +2556,7 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 1;
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
             nr_of_quantities += 4;
         vector<string> colName(nr_of_quantities, "");
         vector<string> colForm(nr_of_quantities, "");
@@ -2566,7 +2566,7 @@ class CDetector
         colForm[0] = "D";
         colUnit[0] = "m^-2";
 
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
         {
             colName[1] = "INTENSITY WEIGHTED LOS MAGNETIC FIELD";
             colName[2] = "INTENSITY WEIGHTED TOTAL MAGNETIC FIELD";
@@ -2597,7 +2597,7 @@ class CDetector
                     if(i_extra == 0)
                     {
                         // column density of the total gas
-                        if(gas->getZeemanSplitting(i_species))
+                        if(gas->isTransZeemanSplit(i_species, i_trans))
                             array_S[i] = matrixS[5](i_x, i_y);
                         else
                             array_S[i] = matrixS[0](i_x, i_y);
@@ -2662,7 +2662,7 @@ class CDetector
         newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
-                         gas->getZeemanSplitting(i_species),
+                         gas->isTransZeemanSplit(i_species, i_trans),
                          "is zeeman splitting in the simulations considered (1=yes/0=no)");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -2806,7 +2806,7 @@ class CDetector
         newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
-                         gas->getZeemanSplitting(i_species),
+                         gas->isTransZeemanSplit(i_species, i_trans),
                          "is zeeman splitting in the simulations considered (1=yes/0=no)");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
