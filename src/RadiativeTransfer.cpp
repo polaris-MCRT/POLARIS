@@ -2982,17 +2982,19 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
 
     // Get transition frequency from current species and line
     double wavelength = con_c / gas->getSpectralLineFrequency(i_species, i_line);
-    pp->setFrequency(dust->getWavelengthID(wavelength), wavelength);
+    pp->setWavelength(dust->getWavelengthID(wavelength), wavelength);
 
     // velocity interpolation
     spline vel_field;
     bool zero_vel_field = true;
 
+    // Number of velocity channels from tracer
     uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
 
+    // Set background radiation field
     for(uint vch = 0; vch < nr_velocity_channels; vch++)
-        pp->setMultiStokesVector(
-            tmp_source->getStokesVector(pp) * con_c / (pp->getFrequency() * pp->getFrequency()), vch);
+        pp->setMultiStokesVector(tmp_source->getStokesVector(pp) * pp->getWavelength() / pp->getFrequency(),
+                                 vch);
 
     if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
     {
