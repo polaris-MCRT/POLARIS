@@ -2136,114 +2136,102 @@ class CMathFunctions
         ez.normalize();
     }
 
-    static inline Matrix2D getPropMatrixASigmaP(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 3, -2 * cos_theta * mult);
-        propMatrix.addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(3, 0, -2 * cos_theta * mult);
-        propMatrix.addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixASigmaM(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 3, +2 * cos_theta * mult);
-        propMatrix.addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(3, 0, +2 * cos_theta * mult);
-        propMatrix.addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixAPi(double cos_theta,
+    static inline void getPropMatrixASigmaP(double cos_theta,
                                             double sin_theta,
                                             double cos_2_phi,
                                             double sin_2_phi,
-                                            double mult)
+                                            double mult,
+                                            Matrix2D * propMatrix)
     {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 3, sin_theta * sin_theta * mult);
-
-        return propMatrix;
+        propMatrix->addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 3, -2 * cos_theta * mult);
+        propMatrix->addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(3, 0, -2 * cos_theta * mult);
+        propMatrix->addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
     }
 
-    static inline Matrix2D getPropMatrixBSigmaP(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 2, -2 * cos_theta * mult);
-        propMatrix.addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 1, +2 * cos_theta * mult);
-        propMatrix.addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixBSigmaM(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 2, +2 * cos_theta * mult);
-        propMatrix.addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 1, -2 * cos_theta * mult);
-        propMatrix.addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixBPi(double cos_theta,
+    static inline void getPropMatrixASigmaM(double cos_theta,
                                             double sin_theta,
                                             double cos_2_phi,
                                             double sin_2_phi,
-                                            double mult)
+                                            double mult,
+                                            Matrix2D * propMatrix)
     {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 3, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 3, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 3, +2 * cos_theta * mult);
+        propMatrix->addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(3, 0, +2 * cos_theta * mult);
+        propMatrix->addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
+    }
 
-        return propMatrix;
+    static inline void getPropMatrixAPi(double cos_theta,
+                                        double sin_theta,
+                                        double cos_2_phi,
+                                        double sin_2_phi,
+                                        double mult,
+                                        Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(0, 0, sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 3, sin_theta * sin_theta * mult);
+    }
+
+    static inline void getPropMatrixBSigmaP(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult,
+                                            Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 2, -2 * cos_theta * mult);
+        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 1, +2 * cos_theta * mult);
+        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
+    }
+
+    static inline void getPropMatrixBSigmaM(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult,
+                                            Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 2, +2 * cos_theta * mult);
+        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 1, -2 * cos_theta * mult);
+        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
+    }
+
+    static inline void getPropMatrixBPi(double cos_theta,
+                                        double sin_theta,
+                                        double cos_2_phi,
+                                        double sin_2_phi,
+                                        double mult,
+                                        Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 3, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 3, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, -cos_2_phi * sin_theta * sin_theta * mult);
     }
 
     static inline Vector3D interpVector(Vector3D y_1, Vector3D y_2, double x_1, double x_2)

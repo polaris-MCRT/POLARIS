@@ -982,7 +982,8 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
-    Matrix2D total_absorption_matrix;
+    // Init matrix for absorption
+    Matrix2D total_absorption_matrix(4, 4);
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
@@ -1044,8 +1045,8 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                                             grid, pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
 
                 // Init emission and line matrix
-                StokesVector line_emissivity;
-                Matrix2D line_absorption_matrix;
+                StokesVector total_emission;
+                total_absorption_matrix.fill(0);
 
                 // Get line emissivity (also combined Zeeman lines)
                 gas->calcEmissivity(grid,
@@ -1055,13 +1056,14 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                                     rel_velocity,
                                     line_broadening,
                                     mag_field_info,
-                                    line_emissivity,
-                                    line_absorption_matrix);
+                                    &total_emission,
+                                    &total_absorption_matrix);
 
                 // Combine the Stokes vectors from gas and dust for emission
-                StokesVector total_emission = line_emissivity * dens_species + dust_emissivity;
+                total_emission *= dens_species;
+                total_emission += dust_emissivity;
                 // and extinction
-                total_absorption_matrix = line_absorption_matrix * dens_species;
+                total_absorption_matrix *= dens_species;
                 if(dust_emissivity.T() != 0)
                     for(uint i = 0; i < 4; i++)
                         total_absorption_matrix(i, i) += dust_emissivity.T();
@@ -3111,7 +3113,8 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
-    Matrix2D total_absorption_matrix, line_absorption_matrix;
+    // Init matrix for absorption
+    Matrix2D total_absorption_matrix(4, 4);
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
@@ -3187,7 +3190,8 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         rel_velocity += obs_vel * dir_map_xyz;
 
                     // Init emission and line matrix
-                    StokesVector line_emissivity;
+                    StokesVector total_emission;
+                    total_absorption_matrix.fill(0);
 
                     // Get line emissivity (also combined Zeeman lines)
                     gas->calcEmissivity(grid,
@@ -3197,13 +3201,14 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                                         rel_velocity,
                                         line_broadening,
                                         mag_field_info,
-                                        line_emissivity,
-                                        line_absorption_matrix);
+                                        &total_emission,
+                                        &total_absorption_matrix);
 
                     // Combine the Stokes vectors from gas and dust for emission
-                    StokesVector total_emission = line_emissivity * dens_species + dust_emissivity;
+                    total_emission *= dens_species;
+                    total_emission += dust_emissivity;
                     // and extinction
-                    total_absorption_matrix = line_absorption_matrix * dens_species;
+                    total_absorption_matrix *= dens_species;
                     if(dust_emissivity.T() != 0)
                         for(uint i = 0; i < 4; i++)
                             total_absorption_matrix(i, i) += dust_emissivity.T();

@@ -632,24 +632,26 @@ class CGasSpecies
         return w;
     }
 
-    Matrix2D getGaussLineMatrix(CGridBasic * grid, cell_basic * cell, double velocity)
+    void getGaussLineMatrix(CGridBasic * grid,
+                            cell_basic * cell,
+                            double velocity,
+                            Matrix2D * line_absorption_matrix)
     {
-        // Init line matrix
-        Matrix2D line_absorption_matrix(4, 4);
 
         // Calculate gaussian shape
         double line_amplitude = getGaussLineShape(grid, cell, velocity);
 
         // Only diagonal without polarization rotation matrix elements
         for(uint i = 0; i < 4; i++)
-            line_absorption_matrix(i, i) = line_amplitude;
-
-        return line_absorption_matrix;
+            line_absorption_matrix->setValue(i, i, line_amplitude);
     }
 
-    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity)
+    void getGaussLineMatrix(CGridBasic * grid,
+                            photon_package * pp,
+                            double velocity,
+                            Matrix2D * line_absorption_matrix)
     {
-        return getGaussLineMatrix(grid, pp->getPositionCell(), velocity);
+        getGaussLineMatrix(grid, pp->getPositionCell(), velocity, line_absorption_matrix);
     }
 
     double getGaussLineShape(CGridBasic * grid, cell_basic * cell, double velocity)
@@ -669,8 +671,8 @@ class CGasSpecies
                               double velocity,
                               const LineBroadening & line_broadening,
                               const MagFieldInfo & mfo,
-                              StokesVector & line_emissivity,
-                              Matrix2D & line_absorption_matrix);
+                              StokesVector * line_emissivity,
+                              Matrix2D * line_absorption_matrix);
 
     void calcEmissivity(CGridBasic * grid,
                         cell_basic * cell,
@@ -678,8 +680,8 @@ class CGasSpecies
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
-                        StokesVector & line_emissivity,
-                        Matrix2D & line_absorption_matrix);
+                        StokesVector * line_emissivity,
+                        Matrix2D * line_absorption_matrix);
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
@@ -696,7 +698,7 @@ class CGasSpecies
                     uint i_sublvl_u,
                     uint i_sublvl_l);
 
-    void createMatrix(double * J_mid, Matrix2D & A, double * b, double *** final_col_para);
+    void createMatrix(double * J_mid, Matrix2D * A, double * b, double *** final_col_para);
 
     double *** calcCollisionParameter(CGridBasic * grid, cell_basic * cell);
     double getColPartnerDensity(CGridBasic * grid, cell_basic * cell, uint i_col_partner);
@@ -1045,16 +1047,6 @@ class CGasMixture
         single_species[i_species].applyRadiationFieldFactor(i_trans, sin_theta, cos_theta, energy, J_nu);
     }
 
-    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_species, double velocity)
-    {
-        return single_species[i_species].getGaussLineMatrix(grid, pp, velocity);
-    }
-
-    double getGaussLineShape(CGridBasic * grid, photon_package * pp, uint i_species, double velocity)
-    {
-        return single_species[i_species].getGaussLineShape(grid, pp, velocity);
-    }
-
     void calcEmissivity(CGridBasic * grid,
                         photon_package * pp,
                         uint i_species,
@@ -1062,8 +1054,8 @@ class CGasMixture
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
-                        StokesVector & line_emissivity,
-                        Matrix2D & line_absorption_matrix)
+                        StokesVector * line_emissivity,
+                        Matrix2D * line_absorption_matrix)
     {
         single_species[i_species].calcEmissivity(grid,
                                                  pp->getPositionCell(),

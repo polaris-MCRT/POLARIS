@@ -170,7 +170,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
             double * b = new double[nr_of_total_energy_levels];
 
             double *** final_col_para = calcCollisionParameter(grid, cell);
-            createMatrix(J_mid, A, b, final_col_para);
+            createMatrix(J_mid, &A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
 
             delete[] b;
@@ -370,7 +370,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
                 }
             }
 
-            createMatrix(J_mid, A, b, final_col_para);
+            createMatrix(J_mid, &A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
 
             double sum_p = 0;
@@ -524,7 +524,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
         double * b = new double[nr_of_total_energy_levels];
 
         double *** final_col_para = calcCollisionParameter(grid, cell);
-        createMatrix(J_total, A, b, final_col_para);
+        createMatrix(J_total, &A, b, final_col_para);
         CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
 
         delete[] b;
@@ -677,7 +677,7 @@ dlist CGasSpecies::calcCollisionRate(uint i_col_partner, uint i_col_transition, 
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 
-void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double *** final_col_para)
+void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double *** final_col_para)
 {
     // Get number of colision partner and energy levels
     uint nr_of_col_partner = getNrOfCollisionPartner();
@@ -703,14 +703,16 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
                 uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
 
                 // Upper to lower
-                A(i_tmp_lvl_u, i_tmp_lvl_l) += getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
-                A(i_tmp_lvl_u, i_tmp_lvl_u) -=
-                    getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
+                A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, getEinsteinBl(i_trans) * J_mid[i_tmp_trans]);
+                A->addValue(i_tmp_lvl_u,
+                            i_tmp_lvl_u,
+                            -getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans]);
 
                 // Lower to upper
-                A(i_tmp_lvl_l, i_tmp_lvl_u) +=
-                    getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
-                A(i_tmp_lvl_l, i_tmp_lvl_l) -= getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
+                A->addValue(i_tmp_lvl_l,
+                            i_tmp_lvl_u,
+                            getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans]);
+                A->addValue(i_tmp_lvl_l, i_tmp_lvl_l, -getEinsteinBl(i_trans) * J_mid[i_tmp_trans]);
             }
         }
     }
@@ -738,12 +740,14 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
                     uint i_tmp_lvl_l = getUniqueLevelIndex(i_lvl_l, i_sublvl_l);
 
                     // Upper to lower
-                    A(i_tmp_lvl_u, i_tmp_lvl_l) += final_col_para[i_col_partner][i_col_transition][1];
-                    A(i_tmp_lvl_u, i_tmp_lvl_u) -= final_col_para[i_col_partner][i_col_transition][0];
+                    A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, final_col_para[i_col_partner][i_col_transition][1]);
+                    A->addValue(
+                        i_tmp_lvl_u, i_tmp_lvl_u, -final_col_para[i_col_partner][i_col_transition][0]);
 
                     // Lower to upper
-                    A(i_tmp_lvl_l, i_tmp_lvl_u) += final_col_para[i_col_partner][i_col_transition][0];
-                    A(i_tmp_lvl_l, i_tmp_lvl_l) -= final_col_para[i_col_partner][i_col_transition][1];
+                    A->addValue(i_tmp_lvl_l, i_tmp_lvl_u, final_col_para[i_col_partner][i_col_transition][0]);
+                    A->addValue(
+                        i_tmp_lvl_l, i_tmp_lvl_l, -final_col_para[i_col_partner][i_col_transition][1]);
                 }
             }
         }
@@ -755,7 +759,7 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
         {
             uint i_tmp_lvl = getUniqueLevelIndex(i_lvl, i_sublvl);
-            A(0, i_tmp_lvl) = 1.0;
+            A->setValue(0, i_tmp_lvl, 1.0);
             b[i_tmp_lvl] = 0;
         }
     }
@@ -768,16 +772,9 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
                                  double velocity,
                                  const LineBroadening & line_broadening,
                                  const MagFieldInfo & mag_field_info,
-                                 StokesVector & line_emissivity,
-                                 Matrix2D & line_absorption_matrix)
+                                 StokesVector * line_emissivity,
+                                 Matrix2D * line_absorption_matrix)
 {
-    // Init line matrix and emissivity stokes vector
-    if(line_absorption_matrix.size() != 16)
-        line_absorption_matrix.resize(4, 4);
-    else
-        line_absorption_matrix.fill(0);
-    line_emissivity = 0;
-
     if(isTransZeemanSplit(i_trans))
     {
         // Calculate the line matrix from rotation polarization matrix and line shape
@@ -806,13 +803,13 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
             grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinA(i_trans) * con_eps * line_broadening.gauss_a;
 
         // Calculate the line matrix from rotation polarization matrix and line shape
-        Matrix2D tmp_matrix = getGaussLineMatrix(grid, cell, velocity);
+        getGaussLineMatrix(grid, cell, velocity, line_absorption_matrix);
 
         // Calculate the Emissivity of the gas particles in the current cell
-        line_emissivity = tmp_matrix * StokesVector(emission, 0, 0, 0);
+        *line_emissivity = *line_absorption_matrix * StokesVector(emission, 0, 0, 0);
 
         // Calculate the line matrix from rotation polarization matrix and line shape
-        line_absorption_matrix = tmp_matrix * absorption;
+        *line_absorption_matrix *= absorption;
     }
 }
 
@@ -822,8 +819,8 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                                        double velocity,
                                        const LineBroadening & line_broadening,
                                        const MagFieldInfo & mfo,
-                                       StokesVector & line_emissivity,
-                                       Matrix2D & line_absorption_matrix)
+                                       StokesVector * line_emissivity,
+                                       Matrix2D * line_absorption_matrix)
 {
     // Init variables
     double line_strength = 0;
@@ -833,7 +830,7 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     complex<double> line_function;
 
     // Init temporary matrix
-    Matrix2D tmp_matrix;
+    Matrix2D tmp_matrix(4, 4);
 
     // Get maximum M of both involved energy level
     float max_m_upper = getMaxMUpper(i_trans);
@@ -856,6 +853,8 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
             // Skip forbidden transitions
             if(abs(sublvl_l - sublvl_u) > 1)
                 continue;
+
+            tmp_matrix.fill(0);
 
             // Get level indices for lower and upper energy level
             uint i_lvl_u = getUpperEnergyLevel(i_trans);
@@ -902,12 +901,20 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthSigmaP(i_trans, i_sigma_p);
 
                     // Get the propagation matrix for extinction/emission
-                    tmp_matrix = CMathFunctions::getPropMatrixASigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
+                    CMathFunctions::getPropMatrixASigmaP(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_A * line_strength,
+                                                         &tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    tmp_matrix += CMathFunctions::getPropMatrixBSigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
+                    CMathFunctions::getPropMatrixBSigmaP(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_B * line_strength,
+                                                         &tmp_matrix);
 
                     // Increase the sigma_+ counter to circle through the line strengths
                     i_sigma_p++;
@@ -917,12 +924,20 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthPi(i_trans, i_pi);
 
                     // Get the propagation matrix for extinction/emission
-                    tmp_matrix = CMathFunctions::getPropMatrixAPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
+                    CMathFunctions::getPropMatrixAPi(mfo.cos_theta,
+                                                     mfo.sin_theta,
+                                                     mfo.cos_2_phi,
+                                                     mfo.sin_2_phi,
+                                                     mult_A * line_strength,
+                                                     &tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    tmp_matrix += CMathFunctions::getPropMatrixBPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
+                    CMathFunctions::getPropMatrixBPi(mfo.cos_theta,
+                                                     mfo.sin_theta,
+                                                     mfo.cos_2_phi,
+                                                     mfo.sin_2_phi,
+                                                     mult_B * line_strength,
+                                                     &tmp_matrix);
 
                     // Increase the pi counter to circle through the line strengths
                     i_pi++;
@@ -932,12 +947,20 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthSigmaM(i_trans, i_sigma_m);
 
                     // Get the propagation matrix for extinction/emission
-                    tmp_matrix = CMathFunctions::getPropMatrixASigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
+                    CMathFunctions::getPropMatrixASigmaM(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_A * line_strength,
+                                                         &tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    tmp_matrix += CMathFunctions::getPropMatrixBSigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
+                    CMathFunctions::getPropMatrixBSigmaM(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_B * line_strength,
+                                                         &tmp_matrix);
 
                     // Increase the sigma_- counter to circle through the line strengths
                     i_sigma_m++;
@@ -945,8 +968,8 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
             }
 
             // Calculate the Emissivity and Absorption matrix of the gas particles in the current cell
-            line_emissivity += tmp_matrix * StokesVector(emission, 0, 0, 0);
-            line_absorption_matrix += tmp_matrix * absorption;
+            *line_emissivity += tmp_matrix * StokesVector(emission, 0, 0, 0);
+            *line_absorption_matrix += tmp_matrix * absorption;
         }
     }
 }
