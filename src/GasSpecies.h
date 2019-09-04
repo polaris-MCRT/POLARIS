@@ -28,7 +28,7 @@ class CGasSpecies
 
         nr_zeeman_spectral_lines = 0;
 
-        j_level = 0;
+        quantum_numbers = 0;
         g_level = 0;
         energy_level = 0;
         nr_of_col_transition = 0;
@@ -83,8 +83,8 @@ class CGasSpecies
             delete[] col_matrix;
         }
 
-        if(j_level != 0)
-            delete[] j_level;
+        if(quantum_numbers != 0)
+            delete[] quantum_numbers;
 
         if(g_level != 0)
             delete[] g_level;
@@ -248,19 +248,19 @@ class CGasSpecies
         return trans_einstB_l[i_trans];
     }
 
-    double getGLevel(uint i_energy)
+    double getGLevel(uint i_lvl)
     {
-        return g_level[i_energy];
+        return g_level[i_lvl]; // / nr_of_sublevel[i_lvl];
     }
 
-    double getJLevel(uint i_energy)
+    double getJLevel(uint i_lvl)
     {
-        return j_level[i_energy];
+        return quantum_numbers[i_lvl];
     }
 
-    double getEnergylevel(uint i_energy)
+    double getEnergylevel(uint i_lvl)
     {
-        return energy_level[i_energy];
+        return energy_level[i_lvl];
     }
 
     int getUpperCollisionLevel(uint m, uint n)
@@ -676,16 +676,10 @@ class CGasSpecies
                         cell_basic * cell,
                         uint i_line,
                         double velocity,
+                        const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
                         StokesVector & S_gas,
                         Matrix2D & line_matrix);
-
-    StokesVector calcEmissivityForTransition(CGridBasic * grid,
-                                             cell_basic * cell,
-                                             uint i_trans,
-                                             uint i_sublvl_u,
-                                             uint i_sublvl_l);
-    StokesVector calcEmissivityForTransition(CGridBasic * grid, cell_basic * cell, uint i_trans);
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
@@ -754,7 +748,7 @@ class CGasSpecies
 
     double * energy_level;
     double * g_level;
-    double * j_level;
+    double * quantum_numbers;
     int *upper_level, *lower_level;
     double *trans_einstA, *trans_einstB_l, *trans_einstB_u;
     double *trans_freq, *trans_inner_energy;
@@ -1062,45 +1056,23 @@ class CGasMixture
     }
 
     void calcEmissivity(CGridBasic * grid,
-                        cell_basic * cell,
-                        uint i_species,
-                        uint i_line,
-                        double velocity,
-                        const MagFieldInfo & mag_field_info,
-                        StokesVector & S_gas,
-                        Matrix2D & line_matrix)
-    {
-        single_species[i_species].calcEmissivity(
-            grid, cell, i_line, velocity, mag_field_info, S_gas, line_matrix);
-    }
-
-    void calcEmissivity(CGridBasic * grid,
                         photon_package * pp,
                         uint i_species,
-                        uint i_line,
+                        uint i_trans,
                         double velocity,
+                        const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
                         StokesVector & S_gas,
                         Matrix2D & line_matrix)
     {
-        calcEmissivity(
-            grid, pp->getPositionCell(), i_species, i_line, velocity, mag_field_info, S_gas, line_matrix);
-    }
-
-    StokesVector calcEmissivityForTransition(CGridBasic * grid,
-                                             cell_basic * cell,
-                                             uint i_species,
-                                             uint i_trans)
-    {
-        return single_species[i_species].calcEmissivityForTransition(grid, cell, i_trans);
-    }
-
-    StokesVector calcEmissivityForTransition(CGridBasic * grid,
-                                             photon_package * pp,
-                                             uint i_species,
-                                             uint i_trans)
-    {
-        return calcEmissivityForTransition(grid, pp->getPositionCell(), i_species, i_trans);
+        single_species[i_species].calcEmissivity(grid,
+                                                 pp->getPositionCell(),
+                                                 i_trans,
+                                                 velocity,
+                                                 line_broadening,
+                                                 mag_field_info,
+                                                 S_gas,
+                                                 line_matrix);
     }
 
     uint getNrOfSublevel(uint i_species, uint i_lvl)
@@ -1114,15 +1086,6 @@ class CGasMixture
         for(uint i_species = 0; i_species < nr_of_species; i_species++)
             total_spectral_lines += getNrOfSpectralLines(i_species);
         return total_spectral_lines;
-    }
-
-    uint getMaxNrOfSpectralLines()
-    {
-        uint max_spectral_lines = 0;
-        for(uint i_species = 0; i_species < nr_of_species; i_species++)
-            if(getNrOfSpectralLines(i_species) > max_spectral_lines)
-                max_spectral_lines = getNrOfSpectralLines(i_species);
-        return max_spectral_lines;
     }
 
     uint getMaxNrOfSublevel(uint i_species)
@@ -1150,7 +1113,7 @@ class CGasMixture
         uint zeeman_sublvl_offset = 0;
 
         // 1x Gauss_a + doppler_width, Gamma, voigt_a for each spectral line to simulate
-        uint line_broadening_offset = 3 * getMaxNrOfSpectralLines() + 1;
+        uint line_broadening_offset = 1;
 
         // Arrays to link energy levels, simulated spectral lines and position in the grid cells
         level_to_pos = new uint **[nr_of_species];
@@ -1158,6 +1121,13 @@ class CGasMixture
 
         for(uint i_species = 0; i_species < nr_of_species; i_species++)
         {
+            // Increase the line broadening offset for each Zeeman split spectral line
+            for(uint i_trans = 0; i_trans < getNrOfTransitions(i_species); i_trans++)
+            {
+                if(isTransZeemanSplit(i_species, i_trans))
+                    line_broadening_offset += 3;
+            }
+
             uint nr_of_energy_level = getNrOfEnergyLevels(i_species);
             uint nr_of_spectral_lines = getNrOfSpectralLines(i_species);
 

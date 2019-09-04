@@ -202,7 +202,7 @@ class CRadiativeTransfer
                                double cx,
                                double cy,
                                uint i_species,
-                               uint i_line,
+                               uint i_trans,
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
@@ -211,12 +211,12 @@ class CRadiativeTransfer
                           double cx,
                           double cy,
                           uint i_species,
-                          uint i_line,
+                          uint i_trans,
                           uint i_det,
                           uint subpixel_lvl);
     void rayThroughCellLine(photon_package * pp,
                             uint i_species,
-                            uint i_line,
+                            uint i_trans,
                             uint i_det,
                             uint nr_velocity_channels,
                             bool zero_vel_field = true,

@@ -59,7 +59,6 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         else
         {
             double sum = 0;
-            uint tmp_offset = 0;
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
                 // Calculate LTE level pop also for Zeeman sublevel
@@ -68,10 +67,9 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
                     tmp_lvl_pop[i_lvl][i_sublvl] =
                         getGLevel(i_lvl) *
                         exp(-con_h * getEnergylevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
-                    sum += tmp_lvl_pop[i_lvl][i_sublvl];
+                    if(i_sublvl == 0)
+                        sum += tmp_lvl_pop[i_lvl][i_sublvl];
                 }
-
-                tmp_offset += getNrOfSublevel(i_lvl);
             }
 
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
@@ -767,41 +765,40 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
 
 void CGasSpecies::calcEmissivity(CGridBasic * grid,
                                  cell_basic * cell,
-                                 uint i_line,
+                                 uint i_trans,
                                  double velocity,
+                                 const LineBroadening & line_broadening,
                                  const MagFieldInfo & mag_field_info,
                                  StokesVector & S_gas,
                                  Matrix2D & line_matrix)
 {
-    // Init line matrix
-    line_matrix.resize(4, 4);
-
-    // Get index of transition
-    uint i_trans = getTransitionFromSpectralLine(i_line);
+    // Init line matrix and emissivity stokes vector
+    if(line_matrix.size() != 16)
+        line_matrix.resize(4, 4);
+    else
+        line_matrix.fill(0);
+    S_gas = 0;
 
     if(isTransZeemanSplit(i_trans))
     {
-        LineBroadening line_broadening;
-        line_broadening.Gamma = grid->getGamma(cell, i_line);
-        line_broadening.doppler_width = grid->getDopplerWidth(cell, i_line);
-        line_broadening.voigt_a = grid->getVoigtA(cell, i_line);
-
         // Calculate the line matrix from rotation polarization matrix and line shape
         calcEmissivityZeeman(
-            grid, cell, i_line, velocity, line_broadening, mag_field_info, S_gas, line_matrix);
+            grid, cell, i_trans, velocity, line_broadening, mag_field_info, S_gas, line_matrix);
     }
     else
     {
-        // Get width of spectral line
-        double gauss_a = grid->getGaussA(cell);
+        // Get level indices for lower and upper energy level
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
         // Calculate the optical depth of the gas particles in the current cell
-        double alpha_gas = (grid->getLvlPopLower(cell, i_line) * getEinsteinBl(i_trans) -
-                            grid->getLvlPopUpper(cell, i_line) * getEinsteinBu(i_trans)) *
-                           con_eps * gauss_a;
+        double alpha_gas = (grid->getLvlPop(cell, i_lvl_l, 0) * getEinsteinBl(i_trans) -
+                            grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinBu(i_trans)) *
+                           con_eps * line_broadening.gauss_a;
 
         // Calculate the Emissivity of the gas particles in the current cell
-        S_gas = StokesVector(grid->getLvlPopUpper(cell, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a,
+        S_gas = StokesVector(grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinA(i_trans) * con_eps *
+                                 line_broadening.gauss_a,
                              0,
                              0,
                              0,
@@ -812,52 +809,9 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
     }
 }
 
-StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid,
-                                                      cell_basic * cell,
-                                                      uint i_trans,
-                                                      uint i_sublvl_u,
-                                                      uint i_sublvl_l)
-{
-    // Get width of spectral line
-    double gauss_a = grid->getGaussA(cell);
-
-    // Calculate the optical depth of the gas particles in the current cell
-    double alpha_gas =
-        (grid->getLvlPop(cell, getLowerEnergyLevel(i_trans), i_sublvl_l) * getEinsteinBl(i_trans) -
-         grid->getLvlPop(cell, getUpperEnergyLevel(i_trans), i_sublvl_u) * getEinsteinBu(i_trans)) *
-        con_eps * gauss_a;
-
-    // Calculate the Emissivity of the gas particles in the current cell
-    double S_gas = grid->getLvlPop(cell, getUpperEnergyLevel(i_trans), i_sublvl_u) * getEinsteinA(i_trans) *
-                   con_eps * gauss_a;
-
-    return StokesVector(S_gas, 0, 0, 0, alpha_gas);
-}
-
-StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid, cell_basic * cell, uint i_trans)
-{
-    // Init resulting stokes vector
-    StokesVector tmp_stokes;
-
-    // Get all indices and number of sublevels
-    uint i_lvl_u = getUpperEnergyLevel(i_trans);
-    uint i_lvl_l = getLowerEnergyLevel(i_trans);
-    uint nr_of_sublevel_u = getNrOfSublevel(i_lvl_u);
-    uint nr_of_sublevel_l = getNrOfSublevel(i_lvl_l);
-
-    for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel_u; i_sublvl_u++)
-    {
-        for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel_l; i_sublvl_l++)
-        {
-            tmp_stokes += calcEmissivityForTransition(grid, cell, i_trans, i_sublvl_u, i_sublvl_l);
-        }
-    }
-    return tmp_stokes;
-}
-
 void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                                        cell_basic * cell,
-                                       uint i_line,
+                                       uint i_trans,
                                        double velocity,
                                        const LineBroadening & line_broadening,
                                        const MagFieldInfo & mfo,
@@ -871,11 +825,12 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     float sublvl_u, sublvl_l;
     uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
 
+    // Get level indices for lower and upper energy level
+    uint i_lvl_u = getUpperEnergyLevel(i_trans);
+    uint i_lvl_l = getLowerEnergyLevel(i_trans);
+
     // Init the current value of the line function as a complex value
     complex<double> line_function;
-
-    // Get index of transition
-    uint i_trans = getTransitionFromSpectralLine(i_line);
 
     // Get rest frequency of transition
     double frequency = getTransitionFrequency(i_trans);
@@ -896,17 +851,15 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                 continue;
 
             // Calculate the optical depth of the gas particles in the current cell
-            alpha_gas = (grid->getLvlPopLower(cell, i_line, i_sublvl_l) * getEinsteinBl(i_trans) -
-                         grid->getLvlPopUpper(cell, i_line, i_sublvl_u) * getEinsteinBu(i_trans)) *
+            alpha_gas = (grid->getLvlPop(cell, i_lvl_l, i_sublvl_l) * getEinsteinBl(i_trans) -
+                         grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinBu(i_trans)) *
                         con_eps * line_broadening.gauss_a;
 
-            emi_gas = grid->getLvlPopUpper(cell, i_line, i_sublvl_l) * getEinsteinA(i_trans) * con_eps *
+            // Calculate the emissivity of the gas particles in the current cell
+            emi_gas = grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinA(i_trans) * con_eps *
                       line_broadening.gauss_a;
 
-            // Calculate the Emissivity of the gas particles in the current cell
-            S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas);
-
-            // Calculate the frequency shift in relation to the unshifted line peak
+            // Calculate the frequency shift in relation to the not shifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
             freq_shift = mfo.mag_field.length() * con_mb / con_h *
                          (sublvl_u * getLandeUpper(i_trans) - sublvl_l * getLandeLower(i_trans));
@@ -939,11 +892,14 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixASigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBSigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
+
+                    // Calculate the Emissivity of the gas particles in the current cell
+                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
 
                     // Increase the sigma_+ counter to circle through the line strengths
                     i_sigma_p++;
@@ -954,11 +910,14 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixAPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
+
+                    // Calculate the Emissivity of the gas particles in the current cell
+                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
 
                     // Increase the pi counter to circle through the line strengths
                     i_pi++;
@@ -969,11 +928,14 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixASigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBSigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
+
+                    // Calculate the Emissivity of the gas particles in the current cell
+                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
 
                     // Increase the sigma_- counter to circle through the line strengths
                     i_sigma_m++;
@@ -1069,7 +1031,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             }
 
             g_level = new double[nr_of_energy_level];
-            j_level = new double[nr_of_energy_level];
+            quantum_numbers = new double[nr_of_energy_level];
         }
         else if(cmd_counter < 4 + nr_of_energy_level && cmd_counter > 3)
         {
@@ -1084,8 +1046,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             energy_level[pos_counter] = values[1];
             // WEIGHT
             g_level[pos_counter] = values[2];
-            // J
-            j_level[pos_counter] = values[3];
+            // Quantum numbers for corresponding energy level
+            quantum_numbers[pos_counter] = values[3];
 
             pos_counter++;
         }
@@ -1547,25 +1509,29 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
         double dens_species = getNumberDensity(grid, cell);
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
-        for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+        // Set gauss_a for each transition only once
+        grid->setGaussA(cell, getGaussA(temp_gas, turbulent_velocity));
+
+        uint i_line_broad = 0;
+        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
         {
-            uint i_trans = getTransitionFromSpectralLine(i_line);
-            double frequency = getTransitionFrequency(i_trans);
-
-            // Init line broadening structure
-            LineBroadening line_broadening;
-            line_broadening.gauss_a = getGaussA(temp_gas, turbulent_velocity);
-            line_broadening.doppler_width = frequency / (con_c * line_broadening.gauss_a);
-            line_broadening.Gamma = 0;
-            line_broadening.voigt_a = 0;
-
             if(isTransZeemanSplit(i_trans))
             {
+                // Get transition frequency
+                double frequency = getTransitionFrequency(i_trans);
+
+                // Init line broadening structure and fill it
+                LineBroadening line_broadening;
+                line_broadening.gauss_a = getGaussA(temp_gas, turbulent_velocity);
+                line_broadening.doppler_width = frequency / (con_c * line_broadening.gauss_a);
                 line_broadening.Gamma =
                     getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
                 line_broadening.voigt_a = line_broadening.Gamma / (4 * PI * line_broadening.doppler_width);
+
+                // Add broadening to grid cell information
+                grid->setLineBroadening(cell, i_line_broad, line_broadening);
+                i_line_broad++;
             }
-            grid->setLineBroadening(cell, i_line, line_broadening);
         }
     }
 }
