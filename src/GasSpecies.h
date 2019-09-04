@@ -250,7 +250,7 @@ class CGasSpecies
 
     double getGLevel(uint i_lvl)
     {
-        return g_level[i_lvl]; // / nr_of_sublevel[i_lvl];
+        return g_level[i_lvl] / nr_of_sublevel[i_lvl];
     }
 
     double getJLevel(uint i_lvl)
@@ -635,16 +635,16 @@ class CGasSpecies
     Matrix2D getGaussLineMatrix(CGridBasic * grid, cell_basic * cell, double velocity)
     {
         // Init line matrix
-        Matrix2D line_matrix(4, 4);
+        Matrix2D line_absorption_matrix(4, 4);
 
         // Calculate gaussian shape
         double line_amplitude = getGaussLineShape(grid, cell, velocity);
 
         // Only diagonal without polarization rotation matrix elements
         for(uint i = 0; i < 4; i++)
-            line_matrix(i, i) = line_amplitude;
+            line_absorption_matrix(i, i) = line_amplitude;
 
-        return line_matrix;
+        return line_absorption_matrix;
     }
 
     Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity)
@@ -669,8 +669,8 @@ class CGasSpecies
                               double velocity,
                               const LineBroadening & line_broadening,
                               const MagFieldInfo & mfo,
-                              StokesVector & S_gas,
-                              Matrix2D & line_matrix);
+                              StokesVector & line_emissivity,
+                              Matrix2D & line_absorption_matrix);
 
     void calcEmissivity(CGridBasic * grid,
                         cell_basic * cell,
@@ -678,8 +678,8 @@ class CGasSpecies
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
-                        StokesVector & S_gas,
-                        Matrix2D & line_matrix);
+                        StokesVector & line_emissivity,
+                        Matrix2D & line_absorption_matrix);
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
@@ -1062,8 +1062,8 @@ class CGasMixture
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
-                        StokesVector & S_gas,
-                        Matrix2D & line_matrix)
+                        StokesVector & line_emissivity,
+                        Matrix2D & line_absorption_matrix)
     {
         single_species[i_species].calcEmissivity(grid,
                                                  pp->getPositionCell(),
@@ -1071,8 +1071,8 @@ class CGasMixture
                                                  velocity,
                                                  line_broadening,
                                                  mag_field_info,
-                                                 S_gas,
-                                                 line_matrix);
+                                                 line_emissivity,
+                                                 line_absorption_matrix);
     }
 
     uint getNrOfSublevel(uint i_species, uint i_lvl)

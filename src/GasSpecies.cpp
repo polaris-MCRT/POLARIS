@@ -67,8 +67,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
                     tmp_lvl_pop[i_lvl][i_sublvl] =
                         getGLevel(i_lvl) *
                         exp(-con_h * getEnergylevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
-                    if(i_sublvl == 0)
-                        sum += tmp_lvl_pop[i_lvl][i_sublvl];
+                    sum += tmp_lvl_pop[i_lvl][i_sublvl];
                 }
             }
 
@@ -769,21 +768,27 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
                                  double velocity,
                                  const LineBroadening & line_broadening,
                                  const MagFieldInfo & mag_field_info,
-                                 StokesVector & S_gas,
-                                 Matrix2D & line_matrix)
+                                 StokesVector & line_emissivity,
+                                 Matrix2D & line_absorption_matrix)
 {
     // Init line matrix and emissivity stokes vector
-    if(line_matrix.size() != 16)
-        line_matrix.resize(4, 4);
+    if(line_absorption_matrix.size() != 16)
+        line_absorption_matrix.resize(4, 4);
     else
-        line_matrix.fill(0);
-    S_gas = 0;
+        line_absorption_matrix.fill(0);
+    line_emissivity = 0;
 
     if(isTransZeemanSplit(i_trans))
     {
         // Calculate the line matrix from rotation polarization matrix and line shape
-        calcEmissivityZeeman(
-            grid, cell, i_trans, velocity, line_broadening, mag_field_info, S_gas, line_matrix);
+        calcEmissivityZeeman(grid,
+                             cell,
+                             i_trans,
+                             velocity,
+                             line_broadening,
+                             mag_field_info,
+                             line_emissivity,
+                             line_absorption_matrix);
     }
     else
     {
@@ -792,20 +797,22 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
         uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
         // Calculate the optical depth of the gas particles in the current cell
-        double alpha_gas = (grid->getLvlPop(cell, i_lvl_l, 0) * getEinsteinBl(i_trans) -
-                            grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinBu(i_trans)) *
-                           con_eps * line_broadening.gauss_a;
+        double absorption = (grid->getLvlPop(cell, i_lvl_l, 0) * getEinsteinBl(i_trans) -
+                             grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinBu(i_trans)) *
+                            con_eps * line_broadening.gauss_a;
 
-        // Calculate the Emissivity of the gas particles in the current cell
-        S_gas = StokesVector(grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinA(i_trans) * con_eps *
-                                 line_broadening.gauss_a,
-                             0,
-                             0,
-                             0,
-                             alpha_gas);
+        // Calculate the emissivity of the gas particles in the current cell
+        double emission =
+            grid->getLvlPop(cell, i_lvl_u, 0) * getEinsteinA(i_trans) * con_eps * line_broadening.gauss_a;
 
         // Calculate the line matrix from rotation polarization matrix and line shape
-        line_matrix = getGaussLineMatrix(grid, cell, velocity);
+        Matrix2D tmp_matrix = getGaussLineMatrix(grid, cell, velocity);
+
+        // Calculate the Emissivity of the gas particles in the current cell
+        line_emissivity = tmp_matrix * StokesVector(emission, 0, 0, 0);
+
+        // Calculate the line matrix from rotation polarization matrix and line shape
+        line_absorption_matrix = tmp_matrix * absorption;
     }
 }
 
@@ -815,22 +822,22 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                                        double velocity,
                                        const LineBroadening & line_broadening,
                                        const MagFieldInfo & mfo,
-                                       StokesVector & S_gas,
-                                       Matrix2D & line_matrix)
+                                       StokesVector & line_emissivity,
+                                       Matrix2D & line_absorption_matrix)
 {
     // Init variables
-    double line_strength, freq_shift;
-    double f_doppler, mult_A, mult_B;
-    double alpha_gas, emi_gas;
-    float sublvl_u, sublvl_l;
+    double line_strength = 0;
     uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
-
-    // Get level indices for lower and upper energy level
-    uint i_lvl_u = getUpperEnergyLevel(i_trans);
-    uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
     // Init the current value of the line function as a complex value
     complex<double> line_function;
+
+    // Init temporary matrix
+    Matrix2D tmp_matrix;
+
+    // Get maximum M of both involved energy level
+    float max_m_upper = getMaxMUpper(i_trans);
+    float max_m_lower = getMaxMLower(i_trans);
 
     // Get rest frequency of transition
     double frequency = getTransitionFrequency(i_trans);
@@ -839,48 +846,52 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
     {
         // Calculate the quantum number of the upper energy level
-        sublvl_u = -getMaxMUpper(i_trans) + i_sublvl_u;
+        float sublvl_u = -max_m_upper + i_sublvl_u;
 
         for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
         {
             // Calculate the quantum number of the lower energy level
-            sublvl_l = max(sublvl_u - 1, -getMaxMLower(i_trans)) + i_sublvl_l;
+            float sublvl_l = max(sublvl_u - 1, -max_m_lower) + i_sublvl_l;
 
             // Skip forbidden transitions
             if(abs(sublvl_l - sublvl_u) > 1)
                 continue;
 
+            // Get level indices for lower and upper energy level
+            uint i_lvl_u = getUpperEnergyLevel(i_trans);
+            uint i_lvl_l = getLowerEnergyLevel(i_trans);
+
             // Calculate the optical depth of the gas particles in the current cell
-            alpha_gas = (grid->getLvlPop(cell, i_lvl_l, i_sublvl_l) * getEinsteinBl(i_trans) -
-                         grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinBu(i_trans)) *
-                        con_eps * line_broadening.gauss_a;
+            double absorption = (grid->getLvlPop(cell, i_lvl_l, i_sublvl_l) * getEinsteinBl(i_trans) -
+                                 grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinBu(i_trans)) *
+                                con_eps * line_broadening.gauss_a;
 
             // Calculate the emissivity of the gas particles in the current cell
-            emi_gas = grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinA(i_trans) * con_eps *
-                      line_broadening.gauss_a;
+            double emission = grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinA(i_trans) * con_eps *
+                              line_broadening.gauss_a;
 
             // Calculate the frequency shift in relation to the not shifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
-            freq_shift = mfo.mag_field.length() * con_mb / con_h *
-                         (sublvl_u * getLandeUpper(i_trans) - sublvl_l * getLandeLower(i_trans));
+            double freq_shift = mfo.mag_field.length() * con_mb / con_h *
+                                (sublvl_u * getLandeUpper(i_trans) - sublvl_l * getLandeLower(i_trans));
 
             // Calculate the frequency value of the current velocity channel in
             // relation to the peak of the line function
-            f_doppler = CMathFunctions::Velo2Freq(velocity + CMathFunctions::Freq2Velo(freq_shift, frequency),
-                                                  frequency) /
-                        line_broadening.doppler_width;
+            double f_doppler = CMathFunctions::Velo2Freq(
+                                   velocity + CMathFunctions::Freq2Velo(freq_shift, frequency), frequency) /
+                               line_broadening.doppler_width;
 
             // Calculate the line function value at the frequency
             // of the current velocity channel
             line_function = getLineShape_AB(f_doppler, line_broadening.voigt_a);
 
             // Multiply the line function value by PIsq for normalization
-            mult_A = real(line_function) / PIsq;
+            double mult_A = real(line_function) / PIsq;
 
             // Multiply the line function value by PIsq for normalization
             // and divide it by 2 to take the difference between the faddeeva
             // and Faraday-Voigt function into account
-            mult_B = imag(line_function) / (PIsq * 2.0);
+            double mult_B = imag(line_function) / (PIsq * 2.0);
 
             // Use the correct propagation matrix and relative line strength that
             // depends on the current type of Zeeman transition (pi, sigma_-, sigma_+)
@@ -891,15 +902,12 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthSigmaP(i_trans, i_sigma_p);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix += CMathFunctions::getPropMatrixASigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
+                    tmp_matrix = CMathFunctions::getPropMatrixASigmaP(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix += CMathFunctions::getPropMatrixBSigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
-
-                    // Calculate the Emissivity of the gas particles in the current cell
-                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
+                    tmp_matrix += CMathFunctions::getPropMatrixBSigmaP(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
 
                     // Increase the sigma_+ counter to circle through the line strengths
                     i_sigma_p++;
@@ -909,15 +917,12 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthPi(i_trans, i_pi);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix += CMathFunctions::getPropMatrixAPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
+                    tmp_matrix = CMathFunctions::getPropMatrixAPi(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix += CMathFunctions::getPropMatrixBPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
-
-                    // Calculate the Emissivity of the gas particles in the current cell
-                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
+                    tmp_matrix += CMathFunctions::getPropMatrixBPi(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
 
                     // Increase the pi counter to circle through the line strengths
                     i_pi++;
@@ -927,20 +932,21 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
                     line_strength = getLineStrengthSigmaM(i_trans, i_sigma_m);
 
                     // Get the propagation matrix for extinction/emission
-                    line_matrix += CMathFunctions::getPropMatrixASigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A);
+                    tmp_matrix = CMathFunctions::getPropMatrixASigmaM(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * line_strength);
 
                     // Get the propagation matrix for Faraday rotation
-                    line_matrix += CMathFunctions::getPropMatrixBSigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B);
-
-                    // Calculate the Emissivity of the gas particles in the current cell
-                    S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas) * line_strength;
+                    tmp_matrix += CMathFunctions::getPropMatrixBSigmaM(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * line_strength);
 
                     // Increase the sigma_- counter to circle through the line strengths
                     i_sigma_m++;
                     break;
             }
+
+            // Calculate the Emissivity and Absorption matrix of the gas particles in the current cell
+            line_emissivity += tmp_matrix * StokesVector(emission, 0, 0, 0);
+            line_absorption_matrix += tmp_matrix * absorption;
         }
     }
 }

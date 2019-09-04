@@ -982,7 +982,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
-    Matrix2D alpha_ges;
+    Matrix2D total_absorption_matrix;
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
@@ -1006,7 +1006,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
         double len = pp->getTmpPathLength();
 
         // Calculate the emission of the dust grains
-        StokesVector S_dust = dust->calcEmissivityHz(grid, pp);
+        StokesVector dust_emissivity = dust->calcEmissivityHz(grid, pp);
 
         // Init variables
         double cell_sum = 0, cell_d_l = len;
@@ -1044,8 +1044,8 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                                             grid, pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
 
                 // Init emission and line matrix
-                StokesVector S_gas;
-                Matrix2D line_matrix;
+                StokesVector line_emissivity;
+                Matrix2D line_absorption_matrix;
 
                 // Get line emissivity (also combined Zeeman lines)
                 gas->calcEmissivity(grid,
@@ -1055,22 +1055,17 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                                     rel_velocity,
                                     line_broadening,
                                     mag_field_info,
-                                    S_gas,
-                                    line_matrix);
+                                    line_emissivity,
+                                    line_absorption_matrix);
 
-                // Multiply by density of the gas species
-                S_gas.multS(dens_species);
-                S_gas.multT(dens_species);
-
-                // Combine the Stokes vectors from gas and dust
-                // for emission and extinction
-                StokesVector S_ges = line_matrix * S_gas + S_dust;
-                alpha_ges = S_gas.T() * line_matrix;
-
-                if(S_dust.T() != 0)
+                // Combine the Stokes vectors from gas and dust for emission
+                StokesVector total_emission = line_emissivity * dens_species + dust_emissivity;
+                // and extinction
+                total_absorption_matrix = line_absorption_matrix * dens_species;
+                if(dust_emissivity.T() != 0)
                     for(uint i = 0; i < 4; i++)
-                        alpha_ges(i, i) += S_dust.T();
-                alpha_ges *= -1;
+                        total_absorption_matrix(i, i) += dust_emissivity.T();
+                total_absorption_matrix *= -1;
 
                 // Calculate multiplication between Runge-Kutta parameter
                 StokesVector scalar_product = 0;
@@ -1079,7 +1074,8 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
                 // Calculate new Runge-Kutta parameters as the result of the
                 // radiative transfer equation at the Runge-Kutta sub positions
-                RK_k[k] = alpha_ges * (scalar_product * cell_d_l + pp->getStokesVector()) + S_ges;
+                RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + pp->getStokesVector()) +
+                          total_emission;
             }
 
             // Init two temporary Stokes vectors
@@ -2571,8 +2567,8 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
     if(dens_dust >= 1e-200)
     {
         // Init dust matrix
-        Matrix2D alpha_dust;
-        StokesVector S_dust;
+        Matrix2D dust_extinction_matrix;
+        StokesVector dust_emissivity;
 
         // Get path length through current cell
         double len = pp->getTmpPathLength();
@@ -2615,13 +2611,13 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
 
             // Set stokes vector with thermal emission of the dust grains and
             // radiation scattered at dust grains
-            S_dust = dust->calcEmissivityEmi(
+            dust_emissivity = dust->calcEmissivityEmi(
                 grid,
                 pp,
                 stokes_dust_rad_field ? detector_wl_index[i_det] + pp->getWavelengthID() : MAX_UINT);
 
             // Get the extinction matrix of the dust grains in the current cell
-            alpha_dust = -1 * dust->calcEmissivityExt(grid, pp);
+            dust_extinction_matrix = -1 * dust->calcEmissivityExt(grid, pp);
 
             // Init a variable to sum up path lengths until cell is crossed
             double cell_sum = 0.0;
@@ -2672,8 +2668,9 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     // Calculate new Runge-Kutta parameters as the result of the
                     // radiative transfer equation at the Runge-Kutta sub
                     // positions
-                    RK_k[k] =
-                        alpha_dust * (scalar_product * cell_d_l + pp->getMultiStokesVector(i_wave)) + S_dust;
+                    RK_k[k] = dust_extinction_matrix *
+                                  (scalar_product * cell_d_l + pp->getMultiStokesVector(i_wave)) +
+                              dust_emissivity;
                 }
 
                 // Init two temporary Stokes vectors
@@ -2709,7 +2706,7 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     pp->setMultiStokesVector(stokes_new, i_wave);
 
                     // Add optical depth
-                    pp->getMultiStokesVector(i_wave).addT(-alpha_dust(0, 0) * cell_d_l);
+                    pp->getMultiStokesVector(i_wave).addT(-dust_extinction_matrix(0, 0) * cell_d_l);
 
                     // Add to column density
                     pp->getMultiStokesVector(i_wave).addSp(dens_gas * cell_d_l);
@@ -3114,7 +3111,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, pp, i_species);
 
-    Matrix2D alpha_ges, line_matrix(4, 4);
+    Matrix2D total_absorption_matrix, line_absorption_matrix;
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
@@ -3141,7 +3138,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         double dens_gas = grid->getGasNumberDensity(pp);
 
         // Calculate the emission of the dust grains
-        StokesVector S_dust = dust->calcEmissivityHz(grid, pp);
+        StokesVector dust_emissivity = dust->calcEmissivityHz(grid, pp);
 
         // Perform radiative transfer for each velocity channel separately
         for(uint vch = 0; vch < nr_velocity_channels; vch++)
@@ -3190,7 +3187,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         rel_velocity += obs_vel * dir_map_xyz;
 
                     // Init emission and line matrix
-                    StokesVector S_gas;
+                    StokesVector line_emissivity;
 
                     // Get line emissivity (also combined Zeeman lines)
                     gas->calcEmissivity(grid,
@@ -3200,18 +3197,17 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                                         rel_velocity,
                                         line_broadening,
                                         mag_field_info,
-                                        S_gas,
-                                        line_matrix);
+                                        line_emissivity,
+                                        line_absorption_matrix);
 
-                    // Combine the Stokes vectors from gas and dust
-                    // for emission and extinction
-                    StokesVector S_ges = line_matrix * S_gas * dens_species + S_dust;
-                    alpha_ges = S_gas.T() * line_matrix * dens_species;
-
-                    if(S_dust.T() != 0)
+                    // Combine the Stokes vectors from gas and dust for emission
+                    StokesVector total_emission = line_emissivity * dens_species + dust_emissivity;
+                    // and extinction
+                    total_absorption_matrix = line_absorption_matrix * dens_species;
+                    if(dust_emissivity.T() != 0)
                         for(uint i = 0; i < 4; i++)
-                            alpha_ges(i, i) += S_dust.T();
-                    alpha_ges *= -1;
+                            total_absorption_matrix(i, i) += dust_emissivity.T();
+                    total_absorption_matrix *= -1;
 
                     // Init scalar product
                     StokesVector scalar_product;
@@ -3223,7 +3219,9 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     // Calculate new Runge-Kutta parameters as the result of the
                     // radiative transfer equation at the Runge-Kutta sub
                     // positions
-                    RK_k[k] = alpha_ges * (scalar_product * cell_d_l + pp->getMultiStokesVector(vch)) + S_ges;
+                    RK_k[k] = total_absorption_matrix *
+                                  (scalar_product * cell_d_l + pp->getMultiStokesVector(vch)) +
+                              total_emission;
                 }
                 // Init two temporary Stokes vectors
                 StokesVector stokes_new = pp->getMultiStokesVector(vch);
@@ -3319,7 +3317,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                     // Save the optical depth of each velocity channel, if
                     // magnetic field analysis is not chosen
-                    pp->getMultiStokesVector(vch).addT(-alpha_ges(0, 0) * cell_d_l);
+                    pp->getMultiStokesVector(vch).addT(-total_absorption_matrix(0, 0) * cell_d_l);
 
                     // Update the position of the photon package
                     pos_xyz_cell += cell_d_l * dir_map_xyz;
