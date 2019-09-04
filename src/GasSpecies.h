@@ -76,16 +76,11 @@ class CGasSpecies
         {
             for(uint i = 0; i < nr_of_col_partner; i++)
             {
-                if(nr_of_col_transition != 0)
-                {
-                    for(int j = 0; j < nr_of_col_transition[i]; j++)
-                    {
-                        delete[] col_matrix[i][j];
-                        col_matrix[i][j] = 0;
-                    }
-                }
+                for(int j = 0; j < nr_of_col_transition[i]; j++)
+                    delete[] col_matrix[i][j];
+                delete[] col_matrix[i];
             }
-            col_matrix = 0;
+            delete[] col_matrix;
         }
 
         if(j_level != 0)
@@ -107,7 +102,12 @@ class CGasSpecies
         if(trans_to_index != 0)
         {
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                uint nr_of_sublevel_u = nr_of_sublevel[upper_level[i_trans]];
+                for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel_u; i_sublvl_u++)
+                    delete[] trans_to_index[i_trans][i_sublvl_u];
                 delete[] trans_to_index[i_trans];
+            }
             delete[] trans_to_index;
         }
 
@@ -144,69 +144,46 @@ class CGasSpecies
         if(collision_temp != 0)
         {
             for(uint i = 0; i < nr_of_col_partner; i++)
-            {
-                if(collision_temp[i] != 0)
-                {
-                    delete[] collision_temp[i];
-                    collision_temp[i] = 0;
-                }
-            }
-            collision_temp = 0;
+                delete[] collision_temp[i];
+            delete[] collision_temp;
         }
 
         if(col_upper != 0)
         {
             for(uint i = 0; i < nr_of_col_partner; i++)
-                if(col_upper[i] != 0)
-                {
-                    delete[] col_upper[i];
-                    col_upper[i] = 0;
-                }
-            col_upper = 0;
+                delete[] col_upper[i];
+            delete[] col_upper;
         }
 
         if(col_lower != 0)
         {
             for(uint i = 0; i < nr_of_col_partner; i++)
-                if(col_lower[i] != 0)
-                {
-                    delete[] col_lower[i];
-                    col_lower[i] = 0;
-                }
-            col_lower = 0;
+                delete[] col_lower[i];
+            delete[] col_lower;
         }
 
         if(line_strength_pi != 0)
         {
-            for(uint i = 0; i < nr_of_transitions; i++)
-                if(line_strength_pi[i] != 0)
-                {
-                    delete[] line_strength_pi[i];
-                    line_strength_pi[i] = 0;
-                }
-            line_strength_pi = 0;
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                if(line_strength_pi[i_trans] != 0)
+                    delete[] line_strength_pi[i_trans];
+            delete[] line_strength_pi;
         }
 
         if(line_strength_sigma_p != 0)
         {
-            for(uint i = 0; i < nr_of_transitions; i++)
-                if(line_strength_sigma_p[i] != 0)
-                {
-                    delete[] line_strength_sigma_p[i];
-                    line_strength_sigma_p[i] = 0;
-                }
-            line_strength_sigma_p = 0;
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                if(line_strength_sigma_p[i_trans] != 0)
+                    delete[] line_strength_sigma_p[i_trans];
+            delete[] line_strength_sigma_p;
         }
 
         if(line_strength_sigma_m != 0)
         {
-            for(uint i = 0; i < nr_of_transitions; i++)
-                if(line_strength_sigma_m[i] != 0)
-                {
-                    delete[] line_strength_sigma_m[i];
-                    line_strength_sigma_m[i] = 0;
-                }
-            line_strength_sigma_m = 0;
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+                if(line_strength_sigma_m[i_trans] != 0)
+                    delete[] line_strength_sigma_m[i_trans];
+            delete[] line_strength_sigma_m;
         }
     }
 
@@ -286,12 +263,12 @@ class CGasSpecies
         return energy_level[i_energy];
     }
 
-    int getUpperCollision(uint m, uint n)
+    int getUpperCollisionLevel(uint m, uint n)
     {
         return col_upper[m][n];
     }
 
-    int getLowerCollision(uint m, uint n)
+    int getLowerCollisionLevel(uint m, uint n)
     {
         return col_lower[m][n];
     }
@@ -655,56 +632,54 @@ class CGasSpecies
         return w;
     }
 
-    Matrix2D getLineMatrix(CGridBasic * grid,
-                           photon_package * pp,
-                           uint i_line,
-                           double velocity,
-                           Vector3D mag_field,
-                           double cos_theta,
-                           double sin_theta,
-                           double cos_2_phi,
-                           double sin_2_phi)
+    Matrix2D getGaussLineMatrix(CGridBasic * grid, cell_basic * cell, double velocity)
     {
-        uint i_trans = getTransitionFromSpectralLine(i_line);
+        // Init line matrix
+        Matrix2D line_matrix(4, 4);
 
-        if(isTransZeemanSplit(i_trans))
-        {
-            double Gamma = grid->getGamma(pp, i_line);
-            double doppler_width = grid->getDopplerWidth(pp, i_line);
-            double voigt_a = grid->getVoigtA(pp, i_line);
+        // Calculate gaussian shape
+        double line_amplitude = getGaussLineShape(grid, cell, velocity);
 
-            return getZeemanSplittingMatrix(pp,
-                                            i_trans,
-                                            velocity,
-                                            Gamma,
-                                            doppler_width,
-                                            voigt_a,
-                                            mag_field,
-                                            cos_theta,
-                                            sin_theta,
-                                            cos_2_phi,
-                                            sin_2_phi);
-        }
-        else
-            return getGaussLineMatrix(grid, pp, velocity);
+        // Only diagonal without polarization rotation matrix elements
+        for(uint i = 0; i < 4; i++)
+            line_matrix(i, i) = line_amplitude;
+
+        return line_matrix;
     }
 
-    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity);
-    double getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity);
+    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity)
+    {
+        return getGaussLineMatrix(grid, pp->getPositionCell(), velocity);
+    }
 
-    Matrix2D getZeemanSplittingMatrix(photon_package * pp,
-                                      uint i_trans,
-                                      double velocity,
-                                      double Gamma,
-                                      double doppler_width,
-                                      double voigt_a,
-                                      Vector3D mag_field,
-                                      double cos_theta,
-                                      double sin_theta,
-                                      double cos_2_phi,
-                                      double sin_2_phi);
+    double getGaussLineShape(CGridBasic * grid, cell_basic * cell, double velocity)
+    {
+        double gauss_a = grid->getGaussA(cell);
+        return exp(-(pow(velocity, 2) * pow(gauss_a, 2))) / PIsq;
+    }
 
-    StokesVector calcEmissivity(CGridBasic * grid, cell_basic * cell, uint i_line, uint i_sublvl = 0);
+    double getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity)
+    {
+        return getGaussLineShape(grid, pp->getPositionCell(), velocity);
+    }
+
+    void calcEmissivityZeeman(CGridBasic * grid,
+                              cell_basic * cell,
+                              uint i_line,
+                              double velocity,
+                              const LineBroadening & line_broadening,
+                              const MagFieldInfo & mfo,
+                              StokesVector & S_gas,
+                              Matrix2D & line_matrix);
+
+    void calcEmissivity(CGridBasic * grid,
+                        cell_basic * cell,
+                        uint i_line,
+                        double velocity,
+                        const MagFieldInfo & mag_field_info,
+                        StokesVector & S_gas,
+                        Matrix2D & line_matrix);
+
     StokesVector calcEmissivityForTransition(CGridBasic * grid,
                                              cell_basic * cell,
                                              uint i_trans,
@@ -1076,21 +1051,6 @@ class CGasMixture
         single_species[i_species].applyRadiationFieldFactor(i_trans, sin_theta, cos_theta, energy, J_nu);
     }
 
-    Matrix2D getLineMatrix(CGridBasic * grid,
-                           photon_package * pp,
-                           uint i_species,
-                           uint i_line,
-                           double velocity,
-                           Vector3D mag_field,
-                           double cos_theta,
-                           double sin_theta,
-                           double cos_2_phi,
-                           double sin_2_phi)
-    {
-        return single_species[i_species].getLineMatrix(
-            grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
-    }
-
     Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_species, double velocity)
     {
         return single_species[i_species].getGaussLineMatrix(grid, pp, velocity);
@@ -1101,44 +1061,30 @@ class CGasMixture
         return single_species[i_species].getGaussLineShape(grid, pp, velocity);
     }
 
-    StokesVector calcEmissivity(CGridBasic * grid,
-                                cell_basic * cell,
-                                uint i_species,
-                                uint i_line,
-                                uint i_sublvl = 0)
+    void calcEmissivity(CGridBasic * grid,
+                        cell_basic * cell,
+                        uint i_species,
+                        uint i_line,
+                        double velocity,
+                        const MagFieldInfo & mag_field_info,
+                        StokesVector & S_gas,
+                        Matrix2D & line_matrix)
     {
-        return single_species[i_species].calcEmissivity(grid, cell, i_line, i_sublvl);
+        single_species[i_species].calcEmissivity(
+            grid, cell, i_line, velocity, mag_field_info, S_gas, line_matrix);
     }
 
-    StokesVector calcEmissivity(CGridBasic * grid,
-                                photon_package * pp,
-                                uint i_species,
-                                uint i_line,
-                                uint i_sublvl = 0)
+    void calcEmissivity(CGridBasic * grid,
+                        photon_package * pp,
+                        uint i_species,
+                        uint i_line,
+                        double velocity,
+                        const MagFieldInfo & mag_field_info,
+                        StokesVector & S_gas,
+                        Matrix2D & line_matrix)
     {
-        return single_species[i_species].calcEmissivity(grid, pp->getPositionCell(), i_line, i_sublvl);
-    }
-
-    StokesVector calcEmissivityForTransition(CGridBasic * grid,
-                                             cell_basic * cell,
-                                             uint i_species,
-                                             uint i_trans,
-                                             uint i_sublvl_u,
-                                             uint i_sublvl_l)
-    {
-        return single_species[i_species].calcEmissivityForTransition(
-            grid, cell, i_trans, i_sublvl_u, i_sublvl_l);
-    }
-
-    StokesVector calcEmissivityForTransition(CGridBasic * grid,
-                                             photon_package * pp,
-                                             uint i_species,
-                                             uint i_trans,
-                                             uint i_sublvl_u,
-                                             uint i_sublvl_l)
-    {
-        return calcEmissivityForTransition(
-            grid, pp->getPositionCell(), i_species, i_trans, i_sublvl_u, i_sublvl_l);
+        calcEmissivity(
+            grid, pp->getPositionCell(), i_species, i_line, velocity, mag_field_info, S_gas, line_matrix);
     }
 
     StokesVector calcEmissivityForTransition(CGridBasic * grid,

@@ -5,6 +5,24 @@
 #ifndef CGRIDBASIC
 #define CGRIDBASIC
 
+// Additional Structures
+struct MagFieldInfo
+{
+    double cos_theta;
+    double sin_theta;
+    double cos_2_phi;
+    double sin_2_phi;
+    Vector3D mag_field;
+};
+
+struct LineBroadening
+{
+    double gauss_a;
+    double Gamma;
+    double doppler_width;
+    double voigt_a;
+};
+
 class CGridBasic
 {
   public:
@@ -537,25 +555,20 @@ class CGridBasic
         cout << "grid: " << ex << ey << ez << endl;
     }
 
-    void getMagFieldOrientation(photon_package * pp,
-                                Vector3D & mag_field,
-                                double & cos_theta,
-                                double & sin_theta,
-                                double & cos_2_phi,
-                                double & sin_2_phi)
+    void getMagFieldInfo(photon_package * pp, MagFieldInfo & mfo)
     {
         // Get the magnetic field from grid
-        mag_field = getMagField(pp);
+        mfo.mag_field = getMagField(pp);
 
         // Get the theta and phi angle from the magnetic field direction
         double theta = getThetaMag(pp);
         double phi = abs(getPhiMag(pp));
 
         // Calculate the sine and cosine including double angles
-        cos_theta = cos(theta);
-        sin_theta = sin(theta);
-        cos_2_phi = cos(2.0 * phi);
-        sin_2_phi = sin(2.0 * phi);
+        mfo.cos_theta = cos(theta);
+        mfo.sin_theta = sin(theta);
+        mfo.cos_2_phi = cos(2.0 * phi);
+        mfo.sin_2_phi = sin(2.0 * phi);
     }
 
     virtual bool findStartingPoint(photon_package * pp)
@@ -1387,27 +1400,27 @@ class CGridBasic
         return getVoigtA(pp->getPositionCell(), i_line);
     }
 
-    double getLvlPopLower(cell_basic * cell, uint i_line, uint i_sublvl)
+    double getLvlPopLower(cell_basic * cell, uint i_line, uint i_sublvl = 0)
     {
         return cell->getData(data_offset + line_to_pos[i_line][0][i_sublvl]);
     }
 
-    double getLvlPopLower(photon_package * pp, uint i_line, uint i_sublvl)
+    double getLvlPopLower(photon_package * pp, uint i_line, uint i_sublvl = 0)
     {
         return getLvlPopLower(pp->getPositionCell(), i_line, i_sublvl);
     }
 
-    double getLvlPopUpper(cell_basic * cell, uint i_line, uint i_sublvl)
+    double getLvlPopUpper(cell_basic * cell, uint i_line, uint i_sublvl = 0)
     {
         return cell->getData(data_offset + line_to_pos[i_line][1][i_sublvl]);
     }
 
-    double getLvlPopUpper(photon_package * pp, uint i_line, uint i_sublvl)
+    double getLvlPopUpper(photon_package * pp, uint i_line, uint i_sublvl = 0)
     {
         return getLvlPopUpper(pp->getPositionCell(), i_line, i_sublvl);
     }
 
-    double getLvlPop(cell_basic * cell, uint i_lvl, uint i_sublvl)
+    double getLvlPop(cell_basic * cell, uint i_lvl, uint i_sublvl = 0)
     {
         if(level_to_pos[i_lvl][i_sublvl] != MAX_UINT)
             return cell->getData(data_offset + level_to_pos[i_lvl][i_sublvl]);
@@ -1415,7 +1428,7 @@ class CGridBasic
         return 0;
     }
 
-    double getLvlPop(photon_package * pp, uint i_lvl, uint i_sublvl)
+    double getLvlPop(photon_package * pp, uint i_lvl, uint i_sublvl = 0)
     {
         return getLvlPop(pp->getPositionCell(), i_lvl, i_sublvl);
     }
@@ -1484,19 +1497,14 @@ class CGridBasic
         return addToZeemanSublevel(pp->getPositionCell(), i_lvl, i_sublvl, lvl_pop);
     }
 
-    void setLineBroadening(cell_basic * cell,
-                           uint i_line,
-                           double gauss_a,
-                           double doppler_width,
-                           double Gamma,
-                           double voigt_a)
+    void setLineBroadening(cell_basic * cell, uint i_line, const LineBroadening & line_broadening)
     {
         // Gauss_a only has to be set once
         if(i_line == 0)
-            cell->setData(data_offset, gauss_a);
-        cell->setData(data_offset + 3 * i_line + 1, doppler_width);
-        cell->setData(data_offset + 3 * i_line + 2, Gamma);
-        cell->setData(data_offset + 3 * i_line + 3, voigt_a);
+            cell->setData(data_offset, line_broadening.gauss_a);
+        cell->setData(data_offset + 3 * i_line + 1, line_broadening.doppler_width);
+        cell->setData(data_offset + 3 * i_line + 2, line_broadening.Gamma);
+        cell->setData(data_offset + 3 * i_line + 3, line_broadening.voigt_a);
     }
 
     virtual double getPathLength(cell_basic * cell)

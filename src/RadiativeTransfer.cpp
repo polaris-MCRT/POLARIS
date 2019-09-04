@@ -1001,7 +1001,9 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             // i_line should be i_trans in this case
             // Somehow save efficiently the level populations in the grid
             S_gas = gas->calcEmissivityForTransition(grid, pp, i_species, i_trans) * dens_species;
-            S_gas.setT(S_gas.T() * dens_species);
+
+            // Multiply by the density of the gas species
+            S_gas.multT(dens_species);
         }
 
         // Init variables
@@ -2806,6 +2808,14 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     // Index to the current detector/tracer
     uint i_det = 0;
 
+    // Select source as specified in the detector
+    uint sID = tracer[i_det]->getSourceIndex();
+    CSourceBasic * tmp_source;
+    tmp_source = sources_ray[sID];
+
+    // Get total number of pixel
+    uint per_max = tracer[i_det]->getNpix();
+
     // Perform radiative transfer for each chosen gas species
     for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
     {
@@ -2851,17 +2861,11 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                 return false;
             }
 
-            // Select source as specified in the detector
-            uint sID = tracer[i_det]->getSourceIndex();
-            CSourceBasic * tmp_source;
-            tmp_source = sources_ray[sID];
-
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
             cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
                  << i_line + 1 << " of " << nr_of_spectral_lines << ": 0.0[%]  \r" << flush;
 
-            uint per_max = tracer[i_det]->getNpix();
             // Init counter and percentage to show progress
             ullong per_counter = 0;
             float last_percentage = 0;
@@ -2891,6 +2895,8 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                         last_percentage = percentage;
                     }
                 }
+
+                // Get radiative transfer results for one pixel/ray
                 getLinePixelIntensity(tmp_source, cx, cy, i_species, i_line, i_det, uint(0), i_pix);
             }
 
@@ -3082,10 +3088,9 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
     // are not negligible
     if(temp_gas >= 1e-200)
     {
-        double cos_theta = 0, sin_theta = 0, cos_2_phi = 0, sin_2_phi = 0;
-        Vector3D mag_field;
+        MagFieldInfo mag_field_info;
         if(gas->isLineZeemanSplit(i_species, i_line))
-            grid->getMagFieldOrientation(pp, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
+            grid->getMagFieldInfo(pp, mag_field_info);
 
         // Get the path length through the current cell
         double len = pp->getTmpPathLength();
@@ -3097,19 +3102,11 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         // Calculate the emission of the dust grains
         StokesVector S_dust = dust->calcEmissivityHz(grid, pp);
 
-        // Calculate the emission of the gas particles
-        StokesVector S_gas;
-        if(dens_species > 0)
-        {
-            S_gas = gas->calcEmissivity(grid, pp, i_species, i_line) * dens_species;
-            S_gas.setT(S_gas.T() * dens_species);
-        }
-
         // Perform radiative transfer for each velocity channel separately
         for(uint vch = 0; vch < nr_velocity_channels; vch++)
         {
             // Init variables
-            double cell_velocity, cell_sum = 0, cell_d_l = len;
+            double cell_sum = 0, cell_d_l = len;
             ullong kill_counter = 0;
 
             // Get direction and entry position of the current cell
@@ -3143,24 +3140,27 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     // Calculate Runge-Kutta position
                     tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
 
-                    cell_velocity = gas->getProjCellVelocityInterp(
-                        tmp_pos, dir_map_xyz, pos_in_grid_0, vel_field, zero_vel_field);
+                    double velocity = tracer[i_det]->getVelocityChannel(vch) -
+                                      gas->getProjCellVelocityInterp(
+                                          tmp_pos, dir_map_xyz, pos_in_grid_0, vel_field, zero_vel_field);
 
                     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
                     if(obs_vel.length() > 0)
-                        cell_velocity += obs_vel * dir_map_xyz;
+                        velocity += obs_vel * dir_map_xyz;
 
-                    Matrix2D line_matrix =
-                        gas->getLineMatrix(grid,
-                                           pp,
-                                           i_species,
-                                           i_line,
-                                           tracer[i_det]->getVelocityChannel(vch) - cell_velocity,
-                                           mag_field,
-                                           cos_theta,
-                                           sin_theta,
-                                           cos_2_phi,
-                                           sin_2_phi);
+                    // Calculate the emission of the gas particles
+                    StokesVector S_gas;
+                    Matrix2D line_matrix;
+                    if(dens_species > 0)
+                    {
+                        // Get line emissivity (also combined Zeeman lines)
+                        gas->calcEmissivity(
+                            grid, pp, i_species, i_line, velocity, mag_field_info, S_gas, line_matrix);
+
+                        // Multiply by density of the gas species
+                        S_gas.multS(dens_species);
+                        S_gas.multT(dens_species);
+                    }
 
                     // Combine the Stokes vectors from gas and dust
                     // for emission and extinction
@@ -3226,10 +3226,10 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         double column_flux = (stokes_new.I() - old_stokes);
 
                         // Total magnetic field strength of the current cell
-                        double mag_strength = mag_field.length();
+                        double mag_strength = mag_field_info.mag_field.length();
 
                         // LOS magnetic field strength of the current cell
-                        double los_mag_strength = (dir_map_xyz * mag_field);
+                        double los_mag_strength = (dir_map_xyz * mag_field_info.mag_field);
 
                         // Magnetic field strength in the line-of-sight direction
                         // weighted with the intensity increase of the current

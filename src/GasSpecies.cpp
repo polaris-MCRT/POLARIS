@@ -136,12 +136,9 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
 
     for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
     {
-        uint i_lvl_l = getLowerEnergyLevel(i_trans);
-        uint i_lvl_u = getUpperEnergyLevel(i_trans);
-
-        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
         {
-            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
             {
                 uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
                 J_mid[i_tmp_trans] = CMathFunctions::planck_hz(getTransitionFrequency(i_trans), 2.75);
@@ -276,12 +273,9 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
     double * J_ext = new double[nr_of_total_transitions];
     for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
     {
-        uint i_lvl_l = getLowerEnergyLevel(i_trans);
-        uint i_lvl_u = getUpperEnergyLevel(i_trans);
-
-        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
         {
-            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
             {
                 uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
                 J_ext[i_tmp_trans] = CMathFunctions::planck_hz(getTransitionFrequency(i_trans), 2.75);
@@ -361,12 +355,9 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
 
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
             {
-                uint i_lvl_l = getLowerEnergyLevel(i_trans);
-                uint i_lvl_u = getUpperEnergyLevel(i_trans);
-
-                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
                 {
-                    for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+                    for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
                     {
                         uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
                         J_mid[i_tmp_trans] = elem_LVG(grid,
@@ -607,7 +598,7 @@ double *** CGasSpecies::calcCollisionParameter(CGridBasic * grid, cell_basic * c
 
         bool skip = false;
         for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition; i_col_transition++)
-            if(getUpperCollision(i_col_partner, i_col_transition) == 0)
+            if(getUpperCollisionLevel(i_col_partner, i_col_transition) == 0)
                 skip = true;
 
         if(!skip)
@@ -674,11 +665,11 @@ dlist CGasSpecies::calcCollisionRate(uint i_col_partner, uint i_col_transition, 
         col_mtr_tmp[0] = interp;
 
         col_mtr_tmp[1] =
-            col_mtr_tmp[0] * getGLevel(getUpperCollision(i_col_partner, i_col_transition)) /
-            getGLevel(getLowerCollision(i_col_partner, i_col_transition)) *
+            col_mtr_tmp[0] * getGLevel(getUpperCollisionLevel(i_col_partner, i_col_transition)) /
+            getGLevel(getLowerCollisionLevel(i_col_partner, i_col_transition)) *
             exp(-con_h *
-                (getEnergylevel(getUpperCollision(i_col_partner, i_col_transition)) * con_c * 100.0 -
-                 getEnergylevel(getLowerCollision(i_col_partner, i_col_transition)) * con_c * 100.0) /
+                (getEnergylevel(getUpperCollisionLevel(i_col_partner, i_col_transition)) * con_c * 100.0 -
+                 getEnergylevel(getLowerCollisionLevel(i_col_partner, i_col_transition)) * con_c * 100.0) /
                 (con_kB * temp_gas));
     }
 
@@ -695,80 +686,73 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
     uint nr_of_col_partner = getNrOfCollisionPartner();
     uint nr_of_energy_level = getNrOfEnergyLevels();
 
-    for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
     {
-        for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-        {
-            for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
-            {
-                uint i_tmp_lvl = getUniqueLevelIndex(i_lvl, i_sublvl);
+        // Get level indices for lower and upper energy level
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
-                if(i_lvl == getUpperEnergyLevel(i_trans))
+        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+        {
+            // Get index that goes over all level and sublevel
+            uint i_tmp_lvl_u = getUniqueLevelIndex(i_lvl_u, i_sublvl_u);
+
+            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+            {
+                // Get index that goes over all level and sublevel
+                uint i_tmp_lvl_l = getUniqueLevelIndex(i_lvl_l, i_sublvl_l);
+
+                // Get index that goes over all transitions and transitions between sublevel
+                uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+
+                // Upper to lower
+                A(i_tmp_lvl_u, i_tmp_lvl_l) += getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
+                A(i_tmp_lvl_u, i_tmp_lvl_u) -=
+                    getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
+
+                // Lower to upper
+                A(i_tmp_lvl_l, i_tmp_lvl_u) +=
+                    getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
+                A(i_tmp_lvl_l, i_tmp_lvl_l) -= getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
+            }
+        }
+    }
+
+    for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
+    {
+        // Get number of transitions covered by the collisions
+        uint nr_of_col_transition = getNrCollisionTransitions(i_col_partner);
+
+        // Add collision rates to the system of equations for each transition
+        for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition; i_col_transition++)
+        {
+            // Get level indices for lower and upper energy level
+            uint i_lvl_u = getUpperCollisionLevel(i_col_partner, i_col_transition);
+            uint i_lvl_l = getLowerCollisionLevel(i_col_partner, i_col_transition);
+
+            for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+            {
+                // Get index that goes over all level and sublevel
+                uint i_tmp_lvl_u = getUniqueLevelIndex(i_lvl_u, i_sublvl_u);
+
+                for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
                 {
-                    uint k_lvl = getLowerEnergyLevel(i_trans);
-                    for(uint k_sublvl = 0; k_sublvl < getNrOfSublevel(k_lvl); k_sublvl++)
-                    {
-                        uint k_tmp_lvl = getUniqueLevelIndex(k_lvl, k_sublvl);
-                        uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl, k_sublvl);
-                        A(i_tmp_lvl, k_tmp_lvl) += getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
-                        A(i_tmp_lvl, i_tmp_lvl) -=
-                            getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
-                    }
-                }
-                else if(i_lvl == getLowerEnergyLevel(i_trans))
-                {
-                    uint k_lvl = getUpperEnergyLevel(i_trans);
-                    for(uint k_sublvl = 0; k_sublvl < getNrOfSublevel(k_lvl); k_sublvl++)
-                    {
-                        uint k_tmp_lvl = getUniqueLevelIndex(k_lvl, k_sublvl);
-                        uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl, k_sublvl);
-                        A(i_tmp_lvl, k_tmp_lvl) +=
-                            getEinsteinA(i_trans) + getEinsteinBu(i_trans) * J_mid[i_tmp_trans];
-                        A(i_tmp_lvl, i_tmp_lvl) -= getEinsteinBl(i_trans) * J_mid[i_tmp_trans];
-                    }
+                    // Get index that goes over all level and sublevel
+                    uint i_tmp_lvl_l = getUniqueLevelIndex(i_lvl_l, i_sublvl_l);
+
+                    // Upper to lower
+                    A(i_tmp_lvl_u, i_tmp_lvl_l) += final_col_para[i_col_partner][i_col_transition][1];
+                    A(i_tmp_lvl_u, i_tmp_lvl_u) -= final_col_para[i_col_partner][i_col_transition][0];
+
+                    // Lower to upper
+                    A(i_tmp_lvl_l, i_tmp_lvl_u) += final_col_para[i_col_partner][i_col_transition][0];
+                    A(i_tmp_lvl_l, i_tmp_lvl_l) -= final_col_para[i_col_partner][i_col_transition][1];
                 }
             }
         }
     }
 
-    for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
-    {
-        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
-        {
-            uint i_tmp_lvl = getUniqueLevelIndex(i_lvl, i_sublvl);
-            for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
-            {
-                // Get number of transitions covered by the collisions
-                uint nr_of_col_transition = getNrCollisionTransitions(i_col_partner);
-
-                // Add collision rates to the system of equations for each transition
-                for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition; i_col_transition++)
-                {
-                    if(i_lvl == getLowerCollision(i_col_partner, i_col_transition))
-                    {
-                        uint k_lvl = getUpperCollision(i_col_partner, i_col_transition);
-                        for(uint k_sublvl = 0; k_sublvl < getNrOfSublevel(k_lvl); k_sublvl++)
-                        {
-                            uint k_tmp_lvl = getUniqueLevelIndex(k_lvl, k_sublvl);
-                            A(i_tmp_lvl, k_tmp_lvl) += final_col_para[i_col_partner][i_col_transition][0];
-                            A(i_tmp_lvl, i_tmp_lvl) -= final_col_para[i_col_partner][i_col_transition][1];
-                        }
-                    }
-                    else if(i_lvl == getUpperCollision(i_col_partner, i_col_transition))
-                    {
-                        uint k_lvl = getLowerCollision(i_col_partner, i_col_transition);
-                        for(uint k_sublvl = 0; k_sublvl < getNrOfSublevel(k_lvl); k_sublvl++)
-                        {
-                            uint k_tmp_lvl = getUniqueLevelIndex(k_lvl, k_sublvl);
-                            A(i_tmp_lvl, k_tmp_lvl) += final_col_para[i_col_partner][i_col_transition][1];
-                            A(i_tmp_lvl, i_tmp_lvl) -= final_col_para[i_col_partner][i_col_transition][0];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    // Setting startpoint for gaussian solving
     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
     {
         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
@@ -781,22 +765,51 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D & A, double * b, double 
     b[0] = 1.0;
 }
 
-StokesVector CGasSpecies::calcEmissivity(CGridBasic * grid, cell_basic * cell, uint i_line, uint i_sublvl)
+void CGasSpecies::calcEmissivity(CGridBasic * grid,
+                                 cell_basic * cell,
+                                 uint i_line,
+                                 double velocity,
+                                 const MagFieldInfo & mag_field_info,
+                                 StokesVector & S_gas,
+                                 Matrix2D & line_matrix)
 {
-    // Get width of spectral line
-    double gauss_a = grid->getGaussA(cell);
+    // Init line matrix
+    line_matrix.resize(4, 4);
 
     // Get index of transition
     uint i_trans = getTransitionFromSpectralLine(i_line);
 
-    // Calculate the optical depth of the gas particles in the current cell
-    double alpha_gas = (grid->getLvlPopLower(cell, i_line, i_sublvl) * getEinsteinBl(i_trans) -
-                        grid->getLvlPopUpper(cell, i_line, i_sublvl) * getEinsteinBu(i_trans)) *
-                       con_eps * gauss_a;
-    // Calculate the Emissivity of the gas particles in the current cell
-    double S_gas = grid->getLvlPopUpper(cell, i_line, i_sublvl) * getEinsteinA(i_trans) * con_eps * gauss_a;
+    if(isTransZeemanSplit(i_trans))
+    {
+        LineBroadening line_broadening;
+        line_broadening.Gamma = grid->getGamma(cell, i_line);
+        line_broadening.doppler_width = grid->getDopplerWidth(cell, i_line);
+        line_broadening.voigt_a = grid->getVoigtA(cell, i_line);
 
-    return StokesVector(S_gas, 0, 0, 0, alpha_gas);
+        // Calculate the line matrix from rotation polarization matrix and line shape
+        calcEmissivityZeeman(
+            grid, cell, i_line, velocity, line_broadening, mag_field_info, S_gas, line_matrix);
+    }
+    else
+    {
+        // Get width of spectral line
+        double gauss_a = grid->getGaussA(cell);
+
+        // Calculate the optical depth of the gas particles in the current cell
+        double alpha_gas = (grid->getLvlPopLower(cell, i_line) * getEinsteinBl(i_trans) -
+                            grid->getLvlPopUpper(cell, i_line) * getEinsteinBu(i_trans)) *
+                           con_eps * gauss_a;
+
+        // Calculate the Emissivity of the gas particles in the current cell
+        S_gas = StokesVector(grid->getLvlPopUpper(cell, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a,
+                             0,
+                             0,
+                             0,
+                             alpha_gas);
+
+        // Calculate the line matrix from rotation polarization matrix and line shape
+        line_matrix = getGaussLineMatrix(grid, cell, velocity);
+    }
 }
 
 StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid,
@@ -823,7 +836,6 @@ StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid,
 
 StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid, cell_basic * cell, uint i_trans)
 {
-
     // Init resulting stokes vector
     StokesVector tmp_stokes;
 
@@ -843,71 +855,71 @@ StokesVector CGasSpecies::calcEmissivityForTransition(CGridBasic * grid, cell_ba
     return tmp_stokes;
 }
 
-Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp, double velocity)
-{
-    // Init line matrix
-    Matrix2D line_matrix(4, 4);
-
-    // Calculate gaussian shape
-    double line_amplitude = getGaussLineShape(grid, pp, velocity);
-
-    // Only diagonal without polarization rotation matrix elements
-    for(uint i = 0; i < 4; i++)
-        line_matrix(i, i) = line_amplitude;
-
-    return line_matrix;
-}
-
-double CGasSpecies::getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity)
-{
-    double gauss_a = grid->getGaussA(pp);
-    return exp(-(pow(velocity, 2) * pow(gauss_a, 2))) / PIsq;
-}
-
-Matrix2D CGasSpecies::getZeemanSplittingMatrix(photon_package * pp,
-                                               uint i_trans,
-                                               double velocity,
-                                               double Gamma,
-                                               double doppler_width,
-                                               double voigt_a,
-                                               Vector3D mag_field,
-                                               double cos_theta,
-                                               double sin_theta,
-                                               double cos_2_phi,
-                                               double sin_2_phi)
+void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
+                                       cell_basic * cell,
+                                       uint i_line,
+                                       double velocity,
+                                       const LineBroadening & line_broadening,
+                                       const MagFieldInfo & mfo,
+                                       StokesVector & S_gas,
+                                       Matrix2D & line_matrix)
 {
     // Init variables
-    Matrix2D line_matrix(4, 4);
     double line_strength, freq_shift;
     double f_doppler, mult_A, mult_B;
-    double frequency = getTransitionFrequency(i_trans);
+    double alpha_gas, emi_gas;
+    float sublvl_u, sublvl_l;
     uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
 
     // Init the current value of the line function as a complex value
     complex<double> line_function;
 
+    // Get index of transition
+    uint i_trans = getTransitionFromSpectralLine(i_line);
+
+    // Get rest frequency of transition
+    double frequency = getTransitionFrequency(i_trans);
+
     // Calculate the contribution of each allowed transition between Zeeman sublevels
     for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
     {
-        float sublvl_u = -getMaxMUpper(i_trans) + i_sublvl_u;
+        // Calculate the quantum number of the upper energy level
+        sublvl_u = -getMaxMUpper(i_trans) + i_sublvl_u;
+
         for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
         {
-            float sublvl_l = max(sublvl_u - 1, -getMaxMLower(i_trans)) + i_sublvl_l;
+            // Calculate the quantum number of the lower energy level
+            sublvl_l = max(sublvl_u - 1, -getMaxMLower(i_trans)) + i_sublvl_l;
+
+            // Skip forbidden transitions
+            if(abs(sublvl_l - sublvl_u) > 1)
+                continue;
+
+            // Calculate the optical depth of the gas particles in the current cell
+            alpha_gas = (grid->getLvlPopLower(cell, i_line, i_sublvl_l) * getEinsteinBl(i_trans) -
+                         grid->getLvlPopUpper(cell, i_line, i_sublvl_u) * getEinsteinBu(i_trans)) *
+                        con_eps * line_broadening.gauss_a;
+
+            emi_gas = grid->getLvlPopUpper(cell, i_line, i_sublvl_l) * getEinsteinA(i_trans) * con_eps *
+                      line_broadening.gauss_a;
+
+            // Calculate the Emissivity of the gas particles in the current cell
+            S_gas += StokesVector(emi_gas, 0, 0, 0, alpha_gas);
 
             // Calculate the frequency shift in relation to the unshifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
-            freq_shift = mag_field.length() * con_mb / con_h *
+            freq_shift = mfo.mag_field.length() * con_mb / con_h *
                          (sublvl_u * getLandeUpper(i_trans) - sublvl_l * getLandeLower(i_trans));
 
             // Calculate the frequency value of the current velocity channel in
             // relation to the peak of the line function
             f_doppler = CMathFunctions::Velo2Freq(velocity + CMathFunctions::Freq2Velo(freq_shift, frequency),
                                                   frequency) /
-                        doppler_width;
+                        line_broadening.doppler_width;
 
             // Calculate the line function value at the frequency
             // of the current velocity channel
-            line_function = getLineShape_AB(f_doppler, voigt_a);
+            line_function = getLineShape_AB(f_doppler, line_broadening.voigt_a);
 
             // Multiply the line function value by PIsq for normalization
             mult_A = real(line_function) / PIsq;
@@ -927,11 +939,11 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(photon_package * pp,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixASigmaP(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBSigmaP(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
 
                     // Increase the sigma_+ counter to circle through the line strengths
                     i_sigma_p++;
@@ -942,11 +954,11 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(photon_package * pp,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixAPi(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBPi(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
 
                     // Increase the pi counter to circle through the line strengths
                     i_pi++;
@@ -957,11 +969,11 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(photon_package * pp,
 
                     // Get the propagation matrix for extinction/emission
                     line_matrix += CMathFunctions::getPropMatrixASigmaM(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_A);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_A);
 
                     // Get the propagation matrix for Faraday rotation
                     line_matrix += CMathFunctions::getPropMatrixBSigmaM(
-                        cos_theta, sin_theta, cos_2_phi, sin_2_phi, line_strength * mult_B);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, line_strength * mult_B);
 
                     // Increase the sigma_- counter to circle through the line strengths
                     i_sigma_m++;
@@ -969,7 +981,6 @@ Matrix2D CGasSpecies::getZeemanSplittingMatrix(photon_package * pp,
             }
         }
     }
-    return line_matrix;
 }
 
 bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
@@ -1286,6 +1297,13 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     line_strength_sigma_p = new double *[nr_of_transitions];
     line_strength_sigma_m = new double *[nr_of_transitions];
 
+    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+    {
+        line_strength_pi[i_trans] = 0;
+        line_strength_sigma_p[i_trans] = 0;
+        line_strength_sigma_m[i_trans] = 0;
+    }
+
     lande_factor = new double[nr_of_energy_level];
     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
     {
@@ -1420,17 +1438,31 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             offset_sigma = nr_sigma_spectral_lines;
 
             // Init pointer array for pi line strengths
-            line_strength_pi[i_trans_zeeman] = new double[nr_pi_spectral_lines];
-            for(int i_pi = 0; i_pi < nr_pi_spectral_lines; i_pi++)
-                line_strength_pi[i_trans_zeeman][i_pi] = 0;
-
-            // Init pointer array for sigma +/- line strengths
-            line_strength_sigma_p[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
-            line_strength_sigma_m[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
-            for(int i_sigma = 0; i_sigma < nr_sigma_spectral_lines; i_sigma++)
+            if(line_strength_pi[i_trans_zeeman] == 0)
             {
-                line_strength_sigma_p[i_trans_zeeman][i_sigma] = 0;
-                line_strength_sigma_m[i_trans_zeeman][i_sigma] = 0;
+                line_strength_pi[i_trans_zeeman] = new double[nr_pi_spectral_lines];
+                for(int i_pi = 0; i_pi < nr_pi_spectral_lines; i_pi++)
+                    line_strength_pi[i_trans_zeeman][i_pi] = 0;
+            }
+
+            // Init pointer array for sigma + line strengths
+            if(line_strength_sigma_p[i_trans_zeeman] == 0)
+            {
+                line_strength_sigma_p[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
+                for(int i_sigma_p = 0; i_sigma_p < nr_sigma_spectral_lines; i_sigma_p++)
+                {
+                    line_strength_sigma_p[i_trans_zeeman][i_sigma_p] = 0;
+                }
+            }
+
+            // Init pointer array for sigma - line strengths
+            if(line_strength_sigma_m[i_trans_zeeman] == 0)
+            {
+                line_strength_sigma_m[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
+                for(int i_sigma_m = 0; i_sigma_m < nr_sigma_spectral_lines; i_sigma_m++)
+                {
+                    line_strength_sigma_m[i_trans_zeeman][i_sigma_m] = 0;
+                }
             }
 
             // Init indices to address the correct trantitions
@@ -1470,7 +1502,22 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
         }
         else if(cmd_counter == 9 + offset_pi + 2 * offset_sigma)
         {
-            cmd_counter = 3;
+            if(values.size() != 1)
+            {
+                cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
+                return false;
+            }
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                if(i_trans == int(values[0] - 1))
+                {
+                    // Set current zeeman transition index
+                    i_trans_zeeman = int(values[0] - 1);
+                    break;
+                }
+            }
+
+            cmd_counter = 4;
         }
     }
     reader.close();
@@ -1505,15 +1552,20 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
             uint i_trans = getTransitionFromSpectralLine(i_line);
             double frequency = getTransitionFrequency(i_trans);
 
-            double gauss_a = getGaussA(temp_gas, turbulent_velocity);
-            double doppler_width = frequency / (con_c * gauss_a);
-            double Gamma = 0, voigt_a = 0;
+            // Init line broadening structure
+            LineBroadening line_broadening;
+            line_broadening.gauss_a = getGaussA(temp_gas, turbulent_velocity);
+            line_broadening.doppler_width = frequency / (con_c * line_broadening.gauss_a);
+            line_broadening.Gamma = 0;
+            line_broadening.voigt_a = 0;
+
             if(isTransZeemanSplit(i_trans))
             {
-                Gamma = getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
-                voigt_a = Gamma / (4 * PI * doppler_width);
+                line_broadening.Gamma =
+                    getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
+                line_broadening.voigt_a = line_broadening.Gamma / (4 * PI * line_broadening.doppler_width);
             }
-            grid->setLineBroadening(cell, i_line, gauss_a, doppler_width, Gamma, voigt_a);
+            grid->setLineBroadening(cell, i_line, line_broadening);
         }
     }
 }

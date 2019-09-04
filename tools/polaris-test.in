@@ -290,7 +290,12 @@ class TestRoutines:
         self.get_result('emission_map')
 
     def test_1001013(self):
-        """Perform test simulation to check the line radiative transfer (MC).
+        """Perform test simulation to check the line radiative transfer (Monte-Carlo).
+        """
+        self.get_result('vel_map')
+
+    def test_1001014(self):
+        """Perform test simulation to check the line radiative transfer (Monte-Carlo, with GK effect).
         """
         self.get_result('vel_map')
 
@@ -447,6 +452,7 @@ if __name__ == '__main__':
     #: List: List of test simulations that are too long for "all"
     ignore__if_all = [
         'test_1001011',
+        'test_1001014',
     ]
 
     print('---------------------- PolarisToolsTest ----------------------')

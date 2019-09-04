@@ -714,7 +714,6 @@ double rot_sgn(Vector3D n, Vector3D o_d, Vector3D n_d)
 
     return 0;
 }
-
-}
+};
 
 #endif
