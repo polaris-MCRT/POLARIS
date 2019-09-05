@@ -2222,6 +2222,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         return false;
     }
 
+    // Get weight
+    double weight = getWeight();
+
     // Init plot limits
     double SizeDistMin = 1e100, SizeDistMax = -1e100;
 
@@ -2230,10 +2233,10 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     {
         if(sizeIndexUsed(a))
         {
-            if(getEffectiveRadius3_5(a) < SizeDistMin && getEffectiveRadius3_5(a) > 0)
-                SizeDistMin = getEffectiveRadius3_5(a);
-            if(getEffectiveRadius3_5(a) > SizeDistMax)
-                SizeDistMax = getEffectiveRadius3_5(a);
+            if(getEffectiveRadius3_5(a) / weight < SizeDistMin && getEffectiveRadius3_5(a) / weight > 0)
+                SizeDistMin = getEffectiveRadius3_5(a) / weight;
+            if(getEffectiveRadius3_5(a) / weight > SizeDistMax)
+                SizeDistMax = getEffectiveRadius3_5(a) / weight;
         }
     }
 
@@ -2262,7 +2265,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         if(sizeIndexUsed(a))
-            size_dist_writer << getEffectiveRadius(a) << "\t" << getEffectiveRadius3_5(a) << endl;
+            size_dist_writer << getEffectiveRadius(a) << "\t" << getEffectiveRadius3_5(a) / weight << endl;
         else
             size_dist_writer << getEffectiveRadius(a) << "\t0" << endl;
     }
