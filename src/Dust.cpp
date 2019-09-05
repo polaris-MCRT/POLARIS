@@ -2243,12 +2243,12 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Add Gnuplot commands to file
     size_dist_writer << "reset" << endl;
-    if(nr_of_wavelength > 1)
+    if(nr_of_dust_species > 1)
         size_dist_writer << "set log x" << endl;
     size_dist_writer << "set log y" << endl;
     size_dist_writer << "set grid" << endl;
     size_dist_writer << "unset key" << endl;
-    if(nr_of_wavelength > 1)
+    if(nr_of_dust_species > 1)
         size_dist_writer << "set xrange[" << getSizeMin() << ":" << getSizeMax() << "]" << endl;
     size_dist_writer << "set yrange[" << SizeDistMin << ":" << SizeDistMax << "]" << endl;
     size_dist_writer << "set format x \"%.1te%02T\"" << endl;
