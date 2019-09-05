@@ -739,6 +739,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->setCommand(CMD_DUST_SCATTERING);
             return true;
         }
+        
+        if(data.compare("CMD_DUST_TIME") == 0)
+        {
+            param->setCommand(CMD_DUST_TIME);
+            return true;
+        }
 
         if(data.compare("CMD_SYNCHROTRON") == 0)
         {

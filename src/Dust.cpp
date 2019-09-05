@@ -5206,7 +5206,7 @@ bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
     }
 
     // Use random alignment for Monte-Carlo simulations
-    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING)
+    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING || param.getCommand() == CMD_DUST_TIME)
         mixed_component[i_mixture].setAlignmentMechanism(ALIG_RND);
     else
         mixed_component[i_mixture].setAlignmentMechanism(param.getAlignmentMechanism());

@@ -422,6 +422,11 @@ uint CGridBasic::validateDataPositions(parameters & param)
             if(CheckDustScattering(param) == MAX_UINT)
                 return MAX_UINT;
             break;
+            
+        case CMD_DUST_TIME:
+            if(CheckTemp(param, tmp_data_offset) == MAX_UINT)
+                return MAX_UINT;
+            break;
 
         case CMD_FORCE:
             if(CheckRadiationForce(param) == MAX_UINT)

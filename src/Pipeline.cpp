@@ -141,6 +141,10 @@ void CPipeline::Run()
             case CMD_DUST_SCATTERING:
                 result = calcPolarizationMapsViaMC(param);
                 break;
+                
+            case CMD_DUST_TIME:
+                result = calcMonteCarloTimeTransfer(param);
+                break;
 
             case CMD_LINE_EMISSION:
                 result = calcChMapsViaRayTracing(param);
@@ -294,6 +298,13 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     delete dust;
     deleteSourceLists();
 
+    return true;
+}
+
+bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
+{
+    cout << "\nTESTTESTTEST" << endl;
+    
     return true;
 }
 
