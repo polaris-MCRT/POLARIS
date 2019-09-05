@@ -1442,7 +1442,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Init strings for various filenames/titles
     string path_cross, path_eff, path_kappa, path_diff, path_g;
-    string path_scat, str_title, gnu_title, plot_sign = "points";
+    string path_scat, path_size_dist, str_title, gnu_title;
+    string plot_sign = "points";
 
     // Check if enough points to draw lines
     if(nr_of_wavelength > 1)
@@ -1483,6 +1484,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.plt";
 
         // Format the strings
         uint pos = 0;
@@ -1530,6 +1532,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
+        path_size_dist =
+            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.plt";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
@@ -2205,6 +2209,67 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         // Close text file writer
         scat_writer.close();
     }
+
+    // ------------------------------------------------------
+
+    // Init text file writer for size distribution
+    ofstream size_dist_writer(path_size_dist.c_str());
+
+    // Error message if the write does not work
+    if(size_dist_writer.fail())
+    {
+        cout << "\nERROR: Cannot write to:\n" << path_size_dist << endl;
+        return false;
+    }
+
+    // Init plot limits
+    double SizeDistMin = 1e100, SizeDistMax = -1e100;
+
+    // Find min and max values over the wavelength
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        if(sizeIndexUsed(a))
+        {
+            if(getEffectiveRadius3_5(a) < SizeDistMin && getEffectiveRadius3_5(a) > 0)
+                SizeDistMin = getEffectiveRadius3_5(a);
+            if(getEffectiveRadius3_5(a) > SizeDistMax)
+                SizeDistMax = getEffectiveRadius3_5(a);
+        }
+    }
+
+    // Add a bit more space for good visualization
+    SizeDistMin *= 0.9;
+    SizeDistMax *= 1.10;
+
+    // Add Gnuplot commands to file
+    size_dist_writer << "reset" << endl;
+    if(nr_of_wavelength > 1)
+        size_dist_writer << "set log x" << endl;
+    size_dist_writer << "set log y" << endl;
+    size_dist_writer << "set grid" << endl;
+    size_dist_writer << "unset key" << endl;
+    if(nr_of_wavelength > 1)
+        size_dist_writer << "set xrange[" << getSizeMin() << ":" << getSizeMax() << "]" << endl;
+    size_dist_writer << "set yrange[" << SizeDistMin << ":" << SizeDistMax << "]" << endl;
+    size_dist_writer << "set format x \"%.1te%02T\"" << endl;
+    size_dist_writer << "set format y \"%.1te%02T\"" << endl;
+    size_dist_writer << "set ylabel \'{/Symbol d}N(a)'" << endl;
+    size_dist_writer << "set xlabel \'a [m]\'" << endl;
+    size_dist_writer << "set title \"" << gnu_title << "\"" << endl;
+    size_dist_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
+
+    // Add HG g factor to file (if larger than 0)
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        if(sizeIndexUsed(a))
+            size_dist_writer << getEffectiveRadius(a) << "\t" << getEffectiveRadius3_5(a) << endl;
+        else
+            size_dist_writer << getEffectiveRadius(a) << "\t0" << endl;
+    }
+    size_dist_writer << "e" << endl;
+
+    // Close text file writer
+    size_dist_writer.close();
 
     return true;
 }

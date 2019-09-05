@@ -2518,10 +2518,11 @@ class CustomPlots:
     def plot_1007002(self):
         """Plot optical depth slice.
         """
-        # Simulatuion parameter
-        model = 1
+        # Simulation parameter (model 1, 2, or 3)
+        model = 3
         detector_index = model * 100
         vmax = 100
+        vmin = 1e-1
         limits = [-270, -160, -130, -20]
         i_quantity = 6  # Optical depth
         i_wl = 0  # First wavelength
@@ -2620,8 +2621,14 @@ class CustomPlots:
         def plot_tau(_plot, color):
             if model == 1:
                 text = r'Single size distribution with $a_\text{max}=\SI{3}{\micro\metre}$'
-            else:
+            elif model == 2:
                 text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
+            elif model == 3:
+                text = r'Single size distribution with $a_\text{max}=\SI{100}{\micro\metre}$'
+            elif model == 4:
+                text = r'Single size distribution with $a_\text{max}=\SI{1}{\milli\metre}$'
+            else:
+                raise ValueError('Wrong model number!')
             _plot.plot_text([0.97, 0.97], text, color=color, relative_position=True,
                             horizontalalignment='right', verticalalignment='top')
 
