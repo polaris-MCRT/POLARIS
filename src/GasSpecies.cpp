@@ -50,7 +50,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         double temp_gas = grid->getGasTemperature(cell);
         if(temp_gas == 0)
         {
-            for(uint i_lvl = 0; i_lvl < nr_of_total_energy_levels; i_lvl++)
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
                 for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
                     tmp_lvl_pop[i_lvl][i_sublvl] = 0;
@@ -715,15 +715,17 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
 
                 // Level u can be populated by level l
                 A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, getEinsteinBlu(i_trans) * J_mid[i_tmp_trans]);
+
                 // Level u can be depopulated to level l
                 A->addValue(i_tmp_lvl_u,
                             i_tmp_lvl_u,
-                            -getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]);
+                            -(getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]));
 
                 // Level l can be populated by level u
                 A->addValue(i_tmp_lvl_l,
                             i_tmp_lvl_u,
                             getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]);
+
                 // Level l can be depopulated to level u
                 A->addValue(i_tmp_lvl_l, i_tmp_lvl_l, -getEinsteinBlu(i_trans) * J_mid[i_tmp_trans]);
             }
@@ -754,12 +756,14 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
 
                     // Level u can be populated by level l
                     A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, final_col_para[i_col_partner][i_col_transition][1]);
+
                     // Level u can be depopulated to level l
                     A->addValue(
                         i_tmp_lvl_u, i_tmp_lvl_u, -final_col_para[i_col_partner][i_col_transition][0]);
 
                     // Level l can be populated by level u
                     A->addValue(i_tmp_lvl_l, i_tmp_lvl_u, final_col_para[i_col_partner][i_col_transition][0]);
+
                     // Level l can be depopulated to level u
                     A->addValue(
                         i_tmp_lvl_l, i_tmp_lvl_l, -final_col_para[i_col_partner][i_col_transition][1]);
