@@ -302,7 +302,125 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 }
 
 bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
-{
+{   
+    // Check same parameters as in MCRadiationField
+    
+    bool use_energy_density = false;
+    if(param.getSaveRadiationField() || param.isRatSimulation() || param.getStochasticHeatingMaxSize() > 0)
+        use_energy_density = true;
+
+    CGridBasic * grid = 0;
+    CDustMixture * dust = new CDustMixture();
+ 
+    if(!createOutputPaths(param.getPathOutput()))
+        return false;
+
+    if(!assignGridType(grid, param))
+        return false;
+
+    if(!createWavelengthList(param, dust))
+        return false;
+
+    if(!assignDustMixture(param, dust, grid))
+        return false; 
+    
+    grid->setSIConversionFactors(param);
+    
+    grid->setSpecLengthAsVector(use_energy_density);
+    if(!grid->loadGridFromBinrayFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
+        return false;
+    
+    // Print helpfull information (Not working jet - Dust.cpp has to be modified)
+    grid->createCellList();
+    dust->printParameter(param, grid);
+    grid->printParameters();
+    
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
+        return false;
+
+    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+        return false;
+
+    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
+        return false;
+    
+    createSourceLists(param, dust, grid);
+    if(sources_mc.size() == 0)
+    {
+        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
+        return false;
+    }
+    
+    // Detector similiar to calcPolarizationMapsViaMC 
+    CDetector * detector = createDetectorList(param, dust, grid);
+    
+    if(detector == 0)
+        return false;
+    
+    CRadiativeTransfer rad(param);
+    
+    rad.setGrid(grid);
+    rad.setDust(dust);
+    rad.setSourcesLists(sources_mc, sources_ray);
+    rad.setDetectors(detector);
+    
+    // Both initiates should be included in initiateTimeMC
+    rad.initiateDustMC(param);
+    rad.initiateRadFieldMC(param);
+    
+    omp_set_num_threads(param.getNrOfThreads());
+    
+    // Here isTemperatureSimulation has to be adapated to TdMCRT
+    if(param.isTemperatureSimulation())
+    {
+        if(param.getDustOffset())
+            rad.convertTempInQB(param.getOffsetMinGasDensity(), false);
+        else if(param.getDustGasCoupling())
+            rad.convertTempInQB(param.getOffsetMinGasDensity(), true);
+    }
+    
+    
+    rad.calcMonteCarloTimeTransfer(param.getCommand(),
+                                   use_energy_density,
+                                   disable_reemission);
+    
+    //Following is probably not needed due to no final temperature
+    //if(param.isTemperatureSimulation())
+    //    rad.calcFinalTemperature(use_energy_density);
+    
+    //Alignement theorys not jet included
+    //if(param.isRatSimulation())
+    //    rad.calcAlignedRadii();
+    
+    cout << SEP_LINE;
+    
+    
+    //Here only final output, intermediate results will be saved somewhere else
+    
+    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
+        return false;
+
+    if(!grid->writeGNUPlotFiles(path_plot + "output_", param))
+        return false;
+
+    if(!grid->writeAMIRAFiles(path_plot + "output_", param, param.getOutAMIRAPoints()))
+        return false;
+
+    grid->writeSpecialLines(path_data);
+
+    if(param.getSaveRadiationField())
+        grid->saveRadiationField();
+    if(param.isTemperatureSimulation())
+        grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
+    else if(param.getCommand() == CMD_RAT)
+        grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
+
+    //Clean up
+    delete grid;
+    delete dust;
+    delete[] detector;
+    deleteSourceLists();
+    
     cout << "\nTESTTESTTEST" << endl;
     
     return true;
