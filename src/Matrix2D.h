@@ -43,6 +43,17 @@ class Matrix2D
             m_data[i] = data[i];
     }
 
+    Matrix2D(uint m, uint n, double data)
+    {
+        m_n = n;
+        m_m = m;
+        m_size = n * m;
+        m_pos = 0;
+        m_data = new double[m_size];
+        for(uint i = 0; i < m_size; i++)
+            m_data[i] = data;
+    }
+
     Matrix2D(uint m, uint n, vector<double> data)
     {
         m_n = n;
@@ -66,12 +77,12 @@ class Matrix2D
             m_data[i] = rhs(i);
     }
 
-    uint get_n()
+    uint get_n() const
     {
         return m_n;
     }
 
-    uint get_m()
+    uint get_m() const
     {
         return m_m;
     }
@@ -165,6 +176,13 @@ class Matrix2D
         if(m_size == mat.size())
             for(uint i = 0; i < m_size; i++)
                 m_data[i] -= mat(i);
+    }
+
+    Matrix2D operator*(double val)
+    {
+        Matrix2D res(*this);
+        res *= val;
+        return res;
     }
 
     void printMatrix()
@@ -431,13 +449,6 @@ inline Matrix2D operator*(const Matrix2D & lhs, const Matrix2D & rhs)
 }
 
 inline Matrix2D operator*(double val, const Matrix2D & mat)
-{
-    Matrix2D res(mat);
-    res *= val;
-    return res;
-}
-
-inline Matrix2D operator*(const Matrix2D & mat, double val)
 {
     Matrix2D res(mat);
     res *= val;

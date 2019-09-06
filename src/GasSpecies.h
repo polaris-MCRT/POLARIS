@@ -42,8 +42,8 @@ class CGasSpecies
         lower_level = 0;
 
         trans_einstA = 0;
-        trans_einstB_l = 0;
-        trans_einstB_u = 0;
+        trans_einstB_lu = 0;
+        trans_einstB_ul = 0;
 
         trans_freq = 0;
         trans_inner_energy = 0;
@@ -126,11 +126,11 @@ class CGasSpecies
         if(trans_einstA != 0)
             delete[] trans_einstA;
 
-        if(trans_einstB_l != 0)
-            delete[] trans_einstB_l;
+        if(trans_einstB_lu != 0)
+            delete[] trans_einstB_lu;
 
-        if(trans_einstB_u != 0)
-            delete[] trans_einstB_u;
+        if(trans_einstB_ul != 0)
+            delete[] trans_einstB_ul;
 
         if(orientation_H2 != 0)
             delete[] orientation_H2;
@@ -233,24 +233,24 @@ class CGasSpecies
         return nr_of_spectral_lines;
     }
 
-    double getEinsteinA(uint i_trans)
+    double getEinsteinA(uint i_trans) const
     {
         return trans_einstA[i_trans];
     }
 
-    double getEinsteinBu(uint i_trans)
+    double getEinsteinBul(uint i_trans) const
     {
-        return trans_einstB_u[i_trans];
+        return trans_einstB_ul[i_trans];
     }
 
-    double getEinsteinBl(uint i_trans)
+    double getEinsteinBlu(uint i_trans) const
     {
-        return trans_einstB_l[i_trans];
+        return trans_einstB_lu[i_trans];
     }
 
     double getGLevel(uint i_lvl)
     {
-        return g_level[i_lvl] / nr_of_sublevel[i_lvl];
+        return g_level[i_lvl];
     }
 
     double getJLevel(uint i_lvl)
@@ -589,9 +589,8 @@ class CGasSpecies
 
     double getGamma(uint i_trans, double dens_gas, double dens_species, double temp_gas, double v_turb)
     {
-        double gamma = 0;
-        for(uint i = 0; i < i_trans; i++)
-            gamma += trans_einstA[i];
+
+        double gamma = trans_einstA[i_trans];
 
         // "http://chem.libretexts.org/Core/Physical_and_Theoretical_Chemistry/
         //  ->
@@ -747,15 +746,15 @@ class CGasSpecies
     int * nr_of_col_temp;
     int * nr_of_sublevel;
     int * spectral_lines;
+    int *upper_level, *lower_level;
+    int * orientation_H2;
 
     double * energy_level;
     double * g_level;
     double * quantum_numbers;
-    int *upper_level, *lower_level;
-    double *trans_einstA, *trans_einstB_l, *trans_einstB_u;
-    double *trans_freq, *trans_inner_energy;
-    int * orientation_H2;
     double * lande_factor;
+    double *trans_freq, *trans_inner_energy;
+    double *trans_einstA, *trans_einstB_lu, *trans_einstB_ul;
 
     string stringID;
     string filename;

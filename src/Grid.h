@@ -1408,7 +1408,7 @@ class CGridBasic
         return getVoigtA(pp->getPositionCell(), i_line);
     }
 
-    double getLvlPop(cell_basic * cell, uint i_lvl, uint i_sublvl)
+    double getLvlPop(cell_basic * cell, uint i_lvl, uint i_sublvl = 0)
     {
         if(level_to_pos[i_lvl][i_sublvl] != MAX_UINT)
             return cell->getData(data_offset + level_to_pos[i_lvl][i_sublvl]);
@@ -1416,7 +1416,7 @@ class CGridBasic
         return 0;
     }
 
-    double getLvlPop(photon_package * pp, uint i_lvl, uint i_sublvl)
+    double getLvlPop(photon_package * pp, uint i_lvl, uint i_sublvl = 0)
     {
         return getLvlPop(pp->getPositionCell(), i_lvl, i_sublvl);
     }
