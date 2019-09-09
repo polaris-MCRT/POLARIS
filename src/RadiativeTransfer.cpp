@@ -2543,9 +2543,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     // Update the multi Stokes vectors for each wavelength
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
+        // Set wavelength index in photon package
+        double wavelength = tracer[i_det]->getWavelength(i_wave);
+
         // Get frequency at background grid position
-        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                      (pp->getFrequency() * pp->getFrequency());
+        double mult =
+            1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * wavelength * wavelength / con_c;
 
         // Include foreground extinction if necessary
         mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
