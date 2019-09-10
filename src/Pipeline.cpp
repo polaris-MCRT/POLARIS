@@ -382,7 +382,7 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
     
     rad.calcMonteCarloTimeTransfer(param.getCommand(),
                                    use_energy_density,
-                                   disable_reemission);
+                                   false);
     
     //Following is probably not needed due to no final temperature
     //if(param.isTemperatureSimulation())
@@ -1363,7 +1363,12 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printDetectorParameters(param, true);
             printPlotParameters(param);
             break;
-
+            
+        case CMD_DUST_TIME:
+            cout << "- Command          : DUST TIME TRANSFER (Monte-Carlo)" << endl;
+            // Parameter output tbd
+            break;
+            
         case CMD_OPIATE:
             cout << "todo: OPIATE parameter" << endl;
 

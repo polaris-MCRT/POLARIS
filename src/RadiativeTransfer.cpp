@@ -2951,3 +2951,57 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         pp->setMultiStokesVector(CHMap.S(vch), vch);
     }
 }
+
+// ---------------------------------------------------------------
+// ------ Calculation of time-dependent radiation transfer -------
+// ---------------------------------------------------------------
+
+bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
+                                                    bool use_energy_density,
+                                                    bool disable_reemission)
+{
+    
+    // Init variables
+    ullong nr_of_photons;
+    ullong per_counter, ph_max, nr_of_wavelength;
+    float last_percentage;
+    ullong kill_counter = 0;
+    uint max_source = uint(sources_mc.size());
+    uint dt, tend;
+    tend = 200;
+    dt = 100;
+  
+    // Loop over time series
+    for(uint t = 0; t < tend; t+=dt)
+    {
+        cout << "Test" << endl;
+        // Calc temperatures and emission rate
+    
+        // Set stack for energy to estimate absorption rate
+    
+        // Calc emission probabilites for dust and or sources from luminosities
+    
+        // Start photons from dust and source and store in photon stack
+        
+        // Loop over all photons in photon stack
+    
+            // Check energy limit
+            
+            // Set dl = 0 and t = current_time
+    
+            // Propagate Photon to next position
+    
+            // Scatter and propagate if dl < cau*dt still in time
+    
+        // Estimate absorption rate
+    
+        // Calc new inner energy for all cells e = e + (A-E)*dt
+    
+        // Observe photons outside grid and delete from stack
+    
+        // Calc new temperatures
+    
+        // Move to next timestept and or set new luminosities
+    }
+    
+}
