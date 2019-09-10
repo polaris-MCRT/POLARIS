@@ -1,5 +1,5 @@
 #pragma once
-#include "typedefs.h"
+#include "Typedefs.h"
 // m x n
 // row    -> m (zeile)
 // column |  n (spalte)

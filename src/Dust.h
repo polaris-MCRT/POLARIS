@@ -1,8 +1,7 @@
 #pragma once
 #include "Grid.h"
 #include "Matrix2D.h"
-#include "chelper.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CDUST
 #define CDUST
@@ -376,7 +375,7 @@ class CDustComponent
     double getCext1(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCext1 != 0)
@@ -403,7 +402,7 @@ class CDustComponent
     double getCext2(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCext2 != 0)
@@ -430,7 +429,7 @@ class CDustComponent
     double getCabs1(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCabs1 != 0)
@@ -457,7 +456,7 @@ class CDustComponent
     double getCabs2(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCabs2 != 0)
@@ -484,7 +483,7 @@ class CDustComponent
     double getCsca1(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCsca1 != 0)
@@ -511,7 +510,7 @@ class CDustComponent
     double getCsca2(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCsca2 != 0)
@@ -538,7 +537,7 @@ class CDustComponent
     double getCcirc(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tCcirc != 0)
@@ -565,7 +564,7 @@ class CDustComponent
     double getHGg(CGridBasic * grid, photon_package * pp)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
 
         // Return precalculated value if available
         if(tHGg != 0)
@@ -1559,7 +1558,7 @@ class CDustComponent
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
             // Set wavelength of photon package
-            pp->setWavelength(w, wavelength_list[w]);
+            pp->setWavelength(wavelength_list[w], w);
 
             // Pre calculate absorption cross-sections
             tmpCabs[w] = getCabsMean(grid, pp);
@@ -1936,7 +1935,7 @@ class CDustComponent
     void updateStokesVector(photon_package * pp, uint wnew)
     {
         // Get wavelength of photon package
-        uint w = pp->getWavelengthID();
+        uint w = pp->getDustWavelengthID();
         pp->getStokesVector() *= wavelength_diff[w] / wavelength_diff[wnew];
     }
 
@@ -2705,7 +2704,7 @@ class CDustMixture
 
     double getWavelength(photon_package * pp)
     {
-        return wavelength_list[pp->getWavelengthID()];
+        return wavelength_list[pp->getDustWavelengthID()];
     }
 
     uint getNrOfWavelength()
@@ -3058,7 +3057,7 @@ class CDustMixture
         if(scattering_to_raytracing)
         {
             // Get wavelength of photon package
-            uint w = pp->getWavelengthID();
+            uint w = pp->getDustWavelengthID();
 
             // Get radiation field and calculate angle to the photon package direction
             if(grid->getRadiationFieldAvailable())

@@ -3,8 +3,8 @@
 #ifndef STOKES
 #define STOKES
 #include "Matrix2D.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "typedefs.h"
 
 class cross_sections
 {

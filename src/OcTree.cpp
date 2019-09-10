@@ -1,7 +1,7 @@
 #include "OcTree.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)

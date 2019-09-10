@@ -1,7 +1,7 @@
 #include "Spherical.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)

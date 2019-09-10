@@ -2,8 +2,7 @@
 #include "Faddeeva.hh"
 #include "Grid.h"
 #include "Matrix2D.h"
-#include "chelper.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <complex>
 
 #ifndef CMOLECULE

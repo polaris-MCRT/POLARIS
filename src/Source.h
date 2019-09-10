@@ -2,8 +2,6 @@
 #include "Dust.h"
 #include "Grid.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 #ifndef CSOURCE
 #define CSOURCE

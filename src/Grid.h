@@ -1,6 +1,7 @@
 #pragma once
+#include "Parameters.h"
+#include "Photon.h"
 #include "Vector.h"
-#include "chelper.h"
 
 #ifndef CGRIDBASIC
 #define CGRIDBASIC
@@ -708,7 +709,7 @@ class CGridBasic
         uint data_pos;
         if(spec_length_as_vector)
         {
-            data_pos = data_offset + 4 * pp->getWavelengthID();
+            data_pos = data_offset + 4 * pp->getDustWavelengthID();
             Vector3D e_dir = len * rotateToCenter(pp, pp->getDirection());
             cell->updateData(data_pos + 0, len);
             cell->updateData(data_pos + 1, e_dir.X());
@@ -717,7 +718,7 @@ class CGridBasic
         }
         else
         {
-            data_pos = data_offset + pp->getWavelengthID();
+            data_pos = data_offset + pp->getDustWavelengthID();
             cell->updateData(data_pos, len);
         }
     }

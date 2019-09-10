@@ -1,5 +1,6 @@
-#include "chelper.h"
-#include "typedefs.h"
+#include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Typedefs.h"
 #include <cmath>
 
 #ifndef SYNCHROTRON_H

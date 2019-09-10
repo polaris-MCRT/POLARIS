@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <complex>
 
 void CDustComponent::initDustProperties()
@@ -2989,7 +2989,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
 uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section)
 {
     // Get wavelength index from photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -3099,7 +3099,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        cross_sections & cs)
 {
     // Get wavelength index
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // For random alignment use average cross-sections
     if(!is_align || alignment == ALIG_RND)
@@ -3356,7 +3356,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
 
     // Mol3D uses the upper value of the wavelength interval,
     // used for the selection of the emitting wavelengths from source!
-    pp->setWavelength(wIDnew + 1, wavelength_list[wIDnew + 1]);
+    pp->setWavelength(wavelength_list[wIDnew + 1], wIDnew + 1);
 
     return true;
 }
@@ -3956,7 +3956,7 @@ StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid, photon_package 
     double Cabs = getCabsMean(grid, pp);
 
     // Get wavelength index
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Calculate frequency
     double frequency = con_c / wavelength_list[w];
@@ -3989,7 +3989,7 @@ double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, ui
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get wavelength index of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Init temporary array for integration
     double * pl_abs_tmp = new double[nr_of_dust_species];
@@ -4067,7 +4067,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     cross_sections cs;
 
     // Get wavelength index of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
@@ -4167,7 +4167,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     cross_sections cs;
 
     // Get wavelength index of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
@@ -4366,7 +4366,7 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
         default:
         {
             // Get wavelength index of the photon package
-            uint w = pp->getWavelengthID();
+            uint w = pp->getDustWavelengthID();
 
             // Determination of the scattering angle (phi, theta) towards the observing
             // map in the photon frame. Get the rotation matrix of the photon (photon
@@ -4413,7 +4413,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
                                                   Vector3D dir_obs)
 {
     // Get wavelength index of the photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
     StokesVector tmp_stokes = pp->getStokesVector();
@@ -4519,7 +4519,7 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     double dens = getNumberDensity(grid, cell, i_density);
 
     // Get wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -4556,7 +4556,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     double z2 = pp->getRND();
 
     // Get the current wavelength
-    double w = pp->getWavelengthID();
+    double w = pp->getDustWavelengthID();
 
     // Get the Henyey-Greenstein g factor
     g = getHGg(a, w);
@@ -4612,7 +4612,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
 
     // Get wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get theta angle from distribution
     double theta = findTheta(a, w, pp->getRND());
@@ -5244,7 +5244,7 @@ bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
         {
             cout << "\nERROR: The wavelength grid only has one wavelength which is not "
                     "enough for temp calculation!\n"
-                 << "       Change WL_STEPS to more than one in the typedefs.h file!" << endl;
+                 << "       Change WL_STEPS to more than one in the Typedefs.h file!" << endl;
             return false;
         }
 

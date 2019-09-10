@@ -1,10 +1,10 @@
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Matrix2D.h"
+#include "Parameters.h"
 #include "Source.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 class CGridCylindrical : public CGridBasic
 {

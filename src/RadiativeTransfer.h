@@ -5,9 +5,9 @@
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "OcTree.h"
+#include "Photon.h"
 #include "Source.h"
-#include "chelper.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 //#include "OPIATE.h"
 #include "Raytracing.h"
 #include "Synchrotron.h"
@@ -248,7 +248,8 @@ class CRadiativeTransfer
                 for(uint i_wave = 0; i_wave < tracer[i_det]->getNrSpectralBins(); i_wave++)
                 {
                     // If the wavelengths fit, save Stokes
-                    if(dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave)) == pp->getWavelengthID())
+                    if(dust->getWavelengthID(tracer[i_det]->getWavelength(i_wave)) ==
+                       pp->getDustWavelengthID())
                     {
                         // Save the scattering Stokes vector in the grid
                         grid->updateSpecLength(

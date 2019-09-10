@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "GasSpecies.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits.h>
 #include <limits>
 

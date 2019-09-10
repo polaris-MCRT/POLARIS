@@ -1,7 +1,7 @@
 #include "Cylindrical.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len)

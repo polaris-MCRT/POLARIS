@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #define TRANS_SIGMA_P +1
 #define TRANS_PI 0

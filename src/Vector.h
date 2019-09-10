@@ -1,5 +1,5 @@
 #include "Matrix2D.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CVECTOR3D
 #define CVECTOR3D

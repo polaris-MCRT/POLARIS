@@ -1,9 +1,8 @@
 #pragma once
 #include "GasSpecies.h"
 #include "Stokes.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 #include <CCfits/CCfits>
 #include <cmath>
 
@@ -619,16 +618,14 @@ class CDetector
 
     void addToRaytracingSedDetector(photon_package * pp, uint spectral_offset = 0)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
-        addToSedDetector(st, i_spectral + spectral_offset);
+        StokesVector st = pp->getStokesVector();
+        addToSedDetector(st, pp->getSpectralID() + spectral_offset);
     }
 
     void addToRaytracingDetector(photon_package * pp, uint pos_id, uint spectral_offset)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
-
+        StokesVector st = pp->getStokesVector();
+        uint i_spectral = pp->getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
@@ -639,8 +636,6 @@ class CDetector
 
     void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
         Vector3D pos = pp->getPosition();
 
         uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
@@ -653,6 +648,8 @@ class CDetector
         if(y < 0 || y >= int(bins_y))
             return;
 
+        StokesVector st = pp->getStokesVector();
+        uint i_spectral = pp->getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
@@ -661,7 +658,7 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
     }
 
-    void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)
+    void addToMonteCarloDetector(photon_package * pp, uint i_det_spectral, uint radiation_type)
     {
         Vector3D pos = pp->getPosition();
         Vector3D dir = pp->getDirection();
@@ -683,36 +680,35 @@ class CDetector
             return;
 
         StokesVector st = pp->getStokesVector();
-
-        matrixI[i_spectral].addValue(x, y, st.I());
-        matrixQ[i_spectral].addValue(x, y, st.Q());
-        matrixU[i_spectral].addValue(x, y, st.U());
-        matrixV[i_spectral].addValue(x, y, st.V());
+        matrixI[i_det_spectral].addValue(x, y, st.I());
+        matrixQ[i_det_spectral].addValue(x, y, st.Q());
+        matrixU[i_det_spectral].addValue(x, y, st.U());
+        matrixV[i_det_spectral].addValue(x, y, st.V());
 
         // Add to SED
         if(sedI != 0)
         {
 #pragma omp atomic update
-            sedI[i_spectral] += st.I();
+            sedI[i_det_spectral] += st.I();
 #pragma omp atomic update
-            sedQ[i_spectral] += st.Q();
+            sedQ[i_det_spectral] += st.Q();
 #pragma omp atomic update
-            sedU[i_spectral] += st.U();
+            sedU[i_det_spectral] += st.U();
 #pragma omp atomic update
-            sedV[i_spectral] += st.V();
+            sedV[i_det_spectral] += st.V();
         }
 
         if(radiation_type == DIRECT_STAR)
         {
-            matrixT[i_spectral].addValue(x, y, st.I());
+            matrixT[i_det_spectral].addValue(x, y, st.I());
         }
         else
         {
-            matrixS[i_spectral].addValue(x, y, st.I());
+            matrixS[i_det_spectral].addValue(x, y, st.I());
             if(sedI != 0)
             {
 #pragma omp atomic update
-                sedT[i_spectral] += st.I();
+                sedT[i_det_spectral] += st.I();
             }
         }
     }

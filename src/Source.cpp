@@ -2,6 +2,7 @@
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
+#include "Parameters.h"
 
 bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 {
@@ -159,9 +160,9 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
     pp->initRandomGenerator(i_pos);
     pp->calcRandomDirection();
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
-        wID = pp->getWavelengthID();
+        wID = pp->getDustWavelengthID();
         if(is_ext)
         {
             energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
@@ -192,7 +193,7 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
 
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     pp->setPosition(pos);
@@ -207,9 +208,9 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
     double energy;
     uint wID;
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
-        wID = pp->getWavelengthID();
+        wID = pp->getDustWavelengthID();
         if(is_ext)
         {
             energy = sp_ext.getValue(wavelength_list[wID]) / PIx4;
@@ -240,7 +241,7 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
 
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     // Set direction of the photon package to the observer
@@ -413,11 +414,11 @@ void CSourceStarField::createNextRay(photon_package * pp, ullong i_pos)
     pos = len * pp->getDirection();
     pos += pos;
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
         if(is_ext)
         {
-            wID = pp->getWavelengthID();
+            wID = pp->getDustWavelengthID();
             energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
@@ -438,7 +439,7 @@ void CSourceStarField::createNextRay(photon_package * pp, ullong i_pos)
         tmp_stokes_vector = energy * StokesVector(1.0, 0, 0, 0);
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     pp->setPosition(pos);
@@ -457,11 +458,11 @@ void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
     pos = len * pp->getDirection();
     pos += pos;
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
         if(is_ext)
         {
-            wID = pp->getWavelengthID();
+            wID = pp->getDustWavelengthID();
             energy = sp_ext.getValue(wavelength_list[wID]) / PIx4;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
@@ -482,7 +483,7 @@ void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
         tmp_stokes_vector = energy * StokesVector(1.0, 0, 0, 0);
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     // Set direction of the photon package to the observer
@@ -690,7 +691,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
     StokesVector res;
     Vector3D pos = pp->getPosition();
 
-    uint wID = pp->getWavelengthID();
+    uint wID = pp->getDustWavelengthID();
 
     uint x = uint((pos.X() + 0.5 * sidelength) / sidelength * double(bins));
     uint y = uint((pos.Y() + 0.5 * sidelength) / sidelength * double(bins));
@@ -879,9 +880,9 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos)
     pp->initRandomGenerator(i_pos);
     uint wID;
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
-        wID = pp->getWavelengthID();
+        wID = pp->getDustWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
         energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2) / nr_of_photons;
         if(g_zero > 0)
@@ -894,7 +895,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos)
 
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
@@ -921,9 +922,9 @@ void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
     StokesVector tmp_stokes_vector;
     uint wID;
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
-        wID = pp->getWavelengthID();
+        wID = pp->getDustWavelengthID();
         double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
         energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2) / PIx2;
         if(g_zero > 0)
@@ -936,7 +937,7 @@ void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
 
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
@@ -987,7 +988,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         cell_prob[w].resize(nr_of_cells + 1);
 
         // Set wavelength of photon package
-        pp->setWavelength(w, wavelength_list[w]);
+        pp->setWavelength(wavelength_list[w], w);
 
         // Set total energy to zero and starting value of prob_list
         total_energy[w] = 0;
@@ -1052,7 +1053,7 @@ bool CSourceDust::initSource(uint w)
     cell_prob[w].resize(nr_of_cells + 1);
 
     // Set wavelength of photon package
-    pp->setWavelength(w, wavelength_list[w]);
+    pp->setWavelength(wavelength_list[w], w);
 
     // Set total energy to zero and starting value of prob_list
     total_energy[w] = 0;
@@ -1107,7 +1108,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     pp->calcRandomDirection();
 
     // Set wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get random number
     double rnd = pp->getRND();
@@ -1134,7 +1135,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
 void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
 {
     // Set wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get random number
     double rnd = pp->getRND();
@@ -1268,16 +1269,16 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
     pp->setDirection(dir);
     pp->setPosition(pos);
 
-    if(pp->getWavelengthID() != MAX_UINT)
+    if(pp->getDustWavelengthID() != MAX_UINT)
     {
-        wID = pp->getWavelengthID();
+        wID = pp->getDustWavelengthID();
     }
     else
     {
         wID = lam_pf.getXIndex(pp->getRND());
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
-        pp->setWavelength(wID + 1, wavelength_list[wID + 1]);
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
     double line_shape =
@@ -1295,9 +1296,9 @@ void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
     pp->setDirection(dir);
     pp->setPosition(pos);
 
-    if(dir_obs == dir && pp->getWavelengthID() != MAX_UINT)
+    if(dir_obs == dir && pp->getDustWavelengthID() != MAX_UINT)
     {
-        uint wID = pp->getWavelengthID();
+        uint wID = pp->getDustWavelengthID();
         double line_shape =
             1 / sqrt(2 * PI * sigma_sq) * exp(-pow(wavelength_list[wID] - wl, 2) / (2 * sigma_sq));
         tmp_stokes_vector = L * line_shape * StokesVector(1.0, q, u, 0);

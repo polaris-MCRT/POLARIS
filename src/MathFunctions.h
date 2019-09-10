@@ -2,7 +2,7 @@
 #include "Faddeeva.hh"
 #include "Matrix2D.h"
 #include "Stokes.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <complex>
 #include <limits>
 

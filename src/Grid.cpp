@@ -2433,7 +2433,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_gas_dens[i_cell];
-        delete[] buffer_dust_dens;
+        delete[] buffer_gas_dens;
     }
     if(plt_dust_dens)
     {
