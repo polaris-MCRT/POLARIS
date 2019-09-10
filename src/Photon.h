@@ -92,6 +92,70 @@ class photon_package
             delete[] velocity;
     }
 
+    photon_package & operator=(photon_package * rhs)
+    {
+        nr_of_spectral_bins = rhs->getNrOfSpectralBins();
+        cout << "Photon move" << endl;
+
+        if(multi_stokes != 0)
+            delete[] multi_stokes;
+
+        if(wID != 0)
+            delete[] wID;
+
+        if(wavelength != 0)
+            delete[] wavelength;
+
+        if(velocity != 0)
+            delete[] velocity;
+
+        trans_frequency = rhs->getTransFrequency();
+        if(trans_frequency != 0)
+        {
+            // Init pointer arrays
+            velocity = new double[nr_of_spectral_bins];
+            multi_stokes = new StokesVector[nr_of_spectral_bins];
+
+            // Set initial values
+            for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+            {
+                rhs->setSpectralID(i_spectral);
+                velocity[i_spectral] = rhs->getVelocity();
+                multi_stokes[i_spectral] = rhs->getStokesVector();
+            }
+
+            // Set wavelength for dust contribution
+            wavelength = new double[1];
+            wavelength[0] = con_c / rhs->getTransFrequency();
+
+            // Set wavelength index to get the right dust properties
+            wID = new uint[1];
+            wID[0] = rhs->getDustWavelengthID();
+        }
+        else
+        {
+            // Init pointer arrays
+            wavelength = new double[nr_of_spectral_bins];
+            wID = new uint[nr_of_spectral_bins];
+            multi_stokes = new StokesVector[nr_of_spectral_bins];
+
+            // Set initial values
+            for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+            {
+                wavelength[i_spectral] = 0;
+                multi_stokes[i_spectral] = 0;
+
+                // Dust wavelength index has to be MAX_UINT if not set in routine
+                wID[i_spectral] = MAX_UINT;
+            }
+        }
+
+        delete rhs;
+        rhs = 0;
+
+        return *this;
+    }
+
     void setStokesVector(StokesVector st, uint i = MAX_UINT)
     {
         if(i == MAX_UINT)
@@ -118,6 +182,11 @@ class photon_package
     uint getSpectralID()
     {
         return i_spectral;
+    }
+
+    uint getNrOfSpectralBins()
+    {
+        return nr_of_spectral_bins;
     }
 
     uint getDustWavelengthID()

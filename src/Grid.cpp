@@ -719,7 +719,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     double xyz_step = max_len / double(bins);
 
     double off_xyz = 0.5 * xyz_step;
-    photon_package * pp = new photon_package;
+    photon_package * pp = new photon_package();
 
     point_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
     point_header << "define Lattice " << bins << " " << bins << " " << bins;
@@ -922,7 +922,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
 
-    photon_package * pp = new photon_package;
+    photon_package * pp = new photon_package();
 
     // along z
     pp->setPosition(Vector3D(0, 0, 2.0 * max_len));

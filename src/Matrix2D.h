@@ -333,6 +333,7 @@ class Matrix2D
 
     Matrix2D & operator=(Matrix2D * rhs)
     {
+        cout << "Matrix2D move" << endl;
         if(m_size != rhs->size())
             resize(rhs->row(), rhs->col());
 

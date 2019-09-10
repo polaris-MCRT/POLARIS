@@ -1471,24 +1471,33 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                         // corresponding wavelengths
                                         if(wID_det != MAX_UINT)
                                         {
+                                            // Init photon package
+                                            photon_package * pp_escape = new photon_package();
+
                                             // Create an escaping photon into the
                                             // direction of the detector
-                                            photon_package tmp_pp = dust->getEscapePhoton(
-                                                grid, pp, detector[d].getEX(), detector[d].getDirection());
+                                            dust->getEscapePhoton(grid,
+                                                                  pp,
+                                                                  detector[d].getEX(),
+                                                                  detector[d].getDirection(),
+                                                                  pp_escape);
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
-                                            CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
+                                            CMathFunctions::lum2Jy(pp_escape->getStokesVector(),
                                                                    pp->getWavelength(),
                                                                    detector[d].getDistance());
 
                                             // Consider foreground extinction
-                                            tmp_pp.getStokesVector() *=
+                                            pp_escape->getStokesVector() *=
                                                 dust->getForegroundExtinction(pp->getWavelength());
 
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
-                                                &tmp_pp, wID_det, SCATTERED_DUST);
+                                                pp_escape, wID_det, SCATTERED_DUST);
+
+                                            // Delete photon package after usage
+                                            delete pp_escape;
                                         }
                                     }
                                 }
@@ -1609,31 +1618,31 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     if(wID_det != MAX_UINT)
                     {
                         // Create temporary photon package
-                        photon_package tmp_pp;
+                        photon_package * pp_direct = new photon_package();
 
                         // Set current wavelength to temporary photon package
-                        tmp_pp.setWavelength(wID, dust->getWavelength(wID));
+                        pp_direct->setWavelength(wID, dust->getWavelength(wID));
 
                         // Get direction to the current detector
                         Vector3D dir_obs = detector[d].getDirection();
 
                         // Launch a new photon package from the source
-                        tm_source->createDirectRay(&tmp_pp, dir_obs);
+                        tm_source->createDirectRay(pp_direct, dir_obs);
 
                         // Position the photon inside the grid
-                        grid->positionPhotonInGrid(&tmp_pp);
+                        grid->positionPhotonInGrid(pp_direct);
 
                         // Init a variable to save the optical depth
                         double tau_obs = 0;
 
                         // Transport photon package through model to obtain the optical
                         // depth
-                        while(grid->next(&tmp_pp))
+                        while(grid->next(pp_direct))
                         {
                             // Get necessary information about the current cell
-                            double len = tmp_pp.getTmpPathLength();
-                            double dens = dust->getNumberDensity(grid, &tmp_pp);
-                            double Cext = dust->getCextMean(grid, &tmp_pp);
+                            double len = pp_direct->getTmpPathLength();
+                            double dens = dust->getNumberDensity(grid, pp_direct);
+                            double Cext = dust->getCextMean(grid, pp_direct);
 
                             // Increase the optical depth by the current cell
                             tau_obs += Cext * len * dens;
@@ -1641,23 +1650,28 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Rotate photon package into the coordinate space of the detector
                         double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                            detector[d].getEX(), tmp_pp.getEX(), tmp_pp.getEY());
-                        tmp_pp.getStokesVector().rot(rot_angle_phot_obs);
+                            detector[d].getEX(), pp_direct->getEX(), pp_direct->getEY());
+                        pp_direct->getStokesVector().rot(rot_angle_phot_obs);
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
-                        tmp_pp.getStokesVector() *= exp(-tau_obs);
+                        pp_direct->getStokesVector() *= exp(-tau_obs);
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
-                        CMathFunctions::lum2Jy(
-                            tmp_pp.getStokesVector(), tmp_pp.getWavelength(), detector[d].getDistance());
+                        CMathFunctions::lum2Jy(pp_direct->getStokesVector(),
+                                               pp_direct->getWavelength(),
+                                               detector[d].getDistance());
 
                         // Consider foreground extinction
-                        tmp_pp.getStokesVector() *= dust->getForegroundExtinction(tmp_pp.getWavelength());
+                        pp_direct->getStokesVector() *=
+                            dust->getForegroundExtinction(pp_direct->getWavelength());
 
                         // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
+                        detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR);
+
+                        // Delete photon package after usage
+                        delete pp_direct;
                     }
                 }
             }
@@ -3036,28 +3050,29 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
 
     if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
     {
-        photon_package * tmp_pp = new photon_package();
-        tracer[i_det]->preparePhoton(tmp_pp, cx, cy);
-        if(grid->findStartingPoint(tmp_pp))
+        photon_package * pp_interp = new photon_package();
+        tracer[i_det]->preparePhoton(pp_interp, cx, cy);
+        if(grid->findStartingPoint(pp_interp))
         {
-            Vector3D pos_in_grid_0 = tmp_pp->getPosition();
+            Vector3D pos_in_grid_0 = pp_interp->getPosition();
             double spline_x_old = 0;
-            while(grid->next(tmp_pp))
+            while(grid->next(pp_interp))
             {
-                Vector3D dir_map_xyz = tmp_pp->getDirection();
-                Vector3D pos_xyz_cell = tmp_pp->getPosition() - (tmp_pp->getTmpPathLength() * dir_map_xyz);
+                Vector3D dir_map_xyz = pp_interp->getDirection();
+                Vector3D pos_xyz_cell =
+                    pp_interp->getPosition() - (pp_interp->getTmpPathLength() * dir_map_xyz);
                 Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
 
-                cell_basic * tmp_cell_pos = tmp_pp->getPositionCell();
+                cell_basic * tmp_cell_pos = pp_interp->getPositionCell();
                 Vector3D cell_center = grid->getCenter(tmp_cell_pos);
 
                 double length_on_line =
-                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, tmp_pp->getPosition(), cell_center);
+                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, pp_interp->getPosition(), cell_center);
                 double spline_x = length_on_line + rel_pos.length();
 
                 if((spline_x_old - spline_x) != 0.0)
                 {
-                    double spline_y = grid->getVelocityField(tmp_pp) * dir_map_xyz;
+                    double spline_y = grid->getVelocityField(pp_interp) * dir_map_xyz;
 
                     spline_x_old = spline_x;
 
@@ -3069,7 +3084,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
             }
             vel_field.createDynSpline();
         }
-        delete tmp_pp;
+        // Delete photon package after usage
+        delete pp_interp;
     }
 
     tracer[i_det]->preparePhoton(pp, cx, cy);

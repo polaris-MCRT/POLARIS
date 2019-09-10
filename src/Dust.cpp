@@ -4352,16 +4352,17 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     delete[] Ccirc;
 }
 
-photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
-                                               photon_package * pp,
-                                               uint a,
-                                               Vector3D obs_ex,
-                                               Vector3D dir_obs)
+void CDustComponent::getEscapePhoton(CGridBasic * grid,
+                                     photon_package * pp,
+                                     uint a,
+                                     Vector3D obs_ex,
+                                     Vector3D dir_obs,
+                                     photon_package * pp_escape)
 {
     switch(phID)
     {
         case PH_MIE:
-            return getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs);
+            getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
 
         default:
         {
@@ -4387,30 +4388,26 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Reduce the photon package Stokes vector by albedo and scattering fraction
             tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
-            // Init temporary photon package
-            photon_package pp_res;
-
             // Set the photon package at the position of the current photon
-            pp_res.setPosition(pp->getPosition());
-            pp_res.setPositionCell(pp->getPositionCell());
+            pp_escape->setPosition(pp->getPosition());
+            pp_escape->setPositionCell(pp->getPositionCell());
 
             // Synchronize the direction and wavelength as well
-            pp_res.setDirection(dir_obs);
-            pp_res.setWavelength(w, wavelength_list[w]);
+            pp_escape->setDirection(dir_obs);
+            pp_escape->setWavelength(w, wavelength_list[w]);
 
             // Set the new Stokes vector to the photon package
-            pp_res.setStokesVector(tmp_stokes);
-
-            return pp_res;
+            pp_escape->setStokesVector(tmp_stokes);
         }
     }
 }
 
-photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
-                                                  photon_package * pp,
-                                                  uint a,
-                                                  Vector3D obs_ex,
-                                                  Vector3D dir_obs)
+void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
+                                        photon_package * pp,
+                                        uint a,
+                                        Vector3D obs_ex,
+                                        Vector3D dir_obs,
+                                        photon_package * pp_escape)
 {
     // Get wavelength index of the photon package
     uint w = pp->getDustWavelengthID();
@@ -4418,16 +4415,13 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Get the Stokes vector of the current photon package
     StokesVector tmp_stokes = pp->getStokesVector();
 
-    // Init temporary photon package
-    photon_package pp_res;
-
     // Set the photon package at the position of the current photon
-    pp_res.setPosition(pp->getPosition());
-    pp_res.setPositionCell(pp->getPositionCell());
+    pp_escape->setPosition(pp->getPosition());
+    pp_escape->setPositionCell(pp->getPositionCell());
 
     // Synchronize the direction and wavelength as well
-    pp_res.setD(pp->getD());
-    pp_res.setWavelength(w, wavelength_list[w]);
+    pp_escape->setD(pp->getD());
+    pp_escape->setWavelength(w, wavelength_list[w]);
 
     // Determination of the scattering angle (phi, theta) towards the observing map in the
     // photon frame. Get the rotation matrix of the photon (photon space to lab space)
@@ -4440,7 +4434,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double theta_photon_to_obs = acos(dir_rlp.Z());
 
     // Update the coordinate space of the photon
-    pp_res.updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
+    pp_escape->updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
 
     // Get the theta angle index to obtain the scattering matrix
     uint thID = getScatThetaID(theta_photon_to_obs);
@@ -4488,13 +4482,11 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
-        CMathFunctions::getRotationAngleObserver(obs_ex, pp_res.getEX(), pp_res.getEY());
+        CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), pp_escape->getEY());
     tmp_stokes.rot(rot_angle_phot_obs);
 
     // Set the new Stokes vector to the photon package
-    pp_res.setStokesVector(tmp_stokes);
-
-    return pp_res;
+    pp_escape->setStokesVector(tmp_stokes);
 }
 
 double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density)
