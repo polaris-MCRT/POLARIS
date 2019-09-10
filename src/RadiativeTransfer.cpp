@@ -2970,11 +2970,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     uint dt, tend;
     tend = 200;
     dt = 100;
-  
+    
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
     {
-        cout << "Test" << endl;
+        cout << "\nTest" << endl;
         // Calc temperatures and emission rate
     
         // Set stack for energy to estimate absorption rate

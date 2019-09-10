@@ -421,8 +421,6 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
     delete[] detector;
     deleteSourceLists();
     
-    cout << "\nTESTTESTTEST" << endl;
-    
     return true;
 }
 
@@ -1371,8 +1369,8 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             
         case CMD_OPIATE:
             cout << "todo: OPIATE parameter" << endl;
-
             break;
+            
         case CMD_LINE_EMISSION:
             cout << "- Command          : SPECTRAL LINE EMISSION" << endl;
             printPathParameters(param);
