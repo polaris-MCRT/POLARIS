@@ -2762,6 +2762,9 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
     // Init variables for photon positioning on detector
     int i_pix;
 
+    cout << CLR_LINE;
+    cout << "Adding stellar contributions ...              \r";
+    
     // Transport photon to observer for each detector
     for(uint s = 0; s < sources_mc.size(); s++)
     {
@@ -2777,6 +2780,9 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
 
         // Get position of source
         Vector3D source_pos = sources_mc[s]->getPosition();
+        
+        cout << "Processing source: " << s <<" of " << sources_mc.size() 
+             << "                              \r";
 
         // Update Stokes vectors with emission from background source
         for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
@@ -2824,6 +2830,8 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
         // Delete photon package after usage
         delete pp;
     }
+    
+    cout << CLR_LINE;
 }
 
 // -------------------------------------------
