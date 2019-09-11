@@ -411,10 +411,13 @@ class CGasSpecies
             uint i_zeeman = 0;
             for(uint i = 0; i < i_trans; i++)
             {
-                if(trans_is_zeeman_split[i_trans])
+                if(trans_is_zeeman_split[i])
                     i_zeeman++;
             }
-            return i_zeeman;
+            if(trans_is_zeeman_split[i_trans])
+                return i_zeeman;
+            else
+                return MAX_UINT;
         }
         return MAX_UINT;
     }
@@ -1102,7 +1105,7 @@ class CGasMixture
         uint offset_entries = 0;
         uint zeeman_sublvl_offset = 0;
 
-        // 1x Gauss_a + doppler_width, Gamma, voigt_a for each spectral line to simulate
+        // 1x Gauss_a + voigt_a for each spectral line to simulate
         uint line_broadening_offset = 1;
 
         // Arrays to link energy levels, simulated spectral lines and position in the grid cells

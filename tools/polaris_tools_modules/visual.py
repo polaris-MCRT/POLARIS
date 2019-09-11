@@ -667,14 +667,13 @@ class Plot:
             if fill_between:
                 self.ax_list[ax_index].fill_between(
                     xdata, ydata, step='mid', alpha=0.4)
-        elif log == 'xy':
-            plot_func = self.ax_list[ax_index].loglog
-        elif log == 'x':
-            plot_func = self.ax_list[ax_index].semilogx
-        elif log == 'y':
-            plot_func = self.ax_list[ax_index].semilogy
         else:
             plot_func = self.ax_list[ax_index].plot
+
+        if 'x' in log:
+            self.ax_list[ax_index].set_xscale('log')
+        if 'y' in log:
+            self.ax_list[ax_index].set_yscale('log')
 
         if fill_between and step:
             self.ax_list[ax_index].fill_between(
