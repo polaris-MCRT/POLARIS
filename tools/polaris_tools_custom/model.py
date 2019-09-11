@@ -492,7 +492,6 @@ class GGTauDisk(Model):
             2.4,
         ]
         self.fixed_scale_height = 0.3 * self.math.const['au']
-        self.cut_off = 2. * self.math.const['au']
         # ----------------------------------------------
         # -------- Distribution of cell borders --------
         # ----------------------------------------------
@@ -517,6 +516,11 @@ class GGTauDisk(Model):
         n_ph_list_2 = [180] * 51
         self.cylindrical_parameter['n_ph'] = np.hstack(
             (n_ph_list_1, n_ph_list_2)).ravel()
+        # ------------------------------------------
+        # ---- Cutoffs for density distribution ----
+        # ------------------------------------------ 
+        self.cutoff_pos = [190. * self.math.const['au'], None]
+        self.cutoff_rate = [2. * self.math.const['au'], None]
         # ----------------------------------
         # ---- Init dust layers profile ----
         # ----------------------------------
@@ -561,6 +565,9 @@ class GGTauDisk(Model):
                     n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                    # Outer cutoff for tapered disk
+                    self.cutoff_pos[1] = 240. * self.math.const['au']
+                    self.cutoff_rate[1] = 5. * self.math.const['au']
                 elif extra_parameter[0] == 'vertical_Ab1':
                     # Enable all disks
                     self.disk_Aa = True
@@ -713,11 +720,12 @@ class GGTauDisk(Model):
                                                           alpha=self.alpha[0],
                                                           beta=self.beta[0])
             # Add exponential decay ath the inner border
-            if radius_cy < 190. * self.math.const['au']:
+            if self.cutoff_pos[0] not None and radius_cy < self.cutoff_pos[0]:
                 disk_density *= np.exp(-0.5 * (
-                    (190. * self.math.const['au'] - radius_cy) / self.cut_off) ** 2)
-            elif radius_cy >= 260. * self.math.const['au']:
-                disk_density *= 1e-5
+                    (self.cutoff_pos[0] - radius_cy) / self.cutoff_rate[0]) ** 2)
+            if self.cutoff_pos[1] not None and radius_cy > self.cutoff_pos[1]:
+                disk_density *= np.exp(-0.5 * (
+                    (radius_cy - self.cutoff_pos[1]) / self.cutoff_rate[1]) ** 2)
 
         else:
             # Set to zero outside of the disk
