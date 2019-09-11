@@ -1,10 +1,11 @@
 *.o
+-*
 
 .deps
 .tags*
+*.bak
 
 polaris
 Makefile
-Makefile.in
-typedefs.h.bak
 
+/build/

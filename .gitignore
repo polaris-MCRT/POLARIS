@@ -13,12 +13,4 @@ testing/
 .tags
 callgrind.out*
 cachegrind.out*
-Makefile
 polaris.run
-/build/
-
-CMakeCache.txt
-cmake_install.cmake
-CMakeFiles/
-tools/install_manifest.txt
-install_manifest.txt
