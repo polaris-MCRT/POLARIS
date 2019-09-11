@@ -600,7 +600,6 @@ class CGasSpecies
 
     double getGamma(uint i_trans, double dens_gas, double dens_species, double temp_gas, double v_turb)
     {
-
         double gamma = getEinsteinA(i_trans);
 
         // "http://chem.libretexts.org/Core/Physical_and_Theoretical_Chemistry/

@@ -906,6 +906,7 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
             // Calculate the frequency value of the current velocity channel in
             // relation to the peak of the line function
+
             double f_doppler = (freq_shift + CMathFunctions::Velo2Freq(velocity, trans_frequency)) *
                                (con_c * line_broadening.gauss_a) / trans_frequency;
 
@@ -1617,6 +1618,7 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
                 double doppler_width = trans_frequency / (con_c * line_broadening.gauss_a);
                 double Gamma = getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
                 line_broadening.voigt_a = Gamma / (4 * PI * doppler_width);
+                cout << line_broadening.voigt_a << endl;
 
                 // Add broadening to grid cell information
                 grid->setLineBroadening(cell, i_zeeman, line_broadening);
