@@ -2622,6 +2622,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->setFhighJ(atof(data.c_str()));
         return true;
     }
+    
+    if(cmd.compare("<Q_ref>") == 0)
+    {
+        param->setQref(atof(data.c_str()));
+        return true;
+    }
+    
+    if(cmd.compare("<alpha_Q>") == 0)
+    {
+        param->setAlphaQ(atof(data.c_str()));
+        return true;
+    }
 
     if(cmd.compare("<f_c>") == 0)
     {

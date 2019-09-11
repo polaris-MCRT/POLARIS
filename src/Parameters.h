@@ -100,6 +100,9 @@ class parameters
         nr_ofOutMidDataPoints = 0;
 
         f_highJ = 0.25;
+        Q_ref=0.4;
+        alpha_Q=3.0;
+        
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
@@ -657,7 +660,17 @@ class parameters
     {
         return f_highJ;
     }
-
+    
+    double getQref()
+    {
+        return Q_ref;
+    }
+    
+    double getAlphaQ()
+    {
+        return alpha_Q;
+    }
+    
     double getFcorr()
     {
         return f_cor;
@@ -1248,6 +1261,16 @@ class parameters
     void setFhighJ(double val)
     {
         f_highJ = val;
+    }
+    
+    void setQref(double val)
+    {
+        Q_ref = val;
+    }
+        
+    void setAlphaQ(double val)
+    {
+        alpha_Q = val;
     }
 
     void setFcorr(double val)
@@ -2149,6 +2172,10 @@ class parameters
 
     double f_highJ;
     double f_cor;
+    double Q_ref;
+    double alpha_Q;
+    
+    
     double adjTgas;
     double isrf_g_zero;
     double isrf_radius;

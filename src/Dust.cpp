@@ -3655,10 +3655,10 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 du[w] = wavelength_list[w] * arr_en_dens;
 
                 // Radiative torque efficiency as a power-law
-                double Qr = 0.14;
+                double Qr = Q_ref;
 
                 if(wavelength_list[w] > 1.8 * a_eff[a])
-                    Qr = 0.14 / pow(wavelength_list[w] / (1.8 * a_eff[a]), 3);
+                    Qr = Q_ref / pow(wavelength_list[w] / (1.8 * a_eff[a]), alpha_Q);
 
                 double cos_theta = abs(cos(theta));
 
@@ -4833,7 +4833,11 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get material density and similar user defined parameters
             single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
+            
             single_component[i_comp].setFHighJ(param.getFHighJ());
+            single_component[i_comp].setQref(param.getQref());
+            single_component[i_comp].setAlphaQ(param.getAlphaQ());
+            
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());

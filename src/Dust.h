@@ -64,6 +64,9 @@ class CDustComponent
         material_density = 0;
         gold_g_factor = 0;
         dust_mass_fraction = 0;
+        
+        Q_ref=0.4;
+        alpha_Q=3.0;
 
         min_temp = 0;
         max_temp = 0;
@@ -961,6 +964,16 @@ class CDustComponent
     {
         return gold_g_factor;
     }
+    
+    double getQref()
+    {
+        return Q_ref;
+    }
+    
+    double getAlphaQ()
+    {
+        return alpha_Q;
+    }
 
     void setAlignmentMechanism(uint al)
     {
@@ -1630,6 +1643,16 @@ class CDustComponent
     {
         f_highJ = val;
     }
+    
+    void setQref(double val)
+    {
+        Q_ref = val;
+    }
+        
+    void setAlphaQ(double val)
+    {
+        alpha_Q = val;
+    }
 
     double getQrat(uint a, uint w, double theta)
     {
@@ -2228,16 +2251,23 @@ class CDustComponent
 
     double stochastic_heating_max_size;
     double delta0;
-    double larm_f;
     double aspect_ratio;
     double sub_temp;
     double material_density;
-    double gold_g_factor;
     double dust_mass_fraction;
     double min_temp, max_temp;
     double min_a_alig, max_a_alig;
+    
+    
+    //alignment paramaters
+    bool is_align;
     double f_highJ;
     double f_cor;
+    double larm_f;
+    double gold_g_factor;
+    double Q_ref;
+    double alpha_Q;
+    
     double delta_rat;
     double mu;
     double fraction;
@@ -2248,7 +2278,6 @@ class CDustComponent
     bool dust_offset;
     bool scat_loaded, calorimetry_loaded;
     bool sublimate;
-    bool is_align;
     bool is_mixture;
     bool individual_dust_fractions;
 
