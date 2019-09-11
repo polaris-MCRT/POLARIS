@@ -720,10 +720,10 @@ class GGTauDisk(Model):
                                                           alpha=self.alpha[0],
                                                           beta=self.beta[0])
             # Add exponential decay ath the inner border
-            if self.cutoff_pos[0] not None and radius_cy < self.cutoff_pos[0]:
+            if self.cutoff_pos[0] is not None and radius_cy < self.cutoff_pos[0]:
                 disk_density *= np.exp(-0.5 * (
                     (self.cutoff_pos[0] - radius_cy) / self.cutoff_rate[0]) ** 2)
-            if self.cutoff_pos[1] not None and radius_cy > self.cutoff_pos[1]:
+            if self.cutoff_pos[1] is not None and radius_cy > self.cutoff_pos[1]:
                 disk_density *= np.exp(-0.5 * (
                     (radius_cy - self.cutoff_pos[1]) / self.cutoff_rate[1]) ** 2)
 

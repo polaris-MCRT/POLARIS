@@ -2624,11 +2624,9 @@ class CustomPlots:
             elif model == 2:
                 text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
             elif model == 3:
-                text = r'Single size distribution with $a_\text{max}=\SI{100}{\micro\metre}$'
+                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\micro\metre}$'
             elif model == 4:
-                text = r'Single size distribution with $a_\text{max}=\SI{1}{\milli\metre}$'
-            elif model == 5:
-                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre}$ and logn'
+                text = r'Layered size dist ($a_\text{min}=\SI{5}{\nano\metre},\SI{3}{\micro\metre}$; $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre})$'
             else:
                 raise ValueError('Wrong model number!')
             _plot.plot_text([0.97, 0.97], text, color=color, relative_position=True,
