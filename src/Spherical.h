@@ -367,9 +367,9 @@ class CGridSpherical : public CGridBasic
         return true;
     }
 
-    double getVolume(cell_basic * cell)
+    double getVolume(const cell_basic & cell) const
     {
-        cell_sp * cell_pos = (cell_sp *)cell;
+        const cell_sp * cell_pos = (const cell_sp *)&cell;
 
         if(cell_pos->getRID() == MAX_UINT)
         {
@@ -388,17 +388,10 @@ class CGridSpherical : public CGridBasic
         return volume;
     }
 
-    double getVolume(photon_package * pp)
+    Vector3D rotateToCenter(const photon_package & pp, Vector3D dir, bool inv, bool phi_only) const
     {
-        cell_basic * cell_pos = pp->getPositionCell();
-
-        return getVolume(cell_pos);
-    }
-
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
-    {
-        cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
-        Vector3D pos = pp->getPosition().getSphericalCoord();
+        const cell_sp * cell_pos = (const cell_sp *)pp.getPositionCell();
+        Vector3D pos = pp.getPosition().getSphericalCoord();
 
         double phi_center = cell_pos->getRID() == MAX_UINT
                                 ? 0
@@ -517,7 +510,7 @@ class CGridSpherical : public CGridBasic
     cell_sp **** grid_cells;
     cell_sp * center_cell;
 
-    bool isInside(Vector3D & pos, cell_basic * _cell)
+    bool isInside(const Vector3D & pos, cell_basic * _cell)
     {
         cell_sp * cell = (cell_sp *)_cell;
 
@@ -557,7 +550,7 @@ class CGridSpherical : public CGridBasic
         return true;
     }
 
-    bool isInside(Vector3D & pos)
+    bool isInside(const Vector3D & pos)
     {
         if(pos.sq_length() > Rmax * Rmax)
             return false;

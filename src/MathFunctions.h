@@ -482,7 +482,7 @@ class spline
         return min;
     }
 
-    uint getYIndex(double v)
+    uint getYIndex(double v) const
     {
         uint min = 0, max = N;
 
@@ -1179,7 +1179,7 @@ class CMathFunctions
         return MAX_UINT;
     }
 
-    static inline uint biListIndexSearch(double val, dlist & list)
+    static inline uint biListIndexSearch(double val, const dlist & list)
     {
         uint N = uint(list.size());
         uint min = 0, max = N - 1;
@@ -1199,7 +1199,7 @@ class CMathFunctions
         return min;
     }
 
-    static inline uint biListIndexSearchRec(double val, dlist & list)
+    static inline uint biListIndexSearchRec(double val, const dlist & list)
     {
         uint N = uint(list.size());
         uint min = 0, max = N - 1;

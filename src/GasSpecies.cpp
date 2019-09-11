@@ -47,7 +47,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
             tmp_lvl_pop[i_lvl] = new double[getNrOfSublevel(i_lvl)];
         }
 
-        double temp_gas = grid->getGasTemperature(cell);
+        double temp_gas = grid->getGasTemperature(*cell);
         if(temp_gas == 0)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
@@ -159,7 +159,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
     {
         cell_basic * cell = grid->getCellFromIndex(i_cell);
         double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
-        double gas_number_density = grid->getGasNumberDensity(cell);
+        double gas_number_density = grid->getGasNumberDensity(*cell);
 
         // Calculate percentage of total progress per source
         float percentage = 100 * float(i_cell) / float(max_cells);
@@ -337,12 +337,12 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         }
 
         // Check temperature and density
-        double temp_gas = grid->getGasTemperature(cell);
-        double dens_species = getNumberDensity(grid, cell);
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
-        Vector3D pos_xyz_cell = grid->getCenter(cell);
+        Vector3D pos_xyz_cell = grid->getCenter(*cell);
         double abs_vel;
         if(kepler_star_mass > 0)
         {
@@ -351,7 +351,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         }
         else if(grid->hasVelocityField())
         {
-            Vector3D velo = grid->getVelocityField(cell);
+            Vector3D velo = grid->getVelocityField(*cell);
             abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
         }
         else
@@ -538,7 +538,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 
     double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
 
-    double gas_number_density = grid->getGasNumberDensity(cell);
+    double gas_number_density = grid->getGasNumberDensity(*cell);
     if(gas_number_density > 1e-200)
     {
         Matrix2D A(nr_of_total_energy_levels, nr_of_total_energy_levels);
@@ -600,7 +600,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 double *** CGasSpecies::calcCollisionParameter(CGridBasic * grid, cell_basic * cell)
 {
     // Init variables
-    double temp_gas = grid->getGasTemperature(cell);
+    double temp_gas = grid->getGasTemperature(*cell);
     uint nr_of_col_partner = getNrOfCollisionPartner();
     double *** final_col_para = new double **[nr_of_col_partner];
 
@@ -650,16 +650,16 @@ double CGasSpecies::getColPartnerDensity(CGridBasic * grid, cell_basic * cell, u
     switch(getOrientation_H2(i_col_partner))
     {
         case(COL_H2_FULL):
-            dens = grid->getGasNumberDensity(cell);
+            dens = grid->getGasNumberDensity(*cell);
             break;
         case(COL_H2_PARA):
-            dens = grid->getGasNumberDensity(cell) * 0.25;
+            dens = grid->getGasNumberDensity(*cell) * 0.25;
             break;
         case(COL_H2_ORTH):
-            dens = grid->getGasNumberDensity(cell) * 0.75;
+            dens = grid->getGasNumberDensity(*cell) * 0.75;
             break;
         case(COL_HE_FULL):
-            dens = grid->getGasNumberDensity(cell) * max(0.0, grid->getMu() - 1.0);
+            dens = grid->getGasNumberDensity(*cell) * max(0.0, grid->getMu() - 1.0);
             break;
         default:
             dens = 0;
@@ -799,13 +799,13 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
 }
 
 void CGasSpecies::calcEmissivity(CGridBasic * grid,
-                                 photon_package * pp,
+                                 const photon_package & pp,
                                  uint i_trans,
                                  double velocity,
                                  const LineBroadening & line_broadening,
                                  const MagFieldInfo & mag_field_info,
                                  StokesVector * line_emissivity,
-                                 Matrix2D * line_absorption_matrix)
+                                 Matrix2D * line_absorption_matrix) const
 {
     if(isTransZeemanSplit(i_trans))
     {
@@ -846,13 +846,13 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
 }
 
 void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
-                                       photon_package * pp,
+                                       const photon_package & pp,
                                        uint i_trans,
                                        double velocity,
                                        const LineBroadening & line_broadening,
                                        const MagFieldInfo & mfo,
                                        StokesVector * line_emissivity,
-                                       Matrix2D * line_absorption_matrix)
+                                       Matrix2D * line_absorption_matrix) const
 {
     // Get level indices for lower and upper energy level
     uint i_lvl_u = getUpperEnergyLevel(i_trans);
@@ -865,7 +865,7 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     Matrix2D * tmp_matrix = new Matrix2D(4, 4);
 
     // Get rest frequency of transition
-    double trans_frequency = pp->getTransFrequency();
+    double trans_frequency = pp.getTransFrequency();
 
     // Calculate the contribution of each allowed transition between Zeeman sublevels
     for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
@@ -1595,9 +1595,9 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
         cell_basic * cell = grid->getCellFromIndex(i_cell);
 
         // Get necessary quantities from the current cell
-        double temp_gas = grid->getGasTemperature(cell);
-        double dens_gas = grid->getGasNumberDensity(cell);
-        double dens_species = getNumberDensity(grid, cell);
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_gas = grid->getGasNumberDensity(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
         // Set gauss_a for each transition only once
@@ -1854,7 +1854,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             double dens_species, min_dens_species = 1e200, max_dens_species = 0;
             for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
             {
-                cell_basic * cell = grid->getCellFromIndex(i_cell);
+                const cell_basic & cell = *grid->getCellFromIndex(i_cell);
 
                 // Get abundance of a certain gas species
                 double dens_species =
@@ -1874,7 +1874,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
         for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
             cell_basic * cell = grid->getCellFromIndex(i_cell);
-            total_species_mass += getMassDensity(grid, cell, i_species) * grid->getVolume(cell);
+            total_species_mass += getMassDensity(grid, *cell, i_species) * grid->getVolume(*cell);
         }
         cout << "- Total mass                    : " << total_species_mass / M_sun << " [M_sun], "
              << total_species_mass << " [kg]" << endl;
@@ -1908,7 +1908,8 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                 cout << "- Sublevels in lower level      : " << getNrOfSublevelLower(i_species, i_trans)
                      << endl;
 
-                cout << "- Transition type\tline strength\t\tm(upper)\t\tm(lower)" << endl;
+                cout << "- Transitions between sublevels : " << endl;
+                cout << "    transition type\tline strength\t\tm(upper)\t\tm(lower)" << endl;
                 for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_species, i_trans); i_sublvl_u++)
                 {
                     // Calculate the quantum number of the upper energy level
@@ -1938,16 +1939,16 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                         switch(int(sublvl_l - sublvl_u))
                         {
                             case TRANS_SIGMA_P:
-                                cout << "    Sigma+\t\t    " << LineStrengthTmp << "    \t\t   "
-                                     << float(sublvl_u) << "\t\t\t   " << float(sublvl_l) << endl;
+                                cout << "\tSigma+\t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
                                 break;
                             case TRANS_PI:
-                                cout << "    Pi    \t\t    " << LineStrengthTmp << "    \t\t   "
-                                     << float(sublvl_u) << "\t\t\t   " << float(sublvl_l) << endl;
+                                cout << "\tPi    \t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
                                 break;
                             case TRANS_SIGMA_M:
-                                cout << "    Sigma-\t\t    " << LineStrengthTmp << "    \t\t   "
-                                     << float(sublvl_u) << "\t\t\t   " << float(sublvl_l) << endl;
+                                cout << "\tSigma-\t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
                                 break;
                         }
                     }

@@ -25,7 +25,7 @@ class cell_basic
         return data != 0;
     }
 
-    double getData(uint i)
+    double getData(uint i) const
     {
         if(data == 0)
             return 0;
@@ -151,37 +151,37 @@ class cell_oc : public cell_basic
         children = _children;
     }
 
-    double getXmin()
+    double getXmin() const
     {
         return x_min;
     }
 
-    double getYmin()
+    double getYmin() const
     {
         return y_min;
     }
 
-    double getZmin()
+    double getZmin() const
     {
         return z_min;
     }
 
-    double getXmax()
+    double getXmax() const
     {
         return x_min + length;
     }
 
-    double getYmax()
+    double getYmax() const
     {
         return y_min + length;
     }
 
-    double getZmax()
+    double getZmax() const
     {
         return z_min + length;
     }
 
-    double getLength()
+    double getLength() const
     {
         return length;
     }
@@ -292,7 +292,7 @@ class cell_vo : public cell_basic
         return center.Z();
     }
 
-    double getVolume()
+    double getVolume() const
     {
         return volume;
     };
@@ -358,17 +358,17 @@ class cell_sp : public cell_basic
         thID = id;
     }
 
-    uint getRID()
+    uint getRID() const
     {
         return rID;
     }
 
-    uint getPhID()
+    uint getPhID() const
     {
         return phID;
     }
 
-    uint getThID()
+    uint getThID() const
     {
         return thID;
     }
@@ -412,17 +412,17 @@ class cell_cyl : public cell_basic
         zID = id;
     }
 
-    uint getRID()
+    uint getRID() const
     {
         return rID;
     }
 
-    uint getPhID()
+    uint getPhID() const
     {
         return phID;
     }
 
-    uint getZID()
+    uint getZID() const
     {
         return zID;
     }

@@ -186,7 +186,7 @@ class Vector3D
         y = r * sin(ph);
     }
 
-    Vector3D getSphericalCoord()
+    Vector3D getSphericalCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return Vector3D(0, 0, 0);
@@ -213,7 +213,7 @@ class Vector3D
         return Vector3D(r, ph, th);
     }
 
-    Vector3D getCylindricalCoord()
+    Vector3D getCylindricalCoord()const
     {
         if(x * x + y * y + z * z == 0)
             return Vector3D(0, 0, 0);
@@ -227,7 +227,7 @@ class Vector3D
         return Vector3D(r, ph, z);
     }
 
-    double getPhiCoord()
+    double getPhiCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return 0;

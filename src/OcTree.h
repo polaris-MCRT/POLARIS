@@ -285,27 +285,9 @@ class CGridOcTree : public CGridBasic
         off_xy = step_xy / 2.0;
     }
 
-    /*double getVolume()
+    double getVolume(const cell_basic & cell) const
     {
-        double volume = cell_oc_pos->getLength();
-        volume = volume * volume*volume;
-
-        return volume;
-    }*/
-
-    double getVolume(cell_basic * cell)
-    {
-        cell_oc * cell_pos = (cell_oc *)cell;
-
-        double volume = cell_pos->getLength();
-        volume = volume * volume * volume;
-
-        return volume;
-    }
-
-    double getVolume(photon_package * pp)
-    {
-        cell_oc * cell_pos = (cell_oc *)pp->getPositionCell();
+        const cell_oc * cell_pos = (const cell_oc *)&cell;
 
         double volume = cell_pos->getLength();
         volume = volume * volume * volume;
@@ -485,30 +467,30 @@ class CGridOcTree : public CGridBasic
 
         pp->setPositionCell(tmp_cell);
 
-        if(!isInside(pp->getPosition(), tmp_cell))
+        if(!isInside(pp->getPosition(), *tmp_cell))
             goNextLevelUp(pp);
     }
 
-    bool isInside(Vector3D & pos, cell_basic * _cell)
+    bool isInside(const Vector3D & pos, const cell_basic & _cell) const
     {
-        cell_oc * cell = (cell_oc *)_cell;
+        const cell_oc * tmp_cell = (const cell_oc *)&_cell;
 
-        if(cell->getXmin() > pos.X())
+        if(tmp_cell->getXmin() > pos.X())
             return false;
 
-        if(cell->getYmin() > pos.Y())
+        if(tmp_cell->getYmin() > pos.Y())
             return false;
 
-        if(cell->getZmin() > pos.Z())
+        if(tmp_cell->getZmin() > pos.Z())
             return false;
 
-        if(cell->getXmax() < pos.X())
+        if(tmp_cell->getXmax() < pos.X())
             return false;
 
-        if(cell->getYmax() < pos.Y())
+        if(tmp_cell->getYmax() < pos.Y())
             return false;
 
-        if(cell->getZmax() < pos.Z())
+        if(tmp_cell->getZmax() < pos.Z())
             return false;
 
         return true;

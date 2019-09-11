@@ -172,12 +172,12 @@ class CGasSpecies
         }
     }
 
-    string getGasSpeciesName()
+    string getGasSpeciesName() const
     {
         return stringID;
     }
 
-    double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l)
+    double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
         if(getEinsteinA(i_trans) > 0)
             return getLineStrengthAndEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) /
@@ -185,28 +185,28 @@ class CGasSpecies
         return 0;
     }
 
-    double getAbundance()
+    double getAbundance() const
     {
         return abundance;
     }
 
-    int getTransitionFromSpectralLine(uint i_line)
+    int getTransitionFromSpectralLine(uint i_line) const
     {
         return spectral_lines[i_line];
     }
 
-    double getTransitionFrequency(uint i_trans)
+    double getTransitionFrequency(uint i_trans) const
     {
         return trans_freq[i_trans];
     }
 
-    double getSpectralLineFrequency(uint i_line)
+    double getSpectralLineFrequency(uint i_line) const
     {
         uint i_trans = getTransitionFromSpectralLine(i_line);
         return getTransitionFrequency(i_trans);
     }
 
-    uint getNrOfSpectralLines()
+    uint getNrOfSpectralLines() const
     {
         return nr_of_spectral_lines;
     }
@@ -244,7 +244,7 @@ class CGasSpecies
         return trans_einstB_lu[i_trans][i_sublvl + 1];
     }
 
-    double getGLevel(uint i_lvl)
+    double getGLevel(uint i_lvl) const
     {
         if(nr_of_sublevel[i_lvl] == 1)
             return g_level[i_lvl];
@@ -257,68 +257,67 @@ class CGasSpecies
         }
     }
 
-    double getJLevel(uint i_lvl)
+    double getJLevel(uint i_lvl) const
     {
         return quantum_numbers[i_lvl];
     }
 
-    double getEnergyOfLevel(uint i_lvl)
+    double getEnergyOfLevel(uint i_lvl) const
     {
         return energy_level[i_lvl];
     }
 
-    int getUpperCollisionLevel(uint m, uint n)
+    int getUpperCollisionLevel(uint m, uint n) const
     {
         return col_upper[m][n];
     }
 
-    int getLowerCollisionLevel(uint m, uint n)
+    int getLowerCollisionLevel(uint m, uint n) const
     {
         return col_lower[m][n];
     }
 
-    double getCollisionTemp(uint m, uint n)
+    double getCollisionTemp(uint m, uint n) const
     {
         return collision_temp[m][n];
     }
 
-    double getCollisionMatrix(uint m, uint n, uint k)
+    double getCollisionMatrix(uint m, uint n, uint k) const
     {
         return col_matrix[m][n][k];
     }
 
-    double getLandeUpper(uint i_trans)
+    double getLandeUpper(uint i_trans) const
     {
         return lande_factor[upper_level[i_trans]];
     }
 
-    double getLandeLower(uint i_trans)
+    double getLandeLower(uint i_trans) const
     {
         return lande_factor[lower_level[i_trans]];
     }
 
-    double getLande(uint i_lvl)
+    double getLande(uint i_lvl) const
     {
         return lande_factor[i_lvl];
     }
 
-    double getCollisionRadius()
+    double getCollisionRadius() const
     {
         return gas_species_radius;
     }
 
-    double getMolecularWeight()
+    double getMolecularWeight() const
     {
         return molecular_weight;
     }
 
-    double getNumberDensity(CGridBasic * grid, photon_package * pp)
+    double getNumberDensity(CGridBasic * grid, const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getNumberDensity(grid, cell);
+        return getNumberDensity(grid, *pp.getPositionCell());
     }
 
-    double getNumberDensity(CGridBasic * grid, cell_basic * cell)
+    double getNumberDensity(CGridBasic * grid, const cell_basic & cell) const
     {
         double dens_species = 0;
         // If the abundance is negative, get its value from the grid
@@ -333,13 +332,12 @@ class CGasSpecies
         return dens_species;
     }
 
-    double getMassDensity(CGridBasic * grid, photon_package * pp)
+    double getMassDensity(CGridBasic * grid, const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getMassDensity(grid, cell);
+        return getMassDensity(grid, *pp.getPositionCell());
     }
 
-    double getMassDensity(CGridBasic * grid, cell_basic * cell)
+    double getMassDensity(CGridBasic * grid, const cell_basic & cell) const
     {
         double dens_species = 0;
         // If the abundance is negative, get its value from the grid
@@ -422,20 +420,20 @@ class CGasSpecies
         return MAX_UINT;
     }
 
-    bool isTransZeemanSplit(uint i_trans)
+    bool isTransZeemanSplit(uint i_trans) const
     {
         if(trans_is_zeeman_split != 0)
             return trans_is_zeeman_split[i_trans];
         return false;
     }
 
-    bool isLineZeemanSplit(uint i_line)
+    bool isLineZeemanSplit(uint i_line) const
     {
         uint i_trans = getTransitionFromSpectralLine(i_line);
         return isTransZeemanSplit(i_trans);
     }
 
-    bool isZeemanSplit()
+    bool isZeemanSplit() const
     {
         for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
         {
@@ -445,7 +443,7 @@ class CGasSpecies
         return false;
     }
 
-    uint getUniqueLevelIndex(uint i_lvl, uint i_sublvl)
+    uint getUniqueLevelIndex(uint i_lvl, uint i_sublvl) const
     {
         return level_to_index[i_lvl][i_sublvl];
     }
@@ -455,12 +453,12 @@ class CGasSpecies
         return trans_to_index[i_trans][i_sublvl_u][i_sublvl_l];
     }
 
-    uilist getUniqueTransitions()
+    uilist getUniqueTransitions() const
     {
         return unique_spectral_lines;
     }
 
-    uint getUniqueTransitions(uint i)
+    uint getUniqueTransitions(uint i) const
     {
         return unique_spectral_lines[i];
     }
@@ -475,12 +473,12 @@ class CGasSpecies
         return lower_level[i_trans];
     }
 
-    uint getNrOfEnergyLevels()
+    uint getNrOfEnergyLevels() const
     {
         return nr_of_energy_level;
     }
 
-    uint getNrOfTotalEnergyLevels()
+    uint getNrOfTotalEnergyLevels() const
     /*
     Including Zeeman sublevels
     */
@@ -494,7 +492,7 @@ class CGasSpecies
         return res;
     }
 
-    uint getNrOfTotalTransitions()
+    uint getNrOfTotalTransitions() const
     /*
     Including Zeeman sublevels
     */
@@ -511,32 +509,32 @@ class CGasSpecies
         return res;
     }
 
-    uint getNrOfTransitions()
+    uint getNrOfTransitions() const
     {
         return nr_of_transitions;
     }
 
-    uint getNrOfCollisionPartner()
+    uint getNrOfCollisionPartner() const
     {
         return nr_of_col_partner;
     }
 
-    uint getNrCollisionTransitions(uint i_col_partner)
+    uint getNrCollisionTransitions(uint i_col_partner) const
     {
         return nr_of_col_transition[i_col_partner];
     }
 
-    uint getNrCollisionTemps(uint i_col_partner)
+    uint getNrCollisionTemps(uint i_col_partner) const
     {
         return nr_of_col_temp[i_col_partner];
     }
 
-    uint getLevelPopType()
+    uint getLevelPopType() const
     {
         return lvl_pop_type;
     }
 
-    uint getOrientation_H2(uint i_col_partner)
+    uint getOrientation_H2(uint i_col_partner) const
     {
         return orientation_H2[i_col_partner];
     }
@@ -571,7 +569,7 @@ class CGasSpecies
         return float((getNrOfSublevelLower(i_trans) - 1) / 2.0);
     }
 
-    float getMaxM(uint i_lvl)
+    float getMaxM(uint i_lvl) const
     {
         return float((nr_of_sublevel[i_lvl] - 1) / 2.0);
     }
@@ -645,9 +643,9 @@ class CGasSpecies
     }
 
     void getGaussLineMatrix(CGridBasic * grid,
-                            cell_basic * cell,
+                            const cell_basic & cell,
                             double velocity,
-                            Matrix2D * line_absorption_matrix)
+                            Matrix2D * line_absorption_matrix) const
     {
 
         // Calculate gaussian shape
@@ -659,41 +657,41 @@ class CGasSpecies
     }
 
     void getGaussLineMatrix(CGridBasic * grid,
-                            photon_package * pp,
+                            const photon_package & pp,
                             double velocity,
-                            Matrix2D * line_absorption_matrix)
+                            Matrix2D * line_absorption_matrix) const
     {
-        getGaussLineMatrix(grid, pp->getPositionCell(), velocity, line_absorption_matrix);
+        getGaussLineMatrix(grid, *pp.getPositionCell(), velocity, line_absorption_matrix);
     }
 
-    double getGaussLineShape(CGridBasic * grid, cell_basic * cell, double velocity)
+    double getGaussLineShape(CGridBasic * grid, const cell_basic & cell, double velocity) const
     {
         double gauss_a = grid->getGaussA(cell);
         return exp(-(pow(velocity, 2) * pow(gauss_a, 2))) / PIsq;
     }
 
-    double getGaussLineShape(CGridBasic * grid, photon_package * pp, double velocity)
+    double getGaussLineShape(CGridBasic * grid, const photon_package & pp, double velocity) const
     {
-        return getGaussLineShape(grid, pp->getPositionCell(), velocity);
+        return getGaussLineShape(grid, *pp.getPositionCell(), velocity);
     }
 
     void calcEmissivityZeeman(CGridBasic * grid,
-                              photon_package * pp,
+                              const photon_package & pp,
                               uint i_line,
                               double velocity,
                               const LineBroadening & line_broadening,
                               const MagFieldInfo & mfo,
                               StokesVector * line_emissivity,
-                              Matrix2D * line_absorption_matrix);
+                              Matrix2D * line_absorption_matrix) const;
 
     void calcEmissivity(CGridBasic * grid,
-                        photon_package * pp,
+                        const photon_package & pp,
                         uint i_line,
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
                         StokesVector * line_emissivity,
-                        Matrix2D * line_absorption_matrix);
+                        Matrix2D * line_absorption_matrix) const;
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
@@ -1003,27 +1001,27 @@ class CGasMixture
         return single_species[i_species].getGaussA(temp_gas, v_turb);
     }
 
-    double getKeplerStarMass()
+    double getKeplerStarMass() const
     {
         return kepler_star_mass;
     }
 
-    double getNumberDensity(CGridBasic * grid, photon_package * pp, uint i_species)
+    double getNumberDensity(CGridBasic * grid, const photon_package & pp, uint i_species) const
     {
         return single_species[i_species].getNumberDensity(grid, pp);
     }
 
-    double getNumberDensity(CGridBasic * grid, cell_basic * cell, uint i_species)
+    double getNumberDensity(CGridBasic * grid, const cell_basic & cell, uint i_species) const
     {
         return single_species[i_species].getNumberDensity(grid, cell);
     }
 
-    double getMassDensity(CGridBasic * grid, photon_package * pp, uint i_species)
+    double getMassDensity(CGridBasic * grid, const photon_package & pp, uint i_species) const
     {
         return single_species[i_species].getMassDensity(grid, pp);
     }
 
-    double getMassDensity(CGridBasic * grid, cell_basic * cell, uint i_species)
+    double getMassDensity(CGridBasic * grid, const cell_basic & cell, uint i_species) const
     {
         return single_species[i_species].getMassDensity(grid, cell);
     }
@@ -1049,14 +1047,14 @@ class CGasMixture
     }
 
     void calcEmissivity(CGridBasic * grid,
-                        photon_package * pp,
+                        const photon_package & pp,
                         uint i_species,
                         uint i_trans,
                         double velocity,
                         const LineBroadening & line_broadening,
                         const MagFieldInfo & mag_field_info,
                         StokesVector * line_emissivity,
-                        Matrix2D * line_absorption_matrix)
+                        Matrix2D * line_absorption_matrix) const
     {
         single_species[i_species].calcEmissivity(grid,
                                                  pp,
@@ -1196,17 +1194,17 @@ class CGasMixture
         return line_broadening_offset + offset_entries + zeeman_sublvl_offset;
     }
 
-    double getProjCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)
+    double getProjCellVelocity(CGridBasic * grid, const photon_package & pp, const Vector3D & tmp_pos) const
     {
-        return getCellVelocity(grid, pp->getPositionCell(), tmp_pos) * pp->getDirection();
+        return getCellVelocity(grid, *pp.getPositionCell(), tmp_pos) * pp.getDirection();
     }
 
-    Vector3D getCellVelocity(CGridBasic * grid, photon_package * pp, const Vector3D & tmp_pos)
+    Vector3D getCellVelocity(CGridBasic * grid, const photon_package & pp, const Vector3D & tmp_pos) const
     {
-        return getCellVelocity(grid, pp->getPositionCell(), tmp_pos);
+        return getCellVelocity(grid, *pp.getPositionCell(), tmp_pos);
     }
 
-    Vector3D getCellVelocity(CGridBasic * grid, cell_basic * cell, const Vector3D & tmp_pos)
+    Vector3D getCellVelocity(CGridBasic * grid, const cell_basic & cell, const Vector3D & tmp_pos) const
     {
         Vector3D cell_velocity;
 
