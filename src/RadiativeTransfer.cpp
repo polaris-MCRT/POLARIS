@@ -1070,8 +1070,10 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
                         total_absorption_matrix(i, i) += dust_emissivity.T();
                 total_absorption_matrix *= -1;
 
+                // Init scalar product
+                StokesVector scalar_product;
+
                 // Calculate multiplication between Runge-Kutta parameter
-                StokesVector scalar_product = 0;
                 for(uint i = 0; i <= k; i++)
                     scalar_product += (RK_k[i] * RK_a(i, k));
 
@@ -1084,6 +1086,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             // Init two temporary Stokes vectors
             StokesVector stokes_new = pp->getStokesVector();
             StokesVector stokes_new2 = pp->getStokesVector();
+
             for(uint i = 0; i < 6; i++)
             {
                 stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
@@ -1095,14 +1098,14 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
             // Ignore very small values
             if(abs(stokes_new.I()) < 1e-200)
-                stokes_new = 0;
+                stokes_new.clearIntensity();
             if(abs(stokes_new2.I()) < 1e-200)
-                stokes_new2 = 0;
+                stokes_new2.clearIntensity();
 
             // Calculate the difference between the results with two
             // different precisions to see if smaller steps are needed
             double epsi, dz_new;
-            calcStepWidthI(stokes_new, stokes_new2, cell_d_l, epsi, dz_new, pp->reachedBackupPosition());
+            calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
 
             // Is a smaller step width needed
             if(epsi <= 1.0)
@@ -2155,12 +2158,9 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp1,
             // First path length is path through cell
             double cell_d_l = len;
 
-            // Save direction of the photon package
-            Vector3D dir_map_xyz = pp1->getDirection();
-
             // Save the cell entry position of the photon package
             // (Hint: next(pp) puts the photon onto the border to the next cell)
-            Vector3D pos_xyz_cell = pp1->getPosition() - (len * dir_map_xyz);
+            Vector3D pos_xyz_cell = pp1->getPosition() - (len * pp1->getDirection());
 
             // Set stokes vector with emission
             StokesVector S_em_cr(syn_cr.j_I, syn_cr.j_Q * cos_2ph, syn_cr.j_Q * sin_2ph, syn_cr.j_V);
@@ -2362,7 +2362,7 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp1,
                     pp2->getStokesVector().addSp(n_cr * cell_d_l);
 
                     // Update the position of the photon package
-                    pos_xyz_cell += cell_d_l * dir_map_xyz;
+                    pos_xyz_cell += cell_d_l * pp1->getDirection();
 
                     // Increase the sum of the cell path lengths
                     cell_sum += cell_d_l;
@@ -2649,12 +2649,9 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
             // First path length is path through cell
             double cell_d_l = len;
 
-            // Save direction of the photon package
-            Vector3D dir_map_xyz = pp->getDirection();
-
             // Save the cell entry position of the photon package
             // (Hint: next(pp) puts the photon onto the border to the next cell)
-            Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
+            Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
 
             // Init number of steps
             ullong kill_counter = 0;
@@ -2735,7 +2732,7 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     pp->getStokesVector().addSp(dens_gas * cell_d_l);
 
                     // Update the position of the photon package
-                    pos_xyz_cell += cell_d_l * dir_map_xyz;
+                    pos_xyz_cell += cell_d_l * pp->getDirection();
 
                     // Increase the sum of the cell path lengths
                     cell_sum += cell_d_l;
@@ -3058,9 +3055,8 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
             double spline_x_old = 0;
             while(grid->next(pp_interp))
             {
-                Vector3D dir_map_xyz = pp_interp->getDirection();
                 Vector3D pos_xyz_cell =
-                    pp_interp->getPosition() - (pp_interp->getTmpPathLength() * dir_map_xyz);
+                    pp_interp->getPosition() - (pp_interp->getTmpPathLength() * pp_interp->getDirection());
                 Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
 
                 cell_basic * tmp_cell_pos = pp_interp->getPositionCell();
@@ -3072,7 +3068,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
 
                 if((spline_x_old - spline_x) != 0.0)
                 {
-                    double spline_y = grid->getVelocityField(pp_interp) * dir_map_xyz;
+                    double spline_y = grid->getVelocityField(pp_interp) * pp_interp->getDirection();
 
                     spline_x_old = spline_x;
 
@@ -3153,10 +3149,11 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
-        if(gas->isTransZeemanSplit(i_species, i_trans))
+        uint i_zeeman = gas->getZeemanSplitIndex(i_species, i_trans);
+        if(i_zeeman != MAX_UINT)
         {
             grid->getMagFieldInfo(pp, mag_field_info);
-            grid->getLineBroadening(pp, i_trans, line_broadening);
+            grid->getLineBroadening(pp, i_zeeman, line_broadening);
         }
         else
         {
@@ -3184,9 +3181,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
             ullong kill_counter = 0;
 
             // Get direction and entry position of the current cell
-            Vector3D dir_map_xyz = pp->getDirection();
-            Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
-            Vector3D tmp_pos;
+            Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
 
             // Make sub steps until cell is completely crossed
             // If the error of a sub step is too high, make the step smaller
@@ -3211,16 +3206,18 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                 // Runge-Kutta sub position
                 for(uint k = 0; k < 6; k++)
                 {
-                    // Calculate Runge-Kutta position
-                    tmp_pos = pos_xyz_cell + cell_d_l * dir_map_xyz * RK_c[k];
 
-                    double rel_velocity = pp->getVelocity() -
-                                          gas->getProjCellVelocityInterp(
-                                              tmp_pos, dir_map_xyz, pos_in_grid_0, vel_field, zero_vel_field);
+                    double rel_velocity =
+                        pp->getVelocity() -
+                        gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
+                                                       pp->getDirection(),
+                                                       pos_in_grid_0,
+                                                       vel_field,
+                                                       zero_vel_field);
 
                     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
                     if(obs_vel.length() > 0)
-                        rel_velocity += obs_vel * dir_map_xyz;
+                        rel_velocity += obs_vel * pp->getDirection();
 
                     // Init emission and line matrix
                     StokesVector total_emission;
@@ -3305,7 +3302,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         double mag_strength = mag_field_info.mag_field.length();
 
                         // LOS magnetic field strength of the current cell
-                        double los_mag_strength = (dir_map_xyz * mag_field_info.mag_field);
+                        double los_mag_strength = (pp->getDirection() * mag_field_info.mag_field);
 
                         // Magnetic field strength in the line-of-sight direction
                         // weighted with the intensity increase of the current
@@ -3357,7 +3354,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     pp->getStokesVector().addT(-total_absorption_matrix(0, 0) * cell_d_l);
 
                     // Update the position of the photon package
-                    pos_xyz_cell += cell_d_l * dir_map_xyz;
+                    pos_xyz_cell += cell_d_l * pp->getDirection();
 
                     // Increase the sum of the cell path lengths
                     cell_sum += cell_d_l;

@@ -344,26 +344,6 @@ class CRadiativeTransfer
         }
     }
 
-    void calcStepWidthI(StokesVector & stokes_new,
-                        StokesVector & stokes_new2,
-                        double cell_d_l,
-                        double & epsi,
-                        double & dz_new,
-                        bool add_mc_lvl_pop_precision = false)
-    {
-        epsi = 2.0;
-        dz_new = 0.9 * cell_d_l;
-        if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
-        {
-            double rel_error = REL_ERROR;
-            if(add_mc_lvl_pop_precision)
-                rel_error *= MC_LVL_POP_DIFF_LIMIT;
-
-            epsi = abs(stokes_new2.I() - stokes_new.I()) / (REL_ERROR * abs(stokes_new.I()) + ABS_ERROR);
-            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
-        }
-    }
-
     void convertTempInQB(double min_gas_density, bool use_gas_temp);
 
   private:

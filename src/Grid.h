@@ -19,8 +19,6 @@ struct MagFieldInfo
 struct LineBroadening
 {
     double gauss_a;
-    double Gamma;
-    double doppler_width;
     double voigt_a;
 };
 
@@ -1361,12 +1359,10 @@ class CGridBasic
             return 0;
     }
 
-    void getLineBroadening(photon_package * pp, uint i_line, LineBroadening & line_broadening)
+    void getLineBroadening(photon_package * pp, uint i_trans, LineBroadening & line_broadening)
     {
         line_broadening.gauss_a = getGaussA(pp);
-        line_broadening.Gamma = getGamma(pp, i_line);
-        line_broadening.doppler_width = getDopplerWidth(pp, i_line);
-        line_broadening.voigt_a = getVoigtA(pp, i_line);
+        line_broadening.voigt_a = getVoigtA(pp, i_trans);
     }
 
     double getGaussA(cell_basic * cell)
@@ -1379,29 +1375,9 @@ class CGridBasic
         return getGaussA(pp->getPositionCell());
     }
 
-    double getDopplerWidth(cell_basic * cell, uint i_line)
-    {
-        return cell->getData(data_offset + 3 * i_line + 1);
-    }
-
-    double getDopplerWidth(photon_package * pp, uint i_line)
-    {
-        return getDopplerWidth(pp->getPositionCell(), i_line);
-    }
-
-    double getGamma(cell_basic * cell, uint i_line)
-    {
-        return cell->getData(data_offset + 3 * i_line + 2);
-    }
-
-    double getGamma(photon_package * pp, uint i_line)
-    {
-        return getGamma(pp->getPositionCell(), i_line);
-    }
-
     double getVoigtA(cell_basic * cell, uint i_line)
     {
-        return cell->getData(data_offset + 3 * i_line + 3);
+        return cell->getData(data_offset + 1 + i_line);
     }
 
     double getVoigtA(photon_package * pp, uint i_line)
@@ -1488,9 +1464,7 @@ class CGridBasic
 
     void setLineBroadening(cell_basic * cell, uint i_line_broad, const LineBroadening & line_broadening)
     {
-        cell->setData(data_offset + 3 * i_line_broad + 1, line_broadening.doppler_width);
-        cell->setData(data_offset + 3 * i_line_broad + 2, line_broadening.Gamma);
-        cell->setData(data_offset + 3 * i_line_broad + 3, line_broadening.voigt_a);
+        cell->setData(data_offset + 1 + i_line_broad, line_broadening.voigt_a);
     }
 
     void setGaussA(cell_basic * cell, double gauss_a)

@@ -2136,6 +2136,38 @@ class CMathFunctions
         ez.normalize();
     }
 
+    static inline void getPropMatrixAPi(double cos_theta,
+                                        double sin_theta,
+                                        double cos_2_phi,
+                                        double sin_2_phi,
+                                        double mult,
+                                        Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(0, 0, sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 3, sin_theta * sin_theta * mult);
+    }
+
+    static inline void getPropMatrixBSigmaP(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult,
+                                            Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 2, -2 * cos_theta * mult);
+        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 1, +2 * cos_theta * mult);
+        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
+    }
+
     static inline void getPropMatrixASigmaP(double cos_theta,
                                             double sin_theta,
                                             double cos_2_phi,
@@ -2172,38 +2204,6 @@ class CMathFunctions
         propMatrix->addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
         propMatrix->addValue(3, 0, +2 * cos_theta * mult);
         propMatrix->addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
-    }
-
-    static inline void getPropMatrixAPi(double cos_theta,
-                                        double sin_theta,
-                                        double cos_2_phi,
-                                        double sin_2_phi,
-                                        double mult,
-                                        Matrix2D * propMatrix)
-    {
-        propMatrix->addValue(0, 0, sin_theta * sin_theta * mult);
-        propMatrix->addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(1, 1, sin_theta * sin_theta * mult);
-        propMatrix->addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(2, 2, sin_theta * sin_theta * mult);
-        propMatrix->addValue(3, 3, sin_theta * sin_theta * mult);
-    }
-
-    static inline void getPropMatrixBSigmaP(double cos_theta,
-                                            double sin_theta,
-                                            double cos_2_phi,
-                                            double sin_2_phi,
-                                            double mult,
-                                            Matrix2D * propMatrix)
-    {
-        propMatrix->addValue(1, 2, -2 * cos_theta * mult);
-        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(2, 1, +2 * cos_theta * mult);
-        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
     }
 
     static inline void getPropMatrixBSigmaM(double cos_theta,
