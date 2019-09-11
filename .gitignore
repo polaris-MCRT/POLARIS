@@ -4,8 +4,6 @@
 .dirstamp
 
 autom4te.cache/
-CCfits/
-cfitsio/
 projects
 nbproject/
 testing/

@@ -1,6 +1,7 @@
 *.o
--*
 
+.directory
+.clang-format
 .deps
 .tags*
 *.bak
