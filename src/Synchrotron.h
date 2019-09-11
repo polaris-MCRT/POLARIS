@@ -1,5 +1,6 @@
-#include "chelper.h"
-#include "typedefs.h"
+#include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Typedefs.h"
 #include <cmath>
 
 #ifndef SYNCHROTRON_H
@@ -254,18 +255,18 @@ class CSynchrotron
         BesselK_1.resize(size);
         BesselK_2.resize(size);
 
-        BesselK_0.setValue(0, 1.0e-9, 1.318880988);
-        BesselK_0.setValue(1, 1.0e-8, 1.268030366);
-        BesselK_0.setValue(2, 1.0e-7, 1.210426268);
-        BesselK_0.setValue(3, 1.0e-6, 1.144);
-        BesselK_0.setValue(4, 2.0e-6, 1.12183);
-        BesselK_0.setValue(5, 3.0e-6, 1.10832);
-        BesselK_0.setValue(6, 4.0e-6, 1.09848);
-        BesselK_0.setValue(7, 5.0e-6, 1.09068);
-        BesselK_0.setValue(8, 6.0e-6, 1.08421);
-        BesselK_0.setValue(9, 7.0e-6, 1.07866);
-        BesselK_0.setValue(10, 8.0e-6, 1.07379);
-        BesselK_0.setValue(11, 9.0e-6, 1.06945);
+        BesselK_0.setValue(0, 1e-9, 1.318880988);
+        BesselK_0.setValue(1, 1e-8, 1.268030366);
+        BesselK_0.setValue(2, 1e-7, 1.210426268);
+        BesselK_0.setValue(3, 1e-6, 1.144);
+        BesselK_0.setValue(4, 2e-6, 1.12183);
+        BesselK_0.setValue(5, 3e-6, 1.10832);
+        BesselK_0.setValue(6, 4e-6, 1.09848);
+        BesselK_0.setValue(7, 5e-6, 1.09068);
+        BesselK_0.setValue(8, 6e-6, 1.08421);
+        BesselK_0.setValue(9, 7e-6, 1.07866);
+        BesselK_0.setValue(10, 8e-6, 1.07379);
+        BesselK_0.setValue(11, 9e-6, 1.06945);
         BesselK_0.setValue(12, 0.00001, 1.06554);
         BesselK_0.setValue(13, 0.00002, 1.03885);
         BesselK_0.setValue(14, 0.00003, 1.02244);
@@ -323,18 +324,18 @@ class CSynchrotron
         BesselK_0.setValue(66, 10.0, -4.75007);
         BesselK_0.setValue(67, 20.0, -9.24099);
 
-        BesselK_1.setValue(0, 1.0e-9, 9.000000000);
-        BesselK_1.setValue(1, 1.0e-8, 8.000000000);
-        BesselK_1.setValue(2, 1.0e-7, 7.000000000);
-        BesselK_1.setValue(3, 1.0e-6, 6.);
-        BesselK_1.setValue(4, 2.0e-6, 5.69897);
-        BesselK_1.setValue(5, 3.0e-6, 5.52288);
-        BesselK_1.setValue(6, 4.0e-6, 5.39794);
-        BesselK_1.setValue(7, 5.0e-6, 5.30103);
-        BesselK_1.setValue(8, 6.0e-6, 5.22185);
-        BesselK_1.setValue(9, 7.0e-6, 5.1549);
-        BesselK_1.setValue(10, 8.0e-6, 5.09691);
-        BesselK_1.setValue(11, 9.0e-6, 5.04576);
+        BesselK_1.setValue(0, 1e-9, 9.000000000);
+        BesselK_1.setValue(1, 1e-8, 8.000000000);
+        BesselK_1.setValue(2, 1e-7, 7.000000000);
+        BesselK_1.setValue(3, 1e-6, 6.);
+        BesselK_1.setValue(4, 2e-6, 5.69897);
+        BesselK_1.setValue(5, 3e-6, 5.52288);
+        BesselK_1.setValue(6, 4e-6, 5.39794);
+        BesselK_1.setValue(7, 5e-6, 5.30103);
+        BesselK_1.setValue(8, 6e-6, 5.22185);
+        BesselK_1.setValue(9, 7e-6, 5.1549);
+        BesselK_1.setValue(10, 8e-6, 5.09691);
+        BesselK_1.setValue(11, 9e-6, 5.04576);
         BesselK_1.setValue(12, 0.00001, 5.);
         BesselK_1.setValue(13, 0.00002, 4.69897);
         BesselK_1.setValue(14, 0.00003, 4.52288);
@@ -392,18 +393,18 @@ class CSynchrotron
         BesselK_1.setValue(66, 10.0, -4.72935);
         BesselK_1.setValue(67, 20.0, -9.2304);
 
-        BesselK_2.setValue(0, 1.0e-9, 18.30103000);
-        BesselK_2.setValue(1, 1.0e-8, 16.30103000);
-        BesselK_2.setValue(2, 1.0e-7, 14.30103000);
-        BesselK_2.setValue(3, 1.0e-6, 12.301);
-        BesselK_2.setValue(4, 2.0e-6, 11.699);
-        BesselK_2.setValue(5, 3.0e-6, 11.3468);
-        BesselK_2.setValue(6, 4.0e-6, 11.0969);
-        BesselK_2.setValue(7, 5.0e-6, 10.9031);
-        BesselK_2.setValue(8, 6.0e-6, 10.7447);
-        BesselK_2.setValue(9, 7.0e-6, 10.6108);
-        BesselK_2.setValue(10, 8.0e-6, 10.4949);
-        BesselK_2.setValue(11, 9.0e-6, 10.3925);
+        BesselK_2.setValue(0, 1e-9, 18.30103000);
+        BesselK_2.setValue(1, 1e-8, 16.30103000);
+        BesselK_2.setValue(2, 1e-7, 14.30103000);
+        BesselK_2.setValue(3, 1e-6, 12.301);
+        BesselK_2.setValue(4, 2e-6, 11.699);
+        BesselK_2.setValue(5, 3e-6, 11.3468);
+        BesselK_2.setValue(6, 4e-6, 11.0969);
+        BesselK_2.setValue(7, 5e-6, 10.9031);
+        BesselK_2.setValue(8, 6e-6, 10.7447);
+        BesselK_2.setValue(9, 7e-6, 10.6108);
+        BesselK_2.setValue(10, 8e-6, 10.4949);
+        BesselK_2.setValue(11, 9e-6, 10.3925);
         BesselK_2.setValue(12, 0.00001, 10.301);
         BesselK_2.setValue(13, 0.00002, 9.69897);
         BesselK_2.setValue(14, 0.00003, 9.34679);
@@ -524,7 +525,7 @@ class CSynchrotron
     {
         // Correction factor according to  Dexter (2016)
         double corr = (.011 * exp(-x / 47.2) -
-                       pow(2., (-1.0 / 3.0)) / pow(3.0, (23. / 6.0)) * PI * 1.0e4 * pow(x, (-8.0 / 3.0))) *
+                       pow(2., (-1.0 / 3.0)) / pow(3.0, (23. / 6.0)) * PI * 1e4 * pow(x, (-8.0 / 3.0))) *
                       (0.5 + 0.5 * tanh((log(x) - log(120.0)) / 0.1));
 
         return 2.011 * exp(-pow(x, 1.035) / 4.7) - cos(x / 2.) * exp(-pow(x, 1.2) / 2.73) -

@@ -1,9 +1,8 @@
 #pragma once
 #include "GasSpecies.h"
 #include "Stokes.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 #include <CCfits/CCfits>
 #include <cmath>
 
@@ -619,16 +618,14 @@ class CDetector
 
     void addToRaytracingSedDetector(photon_package * pp, uint spectral_offset = 0)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
-        addToSedDetector(st, i_spectral + spectral_offset);
+        StokesVector st = pp->getStokesVector();
+        addToSedDetector(st, pp->getSpectralID() + spectral_offset);
     }
 
     void addToRaytracingDetector(photon_package * pp, uint pos_id, uint spectral_offset)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
-
+        StokesVector st = pp->getStokesVector();
+        uint i_spectral = pp->getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
@@ -639,8 +636,6 @@ class CDetector
 
     void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
     {
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
         Vector3D pos = pp->getPosition();
 
         uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
@@ -653,6 +648,8 @@ class CDetector
         if(y < 0 || y >= int(bins_y))
             return;
 
+        StokesVector st = pp->getStokesVector();
+        uint i_spectral = pp->getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
@@ -661,7 +658,7 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
     }
 
-    void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)
+    void addToMonteCarloDetector(photon_package * pp, uint i_det_spectral, uint radiation_type)
     {
         Vector3D pos = pp->getPosition();
         Vector3D dir = pp->getDirection();
@@ -683,36 +680,35 @@ class CDetector
             return;
 
         StokesVector st = pp->getStokesVector();
-
-        matrixI[i_spectral].addValue(x, y, st.I());
-        matrixQ[i_spectral].addValue(x, y, st.Q());
-        matrixU[i_spectral].addValue(x, y, st.U());
-        matrixV[i_spectral].addValue(x, y, st.V());
+        matrixI[i_det_spectral].addValue(x, y, st.I());
+        matrixQ[i_det_spectral].addValue(x, y, st.Q());
+        matrixU[i_det_spectral].addValue(x, y, st.U());
+        matrixV[i_det_spectral].addValue(x, y, st.V());
 
         // Add to SED
         if(sedI != 0)
         {
 #pragma omp atomic update
-            sedI[i_spectral] += st.I();
+            sedI[i_det_spectral] += st.I();
 #pragma omp atomic update
-            sedQ[i_spectral] += st.Q();
+            sedQ[i_det_spectral] += st.Q();
 #pragma omp atomic update
-            sedU[i_spectral] += st.U();
+            sedU[i_det_spectral] += st.U();
 #pragma omp atomic update
-            sedV[i_spectral] += st.V();
+            sedV[i_det_spectral] += st.V();
         }
 
         if(radiation_type == DIRECT_STAR)
         {
-            matrixT[i_spectral].addValue(x, y, st.I());
+            matrixT[i_det_spectral].addValue(x, y, st.I());
         }
         else
         {
-            matrixS[i_spectral].addValue(x, y, st.I());
+            matrixS[i_det_spectral].addValue(x, y, st.I());
             if(sedI != 0)
             {
 #pragma omp atomic update
-                sedT[i_spectral] += st.I();
+                sedT[i_det_spectral] += st.I();
             }
         }
     }
@@ -738,7 +734,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 4;
@@ -958,7 +954,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 3;
@@ -1096,7 +1092,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 1;
@@ -1267,7 +1263,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 4;
@@ -1475,7 +1471,7 @@ class CDetector
             sprintf(str_end, str_tmp, nr);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 1;
@@ -1688,7 +1684,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
 
             long naxis = 3;
@@ -1749,17 +1745,17 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -1785,8 +1781,8 @@ class CDetector
             long naxis = 3;
             long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
 
-            std::auto_ptr<CCfits::FITS> pFits(0);
-            // std::unique_ptr<CCfits::FITS> pFits;
+            auto_ptr<CCfits::FITS> pFits(0);
+            // unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -1801,7 +1797,7 @@ class CDetector
                 sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
 #endif
 
-                string path_out = path + str_end + ".fits";
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
                 remove(path_out.c_str());
                 pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
             }
@@ -1940,10 +1936,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_UPPER",
-                                 gas->getUpperTransition(i_species, i_trans) + 1,
+                                 gas->getUpperEnergyLevel(i_species, i_trans) + 1,
                                  "upper energy level index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_LOWER",
-                                 gas->getLowerTransition(i_species, i_trans) + 1,
+                                 gas->getLowerEnergyLevel(i_species, i_trans) + 1,
                                  "lower energy level index number (see leiden database)");
             pFits->pHDU().addKey("FREQ",
                                  gas->getTransitionFrequency(i_species, i_trans),
@@ -1953,7 +1949,7 @@ class CDetector
             pFits->pHDU().addKey(
                 "MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             pFits->pHDU().addKey("ZEEMAN",
-                                 gas->getZeemanSplitting(i_species),
+                                 gas->isTransZeemanSplit(i_species, i_trans),
                                  "is zeeman splitting in the simulations considered (1=yes/0=no)");
             pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
             pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -1968,14 +1964,14 @@ class CDetector
 
         // Writing extra fits file for Zeeman data or column density
         uint nr_of_quantities = 1;
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
             nr_of_quantities += 4;
 
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), nr_of_quantities };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1990,7 +1986,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2022,7 +2018,7 @@ class CDetector
                     if(i_extra == 0)
                     {
                         // column density of the total gas
-                        if(gas->getZeemanSplitting(i_species))
+                        if(gas->isTransZeemanSplit(i_species, i_trans))
                             array_S[i] = matrixS[5](i_x, i_y);
                         else
                             array_S[i] = matrixS[0](i_x, i_y);
@@ -2030,7 +2026,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2038,7 +2034,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2046,7 +2042,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2054,7 +2050,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2157,17 +2153,17 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -2190,8 +2186,8 @@ class CDetector
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2206,7 +2202,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2240,20 +2236,18 @@ class CDetector
             {
                 for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
+                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 
-                if(matrixS[2](i_x, i_y) == 0)
+                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                 {
                     // LOS magnetic field strength
-                    array_S[i] = 0;
-                }
-                else if(matrixS[2](i_x, i_y) > 0)
                     array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                }
                 else
                     array_S[i] = 0;
                 i++;
@@ -2359,17 +2353,17 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -2394,8 +2388,8 @@ class CDetector
             long naxis = 1;
             long naxes[1] = { 0 };
 
-            std::auto_ptr<CCfits::FITS> pFits(0);
-            // std::unique_ptr<CCfits::FITS> pFits;
+            auto_ptr<CCfits::FITS> pFits(0);
+            // unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -2410,7 +2404,7 @@ class CDetector
                 sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
 #endif
 
-                string path_out = path + str_end + ".fits";
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
                 remove(path_out.c_str());
                 pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
             }
@@ -2493,10 +2487,10 @@ class CDetector
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             newTable->addKey("LEVEL_UPPER",
-                             gas->getUpperTransition(i_species, i_trans),
+                             gas->getUpperEnergyLevel(i_species, i_trans),
                              "upper energy level index number (see leiden database)");
             newTable->addKey("LEVEL_LOWER",
-                             gas->getLowerTransition(i_species, i_trans),
+                             gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
             newTable->addKey("FREQ",
                              gas->getTransitionFrequency(i_species, i_trans),
@@ -2505,7 +2499,7 @@ class CDetector
             newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
             newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             newTable->addKey("ZEEMAN",
-                             gas->getZeemanSplitting(i_species),
+                             gas->isTransZeemanSplit(i_species, i_trans),
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
             newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
             newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -2522,8 +2516,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2538,7 +2532,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2558,7 +2552,7 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 1;
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
             nr_of_quantities += 4;
         vector<string> colName(nr_of_quantities, "");
         vector<string> colForm(nr_of_quantities, "");
@@ -2568,7 +2562,7 @@ class CDetector
         colForm[0] = "D";
         colUnit[0] = "m^-2";
 
-        if(gas->getZeemanSplitting(i_species))
+        if(gas->isTransZeemanSplit(i_species, i_trans))
         {
             colName[1] = "INTENSITY WEIGHTED LOS MAGNETIC FIELD";
             colName[2] = "INTENSITY WEIGHTED TOTAL MAGNETIC FIELD";
@@ -2599,7 +2593,7 @@ class CDetector
                     if(i_extra == 0)
                     {
                         // column density of the total gas
-                        if(gas->getZeemanSplitting(i_species))
+                        if(gas->isTransZeemanSplit(i_species, i_trans))
                             array_S[i] = matrixS[5](i_x, i_y);
                         else
                             array_S[i] = matrixS[0](i_x, i_y);
@@ -2607,7 +2601,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2615,7 +2609,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(matrixS[2](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2623,7 +2617,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2631,7 +2625,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(matrixS[5](i_x, i_y) > 0)
+                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2654,17 +2648,17 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
-                         gas->getZeemanSplitting(i_species),
+                         gas->isTransZeemanSplit(i_species, i_trans),
                          "is zeeman splitting in the simulations considered (1=yes/0=no)");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -2688,8 +2682,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        std::auto_ptr<CCfits::FITS> pFits(0);
-        // std::unique_ptr<CCfits::FITS> pFits;
+        auto_ptr<CCfits::FITS> pFits(0);
+        // unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2704,7 +2698,7 @@ class CDetector
             sprintf(str_end, str_tmp, i_species + 1, i_line + 1);
 #endif
 
-            string path_out = path + str_end + ".fits";
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
             remove(path_out.c_str());
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -2761,14 +2755,14 @@ class CDetector
             {
                 for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1.0e-3;
+                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
                 }
                 array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
 
-                if(matrixS[2](i_x, i_y) == 0.0)
+                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) == 0)
                 {
                     // LOS magnetic field strength
                     array_S[i] = 0.0;
@@ -2798,17 +2792,17 @@ class CDetector
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         newTable->addKey("LEVEL_UPPER",
-                         gas->getUpperTransition(i_species, i_trans),
+                         gas->getUpperEnergyLevel(i_species, i_trans),
                          "upper energy level index number (see leiden database)");
         newTable->addKey("LEVEL_LOWER",
-                         gas->getLowerTransition(i_species, i_trans),
+                         gas->getLowerEnergyLevel(i_species, i_trans),
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
-                         gas->getZeemanSplitting(i_species),
+                         gas->isTransZeemanSplit(i_species, i_trans),
                          "is zeeman splitting in the simulations considered (1=yes/0=no)");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");

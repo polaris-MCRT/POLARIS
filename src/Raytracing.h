@@ -5,7 +5,7 @@
 #include "Matrix2D.h"
 #include "Stokes.h"
 #include "Vector.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef RAYTRACING
 #define RAYTRACING
@@ -772,11 +772,11 @@ class CRaytracingCartesian : public CRaytracingBasic
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
         {
             // Set wavelength of photon package
-            pp->setWavelengthID(i_spectral);
+            pp->setSpectralID(i_spectral);
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getMultiStokesVector(i_spectral) *= getMinArea();
+                pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(pp, spectral_offset);
@@ -1152,11 +1152,11 @@ class CRaytracingHealPix : public CRaytracingBasic
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
         {
             // Set wavelength of photon package
-            pp->setWavelengthID(i_spectral);
+            pp->setSpectralID(i_spectral);
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getMultiStokesVector(i_spectral) *= getMinArea();
+                pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(pp, i_pix, spectral_offset);
@@ -1643,7 +1643,7 @@ class CRaytracingPolar : public CRaytracingBasic
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
             {
                 // Set wavelength of photon package
-                pp->setWavelengthID(i_spectral);
+                pp->setSpectralID(i_spectral);
 
                 // Add photon Stokes vector to detector
                 detector->addToRaytracingDetector(pp, spectral_offset);
@@ -1657,9 +1657,9 @@ class CRaytracingPolar : public CRaytracingBasic
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
             {
                 // Set wavelength of photon package
-                pp->setWavelengthID(i_spectral + spectral_offset);
+                pp->setSpectralID(i_spectral + spectral_offset);
 
-                StokesVector st = pp->getMultiStokesVector(i_spectral);
+                StokesVector st = pp->getStokesVector(i_spectral);
                 tmpStokes[i_spectral + spectral_offset][rID][phID] = st;
 
                 // Add photon Stokes vector SED detector
@@ -1682,8 +1682,7 @@ class CRaytracingPolar : public CRaytracingBasic
 #pragma omp parallel for schedule(dynamic)
         for(int i_pix = 0; i_pix < int(map_pixel_x * map_pixel_y); i_pix++)
         {
-            photon_package * pp = new photon_package;
-            pp->initMultiStokesVector(nr_spectral_bins);
+            photon_package * pp = new photon_package(nr_spectral_bins);
 
             // Init variables
             Vector3D pos;
@@ -1721,10 +1720,10 @@ class CRaytracingPolar : public CRaytracingBasic
                 for(uint i_spectral = 0; i_spectral < nr_extra * nr_spectral_bins; i_spectral++)
                 {
                     // Set wavelength of photon package
-                    pp->setWavelengthID(i_spectral);
+                    pp->setSpectralID(i_spectral);
 
                     // Get Stokes Vector
-                    pp->setMultiStokesVector(tmpStokes[i_spectral][npix_r][0] * getMinArea(), i_spectral);
+                    pp->setStokesVector(tmpStokes[i_spectral][npix_r][0] * getMinArea(), i_spectral);
 
                     // Transport pixel value to detector
                     detector->addToRaytracingDetector(pp, 0);
@@ -1789,7 +1788,7 @@ class CRaytracingPolar : public CRaytracingBasic
             for(uint i_spectral = 0; i_spectral < nr_extra * nr_spectral_bins; i_spectral++)
             {
                 // Set wavelength of photon package
-                pp->setWavelengthID(i_spectral);
+                pp->setSpectralID(i_spectral);
 
                 if(rID1 == npix_r - 1)
                 {
@@ -1824,7 +1823,7 @@ class CRaytracingPolar : public CRaytracingBasic
                 // Add pixel value to photon_package
                 StokesVector res_stokes =
                     StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
-                pp->setMultiStokesVector(res_stokes * getMinArea(), i_spectral);
+                pp->setStokesVector(res_stokes * getMinArea(), i_spectral);
                 // Transport pixel value to detector
                 detector->addToRaytracingDetector(pp, 0);
             }
@@ -2113,11 +2112,11 @@ class CRaytracingSlice : public CRaytracingBasic
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
         {
             // Set wavelength of photon package
-            pp->setWavelengthID(i_spectral);
+            pp->setSpectralID(i_spectral);
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getMultiStokesVector(i_spectral) *= getMinArea();
+                pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(pp, spectral_offset);

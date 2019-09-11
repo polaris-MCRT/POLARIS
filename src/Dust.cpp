@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <complex>
 
 void CDustComponent::initDustProperties()
@@ -1217,8 +1217,11 @@ bool CDustComponent::readScatteringMatrices(string path,
                             if(pos > 0)
                             {
                                 for(int w = 0; w < nr_of_wavelength; w++)
+                                {
                                     sca_mat[a][w][inc][sph][sth](e) =
-                                        sign * sca_mat_wl[a][inc][sph][sth][pos].getValue(wavelength_list[w]);
+                                        sign *
+                                        sca_mat_wl[a][inc][sph][sth][pos - 1].getValue(wavelength_list[w]);
+                                }
                             }
                         }
                         delete[] sca_mat_wl[a][inc][sph][sth];
@@ -1439,7 +1442,8 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Init strings for various filenames/titles
     string path_cross, path_eff, path_kappa, path_diff, path_g;
-    string path_scat, str_title, gnu_title, plot_sign = "points";
+    string path_scat, path_size_dist, str_title, gnu_title;
+    string plot_sign = "points";
 
     // Check if enough points to draw lines
     if(nr_of_wavelength > 1)
@@ -1477,11 +1481,10 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
         path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
-        path_data += "dust_mixture_";
-        path_data += str_mix_ID_end;
-        path_data += ".dat";
+        path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.plt";
 
         // Format the strings
         uint pos = 0;
@@ -1529,9 +1532,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
         path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
         path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
-        path_data += "dust_comp_";
-        path_data += str_comp_ID_end;
-        path_data += ".dat";
+        path_size_dist =
+            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.plt";
+        path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
     // Init text file writer for cross-sections
@@ -1974,28 +1977,32 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     data_writer << "#can align" << endl;
     data_writer << is_align << endl;
     data_writer << "#density [kg]" << endl;
-    data_writer << material_density << endl;
+    data_writer << getMaterialDensity() << endl;
     data_writer << "#gold g factor" << endl;
     data_writer << gold_g_factor << endl;
     data_writer << "#f_highJ" << endl;
     data_writer << f_highJ << endl;
     data_writer << "#f_correlation" << endl;
     data_writer << f_cor << endl;
-    data_writer << "#min. ID\tmax. ID" << endl;
-    data_writer << a_min_global + 1 << "\t" << a_max_global + 1 << endl;
+    data_writer << "#min. grain size\tmax. grain size" << endl;
+    data_writer << a_min_global << "\t" << a_max_global << endl;
     data_writer << "#min. radius\tmax. radius [m]" << endl;
     data_writer << getSizeMin() << "\t" << getSizeMax() << endl;
 
     // Add data header to file
-    data_writer << "#wavelength\tavgCext1\tavgCext2\tavgCabs1\tavgCabs2\tavgCsca1\tavgCsc"
-                   "a2\tCcirc\tavgHGg"
+    data_writer << "#wavelength\tavgCext1\tavgCext2\tavgCabs1\tavgCabs2\tavgCsca1\tavgCsca2\tCcirc\tavgHGg\t"
+                   "avgQext1\tavgQext2\tavgQabs1\tavgQabs2\tavgQsca1\tavgQsca2\tavgKext1\tavgKext2\tavgKabs1"
+                   "\tavgKabs2\tavgKsca1\tavgKsca2"
                 << endl;
 
     // Add cross-sections to file
     for(uint i = wavelength_offset; i < nr_of_wavelength; i++)
         data_writer << wavelength_list[i] << "\t" << getCext1(i) << "\t" << getCext2(i) << "\t" << getCabs1(i)
                     << "\t" << getCabs2(i) << "\t" << getCsca1(i) << "\t" << getCsca2(i) << "\t"
-                    << getCcirc(i) << "\t" << getHGg(i) << endl;
+                    << getCcirc(i) << "\t" << getHGg(i) << "\t" << getQext1(i) << "\t" << getQext2(i) << "\t"
+                    << getQabs1(i) << "\t" << getQabs2(i) << "\t" << getQsca1(i) << "\t" << getQsca2(i)
+                    << "\t" << getKappaExt1(i) << "\t" << getKappaExt2(i) << "\t" << getKappaAbs1(i) << "\t"
+                    << getKappaAbs2(i) << "\t" << getKappaSca1(i) << "\t" << getKappaSca2(i) << endl;
 
     // Close text file writer
     data_writer.close();
@@ -2202,6 +2209,70 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         // Close text file writer
         scat_writer.close();
     }
+
+    // ------------------------------------------------------
+
+    // Init text file writer for size distribution
+    ofstream size_dist_writer(path_size_dist.c_str());
+
+    // Error message if the write does not work
+    if(size_dist_writer.fail())
+    {
+        cout << "\nERROR: Cannot write to:\n" << path_size_dist << endl;
+        return false;
+    }
+
+    // Get weight
+    double weight = getWeight();
+
+    // Init plot limits
+    double SizeDistMin = 1e100, SizeDistMax = -1e100;
+
+    // Find min and max values over the wavelength
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        if(sizeIndexUsed(a))
+        {
+            if(getEffectiveRadius3_5(a) / weight < SizeDistMin && getEffectiveRadius3_5(a) / weight > 0)
+                SizeDistMin = getEffectiveRadius3_5(a) / weight;
+            if(getEffectiveRadius3_5(a) / weight > SizeDistMax)
+                SizeDistMax = getEffectiveRadius3_5(a) / weight;
+        }
+    }
+
+    // Add a bit more space for good visualization
+    SizeDistMin *= 0.9;
+    SizeDistMax *= 1.10;
+
+    // Add Gnuplot commands to file
+    size_dist_writer << "reset" << endl;
+    if(nr_of_dust_species > 1)
+        size_dist_writer << "set log x" << endl;
+    size_dist_writer << "set log y" << endl;
+    size_dist_writer << "set grid" << endl;
+    size_dist_writer << "unset key" << endl;
+    if(nr_of_dust_species > 1)
+        size_dist_writer << "set xrange[" << getSizeMin() << ":" << getSizeMax() << "]" << endl;
+    size_dist_writer << "set yrange[" << SizeDistMin << ":" << SizeDistMax << "]" << endl;
+    size_dist_writer << "set format x \"%.1te%02T\"" << endl;
+    size_dist_writer << "set format y \"%.1te%02T\"" << endl;
+    size_dist_writer << "set ylabel \'{/Symbol d}N(a)'" << endl;
+    size_dist_writer << "set xlabel \'a [m]\'" << endl;
+    size_dist_writer << "set title \"" << gnu_title << "\"" << endl;
+    size_dist_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
+
+    // Add HG g factor to file (if larger than 0)
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        if(sizeIndexUsed(a))
+            size_dist_writer << getEffectiveRadius(a) << "\t" << getEffectiveRadius3_5(a) / weight << endl;
+        else
+            size_dist_writer << getEffectiveRadius(a) << "\t0" << endl;
+    }
+    size_dist_writer << "e" << endl;
+
+    // Close text file writer
+    size_dist_writer.close();
 
     return true;
 }
@@ -2918,7 +2989,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
 uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section)
 {
     // Get wavelength index from photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -3022,13 +3093,13 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
 
 void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        photon_package * pp,
-                                       double theta,
                                        uint i_density,
                                        uint a,
+                                       double mag_field_theta,
                                        cross_sections & cs)
 {
     // Get wavelength index
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // For random alignment use average cross-sections
     if(!is_align || alignment == ALIG_RND)
@@ -3042,7 +3113,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     // Perfect alignment can be calculated efficiently
     if((alignment & ALIG_PA) == ALIG_PA)
     {
-        calcPACrossSections(a, w, cs, theta);
+        calcPACrossSections(a, w, cs, mag_field_theta);
         return;
     }
 
@@ -3128,7 +3199,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
         Rent = Ridg;
 
     // Calculate sin(theta)^2
-    double sinsq_theta = sin(theta);
+    double sinsq_theta = sin(mag_field_theta);
     sinsq_theta *= sinsq_theta;
 
     double c_s_ext = getCext1(a, w);
@@ -3285,7 +3356,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
 
     // Mol3D uses the upper value of the wavelength interval,
     // used for the selection of the emitting wavelengths from source!
-    pp->setWavelengthID(wIDnew + 1);
+    pp->setWavelength(wavelength_list[wIDnew + 1], wIDnew + 1);
 
     return true;
 }
@@ -3584,10 +3655,10 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 du[w] = wavelength_list[w] * arr_en_dens;
 
                 // Radiative torque efficiency as a power-law
-                double Qr = 0.14;
+                double Qr = Q_ref;
 
                 if(wavelength_list[w] > 1.8 * a_eff[a])
-                    Qr = 0.14 / pow(wavelength_list[w] / (1.8 * a_eff[a]), 3);
+                    Qr = Q_ref / pow(wavelength_list[w] / (1.8 * a_eff[a]), alpha_Q);
 
                 double cos_theta = abs(cos(theta));
 
@@ -3878,14 +3949,14 @@ long double * CDustComponent::getStochasticProbability(uint a, spline & abs_rate
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density)
+StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density)
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
     double Cabs = getCabsMean(grid, pp);
 
     // Get wavelength index
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Calculate frequency
     double frequency = con_c / wavelength_list[w];
@@ -3902,7 +3973,7 @@ StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_packag
     return tmp_stokes;
 }
 
-double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density)
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
@@ -3918,7 +3989,7 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get wavelength index of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Init temporary array for integration
     double * pl_abs_tmp = new double[nr_of_dust_species];
@@ -3979,30 +4050,111 @@ double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, 
     return pl_abs;
 }
 
-StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
-                                                 photon_package * pp,
-                                                 uint i_density,
-                                                 double phi,
-                                                 double energy,
-                                                 Vector3D en_dir)
+StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
+                                                          photon_package * pp,
+                                                          uint i_density,
+                                                          const Vector3D & en_dir,
+                                                          double energy)
+{
+    // Get local min and max grain sizes
+    double a_min = getSizeMin(grid, pp);
+    double a_max = getSizeMax(grid, pp);
+
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, pp);
+
+    // Init  and calculate the cross-sections
+    cross_sections cs;
+
+    // Get wavelength index of photon package
+    uint w = pp->getDustWavelengthID();
+
+    // Get angle between the magnetic field and the photon direction
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+
+    // Get theta of scattering
+    double scattering_theta = acos(en_dir * pp->getDirection());
+
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+    // Get index of theta scattering
+    uint thID = phID == PH_MIE ? getScatThetaID(scattering_theta) : 0;
+
+    // Init temporary Stokes array for integration
+    StokesVector * scatter_stokes = new StokesVector[nr_of_dust_species];
+
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        if(sizeIndexUsed(a, a_min, a_max))
+        {
+            // Get cross sections and relative weight of the current dust grain size
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
+
+            // Multiply energy with scattered fraction in the theta angle and the
+            // scattering cross-section
+            scatter_stokes[a].setI(energy * rel_weight[a] * cs.Csca *
+                                   getScatteredFraction(a, w, scattering_theta));
+
+            if(phID == PH_MIE)
+            {
+                // Get scattering matrix
+                const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
+
+                // Multiply Stokes vector with scattering matrix
+                double i_1 = scatter_stokes[a].I();
+                if(i_1 > 1e-200)
+                {
+                    scatter_stokes[a] = mat_sca * scatter_stokes[a];
+                    scatter_stokes[a] *= i_1 / scatter_stokes[a].I();
+                }
+                else
+                    scatter_stokes[a].clear();
+            }
+        }
+    }
+
+    // Perform integration for the emission
+    StokesVector final_stokes(
+        CMathFunctions::integ_dust_size(a_eff, scatter_stokes, nr_of_dust_species, a_min, a_max));
+
+    // Delete pointer arrays
+    delete[] rel_weight;
+    delete[] scatter_stokes;
+
+    // Get rotation angle to rotate back into the map/detector frame
+    double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+
+    // Rotate Stokes Vector to be in agreement with the detector plane
+    final_stokes.rot(phi_map);
+
+    // Multiply with number density
+    final_stokes *= getNumberDensity(grid, pp, i_density);
+
+    return final_stokes;
+}
+
+StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
+                                               photon_package * pp,
+                                               uint i_density,
+                                               double phi,
+                                               double energy,
+                                               Vector3D en_dir)
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
-    double scattering_theta = 0, mag_field_theta = 0, phi_map = 0;
+    double scattering_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
-    uint thID = 0;
 
     // Precalculate values for scattering
     if(energy > 1e-200)
     {
         scattering_theta = acos(en_dir * pp->getDirection());
         phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
-        if(phID == PH_MIE)
-        {
-            // Get index of theta scattering
-            thID = getScatThetaID(scattering_theta);
-        }
     }
+
+    // Get index of theta scattering
+    uint thID = phID == PH_MIE ? getScatThetaID(scattering_theta) : 0;
 
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -4015,10 +4167,10 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
     cross_sections cs;
 
     // Get wavelength index of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
-    mag_field_theta = grid->getThetaMag(pp);
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Calculate orientation of the Stokes vector in relation to the magnetic field
     double sin_2ph = sin(2.0 * phi);
@@ -4035,7 +4187,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
             // Calculate emission/extinction according to the information inside of the
             // grid
@@ -4153,14 +4305,14 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
 
+    // Get angle between the magnetic field and the photon direction
+    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+
     // Get local size parameter for size distribution
     double size_param = getSizeParam(grid, pp);
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
-
-    // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = grid->getThetaMag(pp);
 
     // Init temporary cross-section array for integration
     double * Cext = new double[nr_of_dust_species];
@@ -4172,7 +4324,7 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, mag_field_theta, i_density, a, cs);
+            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
             // Add relative cross-sections for integration
             Cext[a] = cs.Cext * rel_weight[a];
@@ -4200,24 +4352,22 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     delete[] Ccirc;
 }
 
-photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
-                                               photon_package * pp,
-                                               uint a,
-                                               Vector3D obs_ex,
-                                               Vector3D dir_obs)
+void CDustComponent::getEscapePhoton(CGridBasic * grid,
+                                     photon_package * pp,
+                                     uint a,
+                                     Vector3D obs_ex,
+                                     Vector3D dir_obs,
+                                     photon_package * pp_escape)
 {
     switch(phID)
     {
         case PH_MIE:
-            return getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs);
+            getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
 
         default:
         {
-            // Init variables
-            double len, dens, Cext, tau_obs = 0;
-
             // Get wavelength index of the photon package
-            uint w = pp->getWavelengthID();
+            uint w = pp->getDustWavelengthID();
 
             // Determination of the scattering angle (phi, theta) towards the observing
             // map in the photon frame. Get the rotation matrix of the photon (photon
@@ -4238,69 +4388,40 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Reduce the photon package Stokes vector by albedo and scattering fraction
             tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
-            // Init temporary photon package
-            photon_package pp_res;
-
             // Set the photon package at the position of the current photon
-            pp_res.setPosition(pp->getPosition());
-            pp_res.setPositionCell(pp->getPositionCell());
+            pp_escape->setPosition(pp->getPosition());
+            pp_escape->setPositionCell(pp->getPositionCell());
 
             // Synchronize the direction and wavelength as well
-            pp_res.setDirection(dir_obs);
-            pp_res.setWavelengthID(w);
-
-            // Transport the photon package through the grid
-            while(grid->next(&pp_res))
-            {
-                // Get the traveled distance
-                len = pp_res.getTmpPathLength();
-
-                // Get the current density
-                dens = getNumberDensity(grid, &pp_res);
-
-                // Get the current mean extinction cross-section
-                Cext = getCextMean(grid, &pp_res);
-
-                // Add the optical depth of the current path to the total optical depth
-                tau_obs += Cext * len * dens;
-            }
-
-            // Reduce the Stokes vector by the optical depth
-            tmp_stokes *= exp(-tau_obs);
+            pp_escape->setDirection(dir_obs);
+            pp_escape->setWavelength(w, wavelength_list[w]);
 
             // Set the new Stokes vector to the photon package
-            pp_res.setStokesVector(tmp_stokes);
-
-            return pp_res;
+            pp_escape->setStokesVector(tmp_stokes);
         }
     }
 }
 
-photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
-                                                  photon_package * pp,
-                                                  uint a,
-                                                  Vector3D obs_ex,
-                                                  Vector3D dir_obs)
+void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
+                                        photon_package * pp,
+                                        uint a,
+                                        Vector3D obs_ex,
+                                        Vector3D dir_obs,
+                                        photon_package * pp_escape)
 {
-    // Init variables
-    double len, dens, Cext, phi_fraction = 1, tau_obs = 0;
-
     // Get wavelength index of the photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
     StokesVector tmp_stokes = pp->getStokesVector();
 
-    // Init temporary photon package
-    photon_package pp_res;
-
     // Set the photon package at the position of the current photon
-    pp_res.setPosition(pp->getPosition());
-    pp_res.setPositionCell(pp->getPositionCell());
+    pp_escape->setPosition(pp->getPosition());
+    pp_escape->setPositionCell(pp->getPositionCell());
 
     // Synchronize the direction and wavelength as well
-    pp_res.setD(pp->getD());
-    pp_res.setWavelengthID(w);
+    pp_escape->setD(pp->getD());
+    pp_escape->setWavelength(w, wavelength_list[w]);
 
     // Determination of the scattering angle (phi, theta) towards the observing map in the
     // photon frame. Get the rotation matrix of the photon (photon space to lab space)
@@ -4313,7 +4434,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double theta_photon_to_obs = acos(dir_rlp.Z());
 
     // Update the coordinate space of the photon
-    pp_res.updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
+    pp_escape->updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
 
     // Get the theta angle index to obtain the scattering matrix
     uint thID = getScatThetaID(theta_photon_to_obs);
@@ -4321,11 +4442,18 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Create the scattering matrix with the local parameters
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
+    // Default phi distribution is isotrope
+    double phi_fraction = 1;
     if(phID == PH_MIE)
     {
+        double PHIPAR = 0;
         // Get PHIPAR to take non equal distribution of phi angles into account
-        double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                        (-mat_sca(0, 1) / mat_sca(0, 0));
+        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+            cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+        else
+            PHIPAR =
+                (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+                (-mat_sca(0, 1) / mat_sca(0, 0));
 
         // Get cos(2 * phi)
         double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
@@ -4352,34 +4480,13 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Normalize Stokes vector to preserve total intensity
     tmp_stokes *= stokes_1_bak / tmp_stokes.I();
 
-    // Transport the photon package through the grid
-    while(grid->next(&pp_res))
-    {
-        // Get the traveled distance
-        len = pp_res.getTmpPathLength();
-
-        // Get the current density
-        dens = getNumberDensity(grid, &pp_res);
-
-        // Get the current mean extinction cross-section
-        Cext = getCextMean(grid, &pp_res);
-
-        // Add the optical depth of the current path to the total optical depth
-        tau_obs += Cext * len * dens;
-    }
-
-    // Reduce the Stokes vector by the optical depth
-    tmp_stokes *= exp(-tau_obs);
-
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
-        CMathFunctions::getRotationAngleObserver(obs_ex, pp_res.getEX(), pp_res.getEY());
+        CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), pp_escape->getEY());
     tmp_stokes.rot(rot_angle_phot_obs);
 
     // Set the new Stokes vector to the photon package
-    pp_res.setStokesVector(tmp_stokes);
-
-    return pp_res;
+    pp_escape->setStokesVector(tmp_stokes);
 }
 
 double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density)
@@ -4404,7 +4511,7 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     double dens = getNumberDensity(grid, cell, i_density);
 
     // Get wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -4441,7 +4548,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     double z2 = pp->getRND();
 
     // Get the current wavelength
-    double w = pp->getWavelengthID();
+    double w = pp->getDustWavelengthID();
 
     // Get the Henyey-Greenstein g factor
     g = getHGg(a, w);
@@ -4477,8 +4584,16 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     if(adjust_stokes)
     {
         StokesVector tmp_stokes = pp->getStokesVector();
-        double theta_fraction = getScatteredFraction(w, a, theta);
-        tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+        if(getCextMean(a, w) > 0)
+        {
+            double theta_fraction = getScatteredFraction(w, a, theta);
+            tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+        }
+        else
+        {
+            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+            tmp_stokes.clear();
+        }
         pp->setStokesVector(tmp_stokes);
     }
 }
@@ -4489,7 +4604,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
 
     // Get wavelength of photon package
-    uint w = pp->getWavelengthID();
+    uint w = pp->getDustWavelengthID();
 
     // Get theta angle from distribution
     double theta = findTheta(a, w, pp->getRND());
@@ -4504,8 +4619,11 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-             (-mat_sca(0, 1) / mat_sca(0, 0));
+    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+    else
+        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+                 (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;
@@ -4545,7 +4663,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
                 }
                 else
                 {
-                    if(abs(hd1 - hd2) < 1.0e-15)
+                    if(abs(hd1 - hd2) < 1e-15)
                     {
                         hl1 = true;
                         break;
@@ -4580,14 +4698,20 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     if(adjust_stokes)
     {
-        tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+        if(getCextMean(a, w) > 0)
+        {
+            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
-        double i_1 = tmp_stokes.I();
-        tmp_stokes.rot(phi);
-        tmp_stokes = mat_sca * tmp_stokes;
-        tmp_stokes *= i_1 / tmp_stokes.I();
-
-        pp->setStokesVector(tmp_stokes);
+            double i_1 = tmp_stokes.I();
+            tmp_stokes.rot(phi);
+            tmp_stokes = mat_sca * tmp_stokes;
+            tmp_stokes *= i_1 / tmp_stokes.I();
+        }
+        else
+        {
+            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+            tmp_stokes.clear();
+        }
     }
 }
 
@@ -4675,15 +4799,6 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             fraction_sum += fraction;
         }
 
-        /* Not necessary
-        if(!param.getIndividualDustMassFractions() && fraction_sum != 1.0)
-        {
-            cout << "\nERROR: Fractions of dust materials do not add up to 100 % "
-                 << "(" << sum << "%)!" << endl;
-            return false;
-        }
-        */
-
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
         for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
@@ -4718,7 +4833,11 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get material density and similar user defined parameters
             single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
+            
             single_component[i_comp].setFHighJ(param.getFHighJ());
+            single_component[i_comp].setQref(param.getQref());
+            single_component[i_comp].setAlphaQ(param.getAlphaQ());
+            
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());
@@ -4801,14 +4920,13 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
     cout << SEP_LINE;
 
     // Show the full wavelength grid for temo and RAT calculation
-    if(param.isMonteCarloSimulation() ||
-       (param.getCommand() == CMD_DUST_EMISSION && param.getStochasticHeatingMaxSize() > 0))
+    if(param.isMonteCarloSimulation())
         cout << "- Number of wavelengths   : " << WL_STEPS << "  (" << WL_MIN << " [m] - " << WL_MAX
              << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
     if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-       param.getScatteringToRay())
+       scattering_to_raytracing)
         cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps
@@ -4878,23 +4996,17 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         cout << "- Include scattered light : ";
         if(grid->getRadiationFieldAvailable())
         {
-            if(param.getScatteringToRay())
-            {
-                cout << "yes, based on the radiation field" << endl
-                     << "    HINT: Only one dominant radiation source and mostly single "
-                        "scattering?"
-                     << endl
-                     << "          -> If not, use <rt_scattering> 0                      "
-                        "          "
-                     << endl;
-            }
+            if(scattering_to_raytracing)
+                cout << "yes, based on the radiation field" << endl;
             else
                 cout << "no, disabled via <rt_scattering> 0" << endl;
         }
         else
         {
-            if(param.getScatteringToRay())
+            if(scattering_to_raytracing)
                 cout << "yes, radiation field will be calculated before raytracing" << endl;
+            else if(!param.getScatteringToRay())
+                cout << "no, disabled via <rt_scattering> 0" << endl;
             else
             {
                 cout << "no, radiation field not found in grid and radiation sources "
@@ -5017,7 +5129,8 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
             cell_basic * cell = grid->getCellFromIndex(i_cell);
             total_dust_mass += getMassDensity(grid, cell, i_mixture) * grid->getVolume(cell);
         }
-        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun]" << endl;
+        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass
+             << " [kg]" << endl;
         cout << mixed_component[i_mixture].getStringID();
     }
     cout << SEP_LINE;
@@ -5127,7 +5240,7 @@ bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
         {
             cout << "\nERROR: The wavelength grid only has one wavelength which is not "
                     "enough for temp calculation!\n"
-                 << "       Change WL_STEPS to more than one in the typedefs.h file!" << endl;
+                 << "       Change WL_STEPS to more than one in the Typedefs.h file!" << endl;
             return false;
         }
 

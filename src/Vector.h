@@ -1,5 +1,5 @@
 #include "Matrix2D.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CVECTOR3D
 #define CVECTOR3D
@@ -240,7 +240,7 @@ class Vector3D
         return ph;
     }
 
-    void rot(Vector3D & n, double ang)
+    void rot(const Vector3D & n, double ang)
     {
         Vector3D cx(x, y, z);
         Vector3D cr = cross(n, cx);
@@ -276,12 +276,12 @@ class Vector3D
         return Vector3D(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);
     }
 
-    Vector3D operator+(const Vector3D & rhs)
+    Vector3D operator+(const Vector3D & rhs) const
     {
         return Vector3D(x + rhs.X(), y + rhs.Y(), z + rhs.Z());
     }
 
-    Vector3D operator-(const Vector3D & rhs)
+    Vector3D operator-(const Vector3D & rhs) const
     {
         return Vector3D(x - rhs.X(), y - rhs.Y(), z - rhs.Z());
     }
@@ -316,7 +316,7 @@ class Vector3D
         return true;
     }
 
-    Vector3D operator*(double val)
+    Vector3D operator*(double val) const
     {
         Vector3D tmp(x * val, y * val, z * val);
         return tmp;
@@ -714,7 +714,6 @@ double rot_sgn(Vector3D n, Vector3D o_d, Vector3D n_d)
 
     return 0;
 }
-
-}
+};
 
 #endif

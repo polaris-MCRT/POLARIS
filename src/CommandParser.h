@@ -1,6 +1,7 @@
 #pragma once
-#include "chelper.h"
-#include "typedefs.h"
+#include "MathFunctions.h"
+#include "Parameters.h"
+#include "Typedefs.h"
 
 #ifndef COMMANDPARSER
 #define COMMANDPARSER

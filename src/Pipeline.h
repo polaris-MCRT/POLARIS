@@ -4,8 +4,7 @@
 #include "Dust.h"
 #include "GasSpecies.h"
 #include "Source.h"
-#include "chelper.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CPIPELINE
 #define CPIPELINE
@@ -354,17 +353,62 @@ class CPipeline
         sources_ray.clear();
     }
 
-    void checkScatteringToRay(parameters & param, CDustMixture * dust, CGridBasic * grid)
+    uint getNrOffsetEntriesRay(parameters & param, CDustMixture * dust, CGridBasic * grid)
     {
-        // Check if either the radiation field is present or the radiation field can be
-        // calculated Otherwise, disable scattering added to the raytracing
-        if(!grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 &&
-           param.getNrOfDiffuseSources() == 0 && param.getNrOfLaserSources() == 0 && !param.getISRFSource() &&
-           !param.getDustSource())
-            param.setScatteringToRay(false);
+        uint nr_of_offset_entries = 0;
+        if(param.getStochasticHeatingMaxSize() > 0)
+        {
+            // Add fields to store the stochastic heating propabilities for each cell
+            for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
+                nr_of_offset_entries +=
+                    dust->getNrOfStochasticSizes(i_mixture) * dust->getNrOfCalorimetryTemperatures(i_mixture);
+        }
+        else if(dust->getScatteringToRay())
+        {
+            // Set that the spectral length is saved as vector
+            grid->setSpecLengthAsVector(true);
 
-        // Set if scattering will be included in raytracing if possible
-        dust->setScatteringToRay(param.getScatteringToRay());
+            // Get list of dust raytracing detector parameters
+            dlist dust_ray_detectors = param.getDustRayDetectors();
+
+            // Get number of dust raytracing detectors
+            uint nr_ray_detectors = uint(dust_ray_detectors.size()) / NR_OF_RAY_DET;
+
+            // Check if one of the detectors is using the healpix background grid
+            bool detector_uses_healpix = false;
+            for(uint i = 0; i < nr_ray_detectors; i++)
+            {
+                uint pos = i * NR_OF_RAY_DET;
+                uint detector_id = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 3]);
+
+                if(detector_id == DET_SPHER)
+                    detector_uses_healpix = true;
+            }
+
+            // Set up a list of all detector directions to use for the scattering via radiation field
+            if(!detector_uses_healpix)
+            {
+                for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
+                {
+                    uint nr_spectral_bins = uint(dust_ray_detectors[i_det * NR_OF_RAY_DET + 2]);
+
+                    // Add fields for the radiation field of each considered wavelength and detector
+                    nr_of_offset_entries += 4 * nr_spectral_bins;
+                }
+            }
+            else
+            {
+                nr_of_offset_entries += 4 * dust->getNrOfWavelength();
+            }
+        }
+
+        return nr_of_offset_entries;
+    }
+
+    double getNrOfRayDetector(parameters & param)
+    {
+        dlist dust_ray_detectors = param.getDustRayDetectors();
+        return uint(dust_ray_detectors.size()) / NR_OF_RAY_DET;
     }
 
   private:
@@ -380,7 +424,7 @@ class CPipeline
     parameter_list param_list;
     unsigned char ru[4];
 
-    // uint gria;
+    Vector3D ** det_coord_systems;
 };
 
 #endif

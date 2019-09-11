@@ -1,5 +1,5 @@
 #pragma once
-#include "typedefs.h"
+#include "Typedefs.h"
 // m x n
 // row    -> m (zeile)
 // column |  n (spalte)
@@ -333,6 +333,7 @@ class Matrix2D
 
     Matrix2D & operator=(Matrix2D * rhs)
     {
+        cout << "Matrix2D move" << endl;
         if(m_size != rhs->size())
             resize(rhs->row(), rhs->col());
 

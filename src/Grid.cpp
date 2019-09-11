@@ -358,7 +358,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
         }
 
         // Check for a valid combination between densities and dust mixtures
-        if(nr_densities > 1 && nr_mixtures != nr_densities)
+        if(nr_densities > 1 && nr_mixtures < nr_densities)
         {
             cout << "\nERROR: Amount of densities in the grid (" << nr_densities
                  << ") does not fit with the defined dust mixtures (" << nr_mixtures << ")!\n"
@@ -450,7 +450,8 @@ void CGridBasic::printPhysicalParameters()
 {
     cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume << " [m^3], "
          << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume)) << " [%]" << endl;
-    cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun]" << endl;
+    cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun], " << total_gas_mass
+         << " [kg]" << endl;
     cout << "- Grid length         (min,max) : [" << min_len << ", " << max_len << "] [m]" << endl;
     if(gas_is_mass_density)
         cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]"
@@ -718,7 +719,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     double xyz_step = max_len / double(bins);
 
     double off_xyz = 0.5 * xyz_step;
-    photon_package * pp = new photon_package;
+    photon_package * pp = new photon_package();
 
     point_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
     point_header << "define Lattice " << bins << " " << bins << " " << bins;
@@ -921,7 +922,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
 
-    photon_package * pp = new photon_package;
+    photon_package * pp = new photon_package();
 
     // along z
     pp->setPosition(Vector3D(0, 0, 2.0 * max_len));
@@ -1312,9 +1313,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     try
     {
-        string path_out = data_path + "midplane.fits";
+        string path_out = data_path + "midplane" + FITS_COMPRESS_EXT;
         if(midplane_3d_param.size() == 4)
-            path_out = data_path + "midplane_3d.fits";
+            path_out = data_path + "midplane_3d" + FITS_COMPRESS_EXT;
         remove(path_out.c_str());
         pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
     }
@@ -2429,16 +2430,25 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     // Free memory of pointer arrays
     if(plt_gas_dens)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_gas_dens[i_cell];
+        delete[] buffer_gas_dens;
+    }
     if(plt_dust_dens)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_dens[i_cell];
+        delete[] buffer_dust_dens;
+    }
     if(plt_gas_temp)
         delete[] buffer_gas_temp;
     if(plt_dust_temp)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_temp[i_cell];
+        delete[] buffer_dust_temp;
+    }
     if(plt_rat)
         delete[] buffer_rat;
     if(plt_delta)

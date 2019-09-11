@@ -3,9 +3,8 @@
 #include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 class CGridSpherical : public CGridBasic
 {
@@ -158,8 +157,6 @@ class CGridSpherical : public CGridBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridSpherical()
@@ -398,43 +395,29 @@ class CGridSpherical : public CGridBasic
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv)
+    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
-        Vector3D pos = pp->getPosition();
-        pos.cart2spher();
+        Vector3D pos = pp->getPosition().getSphericalCoord();
 
-        double theta = pos.Theta();
-        double phi = pos.Phi();
+        double phi_center = cell_pos->getRID() == MAX_UINT
+                                ? 0
+                                : 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
+        dir.rot(Vector3D(0, 0, 1), inv ? pos.Phi() - phi_center : phi_center - pos.Phi());
 
-        double theta_center = PI2, phi_center = 0;
-        if(cell_pos->getRID() != MAX_UINT)
+        if(!phi_only)
         {
-            theta_center = 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
-            phi_center = 0.5 * (listPh[cell_pos->getPhID()] + listPh[cell_pos->getPhID() + 1]);
+            double theta_center = cell_pos->getRID() == MAX_UINT
+                                      ? PI2
+                                      : 0.5 * (listTh[cell_pos->getThID()] + listTh[cell_pos->getThID() + 1]);
+
+            Vector3D n = Vector3D(dir.Y(), -dir.X(), 0);
+            n.normalize();
+            dir.rot(n, inv ? pos.Theta() - theta_center : theta_center - pos.Theta());
         }
 
-        double dth = theta_center - theta;
-        double dph = phi_center - phi;
-        if(inv)
-        {
-            dth *= -1;
-            dph *= -1;
-        }
-
-        dir.cart2spher();
-        dir.setPhi(dir.Phi() + dph);
-        dir.setTheta(dir.Theta() + dth);
-        dir.spher2cart();
         return dir;
     }
-
-    /*double getMinArea(photon_package * pp)
-    {
-        //tbd
-        cell_oc * cell_pos = (cell_oc *) pp->getPositionCell();
-        return 0;
-    }*/
 
     bool positionPhotonInGrid(photon_package * pp);
 

@@ -217,14 +217,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
         return false;
 
     grid->setSIConversionFactors(param);
-    uint nr_of_offset_entries = WL_STEPS;
-    if(use_energy_density)
-    {
-        grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries = 4 * WL_STEPS;
-    }
 
-    if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
+    grid->setSpecLengthAsVector(use_energy_density);
+    if(!grid->loadGridFromBinrayFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
         return false;
 
     // Print helpfull information
@@ -389,28 +384,9 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     if(!assignDustMixture(param, dust, grid))
         return false;
 
-    // Check if the scattered light can be added to the raytracing
-    if(param.getScatteringToRay())
-        checkScatteringToRay(param, dust, grid);
-
     grid->setSIConversionFactors(param);
 
-    uint nr_of_offset_entries = 0;
-    if(param.getStochasticHeatingMaxSize() > 0)
-    {
-        // Add fields to store the stochastic heating propabilities for each cell
-        for(uint i_mixture = 0; i_mixture < dust->getNrOfMixtures(); i_mixture++)
-            nr_of_offset_entries +=
-                dust->getNrOfStochasticSizes(i_mixture) * dust->getNrOfCalorimetryTemperatures(i_mixture);
-    }
-    else if(param.getScatteringToRay())
-    {
-        // Add fields to store the radiation field of each considered wavelength
-        grid->setSpecLengthAsVector(true);
-        nr_of_offset_entries += 4 * dust->getNrOfWavelength();
-    }
-
-    if(!grid->loadGridFromBinrayFile(param, nr_of_offset_entries))
+    if(!grid->loadGridFromBinrayFile(param, getNrOffsetEntriesRay(param, dust, grid)))
         return false;
 
     // Print helpfull information
@@ -450,7 +426,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 
     // Calculate radiation field before raytracing (if sources defined and no radiation
     // field in grid)
-    if(!grid->getRadiationFieldAvailable() && param.getScatteringToRay() && !sources_mc.empty())
+    if(!grid->getRadiationFieldAvailable() && dust->getScatteringToRay() && !sources_mc.empty())
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
     if(!rad.calcPolMapsViaRaytracing(param))
@@ -495,7 +471,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 6 * param.getMaxNrOfTransitions()))
+    if(!grid->loadGridFromBinrayFile(param, gas->getNrOffsetEntries(grid, param)))
         return false;
 
     // Print helpfull information
@@ -661,7 +637,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 {
     CDetector * detector;
     dlist dust_mc_detectors = param.getDustMCDetectors();
-    uint nr_ofMCDetectors = param.getNrOfDustMCDetectors();
+    uint nr_mc_detectors = param.getNrOfDustMCDetectors();
 
     Vector3D axis1 = param.getAxis1();
     Vector3D axis2 = param.getAxis2();
@@ -671,7 +647,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
     cout << CLR_LINE;
     cout << "-> Creating Monte-Carlo detector list           \r";
 
-    detector = new CDetector[nr_ofMCDetectors];
+    detector = new CDetector[nr_mc_detectors];
 
     if(dust_mc_detectors.size() <= 0)
     {
@@ -804,7 +780,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getISRFSource())
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: ISRF source cannot be considered in line or synchrotron emission!"
@@ -832,7 +808,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getNrOfPointSources() > 0)
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources -= param.getNrOfPointSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Point sources cannot be considered in line or "
@@ -867,7 +843,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getNrOfLaserSources() > 0)
         {
-            if(!param.getScatteringToRay())
+            if(!dust->getScatteringToRay())
                 nr_ofSources -= param.getNrOfLaserSources();
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Laser sources cannot be considered in line or "
@@ -887,7 +863,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getDustSource())
         {
-            if(!param.getScatteringToRay() && grid->getRadiationFieldAvailable())
+            if(!dust->getScatteringToRay() && grid->getRadiationFieldAvailable())
                 nr_ofSources--;
             else if(param.getCommand() != CMD_DUST_EMISSION)
                 cout << "\nWARNING: Dust source cannot be considered in line or "
@@ -896,6 +872,20 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             else
             {
                 CSourceBasic * tmp_source = new CSourceDust();
+                tmp_source->setParameter(param, grid, dust, 0);
+                sources_mc.push_back(tmp_source);
+            }
+        }
+
+        if(param.isGasSpeciesLevelPopMC())
+        {
+            if(param.getCommand() != CMD_LINE_EMISSION || !param.isGasSpeciesLevelPopMC())
+            {
+                nr_ofSources--;
+            }
+            else
+            {
+                CSourceBasic * tmp_source = new CSourceGas();
                 tmp_source->setParameter(param, grid, dust, 0);
                 sources_mc.push_back(tmp_source);
             }
@@ -1168,6 +1158,16 @@ bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust, CGrid
 
     dust->setGridRequirements(grid, param);
 
+    // Check if either the radiation field is present or the radiation field can be
+    // calculated otherwise, disable scattering added to the raytracing then
+    if(param.getScatteringToRay())
+        !grid->getRadiationFieldAvailable() && param.getNrOfPointSources() == 0 &&
+                param.getNrOfDiffuseSources() == 0 && param.getNrOfLaserSources() == 0 &&
+                !param.getISRFSource() && !param.getDustSource()
+            ? dust->setScatteringToRay(false)
+            : dust->setScatteringToRay(true);
+    else
+        dust->setScatteringToRay(false);
     return true;
 }
 
@@ -1326,34 +1326,51 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             if(gas == 0)
                 return false;
 
-            // Get detector parameters list
-            maplist line_ray_detector_list = param.getLineRayDetectors();
-            maplist::iterator it;
-
-            // Check if a detector is defined
-            if(line_ray_detector_list.empty())
+            if(param.isGasSpeciesLevelPopMC())
             {
-                cout << "\nERROR: No spectral line detector of gas species defined!" << endl;
-                return false;
-            }
-
-            // Perform radiative transfer for each chosen gas species
-            for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
-            {
-                // Get ID of the current gas species
-                uint i_species = it->first;
-
-                // Get number of spectral line transitions that have to be simulated
-                uint nr_of_transitions = param.getNrOfGasSpeciesTransitions(i_species);
-
-                // Perform radiative transfer for each chosen spectral line transition
-                for(uint i_line = 0; i_line < nr_of_transitions; i_line++)
+                for(uint i_species = 0; i_species < gas->getNrOfSpecies(); i_species++)
                 {
-                    // Calculate from frequency
-                    double wavelength = con_c / gas->getTransitionFrequencyFromIndex(i_species, i_line);
+                    for(uint i_trans = 0; i_trans < gas->getNrOfTransitions(i_species); i_trans++)
+                    {
+                        // Calculate from frequency
+                        double wavelength = con_c / gas->getTransitionFrequency(i_species, i_trans);
 
-                    // Add wavelength to global list of wavelength
-                    dust->addToWavelengthGrid(wavelength);
+                        // Add wavelength to global list of wavelength
+                        dust->addToWavelengthGrid(wavelength);
+                    }
+                }
+            }
+            else
+            {
+                // Get detector parameters list
+                maplist line_ray_detector_list = param.getLineRayDetectors();
+                maplist::iterator it;
+
+                // Check if a detector is defined
+                if(line_ray_detector_list.empty())
+                {
+                    cout << "\nERROR: No spectral line detector of gas species defined!" << endl;
+                    return false;
+                }
+
+                // Perform radiative transfer for each chosen gas species
+                for(it = line_ray_detector_list.begin(); it != line_ray_detector_list.end(); ++it)
+                {
+                    // Get ID of the current gas species
+                    uint i_species = it->first;
+
+                    // Get number of spectral line transitions that have to be simulated
+                    uint nr_of_spectral_lines = param.getNrOfSpectralLines(i_species);
+
+                    // Perform radiative transfer for each chosen spectral line transition
+                    for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                    {
+                        // Calculate from frequency
+                        double wavelength = con_c / gas->getSpectralLineFrequency(i_species, i_line);
+
+                        // Add wavelength to global list of wavelength
+                        dust->addToWavelengthGrid(wavelength);
+                    }
                 }
             }
             break;
@@ -1594,7 +1611,7 @@ wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_l
 #pragma omp parallel for schedule(dynamic)
     for(int i = 1; i <= 3; i++)
     {
-        photon_package * pp = new photon_package;
+        photon_package * pp = new photon_package();
 
         string rad_filename = path_plot + "Frad" + prev[i - 1] + ".dat";
         string gra_filename = path_plot + "Fgrav" + prev[i - 1] + ".dat";
@@ -1738,7 +1755,7 @@ wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_l
         delete pp;
     }
 
-    photon_package * pp = new photon_package;
+    photon_package * pp = new photon_package();
     uint pos_counter, avg_counter = 0;
 
     //0

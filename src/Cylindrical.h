@@ -1,10 +1,10 @@
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Matrix2D.h"
+#include "Parameters.h"
 #include "Source.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 class CGridCylindrical : public CGridBasic
 {
@@ -170,8 +170,6 @@ class CGridCylindrical : public CGridBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridCylindrical()
@@ -393,32 +391,19 @@ class CGridCylindrical : public CGridBasic
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv = false)
+    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
         double phi = pp->getPosition().getPhiCoord();
 
-        double phi_center = 0;
-        if(cell_pos->getRID() != MAX_UINT)
-            phi_center = 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
-                                listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
+        double phi_center = cell_pos->getRID() == MAX_UINT
+                                ? 0
+                                : 0.5 * (listPh[cell_pos->getRID()][cell_pos->getPhID()] +
+                                         listPh[cell_pos->getRID()][cell_pos->getPhID() + 1]);
+        dir.rot(Vector3D(0, 0, 1), inv ? phi - phi_center : phi_center - phi);
 
-        double dph = phi_center - phi;
-        if(inv)
-            dph *= -1;
-
-        dir.cart2cyl();
-        dir.setPhi(dir.Phi() + dph);
-        dir.cyl2cart();
         return dir;
     }
-
-    /*double getMinArea(photon_package * pp)
-    {
-        //tbd
-        cell_oc * cell_pos = (cell_oc *) pp->getPositionCell();
-        return 0;
-    }*/
 
     bool positionPhotonInGrid(photon_package * pp);
 

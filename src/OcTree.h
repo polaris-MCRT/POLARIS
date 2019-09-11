@@ -3,9 +3,8 @@
 #include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 class CGridOcTree : public CGridBasic
 {
@@ -148,8 +147,6 @@ class CGridOcTree : public CGridBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridOcTree()

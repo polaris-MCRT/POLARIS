@@ -1,7 +1,7 @@
 #include "OcTree.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)
@@ -388,8 +388,6 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -403,6 +401,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     cell_oc_pos = cell_oc_root;
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     line_counter = 1;
     char_counter = 0;
@@ -1614,11 +1614,11 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
             }
 
             double num = v_n * (p - v_a);
-            double length = -num / den;
+            double tmp_length = -num / den;
 
-            if(length >= 0 && length < min_length)
+            if(tmp_length >= 0 && tmp_length < min_length)
             {
-                min_length = length;
+                min_length = tmp_length;
                 hit = true;
             }
         }
@@ -1676,7 +1676,7 @@ bool CGridOcTree::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 
@@ -1945,13 +1945,13 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
             }
 
             double num = v_n * (p - v_a);
-            double length = -num / den;
+            double tmp_length = -num / den;
 
-            if(length >= 0 && length < min_length)
+            if(tmp_length >= 0 && tmp_length < min_length)
             {
-                if(isInside(p + d * (length + MIN_LEN_STEP * min_len)))
+                if(isInside(p + d * (tmp_length + MIN_LEN_STEP * min_len)))
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                 }
             }
@@ -2330,17 +2330,22 @@ bool CGridOcTree::createTree(cell_oc * parent,
 
     parent->setChildren(new cell_oc[8]);
     uint level = parent->getLevel() + 1;
-    double length = 0.5 * parent->getLength();
+    double tmp_length = 0.5 * parent->getLength();
 
-    createTree(parent->getChild(0), _x_min, _y_min, _z_min, length, level);
-    createTree(parent->getChild(1), _x_min + length, _y_min, _z_min, length, level);
-    createTree(parent->getChild(2), _x_min, _y_min + length, _z_min, length, level);
-    createTree(parent->getChild(3), _x_min + length, _y_min + length, _z_min, length, level);
+    createTree(parent->getChild(0), _x_min, _y_min, _z_min, tmp_length, level);
+    createTree(parent->getChild(1), _x_min + tmp_length, _y_min, _z_min, tmp_length, level);
+    createTree(parent->getChild(2), _x_min, _y_min + tmp_length, _z_min, tmp_length, level);
+    createTree(parent->getChild(3), _x_min + tmp_length, _y_min + tmp_length, _z_min, tmp_length, level);
 
-    createTree(parent->getChild(4), _x_min, _y_min, _z_min + length, length, level);
-    createTree(parent->getChild(5), _x_min + length, _y_min, _z_min + length, length, level);
-    createTree(parent->getChild(6), _x_min, _y_min + length, _z_min + length, length, level);
-    createTree(parent->getChild(7), _x_min + length, _y_min + length, _z_min + length, length, level);
+    createTree(parent->getChild(4), _x_min, _y_min, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(5), _x_min + tmp_length, _y_min, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(6), _x_min, _y_min + tmp_length, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(7),
+               _x_min + tmp_length,
+               _y_min + tmp_length,
+               _z_min + tmp_length,
+               tmp_length,
+               level);
 
     for(int i = 0; i < 8; i++)
         parent->getChild(i)->setParent(parent);

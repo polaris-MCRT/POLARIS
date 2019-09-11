@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "GasSpecies.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits.h>
 #include <limits>
 
@@ -17,8 +17,6 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     min_nrOfNeigbors = uint(1e6);
     max_nrOfNeigbors = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -29,6 +27,8 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     }
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     max_cells = 0;
 
@@ -724,7 +724,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         line_counter++;
 
         double p_size = 1.0;
-        double v_size = 1.0e-2;
+        double v_size = 1e-2;
 
         if(line_counter % nrOfGnuPoints == 0)
         {
@@ -1388,7 +1388,7 @@ bool CGridVoronoi::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 

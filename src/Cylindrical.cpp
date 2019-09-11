@@ -1,7 +1,7 @@
 #include "Cylindrical.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len)
@@ -17,8 +17,6 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -29,6 +27,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     }
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     min_len = 1e300;
 
@@ -1290,7 +1290,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
     bool hit = false;
     double min_length = 1e300;
-    double tmp_length[4];
+    double tmp_length[2];
 
     uint rID = tmp_cell->getRID();
     uint zID = tmp_cell->getZID();
@@ -1308,21 +1308,14 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         double A = d.X() * d.X() + d.Y() * d.Y();
         double dscr = B * B - 4 * A * C;
 
-        if(dscr >= 0)
-        {
-            dscr = sqrt(dscr);
-            tmp_length[0] = (-B + dscr) / (2 * A);
-            tmp_length[1] = (-B - dscr) / (2 * A);
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        // dscr always positive for surrounding sphere [RBru 2019]
+        dscr = sqrt(dscr);
+        tmp_length[0] = (-B + dscr) / (2 * A);
+        tmp_length[1] = (-B - dscr) / (2 * A);
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1361,7 +1354,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1388,33 +1381,25 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         double dscr1 = B_sq - 4 * A * C1;
         double dscr2 = B_sq - 4 * A * C2;
 
-        if(dscr1 >= 0)
+        if(dscr1 > 0)
         {
+            // Only the smaller case (shortest distance) has to be checked [RBru 2019]
             dscr1 = sqrt(dscr1);
-            tmp_length[0] = (-B + dscr1) / (2 * A);
-            tmp_length[1] = (-B - dscr1) / (2 * A);
+            tmp_length[0] = (-B - dscr1) / (2 * A);
         }
         else
         {
             tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
         }
 
-        if(dscr2 >= 0)
-        {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / (2 * A);
-            tmp_length[3] = (-B - dscr2) / (2 * A);
-        }
-        else
-        {
-            tmp_length[2] = 1e200;
-            tmp_length[3] = 1e200;
-        }
+        // dscr always positive for surrounding sphere [RBru 2019]
+        dscr2 = sqrt(dscr2);
+        // One negative and the other positive (take the highest case) [RBru 2019]
+        tmp_length[1] = (-B + dscr2) / (2 * A);
 
-        for(uint i = 0; i < 4; i++)
+        for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
             {
                 min_length = tmp_length[i];
                 hit = true;
@@ -1433,11 +1418,11 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         if(den1 != 0)
         {
             double num = v_n1 * (p - v_a1);
-            double length = -num / den1;
+            double tmp_length = -num / den1;
 
-            if(length >= 0 && length < min_length)
+            if(tmp_length > 0 && tmp_length < min_length)
             {
-                min_length = length;
+                min_length = tmp_length;
                 hit = true;
                 dirID = 2;
             }
@@ -1450,11 +1435,11 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         if(den2 != 0)
         {
             double num = v_n2 * (p - v_a2);
-            double length = -num / den2;
+            double tmp_length = -num / den2;
 
-            if(length >= 0 && length < min_length)
+            if(tmp_length > 0 && tmp_length < min_length)
             {
-                min_length = length;
+                min_length = tmp_length;
                 hit = true;
                 dirID = 3;
             }
@@ -1481,11 +1466,11 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             if(den1 != 0)
             {
                 double num = v_n1 * (p - v_a1);
-                double length = -num / den1;
+                double tmp_length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(tmp_length > 0 && tmp_length < min_length)
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1498,11 +1483,11 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             if(den2 != 0)
             {
                 double num = v_n2 * (p - v_a2);
-                double length = -num / den2;
+                double tmp_length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(tmp_length > 0 && tmp_length < min_length)
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1600,7 +1585,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] > 0 && tmp_length[i] < min_length)
         {
             if(abs(p.Z() + d.Z() * tmp_length[i]) < Zmax)
             {
@@ -1617,12 +1602,12 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     {
         Vector3D v_a1(0, 0, -Zmax);
         double num = v_n1 * (p - v_a1);
-        double length = -num / den1;
-        if(length >= 0 && length < min_length)
+        double tmp_length = -num / den1;
+        if(tmp_length > 0 && tmp_length < min_length)
         {
-            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            if(pow(p.X() + d.X() * tmp_length, 2) + pow(p.Y() + d.Y() * tmp_length, 2) < Rmax * Rmax)
             {
-                min_length = length;
+                min_length = tmp_length;
                 hit = true;
             }
         }
@@ -1634,12 +1619,12 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     {
         Vector3D v_a2(0, 0, Zmax);
         double num = v_n2 * (p - v_a2);
-        double length = -num / den2;
-        if(length >= 0 && length < min_length)
+        double tmp_length = -num / den2;
+        if(tmp_length > 0 && tmp_length < min_length)
         {
-            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < Rmax * Rmax)
+            if(pow(p.X() + d.X() * tmp_length, 2) + pow(p.Y() + d.Y() * tmp_length, 2) < Rmax * Rmax)
             {
-                min_length = length;
+                min_length = tmp_length;
                 hit = true;
             }
         }
