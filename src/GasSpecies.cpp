@@ -47,7 +47,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
             tmp_lvl_pop[i_lvl] = new double[getNrOfSublevel(i_lvl)];
         }
 
-        double temp_gas = grid->getGasTemperature(cell);
+        double temp_gas = grid->getGasTemperature(*cell);
         if(temp_gas == 0)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
@@ -65,19 +65,9 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
                 // Calculate LTE level pop also for Zeeman sublevel
                 for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
                 {
-                    if(getNrOfSublevel(i_lvl) == 1)
-                        tmp_lvl_pop[i_lvl][i_sublvl] =
-                            getGLevel(i_lvl) *
-                            exp(-con_h * getEnergylevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
-                    else if(getNrOfSublevel(i_lvl) == getGLevel(i_lvl))
-                        tmp_lvl_pop[i_lvl][i_sublvl] =
-                            exp(-con_h * getEnergylevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
-                    else
-                    {
-                        cout << "ERROR: Number of degenerated level larger than number of Zeeman sublevel!"
-                             << endl;
-                        no_error = false;
-                    }
+                    tmp_lvl_pop[i_lvl][i_sublvl] =
+                        getGLevel(i_lvl) *
+                        exp(-con_h * getEnergyOfLevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
                     sum += tmp_lvl_pop[i_lvl][i_sublvl];
                 }
             }
@@ -121,6 +111,16 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
             }
         }
 
+        // if(i_cell == 500)
+        // {
+        //     cout << CLR_LINE;
+        //     cout << SEP_LINE;
+        //     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        //         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+        //             cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl, i_sublvl) << TAB
+        //                  << tmp_lvl_pop[i_lvl][i_sublvl] << endl;
+        // }
+
         delete[] tmp_lvl_pop;
     }
     return no_error;
@@ -159,7 +159,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
     {
         cell_basic * cell = grid->getCellFromIndex(i_cell);
         double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
-        double gas_number_density = grid->getGasNumberDensity(cell);
+        double gas_number_density = grid->getGasNumberDensity(*cell);
 
         // Calculate percentage of total progress per source
         float percentage = 100 * float(i_cell) / float(max_cells);
@@ -255,6 +255,16 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
             }
         }
 
+        // if(i_cell == 500)
+        // {
+        //     cout << CLR_LINE;
+        //     cout << SEP_LINE;
+        //     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        //         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+        //             cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl, i_sublvl) << TAB
+        //                  << tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)] << endl;
+        // }
+
         delete[] tmp_lvl_pop;
     }
 
@@ -327,12 +337,12 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         }
 
         // Check temperature and density
-        double temp_gas = grid->getGasTemperature(cell);
-        double dens_species = getNumberDensity(grid, cell);
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
-        Vector3D pos_xyz_cell = grid->getCenter(cell);
+        Vector3D pos_xyz_cell = grid->getCenter(*cell);
         double abs_vel;
         if(kepler_star_mass > 0)
         {
@@ -341,7 +351,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         }
         else if(grid->hasVelocityField())
         {
-            Vector3D velo = grid->getVelocityField(cell);
+            Vector3D velo = grid->getVelocityField(*cell);
             abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
         }
         else
@@ -528,7 +538,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 
     double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
 
-    double gas_number_density = grid->getGasNumberDensity(cell);
+    double gas_number_density = grid->getGasNumberDensity(*cell);
     if(gas_number_density > 1e-200)
     {
         Matrix2D A(nr_of_total_energy_levels, nr_of_total_energy_levels);
@@ -590,7 +600,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 double *** CGasSpecies::calcCollisionParameter(CGridBasic * grid, cell_basic * cell)
 {
     // Init variables
-    double temp_gas = grid->getGasTemperature(cell);
+    double temp_gas = grid->getGasTemperature(*cell);
     uint nr_of_col_partner = getNrOfCollisionPartner();
     double *** final_col_para = new double **[nr_of_col_partner];
 
@@ -640,16 +650,16 @@ double CGasSpecies::getColPartnerDensity(CGridBasic * grid, cell_basic * cell, u
     switch(getOrientation_H2(i_col_partner))
     {
         case(COL_H2_FULL):
-            dens = grid->getGasNumberDensity(cell);
+            dens = grid->getGasNumberDensity(*cell);
             break;
         case(COL_H2_PARA):
-            dens = grid->getGasNumberDensity(cell) * 0.25;
+            dens = grid->getGasNumberDensity(*cell) * 0.25;
             break;
         case(COL_H2_ORTH):
-            dens = grid->getGasNumberDensity(cell) * 0.75;
+            dens = grid->getGasNumberDensity(*cell) * 0.75;
             break;
         case(COL_HE_FULL):
-            dens = grid->getGasNumberDensity(cell) * max(0.0, grid->getMu() - 1.0);
+            dens = grid->getGasNumberDensity(*cell) * max(0.0, grid->getMu() - 1.0);
             break;
         default:
             dens = 0;
@@ -672,27 +682,30 @@ dlist CGasSpecies::calcCollisionRate(uint i_col_partner, uint i_col_transition, 
     {
         col_mtr_tmp[0] = interp;
 
+        uint i_col_lvl_u = getUpperCollisionLevel(i_col_partner, i_col_transition);
+        uint i_col_lvl_l = getLowerCollisionLevel(i_col_partner, i_col_transition);
+
         col_mtr_tmp[1] =
-            col_mtr_tmp[0] * getGLevel(getUpperCollisionLevel(i_col_partner, i_col_transition)) /
-            getGLevel(getLowerCollisionLevel(i_col_partner, i_col_transition)) *
-            exp(-con_h *
-                (getEnergylevel(getUpperCollisionLevel(i_col_partner, i_col_transition)) * con_c * 100.0 -
-                 getEnergylevel(getLowerCollisionLevel(i_col_partner, i_col_transition)) * con_c * 100.0) /
+            col_mtr_tmp[0] * getGLevel(i_col_lvl_u) / getGLevel(i_col_lvl_l) *
+            exp(-con_h * con_c * 100.0 * (getEnergyOfLevel(i_col_lvl_u) - getEnergyOfLevel(i_col_lvl_l)) /
                 (con_kB * temp_gas));
     }
 
     return col_mtr_tmp;
 }
 
-// This function is based on
-// Mol3d: 3D line and dust continuum radiative transfer code
-// by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
-
 void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double *** final_col_para)
 {
     // Get number of colision partner and energy levels
     uint nr_of_col_partner = getNrOfCollisionPartner();
     uint nr_of_energy_level = getNrOfEnergyLevels();
+
+    /*
+     * A will be multiplied by the lvl pop. To take sublevels into account,
+     * each entry has to be multiplied by the number of sublevels in the upper level.
+     * Each entry that should have been multiplied by the number of sublevels in the lower level
+     * is cancelling out due to the way how einstein_Blu and the collision rates are defined.
+     */
 
     for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
     {
@@ -724,7 +737,7 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
                 // Level l can be populated by level u
                 A->addValue(i_tmp_lvl_l,
                             i_tmp_lvl_u,
-                            getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]);
+                            (getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]));
 
                 // Level l can be depopulated to level u
                 A->addValue(i_tmp_lvl_l, i_tmp_lvl_l, -getEinsteinBlu(i_trans) * J_mid[i_tmp_trans]);
@@ -786,19 +799,19 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
 }
 
 void CGasSpecies::calcEmissivity(CGridBasic * grid,
-                                 cell_basic * cell,
+                                 const photon_package & pp,
                                  uint i_trans,
                                  double velocity,
                                  const LineBroadening & line_broadening,
                                  const MagFieldInfo & mag_field_info,
                                  StokesVector * line_emissivity,
-                                 Matrix2D * line_absorption_matrix)
+                                 Matrix2D * line_absorption_matrix) const
 {
     if(isTransZeemanSplit(i_trans))
     {
         // Calculate the line matrix from rotation polarization matrix and line shape
         calcEmissivityZeeman(grid,
-                             cell,
+                             pp,
                              i_trans,
                              velocity,
                              line_broadening,
@@ -813,16 +826,16 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
         uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
         // Calculate the optical depth of the gas particles in the current cell
-        double absorption = (grid->getLvlPop(cell, i_lvl_l) * getEinsteinBlu(i_trans) -
-                             grid->getLvlPop(cell, i_lvl_u) * getEinsteinBul(i_trans)) *
+        double absorption = (grid->getLvlPop(pp, i_lvl_l) * getEinsteinBlu(i_trans) -
+                             grid->getLvlPop(pp, i_lvl_u) * getEinsteinBul(i_trans)) *
                             con_eps * line_broadening.gauss_a;
 
         // Calculate the emissivity of the gas particles in the current cell
         double emission =
-            grid->getLvlPop(cell, i_lvl_u) * getEinsteinA(i_trans) * con_eps * line_broadening.gauss_a;
+            grid->getLvlPop(pp, i_lvl_u) * getEinsteinA(i_trans) * con_eps * line_broadening.gauss_a;
 
         // Calculate the line matrix from rotation polarization matrix and line shape
-        getGaussLineMatrix(grid, cell, velocity, line_absorption_matrix);
+        getGaussLineMatrix(grid, pp, velocity, line_absorption_matrix);
 
         // Calculate the Emissivity of the gas particles in the current cell
         *line_emissivity = *line_absorption_matrix * StokesVector(emission, 0, 0, 0);
@@ -833,18 +846,14 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
 }
 
 void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
-                                       cell_basic * cell,
+                                       const photon_package & pp,
                                        uint i_trans,
                                        double velocity,
                                        const LineBroadening & line_broadening,
                                        const MagFieldInfo & mfo,
                                        StokesVector * line_emissivity,
-                                       Matrix2D * line_absorption_matrix)
+                                       Matrix2D * line_absorption_matrix) const
 {
-    // Init variables
-    double line_strength = 0;
-    uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
-
     // Get level indices for lower and upper energy level
     uint i_lvl_u = getUpperEnergyLevel(i_trans);
     uint i_lvl_l = getLowerEnergyLevel(i_trans);
@@ -853,50 +862,52 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     complex<double> line_function;
 
     // Init temporary matrix
-    Matrix2D tmp_matrix(4, 4);
+    Matrix2D * tmp_matrix = new Matrix2D(4, 4);
 
     // Get rest frequency of transition
-    double frequency = getTransitionFrequency(i_trans);
+    double trans_frequency = pp.getTransFrequency();
 
     // Calculate the contribution of each allowed transition between Zeeman sublevels
-    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
     {
         // Calculate the quantum number of the upper energy level
-        float sublvl_u = -getMaxMUpper(i_trans) + i_sublvl_u;
+        float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
 
-        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
         {
             // Calculate the quantum number of the lower energy level
-            float sublvl_l = max(sublvl_u - 1, -getMaxMLower(i_trans)) + i_sublvl_l;
+            float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
 
             // Skip forbidden transitions
             if(abs(sublvl_l - sublvl_u) > 1)
                 continue;
 
             // Reset temporary matrix
-            tmp_matrix.fill(0);
+            tmp_matrix->fill(0);
 
             // Calculate the emissivity of the gas particles in the current cell
             // nr_of_sublevel to take the line strength into account that is normalized to the full lvl pop
-            double emission = (grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getNrOfSublevel(i_lvl_u)) *
-                              getEinsteinA(i_trans) * con_eps * line_broadening.gauss_a;
+            double emission = (grid->getLvlPop(pp, i_lvl_u, i_sublvl_u)) *
+                              getLineStrengthAndEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) * con_eps *
+                              line_broadening.gauss_a;
 
             // Calculate the optical depth of the gas particles in the current cell
             // nr_of_sublevel to take the line strength into account that is normalized to the full lvl pop
-            double absorption = (grid->getLvlPop(cell, i_lvl_l, i_sublvl_l) * getEinsteinBlu(i_trans) -
-                                 grid->getLvlPop(cell, i_lvl_u, i_sublvl_u) * getEinsteinBul(i_trans)) *
-                                getNrOfSublevel(i_lvl_u) * con_eps * line_broadening.gauss_a;
+            double absorption = (grid->getLvlPop(pp, i_lvl_l, i_sublvl_l) *
+                                     getLineStrengthAndEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) -
+                                 grid->getLvlPop(pp, i_lvl_u, i_sublvl_u) *
+                                     getLineStrengthAndEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l)) *
+                                con_eps * line_broadening.gauss_a;
 
             // Calculate the frequency shift in relation to the not shifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
             double freq_shift = mfo.mag_field.length() * con_mb / con_h *
-                                (sublvl_u * getLandeUpper(i_trans) - sublvl_l * getLandeLower(i_trans));
+                                (sublvl_u * getLande(i_lvl_u) - sublvl_l * getLande(i_lvl_l));
 
             // Calculate the frequency value of the current velocity channel in
             // relation to the peak of the line function
-            double f_doppler = CMathFunctions::Velo2Freq(
-                                   velocity + CMathFunctions::Freq2Velo(freq_shift, frequency), frequency) /
-                               line_broadening.doppler_width;
+            double f_doppler = (freq_shift + CMathFunctions::Velo2Freq(velocity, trans_frequency)) *
+                               (con_c * line_broadening.gauss_a) / trans_frequency;
 
             // Calculate the line function value at the frequency
             // of the current velocity channel
@@ -914,82 +925,42 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
             // depends on the current type of Zeeman transition (pi, sigma_-, sigma_+)
             switch(int(sublvl_l - sublvl_u))
             {
-                case TRANS_SIGMA_P:
-                    // Get the relative line strength from Zeeman file
-                    line_strength = getLineStrengthSigmaP(i_trans, i_sigma_p);
-
-                    // Get the propagation matrix for extinction/emission
-                    CMathFunctions::getPropMatrixASigmaP(mfo.cos_theta,
-                                                         mfo.sin_theta,
-                                                         mfo.cos_2_phi,
-                                                         mfo.sin_2_phi,
-                                                         mult_A * line_strength,
-                                                         &tmp_matrix);
-
-                    // Get the propagation matrix for Faraday rotation
-                    CMathFunctions::getPropMatrixBSigmaP(mfo.cos_theta,
-                                                         mfo.sin_theta,
-                                                         mfo.cos_2_phi,
-                                                         mfo.sin_2_phi,
-                                                         mult_B * line_strength,
-                                                         &tmp_matrix);
-
-                    // Increase the sigma_+ counter to circle through the line strengths
-                    i_sigma_p++;
-                    break;
                 case TRANS_PI:
-                    // Get the relative line strength from Zeeman file
-                    line_strength = getLineStrengthPi(i_trans, i_pi);
-
                     // Get the propagation matrix for extinction/emission
-                    CMathFunctions::getPropMatrixAPi(mfo.cos_theta,
-                                                     mfo.sin_theta,
-                                                     mfo.cos_2_phi,
-                                                     mfo.sin_2_phi,
-                                                     mult_A * line_strength,
-                                                     &tmp_matrix);
+                    CMathFunctions::getPropMatrixAPi(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    CMathFunctions::getPropMatrixBPi(mfo.cos_theta,
-                                                     mfo.sin_theta,
-                                                     mfo.cos_2_phi,
-                                                     mfo.sin_2_phi,
-                                                     mult_B * line_strength,
-                                                     &tmp_matrix);
+                    CMathFunctions::getPropMatrixBPi(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
+                    break;
+                case TRANS_SIGMA_P:
+                    // Get the propagation matrix for extinction/emission
+                    CMathFunctions::getPropMatrixASigmaP(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
 
-                    // Increase the pi counter to circle through the line strengths
-                    i_pi++;
+                    // Get the propagation matrix for Faraday rotation
+                    CMathFunctions::getPropMatrixBSigmaP(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
                     break;
                 case TRANS_SIGMA_M:
-                    // Get the relative line strength from Zeeman file
-                    line_strength = getLineStrengthSigmaM(i_trans, i_sigma_m);
-
                     // Get the propagation matrix for extinction/emission
-                    CMathFunctions::getPropMatrixASigmaM(mfo.cos_theta,
-                                                         mfo.sin_theta,
-                                                         mfo.cos_2_phi,
-                                                         mfo.sin_2_phi,
-                                                         mult_A * line_strength,
-                                                         &tmp_matrix);
+                    CMathFunctions::getPropMatrixASigmaM(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    CMathFunctions::getPropMatrixBSigmaM(mfo.cos_theta,
-                                                         mfo.sin_theta,
-                                                         mfo.cos_2_phi,
-                                                         mfo.sin_2_phi,
-                                                         mult_B * line_strength,
-                                                         &tmp_matrix);
-
-                    // Increase the sigma_- counter to circle through the line strengths
-                    i_sigma_m++;
+                    CMathFunctions::getPropMatrixBSigmaM(
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
                     break;
             }
 
             // Calculate the Emissivity and Absorption matrix of the gas particles in the current cell
-            *line_emissivity += tmp_matrix * StokesVector(emission, 0, 0, 0);
-            *line_absorption_matrix += tmp_matrix * absorption;
+            *line_emissivity += *tmp_matrix * StokesVector(emission, 0, 0, 0);
+            *line_absorption_matrix += *tmp_matrix * absorption;
         }
     }
+
+    delete tmp_matrix;
 }
 
 bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
@@ -1068,7 +1039,10 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             }
             nr_of_energy_level = uint(values[0]);
 
+            // Init pointer array
             energy_level = new double[nr_of_energy_level];
+            g_level = new double[nr_of_energy_level];
+            quantum_numbers = new double[nr_of_energy_level];
 
             // Set number of sublevel to one and increase it in case of Zeeman
             nr_of_sublevel = new int[nr_of_energy_level];
@@ -1076,9 +1050,6 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             {
                 nr_of_sublevel[i_lvl] = 1;
             }
-
-            g_level = new double[nr_of_energy_level];
-            quantum_numbers = new double[nr_of_energy_level];
         }
         else if(cmd_counter < 4 + nr_of_energy_level && cmd_counter > 3)
         {
@@ -1096,6 +1067,7 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             // Quantum numbers for corresponding energy level
             quantum_numbers[pos_counter] = values[3];
 
+            // For each energy level
             pos_counter++;
         }
         else if(cmd_counter == 4 + nr_of_energy_level)
@@ -1107,16 +1079,35 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
                 return false;
             }
             nr_of_transitions = uint(values[0]);
+
+            // Reset and switch to transitions
             pos_counter = 0;
 
+            // Init pointer arrays
             upper_level = new int[nr_of_transitions];
             lower_level = new int[nr_of_transitions];
             trans_freq = new double[nr_of_transitions];
             trans_inner_energy = new double[nr_of_transitions];
 
-            trans_einstA = new double[nr_of_transitions];
-            trans_einstB_ul = new double[nr_of_transitions];
-            trans_einstB_lu = new double[nr_of_transitions];
+            // Init pointer arrays for the einstein coefficients
+            trans_einstA = new double *[nr_of_transitions];
+            trans_einstB_ul = new double *[nr_of_transitions];
+            trans_einstB_lu = new double *[nr_of_transitions];
+
+            // Only one entry, but more if Zeeman sublevels are treated
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                trans_einstA[i_trans] = new double[1];
+                trans_einstB_ul[i_trans] = new double[1];
+                trans_einstB_lu[i_trans] = new double[1];
+            }
+
+            // Init list if a transition is zeeman split
+            trans_is_zeeman_split = new bool[nr_of_transitions];
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                trans_is_zeeman_split[i_trans] = false;
+            }
         }
         else if(cmd_counter < 5 + nr_of_energy_level + nr_of_transitions &&
                 cmd_counter > 4 + nr_of_energy_level)
@@ -1142,21 +1133,22 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             // LOW (as index starting with 0)
             lower_level[pos_counter] = int(values[2] - 1);
             // EINSTEIN A(s^-1)
-            trans_einstA[pos_counter] = values[3];
+            trans_einstA[pos_counter][0] = values[3];
             // FREQ(GHz -> Hz)
             trans_freq[pos_counter] = values[4] * 1e9;
             // E_u(K)
             trans_inner_energy[pos_counter] = values[5];
 
             // EINSTEIN B_ul(s^-1)
-            trans_einstB_ul[pos_counter] = trans_einstA[pos_counter] *
-                                           pow(con_c / trans_freq[pos_counter], 2.0) /
-                                           (2.0 * con_h * trans_freq[pos_counter]);
+            trans_einstB_ul[pos_counter][0] = getEinsteinA(pos_counter) *
+                                              pow(con_c / trans_freq[pos_counter], 2.0) /
+                                              (2.0 * con_h * trans_freq[pos_counter]);
 
             // EINSTEIN B_lu(s^-1)
-            trans_einstB_lu[pos_counter] = getGLevel(upper_level[pos_counter]) /
-                                           getGLevel(lower_level[pos_counter]) * trans_einstB_ul[pos_counter];
+            trans_einstB_lu[pos_counter][0] = g_level[upper_level[pos_counter]] /
+                                              g_level[lower_level[pos_counter]] * getEinsteinBul(pos_counter);
 
+            // For each transition
             pos_counter++;
         }
         else if(cmd_counter == 5 + nr_of_energy_level + nr_of_transitions)
@@ -1299,22 +1291,11 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     dlist values;
 
     // Init variables
-    uint sublevels_upper_nr = 0, sublevels_lower_nr = 0;
+    dlist line_strength_pi, line_strength_sigma_p, line_strength_sigma_m;
     uint nr_pi_spectral_lines = 0, nr_sigma_spectral_lines = 0;
-    uint i_sigma_p_transition = 0, i_sigma_m_transition = 0;
-    uint i_pi_transition = 0, i_trans_zeeman = 0;
+    uint i_trans_zeeman = 0;
 
-    line_strength_pi = new double *[nr_of_transitions];
-    line_strength_sigma_p = new double *[nr_of_transitions];
-    line_strength_sigma_m = new double *[nr_of_transitions];
-
-    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
-    {
-        line_strength_pi[i_trans] = 0;
-        line_strength_sigma_p[i_trans] = 0;
-        line_strength_sigma_m[i_trans] = 0;
-    }
-
+    // Init pointer array for the lande factor
     lande_factor = new double[nr_of_energy_level];
     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
     {
@@ -1444,25 +1425,10 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 nr_sigma_spectral_lines = min(nr_of_sublevel_upper, nr_of_sublevel_lower);
             }
 
-            // Init pointer array for pi line strengths
-            line_strength_pi[i_trans_zeeman] = new double[nr_pi_spectral_lines];
-            for(int i_pi = 0; i_pi < nr_pi_spectral_lines; i_pi++)
-                line_strength_pi[i_trans_zeeman][i_pi] = 0;
-
-            // Init pointer array for sigma + line strengths
-            line_strength_sigma_p[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
-            for(int i_sigma_p = 0; i_sigma_p < nr_sigma_spectral_lines; i_sigma_p++)
-                line_strength_sigma_p[i_trans_zeeman][i_sigma_p] = 0;
-
-            // Init pointer array for sigma - line strengths
-            line_strength_sigma_m[i_trans_zeeman] = new double[nr_sigma_spectral_lines];
-            for(int i_sigma_m = 0; i_sigma_m < nr_sigma_spectral_lines; i_sigma_m++)
-                line_strength_sigma_m[i_trans_zeeman][i_sigma_m] = 0;
-
-            // Init indices to address the correct trantitions
-            i_pi_transition = 0;
-            i_sigma_p_transition = 0;
-            i_sigma_m_transition = 0;
+            // Clear the line strenth lists
+            line_strength_pi.clear();
+            line_strength_sigma_p.clear();
+            line_strength_sigma_m.clear();
         }
         else if(cmd_counter <= 8 + nr_pi_spectral_lines && cmd_counter > 8)
         {
@@ -1471,8 +1437,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
-            line_strength_pi[i_trans_zeeman][i_pi_transition] = values[0];
-            i_pi_transition++;
+            line_strength_pi.push_back(values[0]);
         }
         else if(cmd_counter <= 8 + nr_pi_spectral_lines + nr_sigma_spectral_lines &&
                 cmd_counter > 8 + nr_pi_spectral_lines)
@@ -1482,8 +1447,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
-            line_strength_sigma_p[i_trans_zeeman][i_sigma_p_transition] = values[0];
-            i_sigma_p_transition++;
+            line_strength_sigma_p.push_back(values[0]);
         }
         else if(cmd_counter <= 8 + nr_pi_spectral_lines + 2 * nr_sigma_spectral_lines &&
                 cmd_counter > 8 + nr_pi_spectral_lines + nr_sigma_spectral_lines)
@@ -1493,8 +1457,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 cout << "\nERROR: Line " << line_counter << " wrong amount of numbers (Zeeman file)!" << endl;
                 return false;
             }
-            line_strength_sigma_m[i_trans_zeeman][i_sigma_m_transition] = values[0];
-            i_sigma_m_transition++;
+            line_strength_sigma_m.push_back(values[0]);
         }
         else if(cmd_counter == 9 + nr_pi_spectral_lines + 2 * nr_sigma_spectral_lines)
         {
@@ -1515,17 +1478,111 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
 
             cmd_counter = 4;
         }
+
+        // After each Zeeman transition, adjust einstein coefficients
+        if(cmd_counter == 8 + nr_pi_spectral_lines + 2 * nr_sigma_spectral_lines)
+        {
+            // Init indices
+            uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
+
+            // Init variables
+            double line_strength;
+
+            // Get maximum number of transitions between sublevel
+            uint nr_sublevel_trans = getNrOfTransBetweenSublevels(i_trans_zeeman);
+
+            // Get indices to involved energy level
+            uint i_lvl_u = getUpperEnergyLevel(i_trans_zeeman);
+            uint i_lvl_l = getLowerEnergyLevel(i_trans_zeeman);
+
+            // Save einstein coefficients of major level and extend pointer array for
+            // the Zeeman transition
+            // Take also into account that the sublevels are treated separately
+            double tmp_einst_A = getEinsteinA(i_trans_zeeman);
+            delete[] trans_einstA[i_trans_zeeman];
+            trans_einstA[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
+            trans_einstA[i_trans_zeeman][0] = tmp_einst_A;
+
+            double tmp_einst_Bul = getEinsteinBul(i_trans_zeeman);
+            delete[] trans_einstB_ul[i_trans_zeeman];
+            trans_einstB_ul[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
+            trans_einstB_ul[i_trans_zeeman][0] = tmp_einst_Bul;
+
+            double tmp_einst_Blu = getEinsteinBlu(i_trans_zeeman);
+            delete[] trans_einstB_lu[i_trans_zeeman];
+            trans_einstB_lu[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
+            trans_einstB_lu[i_trans_zeeman][0] = tmp_einst_Blu;
+
+            // Calculate the contribution of each allowed transition between Zeeman sublevels
+            for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+            {
+                // Calculate the quantum number of the upper energy level
+                float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
+
+                for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+                {
+                    // Calculate the quantum number of the lower energy level
+                    float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
+
+                    uint i_sublvl = i_sublvl_u * getNrOfSublevel(i_lvl_u) + i_sublvl_l;
+
+                    switch(int(sublvl_l - sublvl_u))
+                    {
+                        case TRANS_SIGMA_P:
+                            // Get the relative line strength from Zeeman file
+                            line_strength = line_strength_sigma_p[i_sigma_p];
+
+                            // Increase the sigma_+ counter to circle through the line strengths
+                            i_sigma_p++;
+                            break;
+                        case TRANS_PI:
+                            // Get the relative line strength from Zeeman file
+                            line_strength = line_strength_pi[i_pi];
+
+                            // Increase the pi counter to circle through the line strengths
+                            i_pi++;
+                            break;
+                        case TRANS_SIGMA_M:
+                            // Get the relative line strength from Zeeman file
+                            line_strength = line_strength_sigma_m[i_sigma_m];
+
+                            // Increase the sigma_- counter to circle through the line strengths
+                            i_sigma_m++;
+                            break;
+                        default:
+                            // Forbidden line
+                            line_strength = 0;
+                            break;
+                    }
+
+                    // Set the einstein coefficients for the sublevels
+                    trans_einstA[i_trans_zeeman][i_sublvl + 1] =
+                        tmp_einst_A * line_strength * getNrOfSublevel(i_lvl_u);
+                    trans_einstB_ul[i_trans_zeeman][i_sublvl + 1] =
+                        tmp_einst_Bul * line_strength * getNrOfSublevel(i_lvl_u);
+                    trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] =
+                        tmp_einst_Blu * line_strength * getNrOfSublevel(i_lvl_l);
+                }
+            }
+        }
     }
     reader.close();
 
     for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
-        if(lande_factor[getTransitionFromSpectralLine(i_line)] == 0)
+    {
+        uint i_trans = getTransitionFromSpectralLine(i_line);
+        if(getLandeUpper(i_trans) == 0 || getLandeLower(i_trans) == 0)
         {
             cout << SEP_LINE;
-            cout << "\nERROR: For transition number " << uint(getTransitionFromSpectralLine(i_line) + 1)
+            cout << "\nERROR: For transition number " << uint(i_trans + 1)
                  << " exists no Zeeman splitting data" << endl;
             return false;
         }
+        else
+        {
+            trans_is_zeeman_split[i_trans] = true;
+        }
+    }
     return true;
 }
 
@@ -1538,33 +1595,32 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
         cell_basic * cell = grid->getCellFromIndex(i_cell);
 
         // Get necessary quantities from the current cell
-        double temp_gas = grid->getGasTemperature(cell);
-        double dens_gas = grid->getGasNumberDensity(cell);
-        double dens_species = getNumberDensity(grid, cell);
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_gas = grid->getGasNumberDensity(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
         // Set gauss_a for each transition only once
         grid->setGaussA(cell, getGaussA(temp_gas, turbulent_velocity));
 
-        uint i_line_broad = 0;
+        uint i_zeeman = 0;
         for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
         {
             if(isTransZeemanSplit(i_trans))
             {
                 // Get transition frequency
-                double frequency = getTransitionFrequency(i_trans);
+                double trans_frequency = getTransitionFrequency(i_trans);
 
                 // Init line broadening structure and fill it
                 LineBroadening line_broadening;
                 line_broadening.gauss_a = getGaussA(temp_gas, turbulent_velocity);
-                line_broadening.doppler_width = frequency / (con_c * line_broadening.gauss_a);
-                line_broadening.Gamma =
-                    getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
-                line_broadening.voigt_a = line_broadening.Gamma / (4 * PI * line_broadening.doppler_width);
+                double doppler_width = trans_frequency / (con_c * line_broadening.gauss_a);
+                double Gamma = getGamma(i_trans, dens_gas, dens_species, temp_gas, turbulent_velocity);
+                line_broadening.voigt_a = Gamma / (4 * PI * doppler_width);
 
                 // Add broadening to grid cell information
-                grid->setLineBroadening(cell, i_line_broad, line_broadening);
-                i_line_broad++;
+                grid->setLineBroadening(cell, i_zeeman, line_broadening);
+                i_zeeman++;
             }
         }
     }
@@ -1588,46 +1644,33 @@ void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
     uint i_lvl_u = getUpperEnergyLevel(i_trans);
     uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
-    // Init indices
-    uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
-
     // Calculate the contribution of each allowed transition between Zeeman sublevels
-    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
     {
         // Calculate the quantum number of the upper energy level
-        float sublvl_u = -getMaxMUpper(i_trans) + i_sublvl_u;
+        float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
 
-        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
         {
             // Calculate the quantum number of the lower energy level
-            float sublvl_l = max(sublvl_u - 1, -getMaxMLower(i_trans)) + i_sublvl_l;
+            float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
+
+            // Skip forbidden transitions
+            if(abs(sublvl_l - sublvl_u) > 1)
+                continue;
 
             uint i_trans_unique = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
 
             switch(int(sublvl_l - sublvl_u))
             {
-                case TRANS_SIGMA_P:
-                    // Update radiation field
-                    J_nu[i_trans_unique] +=
-                        getLineStrengthSigmaP(i_trans, i_sigma_p) * (1 + cos_theta * cos_theta) * energy;
-
-                    // Increase the sigma_+ counter to circle through the line strengths
-                    i_sigma_p++;
-                    break;
                 case TRANS_PI:
                     // Update radiation field
-                    J_nu[i_trans_unique] += getLineStrengthPi(i_trans, i_pi) * sin_theta * sin_theta * energy;
-
-                    // Increase the pi counter to circle through the line strengths
-                    i_pi++;
+                    J_nu[i_trans_unique] += sin_theta * sin_theta * energy;
                     break;
+                case TRANS_SIGMA_P:
                 case TRANS_SIGMA_M:
                     // Update radiation field
-                    J_nu[i_trans_unique] +=
-                        getLineStrengthSigmaM(i_trans, i_sigma_m) * (1 + cos_theta * cos_theta) * energy;
-
-                    // Increase the sigma_- counter to circle through the line strengths
-                    i_sigma_m++;
+                    J_nu[i_trans_unique] += (1 + cos_theta * cos_theta) * energy;
                     break;
             }
         }
@@ -1651,10 +1694,10 @@ bool CGasMixture::createGasSpecies(parameters & param)
             return false;
 
         if(param.getZeemanCatalog(i_species) != "")
+        {
             if(!single_species[i_species].readZeemanParamaterFile(param.getZeemanCatalog(i_species)))
                 return false;
-
-        single_species[i_species].initReferenceLists();
+        }
 
         if((single_species[i_species].getLevelPopType() == POP_FEP ||
             single_species[i_species].getLevelPopType() == POP_LVG) &&
@@ -1667,6 +1710,9 @@ bool CGasMixture::createGasSpecies(parameters & param)
                  << endl;
             return false;
         }
+
+        // Create reference list
+        single_species[i_species].initReferenceLists();
     }
 
     setKeplerStarMass(param.getKeplerStarMass());
@@ -1808,7 +1854,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
             double dens_species, min_dens_species = 1e200, max_dens_species = 0;
             for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
             {
-                cell_basic * cell = grid->getCellFromIndex(i_cell);
+                const cell_basic & cell = *grid->getCellFromIndex(i_cell);
 
                 // Get abundance of a certain gas species
                 double dens_species =
@@ -1828,7 +1874,7 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
         for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
             cell_basic * cell = grid->getCellFromIndex(i_cell);
-            total_species_mass += getMassDensity(grid, cell, i_species) * grid->getVolume(cell);
+            total_species_mass += getMassDensity(grid, *cell, i_species) * grid->getVolume(*cell);
         }
         cout << "- Total mass                    : " << total_species_mass / M_sun << " [M_sun], "
              << total_species_mass << " [kg]" << endl;
@@ -1862,80 +1908,49 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                 cout << "- Sublevels in lower level      : " << getNrOfSublevelLower(i_species, i_trans)
                      << endl;
 
-                uint i_pi = 0, i_sigma_p = 0, i_sigma_m = 0;
-
-                cout << "- Sigma+ line strength\t\tm(upper)\t\tm(lower)" << endl;
+                cout << "- Transitions between sublevels : " << endl;
+                cout << "    transition type\tline strength\t\tm(upper)\t\tm(lower)" << endl;
                 for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_species, i_trans); i_sublvl_u++)
                 {
+                    // Calculate the quantum number of the upper energy level
                     float sublvl_u = -getMaxMUpper(i_species, i_trans) + i_sublvl_u;
-                    float sublvl_l = sublvl_u + 1;
-                    if(abs(sublvl_l) <= getMaxMLower(i_species, i_trans))
+
+                    for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_species, i_trans);
+                        i_sublvl_l++)
                     {
+                        // Calculate the quantum number of the lower energy level
+                        float sublvl_l = -getMaxMLower(i_species, i_trans) + i_sublvl_l;
+
                         char LineStrengthTmp[16];
 #ifdef WINDOWS
                         _snprintf_s(LineStrengthTmp,
                                     sizeof(LineStrengthTmp),
                                     "%.3f",
-                                    getLineStrengthSigmaP(i_species, i_trans, i_sigma_p));
+                                    getLineStrength(i_species, i_trans, i_sublvl_u, i_sublvl_l));
 #else
                         snprintf(LineStrengthTmp,
                                  sizeof(LineStrengthTmp),
                                  "%.3f",
-                                 getLineStrengthSigmaP(i_species, i_trans, i_sigma_p));
+                                 getLineStrength(i_species, i_trans, i_sublvl_u, i_sublvl_l));
 #endif
 
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(sublvl_u) << "\t\t\t   "
-                             << float(sublvl_l) << endl;
-                        i_sigma_p++;
-                    }
-                }
-                cout << "- Pi line strength\t\tm(upper)\t\tm(lower)" << endl;
-                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_species, i_trans); i_sublvl_u++)
-                {
-                    float sublvl_u = -getMaxMUpper(i_species, i_trans) + i_sublvl_u;
-                    float sublvl_l = sublvl_u;
-                    if(abs(sublvl_l) <= getMaxMLower(i_species, i_trans))
-                    {
-                        char LineStrengthTmp[16];
-#ifdef WINDOWS
-                        _snprintf_s(LineStrengthTmp,
-                                    sizeof(LineStrengthTmp),
-                                    "%.3f",
-                                    getLineStrengthPi(i_species, i_trans, i_pi));
-#else
-                        snprintf(LineStrengthTmp,
-                                 sizeof(LineStrengthTmp),
-                                 "%.3f",
-                                 getLineStrengthPi(i_species, i_trans, i_pi));
-#endif
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(sublvl_u) << "\t\t\t   "
-                             << float(sublvl_l) << endl;
-                        i_pi++;
-                    }
-                }
-                cout << "- Sigma- line strength\t\tm(upper)\t\tm(lower)" << endl;
-                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_species, i_trans); i_sublvl_u++)
-                {
-                    float sublvl_u = -getMaxMUpper(i_species, i_trans) + i_sublvl_u;
-                    float sublvl_l = sublvl_u - 1;
-                    if(abs(sublvl_l) <= getMaxMLower(i_species, i_trans))
-                    {
-                        char LineStrengthTmp[16];
-#ifdef WINDOWS
-                        _snprintf_s(LineStrengthTmp,
-                                    sizeof(LineStrengthTmp),
-                                    "%.3f",
-                                    getLineStrengthSigmaM(i_species, i_trans, i_sigma_m));
-#else
-                        snprintf(LineStrengthTmp,
-                                 sizeof(LineStrengthTmp),
-                                 "%.3f",
-                                 getLineStrengthSigmaM(i_species, i_trans, i_sigma_m));
-#endif
-
-                        cout << "\t" << LineStrengthTmp << "\t\t\t   " << float(sublvl_u) << "\t\t\t   "
-                             << float(sublvl_l) << endl;
-                        i_sigma_m++;
+                        // Use the correct propagation matrix and relative line strength that
+                        // depends on the current type of Zeeman transition (pi, sigma_-, sigma_+)
+                        switch(int(sublvl_l - sublvl_u))
+                        {
+                            case TRANS_SIGMA_P:
+                                cout << "\tSigma+\t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
+                                break;
+                            case TRANS_PI:
+                                cout << "\tPi    \t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
+                                break;
+                            case TRANS_SIGMA_M:
+                                cout << "\tSigma-\t\t    " << LineStrengthTmp << "\t\t   " << float(sublvl_u)
+                                     << "\t\t\t   " << float(sublvl_l) << endl;
+                                break;
+                        }
                     }
                 }
             }

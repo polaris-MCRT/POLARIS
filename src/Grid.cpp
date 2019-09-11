@@ -26,7 +26,7 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     {
         for(uint i_dens = 0; i_dens < data_pos_gd_list.size(); i_dens++)
             cell->convertData(data_pos_gd_list[i_dens], conv_dens_in_SI);
-        gas_dens = getGasDensity(cell);
+        gas_dens = getGasDensity(*cell);
 
         if(gas_dens > max_gas_dens)
             max_gas_dens = gas_dens;
@@ -39,7 +39,7 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         for(uint i_dens = 0; i_dens < data_pos_dd_list.size(); i_dens++)
             cell->convertData(data_pos_dd_list[i_dens], conv_dens_in_SI);
 
-        dust_dens = getDustDensity(cell);
+        dust_dens = getDustDensity(*cell);
 
         if(dust_dens > max_dust_dens)
             max_dust_dens = dust_dens;
@@ -719,7 +719,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     double xyz_step = max_len / double(bins);
 
     double off_xyz = 0.5 * xyz_step;
-    photon_package * pp = new photon_package();
+    photon_package pp = photon_package();
 
     point_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
     point_header << "define Lattice " << bins << " " << bins << " " << bins;
@@ -796,9 +796,9 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                 double ty = double(y) * xyz_step - sgy * off_xyz;
                 double tz = double(z) * xyz_step - sgz * off_xyz;
 
-                pp->setPosition(Vector3D(tx, ty, tz));
+                pp.setPosition(Vector3D(tx, ty, tz));
 
-                if(!positionPhotonInGrid(pp))
+                if(!positionPhotonInGrid(&pp))
                 {
                     dens_writer << float(log10(min_gas_dens)) << endl;
                     gas_writer << uint(0) << endl;
@@ -877,7 +877,6 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
 
     cout << "- Writing AMIRA files                  : done" << endl;
 
-    delete pp;
     return true;
 }
 
@@ -922,18 +921,18 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
 
-    photon_package * pp = new photon_package();
+    photon_package pp = photon_package();
 
     // along z
-    pp->setPosition(Vector3D(0, 0, 2.0 * max_len));
-    pp->setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
-    findStartingPoint(pp);
+    pp.setPosition(Vector3D(0, 0, 2.0 * max_len));
+    pp.setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
+    findStartingPoint(&pp);
 
     z_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
 
-    while(next(pp))
+    while(next(&pp))
     {
-        double pos = pp->getPosition().Z();
+        double pos = pp.getPosition().Z();
         double dens = getGasDensity(pp);
         double Tg = 0;
         double Td = 0;
@@ -970,15 +969,15 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
 
-    pp->setPosition(Vector3D(0, 2.0 * max_len, 0));
-    pp->setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
-    findStartingPoint(pp);
+    pp.setPosition(Vector3D(0, 2.0 * max_len, 0));
+    pp.setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
+    findStartingPoint(&pp);
 
     y_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
 
-    while(next(pp))
+    while(next(&pp))
     {
-        double pos = pp->getPosition().Y();
+        double pos = pp.getPosition().Y();
         double dens = getGasDensity(pp);
         double Tg = 0;
         double Td = 0;
@@ -1015,15 +1014,15 @@ bool CGridBasic::writeSpecialLines(string data_path)
 
     cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
 
-    pp->setPosition(Vector3D(2.0 * max_len, 0, 0));
-    pp->setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
-    findStartingPoint(pp);
+    pp.setPosition(Vector3D(2.0 * max_len, 0, 0));
+    pp.setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
+    findStartingPoint(&pp);
 
     x_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
 
-    while(next(pp))
+    while(next(&pp))
     {
-        double pos = pp->getPosition().X();
+        double pos = pp.getPosition().X();
         double dens = getGasDensity(pp);
         double Tg = 0;
         double Td = 0;
@@ -1061,8 +1060,6 @@ bool CGridBasic::writeSpecialLines(string data_path)
     x_writer.close();
     y_writer.close();
     z_writer.close();
-
-    delete pp;
 
     cout << "- Writing lines                 : done" << endl;
     return true;

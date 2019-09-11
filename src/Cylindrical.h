@@ -358,9 +358,9 @@ class CGridCylindrical : public CGridBasic
         return true;
     }
 
-    double getVolume(cell_basic * cell)
+    double getVolume(const cell_basic & cell) const
     {
-        cell_cyl * cell_pos = (cell_cyl *)cell;
+        const cell_cyl * cell_pos = (const cell_cyl *)&cell;
 
         double volume = 0;
 
@@ -385,16 +385,10 @@ class CGridCylindrical : public CGridBasic
         return volume;
     }
 
-    double getVolume(photon_package * pp)
+    Vector3D rotateToCenter(const photon_package & pp, Vector3D dir, bool inv, bool phi_only) const
     {
-        cell_basic * cell_pos = pp->getPositionCell();
-        return getVolume(cell_pos);
-    }
-
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
-    {
-        cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
-        double phi = pp->getPosition().getPhiCoord();
+        const cell_cyl * cell_pos = (const cell_cyl *)pp.getPositionCell();
+        double phi = pp.getPosition().getPhiCoord();
 
         double phi_center = cell_pos->getRID() == MAX_UINT
                                 ? 0
@@ -506,9 +500,9 @@ class CGridCylindrical : public CGridBasic
     cell_cyl **** grid_cells;
     cell_cyl ** center_cells;
 
-    bool isInside(Vector3D & pos, cell_basic * _cell)
+    bool isInside(const Vector3D & pos, const cell_basic & _cell) const
     {
-        cell_cyl * cell = (cell_cyl *)_cell;
+        const cell_cyl * cell = (const cell_cyl *)&_cell;
 
         Vector3D tmp_pos = pos.getSphericalCoord();
 
@@ -553,7 +547,7 @@ class CGridCylindrical : public CGridBasic
         return true;
     }
 
-    bool isInside(Vector3D & pos)
+    bool isInside(const Vector3D & pos) const
     {
         double sq_r = pos.X() * pos.X() + pos.Y() * pos.Y();
         if(sq_r > Rmax * Rmax)
@@ -568,9 +562,9 @@ class CGridCylindrical : public CGridBasic
         return true;
     }
 
-    bool isInside(photon_package * pp, Vector3D & pos)
+    bool isInside(const photon_package & pp, Vector3D & pos) const
     {
-        return isInside(pos, pp->getPositionCell());
+        return isInside(pos, *pp.getPositionCell());
     }
 
     void setRndPositionInCell(photon_package * pp)

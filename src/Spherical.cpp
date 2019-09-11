@@ -370,8 +370,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
         updateDataRange(tmp_cell);
 
-        double tmp_vol = getVolume(tmp_cell);
-        total_gas_mass += getGasMassDensity(tmp_cell) * tmp_vol;
+        double tmp_vol = getVolume(*tmp_cell);
+        total_gas_mass += getGasMassDensity(*tmp_cell) * tmp_vol;
         cell_volume += tmp_vol;
         th_counter++;
     }
@@ -882,7 +882,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                   << endl;
 
     if(plt_gas_dens)
-        point_fields[0] << "0 0 0 " << 0.5 << " " << getGasDensity(center_cell) << endl;
+        point_fields[0] << "0 0 0 " << 0.5 << " " << getGasDensity(*center_cell) << endl;
 
     line_counter = 0;
 
@@ -910,7 +910,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                 {
                     if(plt_gas_dens)
                     {
-                        double dens = getGasDensity(tmp_cell_pos);
+                        double dens = getGasDensity(*tmp_cell_pos);
 
                         if(dens > 0)
                             point_fields[1] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size)
@@ -919,21 +919,21 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
                     if(plt_gas_temp)
                     {
-                        double Tg = getGasTemperature(tmp_cell_pos);
+                        double Tg = getGasTemperature(*tmp_cell_pos);
                         point_fields[3] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
                                         << Tg << endl;
                     }
 
                     if(plt_gas_temp)
                     {
-                        double Td = getDustTemperature(tmp_cell_pos);
+                        double Td = getDustTemperature(*tmp_cell_pos);
                         point_fields[4] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
                                         << Td << endl;
                     }
 
                     if(plt_rat)
                     {
-                        double a_alg = getAlignedRadius(tmp_cell_pos, 0);
+                        double a_alg = getAlignedRadius(*tmp_cell_pos, 0);
                         point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(size) << " "
                                         << a_alg << endl;
                     }
@@ -943,9 +943,9 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                 {
                     if(plt_mag)
                     {
-                        double mx = getMagField(tmp_cell_pos).X();
-                        double my = getMagField(tmp_cell_pos).Y();
-                        double mz = getMagField(tmp_cell_pos).Z();
+                        double mx = getMagField(*tmp_cell_pos).X();
+                        double my = getMagField(*tmp_cell_pos).Y();
+                        double mz = getMagField(*tmp_cell_pos).Z();
 
                         double b_len = sqrt(mx * mx + my * my + mz * mz);
 
@@ -964,9 +964,9 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
                     if(plt_vel)
                     {
-                        double vx = getVelocityField(tmp_cell_pos).X();
-                        double vy = getVelocityField(tmp_cell_pos).Y();
-                        double vz = getVelocityField(tmp_cell_pos).Z();
+                        double vx = getVelocityField(*tmp_cell_pos).X();
+                        double vy = getVelocityField(*tmp_cell_pos).Y();
+                        double vz = getVelocityField(*tmp_cell_pos).Z();
 
                         double v_len = sqrt(vx * vx + vy * vy + vz * vz);
 

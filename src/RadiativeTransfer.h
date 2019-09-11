@@ -233,16 +233,16 @@ class CRadiativeTransfer
         if(stokes_dust_rad_field)
         {
             // Rotate vector of radiation field to cell center
-            Vector3D rad_field_dir = grid->rotateToCenter(pp, pp->getDirection());
+            Vector3D rad_field_dir = grid->rotateToCenter(*pp, pp->getDirection());
 
-            // Create a copy with the same values as in the photon package
-            photon_package dir_pp = *pp;
+            // Backup original direction of photon
+            Vector3D old_dir = pp->getDirection();
 
             // For each detector check if wavelength fits
             for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
             {
                 // Set coordinate system of temporary photon package for the map direction
-                tracer[i_det]->setDirection(&dir_pp);
+                tracer[i_det]->setDirection(pp);
 
                 // Go through each wavelength
                 for(uint i_wave = 0; i_wave < tracer[i_det]->getNrSpectralBins(); i_wave++)
@@ -253,12 +253,15 @@ class CRadiativeTransfer
                     {
                         // Save the scattering Stokes vector in the grid
                         grid->updateSpecLength(
-                            pp,
+                            pp->getPositionCell(),
                             detector_wl_index[i_det] + i_wave,
-                            dust->getRadFieldScatteredFraction(grid, &dir_pp, rad_field_dir, energy));
+                            dust->getRadFieldScatteredFraction(grid, *pp, rad_field_dir, energy));
                     }
                 }
             }
+
+            // Recopy original direction of photon
+            pp->setDirection(old_dir);
         }
         else
         {
@@ -341,26 +344,6 @@ class CRadiativeTransfer
 
             epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
             dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
-        }
-    }
-
-    void calcStepWidthI(StokesVector & stokes_new,
-                        StokesVector & stokes_new2,
-                        double cell_d_l,
-                        double & epsi,
-                        double & dz_new,
-                        bool add_mc_lvl_pop_precision = false)
-    {
-        epsi = 2.0;
-        dz_new = 0.9 * cell_d_l;
-        if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
-        {
-            double rel_error = REL_ERROR;
-            if(add_mc_lvl_pop_precision)
-                rel_error *= MC_LVL_POP_DIFF_LIMIT;
-
-            epsi = abs(stokes_new2.I() - stokes_new.I()) / (REL_ERROR * abs(stokes_new.I()) + ABS_ERROR);
-            dz_new = 0.9 * cell_d_l * pow(epsi, -0.2);
         }
     }
 

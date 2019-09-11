@@ -1,1 +1,0 @@
-/home/ilion/1/reisslst/NetBeansProjects/polariscode/src/build/CMakeFiles/polaris.dir

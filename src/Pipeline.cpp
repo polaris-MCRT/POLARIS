@@ -1611,7 +1611,7 @@ wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_l
 #pragma omp parallel for schedule(dynamic)
     for(int i = 1; i <= 3; i++)
     {
-        photon_package * pp = new photon_package();
+        photon_package pp = photon_package();
 
         string rad_filename = path_plot + "Frad" + prev[i - 1] + ".dat";
         string gra_filename = path_plot + "Fgrav" + prev[i - 1] + ".dat";
@@ -1752,10 +1752,9 @@ wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_l
         rad_writer.close();
         gra_writer.close();
 
-        delete pp;
     }
 
-    photon_package * pp = new photon_package();
+    photon_package pp = photon_package();
     uint pos_counter, avg_counter = 0;
 
     //0
@@ -1960,8 +1959,6 @@ wavelength_list[w - 1]) * tmpZ[w - 1] + 0.5 * (wavelength_list[w] - wavelength_l
 
         pos_counter++;
     }
-
-    delete pp;
 
     pos_counter--;
 

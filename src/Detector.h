@@ -616,16 +616,16 @@ class CDetector
         }
     }
 
-    void addToRaytracingSedDetector(photon_package * pp, uint spectral_offset = 0)
+    void addToRaytracingSedDetector(const photon_package & pp, uint spectral_offset = 0)
     {
-        StokesVector st = pp->getStokesVector();
-        addToSedDetector(st, pp->getSpectralID() + spectral_offset);
+        StokesVector st = pp.getStokesVector();
+        addToSedDetector(st, pp.getSpectralID() + spectral_offset);
     }
 
-    void addToRaytracingDetector(photon_package * pp, uint pos_id, uint spectral_offset)
+    void addToRaytracingDetector(const photon_package & pp, uint pos_id, uint spectral_offset)
     {
-        StokesVector st = pp->getStokesVector();
-        uint i_spectral = pp->getSpectralID();
+        StokesVector st = pp.getStokesVector();
+        uint i_spectral = pp.getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
@@ -634,9 +634,9 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
     }
 
-    void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
+    void addToRaytracingDetector(const photon_package & pp, uint spectral_offset)
     {
-        Vector3D pos = pp->getPosition();
+        Vector3D pos = pp.getPosition();
 
         uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
@@ -648,8 +648,8 @@ class CDetector
         if(y < 0 || y >= int(bins_y))
             return;
 
-        StokesVector st = pp->getStokesVector();
-        uint i_spectral = pp->getSpectralID();
+        StokesVector st = pp.getStokesVector();
+        uint i_spectral = pp.getSpectralID();
         matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
         matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
         matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
@@ -658,10 +658,10 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
     }
 
-    void addToMonteCarloDetector(photon_package * pp, uint i_det_spectral, uint radiation_type)
+    void addToMonteCarloDetector(const photon_package & pp, uint i_det_spectral, uint radiation_type)
     {
-        Vector3D pos = pp->getPosition();
-        Vector3D dir = pp->getDirection();
+        Vector3D pos = pp.getPosition();
+        Vector3D dir = pp.getDirection();
 
         if(dir.length() == 0)
             return;
@@ -679,7 +679,7 @@ class CDetector
         if(y < 0 || y >= int(bins_y))
             return;
 
-        StokesVector st = pp->getStokesVector();
+        StokesVector st = pp.getStokesVector();
         matrixI[i_det_spectral].addValue(x, y, st.I());
         matrixQ[i_det_spectral].addValue(x, y, st.Q());
         matrixU[i_det_spectral].addValue(x, y, st.U());

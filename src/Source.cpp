@@ -972,7 +972,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     // Init variables
     ulong nr_of_cells = grid->getMaxDataCells();
     ulong nr_of_wavelengths = getNrOfWavelength();
-    photon_package * pp = new photon_package();
+    photon_package pp = photon_package();
     cell_prob = new prob_list[nr_of_wavelengths];
     total_energy = new double[nr_of_wavelengths];
     uint max_counter = nr_of_wavelengths * nr_of_cells;
@@ -988,7 +988,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         cell_prob[w].resize(nr_of_cells + 1);
 
         // Set wavelength of photon package
-        pp->setWavelength(wavelength_list[w], w);
+        pp.setWavelength(wavelength_list[w], w);
 
         // Set total energy to zero and starting value of prob_list
         total_energy[w] = 0;
@@ -1015,7 +1015,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             }
 
             // Put photon package into current cell
-            pp->setPositionCell(grid->getCellFromIndex(i_cell));
+            pp.setPositionCell(grid->getCellFromIndex(i_cell));
 
             // Get total energy of thermal emission
             total_energy[w] += dust->getTotalCellEmission(grid, pp);
@@ -1028,9 +1028,6 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         cell_prob[w].normalize(total_energy[w]);
     }
 
-    // Delete pointer
-    delete pp;
-
     // Show information
     cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " << nr_of_photons
          << "      " << endl;
@@ -1042,7 +1039,7 @@ bool CSourceDust::initSource(uint w)
 {
     // Init variables
     ulong nr_of_cells = grid->getMaxDataCells();
-    photon_package * pp = new photon_package();
+    photon_package pp = photon_package();
     uint max_counter = nr_of_cells;
     ullong per_counter = 0;
     float last_percentage = 0;
@@ -1053,7 +1050,7 @@ bool CSourceDust::initSource(uint w)
     cell_prob[w].resize(nr_of_cells + 1);
 
     // Set wavelength of photon package
-    pp->setWavelength(wavelength_list[w], w);
+    pp.setWavelength(wavelength_list[w], w);
 
     // Set total energy to zero and starting value of prob_list
     total_energy[w] = 0;
@@ -1083,7 +1080,7 @@ bool CSourceDust::initSource(uint w)
         }
 
         // Put photon package into current cell
-        pp->setPositionCell(grid->getCellFromIndex(i_cell));
+        pp.setPositionCell(grid->getCellFromIndex(i_cell));
 
         // Get total energy of thermal emission
         total_energy[w] += dust->getTotalCellEmission(grid, pp);
@@ -1094,9 +1091,6 @@ bool CSourceDust::initSource(uint w)
 
     // Normalize probability distribution
     cell_prob[w].normalize(total_energy[w]);
-
-    // Delete pointer
-    delete pp;
 
     return true;
 }
@@ -1196,7 +1190,7 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
         grid->next(pp);
 
         // Invert direction
-        pp->getDirection() *= -1;
+        pp->setDirection(-1 * pp->getDirection());
 
         // Go into cell again
         grid->next(pp);
@@ -1204,10 +1198,10 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
     else
     {
         // Move photon along the path outwards the grid
-        pp->getPosition() += pp->getDirection() * grid->maxLength();
+        pp->setPosition(pp->getDirection() + pp->getDirection() * grid->maxLength());
 
         // Invert direction
-        pp->getDirection() *= -1;
+        pp->setDirection(-1 * pp->getDirection());
     }
 }
 
