@@ -217,7 +217,7 @@ class CRaytracingBasic
         i_pix = 0;
     }
 
-    virtual void setDirection(photon_package * pp)
+    virtual void setCoordinateSystem(photon_package * pp)
     {
         pp->setEX(ex);
         pp->setEY(ey);

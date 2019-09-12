@@ -249,10 +249,10 @@ class CGridCylindrical : public CGridBasic
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
 
-    Vector3D getCenter(cell_basic * cell)
+    Vector3D getCenter(const cell_basic & cell) const
     {
         Vector3D center;
-        cell_cyl * tmp_cell = (cell_cyl *)cell;
+        const cell_cyl * tmp_cell = (const cell_cyl *)&cell;
 
         if(tmp_cell->getRID() == MAX_UINT)
         {
@@ -500,52 +500,52 @@ class CGridCylindrical : public CGridBasic
     cell_cyl **** grid_cells;
     cell_cyl ** center_cells;
 
-    bool isInside(const Vector3D & pos, const cell_basic & _cell) const
-    {
-        const cell_cyl * cell = (const cell_cyl *)&_cell;
+    // bool isInside(const Vector3D & pos, const cell_basic & _cell) const
+    // {
+    //     const cell_cyl * cell = (const cell_cyl *)&_cell;
 
-        Vector3D tmp_pos = pos.getSphericalCoord();
+    //     Vector3D tmp_pos = pos.getSphericalCoord();
 
-        if(cell->getRID() == MAX_UINT)
-        {
-            double sq_r = pos.X() * pos.X() + pos.Y() * pos.Y();
-            if(sq_r > Rmin * Rmin)
-                return false;
+    //     if(cell->getRID() == MAX_UINT)
+    //     {
+    //         double sq_r = pos.X() * pos.X() + pos.Y() * pos.Y();
+    //         if(sq_r > Rmin * Rmin)
+    //             return false;
 
-            if(tmp_pos.Z() < -Zmax)
-                return false;
+    //         if(tmp_pos.Z() < -Zmax)
+    //             return false;
 
-            if(tmp_pos.Z() > Zmax)
-                return false;
-        }
+    //         if(tmp_pos.Z() > Zmax)
+    //             return false;
+    //     }
 
-        double r1 = listR[cell->getRID()];
-        double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPh[cell->getRID()][cell->getPhID()];
-        double ph2 = listPh[cell->getRID()][cell->getPhID() + 1];
-        double z1 = listZ[cell->getRID()][cell->getZID()];
-        double z2 = listZ[cell->getRID()][cell->getZID() + 1];
+    //     double r1 = listR[cell->getRID()];
+    //     double r2 = listR[cell->getRID() + 1];
+    //     double ph1 = listPh[cell->getRID()][cell->getPhID()];
+    //     double ph2 = listPh[cell->getRID()][cell->getPhID() + 1];
+    //     double z1 = listZ[cell->getRID()][cell->getZID()];
+    //     double z2 = listZ[cell->getRID()][cell->getZID() + 1];
 
-        if(tmp_pos.R() < r1)
-            return false;
+    //     if(tmp_pos.R() < r1)
+    //         return false;
 
-        if(tmp_pos.R() > r2)
-            return false;
+    //     if(tmp_pos.R() > r2)
+    //         return false;
 
-        if(tmp_pos.Phi() < ph1)
-            return false;
+    //     if(tmp_pos.Phi() < ph1)
+    //         return false;
 
-        if(tmp_pos.Phi() > ph2)
-            return false;
+    //     if(tmp_pos.Phi() > ph2)
+    //         return false;
 
-        if(tmp_pos.Z() < z1)
-            return false;
+    //     if(tmp_pos.Z() < z1)
+    //         return false;
 
-        if(tmp_pos.Z() > z2)
-            return false;
+    //     if(tmp_pos.Z() > z2)
+    //         return false;
 
-        return true;
-    }
+    //     return true;
+    // }
 
     bool isInside(const Vector3D & pos) const
     {
@@ -560,11 +560,6 @@ class CGridCylindrical : public CGridBasic
             return false;
 
         return true;
-    }
-
-    bool isInside(const photon_package & pp, Vector3D & pos) const
-    {
-        return isInside(pos, *pp.getPositionCell());
     }
 
     void setRndPositionInCell(photon_package * pp)

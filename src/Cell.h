@@ -272,7 +272,7 @@ class cell_vo : public cell_basic
         volume = v;
     };
 
-    Vector3D getCenter()
+    Vector3D getCenter() const
     {
         return center;
     };

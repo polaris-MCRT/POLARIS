@@ -106,7 +106,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
 {
     if(cell->getChildren() == 0)
     {
-        Vector3D c = getCenter(cell);
+        Vector3D c = getCenter(*cell);
         float x = float(c.X());
         float y = float(c.Y());
         float z = float(c.Z());
@@ -1359,7 +1359,7 @@ bool CGridOcTree::createArtificialGrid(string path)
 
 void CGridOcTree::createNextLevel(cell_oc * cell)
 {
-    Vector3D p = getCenter(cell);
+    Vector3D p = getCenter(*cell);
     double r = p.length();
     uint tmp_level = uint(max_level);
 
@@ -2185,7 +2185,7 @@ bool CGridOcTree::createTree(cell_oc * parent,
     if(parent->getLevel() == max_level)
     {
         treelevel_counter++;
-        Vector3D center = getCenter((cell_basic *)parent);
+        Vector3D center = getCenter((const cell_basic &)parent);
 
         px = center.X();
         py = center.Y();

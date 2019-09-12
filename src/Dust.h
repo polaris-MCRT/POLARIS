@@ -2697,7 +2697,7 @@ class CDustMixture
         return scattering_to_raytracing;
     }
 
-    dlist getWavelengthList()
+    const dlist & getWavelengthList() const
     {
         return wavelength_list;
     }

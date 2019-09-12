@@ -718,8 +718,8 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         if(line_counter % maxGridLines == 0)
             addGNULines(i, tetra_lines);
 
-        cell_vo * tmp_cell_pos = (cell_vo *)cell_list[i];
-        Vector3D c = getCenter(tmp_cell_pos);
+        const cell_vo * tmp_cell_pos = (const cell_vo *)cell_list[i];
+        Vector3D c = getCenter(*tmp_cell_pos);
 
         line_counter++;
 
