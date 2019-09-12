@@ -556,7 +556,7 @@ class GGTauDisk(Model):
                     # r_list_planet = self.math.exp_list(260. * self.math.const['au'],
                     #                                    241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk, r_list_planet[::-1])).ravel()
+                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel() # r_list_planet[::-1]
                     # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     # Phi cells
