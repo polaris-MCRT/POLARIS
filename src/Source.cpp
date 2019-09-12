@@ -1122,7 +1122,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));
 
-    // Init coordinate System for scattering
+    // // Init coordinate System for polarization
     pp->initCoordSystem();
 }
 
@@ -1203,6 +1203,9 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
         // Invert direction
         pp->setDirection(-1 * pp->getDirection());
     }
+
+    // // Init coordinate System for polarization
+    pp->initCoordSystem();
 }
 
 bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
