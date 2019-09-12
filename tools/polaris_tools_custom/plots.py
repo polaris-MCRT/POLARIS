@@ -2519,7 +2519,7 @@ class CustomPlots:
         """Plot optical depth slice.
         """
         # Simulation parameter (model 1, 2, or 3)
-        model = 6
+        model = 3
         detector_index = model * 100
         vmax = 100
         vmin = 1e-1
