@@ -564,7 +564,7 @@ class GGTauDisk(Model):
                     n_ph_list_2 = [180] * 101
                     #n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
-                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
+                        (n_ph_list_1, n_ph_list_2)).ravel() # n_ph_list_3
                     # Outer cutoff for tapered disk
                     self.cutoff_pos[1] = 240. * self.math.const['au']
                     self.cutoff_rate[1] = 5. * self.math.const['au']
