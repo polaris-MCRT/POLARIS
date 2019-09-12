@@ -155,6 +155,9 @@ class CRadiativeTransfer
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
     // Set temperature (old!)
     bool setTemperatureDistribution();
+    
+    // Set temperature from dust inner energy
+    bool setTemperatureFromU();
 
     // Dust scattered light
     bool calcPolMapsViaMC();

@@ -2971,12 +2971,27 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     tend = 200;
     dt = 100;
     
+    // Init arrays for emission, absorption and inner energy
+    ulong max_cells = grid->getMaxDataCells();
+    dlist dust_abs(max_cells);
+    dlist dust_em(max_cells);
+    dlist dust_u(max_cells);
+    
+    //Number of photons per timestep
+    uint nr_of_photons_step = 5e+0;
+    
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
     {
-        cout << "\nTest" << endl;
+        // Number of photons emittet from dust or source
+        ullong N_d = 0;
+        ullong N_s = 0;
+        
         // Calc temperatures and emission rate
-    
+        // temp_calc_U(g, d, 0)
+        if (!setTemperatureFromU())
+            return false;
+        
         // Set stack for energy to estimate absorption rate
     
         // Calc emission probabilites for dust and or sources from luminosities
@@ -3004,4 +3019,34 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         // Move to next timestept and or set new luminosities
     }
     
+}
+
+bool CRadiativeTransfer::setTemperatureFromU()
+{
+    // Get Temperature from the the dust mix
+    // Tbd: add more than one dust mix
+    
+    ulong max_cells = grid->getMaxDataCells();
+    
+//#pragma omp parallel for schedule(dynamic)
+    for(long c_i = 0; c_i < long(max_cells); c_i++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(c_i);
+        //uint i_mixture = dust->getMixtureID(grid, cell);
+        double ent = dust->getEnthalpy(grid,cell,0,100);
+        
+        cout << "\n" << ent << endl;
+        
+        double temp = 100;
+        
+        //double hd2 = cell energy / cell volume if cell rho > 0
+        
+        // Choose temperature from pretabulated Enthalpy
+        // interpolation if necessary
+        
+        // Set termperature in cell
+        grid->setDustTemperature(cell, temp);
+    }
+    
+    return true;
 }

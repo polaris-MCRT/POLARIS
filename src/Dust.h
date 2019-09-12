@@ -2572,6 +2572,12 @@ class CDustMixture
         }
     }
 
+    double getEnthalpy(CGridBasic * grid, cell_basic * cell, uint a, uint t)
+    {
+        uint i_mixture = getMixtureID(grid, cell);
+        return mixed_component[i_mixture].getEnthalpy(a,t);
+    }
+    
     double getCextMean(CGridBasic * grid, photon_package * pp)
     {
         double sum = 0;

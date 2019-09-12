@@ -189,9 +189,9 @@ using namespace std;
 #define GRIDavg_th 34
 #define GRIDavg_dir 35
 
-#define GRIDdust_erate // dust emission rate
-#define GRIDdust_arate // dust absorption rate
-#define GRIDdust_u     // dust inner energy
+//#define GRIDdust_erate 36 // dust emission rate
+//#define GRIDdust_arate 37 // dust absorption rate
+//#define GRIDdust_u 38     // dust inner energy
 
 #define minGRID GRIDgas_dens
 #define maxGRID GRIDavg_dir
