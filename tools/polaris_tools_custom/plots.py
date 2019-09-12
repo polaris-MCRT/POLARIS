@@ -2519,7 +2519,7 @@ class CustomPlots:
         """Plot optical depth slice.
         """
         # Simulation parameter (model 1, 2, or 3)
-        model = 5
+        model = 6
         detector_index = model * 100
         vmax = 100
         vmin = 1e-1
@@ -2627,6 +2627,10 @@ class CustomPlots:
                 text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\micro\metre}$'
             elif model == 4:
                 text = r'Layered size dist ($a_\text{min}=\SI{5}{\nano\metre},\SI{3}{\micro\metre}$; $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre})$'
+            elif model == 5:
+                text = r'Tappered and layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
+            elif model == 6:
+                text = r'Tappered and layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\milli\metre}$'
             else:
                 raise ValueError('Wrong model number!')
             _plot.plot_text([0.97, 0.97], text, color=color, relative_position=True,

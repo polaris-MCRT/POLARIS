@@ -670,9 +670,9 @@ class Plot:
         else:
             plot_func = self.ax_list[ax_index].plot
 
-        if 'x' in log:
+        if log is not None and 'x' in log:
             self.ax_list[ax_index].set_xscale('log')
-        if 'y' in log:
+        if log is not None and 'y' in log:
             self.ax_list[ax_index].set_yscale('log')
 
         if fill_between and step:
