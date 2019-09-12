@@ -481,10 +481,7 @@ class CGridBasic
         return (data_pos_vt != MAX_UINT);
     }
 
-    virtual Vector3D getCenter(const cell_basic & cell) const
-    {
-        return Vector3D(0, 0, 0);
-    }
+    virtual Vector3D getCenter(const cell_basic & cell) const = 0;
 
     Vector3D getCenter(const photon_package & pp) const
     {
@@ -496,10 +493,7 @@ class CGridBasic
         return data_len;
     }
 
-    virtual double maxLength()
-    {
-        return 0;
-    }
+    virtual double maxLength() = 0;
 
     ulong getMaxDataCells()
     {
@@ -511,12 +505,9 @@ class CGridBasic
         return max_data;
     }
 
-    virtual void printParameters(){};
+    virtual void printParameters() = 0;
 
-    virtual bool goToNextCellBorder(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool goToNextCellBorder(photon_package * pp) = 0;
 
     virtual bool updateShortestDistance(photon_package * pp)
     {
@@ -569,18 +560,11 @@ class CGridBasic
         mfo->sin_2_phi = sin(2.0 * phi);
     }
 
-    virtual bool findStartingPoint(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool findStartingPoint(photon_package * pp) = 0;
 
-    virtual void getLengths(uint bins, double & step_xy, double & off_xy)
-    {}
+    virtual void getLengths(uint bins, double & step_xy, double & off_xy) = 0;
 
-    virtual bool positionPhotonInGrid(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool positionPhotonInGrid(photon_package * pp) = 0;
 
     double getMinLength()
     {
@@ -602,10 +586,7 @@ class CGridBasic
         return false;
     }
 
-    virtual bool createCellList()
-    {
-        return false;
-    }
+    virtual bool createCellList() = 0;
 
     cell_basic * getCellFromIndex(ulong i)
     {
@@ -625,16 +606,7 @@ class CGridBasic
         conv_Vfield_in_SI = param.getSIConvVField();
     }
 
-    // overloaded functions
-    virtual bool findMatchingCell(photon_package * pp)
-    {
-        return false;
-    }
-
-    virtual bool writeGNUPlotFiles(string path, parameters & param)
-    {
-        return false;
-    }
+    virtual bool writeGNUPlotFiles(string path, parameters & param) = 0;
 
     void setDataSize(uint sz)
     {
@@ -683,15 +655,7 @@ class CGridBasic
         setGasDensity(pp->getPositionCell(), i_density, dens);
     }
 
-    virtual bool isInside(photon_package * pp, Vector3D & pos)
-    {
-        return false;
-    }
-
-    virtual bool isInside(const Vector3D & pos)
-    {
-        return false;
-    }
+    virtual bool isInside(const Vector3D & pos) const = 0;
 
     void setSpecLengthAsVector(bool val)
     {
@@ -1080,9 +1044,7 @@ class CGridBasic
         pp->setPosition(Vector3D(0, 0, 0));
     }
 
-    Vector3D rotateToCenter(const photon_package & pp,
-                                    bool inv = false,
-                                    bool phi_only = false) const
+    Vector3D rotateToCenter(const photon_package & pp, bool inv = false, bool phi_only = false) const
     {
         return rotateToCenter(pp, pp.getDirection(), inv, phi_only);
     }
@@ -1457,11 +1419,6 @@ class CGridBasic
     {
         // Gauss_a only has to be set once
         cell->setData(data_offset, gauss_a);
-    }
-
-    virtual double getPathLength(cell_basic * cell)
-    {
-        return 0;
     }
 
     /*void assignOpiateID(cell_basic * cell)
@@ -2091,51 +2048,19 @@ class CGridBasic
         return tmp_str;
     }
 
-    virtual bool saveBinaryGridFile(string filename)
-    {
-        return false;
-    }
+    virtual bool saveBinaryGridFile(string filename) = 0;
 
-    virtual bool saveBinaryGridFile(string filename, ushort id, ushort data_size)
-    {
-        return false;
-    }
+    virtual bool saveBinaryGridFile(string filename, ushort id, ushort data_size) = 0;
 
-    virtual bool loadGridFromBinrayFile(parameters & param)
-    {
-        return false;
-    }
+    virtual bool loadGridFromBinrayFile(parameters & param) = 0;
 
-    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len)
-    {
-        return false;
-    }
+    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len) = 0;
 
     virtual double getVolume(const cell_basic & cell) const = 0;
 
     double getVolume(const photon_package & pp) const
     {
         return getVolume(*pp.getPositionCell());
-    }
-
-    virtual Vector3D getLowerBoundary(cell_basic * cell) const
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getLowerBoundary(photon_package * pp) const
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getUpperBoundary(cell_basic * cell) const
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getUpperBoundary(photon_package * pp) const
-    {
-        return Vector3D(0, 0, 0);
     }
 
     inline double getGasDensity(const cell_basic & cell) const
@@ -2359,12 +2284,6 @@ class CGridBasic
         return Vector3D(cell.getData(data_pos_vx), cell.getData(data_pos_vy), cell.getData(data_pos_vz));
     }
 
-    virtual void setCrossSections(cross_sections & cs)
-    {}
-
-    virtual void setID(uint id)
-    {}
-
     double getCellAbundance(const photon_package & pp, uint id) const
     {
         return getCellAbundance(*pp.getPositionCell(), id);
@@ -2409,10 +2328,7 @@ class CGridBasic
         cell->setData(data_pos_mz, mag.Z());
     }
 
-    virtual bool next(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool next(photon_package * pp) = 0;
 
     double getThetaMag(const photon_package & pp) const
     {
