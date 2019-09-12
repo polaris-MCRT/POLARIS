@@ -201,14 +201,14 @@ class photon_package
         wID[i_spectral] = _wID;
     }
 
-    double getWavelength()const
+    double getWavelength() const
     {
         if(trans_frequency > 0)
             return wavelength[0];
         return wavelength[i_spectral];
     }
 
-    double getFrequency()const
+    double getFrequency() const
     {
         if(trans_frequency > 0)
             return getTransFrequency() + getVelocity() / con_c * getTransFrequency();
@@ -220,12 +220,12 @@ class photon_package
         velocity[i_spectral] = vel;
     }
 
-    double getVelocity()const
+    double getVelocity() const
     {
         return velocity[i_spectral];
     }
 
-    double getTransFrequency()const
+    double getTransFrequency() const
     {
         return trans_frequency;
     }
@@ -426,17 +426,17 @@ class photon_package
         ez = val;
     }
 
-    Vector3D getEX() const
+    const Vector3D & getEX() const
     {
         return ex;
     }
 
-    Vector3D getEY() const
+    const Vector3D & getEY() const
     {
         return ey;
     }
 
-    Vector3D getEZ() const
+    const Vector3D & getEZ() const
     {
         return ez;
     }
@@ -456,18 +456,18 @@ class photon_package
         ez = _e;
     }
 
-    void setCoordinateSystem(Vector3D _ex, Vector3D _ey, Vector3D _ez)
+    void setCoordinateSystem(const Vector3D & _ex, const Vector3D & _ey, const Vector3D & _ez)
     {
         ex = _ex;
         ey = _ey;
         ez = _ez;
     }
 
-    void getCoordinateSystem(Vector3D & _ex, Vector3D & _ey, Vector3D & _ez)
+    void getCoordinateSystem(Vector3D * _ex, Vector3D * _ey, Vector3D * _ez) const
     {
-        _ex = ex;
-        _ey = ey;
-        _ez = ez;
+        *_ex = ex;
+        *_ey = ey;
+        *_ez = ez;
     }
 
     void setTmpPathLength(double val)

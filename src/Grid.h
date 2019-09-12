@@ -1080,6 +1080,13 @@ class CGridBasic
         pp->setPosition(Vector3D(0, 0, 0));
     }
 
+    Vector3D rotateToCenter(const photon_package & pp,
+                                    bool inv = false,
+                                    bool phi_only = false) const
+    {
+        return rotateToCenter(pp, pp.getDirection(), inv, phi_only);
+    }
+
     virtual Vector3D rotateToCenter(const photon_package & pp,
                                     Vector3D dir,
                                     bool inv = false,
