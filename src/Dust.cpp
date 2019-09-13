@@ -3949,9 +3949,10 @@ long double * CDustComponent::getStochasticProbability(uint a, const spline & ab
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid,
-                                              const photon_package & pp,
-                                              uint i_density) const
+void CDustComponent::calcEmissivityHz(CGridBasic * grid,
+                                      const photon_package & pp,
+                                      uint i_density,
+                                      StokesVector * dust_emissivity) const
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
@@ -3970,9 +3971,8 @@ StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid,
     double dens_dust = getNumberDensity(grid, pp, i_density);
 
     // Fill Stokes vector including optical depth
-    StokesVector tmp_stokes(Cabs * pl_hz * dens_dust, 0, 0, 0, Cext * dens_dust);
-
-    return tmp_stokes;
+    dust_emissivity->addI(Cabs * pl_hz * dens_dust);
+    dust_emissivity->addT(Cext * dens_dust);
 }
 
 double CDustComponent::calcEmissivity(CGridBasic * grid, const photon_package & pp, uint i_density) const
@@ -4385,7 +4385,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             double scattered_fraction = getScatteredFraction(a, w, theta_photon_to_obs);
 
             // Get the Stokes vector of the current photon package
-            StokesVector tmp_stokes = pp->getStokesVector();
+            StokesVector tmp_stokes = *pp->getStokesVector();
 
             // Reduce the photon package Stokes vector by albedo and scattering fraction
             tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
@@ -4415,7 +4415,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
-    StokesVector tmp_stokes = pp->getStokesVector();
+    StokesVector tmp_stokes = *pp->getStokesVector();
 
     // Set the photon package at the position of the current photon
     pp_escape->setPosition(pp->getPosition());
@@ -4582,7 +4582,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
     if(adjust_stokes)
     {
-        StokesVector tmp_stokes = pp->getStokesVector();
+        StokesVector tmp_stokes = *pp->getStokesVector();
         if(getCextMean(a, w) > 0)
         {
             double theta_fraction = getScatteredFraction(w, a, theta);
@@ -4612,7 +4612,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     uint thID = getScatThetaID(theta);
 
     // Get Stokes vector from photon package
-    StokesVector tmp_stokes = pp->getStokesVector();
+    StokesVector tmp_stokes = *pp->getStokesVector();
 
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);

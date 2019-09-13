@@ -807,6 +807,13 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
                                  StokesVector * line_emissivity,
                                  Matrix2D * line_absorption_matrix) const
 {
+    // Reset absorption matrix and emissivity
+    if(line_absorption_matrix->get_m() != 4 || line_absorption_matrix->get_n() != 4)
+        line_absorption_matrix->resize(4, 4);
+    else
+        line_absorption_matrix->fill(0);
+    *line_emissivity = 0;
+
     if(isTransZeemanSplit(i_trans))
     {
         // Calculate the line matrix from rotation polarization matrix and line shape

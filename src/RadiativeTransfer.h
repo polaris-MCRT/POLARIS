@@ -228,7 +228,7 @@ class CRadiativeTransfer
 
     void updateRadiationField(photon_package * pp)
     {
-        double energy = pp->getTmpPathLength() * pp->getStokesVector().I();
+        double energy = pp->getTmpPathLength() * pp->getStokesVector()->I();
 
         if(stokes_dust_rad_field)
         {
@@ -317,11 +317,11 @@ class CRadiativeTransfer
     void calcStepWidth(StokesVector & stokes_new,
                        StokesVector & stokes_new2,
                        double cell_d_l,
-                       double & epsi,
-                       double & dz_new)
+                       double * epsi,
+                       double * dz_new)
     {
-        epsi = 2.0;
-        dz_new = 0.9 * cell_d_l;
+        *epsi = 2.0;
+        *dz_new = 0.9 * cell_d_l;
         if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
         {
             double epsi_I =
@@ -341,8 +341,8 @@ class CRadiativeTransfer
             double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
             double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
 
-            epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
-            dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
+            *epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
+            *dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
         }
     }
 

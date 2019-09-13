@@ -170,12 +170,12 @@ class StokesVector
         return *this;
     }
 
-    StokesVector operator+(const StokesVector & ex)
+    StokesVector operator+(const StokesVector & ex) const
     {
         return StokesVector(sI + ex.I(), sQ + ex.Q(), sU + ex.U(), sV + ex.V(), sT + ex.T(), sSp + ex.Sp());
     }
 
-    StokesVector operator-(const StokesVector & ex)
+    StokesVector operator-(const StokesVector & ex) const
     {
         return StokesVector(sI - ex.I(), sQ - ex.Q(), sU - ex.U(), sV - ex.V(), sT - ex.T(), sSp - ex.Sp());
     }

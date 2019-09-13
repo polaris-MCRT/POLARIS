@@ -770,7 +770,7 @@ class CRaytracingCartesian : public CRaytracingBasic
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getStokesVector(i_spectral).multS(getMinArea());
+                pp->getStokesVector(i_spectral)->multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(*pp, spectral_offset);
@@ -1150,7 +1150,7 @@ class CRaytracingHealPix : public CRaytracingBasic
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getStokesVector(i_spectral).multS(getMinArea());
+                pp->getStokesVector(i_spectral)->multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(*pp, i_pix, spectral_offset);
@@ -1653,7 +1653,7 @@ class CRaytracingPolar : public CRaytracingBasic
                 // Set wavelength of photon package
                 pp->setSpectralID(i_spectral + spectral_offset);
 
-                StokesVector st = pp->getStokesVector(i_spectral);
+                StokesVector st = *pp->getStokesVector(i_spectral);
                 tmpStokes[i_spectral + spectral_offset][rID][phID] = st;
 
                 // Add photon Stokes vector SED detector
@@ -2109,7 +2109,7 @@ class CRaytracingSlice : public CRaytracingBasic
 
             // Multiply by min area if such a multiplication did not happen before
             if(!direct)
-                pp->getStokesVector(i_spectral).multS(getMinArea());
+                pp->getStokesVector(i_spectral)->multS(getMinArea());
 
             // Add photon Stokes vector to detector
             detector->addToRaytracingDetector(*pp, spectral_offset);

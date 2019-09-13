@@ -2521,7 +2521,7 @@ class CustomPlots:
         # Simulation parameter (model 1, 2, or 3)
         model = 3
         detector_index = model * 100
-        vmax = 100
+        vmax = 35
         vmin = 1e-1
         limits = [-270, -160, -130, -20]
         i_quantity = 6  # Optical depth
@@ -2624,7 +2624,7 @@ class CustomPlots:
             elif model == 2:
                 text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
             elif model == 3:
-                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\micro\metre}$'
+                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\milli\metre}$'
             elif model == 4:
                 text = r'Layered size dist ($a_\text{min}=\SI{5}{\nano\metre},\SI{3}{\micro\metre}$; $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre})$'
             elif model == 5:

@@ -1125,10 +1125,10 @@ class CDustComponent
 
                 if(adjust_stokes > 0)
                 {
-                    StokesVector S = pp->getStokesVector();
+                    StokesVector * S = pp->getStokesVector();
                     double albedo = getCscaMean(grid, *pp) / getCextMean(grid, *pp);
-                    S *= albedo / PIx4;
-                    pp->setStokesVector(S);
+                    *S *= albedo / PIx4;
+                    pp->setStokesVector(*S);
                 }
                 return;
         }
@@ -1957,7 +1957,7 @@ class CDustComponent
     {
         // Get wavelength of photon package
         uint w = pp->getDustWavelengthID();
-        pp->getStokesVector() *= wavelength_diff[w] / wavelength_diff[wnew];
+        *pp->getStokesVector() *= wavelength_diff[w] / wavelength_diff[wnew];
     }
 
     double getEffectiveRadius(uint a) const
@@ -2192,7 +2192,10 @@ class CDustComponent
                            cross_sections & cs) const;
     double calcGoldReductionFactor(const Vector3D & v, const Vector3D & B) const;
 
-    StokesVector calcEmissivityHz(CGridBasic * grid, const photon_package & pp, uint i_density) const;
+    void calcEmissivityHz(CGridBasic * grid,
+                          const photon_package & pp,
+                          uint i_density,
+                          StokesVector * dust_emissivity) const;
     double calcEmissivity(CGridBasic * grid, const photon_package & pp, uint i_density) const;
     StokesVector calcEmissivityEmi(CGridBasic * grid,
                                    const photon_package & pp,
@@ -2948,25 +2951,24 @@ class CDustMixture
         return sum;
     }
 
-    StokesVector calcEmissivityHz(CGridBasic * grid, const photon_package & pp)
+    void calcEmissivityHz(CGridBasic * grid, const photon_package & pp, StokesVector * dust_emissivity)
     {
-        // Init Stokes vector
-        StokesVector tmp_stokes;
-
         if(mixed_component != 0)
         {
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes = mixed_component[i_mixture].calcEmissivityHz(grid, pp, 0);
+                mixed_component[i_mixture].calcEmissivityHz(grid, pp, 0, dust_emissivity);
             }
             else
+            {
+                *dust_emissivity = 0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivityHz(grid, pp, i_mixture);
+                    mixed_component[i_mixture].calcEmissivityHz(grid, pp, i_mixture, dust_emissivity);
                 }
+            }
         }
-        return tmp_stokes;
     }
 
     double calcEmissivity(CGridBasic * grid, const photon_package & pp)
@@ -2989,74 +2991,75 @@ class CDustMixture
         return pl_abs;
     }
 
-    Matrix2D calcEmissivityExt(CGridBasic * grid, const photon_package & pp) const
+    void calcEmissivityExt(CGridBasic * grid, const photon_package & pp, Matrix2D * dust_ext_matrix) const
     {
         // Init variables
         double Cext = 0, Cpol = 0, Ccirc = 0;
-
-        // Calculate orientation of the Stokes vector in relation to the magnetic field
-        double phi = grid->getPhiMag(pp);
-        double sin_2ph = sin(2.0 * phi);
-        double cos_2ph = cos(2.0 * phi);
 
         if(mixed_component != 0)
         {
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
+                double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp);
                 mixed_component[i_mixture].calcExtCrossSections(grid, pp, 0, &Cext, &Cpol, &Ccirc);
-                double dens_dust = getNumberDensity(grid, pp);
-                Cext *= dens_dust;
-                Cpol *= dens_dust;
-                Ccirc *= dens_dust;
+                Cext *= -dens_dust;
+                Cpol *= -dens_dust;
+                Ccirc *= -dens_dust;
             }
             else
             {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     double tmpCext, tmpCpol, tmpCcirc;
-                    double dens_dust = getNumberDensity(grid, pp, i_mixture);
+                    double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp, i_mixture);
                     mixed_component[i_mixture].calcExtCrossSections(
                         grid, pp, i_mixture, &tmpCext, &tmpCpol, &tmpCcirc);
-                    Cext += tmpCext * dens_dust;
-                    Cpol += tmpCpol * dens_dust;
-                    Ccirc += tmpCcirc * dens_dust;
+                    Cext -= tmpCext * dens_dust;
+                    Cpol -= tmpCpol * dens_dust;
+                    Ccirc -= tmpCcirc * dens_dust;
                 }
             }
         }
 
-        // Create extinction matrix for the dust grains
-        Matrix2D dust_matrix(4, 4);
+        // Calculate orientation of the Stokes vector in relation to the magnetic field
+        double phi = grid->getPhiMag(pp);
+        double sin_2ph = sin(2.0 * phi);
+        double cos_2ph = cos(2.0 * phi);
 
-        dust_matrix.setValue(0, 0, Cext);
-        dust_matrix.setValue(1, 1, Cext);
-        dust_matrix.setValue(2, 2, Cext);
-        dust_matrix.setValue(3, 3, Cext);
+        // Reset matrix
+        if(dust_ext_matrix->get_m() != 4 || dust_ext_matrix->get_n() != 4)
+            dust_ext_matrix->resize(4, 4);
+        else
+            dust_ext_matrix->fill(0);
 
-        dust_matrix.setValue(0, 1, Cpol * cos_2ph);
-        dust_matrix.setValue(0, 2, Cpol * sin_2ph);
+        dust_ext_matrix->setValue(0, 0, Cext);
+        dust_ext_matrix->setValue(1, 1, Cext);
+        dust_ext_matrix->setValue(2, 2, Cext);
+        dust_ext_matrix->setValue(3, 3, Cext);
 
-        dust_matrix.setValue(1, 0, Cpol * cos_2ph);
-        dust_matrix.setValue(2, 0, Cpol * sin_2ph);
+        dust_ext_matrix->setValue(0, 1, Cpol * cos_2ph);
+        dust_ext_matrix->setValue(0, 2, Cpol * sin_2ph);
 
-        dust_matrix.setValue(1, 3, Ccirc * sin_2ph);
-        dust_matrix.setValue(2, 3, -Ccirc * cos_2ph);
+        dust_ext_matrix->setValue(1, 0, Cpol * cos_2ph);
+        dust_ext_matrix->setValue(2, 0, Cpol * sin_2ph);
 
-        dust_matrix.setValue(3, 1, -Ccirc * sin_2ph);
-        dust_matrix.setValue(3, 2, Ccirc * cos_2ph);
+        dust_ext_matrix->setValue(1, 3, Ccirc * sin_2ph);
+        dust_ext_matrix->setValue(2, 3, -Ccirc * cos_2ph);
 
-        return dust_matrix;
+        dust_ext_matrix->setValue(3, 1, -Ccirc * sin_2ph);
+        dust_ext_matrix->setValue(3, 2, Ccirc * cos_2ph);
     }
 
-    StokesVector calcEmissivityEmi(CGridBasic * grid,
-                                   const photon_package & pp,
-                                   uint i_offset = MAX_UINT) const
+    void calcEmissivityEmi(CGridBasic * grid,
+                           const photon_package & pp,
+                           uint i_offset,
+                           StokesVector * dust_emissivity) const
     {
         // Init variables
         double energy = 0;
         double phi = grid->getPhiMag(pp);
         Vector3D en_dir;
-        StokesVector tmp_stokes;
 
         // Check if radiation field is available and scattering should be included
         if(scattering_to_raytracing)
@@ -3070,7 +3073,7 @@ class CDustMixture
             else if(i_offset != MAX_UINT)
             {
                 // Use the rad field as stokes vector if all necessary things were already calculated
-                tmp_stokes += grid->getStokesFromRadiationField(pp, i_offset);
+                *dust_emissivity += grid->getStokesFromRadiationField(pp, i_offset);
             }
             else
                 grid->getRadiationField(pp, w, energy, en_dir);
@@ -3081,14 +3084,14 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
+                *dust_emissivity +=
+                    mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    tmp_stokes += mixed_component[i_mixture].calcEmissivityEmi(
+                    *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
                         grid, pp, i_mixture, phi, energy, en_dir);
         }
-        return tmp_stokes;
     }
 
     StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
@@ -3306,7 +3309,7 @@ class CDustMixture
             }
 
             // Reduce the Stokes vector by the optical depth
-            pp_escape->getStokesVector() *= exp(-tau_obs);
+            *pp_escape->getStokesVector() *= exp(-tau_obs);
         }
     }
 
