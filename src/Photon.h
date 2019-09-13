@@ -95,7 +95,6 @@ class photon_package
     photon_package & operator=(photon_package * rhs)
     {
         nr_of_spectral_bins = rhs->getNrOfSpectralBins();
-        cout << "Photon move" << endl;
 
         if(multi_stokes != 0)
             delete[] multi_stokes;
@@ -164,7 +163,7 @@ class photon_package
             multi_stokes[i] = st;
     }
 
-    StokesVector & getStokesVector(uint i = MAX_UINT)
+    StokesVector & getStokesVector(uint i = MAX_UINT) const
     {
         if(i == MAX_UINT)
             return multi_stokes[i_spectral];
@@ -179,7 +178,7 @@ class photon_package
             i_spectral = i;
     }
 
-    uint getSpectralID()
+    uint getSpectralID() const
     {
         return i_spectral;
     }
@@ -189,7 +188,7 @@ class photon_package
         return nr_of_spectral_bins;
     }
 
-    uint getDustWavelengthID()
+    uint getDustWavelengthID() const
     {
         if(trans_frequency > 0)
             return wID[0];
@@ -202,14 +201,14 @@ class photon_package
         wID[i_spectral] = _wID;
     }
 
-    double getWavelength()
+    double getWavelength() const
     {
         if(trans_frequency > 0)
             return wavelength[0];
         return wavelength[i_spectral];
     }
 
-    double getFrequency()
+    double getFrequency() const
     {
         if(trans_frequency > 0)
             return getTransFrequency() + getVelocity() / con_c * getTransFrequency();
@@ -221,12 +220,12 @@ class photon_package
         velocity[i_spectral] = vel;
     }
 
-    double getVelocity()
+    double getVelocity() const
     {
         return velocity[i_spectral];
     }
 
-    double getTransFrequency()
+    double getTransFrequency() const
     {
         return trans_frequency;
     }
@@ -269,37 +268,42 @@ class photon_package
         rand_gen.setSeed(seed);
     }
 
-    void setD(Matrix2D & _mD)
+    void setD(Matrix2D _mD)
     {
         mD = _mD;
     }
 
-    Matrix2D & getD()
+    const Matrix2D & getD() const
     {
         return mD;
     }
 
-    Vector3D & getPosition()
+    const Vector3D & getPosition() const
     {
         return pos;
     }
 
-    Vector3D & getDirection()
+    const Vector3D & getDirection() const
     {
         return ez;
     }
 
-    double const getRND()
+    double getRND()
     {
         return rand_gen.getValue();
     }
 
-    double & getTmpPathLength()
+    double getTmpPathLength() const
     {
         return tmp_path;
     }
 
     cell_basic * getPositionCell()
+    {
+        return cell_pos;
+    }
+
+    const cell_basic * getPositionCell() const
     {
         return cell_pos;
     }
@@ -422,17 +426,17 @@ class photon_package
         ez = val;
     }
 
-    Vector3D getEX()
+    const Vector3D & getEX() const
     {
         return ex;
     }
 
-    Vector3D getEY()
+    const Vector3D & getEY() const
     {
         return ey;
     }
 
-    Vector3D getEZ()
+    const Vector3D & getEZ() const
     {
         return ez;
     }
@@ -452,18 +456,18 @@ class photon_package
         ez = _e;
     }
 
-    void setCoordinateSystem(Vector3D _ex, Vector3D _ey, Vector3D _ez)
+    void setCoordinateSystem(const Vector3D & _ex, const Vector3D & _ey, const Vector3D & _ez)
     {
         ex = _ex;
         ey = _ey;
         ez = _ez;
     }
 
-    void getCoordinateSystem(Vector3D & _ex, Vector3D & _ey, Vector3D & _ez)
+    void getCoordinateSystem(Vector3D * _ex, Vector3D * _ey, Vector3D * _ez) const
     {
-        _ex = ex;
-        _ey = ey;
-        _ez = ez;
+        *_ex = ex;
+        *_ey = ey;
+        *_ez = ez;
     }
 
     void setTmpPathLength(double val)

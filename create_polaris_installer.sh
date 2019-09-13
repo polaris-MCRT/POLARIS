@@ -5,39 +5,32 @@ function missing_file () {
     exit
 }
 
-for files in 'autogen.sh' \
-                'CCfits.tar.gz' \
-                'cfitsio.tar.gz' \
-                'examples.tar.xz' \
-                'configure.ac' \
-                'AUTHORS' \
-                'COPYING' \
-                'ChangeLog' \
-                'INSTALL' \
-                'README' \
-                'Makefile.am' \
-                'NEWS' \
-                'manual.pdf' \
-                'install_polaris.sh' \
-                'src/Makefile.am' \
-                'tools/configure.ac' \
-                'tools/Makefile.am' \
-                'tools/COPYING' \
-                'tools/AUTHORS' \
-                'tools/INSTALL' \
-                'tools/README' \
-                'tools/ChangeLog' \
-                'tools/NEWS' \
-                'tools/autogen.sh' \
-                'tools/src/Makefile.am' \
-                'tools/src/polaris-run.in' \
-                'tools/src/polaris-plot.in' \
-                'tools/src/polaris-gen.in' \
-                'tools/src/polaris-remote.in' \
-                'tools/src/polaris-extra.in' \
-                'tools/src/polaris-test.in' \
-                'tools/src/modules/Makefile.am' \
-                'tools/src/custom/Makefile.am'
+rm -rv /tmp/polaris
+
+for files in 'lib/CCfits.tar.gz' \
+            'lib/cfitsio.tar.gz' \
+            'examples.tar.xz' \
+            'AUTHORS' \
+            'COPYING' \
+            'ChangeLog' \
+            'INSTALL' \
+            'README' \
+            'NEWS' \
+            'manual.pdf' \
+            'install_polaris.sh' \
+            'src/CMakeLists.txt' \
+            'bin/polaris' \
+            'tools/COPYING' \
+            'tools/AUTHORS' \
+            'tools/README' \
+            'tools/setup.py' \
+            'tools/polaris-run.in' \
+            'tools/polaris-plot.in' \
+            'tools/polaris-gen.in' \
+            'tools/polaris-remote.in' \
+            'tools/polaris-extra.in' \
+            'tools/polaris-test.in'
+
 do
     if [ ! -f $files ]
     then
@@ -48,17 +41,14 @@ done
 mkdir /tmp/polaris
 
 cp -rv --parents \
-    autogen.sh \
-    CCfits.tar.gz \
-    cfitsio.tar.gz \
+    lib/CCfits.tar.gz \
+    lib/cfitsio.tar.gz \
     examples.tar.xz \
-    configure.ac \
     AUTHORS \
     COPYING \
     ChangeLog \
     INSTALL \
     README \
-    Makefile.am \
     NEWS \
     manual.pdf \
     install_polaris.sh \
@@ -73,30 +63,26 @@ cp -rv --parents \
     src/*.h \
     src/*.hh \
     src/*.cc \
-    src/Makefile.am \
-    tools/configure.ac \
-    tools/Makefile.am \
+    src/CMakeLists.txt \
+    bin/polaris \
     tools/COPYING \
     tools/AUTHORS \
-    tools/INSTALL \
     tools/README \
     tools/ChangeLog \
-    tools/NEWS \
-    tools/autogen.sh \
-    tools/src/Makefile.am \
-    tools/src/polaris-run.in \
-    tools/src/polaris-plot.in \
-    tools/src/polaris-gen.in \
-    tools/src/polaris-remote.in \
-    tools/src/polaris-extra.in \
-    tools/src/polaris-test.in \
-    tools/src/modules/*.py \
-    tools/src/modules/Makefile.am \
-    tools/src/custom/*.py.empty \
-    tools/src/custom/Makefile.am \
+    tools/setup.py \
+    tools/polaris-run.in \
+    tools/polaris-plot.in \
+    tools/polaris-gen.in \
+    tools/polaris-remote.in \
+    tools/polaris-extra.in \
+    tools/polaris-test.in \
+    tools/polaris_tools_modules/__init__.py \
+    tools/polaris_tools_modules/*.py \
+    tools/polaris_tools_custom/__init__.py \
+    tools/polaris_tools_custom/*.py.empty \
     /tmp/polaris/
     
-for f in /tmp/polaris/tools/src/custom/*py.empty; do 
+for f in /tmp/polaris/tools/polaris_tools_custom/*py.empty; do 
     mv -- "$f" "${f%.py.empty}.py"
 done
 

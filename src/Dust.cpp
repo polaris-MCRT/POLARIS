@@ -2986,14 +2986,14 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
     return true;
 }
 
-uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section)
+uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section) const
 {
     // Get wavelength index from photon package
     uint w = pp->getDustWavelengthID();
 
     // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, pp);
-    double a_max = getSizeMax(grid, pp);
+    double a_min = getSizeMin(grid, *pp);
+    double a_max = getSizeMax(grid, *pp);
 
     // If only one grain size is used -> return this size (interpolation instead?)
     if(a_min == a_max)
@@ -3057,7 +3057,7 @@ uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, 
     return a;
 }
 
-void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, double theta)
+void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, double theta) const
 {
     // Init variables
     double sCext, dCext, sCsca, dCsca, sCabs, dCabs, sCcirc;
@@ -3092,14 +3092,14 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
 }
 
 void CDustComponent::calcCrossSections(CGridBasic * grid,
-                                       photon_package * pp,
+                                       const photon_package & pp,
                                        uint i_density,
                                        uint a,
                                        double mag_field_theta,
-                                       cross_sections & cs)
+                                       cross_sections & cs) const
 {
     // Get wavelength index
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     // For random alignment use average cross-sections
     if(!is_align || alignment == ALIG_RND)
@@ -3239,7 +3239,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
                                      double min_gas_density,
                                      bool use_gas_temp)
 {
-    if(grid->getGasNumberDensity(cell) < min_gas_density)
+    if(grid->getGasNumberDensity(*cell) < min_gas_density)
         return;
 
     // Set use dust offset later
@@ -3250,11 +3250,11 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
     double * rel_weight = 0;
 
     // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
+    double a_min = getSizeMin(grid, *cell);
+    double a_max = getSizeMax(grid, *cell);
 
     // Get local size parameter for size distribution
-    double size_param = getSizeParam(grid, cell);
+    double size_param = getSizeParam(grid, *cell);
 
     if(grid->getTemperatureFieldInformation() != TEMP_FULL)
     {
@@ -3265,9 +3265,9 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
     // Get temperature from grid as offset (assuming only ONE dust/gas temperature in
     // input grid)
     if(use_gas_temp)
-        temp_offset = grid->getGasTemperature(cell);
+        temp_offset = grid->getGasTemperature(*cell);
     else
-        temp_offset = grid->getDustTemperature(cell);
+        temp_offset = grid->getDustTemperature(*cell);
 
     // Check if temp_offset is larger zero
     if(temp_offset <= 0)
@@ -3336,7 +3336,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
     uint a = getInteractingDust(grid, pp);
 
     // Get dust temperature of the emitting grains in current cell
-    t_dust_new = updateDustTemperature(grid, pp, i_density, a, use_energy_density);
+    t_dust_new = updateDustTemperature(grid, *pp, i_density, a, use_energy_density);
 
     // If new dust grain temperature is larger zero -> start reemission
     if(t_dust_new > 0)
@@ -3362,7 +3362,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
 }
 
 double CDustComponent::updateDustTemperature(CGridBasic * grid,
-                                             photon_package * pp,
+                                             const photon_package & pp,
                                              uint i_density,
                                              uint a,
                                              bool use_energy_density)
@@ -3405,15 +3405,15 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
                                      bool use_energy_density)
 {
     // Calculate the temperature only for cells with a density not zero
-    if(getNumberDensity(grid, cell, i_density) == 0)
+    if(getNumberDensity(grid, *cell, i_density) == 0)
         return;
 
     // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
+    double a_min = getSizeMin(grid, *cell);
+    double a_max = getSizeMax(grid, *cell);
 
     // Get local size parameter for size distribution
-    double size_param = getSizeParam(grid, cell);
+    double size_param = getSizeParam(grid, *cell);
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
@@ -3436,7 +3436,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
                 // Get radiation field and calculate absorbed energy for each wavelength
                 for(uint w = 0; w < WL_STEPS; w++)
                 {
-                    double abs_rate_wl_tmp = grid->getRadiationField(cell, w) * getCabsMean(a, w);
+                    double abs_rate_wl_tmp = grid->getRadiationField(*cell, w) * getCabsMean(a, w);
                     abs_rate_per_wl.setValue(w, wavelength_list[w], abs_rate_wl_tmp);
                 }
 
@@ -3462,17 +3462,17 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             else
             {
                 // Get absorpion rate from grid
-                abs_rate[a] = getAbsRate(grid, cell, a, use_energy_density);
+                abs_rate[a] = getAbsRate(grid, *cell, a, use_energy_density);
             }
 
             // Add offset on absorption rate
             if(dust_offset)
             {
                 if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-                    abs_rate[a] += grid->getQBOffset(cell, i_density, a);
+                    abs_rate[a] += grid->getQBOffset(*cell, i_density, a);
                 else if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
                         grid->getTemperatureFieldInformation() == TEMP_SINGLE)
-                    abs_rate[a] += grid->getQBOffset(cell, i_density);
+                    abs_rate[a] += grid->getQBOffset(*cell, i_density);
             }
 
             // Calculate temperature from absorption rate
@@ -3557,18 +3557,18 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
 {
     // Calculate the aligned radii only for cells with a density not zero
-    if(getNumberDensity(grid, cell, i_density) == 0)
+    if(getNumberDensity(grid, *cell, i_density) == 0)
     {
         grid->setAlignedRadius(cell, i_density, a_eff[nr_of_dust_species - 1]);
         return;
     }
 
     // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
+    double a_min = getSizeMin(grid, *cell);
+    double a_max = getSizeMax(grid, *cell);
 
     // default value of the alignment radius
-    double a_alig = getSizeMax(grid, cell);
+    double a_alig = getSizeMax(grid, *cell);
     double th = 0;
     double dir = 0;
 
@@ -3579,9 +3579,9 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     double alpha_1 = 1; // getDeltaRat();
 
     // Get grid values
-    double T_gas = grid->getGasTemperature(cell);
-    double n_g = grid->getGasNumberDensity(cell);
-    double vol = grid->getVolume(cell);
+    double T_gas = grid->getGasTemperature(*cell);
+    double n_g = grid->getGasNumberDensity(*cell);
+    double vol = grid->getVolume(*cell);
 
     // Get average molecular weight
     double mu = grid->getMu();
@@ -3601,9 +3601,9 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             if(grid->getTemperatureFieldInformation() == TEMP_FULL ||
                (grid->getTemperatureFieldInformation() == TEMP_STOCH &&
                 a_eff[a] <= getStochasticHeatingMaxSize()))
-                T_dust = grid->getDustTemperature(cell, i_density, a);
+                T_dust = grid->getDustTemperature(*cell, i_density, a);
             else
-                T_dust = grid->getDustTemperature(cell, i_density);
+                T_dust = grid->getDustTemperature(*cell, i_density);
 
             // Minor and major axis
             double a_minor = a_eff[a] * pow(s, 2. / 3.);
@@ -3631,7 +3631,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double arr_en_dens = 0;
 
                 // Get radiation field (4 * PI * vol * J)
-                grid->getSpecLength(cell, w, arr_en_dens, en_dir);
+                grid->getSpecLength(*cell, w, arr_en_dens, en_dir);
 
                 // If the radiation field is zero -> set arrays to zero and move on
                 if(arr_en_dens == 0)
@@ -3644,7 +3644,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 }
 
                 // Get angle between magnetic field and radiation field
-                double theta = grid->getTheta(cell, en_dir);
+                double theta = grid->getTheta(*cell, en_dir);
 
                 // Anisotropy parameter
                 double gamma = en_dir.length() / arr_en_dens;
@@ -3739,7 +3739,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
         max_a_alig = a_alig;
 }
 
-double CDustComponent::calcGoldReductionFactor(Vector3D & v, Vector3D & B)
+double CDustComponent::calcGoldReductionFactor(const Vector3D & v, const Vector3D & B) const
 {
     // Init variables
     double s;
@@ -3800,13 +3800,13 @@ double CDustComponent::calcGoldReductionFactor(Vector3D & v, Vector3D & B)
 void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid,
                                                         cell_basic * cell,
                                                         uint i_density,
-                                                        dlist & wavelength_list_full)
+                                                        dlist & wavelength_list_full) const
 {
     // Get local min and max grain sizes
-    double a_min = getSizeMin(grid, cell);
-    double a_max = getSizeMax(grid, cell);
+    double a_min = getSizeMin(grid, *cell);
+    double a_max = getSizeMax(grid, *cell);
 
-    if(getNumberDensity(grid, cell, i_density) == 0)
+    if(getNumberDensity(grid, *cell, i_density) == 0)
     {
         // If density is zero, set propability to 1 for lowest temperature
         for(uint a = 0; a < nr_of_dust_species; a++)
@@ -3827,7 +3827,7 @@ void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid,
             // Get radiation field and calculate absorbed energy for each wavelength
             for(uint w = 0; w < WL_STEPS; w++)
                 abs_rate_per_wl.setValue(
-                    w, wavelength_list_full[w], grid->getRadiationField(cell, w) * getCabsMean(a, w));
+                    w, wavelength_list_full[w], grid->getRadiationField(*cell, w) * getCabsMean(a, w));
 
             // Activate spline of absorbed energy for each wavelength
             abs_rate_per_wl.createSpline();
@@ -3845,7 +3845,7 @@ void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid,
     }
 }
 
-double CDustComponent::getCalorimetryA(uint a, uint f, uint i, spline & abs_rate_per_wl)
+double CDustComponent::getCalorimetryA(uint a, uint f, uint i, const spline & abs_rate_per_wl) const
 {
     // Calculation of A from Eq. (23) in Camps et al. (2015)
 
@@ -3885,7 +3885,7 @@ double CDustComponent::getCalorimetryA(uint a, uint f, uint i, spline & abs_rate
     return max(double(0), res);
 }
 
-long double * CDustComponent::getStochasticProbability(uint a, spline & abs_rate_per_wl)
+long double * CDustComponent::getStochasticProbability(uint a, const spline & abs_rate_per_wl) const
 {
     // Calculate the propability of a dust grain to have a certain temperature
     // See Sect. 4.3. in Camps et al. (2015)
@@ -3949,14 +3949,16 @@ long double * CDustComponent::getStochasticProbability(uint a, spline & abs_rate
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid, photon_package * pp, uint i_density)
+StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid,
+                                              const photon_package & pp,
+                                              uint i_density) const
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
     double Cabs = getCabsMean(grid, pp);
 
     // Get wavelength index
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     // Calculate frequency
     double frequency = con_c / wavelength_list[w];
@@ -3973,7 +3975,7 @@ StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid, photon_package 
     return tmp_stokes;
 }
 
-double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::calcEmissivity(CGridBasic * grid, const photon_package & pp, uint i_density) const
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
@@ -3989,7 +3991,7 @@ double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, ui
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Get wavelength index of photon package
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     // Init temporary array for integration
     double * pl_abs_tmp = new double[nr_of_dust_species];
@@ -4051,10 +4053,10 @@ double CDustComponent::calcEmissivity(CGridBasic * grid, photon_package * pp, ui
 }
 
 StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
-                                                          photon_package * pp,
+                                                          const photon_package & pp,
                                                           uint i_density,
                                                           const Vector3D & en_dir,
-                                                          double energy)
+                                                          double energy) const
 {
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -4067,13 +4069,13 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     cross_sections cs;
 
     // Get wavelength index of photon package
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Get theta of scattering
-    double scattering_theta = acos(en_dir * pp->getDirection());
+    double scattering_theta = acos(en_dir * pp.getDirection());
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
@@ -4123,7 +4125,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     delete[] scatter_stokes;
 
     // Get rotation angle to rotate back into the map/detector frame
-    double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+    double phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp.getEY(), pp.getEX());
 
     // Rotate Stokes Vector to be in agreement with the detector plane
     final_stokes.rot(phi_map);
@@ -4135,11 +4137,11 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
 }
 
 StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
-                                               photon_package * pp,
+                                               const photon_package & pp,
                                                uint i_density,
                                                double phi,
                                                double energy,
-                                               Vector3D en_dir)
+                                               Vector3D en_dir) const
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
@@ -4149,8 +4151,8 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     // Precalculate values for scattering
     if(energy > 1e-200)
     {
-        scattering_theta = acos(en_dir * pp->getDirection());
-        phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp->getEY(), pp->getEX());
+        scattering_theta = acos(en_dir * pp.getDirection());
+        phi_map = CMathFunctions::getRotationAngleObserver(en_dir, pp.getEY(), pp.getEX());
     }
 
     // Get index of theta scattering
@@ -4167,7 +4169,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     cross_sections cs;
 
     // Get wavelength index of photon package
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
@@ -4292,11 +4294,11 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 }
 
 void CDustComponent::calcExtCrossSections(CGridBasic * grid,
-                                          photon_package * pp,
+                                          const photon_package & pp,
                                           uint i_density,
-                                          double & avg_Cext,
-                                          double & avg_Cpol,
-                                          double & avg_Ccirc)
+                                          double * avg_Cext,
+                                          double * avg_Cpol,
+                                          double * avg_Ccirc) const
 {
     // Init  and calculate the cross-sections
     cross_sections cs;
@@ -4341,9 +4343,9 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     }
 
     // Perform integration for the cross-sections
-    avg_Cext = CMathFunctions::integ_dust_size(a_eff, Cext, nr_of_dust_species, a_min, a_max);
-    avg_Cpol = CMathFunctions::integ_dust_size(a_eff, Cpol, nr_of_dust_species, a_min, a_max);
-    avg_Ccirc = CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
+    *avg_Cext = CMathFunctions::integ_dust_size(a_eff, Cext, nr_of_dust_species, a_min, a_max);
+    *avg_Cpol = CMathFunctions::integ_dust_size(a_eff, Cpol, nr_of_dust_species, a_min, a_max);
+    *avg_Ccirc = CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer arrays
     delete[] rel_weight;
@@ -4357,7 +4359,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
                                      uint a,
                                      Vector3D obs_ex,
                                      Vector3D dir_obs,
-                                     photon_package * pp_escape)
+                                     photon_package * pp_escape) const
 {
     switch(phID)
     {
@@ -4407,7 +4409,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
                                         uint a,
                                         Vector3D obs_ex,
                                         Vector3D dir_obs,
-                                        photon_package * pp_escape)
+                                        photon_package * pp_escape) const
 {
     // Get wavelength index of the photon package
     uint w = pp->getDustWavelengthID();
@@ -4489,7 +4491,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     pp_escape->setStokesVector(tmp_stokes);
 }
 
-double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const
 {
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -4501,17 +4503,14 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
-    // Get current cell
-    cell_basic * cell = pp->getPositionCell();
-
     // Get Volume of current cell
-    double vol = grid->getVolume(cell);
+    double vol = grid->getVolume(pp);
 
     // Get dust number density of current cell
-    double dens = getNumberDensity(grid, cell, i_density);
+    double dens = getNumberDensity(grid, pp, i_density);
 
     // Get wavelength of photon package
-    uint w = pp->getDustWavelengthID();
+    uint w = pp.getDustWavelengthID();
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -4833,11 +4832,11 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get material density and similar user defined parameters
             single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
-            
+
             single_component[i_comp].setFHighJ(param.getFHighJ());
             single_component[i_comp].setQref(param.getQref());
             single_component[i_comp].setAlphaQ(param.getAlphaQ());
-            
+
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());
@@ -5127,7 +5126,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
             cell_basic * cell = grid->getCellFromIndex(i_cell);
-            total_dust_mass += getMassDensity(grid, cell, i_mixture) * grid->getVolume(cell);
+            total_dust_mass += getMassDensity(grid, *cell, i_mixture) * grid->getVolume(*cell);
         }
         cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass
              << " [kg]" << endl;

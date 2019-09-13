@@ -4,8 +4,8 @@
 #include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Stokes.h"
-#include "Vector.h"
 #include "Typedefs.h"
+#include "Vector.h"
 
 #ifndef RAYTRACING
 #define RAYTRACING
@@ -217,7 +217,7 @@ class CRaytracingBasic
         i_pix = 0;
     }
 
-    virtual void setDirection(photon_package * pp)
+    virtual void setCoordinateSystem(photon_package * pp)
     {
         pp->setEX(ex);
         pp->setEY(ey);
@@ -708,21 +708,20 @@ class CRaytracingCartesian : public CRaytracingBasic
 
             // Create new photon package with wavelength index wID and position it in
             // model
-            photon_package * pp = new photon_package();
+            photon_package pp = photon_package();
 
-            preparePhoton(pp, cx, cy);
+            preparePhoton(&pp, cx, cy);
 
-            if(grid->findStartingPoint(pp))
+            if(grid->findStartingPoint(&pp))
             {
-                while(grid->next(pp))
+                while(grid->next(&pp))
                 {
                     // Add the index of each cell along the path onto ID_sum_1
-                    ID_sum_1 += pp->getPositionCell()->getUniqueID();
+                    ID_sum_1 += pp.getPositionCell()->getUniqueID();
                 }
             }
 
             // Delete photon package after usage
-            delete pp;
             for(int i_sub_x = -1; i_sub_x <= 1 && subpixel == false; i_sub_x += 2)
             {
                 for(int i_sub_y = -1; i_sub_y <= 1 && subpixel == false; i_sub_y += 2)
@@ -736,23 +735,18 @@ class CRaytracingCartesian : public CRaytracingBasic
 
                     // Create new photon package with wavelength index wID and position it
                     // in model
-                    photon_package * pp = new photon_package();
-
-                    preparePhoton(pp, tmp_cx, tmp_cy);
+                    preparePhoton(&pp, tmp_cx, tmp_cy);
 
                     // Find starting point of the photon package
                     // and transport it through the model
-                    if(grid->findStartingPoint(pp))
+                    if(grid->findStartingPoint(&pp))
                     {
-                        while(grid->next(pp))
+                        while(grid->next(&pp))
                         {
                             // Add the index of each cell along the path onto ID_sum_2
-                            ID_sum_2 += pp->getPositionCell()->getUniqueID();
+                            ID_sum_2 += pp.getPositionCell()->getUniqueID();
                         }
                     }
-
-                    // Delete photon package after usage
-                    delete pp;
 
                     // If any subpixel travel through other cells, perform subpixelling
                     if(ID_sum_1 != ID_sum_2)
@@ -779,8 +773,8 @@ class CRaytracingCartesian : public CRaytracingBasic
                 pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
-            detector->addToRaytracingDetector(pp, spectral_offset);
-            detector->addToRaytracingSedDetector(pp, spectral_offset);
+            detector->addToRaytracingDetector(*pp, spectral_offset);
+            detector->addToRaytracingSedDetector(*pp, spectral_offset);
         }
     }
 
@@ -1159,8 +1153,8 @@ class CRaytracingHealPix : public CRaytracingBasic
                 pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
-            detector->addToRaytracingDetector(pp, i_pix, spectral_offset);
-            detector->addToRaytracingSedDetector(pp, spectral_offset);
+            detector->addToRaytracingDetector(*pp, i_pix, spectral_offset);
+            detector->addToRaytracingSedDetector(*pp, spectral_offset);
         }
     }
 
@@ -1646,8 +1640,8 @@ class CRaytracingPolar : public CRaytracingBasic
                 pp->setSpectralID(i_spectral);
 
                 // Add photon Stokes vector to detector
-                detector->addToRaytracingDetector(pp, spectral_offset);
-                detector->addToRaytracingSedDetector(pp, spectral_offset);
+                detector->addToRaytracingDetector(*pp, spectral_offset);
+                detector->addToRaytracingSedDetector(*pp, spectral_offset);
             }
         }
         else
@@ -1682,7 +1676,7 @@ class CRaytracingPolar : public CRaytracingBasic
 #pragma omp parallel for schedule(dynamic)
         for(int i_pix = 0; i_pix < int(map_pixel_x * map_pixel_y); i_pix++)
         {
-            photon_package * pp = new photon_package(nr_spectral_bins);
+            photon_package pp = photon_package(nr_spectral_bins);
 
             // Init variables
             Vector3D pos;
@@ -1720,10 +1714,10 @@ class CRaytracingPolar : public CRaytracingBasic
                 for(uint i_spectral = 0; i_spectral < nr_extra * nr_spectral_bins; i_spectral++)
                 {
                     // Set wavelength of photon package
-                    pp->setSpectralID(i_spectral);
+                    pp.setSpectralID(i_spectral);
 
                     // Get Stokes Vector
-                    pp->setStokesVector(tmpStokes[i_spectral][npix_r][0] * getMinArea(), i_spectral);
+                    pp.setStokesVector(tmpStokes[i_spectral][npix_r][0] * getMinArea(), i_spectral);
 
                     // Transport pixel value to detector
                     detector->addToRaytracingDetector(pp, 0);
@@ -1733,7 +1727,7 @@ class CRaytracingPolar : public CRaytracingBasic
 
             // Set photon package position and get R and Phi
             pos = Vector3D(cx, cy, 0);
-            pp->setPosition(pos);
+            pp.setPosition(pos);
             pos.cart2cyl();
 
             // Get radius index from center position list (subtract first outer border)
@@ -1788,7 +1782,7 @@ class CRaytracingPolar : public CRaytracingBasic
             for(uint i_spectral = 0; i_spectral < nr_extra * nr_spectral_bins; i_spectral++)
             {
                 // Set wavelength of photon package
-                pp->setSpectralID(i_spectral);
+                pp.setSpectralID(i_spectral);
 
                 if(rID1 == npix_r - 1)
                 {
@@ -1823,11 +1817,10 @@ class CRaytracingPolar : public CRaytracingBasic
                 // Add pixel value to photon_package
                 StokesVector res_stokes =
                     StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
-                pp->setStokesVector(res_stokes * getMinArea(), i_spectral);
+                pp.setStokesVector(res_stokes * getMinArea(), i_spectral);
                 // Transport pixel value to detector
                 detector->addToRaytracingDetector(pp, 0);
             }
-            delete pp;
         }
 
         cout << "-> Interpolating from polar grid to detector map: 100 [%]         \r" << flush;
@@ -2119,8 +2112,8 @@ class CRaytracingSlice : public CRaytracingBasic
                 pp->getStokesVector(i_spectral).multS(getMinArea());
 
             // Add photon Stokes vector to detector
-            detector->addToRaytracingDetector(pp, spectral_offset);
-            detector->addToRaytracingSedDetector(pp, spectral_offset);
+            detector->addToRaytracingDetector(*pp, spectral_offset);
+            detector->addToRaytracingSedDetector(*pp, spectral_offset);
         }
     }
 

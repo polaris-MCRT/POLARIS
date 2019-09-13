@@ -1,12 +1,10 @@
 .idea/
 .vscode/
+scripts/
+dist/
+build/
 
 .tags*
 autom4te.cache
 
-aclocal.m4
-config.log
-config.status
-configure
-Makefile
-Makefile.in
+polaristools.egg-info

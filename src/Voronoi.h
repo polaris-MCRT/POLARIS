@@ -172,7 +172,7 @@ class CGridVoronoi : public CGridBasic
         cout << CLR_LINE << flush;
     }
 
-    bool isInside(Vector3D & pos)
+    bool isInside(const Vector3D & pos)const
     {
         double l_min = -0.5 * max_len;
         double l_max = 0.5 * max_len;
@@ -199,14 +199,14 @@ class CGridVoronoi : public CGridBasic
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
 
-    Vector3D getCenter(cell_basic * cell)
+    Vector3D getCenter(const cell_basic & cell) const
     {
-        return ((cell_vo *)cell)->getCenter();
+        return ((const cell_vo *)&cell)->getCenter();
     }
 
-    Vector3D getCenter(uint id)
+    Vector3D getCenter(uint id) const
     {
-        cell_vo * cell = ((cell_vo *)cell_list[id]);
+        const cell_vo * cell = ((const cell_vo *)cell_list[id]);
         return cell->getCenter();
     }
 
@@ -241,16 +241,10 @@ class CGridVoronoi : public CGridBasic
         return true;
     }
 
-    double getVolume(cell_basic * cell)
+    double getVolume(const cell_basic & cell) const
     {
-        return ((cell_vo *)cell)->getVolume();
-    }
-
-    double getVolume(photon_package * pp)
-    {
-        cell_basic * cell_pos = pp->getPositionCell();
-
-        return getVolume(cell_pos);
+        const cell_vo * cell_pos = (const cell_vo *)&cell;
+        return cell_pos->getVolume();
     }
 
     bool positionPhotonInGrid(photon_package * pp);
@@ -670,7 +664,7 @@ class CGridVoronoi : public CGridBasic
                 z_min = y;
             }
 
-            double getLength()
+            double getLength() const
             {
                 return length;
             }

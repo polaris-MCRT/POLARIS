@@ -19,8 +19,6 @@ struct MagFieldInfo
 struct LineBroadening
 {
     double gauss_a;
-    double Gamma;
-    double doppler_width;
     double voigt_a;
 };
 
@@ -487,15 +485,11 @@ class CGridBasic
         return (data_pos_vt != MAX_UINT);
     }
 
-    virtual Vector3D getCenter(cell_basic * cell)
-    {
-        return Vector3D(0, 0, 0);
-    }
+    virtual Vector3D getCenter(const cell_basic & cell) const = 0;
 
-    Vector3D getCenter(photon_package * pp)
+    Vector3D getCenter(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getCenter(cell);
+        return getCenter(*pp.getPositionCell());
     }
 
     uint getDataLength()
@@ -503,10 +497,7 @@ class CGridBasic
         return data_len;
     }
 
-    virtual double maxLength()
-    {
-        return 0;
-    }
+    virtual double maxLength() = 0;
 
     ulong getMaxDataCells()
     {
@@ -518,12 +509,9 @@ class CGridBasic
         return max_data;
     }
 
-    virtual void printParameters(){};
+    virtual void printParameters() = 0;
 
-    virtual bool goToNextCellBorder(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool goToNextCellBorder(photon_package * pp) = 0;
 
     virtual bool updateShortestDistance(photon_package * pp)
     {
@@ -560,34 +548,27 @@ class CGridBasic
         cout << "grid: " << ex << ey << ez << endl;
     }
 
-    void getMagFieldInfo(photon_package * pp, MagFieldInfo & mfo)
+    void getMagFieldInfo(const photon_package & pp, MagFieldInfo * mfo) const
     {
         // Get the magnetic field from grid
-        mfo.mag_field = getMagField(pp);
+        mfo->mag_field = getMagField(pp);
 
         // Get the theta and phi angle from the magnetic field direction
         double theta = getThetaMag(pp);
         double phi = abs(getPhiMag(pp));
 
         // Calculate the sine and cosine including double angles
-        mfo.cos_theta = cos(theta);
-        mfo.sin_theta = sin(theta);
-        mfo.cos_2_phi = cos(2.0 * phi);
-        mfo.sin_2_phi = sin(2.0 * phi);
+        mfo->cos_theta = cos(theta);
+        mfo->sin_theta = sin(theta);
+        mfo->cos_2_phi = cos(2.0 * phi);
+        mfo->sin_2_phi = sin(2.0 * phi);
     }
 
-    virtual bool findStartingPoint(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool findStartingPoint(photon_package * pp) = 0;
 
-    virtual void getLengths(uint bins, double & step_xy, double & off_xy)
-    {}
+    virtual void getLengths(uint bins, double & step_xy, double & off_xy) = 0;
 
-    virtual bool positionPhotonInGrid(photon_package * pp)
-    {
-        return false;
-    }
+    virtual bool positionPhotonInGrid(photon_package * pp) = 0;
 
     double getMinLength()
     {
@@ -609,10 +590,7 @@ class CGridBasic
         return false;
     }
 
-    virtual bool createCellList()
-    {
-        return false;
-    }
+    virtual bool createCellList() = 0;
 
     cell_basic * getCellFromIndex(ulong i)
     {
@@ -632,16 +610,7 @@ class CGridBasic
         conv_Vfield_in_SI = param.getSIConvVField();
     }
 
-    // overloaded functions
-    virtual bool findMatchingCell(photon_package * pp)
-    {
-        return false;
-    }
-
-    virtual bool writeGNUPlotFiles(string path, parameters & param)
-    {
-        return false;
-    }
+    virtual bool writeGNUPlotFiles(string path, parameters & param) = 0;
 
     void setDataSize(uint sz)
     {
@@ -682,25 +651,15 @@ class CGridBasic
 
     void setGasDensity(photon_package * pp, double dens)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setGasDensity(cell, dens);
+        setGasDensity(pp->getPositionCell(), dens);
     }
 
     void setGasDensity(photon_package * pp, uint i_density, double dens)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setGasDensity(cell, i_density, dens);
+        setGasDensity(pp->getPositionCell(), i_density, dens);
     }
 
-    virtual bool isInside(photon_package * pp, Vector3D & pos)
-    {
-        return false;
-    }
-
-    virtual bool isInside(Vector3D & pos)
-    {
-        return false;
-    }
+    virtual bool isInside(const Vector3D & pos) const = 0;
 
     void setSpecLengthAsVector(bool val)
     {
@@ -710,11 +669,10 @@ class CGridBasic
     void updateSpecLength(photon_package * pp, double len)
     {
         cell_basic * cell = pp->getPositionCell();
-        uint data_pos;
         if(spec_length_as_vector)
         {
-            data_pos = data_offset + 4 * pp->getDustWavelengthID();
-            Vector3D e_dir = len * rotateToCenter(pp, pp->getDirection());
+            uint data_pos = data_offset + 4 * pp->getDustWavelengthID();
+            Vector3D e_dir = len * rotateToCenter(*pp, pp->getDirection());
             cell->updateData(data_pos + 0, len);
             cell->updateData(data_pos + 1, e_dir.X());
             cell->updateData(data_pos + 2, e_dir.Y());
@@ -722,15 +680,14 @@ class CGridBasic
         }
         else
         {
-            data_pos = data_offset + pp->getDustWavelengthID();
+            uint data_pos = data_offset + pp->getDustWavelengthID();
             cell->updateData(data_pos, len);
         }
     }
 
-    void updateSpecLength(photon_package * pp, uint i_offset, StokesVector stokes)
+    void updateSpecLength(cell_basic * cell, uint i_offset, StokesVector stokes) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        stokes /= getVolume(cell);
+        stokes /= getVolume(*cell);
         uint data_pos = data_offset + 4 * i_offset;
         cell->updateData(data_pos + 0, stokes.I());
         cell->updateData(data_pos + 1, stokes.Q());
@@ -738,7 +695,7 @@ class CGridBasic
         cell->updateData(data_pos + 3, stokes.V());
     }
 
-    inline double getSpecLength(cell_basic * cell, uint wID)
+    inline double getSpecLength(const cell_basic & cell, uint wID) const
     {
 #ifdef CAMPS_BENCHMARK
         // To perform Camps et. al (2015) benchmark.
@@ -748,26 +705,25 @@ class CGridBasic
         return PIx4 * res * getVolume(cell);
 #else
         if(spec_length_as_vector)
-            return cell->getData(data_offset + 4 * wID + 0);
+            return cell.getData(data_offset + 4 * wID + 0);
         else
-            return cell->getData(data_offset + wID);
+            return cell.getData(data_offset + wID);
 #endif
     }
 
-    inline double getSpecLength(photon_package * pp, uint wID)
+    inline double getSpecLength(const photon_package & pp, uint wID) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getSpecLength(cell, wID);
+        return getSpecLength(*pp.getPositionCell(), wID);
     }
 
-    void getSpecLength(cell_basic * cell, uint wID, double & us, Vector3D & e_dir)
+    void getSpecLength(const cell_basic & cell, uint wID, double & us, Vector3D & e_dir) const
     {
         uint data_pos = data_offset + 4 * wID;
 
-        us = cell->getData(data_pos + 0);
-        e_dir.setX(cell->getData(data_pos + 1));
-        e_dir.setY(cell->getData(data_pos + 2));
-        e_dir.setZ(cell->getData(data_pos + 3));
+        us = cell.getData(data_pos + 0);
+        e_dir.setX(cell.getData(data_pos + 1));
+        e_dir.setY(cell.getData(data_pos + 2));
+        e_dir.setZ(cell.getData(data_pos + 3));
     }
 
     void saveRadiationField()
@@ -776,7 +732,7 @@ class CGridBasic
         for(long c_i = 0; c_i < long(max_cells); c_i++)
         {
             cell_basic * cell = cell_list[c_i];
-            double inv_vol = 1 / getVolume(cell);
+            double inv_vol = 1 / getVolume(*cell);
             for(uint wID = 0; wID < WL_STEPS; wID++)
             {
                 cell->convertData(data_offset + 4 * wID + 0, inv_vol);
@@ -796,7 +752,7 @@ class CGridBasic
         data_offset += 4 * WL_STEPS;
     }
 
-    double getRadiationField(cell_basic * cell, uint wID)
+    double getRadiationField(const cell_basic & cell, uint wID) const
     {
 #ifdef CAMPS_BENCHMARK
         // To perform Camps et. al (2015) benchmark.
@@ -809,81 +765,77 @@ class CGridBasic
         // instead
         if(data_pos_rf_list.empty())
             return getSpecLength(cell, wID) / getVolume(cell);
-        return cell->getData(data_pos_rf_list[wID]);
+        return cell.getData(data_pos_rf_list[wID]);
 #endif
     }
 
-    double getRadiationField(photon_package * pp, uint wID)
+    double getRadiationField(const photon_package & pp, uint wID) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getRadiationField(cell, wID);
+        return getRadiationField(*pp.getPositionCell(), wID);
     }
 
-    double getRadiationFieldX(cell_basic * cell, uint wID)
+    double getRadiationFieldX(const cell_basic & cell, uint wID) const
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
         if(data_pos_rx_list.empty())
         {
             if(spec_length_as_vector)
-                return cell->getData(data_offset + 4 * wID + 1) / getVolume(cell);
+                return cell.getData(data_offset + 4 * wID + 1) / getVolume(cell);
             else
                 return 0;
         }
-        return cell->getData(data_pos_rx_list[wID]);
+        return cell.getData(data_pos_rx_list[wID]);
     }
 
-    double getRadiationFieldX(photon_package * pp, uint wID)
+    double getRadiationFieldX(const photon_package & pp, uint wID) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getRadiationFieldX(cell, wID);
+        return getRadiationFieldX(*pp.getPositionCell(), wID);
     }
 
-    double getRadiationFieldY(cell_basic * cell, uint wID)
+    double getRadiationFieldY(const cell_basic & cell, uint wID) const
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
         if(data_pos_ry_list.empty())
         {
             if(spec_length_as_vector)
-                return cell->getData(data_offset + 4 * wID + 2) / getVolume(cell);
+                return cell.getData(data_offset + 4 * wID + 2) / getVolume(cell);
             else
                 return 0;
         }
-        return cell->getData(data_pos_ry_list[wID]);
+        return cell.getData(data_pos_ry_list[wID]);
     }
 
-    double getRadiationFieldY(photon_package * pp, uint wID)
+    double getRadiationFieldY(const photon_package & pp, uint wID) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getRadiationFieldY(cell, wID);
+        return getRadiationFieldY(*pp.getPositionCell(), wID);
     }
 
-    double getRadiationFieldZ(cell_basic * cell, uint wID)
+    double getRadiationFieldZ(const cell_basic & cell, uint wID) const
     {
         // If the radiation field is needed after temp calculation, use the SpecLength
         // instead
         if(data_pos_rz_list.empty())
         {
             if(spec_length_as_vector)
-                return cell->getData(data_offset + 4 * wID + 3) / getVolume(cell);
+                return cell.getData(data_offset + 4 * wID + 3) / getVolume(cell);
             else
                 return 0;
         }
-        return cell->getData(data_pos_rz_list[wID]);
+        return cell.getData(data_pos_rz_list[wID]);
     }
 
-    double getRadiationFieldZ(photon_package * pp, uint wID)
+    double getRadiationFieldZ(const photon_package & pp, uint wID) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getRadiationFieldZ(cell, wID);
+        return getRadiationFieldZ(*pp.getPositionCell(), wID);
     }
 
-    void getRadiationField(photon_package * pp, uint w, double & us, Vector3D & e_dir)
+    void getRadiationField(const photon_package & pp, uint w, double & us, Vector3D & e_dir) const
     {
         // Init variables and get current cell
         Vector3D tmp_dir;
-        cell_basic * cell = pp->getPositionCell();
+        const cell_basic & cell = *pp.getPositionCell();
 
         // Get radiation field strength and direction from cell
         if(data_pos_rf_list.empty())
@@ -899,10 +851,10 @@ class CGridBasic
         }
         else
         {
-            us = cell->getData(data_pos_rf_list[w]);
-            tmp_dir.setX(cell->getData(data_pos_rx_list[w]));
-            tmp_dir.setY(cell->getData(data_pos_ry_list[w]));
-            tmp_dir.setZ(cell->getData(data_pos_rz_list[w]));
+            us = cell.getData(data_pos_rf_list[w]);
+            tmp_dir.setX(cell.getData(data_pos_rx_list[w]));
+            tmp_dir.setY(cell.getData(data_pos_ry_list[w]));
+            tmp_dir.setZ(cell.getData(data_pos_rz_list[w]));
         }
 
         // Rotate vector from cell center to position
@@ -912,24 +864,24 @@ class CGridBasic
         e_dir.normalize();
     }
 
-    StokesVector getStokesFromRadiationField(photon_package * pp, uint i_offset)
+    StokesVector getStokesFromRadiationField(const photon_package & pp, uint i_offset) const
     {
         // Init variables
         StokesVector scattering_stokes;
-        cell_basic * cell = pp->getPositionCell();
+        const cell_basic & cell = *pp.getPositionCell();
         uint data_pos = data_offset + 4 * i_offset;
 
-        scattering_stokes.setI(cell->getData(data_pos + 0));
-        scattering_stokes.setQ(cell->getData(data_pos + 1));
-        scattering_stokes.setU(cell->getData(data_pos + 2));
-        scattering_stokes.setV(cell->getData(data_pos + 3));
+        scattering_stokes.setI(cell.getData(data_pos + 0));
+        scattering_stokes.setQ(cell.getData(data_pos + 1));
+        scattering_stokes.setU(cell.getData(data_pos + 2));
+        scattering_stokes.setV(cell.getData(data_pos + 3));
 
         // Rotate vector from cell center to position
         Vector3D rot_dir = rotateToCenter(pp, getCenter(pp), true);
 
         // Get rotation angle to rotate back into the map/detector frame
-        double phi_map = getAnglePhi(pp->getEX(), pp->getEY(), rot_dir) -
-                         getAnglePhi(pp->getEX(), pp->getEY(), getCenter(pp));
+        double phi_map =
+            getAnglePhi(pp.getEX(), pp.getEY(), rot_dir) - getAnglePhi(pp.getEX(), pp.getEY(), getCenter(pp));
 
         // Rotate Stokes Vector to be in agreement with the detector plane
         scattering_stokes.rot(phi_map);
@@ -937,7 +889,10 @@ class CGridBasic
         return scattering_stokes;
     }
 
-    void getRadiationFieldInterp(photon_package * pp, double wavelength, double & us, Vector3D & e_dir)
+    void getRadiationFieldInterp(const photon_package & pp,
+                                 double wavelength,
+                                 double & us,
+                                 Vector3D & e_dir) const
     {
         // Do not interpolate if outside of wavelength list
         if(wl_list.back() < wavelength || wl_list.front() > wavelength)
@@ -953,7 +908,7 @@ class CGridBasic
 
         // Init variables and get current cell
         Vector3D tmp_dir;
-        cell_basic * cell = pp->getPositionCell();
+        const cell_basic & cell = *pp.getPositionCell();
 
         // Get wavelength indices from radiation field calculation
         uint wID1 = CMathFunctions::biListIndexSearch(wavelength, wl_list);
@@ -962,23 +917,23 @@ class CGridBasic
         // Interpolate radiation field strength and direction
         us = CMathFunctions::interpolate(wl_list[wID1],
                                          wl_list[wID2],
-                                         cell->getData(data_pos_rf_list[wID1]),
-                                         cell->getData(data_pos_rf_list[wID2]),
+                                         cell.getData(data_pos_rf_list[wID1]),
+                                         cell.getData(data_pos_rf_list[wID2]),
                                          wavelength);
         tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1],
                                                  wl_list[wID2],
-                                                 cell->getData(data_pos_rx_list[wID1]),
-                                                 cell->getData(data_pos_rx_list[wID2]),
+                                                 cell.getData(data_pos_rx_list[wID1]),
+                                                 cell.getData(data_pos_rx_list[wID2]),
                                                  wavelength));
         tmp_dir.setY(CMathFunctions::interpolate(wl_list[wID1],
                                                  wl_list[wID2],
-                                                 cell->getData(data_pos_ry_list[wID1]),
-                                                 cell->getData(data_pos_ry_list[wID2]),
+                                                 cell.getData(data_pos_ry_list[wID1]),
+                                                 cell.getData(data_pos_ry_list[wID2]),
                                                  wavelength));
         tmp_dir.setZ(CMathFunctions::interpolate(wl_list[wID1],
                                                  wl_list[wID2],
-                                                 cell->getData(data_pos_rz_list[wID1]),
-                                                 cell->getData(data_pos_rz_list[wID2]),
+                                                 cell.getData(data_pos_rz_list[wID1]),
+                                                 cell.getData(data_pos_rz_list[wID2]),
                                                  wavelength));
 
         // Rotate vector to cell center
@@ -988,7 +943,7 @@ class CGridBasic
         e_dir.normalize();
     }
 
-    double getGZero(cell_basic * cell)
+    double getGZero(const cell_basic & cell) const
     {
         // Init variables
         const double wl1 = 9.1165e-08, wl2 = 2.06640e-07;
@@ -1037,13 +992,12 @@ class CGridBasic
         return g_zero;
     }
 
-    double getGZero(photon_package * pp)
+    double getGZero(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGZero(cell);
+        return getGZero(*pp.getPositionCell());
     }
 
-    double getUrad(cell_basic * cell)
+    double getUrad(const cell_basic & cell) const
     {
         double u_rad = 0;
 
@@ -1062,13 +1016,12 @@ class CGridBasic
         return u_rad / (8.64e-14);
     }
 
-    double getUrad(photon_package * pp)
+    double getUrad(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getUrad(cell);
+        return getUrad(*pp.getPositionCell());
     }
 
-    double getMu()
+    double getMu() const
     {
         return mu;
     }
@@ -1095,10 +1048,15 @@ class CGridBasic
         pp->setPosition(Vector3D(0, 0, 0));
     }
 
-    virtual Vector3D rotateToCenter(photon_package * pp,
+    Vector3D rotateToCenter(const photon_package & pp, bool inv = false, bool phi_only = false) const
+    {
+        return rotateToCenter(pp, pp.getDirection(), inv, phi_only);
+    }
+
+    virtual Vector3D rotateToCenter(const photon_package & pp,
                                     Vector3D dir,
                                     bool inv = false,
-                                    bool phi_only = false)
+                                    bool phi_only = false) const
     {
         return dir;
     }
@@ -1127,20 +1085,17 @@ class CGridBasic
 
     void setDustTemperature(photon_package * pp, uint i_density, uint a, double temp)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setDustTemperature(cell, i_density, a, temp);
+        setDustTemperature(pp->getPositionCell(), i_density, a, temp);
     }
 
     void setDustTemperature(photon_package * pp, uint i_density, double temp)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setDustTemperature(cell, i_density, temp);
+        setDustTemperature(pp->getPositionCell(), i_density, temp);
     }
 
     void setDustTemperature(photon_package * pp, double temp)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setDustTemperature(cell, temp);
+        setDustTemperature(pp->getPositionCell(), temp);
     }
 
     void setDustTempProbability(cell_basic * cell, uint i_density, uint a, uint t, double temp)
@@ -1230,39 +1185,37 @@ class CGridBasic
         cell->setData(data_pos_gd_list[i_density], dens);
     }
 
-    double getQBOffset(cell_basic * cell, uint i_density)
+    double getQBOffset(const cell_basic & cell, uint i_density) const
     {
         if(data_pos_dt_list.size() == 1)
-            return cell->getData(data_pos_dt_list[0]);
+            return cell.getData(data_pos_dt_list[0]);
         else if(data_pos_dt_list.size() > i_density)
-            return cell->getData(data_pos_dt_list[i_density]);
+            return cell.getData(data_pos_dt_list[i_density]);
         else
             return 0;
     }
 
-    double getQBOffset(photon_package * pp, uint i_density)
+    double getQBOffset(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getQBOffset(cell, i_density);
+        return getQBOffset(*pp.getPositionCell(), i_density);
     }
 
-    double getQBOffset(cell_basic * cell, uint i_density, uint a)
+    double getQBOffset(const cell_basic & cell, uint i_density, uint a) const
     {
         if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
                 id += size_skip[i];
-            return cell->getData(data_pos_dt_list[id]);
+            return cell.getData(data_pos_dt_list[id]);
         }
         else
             return 0;
     }
 
-    double getQBOffset(photon_package * pp, uint i_density, uint a)
+    double getQBOffset(const photon_package & pp, uint i_density, uint a) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getQBOffset(cell, i_density, a);
+        return getQBOffset(*pp.getPositionCell(), i_density, a);
     }
 
     void setQBOffset(cell_basic * cell, uint i_density, uint a, double temp)
@@ -1289,20 +1242,19 @@ class CGridBasic
         return data_pos_aalg_list.size();
     }
 
-    double getAlignedRadius(cell_basic * cell, uint i_density)
+    double getAlignedRadius(const cell_basic & cell, uint i_density) const
     {
         if(data_pos_aalg_list.size() == 1)
-            return cell->getData(data_pos_aalg_list[0]);
+            return cell.getData(data_pos_aalg_list[0]);
         else if(data_pos_aalg_list.size() > i_density)
-            return cell->getData(data_pos_aalg_list[i_density]);
+            return cell.getData(data_pos_aalg_list[i_density]);
         else
             return 0;
     }
 
-    double getAlignedRadius(photon_package * pp, uint i_density)
+    double getAlignedRadius(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getAlignedRadius(cell, i_density);
+        return getAlignedRadius(*pp.getPositionCell(), i_density);
     }
 
     void setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg)
@@ -1310,120 +1262,92 @@ class CGridBasic
         cell->setData(data_pos_aalg_list[i_density], _a_alg);
     }
 
-    double getMinGrainRadius(cell_basic * cell)
+    double getMinGrainRadius(const cell_basic & cell) const
     {
         if(data_pos_amin != MAX_UINT)
-            return cell->getData(data_pos_amin);
+            return cell.getData(data_pos_amin);
         return 0;
     }
 
-    double getMinGrainRadius(photon_package * pp)
+    double getMinGrainRadius(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getMinGrainRadius(cell);
+        return getMinGrainRadius(*pp.getPositionCell());
     }
 
-    double getMaxGrainRadius(cell_basic * cell)
+    double getMaxGrainRadius(const cell_basic & cell) const
     {
         if(data_pos_amax != MAX_UINT)
-            return cell->getData(data_pos_amax);
+            return cell.getData(data_pos_amax);
         return 0;
     }
 
-    double getMaxGrainRadius(photon_package * pp)
+    double getMaxGrainRadius(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getMaxGrainRadius(cell);
+        return getMaxGrainRadius(*pp.getPositionCell());
     }
 
-    double getGrainSizeParam(cell_basic * cell)
+    double getGrainSizeParam(const cell_basic & cell) const
     {
         if(data_pos_amax != MAX_UINT)
-            return cell->getData(data_pos_size_param);
+            return cell.getData(data_pos_size_param);
         return 0;
     }
 
-    double getGrainSizeParam(photon_package * pp)
+    double getGrainSizeParam(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGrainSizeParam(cell);
+        return getGrainSizeParam(*pp.getPositionCell());
     }
 
-    uint getDustChoiceID(photon_package * pp)
+    uint getDustChoiceID(const photon_package & pp) const
+    {
+        return getDustChoiceID(*pp.getPositionCell());
+    }
+
+    uint getDustChoiceID(const cell_basic & cell) const
     {
         if(data_pos_id != MAX_UINT)
-            return uint(pp->getPositionCell()->getData(data_pos_id));
+            return uint(cell.getData(data_pos_id));
         else
             return 0;
     }
 
-    uint getDustChoiceID(cell_basic * cell)
+    void getLineBroadening(const photon_package & pp, uint i_trans, LineBroadening * line_broadening) const
     {
-        if(data_pos_id != MAX_UINT)
-            return uint(cell->getData(data_pos_id));
-        else
-            return 0;
+        line_broadening->gauss_a = getGaussA(pp);
+        line_broadening->voigt_a = getVoigtA(pp, i_trans);
     }
 
-    void getLineBroadening(photon_package * pp, uint i_line, LineBroadening & line_broadening)
+    double getGaussA(const cell_basic & cell) const
     {
-        line_broadening.gauss_a = getGaussA(pp);
-        line_broadening.Gamma = getGamma(pp, i_line);
-        line_broadening.doppler_width = getDopplerWidth(pp, i_line);
-        line_broadening.voigt_a = getVoigtA(pp, i_line);
+        return cell.getData(data_offset);
     }
 
-    double getGaussA(cell_basic * cell)
+    double getGaussA(const photon_package & pp) const
     {
-        return cell->getData(data_offset);
+        return getGaussA(*pp.getPositionCell());
     }
 
-    double getGaussA(photon_package * pp)
+    double getVoigtA(const cell_basic & cell, uint i_line) const
     {
-        return getGaussA(pp->getPositionCell());
+        return cell.getData(data_offset + 1 + i_line);
     }
 
-    double getDopplerWidth(cell_basic * cell, uint i_line)
+    double getVoigtA(const photon_package & pp, uint i_line) const
     {
-        return cell->getData(data_offset + 3 * i_line + 1);
+        return getVoigtA(*pp.getPositionCell(), i_line);
     }
 
-    double getDopplerWidth(photon_package * pp, uint i_line)
-    {
-        return getDopplerWidth(pp->getPositionCell(), i_line);
-    }
-
-    double getGamma(cell_basic * cell, uint i_line)
-    {
-        return cell->getData(data_offset + 3 * i_line + 2);
-    }
-
-    double getGamma(photon_package * pp, uint i_line)
-    {
-        return getGamma(pp->getPositionCell(), i_line);
-    }
-
-    double getVoigtA(cell_basic * cell, uint i_line)
-    {
-        return cell->getData(data_offset + 3 * i_line + 3);
-    }
-
-    double getVoigtA(photon_package * pp, uint i_line)
-    {
-        return getVoigtA(pp->getPositionCell(), i_line);
-    }
-
-    double getLvlPop(cell_basic * cell, uint i_lvl, uint i_sublvl = 0)
+    double getLvlPop(const cell_basic & cell, uint i_lvl, uint i_sublvl = 0) const
     {
         if(level_to_pos[i_lvl][i_sublvl] != MAX_UINT)
-            return cell->getData(data_offset + level_to_pos[i_lvl][i_sublvl]);
+            return cell.getData(data_offset + level_to_pos[i_lvl][i_sublvl]);
 
         return 0;
     }
 
-    double getLvlPop(photon_package * pp, uint i_lvl, uint i_sublvl = 0)
+    double getLvlPop(const photon_package & pp, uint i_lvl, uint i_sublvl = 0) const
     {
-        return getLvlPop(pp->getPositionCell(), i_lvl, i_sublvl);
+        return getLvlPop(*pp.getPositionCell(), i_lvl, i_sublvl);
     }
 
     void setVelocityField(cell_basic * cell, const Vector3D & vel)
@@ -1492,20 +1416,13 @@ class CGridBasic
 
     void setLineBroadening(cell_basic * cell, uint i_line_broad, const LineBroadening & line_broadening)
     {
-        cell->setData(data_offset + 3 * i_line_broad + 1, line_broadening.doppler_width);
-        cell->setData(data_offset + 3 * i_line_broad + 2, line_broadening.Gamma);
-        cell->setData(data_offset + 3 * i_line_broad + 3, line_broadening.voigt_a);
+        cell->setData(data_offset + 1 + i_line_broad, line_broadening.voigt_a);
     }
 
     void setGaussA(cell_basic * cell, double gauss_a)
     {
         // Gauss_a only has to be set once
         cell->setData(data_offset, gauss_a);
-    }
-
-    virtual double getPathLength(cell_basic * cell)
-    {
-        return 0;
     }
 
     /*void assignOpiateID(cell_basic * cell)
@@ -1613,146 +1530,144 @@ class CGridBasic
 
     bool fillGridWithOpiateData(uint col_id);
 
-    double getElectronTemperature(photon_package * pp)
+    double getElectronTemperature(const photon_package & pp) const
+    {
+        return getElectronTemperature(*pp.getPositionCell());
+    }
+
+    double getElectronTemperature(const cell_basic & cell) const
     {
         if(data_pos_T_e != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_T_e);
+            return cell.getData(data_pos_T_e);
 
         return 0;
     }
 
-    double getElectronTemperature(cell_basic * cell)
+    double getThermalElectronDensity(const photon_package & pp) const
     {
-        if(data_pos_T_e != MAX_UINT)
-            return cell->getData(data_pos_T_e);
-
-        return 0;
+        return getThermalElectronDensity(*pp.getPositionCell());
     }
 
-    double getThermalElectronDensity(photon_package * pp)
+    double getThermalElectronDensity(const cell_basic & cell) const
     {
         if(data_pos_n_th != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_n_th);
+            return cell.getData(data_pos_n_th);
 
         return 0;
     }
 
-    double getThermalElectronDensity(cell_basic * cell)
+    double getCRElectronDensity(const photon_package & pp) const
     {
-        if(data_pos_n_th != MAX_UINT)
-            return cell->getData(data_pos_n_th);
-
-        return 0;
+        return getCRElectronDensity(*pp.getPositionCell());
     }
 
-    double getCRElectronDensity(photon_package * pp)
+    double getCRElectronDensity(const cell_basic & cell) const
     {
         if(data_pos_n_cr != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_n_cr);
+            return cell.getData(data_pos_n_cr);
 
         return 0;
     }
 
-    double getCRElectronDensity(cell_basic * cell)
+    double getGammaMin(const photon_package & pp) const
     {
-        if(data_pos_n_cr != MAX_UINT)
-            return cell->getData(data_pos_n_cr);
-
-        return 0;
+        return getGammaMin(*pp.getPositionCell());
     }
 
-    double getGammaMin(photon_package * pp)
+    double getGammaMin(const cell_basic & cell) const
     {
         if(data_pos_g_min != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_g_min);
+            return cell.getData(data_pos_g_min);
 
         return 0;
     }
 
-    double getGammaMax(photon_package * pp)
+    double getGammaMax(const photon_package & pp) const
+    {
+        return getGammaMax(*pp.getPositionCell());
+    }
+
+    double getGammaMax(const cell_basic & cell) const
     {
         if(data_pos_g_max != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_g_max);
+            return cell.getData(data_pos_g_max);
 
         return 0;
     }
 
-    double getPowerLawIndex(photon_package * pp)
+    double getPowerLawIndex(const photon_package & pp) const
+    {
+        return getPowerLawIndex(*pp.getPositionCell());
+    }
+
+    double getPowerLawIndex(const cell_basic & cell) const
     {
         if(data_pos_p != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_p);
+            return cell.getData(data_pos_p);
 
         return 0;
     }
 
-    double getAvgTheta(photon_package * pp)
+    double getAvgTheta(const photon_package & pp) const
+    {
+        return getAvgTheta(*pp.getPositionCell());
+    }
+
+    double getAvgTheta(const cell_basic & cell) const
     {
         if(data_pos_avg_th != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_avg_th);
+            return cell.getData(data_pos_avg_th);
 
         return 0;
     }
 
-    double getAvgDir(photon_package * pp)
+    double getAvgDir(const photon_package & pp) const
+    {
+        return getAvgDir(*pp.getPositionCell());
+    }
+
+    double getAvgDir(const cell_basic & cell) const
     {
         if(data_pos_avg_dir != MAX_UINT)
-            return pp->getPositionCell()->getData(data_pos_avg_dir);
+            return cell.getData(data_pos_avg_dir);
 
         return 0;
     }
 
-    double getAvgTheta(cell_basic * cell)
-    {
-        if(data_pos_avg_th != MAX_UINT)
-            return cell->getData(data_pos_avg_th);
-
-        return 0;
-    }
-
-    double getAvgDir(cell_basic * cell)
-    {
-        if(data_pos_avg_dir != MAX_UINT)
-            return cell->getData(data_pos_avg_dir);
-
-        return 0;
-    }
-
-    double getDustTemperature(cell_basic * cell, uint i_density, uint a)
+    double getDustTemperature(const cell_basic & cell, uint i_density, uint a) const
     {
         if(!data_pos_dt_list.empty())
         {
             uint id = a + nr_densities;
             for(uint i = 0; i < i_density; i++)
                 id += size_skip[i];
-            return cell->getData(data_pos_dt_list[id]);
+            return cell.getData(data_pos_dt_list[id]);
         }
         else
             return 0;
     }
 
-    double getDustTemperature(photon_package * pp, uint i_density, uint a)
+    double getDustTemperature(const photon_package & pp, uint i_density, uint a) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustTemperature(cell, i_density, a);
+        return getDustTemperature(*pp.getPositionCell(), i_density, a);
     }
 
-    double getDustTemperature(cell_basic * cell, uint i_density)
+    double getDustTemperature(const cell_basic & cell, uint i_density) const
     {
         if(data_pos_dt_list.size() == 1)
-            return cell->getData(data_pos_dt_list[0]);
+            return cell.getData(data_pos_dt_list[0]);
         else if(data_pos_dt_list.size() > i_density)
-            return cell->getData(data_pos_dt_list[i_density]);
+            return cell.getData(data_pos_dt_list[i_density]);
         else
             return 0;
     }
 
-    double getDustTemperature(photon_package * pp, uint i_density)
+    double getDustTemperature(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustTemperature(cell, i_density);
+        return getDustTemperature(*pp.getPositionCell(), i_density);
     }
 
-    double getDustTemperature(cell_basic * cell)
+    double getDustTemperature(const cell_basic & cell) const
     {
         double sum = 0;
         for(uint i_density = 0; i_density < nr_densities; i_density++)
@@ -1760,40 +1675,37 @@ class CGridBasic
         return sum;
     }
 
-    double getDustTemperature(photon_package * pp)
+    double getDustTemperature(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustTemperature(cell);
+        return getDustTemperature(*pp.getPositionCell());
     }
 
-    double getDustTempProbability(cell_basic * cell, uint i_density, uint a, uint t)
+    double getDustTempProbability(const cell_basic & cell, uint i_density, uint a, uint t) const
     {
         uint id = a * nr_stochastic_temps[i_density] + t;
         for(uint i = 0; i < i_density; i++)
             id += nr_stochastic_sizes[i] * nr_stochastic_temps[i];
-        return cell->getData(data_offset + id);
+        return cell.getData(data_offset + id);
     }
 
-    double getDustTempProbability(photon_package * pp, uint i_density, uint a, uint t)
+    double getDustTempProbability(const photon_package & pp, uint i_density, uint a, uint t) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustTempProbability(cell, i_density, a, t);
+        return getDustTempProbability(*pp.getPositionCell(), i_density, a, t);
     }
 
-    double getPDAValue(cell_basic * cell)
+    double getPDAValue(const cell_basic & cell) const
     {
-        return cell->getData(data_pos_pda);
+        return cell.getData(data_pos_pda);
     }
 
-    double getGasTemperature(photon_package * pp)
+    double getGasTemperature(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasTemperature(cell);
+        return getGasTemperature(*pp.getPositionCell());
     }
 
-    double getGasTemperature(cell_basic * cell)
+    double getGasTemperature(const cell_basic & cell) const
     {
-        return cell->getData(data_pos_tg);
+        return cell.getData(data_pos_tg);
     }
 
     void setPlaneParameter(uint plane_index,
@@ -1894,9 +1806,9 @@ class CGridBasic
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
     {
 
-        photon_package * pp = new photon_package();
-        pp->setPosition(Vector3D(tx, ty, tz));
-        if(positionPhotonInGrid(pp))
+        photon_package pp = photon_package();
+        pp.setPosition(Vector3D(tx, ty, tz));
+        if(positionPhotonInGrid(&pp))
         {
             uint id = 0;
             if(plt_gas_dens)
@@ -2121,7 +2033,6 @@ class CGridBasic
             if(plt_avg_th)
                 buffer_avg_th[i_cell] = 0;
         }
-        delete pp;
     }
 
     bool writeSpecialLines(string path);
@@ -2151,57 +2062,22 @@ class CGridBasic
         return tmp_str;
     }
 
-    virtual bool saveBinaryGridFile(string filename)
+    virtual bool saveBinaryGridFile(string filename) = 0;
+
+    virtual bool saveBinaryGridFile(string filename, ushort id, ushort data_size) = 0;
+
+    virtual bool loadGridFromBinrayFile(parameters & param) = 0;
+
+    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len) = 0;
+
+    virtual double getVolume(const cell_basic & cell) const = 0;
+
+    double getVolume(const photon_package & pp) const
     {
-        return false;
+        return getVolume(*pp.getPositionCell());
     }
 
-    virtual bool saveBinaryGridFile(string filename, ushort id, ushort data_size)
-    {
-        return false;
-    }
-
-    virtual bool loadGridFromBinrayFile(parameters & param)
-    {
-        return false;
-    }
-
-    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len)
-    {
-        return false;
-    }
-
-    virtual double getVolume(cell_basic * cell)
-    {
-        return 0;
-    }
-
-    virtual double getVolume(photon_package * pp)
-    {
-        return 0;
-    }
-
-    virtual Vector3D getLowerBoundary(cell_basic * cell)
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getLowerBoundary(photon_package * pp)
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getUpperBoundary(cell_basic * cell)
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    virtual Vector3D getUpperBoundary(photon_package * pp)
-    {
-        return Vector3D(0, 0, 0);
-    }
-
-    inline double getGasDensity(cell_basic * cell)
+    inline double getGasDensity(const cell_basic & cell) const
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2209,88 +2085,82 @@ class CGridBasic
         return sum;
     }
 
-    inline double getGasDensity(cell_basic * cell, uint i_density)
+    inline double getGasDensity(const cell_basic & cell, uint i_density) const
     {
         if(data_pos_gd_list.size() > i_density)
-            return cell->getData(data_pos_gd_list[i_density]);
+            return cell.getData(data_pos_gd_list[i_density]);
         else
             return 0;
     }
 
-    inline double getGasDensity(photon_package * pp)
+    inline double getGasDensity(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasDensity(cell);
+        return getGasDensity(*pp.getPositionCell());
     }
 
-    inline double getGasDensity(photon_package * pp, uint i_density)
+    inline double getGasDensity(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasDensity(cell, i_density);
+        return getGasDensity(*pp.getPositionCell(), i_density);
     }
 
-    inline double getGasNumberDensity(cell_basic * cell)
+    inline double getGasNumberDensity(const cell_basic & cell) const
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
-            sum += cell->getData(data_pos_gd_list[i_density]);
+            sum += cell.getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
             sum /= (mu * m_H);
         return sum;
     }
 
-    inline double getGasNumberDensity(cell_basic * cell, uint i_density)
+    inline double getGasNumberDensity(const cell_basic & cell, uint i_density) const
     {
         double dens = 0;
         if(data_pos_gd_list.size() > i_density)
-            dens = cell->getData(data_pos_gd_list[i_density]);
+            dens = cell.getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
             dens /= (mu * m_H);
         return dens;
     }
 
-    inline double getGasNumberDensity(photon_package * pp)
+    inline double getGasNumberDensity(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasNumberDensity(cell);
+        return getGasNumberDensity(*pp.getPositionCell());
     }
 
-    inline double getGasNumberDensity(photon_package * pp, uint i_density)
+    inline double getGasNumberDensity(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasNumberDensity(cell, i_density);
+        return getGasNumberDensity(*pp.getPositionCell(), i_density);
     }
 
-    inline double getGasMassDensity(cell_basic * cell)
+    inline double getGasMassDensity(const cell_basic & cell) const
     {
         double sum = 0;
         for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
-            sum += cell->getData(data_pos_gd_list[i_density]);
+            sum += cell.getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
             sum *= (mu * m_H);
         return sum;
     }
 
-    inline double getGasMassDensity(cell_basic * cell, uint i_density)
+    inline double getGasMassDensity(const cell_basic & cell, uint i_density) const
     {
         double dens = 0;
         if(data_pos_gd_list.size() > i_density)
-            dens = cell->getData(data_pos_gd_list[i_density]);
+            dens = cell.getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
             dens *= (mu * m_H);
         return dens;
     }
 
-    inline double getGasMassDensity(photon_package * pp)
+    inline double getGasMassDensity(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasMassDensity(cell);
+        return getGasMassDensity(*pp.getPositionCell());
     }
 
-    inline double getGasMassDensity(photon_package * pp, uint i_density)
+    inline double getGasMassDensity(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getGasMassDensity(cell, i_density);
+        return getGasMassDensity(*pp.getPositionCell(), i_density);
     }
 
     bool useDustChoice()
@@ -2334,50 +2204,46 @@ class CGridBasic
 
     void setDustDensity(photon_package * pp, double val)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setDustDensity(cell, val);
+        setDustDensity(pp->getPositionCell(), val);
     }
 
     void setDustDensity(photon_package * pp, uint i_density, double val)
     {
-        cell_basic * cell = pp->getPositionCell();
-        setDustDensity(cell, i_density, val);
+        setDustDensity(pp->getPositionCell(), i_density, val);
     }
 
-    double getDustDensity(cell_basic * cell)
+    double getDustDensity(const cell_basic & cell) const
     {
         double sum = 0;
         if(!data_pos_dd_list.empty())
         {
             for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
-                sum += cell->getData(data_pos_dd_list[i_density]);
+                sum += cell.getData(data_pos_dd_list[i_density]);
             return sum;
         }
         else
             return 0;
     }
 
-    double getDustDensity(cell_basic * cell, uint i_density)
+    double getDustDensity(const cell_basic & cell, uint i_density) const
     {
         if(data_pos_dd_list.size() > i_density)
-            return cell->getData(data_pos_dd_list[i_density]);
+            return cell.getData(data_pos_dd_list[i_density]);
         else
             return 0;
     }
 
-    double getDustDensity(photon_package * pp)
+    double getDustDensity(const photon_package & pp) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustDensity(cell);
+        return getDustDensity(*pp.getPositionCell());
     }
 
-    double getDustDensity(photon_package * pp, uint i_density)
+    double getDustDensity(const photon_package & pp, uint i_density) const
     {
-        cell_basic * cell = pp->getPositionCell();
-        return getDustDensity(cell, i_density);
+        return getDustDensity(*pp.getPositionCell(), i_density);
     }
 
-    double getRelativeDustDensity(cell_basic * cell, uint i_density)
+    double getRelativeDustDensity(const cell_basic & cell, uint i_density) const
     {
         if(getDustDensity(cell) != 0)
             return getDustDensity(cell, i_density) / getDustDensity(cell);
@@ -2391,12 +2257,12 @@ class CGridBasic
     {
         if(!data_pos_dd_list.empty())
         {
-            double dust_dens = getDustDensity(cell, i_density);
+            double dust_dens = getDustDensity(*cell, i_density);
             cell->setData(data_pos_dd_list[i_density], dust_dens * factor);
         }
         else
         {
-            double gas_dens = getGasDensity(cell, i_density);
+            double gas_dens = getGasDensity(*cell, i_density);
             cell->setData(data_pos_gd_list[i_density], gas_dens * factor);
         }
     }
@@ -2413,48 +2279,40 @@ class CGridBasic
         return true;
     }
 
-    Vector3D getVelocityField(photon_package * pp)
+    Vector3D getVelocityField(const photon_package & pp) const
     {
         if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
             return Vector3D();
 
-        Vector3D tmp_dir(pp->getPositionCell()->getData(data_pos_vx),
-                         pp->getPositionCell()->getData(data_pos_vy),
-                         pp->getPositionCell()->getData(data_pos_vz));
+        const cell_basic & cell = *pp.getPositionCell();
+        Vector3D tmp_dir(cell.getData(data_pos_vx), cell.getData(data_pos_vy), cell.getData(data_pos_vz));
         // Rotate vector from cell center to position
         return rotateToCenter(pp, tmp_dir, true, true);
     }
 
-    Vector3D getVelocityField(cell_basic * cell)
+    Vector3D getVelocityField(const cell_basic & cell) const
     {
         if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
             return Vector3D();
 
-        return Vector3D(cell->getData(data_pos_vx), cell->getData(data_pos_vy), cell->getData(data_pos_vz));
+        return Vector3D(cell.getData(data_pos_vx), cell.getData(data_pos_vy), cell.getData(data_pos_vz));
     }
 
-    virtual void setCrossSections(cross_sections & cs)
-    {}
-
-    virtual void setID(uint id)
-    {}
-
-    double getCellAbundance(photon_package * pp, uint id)
+    double getCellAbundance(const photon_package & pp, uint id) const
     {
         if(id > nrOfDensRatios - 1)
             return 0;
-                
-        cell_basic * cell = pp->getPositionCell();
-        return getCellAbundance(cell, id);
+
+        return getCellAbundance(*pp.getPositionCell(), id);
     }
 
-    double getCellAbundance(cell_basic * cell, uint id)
+    double getCellAbundance(const cell_basic & cell, uint id) const
     {
         if(id > nrOfDensRatios - 1)
             return 0;
 
         uint pos = pos_GasSpecRatios[id];
-        return cell->getData(pos);
+        return cell.getData(pos);
     }
 
     double getOpiateIDParameter(cell_basic * cell, uint id)
@@ -2467,16 +2325,15 @@ class CGridBasic
         return cell->getData(pos);
     }
 
-    Vector3D getMagField(cell_basic * cell)
+    Vector3D getMagField(const cell_basic & cell) const
     {
-        return Vector3D(cell->getData(data_pos_mx), cell->getData(data_pos_my), cell->getData(data_pos_mz));
+        return Vector3D(cell.getData(data_pos_mx), cell.getData(data_pos_my), cell.getData(data_pos_mz));
     }
 
-    Vector3D getMagField(photon_package * pp)
+    Vector3D getMagField(const photon_package & pp) const
     {
-        Vector3D tmp_dir(pp->getPositionCell()->getData(data_pos_mx),
-                         pp->getPositionCell()->getData(data_pos_my),
-                         pp->getPositionCell()->getData(data_pos_mz));
+        const cell_basic & cell = *pp.getPositionCell();
+        Vector3D tmp_dir(cell.getData(data_pos_mx), cell.getData(data_pos_my), cell.getData(data_pos_mz));
         // Rotate vector from cell center to position
         return rotateToCenter(pp, tmp_dir, true, true);
     }
@@ -2488,42 +2345,39 @@ class CGridBasic
         cell->setData(data_pos_mz, mag.Z());
     }
 
-    virtual bool next(photon_package * pp)
+    virtual bool next(photon_package * pp) = 0;
+
+    double getThetaMag(const photon_package & pp) const
     {
-        return false;
+        return getAngleTheta(pp.getDirection(), getMagField(pp));
     }
 
-    double getThetaMag(photon_package * pp)
+    double getPhiMag(const photon_package & pp) const
     {
-        return getAngleTheta(pp->getDirection(), getMagField(pp));
+        return getAnglePhi(pp.getEX(), pp.getEY(), getMagField(pp)) - PI2;
     }
 
-    double getPhiMag(photon_package * pp)
-    {
-        return getAnglePhi(pp->getEX(), pp->getEY(), getMagField(pp)) - PI2;
-    }
-
-    double getTheta(cell_basic * cell, Vector3D & dir)
+    double getTheta(const cell_basic & cell, Vector3D & dir) const
     {
         return getAngleTheta(dir, getMagField(cell));
     }
 
-    double getThetaPhoton(photon_package * pp, Vector3D & dir)
+    double getThetaPhoton(const photon_package & pp, Vector3D & dir) const
     {
-        return getAngleTheta(pp->getDirection(), dir);
+        return getAngleTheta(pp.getDirection(), dir);
     }
 
-    bool getDustIsMassDensity()
+    bool getDustIsMassDensity() const
     {
         return dust_is_mass_density;
     }
 
-    bool getGasIsMassDensity()
+    bool getGasIsMassDensity() const
     {
         return gas_is_mass_density;
     }
 
-    bool getRadiationFieldAvailable()
+    bool getRadiationFieldAvailable() const
     {
         if(data_pos_rx_list.empty() || data_pos_ry_list.empty() || data_pos_rz_list.empty() ||
            data_pos_rf_list.empty())
@@ -2531,7 +2385,7 @@ class CGridBasic
         return true;
     }
 
-    double getTotalGasMass()
+    double getTotalGasMass() const
     {
         return total_gas_mass;
     };

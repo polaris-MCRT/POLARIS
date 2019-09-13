@@ -106,7 +106,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
 {
     if(cell->getChildren() == 0)
     {
-        Vector3D c = getCenter(cell);
+        Vector3D c = getCenter(*cell);
         float x = float(c.X());
         float y = float(c.Y());
         float z = float(c.Z());
@@ -128,27 +128,27 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
                 if(plt_gas_dens)
                     file_streams[1] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getGasDensity(cell))) << endl;
+                                    << float(log10(getGasDensity(*cell))) << endl;
 
                 if(plt_dust_dens)
                     file_streams[2] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getDustDensity(cell))) << endl;
+                                    << float(log10(getDustDensity(*cell))) << endl;
 
                 if(plt_gas_temp)
                     file_streams[3] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getGasTemperature(cell))) << endl;
+                                    << float(log10(getGasTemperature(*cell))) << endl;
 
                 if(plt_dust_temp)
                     file_streams[4] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getDustTemperature(cell))) << endl;
+                                    << float(log10(getDustTemperature(*cell))) << endl;
 
                 if(plt_rat)
                     file_streams[5] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << getAlignedRadius(cell, 0) << endl;
+                                    << getAlignedRadius(*cell, 0) << endl;
 
                 /*if(plt_delta)
                 {
@@ -533,8 +533,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
                 return false;
             }
 
-            double tmp_vol = getVolume(cell_oc_pos->getChild(cube_pos));
-            total_gas_mass += getGasMassDensity(cell_oc_pos->getChild(cube_pos)) * tmp_vol;
+            double tmp_vol = getVolume(*cell_oc_pos->getChild(cube_pos));
+            total_gas_mass += getGasMassDensity(*cell_oc_pos->getChild(cube_pos)) * tmp_vol;
             cell_volume += tmp_vol;
 
             if(level > max_level)
@@ -1360,7 +1360,7 @@ bool CGridOcTree::createArtificialGrid(string path)
 
 void CGridOcTree::createNextLevel(cell_oc * cell)
 {
-    Vector3D p = getCenter(cell);
+    Vector3D p = getCenter(*cell);
     double r = p.length();
     uint tmp_level = uint(max_level);
 
@@ -2186,7 +2186,7 @@ bool CGridOcTree::createTree(cell_oc * parent,
     if(parent->getLevel() == max_level)
     {
         treelevel_counter++;
-        Vector3D center = getCenter((cell_basic *)parent);
+        Vector3D center = getCenter((const cell_basic &)parent);
 
         px = center.X();
         py = center.Y();

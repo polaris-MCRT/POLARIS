@@ -370,8 +370,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
         updateDataRange(tmp_cell);
 
-        double tmp_vol = getVolume(tmp_cell);
-        total_gas_mass += getGasMassDensity(tmp_cell) * tmp_vol;
+        double tmp_vol = getVolume(*tmp_cell);
+        total_gas_mass += getGasMassDensity(*tmp_cell) * tmp_vol;
         cell_volume += tmp_vol;
         th_counter++;
     }
@@ -883,7 +883,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                   << endl;
 
     if(plt_gas_dens)
-        point_fields[0] << "0 0 0 " << 0.5 << " " << getGasDensity(center_cell) << endl;
+        point_fields[0] << "0 0 0 " << 0.5 << " " << getGasDensity(*center_cell) << endl;
 
     line_counter = 0;
 
@@ -895,7 +895,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         {
             for(uint i_th = 0; i_th < N_th; i_th++)
             {
-                cell_sp * tmp_cell_pos = grid_cells[i_r][i_ph][i_th];
+                const cell_sp & tmp_cell_pos = *grid_cells[i_r][i_ph][i_th];
 
                 Vector3D c = getCenter(tmp_cell_pos);
 

@@ -186,7 +186,7 @@ class Vector3D
         y = r * sin(ph);
     }
 
-    Vector3D getSphericalCoord()
+    Vector3D getSphericalCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return Vector3D(0, 0, 0);
@@ -213,7 +213,7 @@ class Vector3D
         return Vector3D(r, ph, th);
     }
 
-    Vector3D getCylindricalCoord()
+    Vector3D getCylindricalCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return Vector3D(0, 0, 0);
@@ -227,7 +227,7 @@ class Vector3D
         return Vector3D(r, ph, z);
     }
 
-    double getPhiCoord()
+    double getPhiCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return 0;
@@ -630,7 +630,7 @@ double getAngleTheta(Vector3D lhs, Vector3D rhs)
     //	/(lhs.length()*rhs.length()) ));
 }
 
-Vector3D projection(Vector3D v, Vector3D w)
+Vector3D projection(const Vector3D & v, const Vector3D & w)
 {
     double tmp = w.sq_length();
     tmp = (v * w) / tmp;
@@ -639,7 +639,7 @@ Vector3D projection(Vector3D v, Vector3D w)
     return res;
 }
 
-double getAnglePhi(Vector3D ex, Vector3D ey, Vector3D proj)
+double getAnglePhi(const Vector3D & ex, const Vector3D & ey, const Vector3D & proj)
 {
     Vector3D px, py;
     double lx, ly, sx, sy;
