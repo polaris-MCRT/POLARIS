@@ -115,6 +115,7 @@ class CGridVoronoi : public CGridBasic
         pos_OpiateIDS = 0;
 
         plt_gas_dens = false;
+        plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp = false;
         plt_dust_temp = false;

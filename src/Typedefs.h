@@ -89,7 +89,7 @@ using namespace std;
 // Define the fits file extension
 // ".fits" normal fits file
 // ".fits.gz" compressed fits file
-#define FITS_COMPRESS_EXT ".fits.gz"
+#define FITS_COMPRESS_EXT ".fits"
 
 // Number of quantities in dust component file (C_{x,abs}, C_{x,ext}, C_{x,sca}, ...)
 #define NR_OF_EFF 8

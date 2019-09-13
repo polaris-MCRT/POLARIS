@@ -1080,6 +1080,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(all)
     {
         plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
+        plt_mol_dens = (nrOfDensRatios>0 && param.isInPlotList(GRIDratio) );
         plt_dust_dens = (!data_pos_dd_list.empty()) && param.isInPlotList(GRIDdust_dens);
         plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
 
@@ -1149,6 +1150,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     else
     {
         plt_gas_dens = false;
+        plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp = false;
         plt_dust_temp = false;
@@ -1243,6 +1245,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_dust_temp)
         if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
             nr_parameters += nr_densities;
+    if(plt_mol_dens)
+        nr_parameters += nrOfDensRatios;
 
     long naxis = 4;
     long naxes[4] = { uint(bins), uint(bins), 3, nr_parameters };
@@ -1327,6 +1331,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     long nelements = bins * bins;
 
     valarray<double> array_gas_dens(nelements);
+    valarray<double> array_mol_dens(nelements);
     valarray<double> array_dust_dens(nelements);
     valarray<double> array_gas_temp(nelements);
     valarray<double> array_dust_temp(nelements);
@@ -1372,6 +1377,18 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 buffer_gas_dens[i_cell] = new double[nr_densities];
         }
     }
+    
+    if(plt_mol_dens)
+    {
+        buffer_mol_dens = new double *[nelements];
+        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        {
+            buffer_mol_dens[i_cell] = new double[nrOfDensRatios];
+        }
+    }
+    
+    
+    
     if(plt_dust_dens)
     {
         buffer_dust_dens = new double *[nelements];
@@ -1529,6 +1546,17 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_gas_dens);
                     }
+            }
+            if(plt_mol_dens)
+            {
+                for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
+                {
+                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        array_mol_dens[i_cell] = buffer_mol_dens[i_cell][i_density];
+                    
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_mol_dens);
+                }
             }
             if(plt_dust_dens)
             {
@@ -1825,6 +1853,16 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_gas_dens);
                     }
+            }
+            if(plt_mol_dens)
+            {
+                for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
+                {
+                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        array_mol_dens[i_cell] = buffer_mol_dens[i_cell][i_density];
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_mol_dens);
+                }
             }
             if(plt_dust_dens)
             {
@@ -2177,6 +2215,23 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 pFits->pHDU().addKey(str_1, "gas_number_density [m^-3]", str_2);
         }
     }
+    if(plt_mol_dens)
+    {
+        counter++;
+        updateMidplaneString(str_1, str_2, counter);
+
+        for(uint i_density = 1; i_density <= nrOfDensRatios; i_density++)
+        {
+            counter++;
+            updateMidplaneString(str_1, str_2, counter);
+            string str_3;
+            if(gas_is_mass_density)
+                str_3 = getDensityString("mol_mass_density_%i [kg/m^3]", i_density);
+            else
+                str_3 = getDensityString("mol_number_density_%i [m^-3]", i_density);
+            pFits->pHDU().addKey(str_1, str_3, str_2);
+        }
+    }
     if(plt_dust_dens)
     {
         counter++;
@@ -2434,6 +2489,12 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_gas_dens[i_cell];
         delete[] buffer_gas_dens;
+    }
+    if(plt_mol_dens)
+    {
+        for(int i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_mol_dens[i_cell];
+        delete[] buffer_mol_dens;
     }
     if(plt_dust_dens)
     {
