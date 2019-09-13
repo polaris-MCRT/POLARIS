@@ -1190,7 +1190,7 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
         grid->next(pp);
 
         // Invert direction
-        pp->setDirection(-1 * pp->getDirection());
+        pp->multDirection(-1);
 
         // Go into cell again
         grid->next(pp);
@@ -1198,10 +1198,10 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
     else
     {
         // Move photon along the path outwards the grid
-        pp->setPosition(pp->getDirection() + pp->getDirection() * grid->maxLength());
+        pp->addPosition(pp->getDirection() * grid->maxLength());
 
         // Invert direction
-        pp->setDirection(-1 * pp->getDirection());
+        pp->multDirection(-1);
     }
 
     // // Init coordinate System for polarization

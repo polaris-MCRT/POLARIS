@@ -1630,7 +1630,7 @@ void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
                                             double sin_theta,
                                             double cos_theta,
                                             double energy,
-                                            double * J_nu)
+                                            double * J_nu) const
 {
     if(!isTransZeemanSplit(i_trans))
     {

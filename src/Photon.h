@@ -34,7 +34,6 @@ class photon_package
         for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
         {
             wavelength[i_spectral] = 0;
-            multi_stokes[i_spectral] = 0;
 
             // Dust wavelength index has to be MAX_UINT if not set in routine
             wID[i_spectral] = MAX_UINT;
@@ -65,7 +64,6 @@ class photon_package
         for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
         {
             velocity[i_spectral] = 0;
-            multi_stokes[i_spectral] = 0;
         }
 
         // Set wavelength for dust contribution
@@ -142,7 +140,6 @@ class photon_package
             for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
             {
                 wavelength[i_spectral] = 0;
-                multi_stokes[i_spectral] = 0;
 
                 // Dust wavelength index has to be MAX_UINT if not set in routine
                 wID[i_spectral] = MAX_UINT;
@@ -375,6 +372,11 @@ class photon_package
         pos = val;
     }
 
+    void addPosition(Vector3D val)
+    {
+        pos += val;
+    }
+
     void setBackupPosition(Vector3D val)
     {
         backup_pos = val;
@@ -424,6 +426,16 @@ class photon_package
     void setDirection(Vector3D val)
     {
         ez = val;
+    }
+
+    void addDirection(Vector3D val)
+    {
+        ez += val;
+    }
+
+    void multDirection(double val)
+    {
+        ez *= val;
     }
 
     const Vector3D & getEX() const

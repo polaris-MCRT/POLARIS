@@ -721,7 +721,7 @@ class CGasSpecies
                                    double sin_theta,
                                    double cos_theta,
                                    double energy,
-                                   double * J_nu);
+                                   double * J_nu) const;
 
   private:
     double ** collision_temp;
@@ -1041,7 +1041,7 @@ class CGasMixture
                                    double sin_theta,
                                    double cos_theta,
                                    double energy,
-                                   double * J_nu)
+                                   double * J_nu) const
     {
         single_species[i_species].applyRadiationFieldFactor(i_trans, sin_theta, cos_theta, energy, J_nu);
     }

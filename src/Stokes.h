@@ -474,7 +474,7 @@ class StokesVector
         sSp = 0;
     }
 
-    void clearIntensity()
+    void resetIntensity()
     {
         sI = 0;
         sQ = 0;
@@ -484,38 +484,6 @@ class StokesVector
 
   private:
     double sI, sQ, sU, sV, sT, sSp;
-};
-
-class MultiStokesVector
-{
-  public:
-    MultiStokesVector()
-    {
-        s = 0;
-    }
-
-    MultiStokesVector(uint nr_stokes_vector)
-    {
-        s = new StokesVector[nr_stokes_vector];
-    }
-
-    ~MultiStokesVector(void)
-    {
-        if(s != 0)
-            delete[] s;
-    }
-
-    void setS(StokesVector _S, uint _i)
-    {
-        s[_i] = _S;
-    }
-    StokesVector & S(uint _i)
-    {
-        return s[_i];
-    }
-
-  private:
-    StokesVector * s;
 };
 
 namespace

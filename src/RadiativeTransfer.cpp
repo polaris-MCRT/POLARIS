@@ -909,7 +909,9 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     if(!local_converged)
                     {
                         for(uint i_trans_tot = 0; i_trans_tot < nr_of_total_transitions; i_trans_tot++)
+                        {
                             J_nu_total[i_trans_tot] += J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot];
+                        }
                     }
                 }
 
@@ -1090,9 +1092,9 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
             // Ignore very small values
             if(abs(stokes_new.I()) < 1e-200)
-                stokes_new.clearIntensity();
+                stokes_new.resetIntensity();
             if(abs(stokes_new2.I()) < 1e-200)
-                stokes_new2.clearIntensity();
+                stokes_new2.resetIntensity();
 
             // Calculate the difference between the results with two
             // different precisions to see if smaller steps are needed
@@ -2689,9 +2691,9 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
 
                 // Ignore very small values
                 if(abs(stokes_new.I()) < 1e-200)
-                    stokes_new.clearIntensity();
+                    stokes_new.resetIntensity();
                 if(abs(stokes_new2.I()) < 1e-200)
-                    stokes_new2.clearIntensity();
+                    stokes_new2.resetIntensity();
 
                 // Calculate the difference between the results with two
                 // different precisions to see if smaller steps are needed
@@ -3250,9 +3252,9 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                 // Ignore very small values
                 if(abs(stokes_new.I()) < 1e-200)
-                    stokes_new.clearIntensity();
+                    stokes_new.resetIntensity();
                 if(abs(stokes_new2.I()) < 1e-200)
-                    stokes_new2.clearIntensity();
+                    stokes_new2.resetIntensity();
 
                 // Calculate the difference between the results with two
                 // different precisions to see if smaller steps are needed
