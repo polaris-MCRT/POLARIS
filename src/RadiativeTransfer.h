@@ -157,7 +157,7 @@ class CRadiativeTransfer
     bool setTemperatureDistribution();
     
     // Set temperature from dust inner energy
-    bool setTemperatureFromU();
+    bool setTemperatureFromU(dlist dust_u);
 
     // Dust scattered light
     bool calcPolMapsViaMC();

@@ -421,6 +421,7 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
     delete[] detector;
     deleteSourceLists();
     
+    
     return true;
 }
 

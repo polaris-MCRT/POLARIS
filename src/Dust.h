@@ -1779,6 +1779,19 @@ class CDustComponent
     {
         return enthalpy[a][t];
     }
+    
+    double getEnthalpyMean(uint t)
+    {
+        //Calculate mean enthalpy for timedependent transfer
+        double * EnthalpyMean = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            EnthalpyMean[a] = a_eff_1_5[a] * getEnthalpy(a, t);
+        double res =
+            1.0 / getWeight() *
+            CMathFunctions::integ_dust_size(a_eff, EnthalpyMean, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] EnthalpyMean;
+        return res;
+    }
 
     double getEnthalpyBinWidth(uint a, uint t)
     {
@@ -2576,6 +2589,24 @@ class CDustMixture
     {
         uint i_mixture = getMixtureID(grid, cell);
         return mixed_component[i_mixture].getEnthalpy(a,t);
+    }
+    
+    double getEnthalpyMean(CGridBasic * grid, cell_basic * cell, uint t)
+    {
+        uint i_mixture = getMixtureID(grid, cell);
+        return mixed_component[i_mixture].getEnthalpyMean(t);
+    }
+    
+    uint getCalorimetricTemperature(CGridBasic * grid, cell_basic * cell, uint i)
+    {
+        uint i_mixture = getMixtureID(grid, cell);
+        return mixed_component[i_mixture].getCalorimetricTemperature(i);
+    }
+    
+    uint getNrOfCalorimetryTemperatures(CGridBasic * grid, cell_basic * cell)
+    {
+        uint i_mixture = getMixtureID(grid, cell);
+        return mixed_component[i_mixture].getNrOfCalorimetryTemperatures();
     }
     
     double getCextMean(CGridBasic * grid, photon_package * pp)

@@ -2977,6 +2977,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     dlist dust_em(max_cells);
     dlist dust_u(max_cells);
     
+    // Set minimum enthalpy for tests
+    for(long c_i = 0; c_i < long(max_cells); c_i++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(c_i);
+        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,50);
+    }
+    
     //Number of photons per timestep
     uint nr_of_photons_step = 5e+0;
     
@@ -2988,8 +2995,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         ullong N_s = 0;
         
         // Calc temperatures and emission rate
-        // temp_calc_U(g, d, 0)
-        if (!setTemperatureFromU())
+        if (!setTemperatureFromU(dust_u))
             return false;
         
         // Set stack for energy to estimate absorption rate
@@ -3021,31 +3027,32 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
 }
 
-bool CRadiativeTransfer::setTemperatureFromU()
+bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
 {
     // Get Temperature from the the dust mix
+    // Use integraded enthalpy of dust mix
     // Tbd: add more than one dust mix
     
     ulong max_cells = grid->getMaxDataCells();
     
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        //uint i_mixture = dust->getMixtureID(grid, cell);
-        double ent = dust->getEnthalpy(grid,cell,0,100);
+        uint i_mixture = dust->getMixtureID(grid, cell);
         
-        cout << "\n" << ent << endl;
+        double Enthalpy[dust->getNrOfCalorimetryTemperatures(grid,cell)];
+        for(uint T = 0; T < dust->getNrOfCalorimetryTemperatures(grid,cell); T++)
+            Enthalpy[T] = dust->getEnthalpyMean(grid,cell,T);
         
-        double temp = 100;
+        double temp = distance(Enthalpy,find(Enthalpy, Enthalpy+100, dust_u[c_i]));
         
+#pragma omp critical
+        cout << temp << endl;
         //double hd2 = cell energy / cell volume if cell rho > 0
-        
-        // Choose temperature from pretabulated Enthalpy
-        // interpolation if necessary
-        
+
         // Set termperature in cell
-        grid->setDustTemperature(cell, temp);
+        //grid->setDustTemperature(cell, temp);
     }
     
     return true;
