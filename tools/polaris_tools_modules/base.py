@@ -780,7 +780,7 @@ class Model:
         Returns:
             float: Width between two cell borders.
         """
-        return 10. * self.scale_height(radius) / self.cylindrical_parameter['n_z']
+        return 10. * self.get_scale_height(radius) / self.cylindrical_parameter['n_z']
 
     def adjust_extent(self, sidelength_x, sidelength_y):
         """Adjust the extent of the model.
@@ -943,7 +943,7 @@ class Model:
         """
         return None
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:

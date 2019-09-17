@@ -3069,14 +3069,14 @@ class CDustMixture
 
             // Get radiation field and calculate angle to the photon package direction
             if(grid->getRadiationFieldAvailable())
-                grid->getRadiationFieldInterp(pp, wavelength_list[w], energy, en_dir);
+                grid->getRadiationFieldInterp(pp, wavelength_list[w], &energy, &en_dir);
             else if(i_offset != MAX_UINT)
             {
                 // Use the rad field as stokes vector if all necessary things were already calculated
                 *dust_emissivity += grid->getStokesFromRadiationField(pp, i_offset);
             }
             else
-                grid->getRadiationField(pp, w, energy, en_dir);
+                grid->getRadiationField(pp, w, &energy, &en_dir);
         }
 
         if(mixed_component != 0)

@@ -3631,7 +3631,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double arr_en_dens = 0;
 
                 // Get radiation field (4 * PI * vol * J)
-                grid->getSpecLength(*cell, w, arr_en_dens, en_dir);
+                grid->getSpecLength(*cell, w, &arr_en_dens, &en_dir);
 
                 // If the radiation field is zero -> set arrays to zero and move on
                 if(arr_en_dens == 0)

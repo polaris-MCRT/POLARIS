@@ -186,15 +186,18 @@ class Ring(Model):
         if radius_cy >= self.parameter['inner_radius']:
             # Calculate sinus angle from position
             sin_angle = np.pi * (radius_cy - self.parameter['inner_radius']) / \
-                (self.parameter['outer_radius'] - self.parameter['inner_radius'])
-            scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+                (self.parameter['outer_radius'] -
+                 self.parameter['inner_radius'])
+            scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * \
+                (self.parameter['outer_radius'] -
+                 self.parameter['inner_radius'])
             gas_density = np.sin(sin_angle) * \
                 np.exp(-0.5 * (self.position[2] / scale_height) ** 2)
         else:
             gas_density = 0
         return gas_density
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -206,7 +209,8 @@ class Ring(Model):
         # Calculate sinus angle from position
         sin_angle = np.pi * (radius - self.parameter['inner_radius']) \
             / (self.parameter['outer_radius'] - self.parameter['inner_radius'])
-        scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * (self.parameter['outer_radius'] - self.parameter['inner_radius'])
+        scale_height = (np.sin(sin_angle) + 1e-2) * 1e-1 * \
+            (self.parameter['outer_radius'] - self.parameter['inner_radius'])
         return scale_height
 
 
@@ -266,8 +270,8 @@ class TestModel(Model):
             float: Gas density at a given position.
         """
         gas_density1 = self.math.const_sphere_density(self.position,
-                                                inner_radius=self.parameter['inner_radius'],
-                                                outer_radius=self.parameter['outer_radius'])
+                                                      inner_radius=self.parameter['inner_radius'],
+                                                      outer_radius=self.parameter['outer_radius'])
         # gas_density2 = self.math.const_sphere_density(self.position,
         #                                         inner_radius=100. *
         #                                         self.parameter['inner_radius'],
@@ -502,12 +506,12 @@ class GGTauDisk(Model):
         # Custom width of z-cell borders per ring
         self.cylindrical_parameter['sf_z'] = -1
         # Radial cells
-        r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                      self.a_Aab + 8. * self.math.const['au'], 250)
-        r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                            260. * self.math.const['au'], 50, 1.03)
+        self.r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                           self.a_Aab + 8. * self.math.const['au'], 250)
+        self.r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                 260. * self.math.const['au'], 50, 1.03)
         self.cylindrical_parameter['radius_list'] = np.hstack(
-            (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+            (self.r_list_cs_disks, 140 * self.math.const['au'], self.r_list_cb_disk)).ravel()
         # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
         self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
         self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
@@ -518,7 +522,7 @@ class GGTauDisk(Model):
             (n_ph_list_1, n_ph_list_2)).ravel()
         # ------------------------------------------
         # ---- Cutoffs for density distribution ----
-        # ------------------------------------------ 
+        # ------------------------------------------
         self.cutoff_pos = [190. * self.math.const['au'], None]
         self.cutoff_rate = [2. * self.math.const['au'], None]
         # ----------------------------------
@@ -529,10 +533,9 @@ class GGTauDisk(Model):
         wl_list = ['7700']  # ['800', '1250', '1650', '3800', '7700']
         for wl in wl_list:
             data = np.genfromtxt('/home/rbrauer/astrophysics/polaris/projects/'
-                'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
+                                 'gg_tau_disk/dust_settling/' + wl + '_nm_layers.dat')
             self.layer_function[wl] = interpolate.interp1d(
-                data[0,:], data[1,:], fill_value="extrapolate")
- 
+                data[0, :], data[1, :], fill_value="extrapolate")
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -549,22 +552,23 @@ class GGTauDisk(Model):
                     self.disk_Aa = True
                     self.disk_Ab1 = True
                     # Radial cells
-                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 250)
-                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                                        260. * self.math.const['au'], 100, 1.03)
-                    # r_list_planet = self.math.exp_list(260. * self.math.const['au'],
-                    #                                    241. * self.math.const['au'], 39, 1.05)
+                    self.r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                       self.a_Aab + 8. * self.math.const['au'], 250)
+                    self.r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                             240. * self.math.const['au'], 50, 1.03)
+                    self.r_list_planet = self.math.exp_list(260. * self.math.const['au'],
+                                                            241. * self.math.const['au'], 39, 1.05)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel() # r_list_planet[::-1]
+                        (self.r_list_cs_disks, 140 * self.math.const['au'], self.r_list_cb_disk,
+                         self.r_list_planet[::-1])).ravel()
                     # Cite: extent of circumbinary disk 180 AU - 260 AU (Dutrey et al. 2014)
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     # Phi cells
                     n_ph_list_1 = [600] * 250
-                    n_ph_list_2 = [180] * 101
-                    #n_ph_list_3 = [600] * 40
+                    n_ph_list_2 = [180] * 51
+                    n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
-                        (n_ph_list_1, n_ph_list_2)).ravel() # n_ph_list_3
+                        (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
                     # Outer cutoff for tapered disk
                     self.cutoff_pos[1] = 240. * self.math.const['au']
                     self.cutoff_rate[1] = 5. * self.math.const['au']
@@ -585,12 +589,12 @@ class GGTauDisk(Model):
                     # Decrease scale height of Ab1 ---
                     self.ref_scale_height[2] = 0.01 * self.math.const['au']
                     # Radial cell borders
-                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 300)
-                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                                        260. * self.math.const['au'], 50, 1.03)
+                    self.r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                       self.a_Aab + 8. * self.math.const['au'], 300)
+                    self.r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                             260. * self.math.const['au'], 50, 1.03)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+                        (self.r_list_cs_disks, 140 * self.math.const['au'], self.r_list_cb_disk)).ravel()
                     # Radial grid limits
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
@@ -605,8 +609,8 @@ class GGTauDisk(Model):
                     self.disk_Ab1 = True
                     self.disk_Ab2 = True
                     # Rotate Ab2 CS disk ---
-                    self.inclination_Ab2 = 90. / 180. * \
-                        np.pi  # (90. - 37.) / 180. * np.pi
+                    # (90. - 37.) / 180. * np.pi
+                    self.inclination_Ab2 = 90. / 180. * np.pi
                     # Adjust vertical cell number
                     self.cylindrical_parameter['n_z'] = 400
                     self.fixed_scale_height = 0.45 * self.math.const['au']
@@ -616,14 +620,13 @@ class GGTauDisk(Model):
                     self.ref_scale_height[1] = 0.8 * self.math.const['au']
                     # Decrease scale height of Ab2 ---
                     self.ref_scale_height[3] = 0.01 * self.math.const['au']
-                    print(self.ref_scale_height[3] / self.math.const['au'])
                     # Radial cell borders
-                    r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
-                                                  self.a_Aab + 8. * self.math.const['au'], 600)
-                    r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
-                                                        260. * self.math.const['au'], 50, 1.03)
+                    self.r_list_cs_disks = np.linspace(self.a_Aab - 8. * self.math.const['au'],
+                                                       self.a_Aab + 8. * self.math.const['au'], 600)
+                    self.r_list_cb_disk = self.math.exp_list(180. * self.math.const['au'],
+                                                             260. * self.math.const['au'], 50, 1.03)
                     self.cylindrical_parameter['radius_list'] = np.hstack(
-                        (r_list_cs_disks, 140 * self.math.const['au'], r_list_cb_disk)).ravel()
+                        (self.r_list_cs_disks, 140 * self.math.const['au'], self.r_list_cb_disk)).ravel()
                     # Radial grid limits
                     self.parameter['outer_radius'] = self.cylindrical_parameter['radius_list'][-1]
                     self.parameter['inner_radius'] = self.cylindrical_parameter['radius_list'][0]
@@ -747,8 +750,11 @@ class GGTauDisk(Model):
         """
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
-        if 180. * self.math.const['au'] <= radius_cy <= 260. * self.math.const['au']:
-            if abs(self.position[2]) > self.layer_function['7700'](radius_cy):
+        scale_height = self.math.default_disk_scale_height(
+                radius_cy, ref_radius=self.ref_radius[0], 
+                ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
+        if 180. * self.math.const['au'] <= radius_cy <= self.parameter['outer_radius']:
+            if abs(self.position[2]) - 0.5 * scale_height > self.layer_function['7700'](radius_cy):
                 dust_id = 1
             else:
                 dust_id = 2
@@ -770,7 +776,7 @@ class GGTauDisk(Model):
             dust_id = 0
         return dust_id
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -779,11 +785,12 @@ class GGTauDisk(Model):
         Returns:
             float: Scale height.
         """
-        if(radius <= self.a_Aab + self.outer_radius_Aa):
+        if(radius < self.r_list_cs_disks[-1]):
             scale_height = self.fixed_scale_height
         else:
             scale_height = self.math.default_disk_scale_height(
-                radius, ref_radius=self.ref_radius[0], ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
+                radius, ref_radius=self.ref_radius[0], 
+                ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
         return scale_height
 
 
@@ -914,7 +921,7 @@ class HD97048(Model):
                     [0, 0, 0, 0, pah_cont], ]
         return [[inner_disk, ring_1, ring_2, ring_3], [0, ring_1, ring_2, ring_3]]
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -1052,7 +1059,7 @@ class HD169142(Model):
             density_list[:, 1] = gas_density
         return density_list
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -1215,7 +1222,7 @@ class ThemisDisk(Model):
             density_list = np.ones((5, 1)) * gas_density
         return density_list
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:

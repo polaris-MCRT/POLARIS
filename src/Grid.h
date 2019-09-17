@@ -712,14 +712,14 @@ class CGridBasic
         return getSpecLength(*pp.getPositionCell(), wID);
     }
 
-    void getSpecLength(const cell_basic & cell, uint wID, double & us, Vector3D & e_dir) const
+    void getSpecLength(const cell_basic & cell, uint wID, double * us, Vector3D * e_dir) const
     {
         uint data_pos = data_offset + 4 * wID;
 
-        us = cell.getData(data_pos + 0);
-        e_dir.setX(cell.getData(data_pos + 1));
-        e_dir.setY(cell.getData(data_pos + 2));
-        e_dir.setZ(cell.getData(data_pos + 3));
+        *us = cell.getData(data_pos + 0);
+        e_dir->setX(cell.getData(data_pos + 1));
+        e_dir->setY(cell.getData(data_pos + 2));
+        e_dir->setZ(cell.getData(data_pos + 3));
     }
 
     void saveRadiationField()
@@ -827,7 +827,7 @@ class CGridBasic
         return getRadiationFieldZ(*pp.getPositionCell(), wID);
     }
 
-    void getRadiationField(const photon_package & pp, uint w, double & us, Vector3D & e_dir) const
+    void getRadiationField(const photon_package & pp, uint w, double * us, Vector3D * e_dir) const
     {
         // Init variables and get current cell
         Vector3D tmp_dir;
@@ -839,25 +839,25 @@ class CGridBasic
             if(spec_length_as_vector)
             {
                 // Get SpecLength instead if no radiation field in grid
-                getSpecLength(cell, w, us, tmp_dir);
-                us /= getVolume(cell);
+                getSpecLength(cell, w, us, &tmp_dir);
+                *us /= getVolume(cell);
             }
             else
                 cout << "ERROR: This should not happen" << endl;
         }
         else
         {
-            us = cell.getData(data_pos_rf_list[w]);
+            *us = cell.getData(data_pos_rf_list[w]);
             tmp_dir.setX(cell.getData(data_pos_rx_list[w]));
             tmp_dir.setY(cell.getData(data_pos_ry_list[w]));
             tmp_dir.setZ(cell.getData(data_pos_rz_list[w]));
         }
 
         // Rotate vector from cell center to position
-        e_dir = rotateToCenter(pp, tmp_dir, true);
+        *e_dir = rotateToCenter(pp, tmp_dir, true);
 
         // Normalize the radiation field vector
-        e_dir.normalize();
+        e_dir->normalize();
     }
 
     StokesVector getStokesFromRadiationField(const photon_package & pp, uint i_offset) const
@@ -887,8 +887,8 @@ class CGridBasic
 
     void getRadiationFieldInterp(const photon_package & pp,
                                  double wavelength,
-                                 double & us,
-                                 Vector3D & e_dir) const
+                                 double * us,
+                                 Vector3D * e_dir) const
     {
         // Do not interpolate if outside of wavelength list
         if(wl_list.back() < wavelength || wl_list.front() > wavelength)
@@ -911,11 +911,11 @@ class CGridBasic
         uint wID2 = wID1 + 1;
 
         // Interpolate radiation field strength and direction
-        us = CMathFunctions::interpolate(wl_list[wID1],
-                                         wl_list[wID2],
-                                         cell.getData(data_pos_rf_list[wID1]),
-                                         cell.getData(data_pos_rf_list[wID2]),
-                                         wavelength);
+        *us = CMathFunctions::interpolate(wl_list[wID1],
+                                          wl_list[wID2],
+                                          cell.getData(data_pos_rf_list[wID1]),
+                                          cell.getData(data_pos_rf_list[wID2]),
+                                          wavelength);
         tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1],
                                                  wl_list[wID2],
                                                  cell.getData(data_pos_rx_list[wID1]),
@@ -933,10 +933,10 @@ class CGridBasic
                                                  wavelength));
 
         // Rotate vector to cell center
-        e_dir = rotateToCenter(pp, tmp_dir, true);
+        *e_dir = rotateToCenter(pp, tmp_dir, true);
 
         // Normalize the radiation field vector
-        e_dir.normalize();
+        e_dir->normalize();
     }
 
     double getGZero(const cell_basic & cell) const
@@ -2387,7 +2387,7 @@ class CGridBasic
 
     bool doPDA(parameters & param, uint pda_id);
 
-    uint getTemperatureFieldInformation()
+    uint getTemperatureFieldInformation() const
     {
         // Check which kind of temperature calculation the grid supports
         if(multi_temperature_entries > nr_densities && data_pos_dt_list.size() == multi_temperature_entries)

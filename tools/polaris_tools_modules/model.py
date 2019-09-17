@@ -221,7 +221,7 @@ class Disk(Model):
                                                      alpha=self.parameter['alpha'], beta=self.parameter['beta'])
         return gas_density
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
