@@ -66,8 +66,10 @@ class CustomModel(Model):
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
-                dust_temperature(self), velocity_field(self), magnetic_field(self),
-                dust_id(self), dust_min_size(self), dust_max_size(self), dust_size_param(self)
+                dust_temperature(self), velocity_field(
+                    self), magnetic_field(self),
+                dust_id(self), dust_min_size(self), dust_max_size(
+                    self), dust_size_param(self)
 
             xyz_density_distribution can return a density or 2D list of densities.
                 - The first dimension is used to define multiple density distributions
@@ -101,7 +103,7 @@ class Cube(Model):
             [[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
-        #self.parameter['radiation_source'] = 'isrf'
+        # self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
 
@@ -382,7 +384,7 @@ class MhdFlock(Model):
         self.spherical_parameter['n_ph'] = 512
         self.spherical_parameter['sf_r'] = 1.0063066707156978
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
-        #self.parameter['external_input_name'] = 'mflock'
+        # self.parameter['external_input_name'] = 'mflock'
         self.parameter['vel_is_speed_of_sound'] = True
         self.parameter['radiation_source'] = 'binary'
         self.parameter['dust_composition'] = 'mrn_oblate'
@@ -525,6 +527,14 @@ class GGTauDisk(Model):
         # ------------------------------------------
         self.cutoff_pos = [190. * self.math.const['au'], None]
         self.cutoff_rate = [2. * self.math.const['au'], None]
+        # ------------------------------------------------------
+        # ---- Hill radius to remove material around planet ----
+        # ------------------------------------------------------
+        self.hill_radius = 0
+        self.planet_pos = np.array([
+            252 * self.math.const['au'],
+            0 * self.math.const['au']
+        ])
         # ----------------------------------
         # ---- Init dust layers profile ----
         # ----------------------------------
@@ -546,8 +556,37 @@ class GGTauDisk(Model):
         self.disk_Ab2 = False
 
         if extra_parameter is not None:
-            if len(extra_parameter) == 1:
+            if len(extra_parameter) >= 2:
+                if extra_parameter[1] == 'tapered':
+                    print('-> enabling tapered disk!')
+                    if(len(extra_parameter) == 4):
+                        # Outer cutoff for tapered disk
+                        self.cutoff_pos[1] = self.math.parse(
+                            extra_parameter[2], 'length')
+                        self.cutoff_rate[1] = self.math.parse(
+                            extra_parameter[3], 'length')
+                    else:
+                        # Outer cutoff for tapered disk
+                        self.cutoff_pos[1] = 240. * self.math.const['au']
+                        self.cutoff_rate[1] = 5. * self.math.const['au']
+                elif extra_parameter[1] == 'hill_radius':
+                    print('-> enabling Hill radius around planet!')
+                    if(len(extra_parameter) == 3):
+                        self.hill_radius = self.math.parse(
+                            extra_parameter[2], 'length')
+                    elif(len(extra_parameter) == 5):
+                        self.hill_radius = self.math.parse(
+                            extra_parameter[2], 'length')
+                        self.planet_pos = np.array([
+                            self.math.parse(extra_parameter[3], 'length'),
+                            self.math.parse(extra_parameter[4], 'length')
+                        ])
+                    else:
+                        raise ValueError(
+                            'Not enough parameters to apply Hill radius(radius, planet pos)')
+            if len(extra_parameter) >= 1:
                 if extra_parameter[0] == 'planet':
+                    print('-> enabling planet in disk!')
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
@@ -569,10 +608,8 @@ class GGTauDisk(Model):
                     n_ph_list_3 = [600] * 40
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2, n_ph_list_3)).ravel()
-                    # Outer cutoff for tapered disk
-                    self.cutoff_pos[1] = 240. * self.math.const['au']
-                    self.cutoff_rate[1] = 5. * self.math.const['au']
                 elif extra_parameter[0] == 'vertical_Ab1':
+                    print('-> enabling vertical Ab1 CS disk!')
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
@@ -604,6 +641,7 @@ class GGTauDisk(Model):
                     self.cylindrical_parameter['n_ph'] = np.hstack(
                         (n_ph_list_1, n_ph_list_2)).ravel()
                 elif extra_parameter[0] == 'vertical_Ab2':
+                    print('-> enabling vertical Ab2 CS disk!')
                     # Enable all disks
                     self.disk_Aa = True
                     self.disk_Ab1 = True
@@ -729,7 +767,10 @@ class GGTauDisk(Model):
             if self.cutoff_pos[1] is not None and radius_cy > self.cutoff_pos[1]:
                 disk_density *= np.exp(-0.5 * (
                     (radius_cy - self.cutoff_pos[1]) / self.cutoff_rate[1]) ** 2)
-
+            if self.hill_radius > 0 and np.linalg.norm(
+                    np.array([radius_cy, self.position[2]])
+                        - self.planet_pos) < self.hill_radius:
+                disk_density = 0
         else:
             # Set to zero outside of the disk
             disk_density = 0.
@@ -751,8 +792,8 @@ class GGTauDisk(Model):
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         scale_height = self.math.default_disk_scale_height(
-                radius_cy, ref_radius=self.ref_radius[0], 
-                ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
+            radius_cy, ref_radius=self.ref_radius[0],
+            ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
         if 180. * self.math.const['au'] <= radius_cy <= self.parameter['outer_radius']:
             if abs(self.position[2]) - 0.5 * scale_height > self.layer_function['7700'](radius_cy):
                 dust_id = 1
@@ -789,7 +830,7 @@ class GGTauDisk(Model):
             scale_height = self.fixed_scale_height
         else:
             scale_height = self.math.default_disk_scale_height(
-                radius, ref_radius=self.ref_radius[0], 
+                radius, ref_radius=self.ref_radius[0],
                 ref_scale_height=self.ref_scale_height[0], beta=self.beta[0])
         return scale_height
 
@@ -1124,8 +1165,8 @@ class ThemisDisk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        #self.parameter['alpha'] = 1.625
-        #self.parameter['beta'] = 1.125
+        # self.parameter['alpha'] = 1.625
+        # self.parameter['beta'] = 1.125
         self.parameter['alpha'] = 2.357
         self.parameter['beta'] = 1.286
         # Init new parameter

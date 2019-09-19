@@ -2622,13 +2622,13 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->setFhighJ(atof(data.c_str()));
         return true;
     }
-    
+
     if(cmd.compare("<Q_ref>") == 0)
     {
         param->setQref(atof(data.c_str()));
         return true;
     }
-    
+
     if(cmd.compare("<alpha_Q>") == 0)
     {
         param->setAlphaQ(atof(data.c_str()));
@@ -2796,6 +2796,16 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->setScatteringToRay(true);
         else
             param->setScatteringToRay(false);
+
+        return true;
+    }
+
+    if(cmd.compare("<split_dust_emission>") == 0)
+    {
+        if(atob(atoi(data.c_str())))
+            param->setSplitDustEmission(true);
+        else
+            param->setSplitDustEmission(false);
 
         return true;
     }

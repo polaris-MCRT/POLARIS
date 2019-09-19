@@ -17,7 +17,7 @@ class Plot:
     """
 
     def __init__(self, model, parse_args, image_type='image', nr_x_images=1, nr_y_images=1,
-                 xlabel='', ylabel='', zlabel='', extent=None, limits=None, title='', ax_unit=None,
+                 xlabel='', ylabel='', zlabel='', extent=None, limits=None, title='', ax_unit=None, automatic_axes=None,
                  label_plane='xy', zoom_factor=None, zoom_x_factor=None, zoom_y_factor=None, with_cbar=True,
                  cmap_scaling=None, scale_axis_log=False, labelpad=None, language='english', size_x=6, size_y=4.5):
         """Initialisation of plot parameters.
@@ -33,6 +33,7 @@ class Plot:
             nr_y_images (int): Number of images along the y-axis.
             ax_unit (str): Automatically format of the X- and Y-axis labels and the extent of the plot.
                 (arcsec, au, pc, m, arb_units) If None -> xlabel, ylabel and extent will be used.
+            automatic_axes (str): Which axes need to be set by the model?
             label_plane (str): Set the axis label to the correct plane for midplane plots.
                 'xy', 'xz', 'yz', 'rz'
             xlabel (str or list): Label of the x-axis.
@@ -64,7 +65,7 @@ class Plot:
 
         ''' ##################################
         ######  Setting up parameters!  ######
-        ################################## '''
+        # '''
         # Set plot parameter from user input
         if parse_args.ax_unit is not None:
             self.ax_unit = parse_args.ax_unit
@@ -110,6 +111,10 @@ class Plot:
             self.bad_to_min = True
         else:
             self.bad_to_min = False
+        if automatic_axes is not None:
+            self.automatic_axes = automatic_axes
+        else:
+            self.automatic_axes = ''
         if any(i is not None for i in [parse_args.xmin, parse_args.xmax, parse_args.ymin, parse_args.ymax]):
             limits = [parse_args.xmin, parse_args.xmax,
                       parse_args.ymin, parse_args.ymax]
@@ -128,7 +133,7 @@ class Plot:
 
         ''' ########################################
         ######  Creating the plots/subplots!  ######
-        ######################################## '''
+        # '''
         # Set image type as class variable
         self.image_type = image_type
         # Create plot figure and axes for 2D or 3D plots
@@ -166,13 +171,13 @@ class Plot:
 
         ''' ############################################
         ######  Creating plot labels and extent!  ######
-        ############################################ '''
+        # '''
         self.update_all(extent, limits, model, label_plane,
                         nr_x_images, nr_y_images, xlabel, ylabel, zlabel, language, labelpad)
 
         ''' #######################################
         ######  Set various other settings!  ######
-        ####################################### '''
+        # '''
         # Set logarithmic mode for both axis
         self.scale_axis_log = scale_axis_log
         if scale_axis_log:
@@ -286,13 +291,7 @@ class Plot:
             labelpad (List): Padding of the axis label.
                 Dimension of the list has to match the dimensions of the plot.
             language (str): Language for decimal separation.
-
-        Return:
-            str: The axes that have to be adjusted automatically.
-                ('x', 'y', 'xy', None)
         """
-        # Set axis label anautomatic_axes = None
-        automatic_axes = ''
         # Set axis label and extent of 2D or 3D plot
         if self.image_type == 'projection_3d':
             # Set label padding, since padding of 3D plots seems to be too low
@@ -329,8 +328,8 @@ class Plot:
             if xlabel != '' and ylabel != '':
                 pass
             elif self.ax_unit is not None:
-                xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                                                                        nr_x_images, nr_y_images, label_plane, language)
+                xlabel, ylabel, self.automatic_axes = self.create_axis_label(xlabel, ylabel,
+                                                                             nr_x_images, nr_y_images, label_plane, language)
             else:
                 # If not enough labels are defined, raise error
                 raise ValueError(
@@ -344,8 +343,8 @@ class Plot:
                 if xlabel != '' and len(ylabel) == nr_y_images:
                     pass
                 elif self.ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                                                                            nr_x_images, nr_y_images, label_plane, language)
+                    xlabel, ylabel, self.automatic_axes = self.create_axis_label(xlabel, ylabel,
+                                                                                 nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
                     raise ValueError(
@@ -359,8 +358,8 @@ class Plot:
                 if ylabel != '' and len(xlabel) == nr_x_images:
                     pass
                 elif self.ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                                                                            nr_x_images, nr_y_images, label_plane, language)
+                    xlabel, ylabel, self.automatic_axes = self.create_axis_label(xlabel, ylabel,
+                                                                                 nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_y plot needs a list of ' +
@@ -374,8 +373,8 @@ class Plot:
                 if len(xlabel) == nr_x_images and len(ylabel) == nr_y_images:
                     pass
                 elif self.ax_unit is not None:
-                    xlabel, ylabel, automatic_axes = self.create_axis_label(xlabel, ylabel,
-                                                                            nr_x_images, nr_y_images, label_plane, language)
+                    xlabel, ylabel, self.automatic_axes = self.create_axis_label(xlabel, ylabel,
+                                                                                 nr_x_images, nr_y_images, label_plane, language)
                 else:
                     # If not enough labels are defined, raise error
                     raise ValueError('Error: share_both plot needs a list of ' +
@@ -395,8 +394,6 @@ class Plot:
             None
         else:
             raise ValueError('Error: image_type is not known!')
-        # Return which axes where automatically set
-        return automatic_axes
 
     def create_axis_label(self, xlabel, ylabel, nr_x_images, nr_y_images, label_plane, language):
         """Create axis label from auto label format.
@@ -466,7 +463,7 @@ class Plot:
         else:
             return xlabel, ylabel, ''
 
-    def update_extent(self, extent=None, model=None, automatic_axes=None):
+    def update_extent(self, extent=None, model=None):
         """Update extent of the plot.
 
         Args:
@@ -474,15 +471,13 @@ class Plot:
                 [xmin, xmax, ymin, ymax].
             model: Handles the model space including various
                 quantities such as the density distribution.
-            automatic_axes (str): Set the axes that have to be adjusted automatically.
-                ('x', 'y', 'xy', None)
         """
         if extent is not None:
             self.extent = extent
-            if 'x' in automatic_axes:
+            if 'x' in self.automatic_axes:
                 self.extent[0:2] = self.math.length_conv(
                     extent[0:2], self.ax_unit)
-            if 'y' in automatic_axes:
+            if 'y' in self.automatic_axes:
                 self.extent[2:4] = self.math.length_conv(
                     extent[2:4], self.ax_unit)
         elif self.ax_unit is not None:
@@ -490,13 +485,13 @@ class Plot:
                 # Arbitrary units should go from -1 to 1.
                 if self.image_type == 'projection_3d':
                     self.extent = [-1., 1., -1., 1., -1., 1.]
-                elif automatic_axes == 'xy':
+                elif self.automatic_axes == 'xy':
                     self.extent = [-1., 1., -1., 1.]
-                elif automatic_axes == 'x':
+                elif self.automatic_axes == 'x':
                     self.extent = [-1., 1., None, None]
-                elif automatic_axes == 'y':
+                elif self.automatic_axes == 'y':
                     self.extent = [None, None, -1., 1.]
-                elif automatic_axes is None:
+                else:
                     self.extent = [None, None, None, None]
             elif model is not None:
                 # Get extent from model
@@ -505,11 +500,11 @@ class Plot:
                 if self.image_type == 'projection_3d':
                     self.extent = [-radius_x, radius_x, -
                                    radius_x, radius_x, -radius_x, radius_x]
-                elif automatic_axes == 'xy':
+                elif self.automatic_axes == 'xy':
                     self.extent = [-radius_x, radius_x, -radius_y, radius_y]
-                elif automatic_axes == 'x':
+                elif self.automatic_axes == 'x':
                     self.extent = [-radius_x, radius_x, None, None]
-                elif automatic_axes == 'y':
+                elif self.automatic_axes == 'y':
                     self.extent = [None, None, -radius_y, radius_y]
                 else:
                     self.extent = [None, None, None, None]
@@ -573,10 +568,10 @@ class Plot:
             language (str): Language for decimal separation.
         """
         # Update the labels of the image
-        automatic_axes = self.update_label(extent, label_plane, nr_x_images, nr_y_images,
-                                           xlabel, ylabel, zlabel, labelpad, language)
+        self.update_label(extent, label_plane, nr_x_images, nr_y_images,
+                          xlabel, ylabel, zlabel, labelpad, language)
         # Update the extent of the image
-        self.update_extent(extent, model, automatic_axes)
+        self.update_extent(extent, model)
         # Update the limits of the image
         self.update_limits(limits)
 
@@ -625,7 +620,8 @@ class Plot:
         self.ax_list = np.hstack([self.ax_list,
                                   zoomed_inset_axes(self.ax_list[ax_index], zoom_factor, loc=loc)]).ravel()
         # Update the extent of the zoomed image
-        self.update_extent(extent, model, automatic_axes='xy')
+        self.automatic_axes = 'xy'
+        self.update_extent(extent, model)
         # Reomove ticks from zoom region
         self.remove_ticks(-1)
         # draw a bbox of the region of the inset axes in the parent axes and
@@ -1270,7 +1266,8 @@ class Plot:
             cmap: Name or Instance of the colormap.
             fontsize (float): Change the fontsize of the ticks.
             label_type (str): Type of contour label.
-                ('percentage', 'percentage_1_decimal', 'tau', 'tau_1_decimal', '0_decimal', 'default', None)
+                ('percentage', 'percentage_1_decimal', 'tau',
+                 'tau_1_decimal', '0_decimal', 'default', None)
         """
         # Set preset extent if not set by this function
         if extent is None:
@@ -1409,21 +1406,18 @@ class Plot:
             self.text = self.ax_list[ax_index].text(text_pos[0], text_pos[1], text, ha=horizontalalignment,
                                                     va=verticalalignment, **args)
 
-    def plot_rectangle(self, pos, width, height, ax_index=0, facecolor=None, edgecolor='none', alpha=0.1, hatch=None):
+    def plot_rectangle(self, center_pos, width, height, ax_index=0, **args):
         """Plot rectangle in the image.
 
         Args:
-            pos (List): Position of the rectangle (2D).
+            center_pos (List): Position of the rectangle center (2D).
             width (float): Width of the rectangle.
             height (float): Height of the rectangle.
             ax_index (int): Index of subplot image.
-            facecolor (str): Color of the rectangle surface.
-            edgecolor (str): Color of the rectangle edges.
-            alpha (float): Transparency of the rectangle.
-            hatch (str): symbols to fill rectangle
+            args: Additional arguments.
         """
-        self.ax_list[ax_index].add_patch(patches.Rectangle(pos, width, height, facecolor=facecolor,
-                                                           edgecolor=edgecolor, alpha=alpha, hatch=hatch))
+        self.ax_list[ax_index].add_patch(patches.Rectangle(
+            np.subtract(center_pos, 0.5 * np.array([width, height])), width, height, **args))
 
     def plot_circle(self, pos, size, ax_index=0, **args):
         """Plot circle in the image.
@@ -1505,7 +1499,7 @@ class Plot:
         else:
             self.ax_list[ax_index].annotate(
                 text, xy=pos, xytext=text_pos, color=color, **args,
-                arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'],arrowstyle="-", color=color))
+                arrowprops=dict(linewidth=mpl.rcParams['lines.linewidth'], arrowstyle="-", color=color))
 
     def plot_double_arrow(self, arrow_origin, arrow_offset, ax_index=0, color='black'):
         """Plot an arrow in the image.
@@ -1616,8 +1610,12 @@ class Plot:
         """Limit axes of the plot.
         """
         if limits is not None:
-            if len(limits) == 4:
-                self.limits = limits
+            if len(limits) == 4 and len(self.limits) == 4:
+                for i in range(4):
+                    if limits[i] is not None:
+                        self.limits[i] = limits[i]
+                    else:
+                        self.limits[i] = self.extent[i]
         if self.limits is not None:
             if self.image_type == 'projection_3d':
                 for ax in self.ax_list:

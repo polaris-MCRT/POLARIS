@@ -233,6 +233,12 @@ using namespace std;
 #define TEMP_STOCH 3
 #define TEMP_FULL 4
 
+// Dust emission components
+#define DUST_EMI_FULL 0
+#define DUST_EMI_SCAT 1
+#define DUST_EMI_TEMP 2
+#define DUST_EMI_STOCH 3
+
 // Cross-sections IDs
 #define CROSS_ABS 1
 #define CROSS_SCA 2

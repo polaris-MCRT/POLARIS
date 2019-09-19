@@ -2200,6 +2200,7 @@ class CDustComponent
     StokesVector calcEmissivityEmi(CGridBasic * grid,
                                    const photon_package & pp,
                                    uint i_density,
+                                   uint emission_component,
                                    double phi,
                                    double energy,
                                    Vector3D en_dir) const;
@@ -3028,10 +3029,7 @@ class CDustMixture
         double cos_2ph = cos(2.0 * phi);
 
         // Reset matrix
-        if(dust_ext_matrix->get_m() != 4 || dust_ext_matrix->get_n() != 4)
-            dust_ext_matrix->resize(4, 4);
-        else
-            dust_ext_matrix->fill(0);
+        dust_ext_matrix->resize(4, 4);
 
         dust_ext_matrix->setValue(0, 0, Cext);
         dust_ext_matrix->setValue(1, 1, Cext);
@@ -3054,6 +3052,7 @@ class CDustMixture
     void calcEmissivityEmi(CGridBasic * grid,
                            const photon_package & pp,
                            uint i_offset,
+                           uint emission_component,
                            StokesVector * dust_emissivity) const
     {
         // Init variables
@@ -3062,7 +3061,8 @@ class CDustMixture
         Vector3D en_dir;
 
         // Check if radiation field is available and scattering should be included
-        if(scattering_to_raytracing)
+        if(scattering_to_raytracing &&
+           (emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_SCAT))
         {
             // Get wavelength of photon package
             uint w = pp.getDustWavelengthID();
@@ -3084,13 +3084,13 @@ class CDustMixture
             if(grid->useDustChoice())
             {
                 uint i_mixture = getMixtureID(grid, pp);
-                *dust_emissivity +=
-                    mixed_component[i_mixture].calcEmissivityEmi(grid, pp, 0, phi, energy, en_dir);
+                *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
+                    grid, pp, 0, emission_component, phi, energy, en_dir);
             }
             else
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                     *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
-                        grid, pp, i_mixture, phi, energy, en_dir);
+                        grid, pp, i_mixture, emission_component, phi, energy, en_dir);
         }
     }
 

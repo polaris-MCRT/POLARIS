@@ -180,8 +180,7 @@ class CGasSpecies
     double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
         if(getEinsteinA(i_trans) > 0)
-            return getLineStrengthAndEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) /
-                   (getNrOfSublevelUpper(i_trans) * getEinsteinA(i_trans));
+            return getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) / getEinsteinA(i_trans);
         return 0;
     }
 
@@ -226,35 +225,34 @@ class CGasSpecies
         return trans_einstB_lu[i_trans][0];
     }
 
-    double getLineStrengthAndEinsteinA(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    double getEinsteinA(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinA(i_trans) / getNrOfSublevelLower(i_trans);
+
         uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
         return trans_einstA[i_trans][i_sublvl + 1];
     }
 
-    double getLineStrengthAndEinsteinBul(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    double getEinsteinBul(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinBul(i_trans) / getNrOfSublevelLower(i_trans);
+
         uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
         return trans_einstB_ul[i_trans][i_sublvl + 1];
     }
 
-    double getLineStrengthAndEinsteinBlu(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    double getEinsteinBlu(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinBlu(i_trans) / getNrOfSublevelUpper(i_trans);
+
         uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
         return trans_einstB_lu[i_trans][i_sublvl + 1];
-    }
-
-    double getGLevel(uint i_lvl) const
-    {
-        if(nr_of_sublevel[i_lvl] == 1)
-            return g_level[i_lvl];
-        else if(g_level[i_lvl] == nr_of_sublevel[i_lvl])
-            return 1;
-        else
-        {
-            cout << "HINT: G level problem!" << endl;
-            return 1;
-        }
     }
 
     double getJLevel(uint i_lvl) const
@@ -361,12 +359,10 @@ class CGasSpecies
         uint i_lvl_unique = 0;
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
         {
-            uint nr_of_sublevel = getNrOfSublevel(i_lvl);
-
             // Init second dimension of 2D array
-            level_to_index[i_lvl] = new uint[nr_of_sublevel];
+            level_to_index[i_lvl] = new uint[nr_of_sublevel[i_lvl]];
 
-            for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel; i_sublvl++)
+            for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
             {
                 level_to_index[i_lvl][i_sublvl] = i_lvl_unique;
                 i_lvl_unique++;
@@ -382,8 +378,8 @@ class CGasSpecies
             // Get all indices and number of sublevels
             uint i_lvl_u = getUpperEnergyLevel(i_trans);
             uint i_lvl_l = getLowerEnergyLevel(i_trans);
-            uint nr_of_sublevel_u = getNrOfSublevel(i_lvl_u);
-            uint nr_of_sublevel_l = getNrOfSublevel(i_lvl_l);
+            uint nr_of_sublevel_u = nr_of_sublevel[i_lvl_u];
+            uint nr_of_sublevel_l = nr_of_sublevel[i_lvl_l];
 
             // Init second dimension of 2D array
             trans_to_index[i_trans] = new uint *[nr_of_sublevel_u];
@@ -487,7 +483,7 @@ class CGasSpecies
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
         {
             // Includes the 1 for no Zeeman split energy levels
-            res += getNrOfSublevel(i_lvl);
+            res += nr_of_sublevel[i_lvl];
         }
         return res;
     }
@@ -504,7 +500,7 @@ class CGasSpecies
             uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
             // Includes the 1 for no Zeeman split energy levels
-            res += getNrOfSublevel(i_lvl_u) * getNrOfSublevel(i_lvl_l);
+            res += nr_of_sublevel[i_lvl_u] * nr_of_sublevel[i_lvl_l];
         }
         return res;
     }

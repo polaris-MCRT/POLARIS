@@ -4139,6 +4139,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
 StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                                                const photon_package & pp,
                                                uint i_density,
+                                               uint emission_component,
                                                double phi,
                                                double energy,
                                                Vector3D en_dir) const
@@ -4193,7 +4194,8 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 
             // Calculate emission/extinction according to the information inside of the
             // grid
-            if(getEffectiveRadius(a) <= getStochasticHeatingMaxSize())
+            if(getEffectiveRadius(a) <= getStochasticHeatingMaxSize() &&
+               (emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_STOCH))
             {
                 // Consider stochastic heating for the emission if chosen
                 for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
@@ -4219,7 +4221,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 #endif
                 }
             }
-            else
+            else if(emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_TEMP)
             {
                 // Consider the temperature of every dust grain size or an average
                 // temperature
@@ -5030,8 +5032,13 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         else
             cout << "no, enable via <foreground_extinction> A_lambda wavelength" << endl;
 
-        cout << "Observed wavelengths:" << endl;
+        if(param.splitDustEmission())
+        {
+            cout << "- Split dust emission     : "
+                 << "yes, as additional entries in fits file" << endl;
+        }
 
+        cout << "Observed wavelengths:" << endl;
         dlist dust_ray_detectors = param.getDustRayDetectors();
         for(uint i = 0; i < dust_ray_detectors.size(); i += NR_OF_RAY_DET)
         {

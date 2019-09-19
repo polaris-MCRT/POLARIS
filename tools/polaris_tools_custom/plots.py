@@ -2518,21 +2518,26 @@ class CustomPlots:
     def plot_1007002(self):
         """Plot optical depth slice.
         """
-        # Simulation parameter (model 1, 2, or 3)
-        model = 3
+        # Simulation parameter (model 1, 2, ...)
+        model = 1
         detector_index = model * 100
-        vmax = 35
-        vmin = 1e-1
-        limits = [-270, -160, -130, -20]
+        vmax = 10
+        limits_1 = [-270, -160, -130, -20]
+        limits_2 = [-300, 300, -200, 200]
         i_quantity = 6  # Optical depth
         i_wl = 0  # First wavelength
         # Plot planet into figure
         circle_size = 2
         circle_size_large = 6
-        color_1 = 'cyan'
-        cmap_1 = 'magma_r'
-        color_2 = 'cyan'
-        cmap_2 = 'magma_r'
+        color_1 = 'white'
+        cmap_1 = 'viridis_r'
+        color_2 = 'white'
+        cmap_2 = 'viridis_r'
+        color_hot_spot = 'black'
+        alpha_hot_spot = 0.3
+        x_label = r'$\leftarrow\text{ Plane-of-sky }\rightarrow$'
+        y_label = r'$\text{Line-of-sight }\rightarrow$'
+
         def planet_position(distance_planet=252.):
             PA_planet = 231.
             inclination = -37. / 180 * np.pi
@@ -2544,6 +2549,7 @@ class CustomPlots:
                  np.sin(PA_new) * np.sin(inclination)]
             )
             return pos
+
         def planet_angle():
             PA_planet = 231.
             inclination = -37. / 180 * np.pi
@@ -2558,11 +2564,10 @@ class CustomPlots:
             return angle / np.pi * 180
         pos_center = planet_position(-400)
         pos_edge = planet_position(400)
-        pos_fwhm_plus = planet_position(252) + np.array([25, 0])
-        pos_fwhm_minus = planet_position(252) - np.array([25, 0])
-        v_pos1 = planet_position(30)
+        hot_spot_fwhm = 50
+        v_pos1 = planet_position(60)
         v_pos1 = planet_position() + np.array([-v_pos1[1], v_pos1[0]])
-        v_pos2 = planet_position(-50)
+        v_pos2 = planet_position(-80)
         v_pos2 = planet_position() + np.array([-v_pos2[1], v_pos2[0]])
         # Create pdf file if show_plot is not chosen and read map data from file
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
@@ -2582,20 +2587,26 @@ class CustomPlots:
         def plot_large(_plot, color):
             _plot.plot_line([pos_center[0], pos_edge[0]], [pos_center[1], pos_edge[1]],
                             color=color, linestyle='--', no_grid=True, linewidth=0.75, zorder=1)
+            _plot.plot_rectangle(
+                planet_position(), hot_spot_fwhm, 900, alpha=alpha_hot_spot,
+                facecolor=color_hot_spot, ec=None, zorder=1)
             _plot.plot_circle(
                 planet_position(), size=circle_size_large, fc=color, ec='none', zorder=2)
+            _plot.remove_ticks(0, axis='xy')
 
         def plot_small(_plot, color, lw=1):
             _plot.plot_line([pos_center[0], pos_edge[0]], [pos_center[1], pos_edge[1]],
                             color=color, linestyle='--', no_grid=True, linewidth=1, zorder=1)
             _plot.plot_line([v_pos1[0], v_pos2[0]], [v_pos1[1], v_pos2[1]],
                             color=color, linestyle='--', no_grid=True, linewidth=1, zorder=1)
-            _plot.plot_line([pos_fwhm_plus[0], pos_fwhm_minus[0]], [pos_fwhm_plus[1], pos_fwhm_minus[1]], alpha=0.3,
-                            color=color, linestyle='-', no_grid=True, linewidth=9, zorder=1, solid_capstyle='round')
+            _plot.plot_rectangle(
+                planet_position(), hot_spot_fwhm, 900, alpha=alpha_hot_spot,
+                facecolor=color_hot_spot, ec=None, zorder=1)
             _plot.plot_circle(planet_position(), size=circle_size,
                               fc=color, ec='none', zorder=2)
             plot_axis_numbers(_plot, color, lw=lw)
             plot_axis_numbers_2(_plot, color, lw=lw)
+            _plot.remove_ticks(0, axis='xy')
 
         def plot_axis_numbers(_plot, color, lw=1):
             for dist in [200, 220, 240, 260, 280]:
@@ -2609,7 +2620,7 @@ class CustomPlots:
                                 color=color, rotation=planet_angle(), fontsize=10)
 
         def plot_axis_numbers_2(_plot, color, lw=1):
-            for dist in [-40, -20, 20]:
+            for dist in [-60, -40, -20, 20, 40]:
                 pos = planet_position(dist)
                 pos = planet_position() + np.array([-pos[1], pos[0]])
                 text_pos = pos - planet_position(2)
@@ -2637,7 +2648,8 @@ class CustomPlots:
                             horizontalalignment='right', verticalalignment='top')
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args)
+        plot = Plot(self.model, self.parse_args, limits=limits_2,
+                    automatic_axes='xy', xlabel=x_label, ylabel=y_label)
         # polarization plots
         plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
                          set_bad_to_min=True, vmax=vmax, cmap=cmap_1)
@@ -2647,7 +2659,8 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, limits=limits)
+        plot = Plot(self.model, self.parse_args, limits=limits_1,
+                    automatic_axes='xy', xlabel=x_label, ylabel=y_label)
         # polarization plots
         plot.plot_imshow(tbldata_tau, cbar_label=r'$\tau$',
                          set_bad_to_min=True, vmax=vmax, cmap=cmap_1)
@@ -2657,7 +2670,8 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args)
+        plot = Plot(self.model, self.parse_args, limits=limits_2,
+                    automatic_axes='xy', xlabel=x_label, ylabel=y_label)
         # polarization plots
         plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau\ [\text{arb. units}]$',
                          set_bad_to_min=True, cmap=cmap_2)
@@ -2667,12 +2681,33 @@ class CustomPlots:
         plot.save_figure(self.file_io)
 
         # Create Matplotlib figure
-        plot = Plot(self.model, self.parse_args, limits=limits)
+        plot = Plot(self.model, self.parse_args, limits=limits_1,
+                    automatic_axes='xy', xlabel=x_label, ylabel=y_label)
         # polarization plots
         plot.plot_imshow(tbldata_delta_tau, cbar_label=r'$\Delta\tau\ [\text{arb. units}]$',
                          set_bad_to_min=True, cmap=cmap_2)
         plot_small(plot, color_2)
         plot_tau(plot, 'black')
+        # Save figure to pdf file or print it on screen
+        plot.save_figure(self.file_io)
+
+    def plot_1008001(self):
+        "Plot linear polarization over optical depth"
+        plot_data, _, plot_data_type = self.file_io.read_int_vel_map(
+            'int_channel_map_species_0001_line_0001')
+        # Create pdf file if show_plot is not chosen and read map data from file
+        if plot_data_type == 'map':
+            self.file_io.init_plot_output('gk_effect_pol_over_tau')
+        else:
+            raise ValueError(
+                'Chosen plot type created from int_map is not known!')
+        # Create Matplotlib figure
+        plot = Plot(self.model, self.parse_args, with_cbar=False, 
+            xlabel=r'$\tau$', ylabel=r'$\mathit{P}_\mathsf{l}\ [\%]$')
+        # Take data for lin pol and optical depth
+        degree_of_polarization = np.divide(100 * np.sqrt(plot_data[1, :, :]**2 + plot_data[2, :, :]**2), plot_data[0, :, :],
+            out=np.zeros_like(plot_data[0, :, :]), where=plot_data[0, :, :] != 0)
+        plot.plot_line(plot_data[4, :, :].ravel(), degree_of_polarization.ravel(), marker='.', linestyle='')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 

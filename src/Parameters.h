@@ -73,6 +73,7 @@ class parameters
         full_dust_temp = false;
         save_radiation_field = false;
         scattering_to_raytracing = true;
+        split_dust_emision = false;
         sublimate = false;
         individual_dust_fractions = false;
 
@@ -100,9 +101,9 @@ class parameters
         nr_ofOutMidDataPoints = 0;
 
         f_highJ = 0.25;
-        Q_ref=0.4;
-        alpha_Q=3.0;
-        
+        Q_ref = 0.4;
+        alpha_Q = 3.0;
+
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
@@ -139,52 +140,52 @@ class parameters
     ~parameters()
     {}
 
-    string getOpiateParamPath()
+    string getOpiateParamPath() const
     {
         return opiate_param_path;
     }
 
-    string getOpiateDataPath()
+    string getOpiateDataPath() const
     {
         return opiate_data_path;
     }
 
-    Vector3D getAxis1()
+    const Vector3D & getAxis1() const
     {
         return axis1;
     }
 
-    Vector3D getAxis2()
+    const Vector3D & getAxis2() const
     {
         return axis2;
     }
 
-    uint getOutAMIRAPoints()
+    uint getOutAMIRAPoints() const
     {
         return nr_ofOutAMIRAPoints;
     }
 
-    uint getInpAMIRAPoints()
+    uint getInpAMIRAPoints() const
     {
         return nr_ofInpAMIRAPoints;
     }
 
-    bool plotInpMidPoints()
+    bool plotInpMidPoints() const
     {
         return plot_inp_points;
     }
 
-    bool plotOutMidPoints()
+    bool plotOutMidPoints() const
     {
         return plot_out_points;
     }
 
-    dlist getMidplane3dParams()
+    dlist getMidplane3dParams() const
     {
         return midplane_3d_param;
     }
 
-    uilist & getPlotList()
+    const uilist & getPlotList() const
     {
         return plot_list;
     }
@@ -197,46 +198,46 @@ class parameters
         return (find(plot_list.begin(), plot_list.end(), id) != plot_list.end());
     }
 
-    uint getInpMidDataPoints()
+    uint getInpMidDataPoints() const
     {
         return nr_ofInpMidDataPoints;
     }
 
-    uint getOutMidDataPoints()
+    uint getOutMidDataPoints() const
     {
         return nr_ofOutMidDataPoints;
     }
 
-    dlist getOpiateSequence()
+    const dlist & getOpiateSequence() const
     {
         return line_opiate_detectors;
     }
 
-    uint getMidplaneZoom()
+    uint getMidplaneZoom() const
     {
         return midplane_zoom;
     }
 
-    int getCommand()
+    int getCommand() const
     {
         return cmd;
     }
 
-    bool isRatSimulation()
+    bool isRatSimulation() const
     {
         if(getCommand() == CMD_RAT || getCommand() == CMD_TEMP_RAT)
             return true;
         return false;
     }
 
-    bool isMonteCarloSimulation()
+    bool isMonteCarloSimulation() const
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
             return true;
         return false;
     }
 
-    bool isRaytracing()
+    bool isRaytracing() const
     {
         if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
            getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
@@ -244,309 +245,314 @@ class parameters
         return false;
     }
 
-    bool isTemperatureSimulation()
+    bool isTemperatureSimulation() const
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)
             return true;
         return false;
     }
 
-    double getStarMass(uint i)
+    double getStarMass(uint i) const
     {
         return star_mass[i];
     }
 
-    string getPathGrid()
+    string getPathGrid() const
     {
         return path_grid;
     }
 
-    string getPathOutput()
+    string getPathOutput() const
     {
         return path_output;
     }
 
-    string getPathInput()
+    string getPathInput() const
     {
         return path_input;
     }
 
-    uint getMinDetectorPixelX()
+    uint getMinDetectorPixelX() const
     {
         return min_detector_pixel_x;
     }
 
-    uint getMaxDetectorPixelX()
+    uint getMaxDetectorPixelX() const
     {
         return max_detector_pixel_x;
     }
 
-    uint getMinDetectorPixelY()
+    uint getMinDetectorPixelY() const
     {
         return min_detector_pixel_y;
     }
 
-    uint getMaxDetectorPixelY()
+    uint getMaxDetectorPixelY() const
     {
         return max_detector_pixel_y;
     }
 
-    double getMinDetectorAngle1()
+    double getMinDetectorAngle1() const
     {
         return min_rot_angle_1;
     }
 
-    double getMaxDetectorAngle1()
+    double getMaxDetectorAngle1() const
     {
         return max_rot_angle_1;
     }
 
-    double getMinDetectorAngle2()
+    double getMinDetectorAngle2() const
     {
         return min_rot_angle_2;
     }
 
-    double getMaxDetectorAngle2()
+    double getMaxDetectorAngle2() const
     {
         return max_rot_angle_2;
     }
 
-    double getMinSidelengthX()
+    double getMinSidelengthX() const
     {
         return min_sidelength_x;
     }
 
-    double getMaxSidelengthX()
+    double getMaxSidelengthX() const
     {
         return max_sidelength_x;
     }
 
-    double getMinSidelengthY()
+    double getMinSidelengthY() const
     {
         return min_sidelength_y;
     }
 
-    double getMaxSidelengthY()
+    double getMaxSidelengthY() const
     {
         return max_sidelength_y;
     }
 
-    bool getUseGridSidelengthX()
+    bool getUseGridSidelengthX() const
     {
         return use_grid_sidelength_x;
     }
 
-    bool getUseGridSidelengthY()
+    bool getUseGridSidelengthY() const
     {
         return use_grid_sidelength_y;
     }
 
-    double getMinMapShiftX()
+    double getMinMapShiftX() const
     {
         return min_ray_map_shift_x;
     }
 
-    double getMinMapShiftY()
+    double getMinMapShiftY() const
     {
         return min_ray_map_shift_y;
     }
 
-    double getMaxMapShiftX()
+    double getMaxMapShiftX() const
     {
         return max_ray_map_shift_x;
     }
 
-    double getMaxMapShiftY()
+    double getMaxMapShiftY() const
     {
         return max_ray_map_shift_y;
     }
 
-    double getSIConvLength()
+    double getSIConvLength() const
     {
         return conv_l_in_SI;
     }
 
-    double getSIConvDH()
+    double getSIConvDH() const
     {
         return conv_dH_in_SI;
     }
 
-    double getDelta0()
+    double getDelta0() const
     {
         return delta0;
     }
 
-    double getLarmF()
+    double getLarmF() const
     {
         return larm_f;
     }
 
-    double getSIConvBField()
+    double getSIConvBField() const
     {
         return conv_B_in_SI;
     }
 
-    double getSIConvVField()
+    double getSIConvVField() const
     {
         return conv_V_in_SI;
     }
 
-    bool getDustOffset()
+    bool getDustOffset() const
     {
         return dust_offset;
     }
 
-    bool getDustGasCoupling()
+    bool getDustGasCoupling() const
     {
         return dust_gas_coupling;
     }
 
-    double getOffsetMinGasDensity()
+    double getOffsetMinGasDensity() const
     {
         return offset_min_gas_dens;
     }
 
-    bool getDustTempMulti()
+    bool getDustTempMulti() const
     {
         return full_dust_temp;
     }
 
-    double getSizeMin(uint i)
+    double getSizeMin(uint i) const
     {
         return a_min_global[i];
     }
 
-    double getSizeMax(uint i)
+    double getSizeMax(uint i) const
     {
         return a_max_global[i];
     }
 
-    double getMaterialDensity(uint i)
+    double getMaterialDensity(uint i) const
     {
         return material_density[i];
     }
 
-    bool getDustSource()
+    bool getDustSource() const
     {
         return nr_ofDustPhotons > 0;
     }
 
-    bool getISRFSource()
+    bool getISRFSource() const
     {
         return nr_ofISRFPhotons > 0;
     }
 
-    ullong getNrOfDustPhotons()
+    ullong getNrOfDustPhotons() const
     {
         return nr_ofDustPhotons;
     }
 
-    double getDustMassFraction()
+    double getDustMassFraction() const
     {
         return conv_mass_fraction;
     }
 
-    uint getAlign()
+    uint getAlign() const
     {
         return align;
     }
 
-    bool getAligRANDOM()
+    bool getAligRANDOM() const
     {
         return align == 0;
     }
 
-    bool getAligPA()
+    bool getAligPA() const
     {
         return (align & ALIG_PA) == ALIG_PA;
     }
 
-    bool getAligIDG()
+    bool getAligIDG() const
     {
         return (align & ALIG_IDG) == ALIG_IDG;
     }
 
-    bool getAligRAT()
+    bool getAligRAT() const
     {
         return (align & ALIG_RAT) == ALIG_RAT;
     }
 
-    bool getAligGOLD()
+    bool getAligGOLD() const
     {
         return (align & ALIG_GOLD) == ALIG_GOLD;
     }
 
-    bool getAligINTERNAL()
+    bool getAligINTERNAL() const
     {
         return (align & ALIG_INTERNAL) == ALIG_INTERNAL;
     }
 
-    double getMu()
+    double getMu() const
     {
         return mu;
     }
 
-    bool getMRW()
+    bool getMRW() const
     {
         return b_mrw;
     }
 
-    bool getPDA()
+    bool getPDA() const
     {
         return b_pda;
     }
 
-    bool getEnfScattering()
+    bool getEnfScattering() const
     {
         return b_enforced;
     }
 
-    double getStochasticHeatingMaxSize()
+    double getStochasticHeatingMaxSize() const
     {
         return stochastic_heating_max_size;
     }
 
-    bool getSaveRadiationField()
+    bool getSaveRadiationField() const
     {
         return save_radiation_field;
     }
 
-    bool getScatteringToRay()
+    bool getScatteringToRay() const
     {
         return scattering_to_raytracing;
     }
 
-    bool getIndividualDustMassFractions()
+    bool splitDustEmission() const
+    {
+        return split_dust_emision;
+    }
+
+    bool getIndividualDustMassFractions() const
     {
         return individual_dust_fractions;
     }
 
-    bool getIsSpeedOfSound()
+    bool getIsSpeedOfSound() const
     {
         return is_speed_of_sound;
     }
 
-    bool getPeelOff()
+    bool getPeelOff() const
     {
         return peel_off;
     }
 
-    double getForegroundExtinctionMagnitude()
+    double getForegroundExtinctionMagnitude() const
     {
         return extinction_magnitude;
     }
 
-    double getForegroundExtinctionWavelength()
+    double getForegroundExtinctionWavelength() const
     {
         return extinction_magnitude_wavelength;
     }
 
-    uint getForegroundExtinctionDustMixture()
+    uint getForegroundExtinctionDustMixture() const
     {
         return extinction_i_mixture;
     }
 
-    bool getVelFieldType()
+    bool getVelFieldType() const
     {
         if(kepler_star_mass == 0)
         {
@@ -558,87 +564,87 @@ class parameters
         }
     }
 
-    uint getWriteRadiationField()
+    uint getWriteRadiationField() const
     {
         return write_radiation_field;
     }
 
-    bool getWriteGZero()
+    bool getWriteGZero() const
     {
         return write_g_zero;
     }
 
-    double getISRFGZero()
+    double getISRFGZero() const
     {
         return isrf_g_zero;
     }
 
-    double getISRFRadius()
+    double getISRFRadius() const
     {
         return isrf_radius;
     }
 
-    string getISRFPath()
+    string getISRFPath() const
     {
         return isrf_path;
     }
 
-    string getZeemanCatalog(uint i_species)
+    string getZeemanCatalog(uint i_species) const
     {
         return zeeman_catalog_path[i_species];
     }
 
-    uint getAlignmentMechanism()
+    uint getAlignmentMechanism() const
     {
         return align;
     }
 
-    double getMinObserverDistance()
+    double getMinObserverDistance() const
     {
         return min_obs_distance;
     }
 
-    double getMaxObserverDistance()
+    double getMaxObserverDistance() const
     {
         return max_obs_distance;
     }
 
-    double getKeplerStarMass()
+    double getKeplerStarMass() const
     {
         return kepler_star_mass;
     }
 
-    double getTurbulentVelocity()
+    double getTurbulentVelocity() const
     {
         return turbulent_velocity;
     }
 
-    uint getMCLvlPopNrOfPhotons()
+    uint getMCLvlPopNrOfPhotons() const
     {
         return nr_of_mc_lvl_pop_photons;
     }
 
-    uint getMCLvlPopSeed()
+    uint getMCLvlPopSeed() const
     {
         return mc_lvl_pop_seed;
     }
 
-    uint getTaskID()
+    uint getTaskID() const
     {
         return task_id;
     }
 
-    uint getNrOfThreads()
+    uint getNrOfThreads() const
     {
         return nr_ofThreads;
     }
 
-    ullong getNrOfISRFPhotons()
+    ullong getNrOfISRFPhotons() const
     {
         return nr_ofISRFPhotons;
     }
 
-    uint getNrOfMixtures()
+    uint getNrOfMixtures() const
     {
         if(!dust_choices.empty())
             return dust_choices.size();
@@ -646,92 +652,92 @@ class parameters
             return 1;
     }
 
-    uilist getDustComponentChoices()
+    uilist getDustComponentChoices() const
     {
         return dust_choices;
     }
 
-    uint getPhaseFunctionID()
+    uint getPhaseFunctionID() const
     {
         return phID;
     }
 
-    double getFHighJ()
+    double getFHighJ() const
     {
         return f_highJ;
     }
-    
-    double getQref()
+
+    double getQref() const
     {
         return Q_ref;
     }
-    
-    double getAlphaQ()
+
+    double getAlphaQ() const
     {
         return alpha_Q;
     }
-    
-    double getFcorr()
+
+    double getFcorr() const
     {
         return f_cor;
     }
 
-    double getAdjTgas()
+    double getAdjTgas() const
     {
         return adjTgas;
     }
 
-    uint getNrOfDiffuseSources()
+    uint getNrOfDiffuseSources() const
     {
         return uint(diffuse_sources.size() / NR_OF_DIFF_SOURCES);
     }
 
-    uint getNrOfPointSources()
+    uint getNrOfPointSources() const
     {
         return uint(point_sources.size() / NR_OF_POINT_SOURCES);
     }
 
-    uint getNrOfLaserSources()
+    uint getNrOfLaserSources() const
     {
         return uint(laser_sources.size() / NR_OF_LASER_SOURCES);
     }
 
-    uint getNrOfBackgroundSources()
+    uint getNrOfBackgroundSources() const
     {
         return uint(background_sources.size() / NR_OF_BG_SOURCES);
     }
 
-    double getXYMin()
+    double getXYMin() const
     {
         return xymin;
     }
 
-    double getXYMax()
+    double getXYMax() const
     {
         return xymax;
     }
 
-    double getXYSteps()
+    double getXYSteps() const
     {
         return xysteps;
     }
 
-    uint getXYBins()
+    uint getXYBins() const
     {
         return xy_bins;
     }
 
-    string getXYLabel()
+    string getXYLabel() const
     {
         return xylabel;
     }
 
-    bool isAutoScale()
+    bool isAutoScale() const
     {
         return autoscale;
     }
 
-    uint getNrOfSources()
+    uint getNrOfSources() const
     {
         uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources() +
                    getNrOfLaserSources();
@@ -749,27 +755,27 @@ class parameters
         return res;
     }
 
-    uint getNrOfGnuPoints()
+    uint getNrOfGnuPoints() const
     {
         return nrOfGnuPoints;
     }
 
-    uint getNrOfGnuVectors()
+    uint getNrOfGnuVectors() const
     {
         return nrOfGnuVectors;
     }
 
-    uint getmaxGridLines()
+    uint getmaxGridLines() const
     {
         return maxGridLines;
     }
 
-    uint getStart()
+    uint getStart() const
     {
         return start;
     }
 
-    uint getStop()
+    uint getStop() const
     {
         return stop;
     }
@@ -1151,6 +1157,11 @@ class parameters
         scattering_to_raytracing = val;
     }
 
+    void setSplitDustEmission(bool val)
+    {
+        split_dust_emision = val;
+    }
+
     void setSIConvLength(double val)
     {
         conv_l_in_SI = val;
@@ -1262,12 +1273,12 @@ class parameters
     {
         f_highJ = val;
     }
-    
+
     void setQref(double val)
     {
         Q_ref = val;
     }
-        
+
     void setAlphaQ(double val)
     {
         alpha_Q = val;
@@ -1834,17 +1845,17 @@ class parameters
         healpix_orientation = val;
     }
 
-    uint getHealpixOrientation()
+    uint getHealpixOrientation() const
     {
         return healpix_orientation;
     }
 
-    dlist getLineRayDetector(uint i_species)
+    const dlist & getLineRayDetector(uint i_species) const
     {
-        return line_ray_detector_list[i_species];
+        return line_ray_detector_list.at(i_species);
     }
 
-    maplist getLineRayDetectors()
+    const maplist & getLineRayDetectors() const
     {
         return line_ray_detector_list;
     }
@@ -1867,17 +1878,17 @@ class parameters
             size_parameter_map[i].push_back(size_parameter[i]);
     }
 
-    bool getVelMaps()
+    bool getVelMaps() const
     {
         return vel_maps;
     }
 
-    uint getDustChoiceFromComponentId(uint i)
+    uint getDustChoiceFromComponentId(uint i) const
     {
         return component_id_to_choice[i];
     }
 
-    uint getDustChoiceFromMixtureId(uint i)
+    uint getDustChoiceFromMixtureId(uint i) const
     {
         return dust_choices[i];
     }
@@ -1887,12 +1898,12 @@ class parameters
         cout << "- background grid shape : " << rt_grid_description << endl;
     }
 
-    double getAcceptanceAngle()
+    double getAcceptanceAngle() const
     {
         return acceptance_angle;
     }
 
-    string getDustPath(uint i)
+    string getDustPath(uint i) const
     {
         return dust_paths[i];
     }
@@ -1902,40 +1913,40 @@ class parameters
         return sublimate;
     }
 
-    double getDustFraction(uint i)
+    double getDustFraction(uint i) const
     {
         return dust_fractions[i];
     }
 
-    string getDustSizeKeyword(uint i)
+    string getDustSizeKeyword(uint i) const
     {
         return size_keywords[i];
     }
 
-    dlist getDustSizeParameter(uint i_comp)
+    dlist getDustSizeParameter(uint i_comp) const
     {
         dlist res;
         for(uint i = 0; i < NR_OF_SIZE_DIST_PARAM; i++)
-            res.push_back(size_parameter_map[i][i_comp]);
+            res.push_back(size_parameter_map.at(i).at(i_comp));
         return res;
     }
 
-    string getGasSpeciesCatalogPath(uint i_species)
+    string getGasSpeciesCatalogPath(uint i_species) const
     {
         return gas_species_cat_path[i_species];
     }
 
-    double getGasSpeciesAbundance(uint i_species)
+    double getGasSpeciesAbundance(uint i_species) const
     {
         return gas_species_abundance[i_species];
     }
 
-    uint getGasSpeciesLevelPopType(uint i_species)
+    uint getGasSpeciesLevelPopType(uint i_species) const
     {
         return gas_species_level_pop_type[i_species];
     }
 
-    bool isGasSpeciesLevelPopMC()
+    bool isGasSpeciesLevelPopMC() const
     {
         for(uint i_species = 0; i_species < gas_species_level_pop_type.size(); i_species++)
             if(gas_species_level_pop_type[i_species] == POP_MC)
@@ -1943,12 +1954,12 @@ class parameters
         return false;
     }
 
-    uint getMaxSubpixelLvl()
+    uint getMaxSubpixelLvl() const
     {
         return max_subpixel_lvl;
     }
 
-    uint getTotalNrOfDustComponents()
+    uint getTotalNrOfDustComponents() const
     {
         return (uint)dust_paths.size();
     }
@@ -2110,6 +2121,7 @@ class parameters
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
     bool scattering_to_raytracing;
+    bool split_dust_emision;
     bool individual_dust_fractions;
 
     strlist zeeman_catalog_path;
@@ -2174,8 +2186,7 @@ class parameters
     double f_cor;
     double Q_ref;
     double alpha_Q;
-    
-    
+
     double adjTgas;
     double isrf_g_zero;
     double isrf_radius;

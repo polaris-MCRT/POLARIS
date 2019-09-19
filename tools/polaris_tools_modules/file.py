@@ -1170,8 +1170,7 @@ class FileIO:
             tbldata = np.transpose(hdulist[0].data, (0, 2, 1))
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
-                (2. *
-                 self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+                (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             else:
