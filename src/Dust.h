@@ -1782,7 +1782,7 @@ class CDustComponent
     
     double getEnthalpyMean(uint t)
     {
-        //Calculate mean enthalpy for timedependent transfer
+        //Calculate mean enthalpy for time dependent transfer
         double * EnthalpyMean = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
             EnthalpyMean[a] = a_eff_1_5[a] * getEnthalpy(a, t);
@@ -2212,6 +2212,7 @@ class CDustComponent
                                       Vector3D obs_ex,
                                       Vector3D dir_obs);
     double getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density);
+    double getCellEmissionRate(CGridBasic * grid, cell_basic * cell);
 
   private:
     spline ** avg_scattering_frac;
@@ -2587,24 +2588,28 @@ class CDustMixture
 
     double getEnthalpy(CGridBasic * grid, cell_basic * cell, uint a, uint t)
     {
+        // Needed for time dependent transfer
         uint i_mixture = getMixtureID(grid, cell);
         return mixed_component[i_mixture].getEnthalpy(a,t);
     }
     
     double getEnthalpyMean(CGridBasic * grid, cell_basic * cell, uint t)
     {
+        // Needed for time dependent transfer
         uint i_mixture = getMixtureID(grid, cell);
         return mixed_component[i_mixture].getEnthalpyMean(t);
     }
     
-    uint getCalorimetricTemperature(CGridBasic * grid, cell_basic * cell, uint i)
+    double getCalorimetricTemperature(CGridBasic * grid, cell_basic * cell, uint i)
     {
+        // Needed for time dependent transfer
         uint i_mixture = getMixtureID(grid, cell);
         return mixed_component[i_mixture].getCalorimetricTemperature(i);
     }
     
     uint getNrOfCalorimetryTemperatures(CGridBasic * grid, cell_basic * cell)
     {
+        // Needed for time dependent transfer
         uint i_mixture = getMixtureID(grid, cell);
         return mixed_component[i_mixture].getNrOfCalorimetryTemperatures();
     }
@@ -2663,6 +2668,13 @@ class CDustMixture
         return sum;
     }
 
+    double getCellEmissionRate(CGridBasic * grid, cell_basic * cell)
+    {
+        // Needed for time dependent transfer
+        uint i_mixture = getMixtureID(grid, cell);
+        return mixed_component[i_mixture].getCellEmissionRate(grid, cell); 
+    }
+    
     bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density)
     {
         if(mixed_component != 0)

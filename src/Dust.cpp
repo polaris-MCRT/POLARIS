@@ -4472,6 +4472,40 @@ double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, u
     return total_energy;
 }
 
+double CDustComponent::getCellEmissionRate(CGridBasic * grid, cell_basic * cell)
+{
+    // Calculates cell emission rate for time dependent transfer
+    
+    // Get local min and max grain sizes
+    double a_min = getSizeMin(grid, cell);
+    double a_max = getSizeMax(grid, cell);
+
+    // Get Volume of current cell
+    double vol = grid->getVolume(cell);
+    
+    // Get cell temperature ID
+    uint tID = findTemperatureID(grid->getDustTemperature(cell));
+
+    // Define temporary array of integrated qb
+    double * e_temp = new double[nr_of_dust_species]; 
+    
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {            
+        // Get energy of current grain size
+        e_temp[a] = getQB(a,tID);
+    }
+    
+    // Calclate the total energy via integration
+    double total_emission =
+        vol * PIx4 *
+        CMathFunctions::integ_dust_size(a_eff, e_temp, nr_of_dust_species, a_min, a_max);
+
+    // Delete pointer array
+    delete[] e_temp;
+        
+    return total_emission;
+}
+
 void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes)
 {
     // Init variables

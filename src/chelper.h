@@ -655,7 +655,8 @@ class parameters
 
     bool isMonteCarloSimulation()
     {
-        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT ||
+           getCommand() == CMD_DUST_TIME) 
             return true;
         return false;
     }
@@ -670,7 +671,7 @@ class parameters
 
     bool isTemperatureSimulation()
     {
-        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_DUST_TIME)
             return true;
         return false;
     }

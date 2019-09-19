@@ -2981,7 +2981,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,50);
+        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,dust->getDustTemperature(grid, cell));
     }
     
     //Number of photons per timestep
@@ -2998,10 +2998,34 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         if (!setTemperatureFromU(dust_u))
             return false;
         
+        for(long c_i = 0; c_i < long(max_cells); c_i++)
+            dust_em[c_i] = dust->getCellEmissionRate(grid,grid->getCellFromIndex(c_i));
+        
         // Set stack for energy to estimate absorption rate
+        double * estack = new double[max_cells];
     
-        // Calc emission probabilites for dust and or sources from luminosities
-    
+        // Calc dust luminosity
+        double L_d = 0;
+        for(long c_i = 0; c_i < long(max_cells); c_i++)
+        {
+            cell_basic * cell = grid->getCellFromIndex(c_i);
+            L_d += dust_em[c_i] * dust->getNumberDensity(grid, cell);
+        }
+        
+        // Calc emission probability of source and dust (tbd: multiple sources)
+        CSourceBasic * source = sources_mc[0];
+        double p_d = L_d/(source->getLuminosity() + L_d);
+        
+        // Calc cumulative probability dist for cell emission
+        double * p_i = new double[max_cells];
+        double temp = 0.0;
+        for(long c_i = 0; c_i < long(max_cells); c_i++)
+        {
+            cell_basic * cell = grid->getCellFromIndex(c_i);
+            temp += dust_em[c_i] * dust->getNumberDensity(grid, cell);
+            p_i[c_i] = temp/L_d;
+        }
+        
         // Start photons from dust and source and store in photon stack
         
         // Loop over all photons in photon stack
@@ -3041,18 +3065,22 @@ bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
         cell_basic * cell = grid->getCellFromIndex(c_i);
         uint i_mixture = dust->getMixtureID(grid, cell);
         
+        // Get mean enthalpy for dust mixture in given cell
         double Enthalpy[dust->getNrOfCalorimetryTemperatures(grid,cell)];
         for(uint T = 0; T < dust->getNrOfCalorimetryTemperatures(grid,cell); T++)
             Enthalpy[T] = dust->getEnthalpyMean(grid,cell,T);
         
-        double temp = distance(Enthalpy,find(Enthalpy, Enthalpy+100, dust_u[c_i]));
+        // Convert dust_u to enthalpy per grain
+        double hd2 = (dust->getNumberDensity(grid,cell) > 0) ? (dust_u[c_i] / grid->getVolume(cell)) : 0;
         
-#pragma omp critical
-        cout << temp << endl;
-        //double hd2 = cell energy / cell volume if cell rho > 0
-
+        // Find the corresponding temperature
+        double temp = dust->getCalorimetricTemperature(grid,cell, uint(distance(Enthalpy,find(Enthalpy, Enthalpy+(sizeof(Enthalpy)/sizeof(*Enthalpy)), hd2))));
+        
         // Set termperature in cell
-        //grid->setDustTemperature(cell, temp);
+        grid->setDustTemperature(cell, temp);
+        
+//#pragma omp critical
+//        cout << temp << endl;
     }
     
     return true;

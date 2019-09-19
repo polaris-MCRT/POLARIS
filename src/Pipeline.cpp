@@ -1396,6 +1396,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
     {
         case CMD_TEMP:
         case CMD_TEMP_RAT:
+        case CMD_DUST_TIME:
         case CMD_RAT:
             dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS);
             break;
