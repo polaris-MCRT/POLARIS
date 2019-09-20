@@ -819,7 +819,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     {
                         // Check if limit is reached
                         if(abs(J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot]) >
-                           MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans_tot] + MC_LVL_POP_LIMIT)
+                           MC_LVL_POP_DIFF_LIMIT * abs(J_nu_in[i_trans_tot] + J_nu_in_old[i_trans_tot]) +
+                               MC_LVL_POP_LIMIT)
                         {
                             // Not converged
                             local_converged = false;
@@ -831,9 +832,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     if(!local_converged)
                     {
                         for(uint i_trans_tot = 0; i_trans_tot < nr_of_total_transitions; i_trans_tot++)
-                        {
                             J_nu_total[i_trans_tot] += J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot];
-                        }
                     }
                 }
 

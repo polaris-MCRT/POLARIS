@@ -285,8 +285,8 @@ class Sphere(Model):
             magnetic_field = self.math.simple_mag_field(
                 mag_field_strength=1e-10, axis='z')
         elif self.tmp_parameter['mag_field_geometrie'] == 'radial':
-            magnetic_field = self.math.simple_mag_field(
-                mag_field_strength=1e-10, axis='r')
+            magnetic_field = self.math.radial_mag_field(
+                mag_field_strength=1e-10, position=self.position)
         else:
             magnetic_field = [0, 0, 0]
         return magnetic_field

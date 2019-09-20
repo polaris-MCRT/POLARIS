@@ -790,26 +790,24 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
                     // Level u can be populated by level l
                     A->addValue(i_tmp_lvl_u,
                                 i_tmp_lvl_l,
-                                final_col_para[i_col_partner][i_col_transition][1] /
-                                    (nr_of_sublevel[i_lvl_u]));
+                                final_col_para[i_col_partner][i_col_transition][1] / nr_of_sublevel[i_lvl_u]);
 
                     // Level u can be depopulated to level l
                     A->addValue(i_tmp_lvl_u,
                                 i_tmp_lvl_u,
                                 -final_col_para[i_col_partner][i_col_transition][0] /
-                                    (nr_of_sublevel[i_lvl_l]));
+                                    nr_of_sublevel[i_lvl_l]);
 
                     // Level l can be populated by level u
                     A->addValue(i_tmp_lvl_l,
                                 i_tmp_lvl_u,
-                                final_col_para[i_col_partner][i_col_transition][0] /
-                                    (nr_of_sublevel[i_lvl_l]));
+                                final_col_para[i_col_partner][i_col_transition][0] / nr_of_sublevel[i_lvl_l]);
 
                     // Level l can be depopulated to level u
                     A->addValue(i_tmp_lvl_l,
                                 i_tmp_lvl_l,
                                 -final_col_para[i_col_partner][i_col_transition][1] /
-                                    (nr_of_sublevel[i_lvl_u]));
+                                    nr_of_sublevel[i_lvl_u]);
                 }
             }
         }

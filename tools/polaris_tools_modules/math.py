@@ -1422,7 +1422,7 @@ class Math:
         Args:
             mag_field_strength (float): Amplitude of the magnetic field strength.
             axis (str): Axis name of the magnetic field direction.
-                [x, y, z, r]
+                [x, y, z]
             random_variations (bool): Instead of a constant magnetic field strength,
                 the field strength is randomly chosen between rnd_b_min and mag_field_strength.
             rnd_b_min (float): Minimum magnetic field strength for random_variations.
@@ -1441,12 +1441,26 @@ class Math:
             mag[1] += mag_field_strength
         elif axis is 'z':
             mag[2] += mag_field_strength
-        elif axis is 'r':
-            mag += mag_field_strength / np.sqrt(3)
         else:
             raise ValueError(
                 'Chosen axis direction for the magnetic field strength is not valid!')
         return mag
+    
+    @staticmethod
+    def radial_mag_field(mag_field_strength, position):
+        """Magnetic field pointing in one direction.
+
+        Args:
+            mag_field_strength (float): Amplitude of the magnetic field strength.
+            position ([float, float, float]): Position in the grid
+
+        Returns:
+            List[float, float, float]: Magnetic field strength at any position.
+        """
+        #: List: Magnetic field strength
+        if np.linalg.norm(position) == 0:
+            return np.zeros(3)
+        return np.ones(3) * mag_field_strength * position[:] / np.linalg.norm(position)
 
     @staticmethod
     def disturbed_mag_field(mag_field_strength, main_axis='z', rel_strength=0.1):
