@@ -789,17 +789,17 @@ class CDetector
                         i++;
                     }
 
-                fpixel[3] = 1 * nr_extra + i_extra + 1;
+                fpixel[3] = 0 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_I);
-                fpixel[3] = 2 * nr_extra + i_extra + 1;
+                fpixel[3] = 1 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_Q);
-                fpixel[3] = 3 * nr_extra + i_extra + 1;
+                fpixel[3] = 2 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_U);
-                fpixel[3] = 4 * nr_extra + i_extra + 1;
+                fpixel[3] = 3 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_V);
-                fpixel[3] = 5 * nr_extra + i_extra + 1;
+                fpixel[3] = 4 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_T);
-                fpixel[3] = 6 * nr_extra + i_extra + 1;
+                fpixel[3] = 5 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_S);
             }
         }
