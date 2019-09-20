@@ -551,7 +551,7 @@ class CGridBasic
 
         // Get the theta and phi angle from the magnetic field direction
         double theta = getThetaMag(pp);
-        double phi = abs(getPhiMag(pp));
+        double phi = getPhiMag(pp);
 
         // Calculate the sine and cosine including double angles
         mfo->cos_theta = cos(theta);
