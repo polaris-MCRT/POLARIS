@@ -1701,7 +1701,7 @@ class CGridBasic
 
     double getGasTemperature(const cell_basic & cell) const
     {
-        return cell.getData(data_pos_tg);
+        return max(TEMP_MIN, cell.getData(data_pos_tg));
     }
 
     void setPlaneParameter(uint plane_index,

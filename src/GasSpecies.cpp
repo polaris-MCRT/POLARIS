@@ -48,7 +48,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         }
 
         double temp_gas = grid->getGasTemperature(*cell);
-        if(temp_gas == 0)
+        if(temp_gas < 1e-200)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {

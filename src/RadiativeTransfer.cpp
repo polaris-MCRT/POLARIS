@@ -892,15 +892,12 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
 
 void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
 {
-    // Get gas temperature from grid
-    double temp_gas = grid->getGasTemperature(*pp);
-
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
-    if(temp_gas > 1e-200 && dens_species > 1e-200)
+    if(dens_species > 1e-200)
     {
         // Init matrix for absorption and dust emissivity
         Matrix2D total_absorption_matrix(4, 4);
@@ -3053,15 +3050,12 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                                             const spline & vel_field,
                                             Vector3D pos_in_grid_0)
 {
-    // Get gas temperature from grid
-    double temp_gas = grid->getGasTemperature(*pp);
-
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
 
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
-    if(temp_gas > 1e-200 && dens_species > 1e-200)
+    if(dens_species > 1e-200)
     {
         // Init matrix for absorption and dust emissivity
         Matrix2D total_absorption_matrix(4, 4);
