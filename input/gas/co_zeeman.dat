@@ -1,0 +1,22 @@
+!Gas species name
+CO
+!Gas species radius for collision calculations
+1.42e-10
+!Number of transitions with Zeeman effect
+1
+!Transition index in Leiden database
+1
+!Lande factor of upper level
+0
+!Lande factor of lower level
+0
+!Number of Zeeman sublevels in the upper level
+3
+!Number of Zeeman sublevels in the lower level
+1
+!Line strength of pi transition (M'=0.0 -> M''=0.0)
+1.0
+!Line strength of sigma_+ transition (M'=-1.0 -> M''=0.0)
+0.5
+!Line strength of sigma_- transition (M'=1.0 -> M''=0.0)
+0.5

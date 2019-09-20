@@ -671,6 +671,73 @@ class GasCreator:
             zeeman_file.close()
             zeeman_shifts = np.multiply(zeeman_shifts, self.math.const['mu_B'] / self.math.const['h'] * 1e-10 * 2.0)
             print('2*nu/B =', zeeman_shifts[0], 'Hz/muG')
+        elif self.parse_args.gas_species.upper() == 'CO':
+            j_upper_list = [1]
+            j_lower_list = [0]
+            transition_index = [1]
+
+            zeeman_file = open(self.file_io.path['gas'] + 'co_zeeman.dat', 'w')
+            zeeman_file.write('!Gas species name\n')
+            zeeman_file.write('CO\n')
+            zeeman_file.write('!Gas species radius for collision calculations\n')
+            # The gas_species radius is calculated by adding the covalent
+            # radii of all atoms together.
+            zeeman_file.write(str(self.math.covalent_radii['C'] +
+                                  self.math.covalent_radii['O']) + '\n')
+            zeeman_file.write('!Number of transitions with Zeeman effect\n')
+            zeeman_file.write(str(len(j_upper_list)) + '\n')
+
+            zeeman_shifts = np.zeros(len(j_upper_list))
+            for i_trans in range(len(j_upper_list)):
+                lande_upper = self.math.lande_g_co(1, j_upper_list[i_trans])
+                lande_lower = self.math.lande_g_co(0, j_lower_list[i_trans])
+                zeeman_file.write('!Transition index in Leiden database\n')
+                zeeman_file.write(str(transition_index[i_trans]) + '\n')
+                zeeman_file.write('!Lande factor of upper level\n')
+                zeeman_file.write(str(lande_upper) + '\n')
+                zeeman_file.write('!Lande factor of lower level\n')
+                zeeman_file.write(str(lande_lower) + '\n')
+                zeeman_file.write('!Number of Zeeman sublevels in the upper level\n')
+                zeeman_file.write(str((j_upper_list[i_trans] * 2) + 1) + '\n')
+                zeeman_file.write('!Number of Zeeman sublevels in the lower level\n')
+                zeeman_file.write(str((j_lower_list[i_trans] * 2) + 1) + '\n')
+
+                if j_lower_list[i_trans] == j_upper_list[i_trans]:
+                    def relative_strength(f, m_f, transition):
+                        return self.math.relative_line_strength_zero(f, m_f, transition)
+                elif (j_lower_list[i_trans] - j_upper_list[i_trans]) == +1:
+                    def relative_strength(f, m_f, transition):
+                        return self.math.relative_line_strength_plus(f, m_f, transition)
+                elif (j_lower_list[i_trans] - j_upper_list[i_trans]) == -1:
+                    def relative_strength(f, m_f, transition):
+                        return self.math.relative_line_strength_minus(f, m_f, transition)
+
+                for i_upper_trans in np.arange(-float(j_upper_list[i_trans]), float(j_upper_list[i_trans] + 1), 1):
+                    for i_lower_trans in np.arange(-float(j_lower_list[i_trans]), float(j_lower_list[i_trans] + 1), 1):
+                        if i_lower_trans == i_upper_trans:
+                            zeeman_file.write('!Line strength of pi transition (M\'='
+                                              + str(i_upper_trans) + ' -> M\'\'=' + str(i_upper_trans) + ')\n')
+                            rel_str_pi = 2.0 * relative_strength(j_upper_list[i_trans], i_upper_trans, 0)
+                            zeeman_file.write(str(rel_str_pi) + '\n')
+                for i_upper_trans in np.arange(-float(j_upper_list[i_trans]), float(j_upper_list[i_trans] + 1), 1):
+                    for i_lower_trans in np.arange(-float(j_lower_list[i_trans]), float(j_lower_list[i_trans] + 1), 1):
+                        if i_lower_trans - i_upper_trans == +1:
+                            zeeman_file.write('!Line strength of sigma_+ transition (M\'='
+                                              + str(i_upper_trans) + ' -> M\'\'=' + str(i_upper_trans + 1) + ')\n')
+                            rel_str_sigma_p = relative_strength(j_upper_list[i_trans], i_upper_trans, +1)
+                            zeeman_file.write(str(rel_str_sigma_p) + '\n')
+                for i_upper_trans in np.arange(-float(j_upper_list[i_trans]), float(j_upper_list[i_trans] + 1), 1):
+                    for i_lower_trans in np.arange(-float(j_lower_list[i_trans]), float(j_lower_list[i_trans] + 1), 1):
+                        if i_lower_trans - i_upper_trans == -1:
+                            zeeman_file.write('!Line strength of sigma_- transition (M\'='
+                                              + str(i_upper_trans) + ' -> M\'\'=' + str(i_upper_trans - 1) + ')\n')
+                            rel_str_sigma_m = relative_strength(j_upper_list[i_trans], i_upper_trans, -1)
+                            zeeman_file.write(str(rel_str_sigma_m) + '\n')
+                            zeeman_shifts[i_trans] += 2.0 * rel_str_sigma_m * (
+                                    (lande_upper * i_upper_trans) - (lande_lower * i_lower_trans))
+            zeeman_file.close()
+            zeeman_shifts = np.multiply(zeeman_shifts, self.math.const['mu_B'] / self.math.const['h'] * 1e-10 * 2.0)
+            print('2*nu/B =', zeeman_shifts[0], 'Hz/muG')
 
     def create_hydrogen_file(self):
         """Create LAMBDA database file for H1.

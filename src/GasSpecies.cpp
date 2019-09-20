@@ -1577,7 +1577,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                     // Calculate the quantum number of the lower energy level
                     float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
 
-                    uint i_sublvl = i_sublvl_u * nr_of_sublevel[i_lvl_u] + i_sublvl_l;
+                    uint i_sublvl = getSublevelIndex(i_trans_zeeman, i_sublvl_u, i_sublvl_l);
 
                     switch(int(sublvl_l - sublvl_u))
                     {
@@ -1623,17 +1623,6 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     }
     reader.close();
 
-    for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
-    {
-        uint i_trans = getTransitionFromSpectralLine(i_line);
-        if(getLandeUpper(i_trans) == 0 || getLandeLower(i_trans) == 0)
-        {
-            cout << SEP_LINE;
-            cout << "\nERROR: For transition number " << uint(i_trans + 1)
-                 << " exists no Zeeman splitting data" << endl;
-            return false;
-        }
-    }
     return true;
 }
 

@@ -179,6 +179,7 @@ class CGasSpecies
 
     double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         if(getEinsteinA(i_trans) > 0)
             return getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) / getEinsteinA(i_trans);
         return 0;
@@ -225,13 +226,18 @@ class CGasSpecies
         return trans_einstB_lu[i_trans][0];
     }
 
+    uint getSublevelIndex(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    {
+        return i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+    }
+
     double getEinsteinA(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
         // If not Zeeman split, use total value
         if(!isTransZeemanSplit(i_trans))
             return getEinsteinA(i_trans) / getNrOfSublevelLower(i_trans);
 
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         return trans_einstA[i_trans][i_sublvl + 1];
     }
 
@@ -241,7 +247,7 @@ class CGasSpecies
         if(!isTransZeemanSplit(i_trans))
             return getEinsteinBul(i_trans) / getNrOfSublevelLower(i_trans);
 
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         return trans_einstB_ul[i_trans][i_sublvl + 1];
     }
 
@@ -251,7 +257,7 @@ class CGasSpecies
         if(!isTransZeemanSplit(i_trans))
             return getEinsteinBlu(i_trans) / getNrOfSublevelUpper(i_trans);
 
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         return trans_einstB_lu[i_trans][i_sublvl + 1];
     }
 

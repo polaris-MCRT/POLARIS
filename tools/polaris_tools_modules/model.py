@@ -284,9 +284,21 @@ class Sphere(Model):
         elif self.tmp_parameter['mag_field_geometrie'] == 'vertical':
             magnetic_field = self.math.simple_mag_field(
                 mag_field_strength=1e-10, axis='z')
+        elif self.tmp_parameter['mag_field_geometrie'] == 'radial':
+            magnetic_field = self.math.simple_mag_field(
+                mag_field_strength=1e-10, axis='r')
         else:
             magnetic_field = [0, 0, 0]
         return magnetic_field
+
+    def gas_temperature(self):
+        """Calculates the gas temperature at a given position.
+
+        Returns:
+            float: Gas temperature at a given position.
+        """
+        gas_temperature = 10
+        return gas_temperature
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
@@ -302,6 +314,10 @@ class Sphere(Model):
                     self.tmp_parameter['mag_field_geometrie'] = 'vertical'
                     print(
                         'HINT: The vertical magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'radial_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'radial'
+                    print(
+                        'HINT: The radial magnetic field is used (change with --extra)!')
 
 
 class BokGlobule(Model):

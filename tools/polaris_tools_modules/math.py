@@ -1145,6 +1145,19 @@ class Math:
         return g_f
 
     @staticmethod
+    def lande_g_co(n, j):
+        """Calculates the lande g-factor for CO.
+
+        Args:
+            n (float): Quantum number of the total orbital angular momentum.
+            j (float): Quantum number of the effective angular momentum.
+
+        Returns:
+            Float: Lande g-factor of the chosen hyperfine sublevel.
+        """
+        return 0
+
+    @staticmethod
     def lande_g_so(n, j):
         """Calculates the lande g-factor for SO.
 
@@ -1409,6 +1422,7 @@ class Math:
         Args:
             mag_field_strength (float): Amplitude of the magnetic field strength.
             axis (str): Axis name of the magnetic field direction.
+                [x, y, z, r]
             random_variations (bool): Instead of a constant magnetic field strength,
                 the field strength is randomly chosen between rnd_b_min and mag_field_strength.
             rnd_b_min (float): Minimum magnetic field strength for random_variations.
@@ -1417,7 +1431,7 @@ class Math:
             List[float, float, float]: Magnetic field strength at any position.
         """
         #: List: Magnetic field strength
-        mag = [0., 0., 0.]
+        mag = np.array([0., 0., 0.])
         if random_variations:
             mag_field_strength = rnd_b_min + \
                 np.random.random() * (mag_field_strength - rnd_b_min)
@@ -1427,6 +1441,8 @@ class Math:
             mag[1] += mag_field_strength
         elif axis is 'z':
             mag[2] += mag_field_strength
+        elif axis is 'r':
+            mag += mag_field_strength / np.sqrt(3)
         else:
             raise ValueError(
                 'Chosen axis direction for the magnetic field strength is not valid!')
