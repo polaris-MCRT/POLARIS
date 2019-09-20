@@ -2992,22 +2992,6 @@ class CGridBasic
         }
         else
         {
-            /*if(data_pos_tg == MAX_UINT)
-            {
-                cout << "\nERROR: Grid contains no gas temperature!" << endl;
-                cout << "       No SYNCHROTRON calculation possible." << endl;
-                return MAX_UINT;
-            }*/
-
-            /*if(data_pos_T_e == MAX_UINT)
-            {
-                cout << "\nWARNING: Grid contains no electron temperature component!" << endl;
-                cout << "         Electron temperature will be set to equal gas "
-                        "temperature!"
-                     << endl;
-                data_pos_T_e = data_pos_tg;
-            }*/
-
             if(data_pos_T_e != MAX_UINT)
             {
                 cout << "\nHINT: Grid contains a electron temperature component!" << endl;
@@ -3453,7 +3437,7 @@ class CGridBasic
             }
         }
 
-        if(data_pos_tg == MAX_UINT)
+        if(data_pos_tg == MAX_UINT && !param.isGasSpeciesLevelPopMC())
         {
             cout << "\nERROR: Grid contains no gas temperature!" << endl;
             cout << "       No line transfer with possible.  " << endl;
