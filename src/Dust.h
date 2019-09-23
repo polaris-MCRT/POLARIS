@@ -21,6 +21,9 @@ class CDustComponent
         tab_em_inv = 0;
         tab_planck = 0;
         enthalpy = 0;
+        
+        // Wave cdf for time dependent transfer
+        lam_cdf = 0;
 
         avg_planck_frac = 0;
 
@@ -194,6 +197,10 @@ class CDustComponent
             delete[] Qtrq;
         if(HG_g_factor != 0)
             delete[] HG_g_factor;
+        
+        // Delete wave cdf for time dependent transfer
+        if(lam_cdf != 0)
+            delete[] lam_cdf;
 
         if(tCext1 != 0)
             delete[] tCext1;
@@ -2159,6 +2166,9 @@ class CDustComponent
     void initDustProperties();
     void initScatteringMatrixArray();
     void initCalorimetry();
+    
+    // Init wave cdf for time dependent transfer
+    bool initLamCdf(CGridBasic * grid);
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
     bool readDustRefractiveIndexFile(parameters & param,
@@ -2223,6 +2233,9 @@ class CDustComponent
     spline * tab_em;
     spline * tab_em_inv;
     spline tab_temp, tab_em_eff;
+    
+    // Wave cdf for time dependent transfer
+    spline * lam_cdf;
 
     prob_list * avg_planck_frac;
     prob_list *dust_prob, *sca_prob, *abs_prob;

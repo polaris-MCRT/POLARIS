@@ -137,6 +137,64 @@ void CDustComponent::initCalorimetry()
     }
 }
 
+bool CDustComponent::initLamCdf(CGridBasic * grid)
+{
+    // Init lam_cdf for time-dependent transfer
+    
+    // Get number of temperatures from tab_temp spline
+    uint nr_of_temperatures = tab_temp.size();
+    
+    // Init array of splines
+    lam_cdf = new spline[nr_of_temperatures];
+    
+    // Init temporary pointer arrays
+    double ** qbi = new double*[nr_of_temperatures];
+    double ** pdf = new double*[nr_of_temperatures];
+    double * qb = new double[nr_of_temperatures];
+    
+    for(uint t = 0; t < int(nr_of_temperatures); t++)
+    {
+        // Init cols of pointer array
+        qbi[t] = new double[nr_of_wavelength];
+        pdf[t] = new double[nr_of_wavelength];
+        
+        for(uint w=0; w < nr_of_wavelength; w++)
+           // Multiply with cabs mean for individual contributions
+           qbi[t][w] = getCabsMean(w) * tab_planck[w].getValue(t);
+        
+        // Calculate qb integrated over all wavelengths
+        qb[t] = CMathFunctions::integ(wavelength_list, qbi[t], 0, WL_STEPS - 1);
+        
+        // Calculate wave pdfs
+        for(uint w=0; w < nr_of_wavelength; w++)
+            pdf[t][w] = qbi[t][w] / qb[t];
+        
+        // Set cdf for all wavelength
+        for(uint w=0; w < nr_of_wavelength; w++)
+        {
+            // Calculate cdf via integration over all wavelength
+            double cdf_temp = CMathFunctions::integ(wavelength_list, pdf[t], 0, w-1);
+            // Set lam_cdf spline with the integrated value
+            lam_cdf[t].setValue(w, cdf_temp, tab_temp.getValue(t));
+        }
+        
+        // Create spline for wave cdf
+        lam_cdf[t].createSpline();
+    }
+    
+    // Delete pointer arrays
+    for(int t = 0; t < int(nr_of_temperatures); t++)
+    {
+        delete qbi[t];
+        delete pdf[t];
+    }
+    delete[] qbi;
+    delete[] pdf;
+    delete[] qb;
+    
+    return true;
+}
+
 bool CDustComponent::readDustParameterFile(parameters & param, uint dust_component_choice)
 {
     // Get Path to dust parameters file

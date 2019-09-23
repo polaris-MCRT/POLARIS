@@ -3012,8 +3012,17 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             L_d += dust_em[c_i] * dust->getNumberDensity(grid, cell);
         }
         
-        // Calc emission probability of source and dust (tbd: multiple sources)
+        // Init (star)source and dust (tbd: multiple sources)
         CSourceBasic * source = sources_mc[0];
+        CSourceBasic * dust_source = sources_mc[1];
+        
+        // Init luminosity and probability for star source
+        if(!source->initSource(0, 2, false))
+            return false;
+        if(!dust_source->initLamCdf(grid, grid->getCellFromIndex(1)))
+            return false;
+        
+        // Calc emission probability of source and dust
         double p_d = L_d/(source->getLuminosity() + L_d);
         
         // Calc cumulative probability dist for cell emission
@@ -3026,7 +3035,35 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             p_i[c_i] = temp/L_d;
         }
         
-        // Start photons from dust and source and store in photon stack
+        // Init photon pointer stack with (shared) pointer (to prevent memory leak)
+        //vector<shared_ptr<photon_package>> pp_stack;
+        vector<photon_package*> pp_stack;
+        
+        // Start photons from dust and/or source and store in photon stack
+        for (llong i = 0; i < llong(nr_of_photons_step); i++)
+        {
+            pp_stack.push_back(new photon_package());
+            // Generation marker could be set here
+            // pp_stack[i]->setTime(t); tbd
+            
+            // Decide wether photons are emitted from source or dust and emitt
+            double rnd = pp_stack[i]->getRND();
+            
+            //if(rnd < p_d)
+            //{
+                // Emission from dust source (tbd: set cell, wavelength and energy)
+            //    dust_source->createNextRay(pp_stack[i], ullong(i));
+            //    N_d++;
+            //}
+            //else
+            //{
+                // Emission from source (star)
+            //    source->createNextRay(pp_stack[i], ullong(i));
+            //    N_s++;
+            //}
+            
+        }
+        
         
         // Loop over all photons in photon stack
     
