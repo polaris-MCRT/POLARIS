@@ -1106,27 +1106,30 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     pp->initRandomGenerator(i_pos);
     pp->calcRandomDirection();
 
-    // Set wavelength of photon package
-    uint w = pp->getWavelengthID();
+    if(pp->getPositionCell() == 0)
+    {
+        // Set wavelength of photon package
+        uint w = pp->getWavelengthID();
+        
+        // Get random number
+        double rnd = pp->getRND();
 
-    // Get random number
-    double rnd = pp->getRND();
+        // Get index of current cell
+        ulong i_cell = cell_prob[w].getIndex(rnd) + 1;
 
-    // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd) + 1;
+        // Put photon package into current cell
+        pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
-    // Put photon package into current cell
-    pp->setPositionCell(grid->getCellFromIndex(i_cell));
+        // Set Stokes vector of photon package
+        double energy = total_energy[w] / double(nr_of_photons);
 
+        // Set Stokes Vector
+        pp->setStokesVector(StokesVector(energy, 0, 0, 0));
+    }
+    
     // Set random position in cell
     grid->setRndPositionInCell(pp);
-
-    // Set Stokes vector of photon package
-    double energy = total_energy[w] / double(nr_of_photons);
-
-    // Set Stokes Vector
-    pp->setStokesVector(StokesVector(energy, 0, 0, 0));
-
+    
     // Init coordinate System for scattering
     pp->initCoordSystem();
 }

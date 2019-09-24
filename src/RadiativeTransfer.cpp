@@ -3019,7 +3019,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         // Init luminosity and probability for star source
         if(!source->initSource(0, 2, false))
             return false;
-        if(!dust_source->initLamCdf(grid, grid->getCellFromIndex(1)))
+        if(!dust->initLamCdf())
             return false;
         
         // Calc emission probability of source and dust
@@ -3047,20 +3047,39 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // pp_stack[i]->setTime(t); tbd
             
             // Decide wether photons are emitted from source or dust and emitt
+            pp_stack[i]->initRandomGenerator(i);
             double rnd = pp_stack[i]->getRND();
             
-            //if(rnd < p_d)
-            //{
-                // Emission from dust source (tbd: set cell, wavelength and energy)
-            //    dust_source->createNextRay(pp_stack[i], ullong(i));
-            //    N_d++;
-            //}
-            //else
-            //{
+            if(rnd < p_d)
+            {
+                // Emission from dust source (tbd: set energy and stokes vector)
+                
+                // Get random number for cell index
+                rnd = pp_stack[i]->getRND();
+                
+                // Find cell index from probability dist for cell emission
+                ulong i_cell = distance(p_i,find(p_i, p_i+(sizeof(p_i)/sizeof(*p_i)), rnd));
+                
+                // Get temperature ID and find wavelength
+                cell_basic * cell = grid->getCellFromIndex(i_cell);
+                uint wID = dust->getWavelengthIDfromCdf(grid, cell, pp_stack[i]);
+                
+                // Set wavelength
+                pp_stack[i]->setWavelengthID(wID);
+                
+                // Set photon package into cell
+                pp_stack[i]->setPositionCell(cell);
+                
+                // Set random direction, position and coordinate system for scattering
+                dust_source->createNextRay(pp_stack[i], ullong(i));
+                N_d++;
+            }
+            else
+            {
                 // Emission from source (star)
-            //    source->createNextRay(pp_stack[i], ullong(i));
-            //    N_s++;
-            //}
+                source->createNextRay(pp_stack[i], ullong(i));
+                N_s++;
+            }
             
         }
         

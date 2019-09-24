@@ -1084,7 +1084,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
         if(param.getDustSource())
         {
-            if(param.isTemperatureSimulation())
+            if(param.isTemperatureSimulation() && !(param.getCommand() == CMD_DUST_TIME))
             {
                 cout << "\nERROR: Dust as radiation source cannot be considered in "
                      << "temperature calculations (use RAT to consider dust as a "

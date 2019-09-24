@@ -137,12 +137,19 @@ void CDustComponent::initCalorimetry()
     }
 }
 
-bool CDustComponent::initLamCdf(CGridBasic * grid)
+void CDustComponent::initLamCdf()
 {
     // Init lam_cdf for time-dependent transfer
     
+    // Init counter and percentage to show progress
+    ullong per_counter = 0;
+    float last_percentage = 0;
+    
     // Get number of temperatures from tab_temp spline
     uint nr_of_temperatures = tab_temp.size();
+    
+    // Init maximum counter value
+    uint max_counter = nr_of_wavelength * nr_of_temperatures;
     
     // Init array of splines
     lam_cdf = new spline[nr_of_temperatures];
@@ -152,11 +159,15 @@ bool CDustComponent::initLamCdf(CGridBasic * grid)
     double ** pdf = new double*[nr_of_temperatures];
     double * qb = new double[nr_of_temperatures];
     
+#pragma omp parallel for    
     for(uint t = 0; t < int(nr_of_temperatures); t++)
     {
         // Init cols of pointer array
         qbi[t] = new double[nr_of_wavelength];
         pdf[t] = new double[nr_of_wavelength];
+        
+        // Resize tabulated spline
+        lam_cdf[t].resize(nr_of_wavelength);
         
         for(uint w=0; w < nr_of_wavelength; w++)
            // Multiply with cabs mean for individual contributions
@@ -170,12 +181,29 @@ bool CDustComponent::initLamCdf(CGridBasic * grid)
             pdf[t][w] = qbi[t][w] / qb[t];
         
         // Set cdf for all wavelength
-        for(uint w=0; w < nr_of_wavelength; w++)
+        lam_cdf[t].setValue(0, pdf[t][0], wavelength_list[0]);
+        for(uint w=1; w < nr_of_wavelength; w++)
         {
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+#pragma omp critical
+                {
+                    cout << "Calculating wavelength CDF: " << percentage << " [%]                      \r";
+                    last_percentage = percentage;
+                }
+            }
+            
             // Calculate cdf via integration over all wavelength
             double cdf_temp = CMathFunctions::integ(wavelength_list, pdf[t], 0, w-1);
             // Set lam_cdf spline with the integrated value
-            lam_cdf[t].setValue(w, cdf_temp, tab_temp.getValue(t));
+            lam_cdf[t].setValue(w, cdf_temp, wavelength_list[w]);
         }
         
         // Create spline for wave cdf
@@ -191,8 +219,6 @@ bool CDustComponent::initLamCdf(CGridBasic * grid)
     delete[] qbi;
     delete[] pdf;
     delete[] qb;
-    
-    return true;
 }
 
 bool CDustComponent::readDustParameterFile(parameters & param, uint dust_component_choice)

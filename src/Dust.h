@@ -1525,6 +1525,14 @@ class CDustComponent
 
         return res;
     }
+    
+    double findWavelengthInCdf(uint t, double rnd)
+    {
+        // Return wavelength for random number
+        double w = lam_cdf[t].getValue(rnd);
+        
+        return w;
+    }
 
     double findTemperature(uint a, double qb)
     {
@@ -2168,7 +2176,7 @@ class CDustComponent
     void initCalorimetry();
     
     // Init wave cdf for time dependent transfer
-    bool initLamCdf(CGridBasic * grid);
+    void initLamCdf();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
     bool readDustRefractiveIndexFile(parameters & param,
@@ -2361,7 +2369,16 @@ class CDustMixture
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 mixed_component[i_mixture].preCalcEffProperties(param);
     }
-
+    
+    bool initLamCdf()
+    {
+        // Init wavelength cdf for all mixtures for time-dependent transfer
+        if(mixed_component != 0)
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                mixed_component[i_mixture].initLamCdf();
+        return true;
+    }
+        
     string getPhaseFunctionStr()
     {
         string str_res = "\nERROR: Phase function is undefined!\n";
@@ -3405,6 +3422,24 @@ class CDustMixture
         return mixed_component[0].getTabPlanck(w, temp);
     }
 
+    uint getWavelengthIDfromCdf(CGridBasic * grid, cell_basic * cell, photon_package * pp)
+    {
+        // Get random wavelength for time-dependent transfer dust emission
+        
+        // Get random number for wavelength
+        double rnd = pp->getRND();
+        
+        // Find temperature ID
+        uint i_mixture = getMixtureID(grid, cell);
+        uint tID = mixed_component[i_mixture].findTemperatureID(grid->getDustTemperature(cell));
+        
+        // Find wavelength from lam_cdf
+        double w = mixed_component[i_mixture].findWavelengthInCdf(tID, rnd);
+        uint wID = getWavelengthID(w);
+        
+        return wID;
+    }
+    
     bool createDustMixtures(parameters & param, string path_data, string path_plot);
     bool readScatteringMatrices(parameters & param);
     bool readColarimetry(parameters & param);
