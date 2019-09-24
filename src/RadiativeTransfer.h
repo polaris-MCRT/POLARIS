@@ -154,7 +154,10 @@ class CRadiativeTransfer
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
     bool calcMonteCarloLvlPopulation(uint i_species, uint global_seed);
-    void rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans);
+    void rayThroughCellForLvlPop(photon_package * pp,
+                                 uint i_species,
+                                 uint i_trans,
+                                 const VelFieldInterp & vel_field_interp);
 
     // Set temperature (old!)
     bool setTemperatureDistribution();
@@ -218,9 +221,9 @@ class CRadiativeTransfer
                             uint i_trans,
                             uint i_det,
                             uint nr_velocity_channels,
-                            bool zero_vel_field = true,
-                            const spline & vel_field = spline(),
-                            Vector3D pos_in_grid_0 = Vector3D());
+                            const VelFieldInterp & vel_field_interp);
+
+    void preCalcVelocityInterp(CGridBasic * grid, VelFieldInterp * vel_field_interp);
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);

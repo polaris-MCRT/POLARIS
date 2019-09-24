@@ -795,11 +795,18 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                             pp.setStokesVector(StokesVector(tmp_energy, 0, 0, 0));
                         }
 
+                        // Set/Get Necessary information about velocity field interpolation
+                        VelFieldInterp vel_field_interp;
+                        vel_field_interp.start_pos = pp.getPosition();
+
+                        // Precalculate the velocity interpolation
+                        preCalcVelocityInterp(grid, &vel_field_interp);
+
                         // Transport the photon package through the model to the current final cell
                         while(!pp.reachedBackupPosition() && grid->next(&pp))
                         {
                             // Solve radiative transfer equation by raytracing through a cell
-                            rayThroughCellForLvlPop(&pp, i_species, i_trans);
+                            rayThroughCellForLvlPop(&pp, i_species, i_trans, vel_field_interp);
                         }
 
                         // Add energy to the corresponding radiation field entry
@@ -893,8 +900,12 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
     return true;
 }
 
-void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
+void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
+                                                 uint i_species,
+                                                 uint i_trans,
+                                                 const VelFieldInterp & vel_field_interp)
 {
+
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
 
@@ -909,10 +920,11 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
-        if(gas->isTransZeemanSplit(i_species, i_trans))
+        uint i_zeeman = gas->getZeemanSplitIndex(i_species, i_trans);
+        if(i_zeeman != MAX_UINT)
         {
             grid->getMagFieldInfo(*pp, &mag_field_info);
-            grid->getLineBroadening(*pp, i_trans, &line_broadening);
+            grid->getLineBroadening(*pp, i_zeeman, &line_broadening);
         }
         else
         {
@@ -922,6 +934,9 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
         // Get the path length through the current cell
         double len = pp->getTmpPathLength();
+
+        // Get necessary quantities from the current cell
+        double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
         dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
@@ -957,9 +972,11 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             for(uint k = 0; k < 6; k++)
             {
                 // Calculate projected velocity on each Runge-Kutta position
-                double rel_velocity = pp->getVelocity() -
-                                      gas->getProjCellVelocity(
-                                          grid, *pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
+                double rel_velocity =
+                    pp->getVelocity() -
+                    gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
+                                                   pp->getDirection(),
+                                                   vel_field_interp);
 
                 // Init emission
                 StokesVector total_emission;
@@ -2902,10 +2919,6 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
 
-    // velocity interpolation
-    spline vel_field;
-    bool zero_vel_field = true;
-
     // Number of velocity channels from tracer
     uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
 
@@ -2922,60 +2935,20 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         pp->setStokesVector(tmp_source->getStokesVector(pp) * pp->getWavelength() / pp->getFrequency());
     }
 
-    if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
-    {
-        photon_package pp_interp = photon_package();
-        tracer[i_det]->preparePhoton(&pp_interp, cx, cy);
-        if(grid->findStartingPoint(&pp_interp))
-        {
-            Vector3D pos_in_grid_0 = pp_interp.getPosition();
-            double spline_x_old = 0;
-            while(grid->next(&pp_interp))
-            {
-                Vector3D pos_xyz_cell =
-                    pp_interp.getPosition() - (pp_interp.getTmpPathLength() * pp_interp.getDirection());
-                Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
-
-                const cell_basic & tmp_cell_pos = *pp_interp.getPositionCell();
-                Vector3D cell_center = grid->getCenter(tmp_cell_pos);
-
-                double length_on_line =
-                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, pp_interp.getPosition(), cell_center);
-                double spline_x = length_on_line + rel_pos.length();
-
-                if((spline_x_old - spline_x) != 0.0)
-                {
-                    double spline_y = grid->getVelocityField(pp_interp) * pp_interp.getDirection();
-
-                    spline_x_old = spline_x;
-
-                    if(spline_y != 0)
-                        zero_vel_field = false;
-
-                    vel_field.setDynValue(spline_x, spline_y);
-                }
-            }
-            vel_field.createDynSpline();
-        }
-    }
-
     tracer[i_det]->preparePhoton(pp, cx, cy);
     if(grid->findStartingPoint(pp))
     {
-        // Save the starting position, to obtain relative positions
-        Vector3D pos_in_grid_0 = pp->getPosition();
+        // Set/Get Necessary information about velocity field interpolation
+        VelFieldInterp vel_field_interp;
+        vel_field_interp.start_pos = pp->getPosition();
+
+        // Precalculate the velocity interpolation
+        preCalcVelocityInterp(grid, &vel_field_interp);
 
         // Transport the photon package through the model
         while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
         {
-            rayThroughCellLine(pp,
-                               i_species,
-                               i_trans,
-                               i_det,
-                               nr_velocity_channels,
-                               zero_vel_field,
-                               vel_field,
-                               pos_in_grid_0);
+            rayThroughCellLine(pp, i_species, i_trans, i_det, nr_velocity_channels, vel_field_interp);
         }
     }
     // Update the multi Stokes vectors for each velocity channel
@@ -3004,9 +2977,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                                             uint i_trans,
                                             uint i_det,
                                             uint nr_velocity_channels,
-                                            bool zero_vel_field,
-                                            const spline & vel_field,
-                                            Vector3D pos_in_grid_0)
+                                            const VelFieldInterp & vel_field_interp)
 {
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
@@ -3083,9 +3054,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         pp->getVelocity() -
                         gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
                                                        pp->getDirection(),
-                                                       pos_in_grid_0,
-                                                       vel_field,
-                                                       zero_vel_field);
+                                                       vel_field_interp);
 
                     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
                     if(obs_vel.length() > 0)
@@ -3243,6 +3212,48 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     cell_d_l = max(dz_new, 0.25 * cell_d_l);
                 }
             }
+        }
+    }
+}
+
+void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid, VelFieldInterp * vel_field_interp)
+{
+    vel_field_interp->zero_vel_field = true;
+
+    if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
+    {
+        photon_package pp_interp = photon_package();
+        pp_interp.setPosition(vel_field_interp->start_pos);
+        if(grid->findStartingPoint(&pp_interp))
+        {
+            Vector3D pos_in_grid_0 = pp_interp.getPosition();
+            double spline_x_old = 0;
+            while(grid->next(&pp_interp))
+            {
+                Vector3D pos_xyz_cell =
+                    pp_interp.getPosition() - (pp_interp.getTmpPathLength() * pp_interp.getDirection());
+                Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
+
+                const cell_basic & tmp_cell_pos = *pp_interp.getPositionCell();
+                Vector3D cell_center = grid->getCenter(tmp_cell_pos);
+
+                double length_on_line =
+                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, pp_interp.getPosition(), cell_center);
+                double spline_x = length_on_line + rel_pos.length();
+
+                if((spline_x_old - spline_x) != 0.0)
+                {
+                    double spline_y = grid->getVelocityField(pp_interp) * pp_interp.getDirection();
+
+                    spline_x_old = spline_x;
+
+                    if(spline_y != 0)
+                        vel_field_interp->zero_vel_field = false;
+
+                    vel_field_interp->vel_field.setDynValue(spline_x, spline_y);
+                }
+            }
+            vel_field_interp->vel_field.createDynSpline();
         }
     }
 }

@@ -8,6 +8,14 @@
 #ifndef CMOLECULE
 #define CMOLECULE
 
+// Additional Structure
+struct VelFieldInterp
+{
+    spline vel_field;
+    bool zero_vel_field;
+    Vector3D start_pos;
+};
+
 class CGasSpecies
 {
   public:
@@ -24,6 +32,8 @@ class CGasSpecies
         abundance = 0;
 
         gas_species_radius = 0;
+
+        kepler_star_mass = 0;
 
         nr_zeeman_spectral_lines = 0;
 
@@ -188,6 +198,11 @@ class CGasSpecies
     double getAbundance() const
     {
         return abundance;
+    }
+
+    double getKeplerStarMass() const
+    {
+        return kepler_star_mass;
     }
 
     int getTransitionFromSpectralLine(uint i_line) const
@@ -355,6 +370,46 @@ class CGasSpecies
         dens_species *= grid->getGasNumberDensity(cell);
         dens_species *= molecular_weight * m_H;
         return dens_species;
+    }
+
+    Vector3D getCellVelocity(CGridBasic * grid, const cell_basic & cell, const Vector3D & tmp_pos) const
+    {
+        Vector3D cell_velocity;
+
+        // Get the velocity in the photon
+        // direction of the current position
+        if(kepler_star_mass > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, kepler_star_mass);
+        }
+        else if(grid->hasVelocityField())
+        {
+            // Get velocity from grid cell
+            cell_velocity = grid->getVelocityField(cell);
+        }
+        return cell_velocity;
+    }
+
+    double getProjCellVelocityInterp(const Vector3D & tmp_pos,
+                                     const Vector3D & dir_map_xyz,
+                                     const VelFieldInterp & vel_field_interp)
+    {
+        double cell_velocity = 0;
+
+        // Get the velocity in the photon direction of the current position
+        if(kepler_star_mass > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, kepler_star_mass) * dir_map_xyz;
+        }
+        else if(vel_field_interp.vel_field.size() > 0 && !vel_field_interp.zero_vel_field)
+        {
+            // Get velocity from grid cell with interpolation
+            Vector3D rel_pos = tmp_pos - vel_field_interp.start_pos;
+            cell_velocity = vel_field_interp.vel_field.getValue(rel_pos.length());
+        }
+        return cell_velocity;
     }
 
     void initReferenceLists()
@@ -576,6 +631,11 @@ class CGasSpecies
         return float((nr_of_sublevel[i_lvl] - 1) / 2.0);
     }
 
+    void setKeplerStarMass(double val)
+    {
+        kepler_star_mass = val;
+    }
+
     void setLevelPopType(uint type)
     {
         lvl_pop_type = type;
@@ -697,8 +757,8 @@ class CGasSpecies
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
-    bool calcLVG(CGridBasic * grid, double kepler_star_mass, bool full = false);
-    bool calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, bool full = false);
+    bool calcLVG(CGridBasic * grid, bool full = false);
+    bool calcDeguchiWatsonLVG(CGridBasic * grid, bool full = false);
     bool updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total);
 
     double elem_LVG(CGridBasic * grid,
@@ -739,6 +799,7 @@ class CGasSpecies
     double abundance;
     double max_velocity;
     double gas_species_radius;
+    double kepler_star_mass;
 
     uint i_species;
 
@@ -782,8 +843,6 @@ class CGasMixture
     CGasMixture()
     {
         nr_of_species = 0;
-
-        kepler_star_mass = 0;
 
         level_to_pos = 0;
         line_to_pos = 0;
@@ -1006,7 +1065,7 @@ class CGasMixture
 
     double getKeplerStarMass() const
     {
-        return kepler_star_mass;
+        return single_species[0].getKeplerStarMass();
     }
 
     double getNumberDensity(CGridBasic * grid, const photon_package & pp, uint i_species) const
@@ -1031,7 +1090,8 @@ class CGasMixture
 
     void setKeplerStarMass(double val)
     {
-        kepler_star_mass = val;
+        for(uint i_species = 0; i_species < nr_of_species; i_species++)
+            single_species[i_species].setKeplerStarMass(val);
     }
 
     void calcLineBroadening(CGridBasic * grid, uint i_species)
@@ -1209,44 +1269,14 @@ class CGasMixture
 
     Vector3D getCellVelocity(CGridBasic * grid, const cell_basic & cell, const Vector3D & tmp_pos) const
     {
-        Vector3D cell_velocity;
-
-        // Get the velocity in the photon
-        // direction of the current position
-        if(getKeplerStarMass() > 0)
-        {
-            // Get velocity from Kepler rotation
-            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass());
-        }
-        else if(grid->hasVelocityField())
-        {
-            // Get velocity from grid cell
-            cell_velocity = grid->getVelocityField(cell);
-        }
-        return cell_velocity;
+        return single_species[0].getCellVelocity(grid, cell, tmp_pos);
     }
 
     double getProjCellVelocityInterp(const Vector3D & tmp_pos,
                                      const Vector3D & dir_map_xyz,
-                                     const Vector3D & pos_in_grid_0,
-                                     const spline & vel_field,
-                                     bool zero_vel_field = false)
+                                     const VelFieldInterp & vel_field_interp)
     {
-        double cell_velocity = 0;
-
-        // Get the velocity in the photon direction of the current position
-        if(getKeplerStarMass() > 0)
-        {
-            // Get velocity from Kepler rotation
-            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass()) * dir_map_xyz;
-        }
-        else if(vel_field.size() > 0 && !zero_vel_field)
-        {
-            // Get velocity from grid cell with interpolation
-            Vector3D rel_pos = tmp_pos - pos_in_grid_0;
-            cell_velocity = vel_field.getValue(rel_pos.length());
-        }
-        return cell_velocity;
+        return single_species[0].getProjCellVelocityInterp(tmp_pos, dir_map_xyz, vel_field_interp);
     }
 
     void printParameter(parameters & param, CGridBasic * grid);
@@ -1257,7 +1287,6 @@ class CGasMixture
     uint *** level_to_pos;
     uint **** line_to_pos;
 
-    double kepler_star_mass;
     uint nr_of_species;
 };
 

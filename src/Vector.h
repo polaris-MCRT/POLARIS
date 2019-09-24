@@ -24,7 +24,7 @@ class Vector3D
     ~Vector3D(void)
     {}
 
-    void printValues()const
+    void printValues() const
     {
         cout << "(" << float(x) << ":" << float(y) << ":" << float(z) << ")";
     }
@@ -579,7 +579,7 @@ double atan3(double x, double y)
 // inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return
 // Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};
 
-inline Vector3D operator*(double val, const Vector3D & rhs)
+inline const Vector3D operator*(double val, const Vector3D & rhs)
 {
     return Vector3D(rhs.X() * val, rhs.Y() * val, rhs.Z() * val);
 }

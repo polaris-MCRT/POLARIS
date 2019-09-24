@@ -291,7 +291,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 // and based on Pavlyuchenkov et. al (2007)
 
-bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
+bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
 {
     uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
     uint nr_of_total_transitions = getNrOfTotalTransitions();
@@ -329,9 +329,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         for(uint i = 1; i < nr_of_total_energy_levels; i++)
         {
             tmp_lvl_pop[i] = 0.0;
-            old_pop[i] = 0.0;
         }
-        old_pop[0] = 1.0;
         tmp_lvl_pop[0] = 1.0;
 
         double turbulent_velocity = grid->getTurbulentVelocity(cell);
@@ -357,19 +355,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
             continue;
 
         Vector3D pos_xyz_cell = grid->getCenter(*cell);
-        double abs_vel;
-        if(kepler_star_mass > 0)
-        {
-            Vector3D velo = CMathFunctions::calcKeplerianVelocity(pos_xyz_cell, kepler_star_mass);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else if(grid->hasVelocityField())
-        {
-            Vector3D velo = grid->getVelocityField(*cell);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else
-            abs_vel = 0;
+        double abs_vel = getCellVelocity(grid, *cell, pos_xyz_cell).length();
 
         if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
             continue;
@@ -497,7 +483,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
     return no_error;
 }
 
-bool CGasSpecies::calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, bool full)
+bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
 {
     uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
     uint nr_of_total_transitions = getNrOfTotalTransitions();
@@ -535,12 +521,8 @@ bool CGasSpecies::calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, boo
         for(uint i = 1; i < nr_of_total_energy_levels; i++)
         {
             tmp_lvl_pop[i] = 0.0;
-            old_pop[i] = 0.0;
         }
-        old_pop[0] = 1.0;
         tmp_lvl_pop[0] = 1.0;
-
-        double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
         // Calculate percentage of total progress per source
         float percentage = 100 * float(i_cell) / float(max_cells);
@@ -562,30 +544,24 @@ bool CGasSpecies::calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, boo
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
+        // Get turbulent velocity
+        double turbulent_velocity = grid->getTurbulentVelocity(cell);
+
+        // Get gauss A
+        double gauss_a = getGaussA(temp_gas, turbulent_velocity);
+
+        // Get center position of current cell
         Vector3D pos_xyz_cell = grid->getCenter(*cell);
-        double abs_vel;
-        if(kepler_star_mass > 0)
-        {
-            Vector3D velo = CMathFunctions::calcKeplerianVelocity(pos_xyz_cell, kepler_star_mass);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else if(grid->hasVelocityField())
-        {
-            Vector3D velo = grid->getVelocityField(*cell);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else
-            abs_vel = 0;
+
+        double abs_vel = 1.0;
 
         if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
             continue;
 
         double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
-        double L = R_mid * sqrt(2.0 / 3.0 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
-        uint i_iter = 0;
 
         double *** final_col_para = calcCollisionParameter(grid, cell);
-
+        uint i_iter = 0;
         for(i_iter = 0; i_iter < MAX_LVG_ITERATIONS; i_iter++)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_total_energy_levels; i_lvl++)
@@ -593,11 +569,39 @@ bool CGasSpecies::calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, boo
 
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
             {
-                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+                double L = 0;
+                uint i_lvl_l = getLowerEnergyLevel(i_trans);
+                uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+                for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
                 {
-                    for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+                    // Calculate the quantum number of the upper energy level
+                    float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
+
+                    for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
                     {
+                        // Calculate the quantum number of the lower energy level
+                        float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
+
                         uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+
+                        switch(int(sublvl_l - sublvl_u))
+                        {
+                            // Factor 2/3 or 1/3 comes from normalization in the Larsson paper
+                            // See Deguchi & Watson 1984 as well!
+                            case TRANS_SIGMA_P:
+                            case TRANS_SIGMA_M:
+                                L = sqrt(1e10 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+                                break;
+                            case TRANS_PI:
+                                L = 0;
+                                break;
+                            default:
+                                // Forbidden line
+                                L = 0;
+                                break;
+                        }
+
                         J_mid[i_tmp_trans] = elem_LVG(grid,
                                                       dens_species,
                                                       tmp_lvl_pop,
@@ -722,14 +726,11 @@ double CGasSpecies::elem_LVG(CGridBasic * grid,
 
     double lvl_pop_l = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_l, i_sublvl_l)];
     double lvl_pop_u = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_u, i_sublvl_u)];
-
-    double Einst_A = getEinsteinA(i_trans);
-    double Einst_B_u = getEinsteinBul(i_trans);
-    double Einst_B_l = getEinsteinBlu(i_trans);
     double j, alpha, tau, beta, J_mid, S;
 
-    j = dens_species * lvl_pop_u * Einst_A * gauss_a * con_eps / sqrt(PI);
-    alpha = dens_species * (lvl_pop_l * Einst_B_l - lvl_pop_u * Einst_B_u) * gauss_a * con_eps / sqrt(PI);
+    j = dens_species * lvl_pop_u * getEinsteinA(i_trans) * gauss_a * con_eps / sqrt(PI);
+    alpha = dens_species * (lvl_pop_l * getEinsteinBlu(i_trans) - lvl_pop_u * getEinsteinBul(i_trans)) *
+            gauss_a * con_eps / sqrt(PI);
 
     if(alpha < 1e-20)
     {
@@ -1986,7 +1987,8 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
                 return false;
             break;
         case POP_LVG:
-            if(!single_species[i_species].calcLVG(grid, getKeplerStarMass()))
+            // if(!single_species[i_species].calcLVG(grid))
+            if(!single_species[i_species].calcDeguchiWatsonLVG(grid))
                 return false;
             break;
         default:
