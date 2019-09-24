@@ -19,7 +19,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
     }
     else
     {
@@ -263,7 +263,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
     else
     {
         // Init variables
@@ -746,7 +746,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with " << nr_of_photons
-             << " photons per wavelength"
+             << " photons FOR EACH wavelength"
              << "      " << endl;
     }
     else
@@ -1029,8 +1029,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     }
 
     // Show information
-    cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " << nr_of_photons
-         << "      " << endl;
+    cout << "- Source (" << id + 1 << " of " << max
+         << ") DUST: photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
 
     return true;
 }
@@ -1219,7 +1219,7 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
              << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
-        cout << "    photons per wavelength: " << nr_of_photons << "      " << endl;
+        cout << "    photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
         // cout << "\nERROR: Laser source cannot be used for dust temperature calculation!\n" << endl;
         // return false;
     }

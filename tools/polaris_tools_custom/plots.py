@@ -2520,7 +2520,7 @@ class CustomPlots:
         """
         # Simulation parameter (model 1, 2, ...)
         model = 1
-        detector_index = model * 100
+        detector_index = 1 #model * 100
         vmax = 10
         limits_1 = [-270, -160, -130, -20]
         limits_2 = [-300, 300, -200, 200]

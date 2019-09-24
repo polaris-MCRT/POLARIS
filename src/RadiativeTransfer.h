@@ -188,13 +188,12 @@ class CRadiativeTransfer
                                uint subpixel_lvl,
                                int pos_id);
     void getSyncIntensity(photon_package * pp1,
-                          photon_package * pp2,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
                           uint i_det,
                           uint subpixel_lvl);
-    void rayThroughCellSync(photon_package * pp1, photon_package * pp2, uint i_det, uint nr_used_wavelengths);
+    void rayThroughCellSync(photon_package * pp1, uint i_det, uint nr_used_wavelengths);
 
     // Line emission
     bool calcChMapsViaRaytracing(parameters & param);

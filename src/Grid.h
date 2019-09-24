@@ -2337,6 +2337,7 @@ class CGridBasic
 
     double getPhiMag(const photon_package & pp) const
     {
+        // 0 deg are in the e_y direction
         return getAnglePhi(pp.getEX(), pp.getEY(), getMagField(pp)) - PI2;
     }
 
