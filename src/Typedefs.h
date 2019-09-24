@@ -81,8 +81,8 @@ using namespace std;
 #define MAX_SOLVER_STEPS 1500000
 
 // Limits for the Monte-Carlo level population calculation
-#define MC_LVL_POP_DIFF_LIMIT 1e-3
-#define MC_LVL_POP_LIMIT 1e-30
+#define MC_LVL_POP_DIFF_LIMIT 1e-6
+#define MC_LVL_POP_LIMIT 1e-200
 #define MC_LVL_POP_MAX_LOCAL_ITER 1000
 #define MC_LVL_POP_MAX_GLOBAL_ITER 100
 

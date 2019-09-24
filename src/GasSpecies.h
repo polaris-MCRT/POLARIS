@@ -698,6 +698,7 @@ class CGasSpecies
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
     bool calcLVG(CGridBasic * grid, double kepler_star_mass, bool full = false);
+    bool calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, bool full = false);
     bool updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total);
 
     double elem_LVG(CGridBasic * grid,

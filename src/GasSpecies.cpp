@@ -497,6 +497,212 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
     return no_error;
 }
 
+bool CGasSpecies::calcLVGDeguchi(CGridBasic * grid, double kepler_star_mass, bool full)
+{
+    uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
+    uint nr_of_total_transitions = getNrOfTotalTransitions();
+    uint nr_of_spectral_lines = getNrOfSpectralLines();
+    float last_percentage = 0;
+    long max_cells = grid->getMaxDataCells();
+    bool no_error = true;
+
+    cout << CLR_LINE;
+
+    double * J_ext = new double[nr_of_total_transitions];
+    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+    {
+        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+        {
+            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+            {
+                uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+                J_ext[i_tmp_trans] = CMathFunctions::planck_hz(getTransitionFrequency(i_trans), 2.75);
+            }
+        }
+    }
+
+#pragma omp parallel for schedule(dynamic)
+    for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(i_cell);
+        Matrix2D A(nr_of_total_energy_levels, nr_of_total_energy_levels);
+
+        double * J_mid = new double[nr_of_total_transitions];
+        double * b = new double[nr_of_total_energy_levels];
+        double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
+        double * old_pop = new double[nr_of_total_energy_levels];
+
+        for(uint i = 1; i < nr_of_total_energy_levels; i++)
+        {
+            tmp_lvl_pop[i] = 0.0;
+            old_pop[i] = 0.0;
+        }
+        old_pop[0] = 1.0;
+        tmp_lvl_pop[0] = 1.0;
+
+        double turbulent_velocity = grid->getTurbulentVelocity(cell);
+
+        // Calculate percentage of total progress per source
+        float percentage = 100 * float(i_cell) / float(max_cells);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+#pragma omp critical
+            {
+                cout << "-> Calculating LVG level population : " << last_percentage
+                     << " [%]                       \r";
+                last_percentage = percentage;
+            }
+        }
+
+        // Check temperature and density
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
+        if(temp_gas < 1e-200 || dens_species < 1e-200)
+            continue;
+
+        Vector3D pos_xyz_cell = grid->getCenter(*cell);
+        double abs_vel;
+        if(kepler_star_mass > 0)
+        {
+            Vector3D velo = CMathFunctions::calcKeplerianVelocity(pos_xyz_cell, kepler_star_mass);
+            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
+        }
+        else if(grid->hasVelocityField())
+        {
+            Vector3D velo = grid->getVelocityField(*cell);
+            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
+        }
+        else
+            abs_vel = 0;
+
+        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
+            continue;
+
+        double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
+        double L = R_mid * sqrt(2.0 / 3.0 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+        uint i_iter = 0;
+
+        double *** final_col_para = calcCollisionParameter(grid, cell);
+
+        for(i_iter = 0; i_iter < MAX_LVG_ITERATIONS; i_iter++)
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_total_energy_levels; i_lvl++)
+                old_pop[i_lvl] = tmp_lvl_pop[i_lvl];
+
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+                {
+                    for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+                    {
+                        uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+                        J_mid[i_tmp_trans] = elem_LVG(grid,
+                                                      dens_species,
+                                                      tmp_lvl_pop,
+                                                      getGaussA(temp_gas, turbulent_velocity),
+                                                      L,
+                                                      J_ext[i_trans],
+                                                      i_trans,
+                                                      i_sublvl_u,
+                                                      i_sublvl_l);
+                    }
+                }
+            }
+
+            createMatrix(J_mid, &A, b, final_col_para);
+            CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
+
+            double sum_p = 0;
+            for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
+            {
+                if(tmp_lvl_pop[j_lvl] >= 0)
+                    sum_p += tmp_lvl_pop[j_lvl];
+                else
+                {
+                    cout << "WARNING: Level population element not greater than zero! Level = " << j_lvl
+                         << ", Level pop = " << tmp_lvl_pop[j_lvl] << endl;
+                    no_error = false;
+                }
+            }
+            for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
+                tmp_lvl_pop[j_lvl] /= sum_p;
+
+            uint j_lvl = 0;
+            for(uint i_lvl = 1; i_lvl < nr_of_total_energy_levels; i_lvl++)
+                if(tmp_lvl_pop[i_lvl] > tmp_lvl_pop[j_lvl])
+                    j_lvl = i_lvl;
+
+            if(i_iter > 1)
+            {
+                if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
+                       (old_pop[j_lvl] + numeric_limits<double>::epsilon()) <
+                   1e-2)
+                {
+                    break;
+                }
+            }
+        }
+        if(i_iter == MAX_LVG_ITERATIONS)
+            cout << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
+
+        if(full)
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+            {
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                {
+                    grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                }
+            }
+        }
+        else
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+            {
+                for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                {
+                    // Get indices
+                    uint i_trans = getTransitionFromSpectralLine(i_line);
+                    uint i_lvl_l = getLowerEnergyLevel(i_trans);
+                    uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+                    if(i_lvl == i_lvl_l)
+                    {
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                            grid->setLvlPopLower(
+                                cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                    }
+                    else if(i_lvl == i_lvl_u)
+                    {
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                            grid->setLvlPopUpper(
+                                cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                    }
+                }
+            }
+        }
+
+        delete[] J_mid;
+        delete[] b;
+        delete[] tmp_lvl_pop;
+        delete[] old_pop;
+        for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
+        {
+            for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition[i_col_partner];
+                i_col_transition++)
+            {
+                delete[] final_col_para[i_col_partner][i_col_transition];
+            }
+            delete[] final_col_para[i_col_partner];
+        }
+        delete[] final_col_para;
+    }
+    delete[] J_ext;
+    return no_error;
+}
+
 // This function is based on
 // Mol3d: 3D line and dust continuum radiative transfer code
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de

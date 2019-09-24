@@ -2518,9 +2518,7 @@ class CustomPlots:
     def plot_1007002(self):
         """Plot optical depth slice.
         """
-        # Simulation parameter (model 1, 2, ...)
-        model = 1
-        detector_index = 1 #model * 100
+        detector_index = 1
         vmax = 10
         limits_1 = [-270, -160, -130, -20]
         limits_2 = [-300, 300, -200, 200]
@@ -2572,8 +2570,7 @@ class CustomPlots:
         # Create pdf file if show_plot is not chosen and read map data from file
         plot_data, header, plot_data_type = self.file_io.read_emission_map(
             'polaris_detector_nr' + str(detector_index).zfill(4))
-        self.file_io.init_plot_output(
-            'optical_depth_check_' + str(model), path=self.file_io.path['model'])
+        self.file_io.init_plot_output('optical_depth_check')
         # Take data for current quantity
         tbldata_tau = plot_data[i_quantity, i_wl, :, :]
         tbldata_delta_tau = plot_data[i_quantity, i_wl, :, :].copy()
@@ -2630,20 +2627,23 @@ class CustomPlots:
                                 color=color, rotation=planet_angle(), fontsize=10)
 
         def plot_tau(_plot, color):
-            if model == 1:
-                text = r'Single size distribution with $a_\text{max}=\SI{3}{\micro\metre}$'
-            elif model == 2:
-                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
-            elif model == 3:
-                text = r'Layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\milli\metre}$'
-            elif model == 4:
-                text = r'Layered size dist ($a_\text{min}=\SI{5}{\nano\metre},\SI{3}{\micro\metre}$; $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre})$'
-            elif model == 5:
-                text = r'Tappered and layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
-            elif model == 6:
-                text = r'Tappered and layered size distribution with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\milli\metre}$'
+            if 'single' in self.parse_args.simulation_name:
+                text = r'Single size distribution '
+            elif 'tapered' in self.parse_args.simulation_name:
+                 text = r'Tapered disk and layering '
+            elif 'hall' in self.parse_args.simulation_name:
+                 text = r'Hall radius and layering '
             else:
-                raise ValueError('Wrong model number!')
+                text = r'Layered size distribution '
+
+            if 'min_3_microns' in self.parse_args.simulation_name:
+                text += r'with $a_\text{min}=\SI{3}{\micro\metre},a_\text{min}=\SI{100}{\micro\metre}$'
+            elif '100_microns' in self.parse_args.simulation_name:
+                text += r'with $a_\text{max}=\SI{3}{\micro\metre},\SI{100}{\micro\metre}$'
+            elif '1_mm' in self.parse_args.simulation_name:
+                text += r'with $a_\text{max}=\SI{3}{\micro\metre},\SI{1}{\milli\metre}$'
+            else:
+                text += r'with $a_\text{max}=\SI{3}{\micro\metre}$'
             _plot.plot_text([0.97, 0.97], text, color=color, relative_position=True,
                             horizontalalignment='right', verticalalignment='top')
 
