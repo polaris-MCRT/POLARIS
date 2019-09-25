@@ -221,6 +221,7 @@ class StokesVector
         sQ = tmp_sQ;
         sU = tmp_sU;
         sV = tmp_sV;
+        return *this;
     }
 
     StokesVector & operator/=(double val)
