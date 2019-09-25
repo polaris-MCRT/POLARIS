@@ -4367,6 +4367,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
     {
         case PH_MIE:
             getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
+            break;
 
         default:
         {
@@ -4401,6 +4402,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
 
             // Set stokes vector of escaping photon
             pp_escape->setStokesVector(tmp_stokes);
+            break;
         }
     }
 }
