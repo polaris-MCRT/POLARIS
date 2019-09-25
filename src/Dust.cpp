@@ -4374,7 +4374,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             uint w = pp->getDustWavelengthID();
 
             // Determination of the scattering angle (phi, theta) towards the observing
-            // map in the photon frame. Get the rotation matrix of the photon (photon
+            // map in the photon frame. Get the rotation matrix of the photon (photon^
             // space to lab space)
             Matrix2D D_photon = pp->getD();
             D_photon.transpose();
@@ -4387,10 +4387,10 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             double scattered_fraction = getScatteredFraction(a, w, theta_photon_to_obs);
 
             // Get the Stokes vector of the current photon package
-            StokesVector * tmp_stokes = pp->getStokesVector();
+            StokesVector tmp_stokes = *pp->getStokesVector();
 
             // Reduce the photon package Stokes vector by albedo and scattering fraction
-            *tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
             // Set the photon package at the position of the current photon
             pp_escape->setPosition(pp->getPosition());
@@ -4399,6 +4399,9 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Synchronize the direction and wavelength as well
             pp_escape->setDirection(dir_obs);
             pp_escape->setWavelength(w, wavelength_list[w]);
+
+            // Set stokes vector of escaping photon
+            pp_escape->setStokesVector(tmp_stokes);
         }
     }
 }
@@ -4414,7 +4417,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
-    StokesVector * tmp_stokes = pp->getStokesVector();
+    StokesVector tmp_stokes = *pp->getStokesVector();
 
     // Set the photon package at the position of the current photon
     pp_escape->setPosition(pp->getPosition());
@@ -4449,12 +4452,12 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     {
         double PHIPAR = 0;
         // Get PHIPAR to take non equal distribution of phi angles into account
-        if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
+        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
             cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
         else
-            PHIPAR = (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) /
-                      tmp_stokes->I()) *
-                     (-mat_sca(0, 1) / mat_sca(0, 0));
+            PHIPAR =
+                (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
+                (-mat_sca(0, 1) / mat_sca(0, 0));
 
         // Get cos(2 * phi)
         double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
@@ -4467,24 +4470,27 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
 
     // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    *tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
+    tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
     // Backup Stokes vector
-    double stokes_1_bak = tmp_stokes->I();
+    double stokes_1_bak = tmp_stokes.I();
 
     // Rotate Stokes vector to new photon direction
-    tmp_stokes->rot(phi_photon_to_obs);
+    tmp_stokes.rot(phi_photon_to_obs);
 
     // Multiply Stokes vector with scattering matrix
-    *tmp_stokes *= mat_sca;
+    tmp_stokes *= mat_sca;
 
     // Normalize Stokes vector to preserve total intensity
-    *tmp_stokes *= stokes_1_bak / tmp_stokes->I();
+    tmp_stokes *= stokes_1_bak / tmp_stokes.I();
 
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
         CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), pp_escape->getEY());
-    tmp_stokes->rot(rot_angle_phot_obs);
+    tmp_stokes.rot(rot_angle_phot_obs);
+
+    // Set stokes vector of escaping photon
+    pp_escape->setStokesVector(tmp_stokes);
 }
 
 double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const
