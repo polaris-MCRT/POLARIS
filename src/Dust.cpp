@@ -4387,10 +4387,10 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             double scattered_fraction = getScatteredFraction(a, w, theta_photon_to_obs);
 
             // Get the Stokes vector of the current photon package
-            StokesVector tmp_stokes = *pp->getStokesVector();
+            StokesVector * tmp_stokes = pp->getStokesVector();
 
             // Reduce the photon package Stokes vector by albedo and scattering fraction
-            tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            *tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
             // Set the photon package at the position of the current photon
             pp_escape->setPosition(pp->getPosition());
@@ -4399,9 +4399,6 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Synchronize the direction and wavelength as well
             pp_escape->setDirection(dir_obs);
             pp_escape->setWavelength(w, wavelength_list[w]);
-
-            // Set the new Stokes vector to the photon package
-            pp_escape->setStokesVector(tmp_stokes);
         }
     }
 }
@@ -4417,7 +4414,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
-    StokesVector tmp_stokes = *pp->getStokesVector();
+    StokesVector * tmp_stokes = pp->getStokesVector();
 
     // Set the photon package at the position of the current photon
     pp_escape->setPosition(pp->getPosition());
@@ -4452,12 +4449,12 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     {
         double PHIPAR = 0;
         // Get PHIPAR to take non equal distribution of phi angles into account
-        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+        if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
             cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
         else
-            PHIPAR =
-                (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-                (-mat_sca(0, 1) / mat_sca(0, 0));
+            PHIPAR = (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) /
+                      tmp_stokes->I()) *
+                     (-mat_sca(0, 1) / mat_sca(0, 0));
 
         // Get cos(2 * phi)
         double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
@@ -4470,27 +4467,24 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
 
     // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
+    *tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
     // Backup Stokes vector
-    double stokes_1_bak = tmp_stokes.I();
+    double stokes_1_bak = tmp_stokes->I();
 
     // Rotate Stokes vector to new photon direction
-    tmp_stokes.rot(phi_photon_to_obs);
+    tmp_stokes->rot(phi_photon_to_obs);
 
     // Multiply Stokes vector with scattering matrix
-    tmp_stokes = mat_sca * tmp_stokes;
+    *tmp_stokes *= mat_sca;
 
     // Normalize Stokes vector to preserve total intensity
-    tmp_stokes *= stokes_1_bak / tmp_stokes.I();
+    *tmp_stokes *= stokes_1_bak / tmp_stokes->I();
 
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
         CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), pp_escape->getEY());
-    tmp_stokes.rot(rot_angle_phot_obs);
-
-    // Set the new Stokes vector to the photon package
-    pp_escape->setStokesVector(tmp_stokes);
+    tmp_stokes->rot(rot_angle_phot_obs);
 }
 
 double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const
@@ -4584,18 +4578,17 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
     if(adjust_stokes)
     {
-        StokesVector tmp_stokes = *pp->getStokesVector();
+        StokesVector * tmp_stokes = pp->getStokesVector();
         if(getCextMean(a, w) > 0)
         {
             double theta_fraction = getScatteredFraction(w, a, theta);
-            tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            *tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
         }
         else
         {
             cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
+            tmp_stokes->clear();
         }
-        pp->setStokesVector(tmp_stokes);
     }
 }
 
@@ -4614,17 +4607,18 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     uint thID = getScatThetaID(theta);
 
     // Get Stokes vector from photon package
-    StokesVector tmp_stokes = *pp->getStokesVector();
+    StokesVector * tmp_stokes = pp->getStokesVector();
 
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+    if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
     else
-        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-                 (-mat_sca(0, 1) / mat_sca(0, 0));
+        PHIPAR =
+            (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
+            (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;
@@ -4677,17 +4671,17 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
         phi = phi / 2.0;
 
-        if(tmp_stokes.Q() != 0.0)
+        if(tmp_stokes->Q() != 0.0)
         {
-            GAMMA = 0.5 * atan2(tmp_stokes.U(), tmp_stokes.Q());
-            if(tmp_stokes.U() < 0.0)
+            GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
+            if(tmp_stokes->U() < 0.0)
                 GAMMA = PI + GAMMA;
         }
         else
         {
-            if(tmp_stokes.U() < 0.0)
+            if(tmp_stokes->U() < 0.0)
                 GAMMA = PI4x3;
-            else if(tmp_stokes.U() > 0.0)
+            else if(tmp_stokes->U() > 0.0)
                 GAMMA = PI4;
         }
 
@@ -4701,17 +4695,17 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     {
         if(getCextMean(a, w) > 0)
         {
-            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+            *tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
-            double i_1 = tmp_stokes.I();
-            tmp_stokes.rot(phi);
-            tmp_stokes = mat_sca * tmp_stokes;
-            tmp_stokes *= i_1 / tmp_stokes.I();
+            double i_1 = tmp_stokes->I();
+            tmp_stokes->rot(phi);
+            *tmp_stokes *= mat_sca;
+            *tmp_stokes *= i_1 / tmp_stokes->I();
         }
         else
         {
             cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
+            tmp_stokes->clear();
         }
     }
 }

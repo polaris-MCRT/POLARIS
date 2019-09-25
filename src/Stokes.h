@@ -211,6 +211,18 @@ class StokesVector
         return *this;
     }
 
+    StokesVector & operator*=(const Matrix2D & dM)
+    {
+        double tmp_sI = sI * dM(0, 0) + sQ * dM(0, 1) + sU * dM(0, 2) + sV * dM(0, 3);
+        double tmp_sQ = sI * dM(1, 0) + sQ * dM(1, 1) + sU * dM(1, 2) + sV * dM(1, 3);
+        double tmp_sU = sI * dM(2, 0) + sQ * dM(2, 1) + sU * dM(2, 2) + sV * dM(2, 3);
+        double tmp_sV = sI * dM(3, 0) + sQ * dM(3, 1) + sU * dM(3, 2) + sV * dM(3, 3);
+        sI = tmp_sI;
+        sQ = tmp_sQ;
+        sU = tmp_sU;
+        sV = tmp_sV;
+    }
+
     StokesVector & operator/=(double val)
     {
         sI /= val;
