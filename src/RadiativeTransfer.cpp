@@ -1419,7 +1419,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
-                                            CMathFunctions::lum2Jy(*pp_escape.getStokesVector(),
+                                            CMathFunctions::lum2Jy(pp_escape.getStokesVector(),
                                                                    pp->getWavelength(),
                                                                    detector[d].getDistance());
 
@@ -1506,7 +1506,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                     // Convert the flux into Jy and consider
                                     // the distance to the observer
-                                    CMathFunctions::lum2Jy(*pp->getStokesVector(),
+                                    CMathFunctions::lum2Jy(pp->getStokesVector(),
                                                            pp->getWavelength(),
                                                            detector[d].getDistance());
 
@@ -1591,7 +1591,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
-                        CMathFunctions::lum2Jy(*pp_direct.getStokesVector(),
+                        CMathFunctions::lum2Jy(pp_direct.getStokesVector(),
                                                pp_direct.getWavelength(),
                                                detector[d].getDistance());
 

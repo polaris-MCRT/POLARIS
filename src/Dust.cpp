@@ -4374,8 +4374,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             uint w = pp->getDustWavelengthID();
 
             // Determination of the scattering angle (phi, theta) towards the observing
-            // map in the photon frame. Get the rotation matrix of the photon (photon^
-            // space to lab space)
+            // map in the photon frame. Get the rotation matrix of the photon (photon space to lab space)
             Matrix2D D_photon = pp->getD();
             D_photon.transpose();
             Vector3D dir_rlp = D_photon * dir_obs;

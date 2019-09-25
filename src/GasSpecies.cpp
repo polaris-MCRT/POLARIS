@@ -591,26 +591,27 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
                             // See Deguchi & Watson 1984 as well!
                             case TRANS_SIGMA_P:
                             case TRANS_SIGMA_M:
-                                L = sqrt(1e10 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+                                L = sqrt(1 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+                                J_mid[i_tmp_trans] = elem_LVG(grid,
+                                                              dens_species,
+                                                              tmp_lvl_pop,
+                                                              getGaussA(temp_gas, turbulent_velocity),
+                                                              L,
+                                                              J_ext[i_trans],
+                                                              i_trans,
+                                                              i_sublvl_u,
+                                                              i_sublvl_l);
                                 break;
                             case TRANS_PI:
                                 L = 0;
+                                J_mid[i_tmp_trans] = 0;
                                 break;
                             default:
                                 // Forbidden line
                                 L = 0;
+                                J_mid[i_tmp_trans] = 0;
                                 break;
                         }
-
-                        J_mid[i_tmp_trans] = elem_LVG(grid,
-                                                      dens_species,
-                                                      tmp_lvl_pop,
-                                                      getGaussA(temp_gas, turbulent_velocity),
-                                                      L,
-                                                      J_ext[i_trans],
-                                                      i_trans,
-                                                      i_sublvl_u,
-                                                      i_sublvl_l);
                     }
                 }
             }

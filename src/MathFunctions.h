@@ -2220,12 +2220,12 @@ class CMathFunctions
         return L * 1e+26 / (distance * distance);     // [Jy]
     }
 
-    static inline void lum2Jy(class StokesVector & S, double wavelength, double distance)
+    static inline void lum2Jy(StokesVector * S, double wavelength, double distance)
     {
-        S.setI(lum2Jy(S.I(), wavelength, distance));
-        S.setQ(lum2Jy(S.Q(), wavelength, distance));
-        S.setU(lum2Jy(S.U(), wavelength, distance));
-        S.setV(lum2Jy(S.V(), wavelength, distance));
+        S->setI(lum2Jy(S->I(), wavelength, distance));
+        S->setQ(lum2Jy(S->Q(), wavelength, distance));
+        S->setU(lum2Jy(S->U(), wavelength, distance));
+        S->setV(lum2Jy(S->V(), wavelength, distance));
     }
 
     static inline uint findListIndex(double * list, uint l_limit, uint h_limit, double val)
