@@ -761,15 +761,67 @@ class CGasSpecies
     bool calcDeguchiWatsonLVG(CGridBasic * grid, bool full = false);
     bool updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total);
 
-    double elem_LVG(CGridBasic * grid,
-                    double dens_species,
-                    double * tmp_lvl_pop,
-                    double doppler,
-                    double L,
-                    double J_ext,
-                    uint i_trans,
-                    uint i_sublvl_u,
-                    uint i_sublvl_l);
+    void calcEmissivityFromLvlPop(uint i_trans,
+                                  uint i_sublvl_u,
+                                  uint i_sublvl_l,
+                                  double dens_species,
+                                  double gauss_a,
+                                  double * tmp_lvl_pop,
+                                  double * j,
+                                  double * alpha)
+    {
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+        double lvl_pop_l = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_l, i_sublvl_l)];
+        double lvl_pop_u = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_u, i_sublvl_u)];
+
+        *j = dens_species * lvl_pop_u * getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) * gauss_a * con_eps /
+             PIsq;
+        *alpha = dens_species *
+                 (lvl_pop_l * getEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) -
+                  lvl_pop_u * getEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l)) *
+                 gauss_a * con_eps / PIsq;
+    }
+
+    double calcJFromInteractionLength(double j, double alpha, double J_ext, double L)
+    {
+        double beta, S;
+        if(alpha < 1e-20)
+        {
+            S = 0.0;
+            alpha = 0.0;
+        }
+        else
+            S = j / alpha;
+
+        double tau = alpha * L;
+
+        if(tau < 1e-6)
+            beta = 1.0 - 0.5 * tau;
+        else
+            beta = (1.0 - exp(-tau)) / tau;
+
+        double J_mid = (1.0 - beta) * S + beta * J_ext;
+        return J_mid;
+    }
+
+    double calcJFromOpticalDepth(double j, double alpha, double J_ext, double tau)
+    {
+        double beta, S;
+        if(alpha < 1e-20)
+            S = 0.0;
+        else
+            S = j / alpha;
+
+        if(tau < 1e-6)
+            beta = 1.0 - 0.5 * tau;
+        else
+            beta = (1.0 - exp(-tau)) / tau;
+
+        double J_mid = (1.0 - beta) * S + beta * J_ext;
+        return J_mid;
+    }
 
     void createMatrix(double * J_mid, Matrix2D * A, double * b, double *** final_col_para);
 

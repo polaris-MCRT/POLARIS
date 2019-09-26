@@ -99,31 +99,14 @@ class Cube(Model):
         #: Set parameters of the sphere model
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         # 2.8e-14 * self.math.const['M_sun']
-        self.parameter['gas_mass'] = np.array(
-            [[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
+        self.parameter['gas_mass'] = 1e-6 * self.math.const['M_sun']
+        #np.array([[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
         # self.parameter['radiation_source'] = 'isrf'
         self.parameter['dust_composition'] = 'silicate_oblate'
         self.parameter['detector'] = 'cartesian'
-
-    def dust_temperature(self):
-        """Calculates the dust temperature at a given position.
-
-        Returns:
-            float: Dust temperature at a given position.
-        """
-        dust_temperature = 20.
-        return dust_temperature
-
-    def gas_temperature(self):
-        """Calculates the dust temperature at a given position.
-
-        Returns:
-            float: Dust temperature at a given position.
-        """
-        gas_temperature = 10.
-        return gas_temperature
+        self.parameter['grid_type'] = 'octree'
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -135,17 +118,58 @@ class Cube(Model):
         #                                        truncation_radius=1 * self.math.const['au'])
         # gas_density = self.math.random_density_distribution(
         #    self.position, d_exp=2)
-        # gas_density = 1.0
-        return np.array([[1.], [1.]])
+        # return np.array([[1.], [1.]])
+        return 1.0
 
     def magnetic_field(self):
         """Calculates the magnetic field strength at a given position.
 
         Returns:
-            List[float, float, float]: Magnetic field strength at the given
-            position.
+            List[float, float, float]: Magnetic field strength at a given position.
         """
-        return self.math.simple_mag_field(mag_field_strength=1e-10, axis='z')
+        if self.tmp_parameter['mag_field_geometrie'] == 'toroidal':
+            magnetic_field = self.math.toroidal_mag_field(
+                self.position, mag_field_strength=1e-10)
+        elif self.tmp_parameter['mag_field_geometrie'] == 'vertical':
+            magnetic_field = self.math.simple_mag_field(
+                mag_field_strength=1e-10, axis='z')
+        elif self.tmp_parameter['mag_field_geometrie'] == 'radial':
+            magnetic_field = self.math.radial_mag_field(
+                mag_field_strength=1e-10, position=self.position)
+        else:
+            magnetic_field = [0, 0, 0]
+        return magnetic_field
+
+    def gas_temperature(self):
+        """Calculates the gas temperature at a given position.
+
+        Returns:
+            float: Gas temperature at a given position.
+        """
+        gas_temperature = self.math.logarithmic_bin_distribution(
+            self.position[0]+self.parameter['outer_radius'], 2 *
+            self.parameter['outer_radius'],
+            2**self.octree_parameter['max_tree_level'], min_exponent=-1., max_exponent=1.)
+        return 100 * gas_temperature
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update 
+        model parameter that depend on other parameter.
+        """
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                if extra_parameter[0] == 'toroidal_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
+                    print(
+                        'HINT: The toroidal magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'vertical_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'vertical'
+                    print(
+                        'HINT: The vertical magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'radial_mag_field':
+                    self.tmp_parameter['mag_field_geometrie'] = 'radial'
+                    print(
+                        'HINT: The radial magnetic field is used (change with --extra)!')
 
 
 class Ring(Model):
@@ -768,8 +792,8 @@ class GGTauDisk(Model):
                 disk_density *= np.exp(-0.5 * (
                     (radius_cy - self.cutoff_pos[1]) / self.cutoff_rate[1]) ** 2)
             if self.hill_radius > 0 and np.linalg.norm(
-                    np.array([radius_cy, self.position[2]])
-                        - self.planet_pos) < self.hill_radius:
+                np.array([radius_cy, self.position[2]])
+                    - self.planet_pos) < self.hill_radius:
                 disk_density = 0
         else:
             # Set to zero outside of the disk

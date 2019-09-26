@@ -220,6 +220,7 @@ using namespace std;
 #define POP_LTE 1
 #define POP_FEP 2
 #define POP_LVG 3
+#define POP_DEGUCHI_LVG 4
 
 #define COL_H2_FULL 1
 #define COL_H2_PARA 2

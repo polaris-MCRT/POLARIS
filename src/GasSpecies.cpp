@@ -332,8 +332,6 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
         }
         tmp_lvl_pop[0] = 1.0;
 
-        double turbulent_velocity = grid->getTurbulentVelocity(cell);
-
         // Calculate percentage of total progress per source
         float percentage = 100 * float(i_cell) / float(max_cells);
 
@@ -354,14 +352,17 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
+        // Get gauss A
+        double gauss_a = getGaussA(temp_gas, grid->getTurbulentVelocity(cell));
+
         Vector3D pos_xyz_cell = grid->getCenter(*cell);
         double abs_vel = getCellVelocity(grid, *cell, pos_xyz_cell).length();
 
-        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
+        if(gauss_a * abs_vel < 1e-16)
             continue;
 
         double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
-        double L = R_mid * sqrt(2.0 / 3.0 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+        double L = R_mid * sqrt(2.0 / 3.0 / (gauss_a * abs_vel));
         uint i_iter = 0;
 
         double *** final_col_para = calcCollisionParameter(grid, cell);
@@ -378,15 +379,10 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
                     for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
                     {
                         uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
-                        J_mid[i_tmp_trans] = elem_LVG(grid,
-                                                      dens_species,
-                                                      tmp_lvl_pop,
-                                                      getGaussA(temp_gas, turbulent_velocity),
-                                                      L,
-                                                      J_ext[i_trans],
-                                                      i_trans,
-                                                      i_sublvl_u,
-                                                      i_sublvl_l);
+                        double j, alpha;
+                        calcEmissivityFromLvlPop(
+                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, gauss_a, tmp_lvl_pop, &j, &alpha);
+                        J_mid[i_tmp_trans] = calcJFromInteractionLength(j, alpha, J_ext[i_trans], L);
                     }
                 }
             }
@@ -544,19 +540,10 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
-        // Get turbulent velocity
-        double turbulent_velocity = grid->getTurbulentVelocity(cell);
-
-        // Get gauss A
-        double gauss_a = getGaussA(temp_gas, turbulent_velocity);
-
         // Get center position of current cell
         Vector3D pos_xyz_cell = grid->getCenter(*cell);
 
-        double abs_vel = 1.0;
-
-        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
-            continue;
+        double abs_vel = 1;
 
         double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
 
@@ -569,7 +556,7 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
 
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
             {
-                double L = 0;
+                double L = 0, tau = 0;
                 uint i_lvl_l = getLowerEnergyLevel(i_trans);
                 uint i_lvl_u = getUpperEnergyLevel(i_trans);
 
@@ -591,33 +578,32 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
                             // See Deguchi & Watson 1984 as well!
                             case TRANS_SIGMA_P:
                             case TRANS_SIGMA_M:
-                                L = sqrt(1 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
-                                J_mid[i_tmp_trans] = elem_LVG(grid,
-                                                              dens_species,
-                                                              tmp_lvl_pop,
-                                                              getGaussA(temp_gas, turbulent_velocity),
-                                                              L,
-                                                              J_ext[i_trans],
-                                                              i_trans,
-                                                              i_sublvl_u,
-                                                              i_sublvl_l);
+                                tau = 0.5;
                                 break;
                             case TRANS_PI:
-                                L = 0;
-                                J_mid[i_tmp_trans] = 0;
-                                break;
-                            default:
-                                // Forbidden line
-                                L = 0;
-                                J_mid[i_tmp_trans] = 0;
+                                tau = temp_gas;
                                 break;
                         }
+                        double j, alpha;
+                        calcEmissivityFromLvlPop(
+                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, 1.0, tmp_lvl_pop, &j, &alpha);
+                        J_mid[i_tmp_trans] = calcJFromOpticalDepth(j, alpha, J_ext[i_trans], tau);
                     }
                 }
             }
 
             createMatrix(J_mid, &A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
+
+            for(uint i_col_transition = 0; i_col_transition < getNrCollisionTransitions(0);
+                i_col_transition++)
+            {
+                // Get level indices for lower and upper energy level
+                uint i_lvl_u = getUpperCollisionLevel(0, i_col_transition);
+                uint i_lvl_l = getLowerCollisionLevel(0, i_col_transition);
+                if(i_lvl_u == 1 && i_lvl_l == 0)
+                    cout << final_col_para[0][i_col_transition][0] / getEinsteinA(0) << endl;
+            }
 
             double sum_p = 0;
             for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
@@ -634,13 +620,13 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
             for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
                 tmp_lvl_pop[j_lvl] /= sum_p;
 
-            uint j_lvl = 0;
-            for(uint i_lvl = 1; i_lvl < nr_of_total_energy_levels; i_lvl++)
-                if(tmp_lvl_pop[i_lvl] > tmp_lvl_pop[j_lvl])
-                    j_lvl = i_lvl;
-
             if(i_iter > 1)
             {
+                uint j_lvl = 0;
+                for(uint i_lvl = 1; i_lvl < nr_of_total_energy_levels; i_lvl++)
+                    if(tmp_lvl_pop[i_lvl] > tmp_lvl_pop[j_lvl])
+                        j_lvl = i_lvl;
+
                 if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
                        (old_pop[j_lvl] + numeric_limits<double>::epsilon()) <
                    1e-2)
@@ -689,6 +675,16 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
             }
         }
 
+        // for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        // {
+        //     for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+        //     {
+        //         cout << i_lvl << TAB << i_sublvl << TAB << tmp_lvl_pop[getUniqueLevelIndex(i_lvl,
+        //         i_sublvl)]
+        //              << endl;
+        //     }
+        // }
+
         delete[] J_mid;
         delete[] b;
         delete[] tmp_lvl_pop;
@@ -706,50 +702,6 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
     }
     delete[] J_ext;
     return no_error;
-}
-
-// This function is based on
-// Mol3d: 3D line and dust continuum radiative transfer code
-// by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
-
-double CGasSpecies::elem_LVG(CGridBasic * grid,
-                             double dens_species,
-                             double * tmp_lvl_pop,
-                             double gauss_a,
-                             double L,
-                             double J_ext,
-                             uint i_trans,
-                             uint i_sublvl_u,
-                             uint i_sublvl_l)
-{
-    uint i_lvl_l = getLowerEnergyLevel(i_trans);
-    uint i_lvl_u = getUpperEnergyLevel(i_trans);
-
-    double lvl_pop_l = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_l, i_sublvl_l)];
-    double lvl_pop_u = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_u, i_sublvl_u)];
-    double j, alpha, tau, beta, J_mid, S;
-
-    j = dens_species * lvl_pop_u * getEinsteinA(i_trans) * gauss_a * con_eps / sqrt(PI);
-    alpha = dens_species * (lvl_pop_l * getEinsteinBlu(i_trans) - lvl_pop_u * getEinsteinBul(i_trans)) *
-            gauss_a * con_eps / sqrt(PI);
-
-    if(alpha < 1e-20)
-    {
-        S = 0.0;
-        alpha = 0.0;
-    }
-    else
-        S = j / alpha;
-
-    tau = alpha * L;
-
-    if(tau < 1e-6)
-        beta = 1.0 - 0.5 * tau;
-    else
-        beta = (1.0 - exp(-tau)) / tau;
-
-    J_mid = (1.0 - beta) * S + beta * J_ext;
-    return J_mid;
 }
 
 bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total)
@@ -1988,10 +1940,14 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
                 return false;
             break;
         case POP_LVG:
-            // if(!single_species[i_species].calcLVG(grid))
+            if(!single_species[i_species].calcLVG(grid))
+                return false;
+            break;
+        case POP_DEGUCHI_LVG:
             if(!single_species[i_species].calcDeguchiWatsonLVG(grid))
                 return false;
             break;
+
         default:
             return false;
             break;
