@@ -1326,7 +1326,7 @@ class Math:
 
         if tappered_gamma is not None:
             density *= np.exp(-(radius_cy / ref_radius)
-                              ** (2 + tappered_gamma))
+                              ** (2 - tappered_gamma))
         if not real_zero:
             density = max(density, 1e-200)
 

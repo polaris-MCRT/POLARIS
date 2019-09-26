@@ -1192,12 +1192,12 @@ class HD100546(Model):
         self.cylindrical_parameter['sf_z'] = -1
         # Default disk parameter
         self.parameter['ref_radius'] = {
-            'inner_disk': 100. * self.math.const['au'],
+            'inner_disk': 1. * self.math.const['au'],
             'outer_disk': 100. * self.math.const['au'],
         }
         self.parameter['ref_scale_height'] = {
-            'inner_disk': 10. * self.math.const['au'],
-            'outer_disk': 10. * self.math.const['au'],
+            'inner_disk': 0.1806 * self.math.const['au'],
+            'outer_disk': 32.3672 * self.math.const['au'],
         }
         self.parameter['beta'] = {
             'inner_disk': 0.8559,
@@ -1245,7 +1245,7 @@ class HD100546(Model):
         # Init disk density array
         density_list = np.zeros((4, 2))
         # Init extra exponent for tapering
-        taper_exp = 0
+        tappered_gamma = None
         # Check region
         if self.parameter['inner_radius'] <= radius_cy <= self.parameter['inner_disk_r_out']:
             disk_position = 'inner_disk'
@@ -1258,7 +1258,7 @@ class HD100546(Model):
             disk_position = 'outer_disk'
             region_id = 1
             if radius_cy >= self.parameter['outer_disk_tapering']:
-                taper_exp = 1.1250
+                tappered_gamma = 1.1250
         else:
             return density_list
 
@@ -1268,8 +1268,9 @@ class HD100546(Model):
             outer_radius=self.parameter['outer_radius'],
             ref_radius=self.parameter['ref_radius'][disk_position],
             ref_scale_height=self.parameter['ref_scale_height'][disk_position],
-            column_dens_exp=self.parameter['column_dens_exp'][disk_position] + taper_exp,
+            column_dens_exp=self.parameter['column_dens_exp'][disk_position],
             beta=self.parameter['beta'][disk_position],
+            tappered_gamma=tappered_gamma,
         )
         return density_list
 
