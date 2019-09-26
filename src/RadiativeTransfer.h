@@ -223,7 +223,9 @@ class CRadiativeTransfer
                             uint nr_velocity_channels,
                             const VelFieldInterp & vel_field_interp);
 
-    void preCalcVelocityInterp(CGridBasic * grid, VelFieldInterp * vel_field_interp);
+    void preCalcVelocityInterp(CGridBasic * grid,
+                               const photon_package & pp,
+                               VelFieldInterp * vel_field_interp);
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);

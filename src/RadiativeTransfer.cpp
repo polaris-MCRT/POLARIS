@@ -800,7 +800,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                         vel_field_interp.start_pos = pp.getPosition();
 
                         // Precalculate the velocity interpolation
-                        preCalcVelocityInterp(grid, &vel_field_interp);
+                        preCalcVelocityInterp(grid, pp, &vel_field_interp);
 
                         // Transport the photon package through the model to the current final cell
                         while(!pp.reachedBackupPosition() && grid->next(&pp))
@@ -2943,7 +2943,7 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         vel_field_interp.start_pos = pp->getPosition();
 
         // Precalculate the velocity interpolation
-        preCalcVelocityInterp(grid, &vel_field_interp);
+        preCalcVelocityInterp(grid, *pp, &vel_field_interp);
 
         // Transport the photon package through the model
         while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
@@ -3216,14 +3216,18 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
     }
 }
 
-void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid, VelFieldInterp * vel_field_interp)
+void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
+                                               const photon_package & pp,
+                                               VelFieldInterp * vel_field_interp)
 {
     vel_field_interp->zero_vel_field = true;
+    vel_field_interp->start_pos = pp.getPosition();
 
     if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
     {
         photon_package pp_interp = photon_package();
-        pp_interp.setPosition(vel_field_interp->start_pos);
+        pp_interp.setPosition(pp.getPosition());
+        pp_interp.setDirection(pp.getDirection());
         if(grid->findStartingPoint(&pp_interp))
         {
             Vector3D pos_in_grid_0 = pp_interp.getPosition();
