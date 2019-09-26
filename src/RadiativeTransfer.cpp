@@ -1729,7 +1729,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         dust->calcTemperature(grid, cell, use_energy_density);
 
         if(adjTgas > 0)
-            grid->setGasTemperature(cell, adjTgas * dust->getDustTemperature(grid, *cell));
+            grid->setGasTemperature(cell, adjTgas * grid->getDustTemperature(*cell));
 
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);

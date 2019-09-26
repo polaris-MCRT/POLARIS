@@ -2940,18 +2940,6 @@ class CDustMixture
         return getRelativeDustMassDensity(grid, *pp.getPositionCell(), i_density);
     }
 
-    double getDustTemperature(CGridBasic * grid, const cell_basic & cell) const
-    {
-        double sum = 0;
-        if(mixed_component != 0)
-        {
-            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                sum += grid->getDustTemperature(cell, i_mixture) *
-                       getRelativeDustMassDensity(grid, cell, i_mixture);
-        }
-        return sum;
-    }
-
     void calcEmissivityHz(CGridBasic * grid, const photon_package & pp, StokesVector * dust_emissivity)
     {
         if(mixed_component != 0)
