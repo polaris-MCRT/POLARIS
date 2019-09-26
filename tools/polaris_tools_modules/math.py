@@ -1303,6 +1303,7 @@ class Math:
             alpha (float): Exponent for radial density decrease.
             beta (float): Exponent for disk flaring.
             column_dens_exp (float): If set, calculate alpha from the surface density exponent.
+                (Defined positively)
             real_zero (bool): No minimum value for the density.
 
         Returns:
@@ -1312,7 +1313,7 @@ class Math:
         radius_cy = np.sqrt(position[0] ** 2 + position[1] ** 2)
         if outer_radius >= radius_cy >= inner_radius:
             if column_dens_exp is not None:
-                alpha = beta - column_dens_exp
+                alpha = beta + column_dens_exp
             #: float: Vertical height
             vert_height = abs(position[2])
             #: float: Vertical scale height
@@ -1445,7 +1446,7 @@ class Math:
             raise ValueError(
                 'Chosen axis direction for the magnetic field strength is not valid!')
         return mag
-    
+
     @staticmethod
     def radial_mag_field(mag_field_strength, position):
         """Magnetic field pointing in one direction.

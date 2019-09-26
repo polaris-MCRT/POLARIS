@@ -15,7 +15,7 @@ def update_detector_dict(dictionary):
         'gg_tau': GGTauDetector,
         'hd97048': HD97048Detector,
         'hd169142': HD169142Detector,
-        'thomas': ThomasDetector,
+        'hd100546': HD100546Detector,
         'custom': CustomDetector,
     }
     dictionary.update(detector_dict)
@@ -193,7 +193,7 @@ class HD169142Detector(Detector):
         self.parameter['wavelength_list'] = np.array([1.25, 8.6, 17.8]) * 1e-6
 
 
-class ThomasDetector(Detector):
+class HD100546Detector(Detector):
     """Detector for the radiation field disk for Thomas.
     """
 
@@ -205,6 +205,13 @@ class ThomasDetector(Detector):
                 quantities such as the density distribution.
         """
         Detector.__init__(self, model, parse_args)
-        # Wavelengths
+        # Set the background RT grid
+        if self.parse_args.raytracing_shape is None:
+            self.parameter['shape'] = 'polar'
+        # Set the wavelengths
         self.parameter['wavelength_list'] = np.array(
             [3, 3.28, 3.38, 3.42, 3.7]) * 1e-6
+        # Rotation angle around the first rotation axis
+        self.parameter['rot_angle_1'] = 0.
+        # Rotation angle around the second rotation axis
+        self.parameter['rot_angle_2'] = 42.

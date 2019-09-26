@@ -21,6 +21,7 @@ def update_model_dict(dictionary):
         'gg_tau_disk': GGTauDisk,
         'hd97048': HD97048,
         'hd169142': HD169142,
+        'hd100546': HD100546,
         'themis_disk': ThemisDisk,
         'multi_disk': MultiDisk,
         'test': TestModel,
@@ -935,7 +936,7 @@ class HD97048(Model):
         real_zero = True
         # INNER DISK
         inner_disk = self.math.default_disk_density(self.position,
-                                                    beta=1.0, column_dens_exp=-1.0,
+                                                    beta=1.0, column_dens_exp=1.0,
                                                     inner_radius=0.3 *
                                                     self.math.const['au'],
                                                     outer_radius=2.6 *
@@ -945,7 +946,7 @@ class HD97048(Model):
                                                     ref_radius=100. * self.math.const['au'], real_zero=real_zero)
         # RINGS
         beta = 1.26
-        surf_dens_exp = -0.5
+        surf_dens_exp = 0.5
         ref_radius = 100. * self.math.const['au']
         ref_scale_height = 12. * self.math.const['au']
         # RING #1
@@ -1109,7 +1110,7 @@ class HD169142(Model):
                 outer_radius=self.parameter['outer_radius'],
                 ref_radius=1. * self.math.const['au'],
                 ref_scale_height=0.0346 * self.math.const['au'],
-                column_dens_exp=-1.3764, beta=0.7950
+                column_dens_exp=1.3764, beta=0.7950
             )
             density_list[:, 0] = gas_density
         elif self.parameter['r_gap_out'] <= radius_cy:
@@ -1119,7 +1120,7 @@ class HD169142(Model):
                 outer_radius=self.parameter['outer_radius'],
                 ref_radius=100. * self.math.const['au'],
                 ref_scale_height=9.6157 * self.math.const['au'],
-                column_dens_exp=-1., beta=1.0683
+                column_dens_exp=1., beta=1.0683
             )
             density_list[:, 1] = gas_density
         return density_list
@@ -1152,6 +1153,151 @@ class HD169142(Model):
                 ref_scale_height=0.0346 * self.math.const['au'],
                 beta=0.7950
             )
+        return scale_height
+
+
+class HD100546(Model):
+    """An HD100546 disk model with the THEMIS dust model.
+
+    Notes:
+        Parameters from DIANA project:
+        http://www-star.st-and.ac.uk/~pw31/DIANA/SEDfit/HD100546.para
+    """
+
+    def __init__(self):
+        """Initialisation of the model parameters.
+        """
+        Model.__init__(self)
+
+        #: Set parameters of the disk model
+        self.parameter['distance'] = 110.0 * self.math.const['pc']
+        self.parameter['grid_type'] = 'cylindrical'
+        self.parameter['inner_radius'] = 0.55 * self.math.const['au']
+        self.parameter['outer_radius'] = 600. * self.math.const['au']
+        # Setting extra limits
+        self.parameter['inner_disk_r_out'] = 4. * self.math.const['au']
+        self.parameter['outer_disk_r_in'] = 13. * self.math.const['au']
+        self.parameter['outer_disk_tapering'] = 100. * self.math.const['au']
+        # Define the used sources, dust composition and gas species
+        self.parameter['radiation_source'] = 'hd100546'
+        self.parameter['dust_composition'] = 'themis'
+        self.parameter['detector'] = 'hd100546'
+        # In the case of a cylindrical grid
+        self.cylindrical_parameter['n_r'] = 200
+        self.cylindrical_parameter['n_z'] = 142
+        self.cylindrical_parameter['n_ph'] = 1
+        self.cylindrical_parameter['sf_r'] = 1.03
+        # sf_z = -1 is using scale height; sf_z = 1 is sinus;
+        # sf_z > 1 is exp with step width sf_z and rest is linear
+        self.cylindrical_parameter['sf_z'] = -1
+        # Default disk parameter
+        self.parameter['gas_mass'] = {
+            'inner_disk': 100. * self.math.const['au'],
+            'outer_disk': 100. * self.math.const['au'],
+        }
+        self.parameter['ref_radius'] = {
+            'inner_disk': 100. * self.math.const['au'],
+            'outer_disk': 100. * self.math.const['au'],
+        }
+        self.parameter['ref_scale_height'] = {
+            'inner_disk': 10. * self.math.const['au'],
+            'outer_disk': 10. * self.math.const['au'],
+        }
+        self.parameter['beta'] = {
+            'inner_disk': 0.8559,
+            'outer_disk': 1.0265,
+        }
+        self.parameter['column_dens_exp'] = {
+            'inner_disk': 0.3503,
+            'outer_disk': 1.1250,
+        }
+        # Set gas mass
+        self.parameter['gas_mass'] = np.array([
+            [0.17e-3, 0.17e-3],
+            [0.63e-3, 0.63e-3],
+            [0.255e-2, 0.255e-2],
+            [0.255e-2, 0.255e-2],
+        ])
+        # Set mass of both regions
+        self.parameter['gas_mass'][:, 0] *= 8.723e-8 * \
+            self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'][:, 0])
+        self.parameter['gas_mass'][:, 1] *= 7.0782e-3 * \
+            self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'][:, 1])
+        # Init array to ignore dust mass for normalization
+        self.tmp_parameter['ignored_gas_density'] = \
+            np.zeros((4, 2))
+        # Init new parameter
+        self.parameter['model_number'] = 0
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                pass
+
+    def gas_density_distribution(self):
+        """Calculates the gas density at a given position.
+
+
+        Returns:
+            float: Gas density at a given position.
+        """
+        # Calculate cylindrical radius
+        radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+        # Init disk density array
+        density_list = np.ones((4, 2))
+        # Init extra exponent for tapering
+        taper_exp = 0
+        # Check region
+        if radius_cy <= self.parameter['inner_disk_r_out']:
+            disk_position = 'inner_disk'
+            region_id = 0
+        elif self.parameter['inner_disk_r_out'] < radius_cy < self.parameter['outer_disk_r_in']:
+            # self.tmp_parameter['ignored_gas_density'][0, 0] += \
+            #    density_list[0, 0] * self.volume
+            return np.zeros((4, 2))
+        elif radius_cy >= self.parameter['outer_disk_r_in']:
+            disk_position = 'outer_disk'
+            region_id = 1
+            if radius_cy >= self.parameter['outer_disk_tapering']:
+                taper_exp = 1.1250
+
+        density_list[:, region_id] = self.math.default_disk_density(
+            self.position,
+            inner_radius=self.parameter['inner_radius'],
+            outer_radius=self.parameter['outer_radius'],
+            ref_radius=self.parameter['ref_radius'][disk_position],
+            ref_scale_height=self.parameter['ref_scale_height'][disk_position],
+            column_dens_exp=self.parameter['column_dens_exp'][disk_position] + taper_exp,
+            beta=self.parameter['beta'][disk_position],
+        )
+        return density_list
+
+    def get_scale_height(self, radius_cy):
+        """Calculates the scale height at a certain position.
+
+        Args:
+            radius_cy (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Scale height.
+        """
+        # Check region
+        if radius_cy <= self.parameter['inner_disk_r_out']:
+            disk_position = 'inner_disk'
+        elif self.parameter['inner_disk_r_out'] < radius_cy < self.parameter['outer_disk_r_in']:
+            return 0
+        elif radius_cy >= self.parameter['outer_disk_r_in']:
+            disk_position = 'outer_disk'
+
+        scale_height = self.math.default_disk_scale_height(
+            radius_cy,
+            ref_radius=self.parameter['ref_radius'][disk_position],
+            ref_scale_height=self.parameter['ref_scale_height'][disk_position],
+            beta=self.parameter['beta'][disk_position],
+        )
         return scale_height
 
 

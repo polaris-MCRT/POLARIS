@@ -2693,7 +2693,7 @@ class CustomPlots:
 
     def plot_1008001(self):
         "Plot linear polarization over optical depth"
-        plot_data, _, plot_data_type = self.file_io.read_int_vel_map(
+        plot_data, header, plot_data_type = self.file_io.read_int_vel_map(
             'int_channel_map_species_0001_line_0001')
         # Create pdf file if show_plot is not chosen and read map data from file
         if plot_data_type == 'map':
@@ -2707,7 +2707,8 @@ class CustomPlots:
         # Take data for lin pol and optical depth
         degree_of_polarization = np.divide(100 * np.sqrt(plot_data[1, :, :]**2 + plot_data[2, :, :]**2), plot_data[0, :, :],
             out=np.zeros_like(plot_data[0, :, :]), where=plot_data[0, :, :] != 0)
-        plot.plot_line(plot_data[4, :, :].ravel(), degree_of_polarization.ravel(), marker='.', linestyle='')
+        tau = np.logspace(-1, 1, header['nr_pixel_x'])
+        plot.plot_line(tau, degree_of_polarization[:, 0], marker='.', linestyle='')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 

@@ -283,11 +283,11 @@ class MultiThemis(Dust):
         """
         new_command_line = str()
         # First dust choice is the full themis model
-        dust = self.dust_chooser.get_module_from_name('CM20_1')
+        dust = self.dust_chooser.get_module_from_name('CM20')
         dust.parameter['fraction'] = 0.229
         dust.parameter['choice_id'] = self.choice_id[0]
         new_command_line += dust.get_command_line()
-        dust = self.dust_chooser.get_module_from_name('CM20_2')
+        dust = self.dust_chooser.get_module_from_name('CM20')
         dust.parameter['fraction'] = 0.085
         dust.parameter['choice_id'] = self.choice_id[0]
         new_command_line += dust.get_command_line()
@@ -300,7 +300,7 @@ class MultiThemis(Dust):
         dust.parameter['choice_id'] = self.choice_id[0]
         new_command_line += dust.get_command_line()
         # Adding only PAHs as a second dust choice
-        dust = self.dust_chooser.get_module_from_name('CM20_1')
+        dust = self.dust_chooser.get_module_from_name('CM20')
         dust.parameter['fraction'] = 1.0
         dust.parameter['choice_id'] = self.choice_id[1]
         new_command_line += dust.get_command_line()
