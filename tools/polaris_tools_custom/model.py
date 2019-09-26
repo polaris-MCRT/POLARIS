@@ -1191,10 +1191,6 @@ class HD100546(Model):
         # sf_z > 1 is exp with step width sf_z and rest is linear
         self.cylindrical_parameter['sf_z'] = -1
         # Default disk parameter
-        self.parameter['gas_mass'] = {
-            'inner_disk': 100. * self.math.const['au'],
-            'outer_disk': 100. * self.math.const['au'],
-        }
         self.parameter['ref_radius'] = {
             'inner_disk': 100. * self.math.const['au'],
             'outer_disk': 100. * self.math.const['au'],
@@ -1251,18 +1247,20 @@ class HD100546(Model):
         # Init extra exponent for tapering
         taper_exp = 0
         # Check region
-        if radius_cy <= self.parameter['inner_disk_r_out']:
+        if self.parameter['inner_radius'] <= radius_cy <= self.parameter['inner_disk_r_out']:
             disk_position = 'inner_disk'
             region_id = 0
         elif self.parameter['inner_disk_r_out'] < radius_cy < self.parameter['outer_disk_r_in']:
             # self.tmp_parameter['ignored_gas_density'][0, 0] += \
             #    density_list[0, 0] * self.volume
-            return np.zeros((4, 2))
-        elif radius_cy >= self.parameter['outer_disk_r_in']:
+            return density_list
+        elif self.parameter['outer_radius'] >= radius_cy >= self.parameter['outer_disk_r_in']:
             disk_position = 'outer_disk'
             region_id = 1
             if radius_cy >= self.parameter['outer_disk_tapering']:
                 taper_exp = 1.1250
+        else:
+            return density_list
 
         density_list[:, region_id] = self.math.default_disk_density(
             self.position,
