@@ -662,6 +662,11 @@ class CGridBasic
         spec_length_as_vector = val;
     }
 
+    bool specLengthIsVector()
+    {
+        return spec_length_as_vector;
+    }
+
     void updateSpecLength(photon_package * pp, double len)
     {
         cell_basic * cell = pp->getPositionCell();

@@ -3480,7 +3480,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                if(temp[a] >= getSublimationTemperature())
+                if(temp[a] >= sub_temp)
                     temp[a] = 0;
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
@@ -3535,13 +3535,15 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     delete[] temp;
 
     if(sublimate)
-        if(avg_temp >= getSublimationTemperature())
+        if(avg_temp >= sub_temp)
         {
             // Set temperature to zero
             avg_temp = 0;
 
             // Remove sublimated dust from grid
-            grid->adjustDustDensity(cell, i_density, 0);
+            // Not if rad field can be used for stochastic heating later
+            if(grid->specLengthIsVector())
+                grid->adjustDustDensity(cell, i_density, 0);
         }
 
     // Set average dust temperature in grid

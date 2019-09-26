@@ -1247,7 +1247,7 @@ class HD100546(Model):
         # Calculate cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
         # Init disk density array
-        density_list = np.ones((4, 2))
+        density_list = np.zeros((4, 2))
         # Init extra exponent for tapering
         taper_exp = 0
         # Check region

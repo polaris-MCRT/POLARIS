@@ -578,10 +578,10 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
                             // See Deguchi & Watson 1984 as well!
                             case TRANS_SIGMA_P:
                             case TRANS_SIGMA_M:
-                                tau = 0.5;
+                                tau = 0;
                                 break;
                             case TRANS_PI:
-                                tau = temp_gas;
+                                tau = temp_gas / 1.0;
                                 break;
                         }
                         double j, alpha;
