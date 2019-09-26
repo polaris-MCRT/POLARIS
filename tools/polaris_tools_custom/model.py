@@ -1257,8 +1257,7 @@ class HD100546(Model):
         elif self.parameter['outer_radius'] >= radius_cy >= self.parameter['outer_disk_r_in']:
             disk_position = 'outer_disk'
             region_id = 1
-            if radius_cy >= self.parameter['outer_disk_tapering']:
-                tappered_gamma = 1.1250
+            tappered_gamma = 1.1250
         else:
             return density_list
 
