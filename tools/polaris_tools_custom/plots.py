@@ -2707,8 +2707,8 @@ class CustomPlots:
         # Take data for lin pol and optical depth
         degree_of_polarization = np.divide(100 * np.sqrt(plot_data[1, :, :]**2 + plot_data[2, :, :]**2), plot_data[0, :, :],
             out=np.zeros_like(plot_data[0, :, :]), where=plot_data[0, :, :] != 0)
-        tau = np.logspace(-1, 1, header['nr_pixel_x'])
-        plot.plot_line(tau, degree_of_polarization[:, 0], marker='.', linestyle='')
+        tau = np.logspace(-2, 1, header['nr_pixel_x'])
+        plot.plot_line(tau, degree_of_polarization[:, 0], marker='.', linestyle='-')
         # Save figure to pdf file or print it on screen
         plot.save_figure(self.file_io)
 

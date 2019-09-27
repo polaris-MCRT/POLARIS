@@ -21,14 +21,14 @@ using namespace std;
 
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
-#define PIsq sqrt(PI)                                 // sqrt(PI)
-#define PI2 PI / 2.0                                  // PI / 2
-#define PI4 PI / 4.0                                  // PI / 4
-#define invPI2 2.0 / PI                               // 2 / PI
-#define PIx2 PI * 2.0                                 // 2 * PI
-#define PIx4 PI * 4.0                                 // 4 * PI
-#define PI4x3 PI * 3.0 / 4.0                          // 3 * PI / 4
-#define TWOTHIRD 0.6666666666666666666666666666666    // 2 / 3
+#define PIsq 1.77245385090551588191942755656782537699 // sqrt(PI)
+#define PI2 1.570796326794896557998981734272092580795 // PI / 2
+#define PI4 0.785398163397448278999490867136046290398 // PI / 4
+#define invPI2 0.636619772367581382432888403855031356 // 2 / PI
+#define PIx2 6.28318530717958623199592693708837032318 // 2 * PI
+#define PIx4 12.5663706143591724639918538741767406463 // 4 * PI
+#define PI4x3 2.3561944901923448369984726014081388712 // 3 * PI / 4
+#define TWOTHIRD 0.6666666666666666666666666666666666 // 2 / 3
 #define m_H 1.66053904e-27                            // Atomic mass unit [kg]
 #define con_h 6.62607004e-34                          // Planck constant [Js]
 #define con_hq 1.0545718e-34                          // Reduced Planck constant [Js]

@@ -128,13 +128,13 @@ class Cube(Model):
         Returns:
             List[float, float, float]: Magnetic field strength at a given position.
         """
-        if self.tmp_parameter['mag_field_geometrie'] == 'toroidal':
+        if self.tmp_parameter['mag_field_geometry'] == 'toroidal':
             magnetic_field = self.math.toroidal_mag_field(
                 self.position, mag_field_strength=1e-10)
-        elif self.tmp_parameter['mag_field_geometrie'] == 'vertical':
+        elif self.tmp_parameter['mag_field_geometry'] == 'vertical':
             magnetic_field = self.math.simple_mag_field(
                 mag_field_strength=1e-10, axis='z')
-        elif self.tmp_parameter['mag_field_geometrie'] == 'radial':
+        elif self.tmp_parameter['mag_field_geometry'] == 'radial':
             magnetic_field = self.math.radial_mag_field(
                 mag_field_strength=1e-10, position=self.position)
         else:
@@ -147,11 +147,19 @@ class Cube(Model):
         Returns:
             float: Gas temperature at a given position.
         """
-        gas_temperature = self.math.logarithmic_bin_distribution(
+        return 10
+
+    def dust_temperature(self):
+        """Calculates the gas temperature at a given position.
+
+        Returns:
+            float: Gas temperature at a given position.
+        """
+        dust_temperature = self.math.logarithmic_bin_distribution(
             self.position[0]+self.parameter['outer_radius'], 2 *
             self.parameter['outer_radius'],
-            2**self.octree_parameter['max_tree_level'], min_exponent=-1., max_exponent=1.)
-        return 100 * gas_temperature
+            2**self.octree_parameter['max_tree_level'], min_exponent=-2., max_exponent=1.)
+        return 100 * dust_temperature
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
@@ -160,15 +168,15 @@ class Cube(Model):
         if extra_parameter is not None:
             if len(extra_parameter) == 1:
                 if extra_parameter[0] == 'toroidal_mag_field':
-                    self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
+                    self.tmp_parameter['mag_field_geometry'] = 'toroidal'
                     print(
                         'HINT: The toroidal magnetic field is used (change with --extra)!')
                 elif extra_parameter[0] == 'vertical_mag_field':
-                    self.tmp_parameter['mag_field_geometrie'] = 'vertical'
+                    self.tmp_parameter['mag_field_geometry'] = 'vertical'
                     print(
                         'HINT: The vertical magnetic field is used (change with --extra)!')
                 elif extra_parameter[0] == 'radial_mag_field':
-                    self.tmp_parameter['mag_field_geometrie'] = 'radial'
+                    self.tmp_parameter['mag_field_geometry'] = 'radial'
                     print(
                         'HINT: The radial magnetic field is used (change with --extra)!')
 
@@ -967,7 +975,7 @@ class HD97048(Model):
                                                 ref_scale_height=ref_scale_height, ref_radius=ref_radius, real_zero=real_zero)
         # RING #3
         ring_3 = self.math.default_disk_density(self.position,
-                                                beta=beta, column_dens_exp=surf_dens_exp, tappered_gamma=-0.0,
+                                                beta=beta, column_dens_exp=surf_dens_exp, tapered_gamma=-0.0,
                                                 inner_radius=269. *
                                                 self.math.const['au'],
                                                 outer_radius=400. *
@@ -1245,7 +1253,7 @@ class HD100546(Model):
         # Init disk density array
         density_list = np.zeros((4, 2))
         # Init extra exponent for tapering
-        tappered_gamma = None
+        tapered_gamma = None
         # Check region
         if self.parameter['inner_radius'] <= radius_cy <= self.parameter['inner_disk_r_out']:
             disk_position = 'inner_disk'
@@ -1257,7 +1265,7 @@ class HD100546(Model):
         elif self.parameter['outer_radius'] >= radius_cy >= self.parameter['outer_disk_r_in']:
             disk_position = 'outer_disk'
             region_id = 1
-            tappered_gamma = 1.1250
+            tapered_gamma = 1.1250
         else:
             return density_list
 
@@ -1269,7 +1277,7 @@ class HD100546(Model):
             ref_scale_height=self.parameter['ref_scale_height'][disk_position],
             column_dens_exp=self.parameter['column_dens_exp'][disk_position],
             beta=self.parameter['beta'][disk_position],
-            tappered_gamma=tappered_gamma,
+            tapered_gamma=tapered_gamma,
         )
         return density_list
 

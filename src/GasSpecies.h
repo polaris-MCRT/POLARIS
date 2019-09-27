@@ -786,7 +786,9 @@ class CGasSpecies
 
     double calcJFromInteractionLength(double j, double alpha, double J_ext, double L)
     {
+        // Init variables
         double beta, S;
+
         if(alpha < 1e-20)
         {
             S = 0.0;
@@ -808,7 +810,9 @@ class CGasSpecies
 
     double calcJFromOpticalDepth(double j, double alpha, double J_ext, double tau)
     {
+        // Init variables
         double beta, S;
+
         if(alpha < 1e-20)
             S = 0.0;
         else

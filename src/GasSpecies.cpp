@@ -540,12 +540,8 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
-        // Get center position of current cell
-        Vector3D pos_xyz_cell = grid->getCenter(*cell);
-
-        double abs_vel = 1;
-
-        double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
+        // Get gauss a
+        double gauss_a = getGaussA(temp_gas, grid->getTurbulentVelocity(cell));
 
         double *** final_col_para = calcCollisionParameter(grid, cell);
         uint i_iter = 0;
@@ -556,7 +552,6 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
 
             for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
             {
-                double L = 0, tau = 0;
                 uint i_lvl_l = getLowerEnergyLevel(i_trans);
                 uint i_lvl_u = getUpperEnergyLevel(i_trans);
 
@@ -572,22 +567,41 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
 
                         uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
 
-                        switch(int(sublvl_l - sublvl_u))
-                        {
-                            // Factor 2/3 or 1/3 comes from normalization in the Larsson paper
-                            // See Deguchi & Watson 1984 as well!
-                            case TRANS_SIGMA_P:
-                            case TRANS_SIGMA_M:
-                                tau = 0;
-                                break;
-                            case TRANS_PI:
-                                tau = temp_gas / 1.0;
-                                break;
-                        }
                         double j, alpha;
                         calcEmissivityFromLvlPop(
-                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, 1.0, tmp_lvl_pop, &j, &alpha);
-                        J_mid[i_tmp_trans] = calcJFromOpticalDepth(j, alpha, J_ext[i_trans], tau);
+                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, gauss_a, tmp_lvl_pop, &j, &alpha);
+
+                        uint nr_of_theta = 181;
+                        dlist solid_angle(nr_of_theta), J_theta(nr_of_theta);
+                        double tau_0 = grid->getDustTemperature(*cell) / 100;
+                        for(uint sth = 0; sth < nr_of_theta; sth++)
+                        {
+                            double theta = PI * double(sth) / double(nr_of_theta - 1);
+                            double cos_theta = cos(theta);
+                            double sin_theta = sin(theta);
+
+                            // Calculate the modified angle for integration
+                            solid_angle[sth] = -PIx2 * cos_theta;
+
+                            double tau = tau_0 / (cos_theta * cos_theta);
+                            double J_tmp = calcJFromOpticalDepth(j, alpha, J_ext[i_trans], tau);
+                            switch(int(sublvl_l - sublvl_u))
+                            {
+                                case TRANS_PI:
+                                    // Update radiation field
+                                    J_theta[sth] = J_tmp;
+                                    if(isTransZeemanSplit(i_trans))
+                                        J_theta[sth] *= (3.0 / 2.0) * (sin_theta * sin_theta);
+                                    break;
+                                case TRANS_SIGMA_P:
+                                case TRANS_SIGMA_M:
+                                    // Update radiation field
+                                    J_theta[sth] = (3.0 / 4.0) * (1 + cos_theta * cos_theta) * J_tmp;
+                                    break;
+                            }
+                        }
+                        J_mid[i_tmp_trans] =
+                            CMathFunctions::integ(solid_angle, J_theta, 0, nr_of_theta - 1) / PIx4;
                     }
                 }
             }
@@ -595,15 +609,18 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
             createMatrix(J_mid, &A, b, final_col_para);
             CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
 
-            for(uint i_col_transition = 0; i_col_transition < getNrCollisionTransitions(0);
-                i_col_transition++)
-            {
-                // Get level indices for lower and upper energy level
-                uint i_lvl_u = getUpperCollisionLevel(0, i_col_transition);
-                uint i_lvl_l = getLowerCollisionLevel(0, i_col_transition);
-                if(i_lvl_u == 1 && i_lvl_l == 0)
-                    cout << final_col_para[0][i_col_transition][0] / getEinsteinA(0) << endl;
-            }
+            // if(i_iter == 0)
+            // {
+            //     for(uint i_col_transition = 0; i_col_transition < getNrCollisionTransitions(0);
+            //         i_col_transition++)
+            //     {
+            //         // Get level indices for lower and upper energy level
+            //         uint i_lvl_u = getUpperCollisionLevel(0, i_col_transition);
+            //         uint i_lvl_l = getLowerCollisionLevel(0, i_col_transition);
+            //         if(i_lvl_u == 1 && i_lvl_l == 0)
+            //             cout << final_col_para[0][i_col_transition][0] / getEinsteinA(0) << endl;
+            //     }
+            // }
 
             double sum_p = 0;
             for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
@@ -628,15 +645,13 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
                         j_lvl = i_lvl;
 
                 if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
-                       (old_pop[j_lvl] + numeric_limits<double>::epsilon()) <
-                   1e-2)
-                {
+                       (tmp_lvl_pop[j_lvl] + old_pop[j_lvl] + __DBL_EPSILON__) <
+                   1e-3)
                     break;
-                }
             }
         }
         if(i_iter == MAX_LVG_ITERATIONS)
-            cout << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
+            cout << endl << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
 
         if(full)
         {
@@ -675,15 +690,9 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
             }
         }
 
-        // for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
-        // {
-        //     for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
-        //     {
-        //         cout << i_lvl << TAB << i_sublvl << TAB << tmp_lvl_pop[getUniqueLevelIndex(i_lvl,
-        //         i_sublvl)]
-        //              << endl;
-        //     }
-        // }
+        // cout << CLR_LINE;
+        // cout << grid->getDustTemperature(*cell) / 100 << TAB
+        //      << tmp_lvl_pop[getUniqueLevelIndex(1, 0)] / tmp_lvl_pop[getUniqueLevelIndex(1, 1)] << endl;
 
         delete[] J_mid;
         delete[] b;
@@ -1863,12 +1872,12 @@ void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
             {
                 case TRANS_PI:
                     // Update radiation field
-                    J_nu[i_trans_unique] += sin_theta * sin_theta * energy;
+                    J_nu[i_trans_unique] += (3.0 / 2.0) * (sin_theta * sin_theta) * energy;
                     break;
                 case TRANS_SIGMA_P:
                 case TRANS_SIGMA_M:
                     // Update radiation field
-                    J_nu[i_trans_unique] += (1 + cos_theta * cos_theta) * energy;
+                    J_nu[i_trans_unique] += (3.0 / 4.0) * (1 + cos_theta * cos_theta) * energy;
                     break;
             }
         }
@@ -2040,6 +2049,9 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                 break;
             case POP_LVG:
                 cout << "LVG" << endl;
+                break;
+            case POP_DEGUCHI_LVG:
+                cout << "LVG (Deguchi & Watson 1984)" << endl;
                 break;
             default:
                 cout << "\nERROR: UNKNOWN!" << endl;

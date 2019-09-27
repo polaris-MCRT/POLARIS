@@ -1290,7 +1290,7 @@ class Math:
 
     @staticmethod
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
-                             ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tappered_gamma=None,
+                             ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tapered_gamma=None,
                              column_dens_exp=None, real_zero=True):
         """Shakura and Sunyaev disk density profile.
 
@@ -1324,9 +1324,9 @@ class Math:
         else:
             density = 0.
 
-        if tappered_gamma is not None:
+        if tapered_gamma is not None:
             density *= np.exp(-(radius_cy / ref_radius)
-                              ** (2 - tappered_gamma))
+                              ** (2 - tapered_gamma))
         if not real_zero:
             density = max(density, 1e-200)
 

@@ -3257,7 +3257,6 @@ void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
                     vel_field_interp->vel_field.setDynValue(spline_x, spline_y);
                 }
             }
-            vel_field_interp->vel_field.createDynSpline();
         }
     }
 }

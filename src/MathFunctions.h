@@ -527,52 +527,25 @@ class interp
     interp()
     {
         N = 0;
-        x = 0;
-        y = 0;
     }
 
     interp(uint size)
     {
         N = size - 1;
-        x = new double[size];
-        y = new double[size];
-
-        for(uint i = 0; i < size; i++)
-        {
-            x[i] = 0;
-            y[i] = 0;
-        }
+        x.resize(size);
+        y.resize(size);
     }
 
-    ~interp()
-    {
-        if(x != 0)
-            delete[] x;
-        if(y != 0)
-            delete[] y;
-    }
-
-    uint size()
+    uint size() const
     {
         return N + 1;
     }
 
     void resize(uint size)
     {
-        if(x != 0)
-            delete[] x;
-        if(y != 0)
-            delete[] y;
-
         N = size - 1;
-        x = new double[size];
-        y = new double[size];
-
-        for(uint i = 0; i < size; i++)
-        {
-            x[i] = 0;
-            y[i] = 0;
-        }
+        x.resize(size);
+        y.resize(size);
     }
 
     void setValue(uint pos, double _x, double _y)
@@ -588,66 +561,66 @@ class interp
         y[pos] = _y;
     }
 
-    double getLinear(uint i, double v)
+    void addValue(double _x, double _y)
+    {
+        x.push_back(_x);
+        y.push_back(_y);
+    }
+
+    double getLinear(uint i, double v) const
     {
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
 
-    double getValue(double v, uint interpolation = LINEAR)
+    double getValue(double v, uint interpolation = LINEAR) const
     {
         uint min = 0, max = N;
-
-        if(x == 0)
-            return 0;
 
         if(min == max)
             return y[0];
 
-        if(x != 0)
-        {
-            if(v < x[0])
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[0];
-                        break;
-
-                    case LINEAR:
-                        return getLinear(0, v);
-                        break;
-                }
-            else if(v > x[N])
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[N];
-                        break;
-
-                    case LINEAR:
-                        return getLinear(N - 1, v);
-                        break;
-                }
-            else
+        if(v < x[0])
+            switch(interpolation)
             {
-                while(max - min > 1)
-                {
-                    uint i = min + (max - min) / 2;
-                    if(x[i] >= v)
-                        max = i;
-                    else
-                        min = i;
-                }
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[max];
-                        break;
+                case CONST:
+                    return y[0];
+                    break;
 
-                    case LINEAR:
-                        return getLinear(min, v);
-                        break;
-                }
+                case LINEAR:
+                    return getLinear(0, v);
+                    break;
+            }
+        else if(v > x[N])
+            switch(interpolation)
+            {
+                case CONST:
+                    return y[N];
+                    break;
+
+                case LINEAR:
+                    return getLinear(N - 1, v);
+                    break;
+            }
+        else
+        {
+            while(max - min > 1)
+            {
+                uint i = min + (max - min) / 2;
+                if(x[i] >= v)
+                    max = i;
+                else
+                    min = i;
+            }
+            switch(interpolation)
+            {
+                case CONST:
+                    return y[max];
+                    break;
+
+                case LINEAR:
+                    return getLinear(min, v);
+                    break;
             }
         }
 
@@ -656,8 +629,8 @@ class interp
 
   private:
     uint N;
-    double * x;
-    double * y;
+    dlist x;
+    dlist y;
 };
 
 class prob_list
@@ -1504,7 +1477,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist x, double * y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, double * y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
@@ -1529,7 +1502,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist & x, dlist & y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, const dlist & y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
@@ -1539,7 +1512,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist & x, uilist & y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, const uilist & y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
