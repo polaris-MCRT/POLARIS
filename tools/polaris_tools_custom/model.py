@@ -147,7 +147,7 @@ class Cube(Model):
         Returns:
             float: Gas temperature at a given position.
         """
-        return 10
+        return 30
 
     def dust_temperature(self):
         """Calculates the gas temperature at a given position.
@@ -1225,7 +1225,7 @@ class HD100546(Model):
         # Set mass of both regions
         self.parameter['gas_mass'][:, 0] *= 8.723e-8 * \
             self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'][:, 0])
-        self.parameter['gas_mass'][:, 1] *= 7.0782e-3 * \
+        self.parameter['gas_mass'][:, 1] *= 7.0782e-3 * 1e-2 * \
             self.math.const['M_sun'] / np.sum(self.parameter['gas_mass'][:, 1])
         # Init array to ignore dust mass for normalization
         self.tmp_parameter['ignored_gas_density'] = \
