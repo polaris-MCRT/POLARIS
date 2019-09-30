@@ -2987,6 +2987,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     //Number of photons per timestep
     uint nr_of_photons_step = 5e+0;
     
+    // Set points in time to print out resutls (tbd)
+    uint t_result = tend;
+    
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
     {
@@ -3039,6 +3042,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         //vector<shared_ptr<photon_package>> pp_stack;
         vector<photon_package*> pp_stack;
         
+        // Define last index of stored photon packages
+        ullong last = pp_stack.size() - 1;
+        
         // Start photons from dust and/or source and store in photon stack
         for (llong i = 0; i < llong(nr_of_photons_step); i++)
         {
@@ -3047,55 +3053,297 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // pp_stack[i]->setTime(t); tbd
             
             // Decide wether photons are emitted from source or dust and emitt
-            pp_stack[i]->initRandomGenerator(i);
-            double rnd = pp_stack[i]->getRND();
+            pp_stack[last+i]->initRandomGenerator(i);
+            double rnd = pp_stack[last+i]->getRND();
             
             if(rnd < p_d)
             {
                 // Emission from dust source (tbd: set energy and stokes vector)
                 
                 // Get random number for cell index
-                rnd = pp_stack[i]->getRND();
+                rnd = pp_stack[last+i]->getRND();
                 
                 // Find cell index from probability dist for cell emission
                 ulong i_cell = distance(p_i,find(p_i, p_i+(sizeof(p_i)/sizeof(*p_i)), rnd));
                 
-                // Get temperature ID and find wavelength
+                // Get current cell
                 cell_basic * cell = grid->getCellFromIndex(i_cell);
-                uint wID = dust->getWavelengthIDfromCdf(grid, cell, pp_stack[i]);
+                //uint wID = dust->getWavelengthIDfromCdf(grid, cell, pp_stack[last+i]);
                 
                 // Set wavelength
-                pp_stack[i]->setWavelengthID(wID);
+                //pp_stack[last+i]->setWavelengthID(wID);
                 
                 // Set photon package into cell
-                pp_stack[i]->setPositionCell(cell);
+                pp_stack[last+i]->setPositionCell(cell);
                 
                 // Set random direction, position and coordinate system for scattering
-                dust_source->createNextRay(pp_stack[i], ullong(i));
+                dust_source->createNextRay(pp_stack[last+i], ullong(i));
                 N_d++;
             }
             else
             {
                 // Emission from source (star)
-                source->createNextRay(pp_stack[i], ullong(i));
+                source->createNextRay(pp_stack[last+i], ullong(i));
                 N_s++;
+            }
+        }
+        
+        // Correct photon energy and set wavelength for dust photons
+        for (llong i = 0; i < llong(nr_of_photons_step); i++)
+        {
+            // Check if dust emission
+            if(pp_stack[last+i]->getWavelengthID() == MAX_UINT)
+            {
+                // Get temperature ID and find wavelength
+                cell_basic * cell = pp_stack[last+i]->getPositionCell();
+                uint wID = dust->getWavelengthIDfromCdf(grid, cell, pp_stack[last+i]);
+                
+                // Set wavelength
+                pp_stack[last+i]->setWavelengthID(wID);
+                
+                // Set Stokes vector of photon package
+                double energy = L_d*dt/N_d;
+                pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
+            }
+            else
+            {
+                // Correct Stokes vector of (stellar) source emission
+                double energy = (source->getLuminosity())*dt/N_s;
+                pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
+            }
+        }
+        
+        // Perform radiative transfer of all photons in photon stack
+        for (llong i = 0; i<(pp_stack.size()-1); i++)
+        {
+            // Init variables
+            double end_tau, Cext, Csca;
+            Vector3D old_pos;
+    
+            // Check energy limit
+            if(pp_stack[i]->getStokesVector().I() < 1e-200)
+            {
+                kill_counter++;
+                delete pp_stack[i];
+                // Here the vector could be erased to pp_stack.erase(i)
+                continue;
+            }
+            
+            // Position the photon inside the grid
+            if(!grid->positionPhotonInGrid(pp_stack[i]))
+                if(!grid->findStartingPoint(pp_stack[i]))
+                {
+                    kill_counter++;
+                    delete pp_stack[i];
+                    // Here the vector could be erased to pp_stack.erase(i)
+                    continue;
+                }
+    
+            // Get tau for first interaction
+            end_tau = -log(1.0 - pp_stack[i]->getRND());
+            
+            // Save the old position to use it again
+            old_pos = pp_stack[i]->getPosition();
+            
+            // Init current number of interactions
+            ullong interactions = 0;
+            
+            // Init variables for tau, path length, density
+            double tmp_tau, len, dens;
+            
+            // Set dl = 0 and t = current_time (tbd)
+            // Init variable for overall light travel distance
+            double dl = 0;
+            
+            // Transfer photon through grid when still in grid and time
+            while(grid->next(pp_stack[i]) && dl < con_c*dt)
+            {
+                // If max interactions is reached, end photon transfer
+                if(interactions >= MAX_INTERACTION)
+                {
+                    kill_counter++;
+                    break;
+                }
+                
+                // Get dust number density of the current cell
+                dens = dust->getNumberDensity(grid, pp_stack[i]);
+                
+                // If the dust density is too low, skip this cell
+                if(dens < 1e-200)
+                {
+                    old_pos = pp_stack[i]->getPosition();
+                    continue;
+                }
+                
+                // Get path length through current cell
+                len = pp_stack[i]->getTmpPathLength();
+                
+                // Check rest of light travel time
+                if (dl + len > con_c*dt)
+                    len = con_c*dt - dl;
+                
+                // Calculate the dust absorption cross section (for random
+                // alignment)
+                Cext = dust->getCextMean(grid, pp_stack[i]);
+                
+                // Calculate optical depth that is obtained on the path_length
+                tmp_tau = Cext * len * dens;
+                
+                // optical depth for interaction is reached or not
+                if(tmp_tau > end_tau)
+                {
+                    // Increase interaction counter
+                    interactions++;
+                    
+                    // Reduce the photon position to match the exact
+                    // interaction position
+                    len = len * end_tau / tmp_tau;
+                    pp_stack[i]->adjustPosition(old_pos, len);
+                    
+                    // Update data in grid like spectral length or radiation field and energy array
+                    updateRadiationField(pp_stack[i]);
+                    
+                    // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
+                    double energy = len * pp_stack[i]->getStokesVector().I() * 
+                                    dust->getCabsMean(grid, pp_stack[i]); 
+                    pp_stack[i]->addStokesVector(StokesVector(-energy, 0, 0, 0));
+                    
+                    // Save position of last interaction to know to which pixel
+                    // the photon belongs, if it is not scattered on its further
+                    // path through the model
+                    pp_stack[i]->updatePositionLastInteraction();
+                    
+                    // Calculate the dust scattering cross section (for random
+                    // alignment)
+                    Csca = dust->getCscaMean(grid, pp_stack[i]);
+                    
+                    // Calculate albedo and check if absorption or
+                    // scattering occurs
+                    double albedo = Csca / Cext;
+                    
+                    if(pp_stack[i]->getRND() < albedo)
+                    {
+                        // Perform simple photon scattering without
+                        // changing the Stokes vectors
+                        dust->scatter(grid, pp_stack[i], true);
+                    }
+                    else
+                        break;
+                    
+                    // Add up light travel distance
+                    dl += len;
+                    
+                    // Calculate new optical depth for next interaction
+                    end_tau = -log(1.0 - pp_stack[i]->getRND());
+                }
+                else
+                {
+                    // Update data in grid like spectral length or radiation field or energy array
+                    updateRadiationField(pp_stack[i]);
+                    
+                    // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
+                    double energy = len * pp_stack[i]->getStokesVector().I() * 
+                                    dust->getCabsMean(grid, pp_stack[i]); 
+                    pp_stack[i]->addStokesVector(StokesVector(-energy, 0, 0, 0));
+                    
+                    // Add up light travel time
+                    dl += len;
+
+                    // Remove the traveled distance from optical depth
+                    end_tau -= tmp_tau;
+                }
+                // Save photon position to adjust it if necessary
+                old_pos = pp_stack[i]->getPosition();
+            }
+            
+            // If peel-off is not used, use classic Monte-Carlo method
+            // If the photon has left the model space
+            if(!grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+            {
+                // Move photon back to the point of last interaction
+                pp_stack[i]->resetPositionToLastInteraction();
+
+                // Transport photon to observer for each detector
+                for(uint d = 0; d < nr_mc_detectors; d++)
+                {
+                    // Get index of wavelength in current detector
+                    uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[i]));
+
+                    // Only calculate for detectors with the corresponding
+                    // wavelengths
+                    if(wID_det != MAX_UINT)
+                    {
+                        // Get direction to the current detector
+                        Vector3D dir_obs = detector[d].getDirection();
+
+                        // Calculate the angle between the photon travel direction
+                        // and the detector direction
+                        double cos_angle = pp_stack[i]->getDirection() * dir_obs;
+
+                        // Get acceptance angle from detector (minimum 1°)
+                        double cos_acceptance_angle = detector[d].getAcceptanceAngle();
+
+                        // If the angle angle between the photon direction and the
+                        // detector direction is smaller than the acceptance angle
+                        if(cos_angle >= cos_acceptance_angle)
+                        {
+                            // Get the angle to rotate the photon space into the
+                            // detector space
+                            double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
+                                detector[d].getEX(), pp_stack[i]->getEX(), pp_stack[i]->getEY());
+
+                            // Rotate the Stokes vector
+                            pp_stack[i]->getStokesVector().rot(rot_angle_phot_obs);
+
+                            // Consider the greater solid angle due
+                            // to the acceptance angle
+                            pp_stack[i]->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
+
+                            // Convert the flux into Jy and consider
+                            // the distance to the observer
+                            CMathFunctions::lum2Jy(pp_stack[i]->getStokesVector(),
+                                                    dust->getWavelength(pp_stack[i]),
+                                                    detector[d].getDistance());
+
+                            // Consider foreground extinction
+                            pp_stack[i]->getStokesVector() *=
+                                dust->getForegroundExtinction(dust->getWavelength(pp_stack[i]));
+
+                            if(interactions == 0)
+                            {
+                                // Add the photon package to the detector
+                                detector[d].addToMonteCarloDetector(pp_stack[i], wID_det, DIRECT_STAR);
+                            }
+                            else
+                            {
+                                // Add the photon package to the detector
+                                detector[d].addToMonteCarloDetector(pp_stack[i], wID_det, SCATTERED_DUST);
+                            }
+                        }
+                    }
+                }
             }
             
         }
         
+        // Write out maps and sed for current timestep if wanted
+        if(t==t_result)
+        {
+            for(uint d = 0; d < nr_mc_detectors; d++)
+            {
+                if(!detector[d].writeMap(d, RESULTS_FULL))
+                    return false;
+                if(!detector[d].writeSed(d, RESULTS_FULL))
+                    return false;
+            }
+        }
         
-        // Loop over all photons in photon stack
-    
-            // Check energy limit
-            
-            // Set dl = 0 and t = current_time
-    
-            // Propagate Photon to next position
-    
-            // Scatter and propagate if dl < cau*dt still in time
-    
         // Estimate absorption rate
-    
+        for(long c_i = 0; c_i < long(max_cells); c_i++)
+        {
+            dust_abs[c_i] = 0;
+        }
+        
         // Calc new inner energy for all cells e = e + (A-E)*dt
     
         // Observe photons outside grid and delete from stack
