@@ -2968,12 +2968,12 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     uint dt, tend;
-    tend = 200;
+    tend = 40000;
     dt = 100;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
-    dlist dust_abs(max_cells);
+    dlist dust_abs(max_cells, 0.0);
     dlist dust_em(max_cells);
     dlist dust_u(max_cells);
     
@@ -2981,14 +2981,28 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,dust->getDustTemperature(grid, cell));
+        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,500)*grid->getVolume(cell);
     }
     
-    //Number of photons per timestep
-    uint nr_of_photons_step = 5e+0;
+    // Calc initial temperature dist
+    if (!setTemperatureFromU(dust_u))
+        return false;
+    
+    // Test Output
+    cout << SEP_LINE;
+    cell_basic * cell = grid->getCellFromIndex(2000);   
+    cout << grid->getDustTemperature(cell) << endl;
+    cout << SEP_LINE;
+    
+    // Number of photons per timestep
+    uint nr_of_photons_step = 1e+2;
+    
+    // Init photon pointer stack with (shared) pointer (to prevent memory leak)
+    //vector<shared_ptr<photon_package>> pp_stack;
+    vector<photon_package*> pp_stack;
     
     // Set points in time to print out resutls (tbd)
-    uint t_result = tend;
+    uint t_result = 30000;
     
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
@@ -2997,16 +3011,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         ullong N_d = 0;
         ullong N_s = 0;
         
-        // Calc temperatures and emission rate
-        if (!setTemperatureFromU(dust_u))
-            return false;
-        
+        // Calc emission rates
+#pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
             dust_em[c_i] = dust->getCellEmissionRate(grid,grid->getCellFromIndex(c_i));
         
-        // Set stack for energy to estimate absorption rate
-        double * estack = new double[max_cells];
-    
         // Calc dust luminosity
         double L_d = 0;
         for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -3020,8 +3029,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         CSourceBasic * dust_source = sources_mc[1];
         
         // Init luminosity and probability for star source
-        if(!source->initSource(0, 2, false))
-            return false;
+        if (t == 0)
+        {    
+            if(!source->initSource(0, 2, false))
+                return false;
+        }
         if(!dust->initLamCdf())
             return false;
         
@@ -3031,6 +3043,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         // Calc cumulative probability dist for cell emission
         double * p_i = new double[max_cells];
         double temp = 0.0;
+#pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
         {
             cell_basic * cell = grid->getCellFromIndex(c_i);
@@ -3038,12 +3051,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             p_i[c_i] = temp/L_d;
         }
         
-        // Init photon pointer stack with (shared) pointer (to prevent memory leak)
-        //vector<shared_ptr<photon_package>> pp_stack;
-        vector<photon_package*> pp_stack;
-        
         // Define last index of stored photon packages
-        ullong last = pp_stack.size() - 1;
+        ullong last = (pp_stack.size() > 0) ? pp_stack.size() - 1 : 0;
         
         // Start photons from dust and/or source and store in photon stack
         for (llong i = 0; i < llong(nr_of_photons_step); i++)
@@ -3089,6 +3098,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         }
         
         // Correct photon energy and set wavelength for dust photons
+#pragma omp parallel for schedule(dynamic)
         for (llong i = 0; i < llong(nr_of_photons_step); i++)
         {
             // Check if dust emission
@@ -3114,6 +3124,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         }
         
         // Perform radiative transfer of all photons in photon stack
+#pragma omp parallel for schedule(dynamic)
         for (llong i = 0; i<(pp_stack.size()-1); i++)
         {
             // Init variables
@@ -3123,8 +3134,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // Check energy limit
             if(pp_stack[i]->getStokesVector().I() < 1e-200)
             {
-                kill_counter++;
-                delete pp_stack[i];
+                //kill_counter++;
+                //delete pp_stack[i];
+                //pp_stack[i] = NULL;
                 // Here the vector could be erased to pp_stack.erase(i)
                 continue;
             }
@@ -3133,8 +3145,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             if(!grid->positionPhotonInGrid(pp_stack[i]))
                 if(!grid->findStartingPoint(pp_stack[i]))
                 {
-                    kill_counter++;
-                    delete pp_stack[i];
+                    //kill_counter++;
+                    //delete pp_stack[i];
+                    //pp_stack[i] = NULL;
                     // Here the vector could be erased to pp_stack.erase(i)
                     continue;
                 }
@@ -3208,6 +3221,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                     dust->getCabsMean(grid, pp_stack[i]); 
                     pp_stack[i]->addStokesVector(StokesVector(-energy, 0, 0, 0));
                     
+                    // Add to absorption estimate
+                    uint c_id = (pp_stack[i]->getPositionCell())->getID();
+                    dust_abs[c_id] += energy/(len/con_c);
+                    
                     // Save position of last interaction to know to which pixel
                     // the photon belongs, if it is not scattered on its further
                     // path through the model
@@ -3245,6 +3262,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     double energy = len * pp_stack[i]->getStokesVector().I() * 
                                     dust->getCabsMean(grid, pp_stack[i]); 
                     pp_stack[i]->addStokesVector(StokesVector(-energy, 0, 0, 0));
+                    
+                    // Add to absorption estimate
+                    uint c_id = (pp_stack[i]->getPositionCell())->getID();
+                    dust_abs[c_id] += energy/(len/con_c);
                     
                     // Add up light travel time
                     dl += len;
@@ -3322,8 +3343,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                         }
                     }
                 }
+                
+                // Delete photon from stack (tbd erase pp_stack vector)
+                //delete pp_stack[i];
+                //pp_stack[i] = NULL;
             }
-            
         }
         
         // Write out maps and sed for current timestep if wanted
@@ -3338,19 +3362,41 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
         }
         
-        // Estimate absorption rate
+        // Calc new inner energy for all cells e = e + (A-E)*dt
+#pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
         {
-            dust_abs[c_i] = 0;
+            // Check for sublimation radius
+            cell_basic * cell = grid->getCellFromIndex(c_i);
+            if(dust->getNumberDensity(grid,cell) > 1e-200)
+                dust_u[c_i] = dust_u[c_i] + (dust_abs[c_i] - dust_em[c_i]) * dt;
+            
+            // Reset absorption estimator
+            dust_abs[c_i] = 0.0;
+            
+            // Set minimum enthalpy (tbd)
+            if(dust_u[c_i] < 0)
+                dust_u[c_i] = 0;
         }
         
-        // Calc new inner energy for all cells e = e + (A-E)*dt
-    
-        // Observe photons outside grid and delete from stack
-    
         // Calc new temperatures
-    
+        if (!setTemperatureFromU(dust_u))
+            return false;
+        
+        // Write out temperature dist
+        //if(!grid->writeMidplaneFits(path_data + "output_" + t, param, param.getInpMidDataPoints()))
+        //    return false;
+
+        //if(!grid->writeGNUPlotFiles(path_plot + "output_" + t, param))
+        //    return false;
+        
         // Move to next timestept and or set new luminosities
+        cout << SEP_LINE;
+        cout << "Current Timestep " << t
+             << " Time to End " << tend << endl;
+        cell_basic * cell = grid->getCellFromIndex(2000);   
+        cout << grid->getDustTemperature(cell) << endl;
+        cout << SEP_LINE;
     }
     
 }

@@ -185,20 +185,20 @@ void CDustComponent::initLamCdf()
         for(uint w=1; w < nr_of_wavelength; w++)
         {
             // Increase counter used to show progress
-            per_counter++;
+            //per_counter++;
 
             // Calculate percentage of total progress per source
-            float percentage = 100.0 * float(per_counter) / float(max_counter);
+            //float percentage = 100.0 * float(per_counter) / float(max_counter);
 
             // Show only new percentage number if it changed
-            if((percentage - last_percentage) > PERCENTAGE_STEP)
-            {
-#pragma omp critical
-                {
-                    cout << "Calculating wavelength CDF: " << percentage << " [%]                      \r";
-                    last_percentage = percentage;
-                }
-            }
+            //if((percentage - last_percentage) > PERCENTAGE_STEP)
+            //{
+//#pragma omp critical
+            //    {
+            //        cout << "Calculating wavelength CDF: " << percentage << " [%]                      \r";
+            //        last_percentage = percentage;
+            //    }
+            //}
             
             // Calculate cdf via integration over all wavelength
             double cdf_temp = CMathFunctions::integ(wavelength_list, pdf[t], 0, w-1);

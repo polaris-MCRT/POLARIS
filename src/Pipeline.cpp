@@ -397,7 +397,7 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
     
     //Here only final output, intermediate results will be saved somewhere else
     
-    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
+    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints(), true))
         return false;
 
     if(!grid->writeGNUPlotFiles(path_plot + "output_", param))
