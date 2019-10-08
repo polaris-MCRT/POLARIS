@@ -976,7 +976,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 3;
-            long naxes[3] = { nr_spectral_bins, 1, 5 };
+            long naxes[3] = { nr_spectral_bins, nr_extra, 5 };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -988,7 +988,6 @@ class CDetector
 
         vector<long> fpixel(3);
         fpixel[0] = 1;
-        fpixel[1] = 1;
 
         std::valarray<double> array_I(nelements);
         std::valarray<double> array_Q(nelements);
@@ -997,6 +996,8 @@ class CDetector
         std::valarray<double> array_T(nelements);
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
+            fpixel[1] = i_extra + 1;
+
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 array_I[i_spectral] = sedI[i_spectral + i_extra * nr_spectral_bins];
