@@ -4196,31 +4196,33 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 
             // Calculate emission/extinction according to the information inside of the
             // grid
-            if(getEffectiveRadius(a) <= getStochasticHeatingMaxSize() &&
-               (emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_STOCH))
+            if(getEffectiveRadius(a) <= getStochasticHeatingMaxSize())
             {
-                // Consider stochastic heating for the emission if chosen
-                for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                if(emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_STOCH)
                 {
-                    // Get current calorimetric temperature
-                    temp_dust = getCalorimetricTemperature(t);
+                    // Consider stochastic heating for the emission if chosen
+                    for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                    {
+                        // Get current calorimetric temperature
+                        temp_dust = getCalorimetricTemperature(t);
 
-                    // Get propability that the dust grains have the current calorimetric
-                    // temperature
-                    double pl = grid->getDustTempProbability(pp, i_density, a, t);
+                        // Get propability that the dust grains have the current calorimetric
+                        // temperature
+                        double pl = grid->getDustTempProbability(pp, i_density, a, t);
 
-                    // Get relative Planck emission
-                    pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
+                        // Get relative Planck emission
+                        pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
-                    // To perform Camps et. al (2015) benchmark.
-                    tmp_stokes[a].addI(cs.Cabs * pl);
+                        // To perform Camps et. al (2015) benchmark.
+                        tmp_stokes[a].addI(cs.Cabs * pl);
 #else
-                    // Add relative emissivity from this temperature
-                    tmp_stokes[a].addI(cs.Cabs * pl);
-                    tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
-                    tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
+                        // Add relative emissivity from this temperature
+                        tmp_stokes[a].addI(cs.Cabs * pl);
+                        tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
+                        tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
 #endif
+                    }
                 }
             }
             else if(emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_TEMP)
