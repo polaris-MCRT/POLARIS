@@ -1528,8 +1528,10 @@ class CDustComponent
     
     double findWavelengthInCdf(uint t, double rnd)
     {
-        // Return wavelength for random number
-        double w = lam_cdf[t].getValue(rnd);
+        // Return wavelength for random number for time-dependent transfer
+        uint i = lam_cdf[t].getXIndex(rnd);
+        double w = lam_cdf[t].getY(i);
+        //double w = lam_cdf[t].getValue(rnd);
         
         return w;
     }
@@ -1800,9 +1802,9 @@ class CDustComponent
         //Calculate mean enthalpy for time dependent transfer
         double * EnthalpyMean = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            EnthalpyMean[a] = a_eff_1_5[a] * getEnthalpy(a, t);
+            EnthalpyMean[a] = a_eff_3_5[a] * getEnthalpy(a, t);
         double res =
-            1.0 / getWeight() *
+            (1.0 / getWeight()) *
             CMathFunctions::integ_dust_size(a_eff, EnthalpyMean, nr_of_dust_species, a_min_global, a_max_global);
         delete[] EnthalpyMean;
         return res;
@@ -3426,17 +3428,17 @@ class CDustMixture
     {
         // Get random wavelength for time-dependent transfer dust emission
         
-        // Get random number for wavelength
-        double rnd = pp->getRND();
-        
         // Find temperature ID
         uint i_mixture = getMixtureID(grid, cell);
         uint tID = mixed_component[i_mixture].findTemperatureID(grid->getDustTemperature(cell));
         
+        // Get random number for wavelength
+        double rnd = pp->getRND();
+        
         // Find wavelength from lam_cdf
         double w = mixed_component[i_mixture].findWavelengthInCdf(tID, rnd);
         uint wID = getWavelengthID(w);
-        
+
         return wID;
     }
     

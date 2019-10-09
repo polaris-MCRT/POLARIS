@@ -2968,8 +2968,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     uint dt, tend;
-    tend = 40000;
-    dt = 100;
+    tend = 1000;
+    dt = 10;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -2981,7 +2981,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
-        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,500)*grid->getVolume(cell);
+        dust_u[c_i] = dust->getEnthalpyMean(grid,cell,128)*grid->getVolume(cell);
     }
     
     // Calc initial temperature dist
@@ -2990,19 +2990,20 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
     // Test Output
     cout << SEP_LINE;
-    cell_basic * cell = grid->getCellFromIndex(2000);   
-    cout << grid->getDustTemperature(cell) << endl;
+    cell_basic * cell = grid->getCellFromIndex(1500);
+    cout << "Coords " << grid->getCenter(cell) << endl;
+    cout << "T " << grid->getDustTemperature(cell) << endl;
     cout << SEP_LINE;
     
     // Number of photons per timestep
-    uint nr_of_photons_step = 1e+2;
+    uint nr_of_photons_step = 1e+3;
     
     // Init photon pointer stack with (shared) pointer (to prevent memory leak)
     //vector<shared_ptr<photon_package>> pp_stack;
     vector<photon_package*> pp_stack;
     
     // Set points in time to print out resutls (tbd)
-    uint t_result = 30000;
+    uint t_result = 0;
     
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
@@ -3041,7 +3042,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         double p_d = L_d/(source->getLuminosity() + L_d);
         
         // Calc cumulative probability dist for cell emission
-        double * p_i = new double[max_cells];
+        dlist p_i(max_cells);
         double temp = 0.0;
 #pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -3050,6 +3051,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             temp += dust_em[c_i] * dust->getNumberDensity(grid, cell);
             p_i[c_i] = temp/L_d;
         }
+        
+        // Reset absorption estimator
+        fill(dust_abs.begin(), dust_abs.end(), 0.0);
         
         // Define last index of stored photon packages
         ullong last = (pp_stack.size() > 0) ? pp_stack.size() - 1 : 0;
@@ -3065,15 +3069,21 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             pp_stack[last+i]->initRandomGenerator(i);
             double rnd = pp_stack[last+i]->getRND();
             
-            if(rnd < p_d)
+            if(false)
             {
                 // Emission from dust source (tbd: set energy and stokes vector)
                 
                 // Get random number for cell index
                 rnd = pp_stack[last+i]->getRND();
                 
-                // Find cell index from probability dist for cell emission
-                ulong i_cell = distance(p_i,find(p_i, p_i+(sizeof(p_i)/sizeof(*p_i)), rnd));
+                // Find cell index from probability dist for cell emission (replace find tbd)
+                ulong i_cell = CMathFunctions::biListIndexSearch(rnd, p_i);
+                
+                // Set min or max
+                if (rnd < p_i[0])
+                    i_cell = 0;
+                if (rnd > p_i[max_cells-1])
+                    i_cell = max_cells-1;
                 
                 // Get current cell
                 cell_basic * cell = grid->getCellFromIndex(i_cell);
@@ -3181,19 +3191,22 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // Get dust number density of the current cell
                 dens = dust->getNumberDensity(grid, pp_stack[i]);
                 
-                // If the dust density is too low, skip this cell
-                if(dens < 1e-200)
-                {
-                    old_pos = pp_stack[i]->getPosition();
-                    continue;
-                }
+                // If the dust density is too low, skip this cell (tbd: modify)
+                //if(dens < 1e-200)
+                //{
+                //    old_pos = pp_stack[i]->getPosition();
+                //    continue;
+                //}
                 
                 // Get path length through current cell
                 len = pp_stack[i]->getTmpPathLength();
                 
-                // Check rest of light travel time
+                // Check rest of light travel time and adjust postion
                 if (dl + len > con_c*dt)
+                {
                     len = con_c*dt - dl;
+                    pp_stack[i]->adjustPosition(old_pos, len);
+                }
                 
                 // Calculate the dust absorption cross section (for random
                 // alignment)
@@ -3245,7 +3258,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                         dust->scatter(grid, pp_stack[i], true);
                     }
                     else
+                    {
+                        // Set photon inside == false or energy zero (tbd: modify)
+                        pp_stack[i]->setStokesVector(StokesVector(0, 0, 0, 0));
                         break;
+                    }
                     
                     // Add up light travel distance
                     dl += len;
@@ -3289,7 +3306,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 {
                     // Get index of wavelength in current detector
                     uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[i]));
-
+                    
                     // Only calculate for detectors with the corresponding
                     // wavelengths
                     if(wID_det != MAX_UINT)
@@ -3362,6 +3379,12 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
         }
         
+        // Some test output
+        cout << "Current Timestep " << t <<  endl;
+        cout << "Time to End " << tend << endl;
+        cout << "A " << dust_abs[1500] << endl;
+        cout << "E " << dust_em[1500] << endl;
+        
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
         for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -3374,9 +3397,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // Reset absorption estimator
             dust_abs[c_i] = 0.0;
             
-            // Set minimum enthalpy (tbd)
-            if(dust_u[c_i] < 0)
-                dust_u[c_i] = 0;
+            // Set minimum enthalpy
+            double u_min = dust->getEnthalpyMean(grid,cell,128)*grid->getVolume(cell);
+            if(dust_u[c_i] < u_min)
+                dust_u[c_i] = u_min;
         }
         
         // Calc new temperatures
@@ -3391,11 +3415,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         //    return false;
         
         // Move to next timestept and or set new luminosities
-        cout << SEP_LINE;
-        cout << "Current Timestep " << t
-             << " Time to End " << tend << endl;
-        cell_basic * cell = grid->getCellFromIndex(2000);   
-        cout << grid->getDustTemperature(cell) << endl;
+        
+        cell_basic * cell = grid->getCellFromIndex(1500);   
+        cout << "Temperature " << grid->getDustTemperature(cell) << endl;
+        cout << "Enthalpy " << dust_u[1500]/grid->getVolume(cell) << endl;
         cout << SEP_LINE;
     }
     
@@ -3410,27 +3433,35 @@ bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
     ulong max_cells = grid->getMaxDataCells();
     
 #pragma omp parallel for schedule(dynamic)
-    for(long c_i = 0; c_i < long(max_cells); c_i++)
+    for(long c_i = 0; c_i < long(max_cells)-1; c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
         uint i_mixture = dust->getMixtureID(grid, cell);
         
         // Get mean enthalpy for dust mixture in given cell
-        double Enthalpy[dust->getNrOfCalorimetryTemperatures(grid,cell)];
+        dlist Enthalpy(dust->getNrOfCalorimetryTemperatures(grid,cell));
         for(uint T = 0; T < dust->getNrOfCalorimetryTemperatures(grid,cell); T++)
             Enthalpy[T] = dust->getEnthalpyMean(grid,cell,T);
-        
+            
         // Convert dust_u to enthalpy per grain
-        double hd2 = (dust->getNumberDensity(grid,cell) > 0) ? (dust_u[c_i] / grid->getVolume(cell)) : 0;
+        double hd2 = (dust->getNumberDensity(grid,cell) > 1e-200) ? (dust_u[c_i]/grid->getVolume(cell)) : 0;
+        
+        // Check if hd2 exceeds max or min
+        if (hd2 < Enthalpy[0])
+            hd2 = Enthalpy[0];
+        if (hd2 > Enthalpy[Enthalpy.size()-1])
+            hd2 = Enthalpy[Enthalpy.size()-1];
         
         // Find the corresponding temperature
-        double temp = dust->getCalorimetricTemperature(grid,cell, uint(distance(Enthalpy,find(Enthalpy, Enthalpy+(sizeof(Enthalpy)/sizeof(*Enthalpy)), hd2))));
+        uint t_i = CMathFunctions::biListIndexSearch(hd2, Enthalpy);
+        double temp = dust->getCalorimetricTemperature(grid,cell,t_i);
+        
+        // Set min temperature
+        if(temp < 2.72503)
+            temp = 2.72503;
         
         // Set termperature in cell
         grid->setDustTemperature(cell, temp);
-        
-//#pragma omp critical
-//        cout << temp << endl;
     }
     
     return true;
