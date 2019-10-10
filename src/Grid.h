@@ -1822,7 +1822,7 @@ class CGridBasic
             if(plt_mol_dens)
             {
                 for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
-                        buffer_mol_dens[i_cell][i_density] = getCellAbundance(pp, i_density);
+                        buffer_mol_dens[i_cell][i_density] = getGasDensity(pp, i_density)*getCellAbundance(pp, i_density);
             }
             if(plt_dust_dens)
             {
