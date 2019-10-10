@@ -3270,8 +3270,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                     // Columns density
                     //double column_density = dens_gas * cell_d_l;
-		    double column_density = dens_species * cell_d_l;
-		    
+                    double column_density = dens_species * cell_d_l;
 
                     if(gas->isTransZeemanSplit(i_species, i_trans))
                     {

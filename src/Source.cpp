@@ -506,16 +506,27 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     step_xy = sidelength / double(bins);
     off_xy = step_xy / 2.0;
 
+    cout << CLR_LINE;
+    
     if(constant)
     {
-        cout << "Initiating constant background source          \r";
-        double F = c_f;
-        double T = c_temp;
+        cout << "Initiating constant background source             \r";
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
-            double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1]
-            double sp_energy = F * pl; //[W m^-1] energy per second an wavelength
+            double pl = 0.0;
+            double sp_energy = 0.0;
+            
+            if(c_f>=0)
+            {
+                pl=CMathFunctions::planck(wavelength_list[w], c_temp); //[W m^-2 m^-1]
+                sp_energy = abs(c_f) * pl; //[W m^-1] energy per second an wavelength
+            }
+            else
+            {
+                sp_energy==abs(c_f);
+            }
+
             star_emi[w] = sp_energy;
         }
 
@@ -534,12 +545,21 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
             lam_pf[0].setValue(w, fr, double(w));
         }
 
-        if(use_energy_density)
-            cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+        cout << CLR_LINE;
+        if(nr_of_photons==0)
+        {
+            cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n";
+        }
         else
-            cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                 << "with " << nr_of_photons << " photons per cell" << endl;
+        {
+            if(use_energy_density)
+                cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
+                     << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+            else
+                cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
+                     << "with " << nr_of_photons << " photons per cell" << endl;        
+        }
+
     }
     else
     {
@@ -698,11 +718,27 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
 
     if(constant)
     {
-        F = c_f;
-        T = c_temp;
-        Q = c_q;
-        U = c_u;
-        V = c_v;
+        if(c_f>=0)
+        {
+            F = c_f;
+            T = c_temp;
+            Q = c_q;
+            U = c_u;
+            V = c_v;
+
+            pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
+            I = F * pl;                                           //[W m^-1] energy per second and wavelength
+            Q *= I;
+            U *= I;
+            V *= I;
+        }
+        else
+        {
+            F = abs(c_f); //[W m^-1]
+            Q = c_q*F;
+            U = c_u*F;
+            V = c_v*F;
+        }
     }
     else
     {
@@ -711,13 +747,15 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         Q = q(x, y);
         U = u(x, y);
         V = v(x, y);
+        
+        pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
+        I = F * pl;                                           //[W m^-1] energy per second and wavelength
+        Q *= I;
+        U *= I;
+        V *= I;
     }
 
-    pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
-    I = F * pl;                                           //[W m^-1] energy per second and wavelength
-    Q *= I;
-    U *= I;
-    V *= I;
+
 
     res.set(I, Q, U, V);
 

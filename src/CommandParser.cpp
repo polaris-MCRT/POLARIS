@@ -2233,6 +2233,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<source_background>") == 0)
+    {
+        data="\"0.0\""+data;
+        cmd = "<source_background nr_photons = >";
+    }
+        
     if(cmd.compare("<source_background nr_photons = >") == 0)
     {
         string str = seperateString(data);
@@ -2249,15 +2255,21 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         values.push_back(nr_of_photons);
 
         if(values.size() == NR_OF_BG_SOURCES)
+        {
             param->addBackgroundSource(values);
+        }
         else
         {
             if(path.size() > 3 && values.size() == NR_OF_BG_SOURCES - 5)
+            {
                 param->addBackgroundSource(path, values);
+            }
             else
             {
                 if(path.size() > 3 && values.size() < NR_OF_BG_SOURCES - 5)
+                {
                     param->addBackgroundSource(path);
+                } 
                 else
                 {
                     if(values.size() == NR_OF_BG_SOURCES - 2)
@@ -2267,12 +2279,39 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
                         param->addBackgroundSource(values);
                     }
-                    else
+                    else                        
                     {
-                        cout << "\nERROR: Cannot detect path for background parameters "
-                                "file in line: ";
-                        cout << line_counter << endl;
-                        return false;
+                        //the case of a constant background
+                        if(values.size() == NR_OF_BG_SOURCES - 3) 
+                        {
+                            dlist::iterator it=values.begin();
+                            
+                            values.insert(it+1,-1.0);
+                            
+                            values.push_back(0);
+                            values.push_back(0);
+
+                            param->addBackgroundSource(values);
+                        }
+                        else
+                        {
+                            //the case of a constant background
+                            if(values.size() == NR_OF_BG_SOURCES - 1) 
+                            {
+                                dlist::iterator it=values.begin();
+
+                                values.insert(it+1,-1.0);
+
+                                param->addBackgroundSource(values);
+                            }
+                            else
+                            {
+                                cout << "\nERROR: Cannot detect path for background parameters "
+                                        "file in line: ";
+                                cout << line_counter << endl;
+                                return false;
+                            }
+                        }
                     }
                 }
             }

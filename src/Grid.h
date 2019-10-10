@@ -1805,7 +1805,6 @@ class CGridBasic
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
     {
-
         photon_package pp = photon_package();
         pp.setPosition(Vector3D(tx, ty, tz));
         if(positionPhotonInGrid(&pp))
