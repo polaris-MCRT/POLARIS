@@ -2968,7 +2968,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     uint dt, tend;
-    tend = 1000;
+    tend = 10000;
     dt = 10;
     
     // Init arrays for emission, absorption and inner energy
@@ -2990,20 +2990,20 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
     // Test Output
     cout << SEP_LINE;
-    cell_basic * cell = grid->getCellFromIndex(1500);
+    cell_basic * cell = grid->getCellFromIndex(1);
     cout << "Coords " << grid->getCenter(cell) << endl;
     cout << "T " << grid->getDustTemperature(cell) << endl;
     cout << SEP_LINE;
     
     // Number of photons per timestep
-    uint nr_of_photons_step = 1e+3;
+    llong nr_of_photons_step = 2;
     
     // Init photon pointer stack with (shared) pointer (to prevent memory leak)
     //vector<shared_ptr<photon_package>> pp_stack;
     vector<photon_package*> pp_stack;
     
     // Set points in time to print out resutls (tbd)
-    uint t_result = 0;
+    uint t_result = 100000;
     
     // Loop over time series
     for(uint t = 0; t < tend; t+=dt)
@@ -3038,6 +3038,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         if(!dust->initLamCdf())
             return false;
         
+        // Seperate from source output
+        cout << SEP_LINE;
+        
         // Calc emission probability of source and dust
         double p_d = L_d/(source->getLuminosity() + L_d);
         
@@ -3052,14 +3055,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             p_i[c_i] = temp/L_d;
         }
         
-        // Reset absorption estimator
-        fill(dust_abs.begin(), dust_abs.end(), 0.0);
-        
         // Define last index of stored photon packages
-        ullong last = (pp_stack.size() > 0) ? pp_stack.size() - 1 : 0;
+        ullong last = (pp_stack.size() > 0) ? pp_stack.size() : 0;
         
         // Start photons from dust and/or source and store in photon stack
-        for (llong i = 0; i < llong(nr_of_photons_step); i++)
+        for (llong i = 0; i < nr_of_photons_step; i++)
         {
             pp_stack.push_back(new photon_package());
             // Generation marker could be set here
@@ -3109,7 +3109,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Correct photon energy and set wavelength for dust photons
 #pragma omp parallel for schedule(dynamic)
-        for (llong i = 0; i < llong(nr_of_photons_step); i++)
+        for (llong i = 0; i < nr_of_photons_step; i++)
         {
             // Check if dust emission
             if(pp_stack[last+i]->getWavelengthID() == MAX_UINT)
@@ -3135,7 +3135,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Perform radiative transfer of all photons in photon stack
 #pragma omp parallel for schedule(dynamic)
-        for (llong i = 0; i<(pp_stack.size()-1); i++)
+        for (llong i = 0; i<pp_stack.size(); i++)
         {
             // Init variables
             double end_tau, Cext, Csca;
@@ -3162,8 +3162,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     continue;
                 }
     
-            // Get tau for first interaction
-            end_tau = -log(1.0 - pp_stack[i]->getRND());
+            // Get tau for first interaction if no tau stored
+            end_tau = (pp_stack[i]->getTmpPathLength() == 0) ? -log(1.0 - pp_stack[i]->getRND()) : pp_stack[i]->getTmpPathLength();
             
             // Save the old position to use it again
             old_pos = pp_stack[i]->getPosition();
@@ -3178,9 +3178,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // Init variable for overall light travel distance
             double dl = 0;
             
-            // Transfer photon through grid when still in grid and time
-            while(grid->next(pp_stack[i]) && dl < con_c*dt)
+            // Transfer photon through grid while still in time
+            while(dl < con_c*dt)
             {
+                // If end of grid reached, end photon transfer
+                if(!grid->next(pp_stack[i]))
+                    break;
+                
                 // If max interactions is reached, end photon transfer
                 if(interactions >= MAX_INTERACTION)
                 {
@@ -3294,6 +3298,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 old_pos = pp_stack[i]->getPosition();
             }
             
+            // Save rest of tau for next timestep in TmpPathLength
+            pp_stack[i]->setTmpPathLength(end_tau);
+            
             // If peel-off is not used, use classic Monte-Carlo method
             // If the photon has left the model space
             if(!grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
@@ -3382,8 +3389,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         // Some test output
         cout << "Current Timestep " << t <<  endl;
         cout << "Time to End " << tend << endl;
-        cout << "A " << dust_abs[1500] << endl;
-        cout << "E " << dust_em[1500] << endl;
+        cout << "A " << dust_abs[1] << endl;
+        cout << "E " << dust_em[1] << endl;
         
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
@@ -3416,9 +3423,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Move to next timestept and or set new luminosities
         
-        cell_basic * cell = grid->getCellFromIndex(1500);   
+        cell_basic * cell = grid->getCellFromIndex(1);   
         cout << "Temperature " << grid->getDustTemperature(cell) << endl;
-        cout << "Enthalpy " << dust_u[1500]/grid->getVolume(cell) << endl;
+        cout << "Enthalpy " << dust_u[1]/grid->getVolume(cell) << endl;
         cout << SEP_LINE;
     }
     
@@ -3433,7 +3440,7 @@ bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
     ulong max_cells = grid->getMaxDataCells();
     
 #pragma omp parallel for schedule(dynamic)
-    for(long c_i = 0; c_i < long(max_cells)-1; c_i++)
+    for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
         uint i_mixture = dust->getMixtureID(grid, cell);
