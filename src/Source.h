@@ -222,6 +222,42 @@ class CSourceStar : public CSourceBasic
     }
 };
 
+
+class CSourceAGN : public CSourceBasic
+{
+  public:
+    CSourceAGN()
+    {
+        pos = 0;
+        source_id = SRC_POINT;
+    }
+
+    ~CSourceAGN()
+    {}
+
+    bool initSource(uint id, uint max, bool use_energy_density);
+
+    void createNextRay(photon_package * pp, ullong i_pos);
+    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
+    {
+        dlist values = param.getPointSources();
+
+        pos = Vector3D(values[p], values[p + 1], values[p + 2]);
+        R = values[p + 3];
+        T = values[p + 4];
+
+        q = values[p + 5];
+        u = values[p + 6];
+
+        nr_of_photons = (ullong)values[p + NR_OF_POINT_SOURCES - 1];
+
+        L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+    }
+};
+
 class CSourceStarField : public CSourceBasic
 {
   public:
