@@ -1641,7 +1641,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    double path_length = min_length + 1e-3 * min_len;
+    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
     pp->setDirectionID(dirID);
