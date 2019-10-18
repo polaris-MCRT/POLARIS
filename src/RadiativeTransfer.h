@@ -217,7 +217,7 @@ class CRadiativeTransfer
     // bool calcRadiativePressure(parameter & param);
     
     // Calc time-dependent radiation transfer 
-    bool calcMonteCarloTimeTransfer(uint command, bool use_energy_density, bool disable_reemission = false);
+    bool calcMonteCarloTimeTransfer(uint command, parameters & param, bool use_energy_density, bool disable_reemission = false);
 
     void updateRadiationField(photon_package * pp)
     {

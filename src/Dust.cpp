@@ -141,15 +141,8 @@ void CDustComponent::initLamCdf()
 {
     // Init lam_cdf for time-dependent transfer
     
-    // Init counter and percentage to show progress
-    ullong per_counter = 0;
-    float last_percentage = 0;
-    
     // Get number of temperatures from tab_temp spline
     uint nr_of_temperatures = tab_temp.size();
-    
-    // Init maximum counter value
-    uint max_counter = nr_of_wavelength * nr_of_temperatures;
     
     // Init array of splines
     lam_cdf = new spline[nr_of_temperatures];
@@ -184,22 +177,6 @@ void CDustComponent::initLamCdf()
         lam_cdf[t].setValue(0, pdf[t][0], wavelength_list[0]);
         for(uint w=1; w < nr_of_wavelength; w++)
         {
-            // Increase counter used to show progress
-            //per_counter++;
-
-            // Calculate percentage of total progress per source
-            //float percentage = 100.0 * float(per_counter) / float(max_counter);
-
-            // Show only new percentage number if it changed
-            //if((percentage - last_percentage) > PERCENTAGE_STEP)
-            //{
-//#pragma omp critical
-            //    {
-            //        cout << "Calculating wavelength CDF: " << percentage << " [%]                      \r";
-            //        last_percentage = percentage;
-            //    }
-            //}
-            
             // Calculate cdf via integration over all wavelength
             double cdf_temp = CMathFunctions::integ(wavelength_list, pdf[t], 0, w-1);
             // Set lam_cdf spline with the integrated value
@@ -4569,6 +4546,12 @@ double CDustComponent::getCellEmissionRate(CGridBasic * grid, cell_basic * cell)
     
     // Get cell temperature ID
     uint tID = findTemperatureID(grid->getDustTemperature(cell));
+    
+    // Get local size parameter for size distribution
+    double size_param = getSizeParam(grid, cell);
+    
+    // Get integration over the dust size distribution
+    double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
     // Define temporary array of integrated qb
     double * e_temp = new double[nr_of_dust_species]; 
@@ -4576,16 +4559,17 @@ double CDustComponent::getCellEmissionRate(CGridBasic * grid, cell_basic * cell)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {            
         // Get energy of current grain size
-        e_temp[a] = getQB(a,tID);
+        e_temp[a] = getQB(a,tID) * rel_weight[a];
     }
     
-    // Calclate the total energy via integration
+    // Calculate the total energy via integration
     double total_emission =
         vol * PIx4 *
         CMathFunctions::integ_dust_size(a_eff, e_temp, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer array
     delete[] e_temp;
+    delete[] rel_weight;
         
     return total_emission;
 }

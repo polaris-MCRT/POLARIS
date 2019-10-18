@@ -381,6 +381,7 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
     
     
     rad.calcMonteCarloTimeTransfer(param.getCommand(),
+                                   param,
                                    use_energy_density,
                                    false);
     
