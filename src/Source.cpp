@@ -1113,7 +1113,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd) - 1;
+    ulong i_cell = cell_prob[w].getIndex(rnd);
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
@@ -1140,7 +1140,7 @@ void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd) - 1;
+    ulong i_cell = cell_prob[w].getIndex(rnd);
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
