@@ -993,7 +993,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         total_energy[w] = 0;
         cell_prob[w].setValue(0, total_energy[w]);
 
-#pragma omp parallel for schedule(dynamic)
+// Causes problems. Find better solution!
+//#pragma omp parallel for schedule(dynamic)
         for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
             // Increase counter used to show progress
@@ -1005,7 +1006,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
+//#pragma omp critical
                 {
                     cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
                          << flush;
@@ -1061,7 +1062,8 @@ bool CSourceDust::initSource(uint w)
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
-#pragma omp parallel for schedule(dynamic)
+// Causes problems. Find better solution!
+//#pragma omp parallel for schedule(dynamic)
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
         // Increase counter used to show progress
@@ -1073,7 +1075,7 @@ bool CSourceDust::initSource(uint w)
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
-#pragma omp critical
+//#pragma omp critical
             {
                 cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
                      << flush;
