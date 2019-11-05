@@ -2970,7 +2970,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     uint max_source = uint(sources_mc.size());
     double dt, tend;
     tend = 50000.0;
-    dt = 1.0;
+    dt = 0.1;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -2991,20 +2991,22 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
     // Test Output
     cout << SEP_LINE;
-    cell_basic * cell = grid->getCellFromIndex(0);
+    cell_basic * cell = grid->getCellFromIndex(1);
     cout << "Coords " << grid->getCenter(cell) << endl;
     cout << "T " << grid->getDustTemperature(cell) << endl;
     cout << SEP_LINE;
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 20;
+    llong nr_of_photons_step = 100;
     
-    // Init photon pointer stack with (shared) pointer (to prevent memory leak)
-    //vector<shared_ptr<photon_package>> pp_stack;
+    // Init photon pointer stack
     vector<photon_package*> pp_stack;
     
-    // Set points in time to print out resutls (tbd)
-    double t_result = 1000000;
+    // Set points in time to print out results
+    double t_results = 1000;
+    
+    // Set double for next output
+    double t_nextres = t_results;
     
     // Loop over time series
     for(double t = 0; t < tend; t+=dt)
@@ -3039,16 +3041,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 return false;
         }
         
-        // Seperate from source output
-        //cout << SEP_LINE;
-        
         // Calc emission probability of source and dust
         double p_d = L_d/(source->getLuminosity() + L_d);
         
         // Calc cumulative probability dist for cell emission
         dlist p_i(max_cells);
         double temp = 0.0;
-#pragma omp parallel for schedule(dynamic)
+
         for(long c_i = 0; c_i < long(max_cells); c_i++)
         {
             cell_basic * cell = grid->getCellFromIndex(c_i);
@@ -3067,17 +3066,17 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // pp_stack[i]->setTime(t); tbd
             
             // Decide wether photons are emitted from source or dust and emitt
-            pp_stack[last+i]->initRandomGenerator(i);
+            pp_stack[last+i]->initRandomGenerator(last+i);
             double rnd = pp_stack[last+i]->getRND();
             
             if(rnd < p_d)
             {
-                // Emission from dust source (tbd: set energy and stokes vector)
+                // Emission from dust source
                 
                 // Get random number for cell index
                 rnd = pp_stack[last+i]->getRND();
                 
-                // Find cell index from probability dist for cell emission (replace find tbd)
+                // Find cell index from probability dist for cell emission
                 ulong i_cell = CMathFunctions::biListIndexSearch(rnd, p_i);
                 
                 // Set min or max
@@ -3140,24 +3139,12 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
             // Check energy limit
             if(pp_stack[i]->getStokesVector().I() < 1e-200)
-            {
-                //kill_counter++;
-                //delete pp_stack[i];
-                //pp_stack[i] = NULL;
-                // Here the vector could be erased to pp_stack.erase(i)
                 continue;
-            }
             
             // Position the photon inside the grid
             if(!grid->positionPhotonInGrid(pp_stack[i]))
                 if(!grid->findStartingPoint(pp_stack[i]))
-                {
-                    //kill_counter++;
-                    //delete pp_stack[i];
-                    //pp_stack[i] = NULL;
-                    // Here the vector could be erased to pp_stack.erase(i)
                     continue;
-                }
     
             // Get tau for first interaction if no tau stored
             end_tau = (pp_stack[i]->getTmpPathLength() == 0) ? -log(1.0 - pp_stack[i]->getRND()) : pp_stack[i]->getTmpPathLength();
@@ -3189,16 +3176,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     break;
                 }
                 
-                // Get dust number density of the current cell
-                dens = dust->getNumberDensity(grid, pp_stack[i]);
-                
-                // If the dust density is too low, skip this cell (tbd: modify)
-                //if(dens < 1e-200)
-                //{
-                //    old_pos = pp_stack[i]->getPosition();
-                //    continue;
-                //}
-                
                 // Get path length through current cell
                 len = pp_stack[i]->getTmpPathLength();
                 
@@ -3208,6 +3185,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     len = con_c*dt - dl;
                     pp_stack[i]->adjustPosition(old_pos, len);
                 }
+                
+                // Get dust number density of the current cell
+                dens = dust->getNumberDensity(grid, pp_stack[i]);
+                
+                //cout << i << " " << (pp_stack[i]->getPosition().getSphericalCoord()).R()/con_AU << endl;
                 
                 // Calculate the dust absorption cross section (for random
                 // alignment)
@@ -3230,14 +3212,24 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     // Update data in grid like spectral length or radiation field and energy array
                     // updateRadiationField(pp_stack[i]);
                     
-                    // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
-                    double energy = len * pp_stack[i]->getStokesVector().I() * 
-                                    dust->getCabsMean(grid, pp_stack[i]); 
-                    pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
-                    
-                    // Add to absorption estimate
-                    uint c_id = (pp_stack[i]->getPositionCell())->getID();
-                    dust_abs[c_id] += energy/(len/con_c);
+                    if(dens > 1e-200)
+                    {
+                        // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
+                        double energy = len * pp_stack[i]->getStokesVector().I() * 
+                                        dust->getCabsMean(grid, pp_stack[i]); 
+                                        
+                        // Check if energy left
+                        if (energy*dens > pp_stack[i]->getStokesVector().I())
+                            energy = pp_stack[i]->getStokesVector().I()/dens;
+                        
+                        // Subtract from photon package
+                        pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
+                        
+                        // Add to absorption estimate
+                        uint c_id = (pp_stack[i]->getPositionCell())->getID();
+#pragma omp atomic update
+                        dust_abs[c_id] += energy/(len/con_c);
+                    }
                     
                     // Save position of last interaction to know to which pixel
                     // the photon belongs, if it is not scattered on its further
@@ -3276,14 +3268,24 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     // Update data in grid like spectral length or radiation field or energy array
                     // updateRadiationField(pp_stack[i]);
                     
-                    // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
-                    double energy = len * pp_stack[i]->getStokesVector().I() * 
-                                    dust->getCabsMean(grid, pp_stack[i]); 
-                    pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
-                    
-                    // Add to absorption estimate
-                    uint c_id = (pp_stack[i]->getPositionCell())->getID();
-                    dust_abs[c_id] += energy/(len/con_c);
+                    if(dens > 1e-200)
+                    {
+                        // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
+                        double energy = len * pp_stack[i]->getStokesVector().I() * 
+                                        dust->getCabsMean(grid, pp_stack[i]); 
+                                                                
+                        // Check if energy left
+                        if (energy*dens > pp_stack[i]->getStokesVector().I())
+                            energy = pp_stack[i]->getStokesVector().I()/dens;
+                        
+                        // Subtract from photon package
+                        pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
+                        
+                        // Add to absorption estimate
+                        uint c_id = (pp_stack[i]->getPositionCell())->getID();
+#pragma omp atomic update
+                        dust_abs[c_id] += energy/(len/con_c);
+                    }
                     
                     // Add up light travel time
                     dl += len;
@@ -3371,20 +3373,46 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
         }
         
-        // Write out maps and sed for current timestep if wanted
-        if(t==t_result)
+        // Erase photons from stack that left the grid or a absorpted
+#pragma omp parallel for schedule(dynamic)
+        for (llong i = pp_stack.size()-1; i>0; i--)
         {
-            for(uint d = 0; d < nr_mc_detectors; d++)
+            // Check energy limit
+            if(pp_stack[i]->getStokesVector().I() < 1e-200)
             {
-                if(!detector[d].writeMap(d, RESULTS_FULL))
-                    return false;
-                if(!detector[d].writeSed(d, RESULTS_FULL))
-                    return false;
+                kill_counter++;
+                delete pp_stack[i];
+#pragma omp critical
+                pp_stack.erase(pp_stack.begin()+i);
+                continue;
             }
+            
+            // Check position of the photon inside the grid
+            if(!grid->positionPhotonInGrid(pp_stack[i]))
+                if(!grid->findStartingPoint(pp_stack[i]))
+                {
+                    kill_counter++;
+                    delete pp_stack[i];
+#pragma omp critical
+                    pp_stack.erase(pp_stack.begin()+i);
+                    continue;
+                }
         }
         
+        // Write out maps and sed for current timestep if wanted
+        //if(t==t_results)
+        //{
+        //    for(uint d = 0; d < nr_mc_detectors; d++)
+        //    {
+        //        if(!detector[d].writeMap(d, RESULTS_FULL))
+        //            return false;
+        //        if(!detector[d].writeSed(d, RESULTS_FULL))
+        //            return false;
+        //    }
+        //}
+        
         // Some test output
-        cout << t << " " << dust_abs[0] << " " << dust_em[0] << " ";
+        cout << t << " " << dust_abs[1] << " " << dust_em[1] << " ";
         
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
@@ -3409,13 +3437,20 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             return false;
         
         // Write out temperature dist
-        if(t > 0 && fmod(t, 1000.0) == 0)
+        if(t > 0 && (t/t_nextres >= 1))
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/simple/dust_mc/data/temp/output_";
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/simple100/dust_mc/data/temp/output_";
             if(!grid->writeMidplaneFits(temp_path + s.str(), param, param.getInpMidDataPoints(), true))
                 return false;
+            t_nextres += t_results;
+            
+            if(kill_counter > 0)
+            {
+                cout << "- Photons killed                    : " << kill_counter << endl;
+                kill_counter == 0;
+            }
         }
         
         //if(!grid->writeGNUPlotFiles(path_plot + "output_" + t, param))
@@ -3423,9 +3458,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Move to next timestept and or set new luminosities
         
-        cell_basic * cell = grid->getCellFromIndex(0);   
-        cout << grid->getDustTemperature(cell) << " " << dust_u[0]/grid->getVolume(cell) << " " << dust_u[0] << endl;
+        cell_basic * cell = grid->getCellFromIndex(1);   
+        cout << grid->getDustTemperature(cell) << " " << dust_u[1]/grid->getVolume(cell) << " " << dust_u[1] << endl;
     }
+    
+    // Show amount of killed photons
+    if(kill_counter > 0)
+        cout << "- Photons killed                    : " << kill_counter << endl;
     
 }
 
