@@ -1799,15 +1799,8 @@ class CDustComponent
     
     double getEnthalpyMean(uint t)
     {
-        //Calculate mean enthalpy for time dependent transfer
-        double * EnthalpyMean = new double[nr_of_dust_species];
-        for(uint a = 0; a < nr_of_dust_species; a++)
-            EnthalpyMean[a] = a_eff_3_5[a] * getEnthalpy(a, t);
-        double res =
-            (1.0 / getWeight()) *
-            CMathFunctions::integ_dust_size(a_eff, EnthalpyMean, nr_of_dust_species, a_min_global, a_max_global);
-        delete[] EnthalpyMean;
-        return res;
+        // Returns global mean enthalpy for time dependent transfer
+        return enthalpy_mean[t];
     }
 
     double getEnthalpyBinWidth(uint a, uint t)
@@ -2179,6 +2172,9 @@ class CDustComponent
     
     // Init wave cdf for time dependent transfer
     void initLamCdf();
+    
+    // Init global mean enthalpy for time dependent transfer
+    void initMeanEnthalpy();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
     bool readDustRefractiveIndexFile(parameters & param,
@@ -2258,6 +2254,9 @@ class CDustComponent
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
     double * scattering_angles;
+    
+    // Global mean enthalpy for time-dependent transfer
+    double * enthalpy_mean;
 
     string stringID;
     string size_keyword;
@@ -2378,6 +2377,15 @@ class CDustMixture
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 mixed_component[i_mixture].initLamCdf();
+        return true;
+    }
+    
+    bool initMeanEnthalpy()
+    {
+        // Init global mean enthalpy for all mixtures for time-dependent transfer
+        if(mixed_component != 0)
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                mixed_component[i_mixture].initMeanEnthalpy();
         return true;
     }
         

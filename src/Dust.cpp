@@ -137,6 +137,23 @@ void CDustComponent::initCalorimetry()
     }
 }
 
+void CDustComponent::initMeanEnthalpy()
+{
+    // Init array for the global mean enthalpy needed for time-dependent transfer
+    enthalpy_mean = new double[nr_of_calorimetry_temperatures];
+    
+    for(uint t = 0; t < nr_of_calorimetry_temperatures; t++)
+    {
+        double * EnthalpyMean = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            EnthalpyMean[a] = a_eff_3_5[a] * getEnthalpy(a, t);
+        enthalpy_mean[t] =
+            (1.0 / getWeight()) *
+            CMathFunctions::integ_dust_size(a_eff, EnthalpyMean, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] EnthalpyMean;
+    }
+}
+
 void CDustComponent::initLamCdf()
 {
     // Init lam_cdf for time-dependent transfer

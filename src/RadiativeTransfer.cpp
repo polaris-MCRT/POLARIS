@@ -2964,8 +2964,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     
     // Init variables
     ullong nr_of_photons;
-    ullong per_counter, ph_max, nr_of_wavelength;
-    float last_percentage;
+    ullong ph_max, nr_of_wavelength;
+    
+    ullong per_counter = 0;
+    float last_percentage = 0;
+    
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
@@ -2977,6 +2980,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     dlist dust_abs(max_cells, 0.0);
     dlist dust_em(max_cells);
     dlist dust_u(max_cells);
+    
+    // Init enthalpies
+    if (!dust->initMeanEnthalpy())
+        return false;
     
     // Set minimum enthalpy
     for(long c_i = 0; c_i < long(max_cells); c_i++)
@@ -2990,11 +2997,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         return false;
     
     // Test Output
-    cout << SEP_LINE;
-    cell_basic * cell = grid->getCellFromIndex(1);
-    cout << "Coords " << grid->getCenter(cell) << endl;
-    cout << "T " << grid->getDustTemperature(cell) << endl;
-    cout << SEP_LINE;
+    cout << CLR_LINE;
+    cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     // Number of photons per timestep
     llong nr_of_photons_step = 100;
@@ -3373,8 +3377,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
         }
         
-        // Erase photons from stack that left the grid or a absorpted
-#pragma omp parallel for schedule(dynamic)
+        // Erase photons from stack that left the grid or are absorbed
         for (llong i = pp_stack.size()-1; i>0; i--)
         {
             // Check energy limit
@@ -3382,7 +3385,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             {
                 kill_counter++;
                 delete pp_stack[i];
-#pragma omp critical
                 pp_stack.erase(pp_stack.begin()+i);
                 continue;
             }
@@ -3393,7 +3395,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 {
                     kill_counter++;
                     delete pp_stack[i];
-#pragma omp critical
                     pp_stack.erase(pp_stack.begin()+i);
                     continue;
                 }
@@ -3410,9 +3411,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         //            return false;
         //    }
         //}
-        
-        // Some test output
-        cout << t << " " << dust_abs[1] << " " << dust_em[1] << " ";
         
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
@@ -3445,22 +3443,25 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             if(!grid->writeMidplaneFits(temp_path + s.str(), param, param.getInpMidDataPoints(), true))
                 return false;
             t_nextres += t_results;
-            
-            if(kill_counter > 0)
-            {
-                cout << "- Photons killed                    : " << kill_counter << endl;
-                kill_counter == 0;
-            }
         }
-        
-        //if(!grid->writeGNUPlotFiles(path_plot + "output_" + t, param))
-        //    return false;
         
         // Move to next timestept and or set new luminosities
         
-        cell_basic * cell = grid->getCellFromIndex(1);   
-        cout << grid->getDustTemperature(cell) << " " << dust_u[1]/grid->getVolume(cell) << " " << dust_u[1] << endl;
+        per_counter++;
+        float percentage = 100.0 * float(per_counter) / float(tend/dt);
+        
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+                cout << "-> Calculation of time-dependent transfer : "
+                     << 100.0 * float(per_counter) / float(tend/dt) << " [%]              \r";
+
+                last_percentage = percentage;
+        }
     }
+    
+    cout << CLR_LINE;
+    cout << "- Calculation of time-dependent transfer : done" << endl;
     
     // Show amount of killed photons
     if(kill_counter > 0)
