@@ -3131,27 +3131,20 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 double energy = (source->getLuminosity())*dt/N_s;
                 pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             }
+            // Get tau for first interaction
+            pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
         }
         
         // Perform radiative transfer of all photons in photon stack
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic, 25)
         for (llong i = 0; i<pp_stack.size(); i++)
         {
             // Init variables
             double end_tau, Cext, Csca;
             Vector3D old_pos;
     
-            // Check energy limit
-            if(pp_stack[i]->getStokesVector().I() < 1e-200)
-                continue;
-            
-            // Position the photon inside the grid
-            if(!grid->positionPhotonInGrid(pp_stack[i]))
-                if(!grid->findStartingPoint(pp_stack[i]))
-                    continue;
-    
-            // Get tau for first interaction if no tau stored
-            end_tau = (pp_stack[i]->getTmpPathLength() == 0) ? -log(1.0 - pp_stack[i]->getRND()) : pp_stack[i]->getTmpPathLength();
+            // Get tau of last time step
+            end_tau = pp_stack[i]->getTmpPathLength();
             
             // Save the old position to use it again
             old_pos = pp_stack[i]->getPosition();
@@ -3176,7 +3169,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // If max interactions is reached, end photon transfer
                 if(interactions >= MAX_INTERACTION)
                 {
-                    kill_counter++;
+                    listending.append(i);
                     break;
                 }
                 
@@ -3257,7 +3250,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     else
                     {
                         // Set photon inside == false or energy zero (tbd: modify)
-                        pp_stack[i]->setStokesVector(StokesVector(0, 0, 0, 0));
+                        listending.append(i);
                         break;
                     }
                     
@@ -3372,32 +3365,19 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 }
                 
                 // Delete photon from stack (tbd erase pp_stack vector)
-                //delete pp_stack[i];
-                //pp_stack[i] = NULL;
+                listending.append(i);
             }
         }
         
+        listending.sort();
+        
         // Erase photons from stack that left the grid or are absorbed
-        for (llong i = pp_stack.size()-1; i>0; i--)
+        for (llong i = listending.size()-1; i>0; i--)
         {
-            // Check energy limit
-            if(pp_stack[i]->getStokesVector().I() < 1e-200)
-            {
                 kill_counter++;
-                delete pp_stack[i];
-                pp_stack.erase(pp_stack.begin()+i);
+                delete pp_stack[listending[i]];
+                pp_stack.erase(pp_stack.begin()+listending[i]);
                 continue;
-            }
-            
-            // Check position of the photon inside the grid
-            if(!grid->positionPhotonInGrid(pp_stack[i]))
-                if(!grid->findStartingPoint(pp_stack[i]))
-                {
-                    kill_counter++;
-                    delete pp_stack[i];
-                    pp_stack.erase(pp_stack.begin()+i);
-                    continue;
-                }
         }
         
         // Write out maps and sed for current timestep if wanted
@@ -3454,7 +3434,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
                 cout << "-> Calculation of time-dependent transfer : "
-                     << 100.0 * float(per_counter) / float(tend/dt) << " [%]              \r";
+                     << 100.0 * float(per_counter) / float(tend/dt) << " [%]              \r" << flush;
 
                 last_percentage = percentage;
         }
