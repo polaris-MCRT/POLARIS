@@ -3006,6 +3006,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     // Init photon pointer stack
     vector<photon_package*> pp_stack;
     
+    // Init photon deletion marker stack
+    uilist pp_del;
+    
     // Set points in time to print out results
     double t_results = 1000;
     
@@ -3169,7 +3172,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // If max interactions is reached, end photon transfer
                 if(interactions >= MAX_INTERACTION)
                 {
-                    listending.append(i);
+                    pp_del.push_back(uint(i));
                     break;
                 }
                 
@@ -3250,7 +3253,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     else
                     {
                         // Set photon inside == false or energy zero (tbd: modify)
-                        listending.append(i);
+                        pp_del.push_back(uint(i));
                         break;
                     }
                     
@@ -3364,21 +3367,25 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     }
                 }
                 
-                // Delete photon from stack (tbd erase pp_stack vector)
-                listending.append(i);
+                // Mark photon for deletion from stack
+                pp_del.push_back(uint(i));
             }
         }
         
-        listending.sort();
+        // Sort deletion marker in ascending order
+        sort(pp_del.begin(), pp_del.end());
         
         // Erase photons from stack that left the grid or are absorbed
-        for (llong i = listending.size()-1; i>0; i--)
+        for (llong i = pp_del.size()-1; i>0; i--)
         {
                 kill_counter++;
-                delete pp_stack[listending[i]];
-                pp_stack.erase(pp_stack.begin()+listending[i]);
+                delete pp_stack[pp_del[i]];
+                pp_stack.erase(pp_stack.begin()+pp_del[i]);
                 continue;
         }
+        
+        // Reset photon deletion marker
+        pp_del.clear();
         
         // Write out maps and sed for current timestep if wanted
         //if(t==t_results)
