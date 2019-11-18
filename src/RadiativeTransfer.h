@@ -218,6 +218,9 @@ class CRadiativeTransfer
     
     // Calc time-dependent radiation transfer 
     bool calcMonteCarloTimeTransfer(uint command, parameters & param, bool use_energy_density, bool disable_reemission = false);
+    
+    // Start initial dust photons for time-dependent radiation transfer
+    bool startInitialDustPhotons(dlist dust_em, vector<photon_package*> &pp_stack);
 
     void updateRadiationField(photon_package * pp)
     {

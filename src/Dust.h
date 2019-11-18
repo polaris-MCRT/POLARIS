@@ -2640,6 +2640,14 @@ class CDustMixture
         return mixed_component[i_mixture].getEnthalpyMean(t);
     }
     
+    double getEnthalpyMean(CGridBasic * grid, cell_basic * cell, double t)
+    {
+        // Needed for time dependent transfer
+        uint i_mixture = getMixtureID(grid, cell);
+        uint tID = mixed_component[i_mixture].findTemperatureID(t);
+        return mixed_component[i_mixture].getEnthalpyMean(tID);
+    }
+    
     double getCalorimetricTemperature(CGridBasic * grid, cell_basic * cell, uint i)
     {
         // Needed for time dependent transfer
