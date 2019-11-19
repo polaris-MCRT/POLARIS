@@ -2972,8 +2972,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 50000.0;
-    dt = 25000;
+    tend = 55000.0;
+    dt = 1;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -3002,7 +3002,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             dust_u[c_i] = dust->getEnthalpyMean(grid,cell,dust->getDustTemperature(grid,cell))*grid->getVolume(cell);
         }
         
-        if (!startInitialDustPhotons(dust_em, pp_stack))
+        if (!startInitialDustPhotons(dt, dust_em, pp_stack))
             return false;
     }
     else
@@ -3030,7 +3030,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     uilist pp_del;
     
     // Set points in time to print out results
-    double t_results = 25000;
+    double t_results = 5000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3524,20 +3524,25 @@ bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
     return true;
 }
 
-bool CRadiativeTransfer::startInitialDustPhotons(dlist dust_em, vector<photon_package*> &pp_stack)
+bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vector<photon_package*> &pp_stack)
 {
     // Starts dust photons from every cell to get initial conditions
 
     ulong max_cells = grid->getMaxDataCells();
     ullong nr_dust_photons = 1000;
+    ullong nr_source_photons = 100;
     double L_d = 0;
     
+    CSourceBasic * source = sources_mc[0];
     CSourceBasic * dust_source = sources_mc[1];
+    
+    if(!source->initSource(0, 2, false))
+        return false;
     
     ullong per_counter = 0;
     float last_percentage = 0;
     
-    pp_stack.reserve(nr_dust_photons*max_cells);
+    pp_stack.reserve((nr_dust_photons+nr_source_photons)*(max_cells-1));
     
     // Progress output
     cout << CLR_LINE;
@@ -3546,6 +3551,76 @@ bool CRadiativeTransfer::startInitialDustPhotons(dlist dust_em, vector<photon_pa
     for(long c_i = 0; c_i < long(max_cells)-1; c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
+        
+        // Get radiation field of the star
+        
+        // Init variables for optical depth calculation
+        double len, dens, Cext, tau = 0;
+        
+        // Start temporary photon from source in direction of cell 
+        photon_package * pp_depth = new photon_package;
+        source->createNextRay(pp_depth, c_i);
+        
+        // Adjust direction
+        Vector3D dir = (grid->getCenter(cell)-pp_depth->getPosition()).normalized();
+        pp_depth->setDirection(dir);
+        
+        // Transport through grid to get optical depth
+        while (grid->next(pp_depth) && ((pp_depth->getPositionCell())->getID() != c_i))
+        {
+            // Get the traveled distance
+            len = pp_depth->getTmpPathLength();
+
+            // Get the current density
+            dens = dust->getNumberDensity(grid, pp_depth);
+
+            // Get the current mean extinction cross-section
+            Cext = dust->getCextMean(grid, pp_depth);
+
+            // Add the optical depth of the current path to the total optical depth
+            tau += Cext * len * dens;
+        }
+        
+        // Delete temporary photon package
+        delete pp_depth;
+        
+        // Start source photons in every cell
+        for (llong i = 0; i < nr_source_photons; i++)
+        {
+            pp_stack.push_back(new photon_package());
+            
+            ullong last = c_i*(nr_dust_photons+nr_source_photons);
+            
+            // Set random direction, position and coordinate system for scattering
+            source->createNextRay(pp_stack[last+i], i);
+            
+            // Set photon package into cell
+            pp_stack[last+i]->setPositionCell(cell);
+            // Set random position in cell
+            grid->setRndPositionInCell(pp_stack[last+i]);
+            
+            // Correct Stokes vector of (stellar) source emission
+            double energy = (source->getLuminosity())*dt/nr_source_photons;
+            pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
+            
+            // Reduce Stokes vector by the optical depth
+            pp_stack[last+i]->getStokesVector() *= exp(-tau);
+            
+            // Get tau for first interaction
+            pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
+            
+            // Increase progress counter
+            per_counter++;
+            float percentage = 100.0 * float(per_counter) / float((max_cells-1)*(nr_dust_photons+nr_source_photons));
+        
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+                    cout << "-> Start initial photons from temp dist : "
+                        << percentage << " [%]              \r" << flush;
+                    last_percentage = percentage;
+            }
+        }
         
         // Get emission rate
         dust_em[c_i] = dust->getCellEmissionRate(grid,cell);
@@ -3557,7 +3632,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(dlist dust_em, vector<photon_pa
         {
             pp_stack.push_back(new photon_package());
             
-            ullong last = c_i*nr_dust_photons;
+            ullong last = c_i*(nr_dust_photons+nr_source_photons)+nr_source_photons;
             
             // Set photon package into cell
             pp_stack[last+i]->setPositionCell(cell);
@@ -3572,7 +3647,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(dlist dust_em, vector<photon_pa
             pp_stack[last+i]->setWavelengthID(wID);
             
             // Set Stokes vector of photon package
-            double energy = L_d/nr_dust_photons;
+            double energy = L_d*dt/nr_dust_photons;
             pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             
             // Get tau for first interaction
@@ -3580,7 +3655,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(dlist dust_em, vector<photon_pa
             
             // Increase progress counter
             per_counter++;
-            float percentage = 100.0 * float(per_counter) / float(max_cells*nr_dust_photons);
+            float percentage = 100.0 * float(per_counter) / float((max_cells-1)*(nr_dust_photons+nr_source_photons));
         
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
