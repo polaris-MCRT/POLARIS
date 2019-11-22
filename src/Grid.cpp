@@ -2430,16 +2430,25 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     // Free memory of pointer arrays
     if(plt_gas_dens)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_gas_dens[i_cell];
+        delete[] buffer_gas_dens;
+    }
     if(plt_dust_dens)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_dens[i_cell];
+        delete[] buffer_dust_dens;
+    }
     if(plt_gas_temp)
         delete[] buffer_gas_temp;
     if(plt_dust_temp)
+    {
         for(int i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_temp[i_cell];
+        delete[] buffer_dust_temp;
+    }
     if(plt_rat)
         delete[] buffer_rat;
     if(plt_delta)

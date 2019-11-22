@@ -2131,6 +2131,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     S11max = S11[wID][sth];
                 if(S12[wID][sth] > S12max)
                     S12max = S12[wID][sth];
+                
+                delete[] S11_tmp;
+                delete[] S12_tmp;
             }
         }
 
@@ -4385,14 +4388,26 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     if(phID == PH_MIE)
     {
         // Get PHIPAR to take non equal distribution of phi angles into account
-        double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                        (-mat_sca(0, 1) / mat_sca(0, 0));
+        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+        {
+            cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
 
-        // Get cos(2 * phi)
-        double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
+            // Set the Stokes vector of the photon package to 0
+            tmp_stokes.clear();
+            pp_res.setStokesVector(tmp_stokes);
+            return pp_res;
+        }
+        else
+        {
+            double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
+                            (-mat_sca(0, 1) / mat_sca(0, 0));
 
-        // Calculate the fraction that is scattered into this phi direction
-        phi_fraction = (1.0 - PHIPAR * cos_2_phi);
+            // Get cos(2 * phi)
+            double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
+
+            // Calculate the fraction that is scattered into this phi direction
+            phi_fraction = (1.0 - PHIPAR * cos_2_phi);
+        }
     }
 
     // Calculate the fraction that is scattered into this theta direction
@@ -4547,7 +4562,15 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     // Get PHIPAR to take non equal distribution of phi angles into account
     if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+    {
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+    
+        
+        tmp_stokes.clear();
+        pp->setStokesVector(tmp_stokes);
+
+        return;
+    }
     else
         PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
                  (-mat_sca(0, 1) / mat_sca(0, 0));
@@ -5149,6 +5172,12 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         return false;
 
     // Delete pointer array
+    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+    {
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            delete[] size_fraction[i_comp][a];
+        delete[] size_fraction[i_comp];
+    }
     delete[] size_fraction;
 
     return true;

@@ -1999,8 +1999,12 @@ class CDustComponent
 
         for(uint a = 0; a < nr_of_dust_species; a++)
             rel_weight[a] *= mass[a] / getVolume(a);
+        
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
-        return CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+
+        return res;
     }
 
     double getFHighJ()
@@ -2583,9 +2587,17 @@ class CDustMixture
                 sum = mixed_component[i_mixture].getCextMean(grid, pp);
             }
             else
+            {
+                double dens = 0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getCextMean(grid, pp) *
-                           getRelativeDustNumberDensity(grid, pp, i_mixture);
+                {
+                    double i_dens = getNumberDensity(grid, pp, i_mixture);
+                    dens += i_dens;
+                    sum += mixed_component[i_mixture].getCextMean(grid, pp) * i_dens;
+                }
+                if(dens != 0)
+                    sum /= dens;
+            }
         }
         return sum;
     }
@@ -2601,9 +2613,17 @@ class CDustMixture
                 sum = mixed_component[i_mixture].getCabsMean(grid, pp);
             }
             else
+            {
+                double dens = 0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getCabsMean(grid, pp) *
-                           getRelativeDustNumberDensity(grid, pp, i_mixture);
+                {
+                    double i_dens = getNumberDensity(grid, pp, i_mixture);
+                    dens += i_dens;
+                    sum += mixed_component[i_mixture].getCabsMean(grid, pp) * i_dens;
+                }
+                if(dens != 0)
+                    sum /= dens;
+            }
         }
         return sum;
     }
@@ -2619,9 +2639,17 @@ class CDustMixture
                 sum = mixed_component[i_mixture].getCscaMean(grid, pp);
             }
             else
+            {
+                double dens = 0;
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getCscaMean(grid, pp) *
-                           getRelativeDustNumberDensity(grid, pp, i_mixture);
+                {
+                    double i_dens = getNumberDensity(grid, pp, i_mixture);
+                    dens += i_dens;
+                    sum += mixed_component[i_mixture].getCscaMean(grid, pp) * i_dens;
+                }
+                if(dens != 0)
+                    sum /= dens;
+            }
         }
         return sum;
     }

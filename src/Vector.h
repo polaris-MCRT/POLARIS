@@ -188,22 +188,13 @@ class Vector3D
 
     Vector3D getSphericalCoord()
     {
-        if(x * x + y * y + z * z == 0)
-            return Vector3D(0, 0, 0);
-
         double r = sqrt(x * x + y * y + z * z);
 
         double arg;
         if(r != 0)
             arg = z / r;
         else
-            arg = 1;
-
-        if(arg > 1)
-            arg = 1;
-
-        if(arg < -1)
-            arg = -1;
+            return Vector3D(0, 0, 0);
 
         double ph = atan2(y, x), th = acos(arg);
 
