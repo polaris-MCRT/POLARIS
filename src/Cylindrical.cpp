@@ -1323,8 +1323,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         }
 
         // --- vertical cell borders ---
-        double z1 = listZ[0][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
-        double z2 = listZ[0][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+        double z1 = listZ[0][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+        double z2 = listZ[0][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
         Vector3D v_n1(0, 0, -1);
         Vector3D v_a1(0, 0, z1);
@@ -1386,7 +1386,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * A * C2;
 
-        if(dscr1 >= 0)
+        if(dscr1 > 0)
         {
             dscr1 = sqrt(dscr1);
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
@@ -1399,8 +1399,13 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             tmp_length[1] = 1e200;
         }
 
-        dscr2 = sqrt(dscr2);
-        tmp_length[2] = (-B + dscr2) / (2 * A);
+        if(A > 0)
+        {
+            dscr2 = sqrt(dscr2);
+            tmp_length[2] = (-B + dscr2) / (2 * A);
+        }
+        else
+            tmp_length[2] = 1e200;
         // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
         tmp_length[3] = 1e200;
 
@@ -1417,8 +1422,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         // --- vertical cell borders ---
         // inner/outer cell border is reduced/enlarged to ensure
         // a large enough step length
-        double z1 = listZ[rID][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
-        double z2 = listZ[rID][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+        double z1 = listZ[rID][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+        double z2 = listZ[rID][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
         Vector3D v_n1(0, 0, -1);
         Vector3D v_a1(0, 0, z1);
@@ -1459,8 +1464,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         {
             double r = sqrt(p.sq_length());
 
-            double ph1 = listPh[rID][phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
-            double ph2 = listPh[rID][phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+            double ph1 = listPh[rID][phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+            double ph2 = listPh[rID][phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);

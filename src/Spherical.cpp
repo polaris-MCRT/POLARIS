@@ -1500,7 +1500,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         // --- Theta cell borders ---
         uint thID = tmp_cell->getThID();
 
-        double th1 = max(0., listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE));
+        double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
         double cos_th1 = cos(th1);
         double cos_th1_sq = cos_th1 * cos_th1;
 
@@ -1510,7 +1510,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         double dscr3 = B1 * B1 - A1 * C3;
 
-        if(dscr3 >= 0)
+        if(dscr3 >= 0 && A1 > 0)
         {
             dscr3 = sqrt(dscr3);
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
@@ -1536,7 +1536,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             }
         }
 
-        double th2 = min(PI, listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE));
+        double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
         double cos_th2 = cos(th2);
         double cos_th2_sq = cos_th2 * cos_th2;
 
@@ -1547,8 +1547,13 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         // dscr4 is always >= 0
         double dscr4 = B2 * B2 - A2 * C4;
 
-        dscr4 = sqrt(dscr4);
-        tmp_length[0] = (-B2 + dscr4) / A2;
+        if(A2 > 0)
+        {
+            dscr4 = sqrt(dscr4);
+            tmp_length[0] = (-B2 + dscr4) / A2;
+        }
+        else
+            tmp_length[0] = 1e200;
         // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
         tmp_length[1] = 1e200;
 
@@ -1575,8 +1580,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             double cos_th = p.Z() / r;
 
             uint phID = tmp_cell->getPhID();
-            double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
-            double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+            double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+            double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);
