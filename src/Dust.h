@@ -1999,8 +1999,12 @@ class CDustComponent
 
         for(uint a = 0; a < nr_of_dust_species; a++)
             rel_weight[a] *= mass[a] / getVolume(a);
+        
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
-        return CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+
+        return res;
     }
 
     double getFHighJ()

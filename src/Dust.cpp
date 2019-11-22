@@ -2131,6 +2131,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     S11max = S11[wID][sth];
                 if(S12[wID][sth] > S12max)
                     S12max = S12[wID][sth];
+                
+                delete[] S11_tmp;
+                delete[] S12_tmp;
             }
         }
 
@@ -5169,6 +5172,12 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         return false;
 
     // Delete pointer array
+    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+    {
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            delete[] size_fraction[i_comp][a];
+        delete[] size_fraction[i_comp];
+    }
     delete[] size_fraction;
 
     return true;
