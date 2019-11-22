@@ -1289,7 +1289,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
     Vector3D d = pp->getDirection();
 
     bool hit = false;
-    double min_length = 1e300;
+    double path_length = 1e300;
     double tmp_length[4];
 
     uint rID = tmp_cell->getRID();
@@ -1300,37 +1300,32 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
     if(rID == MAX_UINT)
     {
         // --- Radial cell borders ---
-        double z1 = listZ[0][zID];
-        double z2 = listZ[0][zID + 1];
+        double r2 = Rmin * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double B = 2 * (p.X() * d.X() + p.Y() * d.Y());
-        double C = p.X() * p.X() + p.Y() * p.Y() - Rmin * Rmin;
+        double C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
         double A = d.X() * d.X() + d.Y() * d.Y();
+        // dscr is always positive, we are inside the inner cell
         double dscr = B * B - 4 * A * C;
 
-        if(dscr >= 0)
-        {
-            dscr = sqrt(dscr);
-            tmp_length[0] = (-B + dscr) / (2 * A);
-            tmp_length[1] = (-B - dscr) / (2 * A);
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        dscr = sqrt(dscr);
+        tmp_length[0] = (-B + dscr) / (2 * A);
+        tmp_length[1] = 1e200;
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = 1;
             }
         }
 
         // --- vertical cell borders ---
+        double z1 = listZ[0][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double z2 = listZ[0][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+
         Vector3D v_n1(0, 0, -1);
         Vector3D v_a1(0, 0, z1);
 
@@ -1361,9 +1356,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = 2 + i;
             }
@@ -1374,8 +1369,10 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         uint phID = tmp_cell->getPhID();
 
         // --- Radial cell borders ---
-        double r1 = listR[rID];
-        double r2 = listR[rID + 1];
+        // inner/outer cell border is reduced/enlarged to ensure
+        // a large enough step length
+        double r1 = listR[rID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double r2 = listR[rID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double A = d.X() * d.X() + d.Y() * d.Y();
 
@@ -1386,12 +1383,14 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         double C2 = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
 
         double dscr1 = B_sq - 4 * A * C1;
+        // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * A * C2;
 
         if(dscr1 >= 0)
         {
             dscr1 = sqrt(dscr1);
-            tmp_length[0] = (-B + dscr1) / (2 * A);
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            tmp_length[0] = 1e200;
             tmp_length[1] = (-B - dscr1) / (2 * A);
         }
         else
@@ -1400,31 +1399,26 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             tmp_length[1] = 1e200;
         }
 
-        if(dscr2 >= 0)
-        {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / (2 * A);
-            tmp_length[3] = (-B - dscr2) / (2 * A);
-        }
-        else
-        {
-            tmp_length[2] = 1e200;
-            tmp_length[3] = 1e200;
-        }
+        dscr2 = sqrt(dscr2);
+        tmp_length[2] = (-B + dscr2) / (2 * A);
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        tmp_length[3] = 1e200;
 
         for(uint i = 0; i < 4; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = uint(i / 2);
             }
         }
 
         // --- vertical cell borders ---
-        double z1 = listZ[rID][zID];
-        double z2 = listZ[rID][zID + 1];
+        // inner/outer cell border is reduced/enlarged to ensure
+        // a large enough step length
+        double z1 = listZ[rID][zID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double z2 = listZ[rID][zID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         Vector3D v_n1(0, 0, -1);
         Vector3D v_a1(0, 0, z1);
@@ -1435,9 +1429,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             double num = v_n1 * (p - v_a1);
             double length = -num / den1;
 
-            if(length >= 0 && length < min_length)
+            if(length >= 0 && length < path_length)
             {
-                min_length = length;
+                path_length = length;
                 hit = true;
                 dirID = 2;
             }
@@ -1452,9 +1446,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             double num = v_n2 * (p - v_a2);
             double length = -num / den2;
 
-            if(length >= 0 && length < min_length)
+            if(length >= 0 && length < path_length)
             {
-                min_length = length;
+                path_length = length;
                 hit = true;
                 dirID = 3;
             }
@@ -1465,8 +1459,8 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         {
             double r = sqrt(p.sq_length());
 
-            double ph1 = listPh[rID][phID];
-            double ph2 = listPh[rID][phID + 1];
+            double ph1 = listPh[rID][phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+            double ph2 = listPh[rID][phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);
@@ -1483,9 +1477,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(length >= 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1500,9 +1494,9 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(length >= 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1516,7 +1510,6 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
     pp->setDirectionID(dirID);

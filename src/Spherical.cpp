@@ -1422,7 +1422,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     Vector3D d = pp->getDirection();
 
     bool hit = false;
-    double min_length = 1e300;
+    double path_length = 1e300;
     double tmp_length[4];
     uint dirID = MAX_UINT;
 
@@ -1430,27 +1430,22 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
     if(rID == MAX_UINT)
     {
+        double r2 = Rmin * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+
         double B = 2 * p * d;
-        double C = p.sq_length() - Rmin * Rmin;
+        double C = p.sq_length() - r2 * r2;
+        // dscr is always positive, we are inside the inner cell
         double dscr = B * B - 4 * C;
 
-        if(dscr >= 0)
-        {
-            dscr = sqrt(dscr);
-            tmp_length[0] = (-B + dscr) / 2;
-            tmp_length[1] = (-B - dscr) / 2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        dscr = sqrt(dscr);
+        tmp_length[0] = (-B + dscr) / 2;
+        tmp_length[1] = 1e200;
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = 1;
             }
@@ -1460,8 +1455,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     {
         // --- Radial cell borders ---
 
-        double r1 = listR[rID];
-        double r2 = listR[rID + 1];
+        double r1 = listR[rID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double r2 = listR[rID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double p_sq = p.sq_length();
         double B = 2 * p * d;
@@ -1471,12 +1466,14 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double C2 = p_sq - r2 * r2;
 
         double dscr1 = B_sq - 4 * C1;
+        // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * C2;
 
         if(dscr1 >= 0)
         {
             dscr1 = sqrt(dscr1);
-            tmp_length[0] = (-B + dscr1) / 2;
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            tmp_length[0] = 1e200;
             tmp_length[1] = (-B - dscr1) / 2;
         }
         else
@@ -1485,23 +1482,16 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             tmp_length[1] = 1e200;
         }
 
-        if(dscr2 >= 0)
-        {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / 2;
-            tmp_length[3] = (-B - dscr2) / 2;
-        }
-        else
-        {
-            tmp_length[2] = 1e200;
-            tmp_length[3] = 1e200;
-        }
+        dscr2 = sqrt(dscr2);
+        tmp_length[2] = (-B + dscr2) / 2;
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        tmp_length[3] = 1e200;
 
         for(uint i = 0; i < 4; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = uint(i / 2.0);
             }
@@ -1510,7 +1500,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         // --- Theta cell borders ---
         uint thID = tmp_cell->getThID();
 
-        double th1 = listTh[thID];
+        double th1 = max(0., listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE));
         double cos_th1 = cos(th1);
         double cos_th1_sq = cos_th1 * cos_th1;
 
@@ -1523,7 +1513,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         if(dscr3 >= 0)
         {
             dscr3 = sqrt(dscr3);
-            tmp_length[0] = (-B1 + dscr3) / A1;
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            tmp_length[0] = 1e200;
             tmp_length[1] = (-B1 - dscr3) / A1;
         }
         else
@@ -1534,18 +1525,18 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
                 {
-                    min_length = tmp_length[i];
+                    path_length = tmp_length[i];
                     hit = true;
                     dirID = 2;
                 }
             }
         }
 
-        double th2 = listTh[thID + 1];
+        double th2 = min(PI, listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE));
         double cos_th2 = cos(th2);
         double cos_th2_sq = cos_th2 * cos_th2;
 
@@ -1553,27 +1544,21 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double B2 = d.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y());
         double C4 = p.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y());
 
+        // dscr4 is always >= 0
         double dscr4 = B2 * B2 - A2 * C4;
 
-        if(dscr4 >= 0)
-        {
-            dscr4 = sqrt(dscr4);
-            tmp_length[0] = (-B2 + dscr4) / A2;
-            tmp_length[1] = (-B2 - dscr4) / A2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        dscr4 = sqrt(dscr4);
+        tmp_length[0] = (-B2 + dscr4) / A2;
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        tmp_length[1] = 1e200;
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
                 {
-                    min_length = tmp_length[i];
+                    path_length = tmp_length[i];
                     hit = true;
                     dirID = 3;
                 }
@@ -1590,8 +1575,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             double cos_th = p.Z() / r;
 
             uint phID = tmp_cell->getPhID();
-            double ph1 = listPh[phID];
-            double ph2 = listPh[phID + 1];
+            double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+            double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);
@@ -1608,9 +1593,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(length >= 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1625,9 +1610,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(length >= 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1641,7 +1626,6 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
     pp->setDirectionID(dirID);

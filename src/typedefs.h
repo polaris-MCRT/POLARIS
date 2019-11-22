@@ -70,7 +70,7 @@ using namespace std;
 #define MAX_LVG_ITERATIONS 200
 #define MAX_INTERACTION 1500000
 #define MAX_RT_RAYS 1e7
-#define MIN_LEN_STEP 1e-6
+#define MIN_LEN_STEP 1e2
 #define ACC_SELECT_LEVEL 1.0e-6
 #define DIFF_GAMMA 7.00
 #define PERCENTAGE_STEP 0.001
@@ -193,6 +193,9 @@ using namespace std;
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
+
+#define EPS_DOUBLE numeric_limits<double>::epsilon()
+#define EPS_FLOAT numeric_limits<float>::epsilon()
 
 // grid types
 #define GRID_ID_OCT 20
