@@ -2972,8 +2972,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 55000.0;
-    dt = 1;
+    tend = 50000.0;
+    dt = 50;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -3024,13 +3024,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 100;
+    llong nr_of_photons_step = 1000;
     
     // Init photon deletion marker stack
     uilist pp_del;
     
     // Set points in time to print out results
-    double t_results = 5000;
+    double t_results = 50000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3159,6 +3159,42 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
             // Get tau for first interaction
             pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
+            
+            // If peel-off is used, add flux to the detector
+            if(peel_off)
+            {
+                // Transport a separate photon to each detector
+                for(uint d = 0; d < nr_mc_detectors; d++)
+                {
+                    // Get index of wavelength in current detector
+                    uint wID_det =
+                        detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[last+i]));
+
+                    // Only calculate for detectors with the
+                    // corresponding wavelengths
+                    if(wID_det != MAX_UINT)
+                    {
+                        // Create an escaping photon into the
+                        // direction of the detector
+                        photon_package tmp_pp = dust->getEscapePhoton(
+                            grid, pp_stack[last+i], detector[d].getEX(), detector[d].getDirection());
+
+                        // Convert the flux into Jy and consider
+                        // the distance to the observer
+                        CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
+                                                dust->getWavelength(pp_stack[last+i]),
+                                                detector[d].getDistance());
+
+                        // Consider foreground extinction
+                        tmp_pp.getStokesVector() *=
+                            dust->getForegroundExtinction(dust->getWavelength(pp_stack[last+i]));
+
+                        // Add the photon package to the detector
+                        detector[d].addToMonteCarloDetector(
+                            &tmp_pp, wID_det, SCATTERED_DUST);
+                    }
+                }
+            }
         }
         
         // Perform radiative transfer of all photons in photon stack
@@ -3265,6 +3301,42 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     
                     if(pp_stack[i]->getRND() < albedo)
                     {
+                        // If peel-off is used, add flux to the detector
+                        if(peel_off)
+                        {
+                            // Transport a separate photon to each detector
+                            for(uint d = 0; d < nr_mc_detectors; d++)
+                            {
+                                // Get index of wavelength in current detector
+                                uint wID_det =
+                                    detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[i]));
+
+                                // Only calculate for detectors with the
+                                // corresponding wavelengths
+                                if(wID_det != MAX_UINT)
+                                {
+                                    // Create an escaping photon into the
+                                    // direction of the detector
+                                    photon_package tmp_pp = dust->getEscapePhoton(
+                                        grid, pp_stack[i], detector[d].getEX(), detector[d].getDirection());
+
+                                    // Convert the flux into Jy and consider
+                                    // the distance to the observer
+                                    CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
+                                                            dust->getWavelength(pp_stack[i]),
+                                                            detector[d].getDistance());
+
+                                    // Consider foreground extinction
+                                    tmp_pp.getStokesVector() *=
+                                        dust->getForegroundExtinction(dust->getWavelength(pp_stack[i]));
+
+                                    // Add the photon package to the detector
+                                    detector[d].addToMonteCarloDetector(
+                                        &tmp_pp, wID_det, SCATTERED_DUST);
+                                }
+                            }
+                        }
+                        
                         // Perform simple photon scattering without
                         // changing the Stokes vectors
                         dust->scatter(grid, pp_stack[i], true);
@@ -3325,7 +3397,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             
             // If peel-off is not used, use classic Monte-Carlo method
             // If the photon has left the model space
-            if(!grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+            if(!peel_off && !grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
             {
                 // Move photon back to the point of last interaction
                 pp_stack[i]->resetPositionToLastInteraction();
@@ -3394,6 +3466,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
 #pragma omp critical
                 pp_del.push_back(uint(i));
             }
+        
         }
         
         // Sort deletion marker in ascending order
@@ -3405,23 +3478,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 kill_counter++;
                 delete pp_stack[pp_del[i]];
                 pp_stack.erase(pp_stack.begin()+pp_del[i]);
-                continue;
         }
         
         // Reset photon deletion marker
         pp_del.clear();
-        
-        // Write out maps and sed for current timestep if wanted
-        //if(t==t_results)
-        //{
-        //    for(uint d = 0; d < nr_mc_detectors; d++)
-        //    {
-        //        if(!detector[d].writeMap(d, RESULTS_FULL))
-        //            return false;
-        //        if(!detector[d].writeSed(d, RESULTS_FULL))
-        //            return false;
-        //    }
-        //}
         
         //cout << "Abs " << dust_abs[0] << " Em " << dust_em[0] << " U " << dust_u[0] << endl;
         
@@ -3452,11 +3512,21 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/one/dust_mc/data/temp/output_";
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/simple100/dust_mc/data/temp/output_";
             if(!grid->writeMidplaneFits(temp_path + s.str(), param, param.getInpMidDataPoints(), true))
                 return false;
             t_nextres += t_results;
+        
+        // Write out maps and sed if wanted
+        //  for(uint d = 0; d < nr_mc_detectors; d++)
+        //  {
+        //      if(!detector[d].writeMap(d, RESULTS_FULL))
+        //          return false;
+        //      if(!detector[d].writeSed(d, RESULTS_FULL))
+        //          return false;
+        //  }
         }
+        
         
         // Move to next timestept and or set new luminosities
         
@@ -3479,6 +3549,20 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     // Show amount of killed photons
     cout << "- Photons killed                    : " << kill_counter << endl;
     
+    // Deallocate photons in stack
+    for (llong i = 0; i<pp_stack.size(); i++)
+        delete pp_stack[i];
+    
+    // Write results either as text or fits file
+    for(uint d = 0; d < nr_mc_detectors; d++)
+    {
+        if(!detector[d].writeMap(d, RESULTS_MC))
+            return false;
+        if(!detector[d].writeSed(d, RESULTS_MC))
+            return false;
+    }
+    
+    return true;
 }
 
 bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
@@ -3530,7 +3614,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
 
     ulong max_cells = grid->getMaxDataCells();
     ullong nr_dust_photons = 1000;
-    ullong nr_source_photons = 100;
+    ullong nr_source_photons = 5;
     double L_d = 0;
     
     CSourceBasic * source = sources_mc[0];
@@ -3647,7 +3731,8 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             pp_stack[last+i]->setWavelengthID(wID);
             
             // Set Stokes vector of photon package
-            double energy = L_d*dt/nr_dust_photons;
+            // double energy = L_d*dt/nr_dust_photons;
+            double energy = (L_d*dt/(dust->getCabsMean(grid, pp_stack[last+i])*con_c))/nr_dust_photons;
             pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             
             // Get tau for first interaction

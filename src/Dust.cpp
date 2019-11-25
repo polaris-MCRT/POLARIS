@@ -207,8 +207,8 @@ void CDustComponent::initLamCdf()
     // Delete pointer arrays
     for(int t = 0; t < int(nr_of_temperatures); t++)
     {
-        delete qbi[t];
-        delete pdf[t];
+        delete[] qbi[t];
+        delete[] pdf[t];
     }
     delete[] qbi;
     delete[] pdf;
@@ -2209,6 +2209,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     S11max = S11[wID][sth];
                 if(S12[wID][sth] > S12max)
                     S12max = S12[wID][sth];
+                
+                delete[] S11_tmp;
+                delete[] S12_tmp;
             }
         }
 
@@ -5268,6 +5271,12 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         return false;
 
     // Delete pointer array
+    for(uint i = 0; i < nr_of_components; i++)
+    {
+        for(uint j = 0 ; j < nr_of_dust_species; j++)
+            delete[] size_fraction[i][j];
+        delete[] size_fraction[i];
+    }
     delete[] size_fraction;
 
     return true;

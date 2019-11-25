@@ -47,6 +47,9 @@ class CDustComponent
         mass = 0;
         fraction = 0;
         calorimetry_temperatures = 0;
+        
+        // Mean enthalpy for time-dependent transfer
+        enthalpy_mean = 0;
 
         tCext1 = 0;
         tCext2 = 0;
@@ -247,6 +250,9 @@ class CDustComponent
             delete[] a_eff_2;
         if(mass != 0)
             delete[] mass;
+        
+        if(enthalpy_mean != 0)
+            delete[] enthalpy_mean;
 
         if(sca_mat != 0)
             cleanScatteringData();
@@ -2022,8 +2028,13 @@ class CDustComponent
 
         for(uint a = 0; a < nr_of_dust_species; a++)
             rel_weight[a] *= mass[a] / getVolume(a);
+        
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        
+        // Deallocate array
+        delete[] rel_weight;
 
-        return CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        return res;
     }
 
     double getFHighJ()
@@ -2255,7 +2266,7 @@ class CDustComponent
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
     double * scattering_angles;
     
-    // Global mean enthalpy for time-dependent transfer
+    // Mean enthalpy for time-dependent transfer
     double * enthalpy_mean;
 
     string stringID;
