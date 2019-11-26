@@ -1550,13 +1550,13 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
-    double loc_x_min = tmp_cell->getXmin() * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_min = tmp_cell->getYmin() * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_min = tmp_cell->getZmin() * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_x_min = tmp_cell->getXmin() - (abs(tmp_cell->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_min = tmp_cell->getYmin() - (abs(tmp_cell->getYmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_min = tmp_cell->getZmin() - (abs(tmp_cell->getZmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
-    double loc_x_max = tmp_cell->getXmax() * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_max = tmp_cell->getYmax() * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_max = tmp_cell->getZmax() * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_x_max = tmp_cell->getXmax() + (abs(tmp_cell->getXmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_max = tmp_cell->getYmax() + (abs(tmp_cell->getYmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_max = tmp_cell->getZmax() + (abs(tmp_cell->getZmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
     double loc_dx = loc_x_max - loc_x_min;
     double loc_dy = loc_y_max - loc_y_min;
