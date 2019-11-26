@@ -1290,7 +1290,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
     bool hit = false;
     double path_length = 1e300;
-    double tmp_length[4];
+    double tmp_length[2];
 
     uint rID = tmp_cell->getRID();
     uint zID = tmp_cell->getZID();
@@ -1308,15 +1308,14 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         // dscr is always positive, we are inside the inner cell
         double dscr = B * B - 4 * A * C;
 
-        dscr = sqrt(dscr);
-        tmp_length[0] = (-B + dscr) / (2 * A);
-        tmp_length[1] = 1e200;
-
-        for(uint i = 0; i < 2; i++)
+        if(A > 0)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
+            dscr = sqrt(dscr);
+            double length = (-B + dscr) / (2 * A);
+
+            if(length >= 0 && length < path_length)
             {
-                path_length = tmp_length[i];
+                path_length = length;
                 hit = true;
                 dirID = 1;
             }
@@ -1386,36 +1385,29 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * A * C2;
 
-        if(dscr1 > 0)
-        {
-            dscr1 = sqrt(dscr1);
-            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-            tmp_length[0] = 1e200;
-            tmp_length[1] = (-B - dscr1) / (2 * A);
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
-
         if(A > 0)
         {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / (2 * A);
-        }
-        else
-            tmp_length[2] = 1e200;
-        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
-        tmp_length[3] = 1e200;
-
-        for(uint i = 0; i < 4; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
+            if(dscr1 > 0)
             {
-                path_length = tmp_length[i];
-                hit = true;
-                dirID = uint(i / 2);
+                dscr1 = sqrt(dscr1);
+                // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+                tmp_length[0] = (-B - dscr1) / (2 * A);
+            }
+            else
+                tmp_length[0] = 1e200;
+
+                dscr2 = sqrt(dscr2);
+                // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+                tmp_length[1] = (-B + dscr2) / (2 * A);
+
+            for(uint i = 0; i < 2; i++)
+            {
+                if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
+                {
+                    path_length = tmp_length[i];
+                    hit = true;
+                    dirID = i;
+                }
             }
         }
 
