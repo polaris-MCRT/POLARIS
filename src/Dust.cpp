@@ -2131,7 +2131,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     S11max = S11[wID][sth];
                 if(S12[wID][sth] > S12max)
                     S12max = S12[wID][sth];
-                
+
                 delete[] S11_tmp;
                 delete[] S12_tmp;
             }
@@ -4078,6 +4078,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
+    double tmp_planck = 0;
     double scattering_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
 
@@ -4113,6 +4114,13 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+    // If dust temperature is const for all grains, calc planck only once
+    if(temp_info != TEMP_FULL)
+    {
+        temp_dust = grid->getDustTemperature(pp, i_density);
+        tmp_planck = getTabPlanck(w, temp_dust);
+    }
 
     // Init temporary Stokes array for integration
     StokesVector * tmp_stokes = new StokesVector[nr_of_dust_species];
@@ -4157,11 +4165,12 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
                 // Consider the temperature of every dust grain size or an average
                 // temperature
                 if(temp_info == TEMP_FULL)
+                {
                     temp_dust = grid->getDustTemperature(pp, i_density, a);
-                else
-                    temp_dust = grid->getDustTemperature(pp, i_density);
+                    tmp_planck = getTabPlanck(w, temp_dust);
+                }
 
-                double pl = rel_weight[a] * getTabPlanck(w, temp_dust);
+                double pl = rel_weight[a] * tmp_planck;
 
 #ifdef CAMPS_BENCHMARK
                 // To perform Camps et. al (2015) benchmark.
@@ -4564,8 +4573,8 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
     {
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
-    
-        
+
+
         tmp_stokes.clear();
         pp->setStokesVector(tmp_stokes);
 
