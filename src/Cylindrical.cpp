@@ -1312,7 +1312,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             dscr = sqrt(dscr);
             double length = (-B + dscr) / (2 * A);
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1328,12 +1328,13 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         Vector3D v_a1(0, 0, z1);
 
         double den1 = v_n1 * d;
-        if(den1 != 0)
+        // if den1 < 0, photon moves in +z, but p.Z() >= z1
+        if(den1 > 0)
         {
             double num = v_n1 * (p - v_a1);
             double length = -num / den1;
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1345,12 +1346,13 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         Vector3D v_a2(0, 0, z2);
 
         double den2 = v_n2 * d;
-        if(den2 != 0)
+        // if den2 < 0, photon moves in -z, but p.Z() <= z2
+        if(den2 > 0)
         {
             double num = v_n2 * (p - v_a2);
             double length = -num / den2;
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1385,7 +1387,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                 // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
                 double length = (-B - dscr1) / (2 * A);
 
-                if(length >= 0 && length < path_length)
+                if(length > 0 && length < path_length)
                 {
                     path_length = length;
                     hit = true;
@@ -1397,7 +1399,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
             double length = (-B + dscr2) / (2 * A);
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1415,12 +1417,13 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         Vector3D v_a1(0, 0, z1);
 
         double den1 = v_n1 * d;
-        if(den1 != 0)
+        // if den1 < 0, photon moves in +z, but p.Z() >= z1
+        if(den1 > 0)
         {
             double num = v_n1 * (p - v_a1);
             double length = -num / den1;
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1432,12 +1435,13 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         Vector3D v_a2(0, 0, z2);
 
         double den2 = v_n2 * d;
-        if(den2 != 0)
+        // if den2 < 0, photon moves in -z, but p.Z() <= z2
+        if(den2 > 0)
         {
             double num = v_n2 * (p - v_a2);
             double length = -num / den2;
 
-            if(length >= 0 && length < path_length)
+            if(length != 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1470,7 +1474,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length >= 0 && length < path_length)
+                if(length > 0 && length < path_length)
                 {
                     path_length = length;
                     hit = true;
@@ -1487,7 +1491,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length >= 0 && length < path_length)
+                if(length > 0 && length < path_length)
                 {
                     path_length = length;
                     hit = true;
