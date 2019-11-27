@@ -424,9 +424,12 @@ inline Matrix2D operator*(const Matrix2D & lhs, const Matrix2D & rhs)
 
     for(uint i = 0; i < res.row(); i++)
         for(uint j = 0; j < res.col(); j++)
+        {
+            double tmp = 0;
             for(uint k = 0; k < lhs.col(); k++)
-                res.addValue(i, j, lhs(i, k) * rhs(k, j));
-
+                tmp += lhs(i, k) * rhs(k, j);
+            res.setValue(i,j,tmp);
+        }
     return res;
 }
 

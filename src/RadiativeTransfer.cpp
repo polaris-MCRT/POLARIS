@@ -2973,7 +2973,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     uint max_source = uint(sources_mc.size());
     double dt, tend;
     tend = 50000.0;
-    dt = 50;
+    dt = 10;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -3279,7 +3279,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                     
                     // Check if energy left
                     if (energy*dens > pp_stack[i]->getStokesVector().I())
+                    {
                         energy = pp_stack[i]->getStokesVector().I()/dens;
+                        pp_del.push_back(uint(i));
+                    }
                     
                     // Add to absorption estimate
                     uint c_id = (pp_stack[i]->getPositionCell())->getID();
@@ -3371,8 +3374,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                                                 
                         // Check if energy left
                         if (energy*dens > pp_stack[i]->getStokesVector().I())
+                        {
                             energy = pp_stack[i]->getStokesVector().I()/dens;
-                        
+                            pp_del.push_back(uint(i));
+                        }
+                            
                         // Subtract from photon package
                         pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
                         
@@ -3526,7 +3532,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         //          return false;
         //  }
         }
-        
         
         // Move to next timestept and or set new luminosities
         
