@@ -2972,7 +2972,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 50000.0;
+    tend = 10000.0;
     dt = 10;
     
     // Init arrays for emission, absorption and inner energy
@@ -3024,13 +3024,15 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 1000;
+    llong nr_of_photons_step = 10000;
+    
+    pp_stack.reserve(nr_of_photons_step*(tend/dt));
     
     // Init photon deletion marker stack
     uilist pp_del;
     
     // Set points in time to print out results
-    double t_results = 50000;
+    double t_results = 1000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3086,8 +3088,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         ullong last = (pp_stack.size() > 0) ? pp_stack.size() : 0;
         
         // Start photons from dust and/or source and store in photon stack
-        
-        pp_stack.reserve(last+nr_of_photons_step);
         
         for (llong i = 0; i < nr_of_photons_step; i++)
         {
@@ -3518,7 +3518,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/simple100/dust_mc/data/temp/output_";
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/testrt/dust_mc/data/temp/output_";
             if(!grid->writeMidplaneFits(temp_path + s.str(), param, param.getInpMidDataPoints(), true))
                 return false;
             t_nextres += t_results;
