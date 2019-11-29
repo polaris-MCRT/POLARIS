@@ -3228,8 +3228,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 if(!grid->next(pp_stack[i]))
                     break;
                 
-                // If max interactions is reached, end photon transfer
-                if(interactions >= MAX_INTERACTION)
+                // If max interactions is reached or no energy left, end photon transfer
+                if(interactions >= MAX_INTERACTION || pp_stack[i]->getStokesVector().I() < 1e-200)
                 {
 #pragma omp critical
                     pp_del.push_back(uint(i));
@@ -3279,10 +3279,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                     
                     // Check if energy left
                     if (energy*dens > pp_stack[i]->getStokesVector().I())
-                    {
                         energy = pp_stack[i]->getStokesVector().I()/dens;
-                        pp_del.push_back(uint(i));
-                    }
                     
                     // Add to absorption estimate
                     uint c_id = (pp_stack[i]->getPositionCell())->getID();
@@ -3374,10 +3371,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                                                 
                         // Check if energy left
                         if (energy*dens > pp_stack[i]->getStokesVector().I())
-                        {
                             energy = pp_stack[i]->getStokesVector().I()/dens;
-                            pp_del.push_back(uint(i));
-                        }
                             
                         // Subtract from photon package
                         pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
