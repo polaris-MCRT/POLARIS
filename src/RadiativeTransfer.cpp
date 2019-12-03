@@ -3512,9 +3512,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/testrt/dust_mc/data/temp/output_";
-            if(!grid->writeMidplaneFits(temp_path + s.str(), param, param.getInpMidDataPoints(), true))
-                return false;
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/testrt/dust_mc/data/temp/";
+            grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         
         // Write out maps and sed if wanted
