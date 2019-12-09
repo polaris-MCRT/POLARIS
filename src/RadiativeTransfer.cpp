@@ -3159,42 +3159,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
             // Get tau for first interaction
             pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
-            
-            // If peel-off is used, add flux to the detector
-            /* if(peel_off)
-            {
-                // Transport a separate photon to each detector
-                for(uint d = 0; d < nr_mc_detectors; d++)
-                {
-                    // Get index of wavelength in current detector
-                    uint wID_det =
-                        detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[last+i]));
-
-                    // Only calculate for detectors with the
-                    // corresponding wavelengths
-                    if(wID_det != MAX_UINT)
-                    {
-                        // Create an escaping photon into the
-                        // direction of the detector
-                        photon_package tmp_pp = dust->getEscapePhoton(
-                            grid, pp_stack[last+i], detector[d].getEX(), detector[d].getDirection());
-
-                        // Convert the flux into Jy and consider
-                        // the distance to the observer
-                        CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
-                                                dust->getWavelength(pp_stack[last+i]),
-                                                detector[d].getDistance());
-
-                        // Consider foreground extinction
-                        tmp_pp.getStokesVector() *=
-                            dust->getForegroundExtinction(dust->getWavelength(pp_stack[last+i]));
-
-                        // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(
-                            &tmp_pp, wID_det, SCATTERED_DUST);
-                    }
-                }
-            }*/
         }
         
         // Perform radiative transfer of all photons in photon stack
@@ -3249,8 +3213,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // Get dust number density of the current cell
                 dens = dust->getNumberDensity(grid, pp_stack[i]);
                 
-                //cout << i << " " << (pp_stack[i]->getPosition().getSphericalCoord()).R()/con_AU << endl;
-                
                 // Calculate the dust absorption cross section (for random
                 // alignment)
                 Cext = dust->getCextMean(grid, pp_stack[i]);
@@ -3270,9 +3232,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     
                     pp_stack[i]->adjustPosition(old_pos, len);
                     
-                    // Update data in grid like spectral length or radiation field and energy array
-                    // updateRadiationField(pp_stack[i]);
-                    
                     // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
                     double energy = len * pp_stack[i]->getStokesVector().I() * 
                                     dust->getCabsMean(grid, pp_stack[i]); 
@@ -3286,11 +3245,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
 #pragma omp atomic update
                     dust_abs[c_id] += energy/dt;
                     
-                    // Save position of last interaction to know to which pixel
-                    // the photon belongs, if it is not scattered on its further
-                    // path through the model
-                    // pp_stack[i]->updatePositionLastInteraction();
-                    
                     // Calculate the dust scattering cross section (for random
                     // alignment)
                     Csca = dust->getCscaMean(grid, pp_stack[i]);
@@ -3301,41 +3255,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     
                     if(pp_stack[i]->getRND() < albedo)
                     {
-                        // If peel-off is used, add flux to the detector
-                        /* if(peel_off)
-                        {
-                            // Transport a separate photon to each detector
-                            for(uint d = 0; d < nr_mc_detectors; d++)
-                            {
-                                // Get index of wavelength in current detector
-                                uint wID_det =
-                                    detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[i]));
-
-                                // Only calculate for detectors with the
-                                // corresponding wavelengths
-                                if(wID_det != MAX_UINT)
-                                {
-                                    // Create an escaping photon into the
-                                    // direction of the detector
-                                    photon_package tmp_pp = dust->getEscapePhoton(
-                                        grid, pp_stack[i], detector[d].getEX(), detector[d].getDirection());
-
-                                    // Convert the flux into Jy and consider
-                                    // the distance to the observer
-                                    CMathFunctions::lum2Jy(tmp_pp.getStokesVector(),
-                                                            dust->getWavelength(pp_stack[i]),
-                                                            detector[d].getDistance());
-
-                                    // Consider foreground extinction
-                                    tmp_pp.getStokesVector() *=
-                                        dust->getForegroundExtinction(dust->getWavelength(pp_stack[i]));
-
-                                    // Add the photon package to the detector
-                                    detector[d].addToMonteCarloDetector(
-                                        &tmp_pp, wID_det, SCATTERED_DUST);
-                                }
-                            }
-                        }*/
                         
                         // Perform simple photon scattering without
                         // changing the Stokes vectors
@@ -3395,79 +3314,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // Save rest of tau for next timestep in TmpPathLength
             pp_stack[i]->setTmpPathLength(end_tau);
             
-            // If peel-off is not used, use classic Monte-Carlo method
-            // If the photon has left the model space
-            /*if(!peel_off && !grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
-            {
-                // Move photon back to the point of last interaction
-                pp_stack[i]->resetPositionToLastInteraction();
-
-                // Transport photon to observer for each detector
-                for(uint d = 0; d < nr_mc_detectors; d++)
-                {
-                    // Get index of wavelength in current detector
-                    uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(pp_stack[i]));
-                    
-                    // Only calculate for detectors with the corresponding
-                    // wavelengths
-                    if(wID_det != MAX_UINT)
-                    {
-                        // Get direction to the current detector
-                        Vector3D dir_obs = detector[d].getDirection();
-
-                        // Calculate the angle between the photon travel direction
-                        // and the detector direction
-                        double cos_angle = pp_stack[i]->getDirection() * dir_obs;
-
-                        // Get acceptance angle from detector (minimum 1°)
-                        double cos_acceptance_angle = detector[d].getAcceptanceAngle();
-
-                        // If the angle angle between the photon direction and the
-                        // detector direction is smaller than the acceptance angle
-                        if(cos_angle >= cos_acceptance_angle)
-                        {
-                            // Get the angle to rotate the photon space into the
-                            // detector space
-                            double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                                detector[d].getEX(), pp_stack[i]->getEX(), pp_stack[i]->getEY());
-
-                            // Rotate the Stokes vector
-                            pp_stack[i]->getStokesVector().rot(rot_angle_phot_obs);
-
-                            // Consider the greater solid angle due
-                            // to the acceptance angle
-                            pp_stack[i]->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
-
-                            // Convert the flux into Jy and consider
-                            // the distance to the observer
-                            CMathFunctions::lum2Jy(pp_stack[i]->getStokesVector(),
-                                                    dust->getWavelength(pp_stack[i]),
-                                                    detector[d].getDistance());
-
-                            // Consider foreground extinction
-                            pp_stack[i]->getStokesVector() *=
-                                dust->getForegroundExtinction(dust->getWavelength(pp_stack[i]));
-
-                            if(interactions == 0)
-                            {
-                                // Add the photon package to the detector
-                                detector[d].addToMonteCarloDetector(pp_stack[i], wID_det, DIRECT_STAR);
-                            }
-                            else
-                            {
-                                // Add the photon package to the detector
-                                detector[d].addToMonteCarloDetector(pp_stack[i], wID_det, SCATTERED_DUST);
-                            }
-                        }
-                    }
-                }
-                
-                // Mark photon for deletion from stack
-#pragma omp critical
-                pp_del.push_back(uint(i));
-            }*/
-            
-            
+            // Remove photon if outside grid
             if(!grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
             {
 #pragma omp critical
@@ -3489,8 +3336,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Reset photon deletion marker
         pp_del.clear();
-        
-        //cout << "Abs " << dust_abs[0] << " Em " << dust_em[0] << " U " << dust_u[0] << endl;
         
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
@@ -3522,15 +3367,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/testrt/dust_mc/data/temp/";
             grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
-        
-        // Write out maps and sed if wanted
-        //  for(uint d = 0; d < nr_mc_detectors; d++)
-        //  {
-        //      if(!detector[d].writeMap(d, RESULTS_FULL))
-        //          return false;
-        //      if(!detector[d].writeSed(d, RESULTS_FULL))
-        //          return false;
-        //  }
         }
         
         // Move to next timestept and or set new luminosities
@@ -3557,15 +3393,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     // Deallocate photons in stack
     for (llong i = 0; i<pp_stack.size(); i++)
         delete pp_stack[i];
-    
-    // Write results either as text or fits file
-    /*for(uint d = 0; d < nr_mc_detectors; d++)
-    {
-        if(!detector[d].writeMap(d, RESULTS_MC))
-            return false;
-        if(!detector[d].writeSed(d, RESULTS_MC))
-            return false;
-    }*/
     
     return true;
 }
