@@ -2591,21 +2591,204 @@ class parameters
     dlist line_opiate_detectors;
 };
 
-class photon_package
+class photon_basic
+{
+  public:
+    photon_basic()
+    {
+        cell_pos = 0;
+        tmp_path = 0;
+        
+        wID = MAX_UINT;
+        dirID = MAX_UINT;
+        
+        stokes.set(1, 0, 0, 0, 0);
+    }
+    
+    void initRandomGenerator(ullong seed)
+    {
+        rand_gen.setSeed(seed);
+    }
+    
+    void setD(Matrix2D & _mD)
+    {
+        mD = _mD;
+    }
+    
+    Matrix2D & getD()
+    {
+        return mD;
+    }
+    
+    Vector3D & getPosition()
+    {
+        return pos;
+    }
+    
+    Vector3D & getDirection()
+    {
+        return ez;
+    }
+    
+    StokesVector & getStokesVector()
+    {
+        return stokes;
+    }
+    
+    double const getRND()
+    {
+        return rand_gen.getValue();
+    }
+    
+    double & getTmpPathLength()
+    {
+        return tmp_path;
+    }
+    
+    cell_basic * getPositionCell()
+    {
+        return cell_pos;
+    }
+    
+    double getWavelengthID()
+    {
+        return wID;
+    }
+    
+    void calcRandomDirection()
+    {
+        ez.rndDir(getRND(), getRND());
+    }
+    
+    void initCoordSystem()
+    {
+        double phi = atan3(ez.Y(), -ez.X());
+        double theta = acos(ez.Z());
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = ez.Z();
+        double sin_theta = sin(theta);
+
+        mD = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+    }
+    
+    void updateCoordSystem()
+    {
+        double phi = atan3(ez.Y(), -ez.X());
+        double theta = acos(ez.Z());
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = ez.Z();
+        double sin_theta = sin(theta);
+
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = mD * D_help;
+        
+        ez = mD * Vector3D(0, 0, 1);
+    }
+    
+    void updateCoordSystem(double phi, double theta)
+    {
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = cos(theta);
+        double sin_theta = sin(theta);
+
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = mD * D_help;
+
+        ez = mD * Vector3D(0, 0, 1);
+    }
+    
+    void adjustPosition(Vector3D _pos, double _len)
+    {
+        tmp_path = _len;
+        pos = _pos + tmp_path * ez;
+
+        // Calculate cell by position
+        if(tmp_path > 0)
+            dirID = MAX_UINT;
+    }
+    
+    void setPosition(Vector3D val)
+    {
+        pos = val;
+    }
+    
+    void setDirection(Vector3D val)
+    {
+        ez = val;
+    }
+    
+    void setStokesVector(StokesVector val)
+    {
+        stokes = val;
+    }
+    
+    void addStokesVector(StokesVector val)
+    {
+        stokes += val;
+    }
+    
+    Vector3D getEZ()
+    {
+        return ez;
+    }
+    
+    void setEZ(Vector3D _e)
+    {
+        ez = _e;
+    }
+    
+    void setTmpPathLength(double val)
+    {
+        tmp_path = val;
+    }
+    
+    void setPositionCell(cell_basic * val)
+    {
+        cell_pos = val;
+    }
+    
+    void setDirectionID(uint val)
+    {
+        dirID = val;
+    }
+    
+    uint getDirectionID()
+    {
+        return dirID;
+    }
+    
+    void setWavelengthID(uint val)
+    {
+        wID = val;
+    }
+       
+  protected:
+      CRandomGenerator rand_gen;
+      Vector3D pos;
+      Vector3D ez;
+      Matrix2D mD;
+      StokesVector stokes;
+      
+      uint wID;
+      uint dirID;
+    
+      double tmp_path;
+      cell_basic * cell_pos;
+      
+};
+
+class photon_package : public photon_basic
 {
   public:
     photon_package()
     {
         sc_counter = 0;
-        cell_pos = 0;
-        tmp_path = 0;
-
-        wID = MAX_UINT;
-        dirID = MAX_UINT;
 
         sh_distance = 0;
 
-        stokes.set(1, 0, 0, 0, 0);
         multi_stokes = 0;
 
         sc_counter = 0;
@@ -2681,64 +2864,14 @@ class photon_package
             delete[] multi_stokes;
     }
 
-    void initRandomGenerator(ullong seed)
-    {
-        rand_gen.setSeed(seed);
-    }
-
     uint getAbsorptionEvents()
     {
         return abs_counter;
     }
 
-    void setD(Matrix2D & _mD)
-    {
-        mD = _mD;
-    }
-
-    Matrix2D & getD()
-    {
-        return mD;
-    }
-
-    Vector3D & getPosition()
-    {
-        return pos;
-    }
-
-    Vector3D & getDirection()
-    {
-        return ez;
-    }
-
-    StokesVector & getStokesVector()
-    {
-        return stokes;
-    }
-
-    double const getRND()
-    {
-        return rand_gen.getValue();
-    }
-
-    double & getTmpPathLength()
-    {
-        return tmp_path;
-    }
-
     uint getScatteringEvents()
     {
         return sc_counter;
-    }
-
-    cell_basic * getPositionCell()
-    {
-        return cell_pos;
-    }
-
-    double getWavelengthID()
-    {
-        return wID;
     }
 
     double getShortestDistance()
@@ -2749,11 +2882,6 @@ class photon_package
     StokesVector & getMultiStokesVector(uint vch)
     {
         return multi_stokes[vch];
-    }
-
-    void calcRandomDirection()
-    {
-        ez.rndDir(getRND(), getRND());
     }
 
     void initCoordSystem()
@@ -2803,21 +2931,6 @@ class photon_package
         ez = mD * Vector3D(0, 0, 1);
     }
 
-    void adjustPosition(Vector3D _pos, double _len)
-    {
-        tmp_path = _len;
-        pos = _pos + tmp_path * ez;
-
-        // Calculate cell by position
-        if(tmp_path > 0)
-            dirID = MAX_UINT;
-    }
-
-    void setPosition(Vector3D val)
-    {
-        pos = val;
-    }
-
     void setPositionLastInteraction(Vector3D val)
     {
         pos_li = val;
@@ -2845,16 +2958,6 @@ class photon_package
         pos = tx * ex + ty * ey + tz * ez;
     }
 
-    void setDirection(Vector3D val)
-    {
-        ez = val;
-    }
-
-    void setStokesVector(StokesVector val)
-    {
-        stokes = val;
-    }
-
     void initMultiStokesVector(uint nr_stokes_vector)
     {
         multi_stokes = new StokesVector[nr_stokes_vector];
@@ -2875,11 +2978,6 @@ class photon_package
         abs_counter++;
     }
 
-    void addStokesVector(StokesVector val)
-    {
-        stokes += val;
-    }
-
     Vector3D getEX()
     {
         return ex;
@@ -2888,11 +2986,6 @@ class photon_package
     Vector3D getEY()
     {
         return ey;
-    }
-
-    Vector3D getEZ()
-    {
-        return ez;
     }
 
     void setEX(Vector3D _e)
@@ -2924,34 +3017,9 @@ class photon_package
         _ez = ez;
     }
 
-    void setTmpPathLength(double val)
-    {
-        tmp_path = val;
-    }
-
     void setScatteringEvents(uint val)
     {
         sc_counter = val;
-    }
-
-    void setPositionCell(cell_basic * val)
-    {
-        cell_pos = val;
-    }
-
-    void setDirectionID(uint val)
-    {
-        dirID = val;
-    }
-
-    uint getDirectionID()
-    {
-        return dirID;
-    }
-
-    void setWavelengthID(uint val)
-    {
-        wID = val;
     }
 
     void setShortestDistance(double val)
@@ -2960,14 +3028,9 @@ class photon_package
     }
 
   private:
-    CRandomGenerator rand_gen;
-    Vector3D pos;
     Vector3D pos_li;
     Vector3D ex;
     Vector3D ey;
-    Vector3D ez;
-    Matrix2D mD;
-    StokesVector stokes;
     StokesVector * multi_stokes;
 
     uint wID;
@@ -2975,9 +3038,7 @@ class photon_package
 
     uint sc_counter;
     uint abs_counter;
-    double tmp_path;
     double sh_distance;
-    cell_basic * cell_pos;
 
     bool hasSpare;
     double rand1, rand2;

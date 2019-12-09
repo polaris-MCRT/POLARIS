@@ -1335,7 +1335,7 @@ void CGridSpherical::printParameters()
     }
 }
 
-bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
+bool CGridSpherical::positionPhotonInGrid(photon_basic * pp)
 {
     uint dirID = pp->getDirectionID();
     uint rID = MAX_UINT, thID = MAX_UINT, phID = MAX_UINT;
@@ -1415,7 +1415,7 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
     return true;
 }
 
-bool CGridSpherical::goToNextCellBorder(photon_package * pp)
+bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
 {
     cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
@@ -1692,7 +1692,7 @@ bool CGridSpherical::updateShortestDistance(photon_package * pp)
     return found;
 }
 
-bool CGridSpherical::findStartingPoint(photon_package * pp)
+bool CGridSpherical::findStartingPoint(photon_basic * pp)
 {
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();

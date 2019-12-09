@@ -248,7 +248,7 @@ class CGridCylindrical : public CGridBasic
 
     bool writeGNUPlotFiles(string path, parameters & param);
 
-    bool goToNextCellBorder(photon_package * pp);
+    bool goToNextCellBorder(photon_basic * pp);
     bool updateShortestDistance(photon_package * pp);
 
     Vector3D getCenter(cell_basic * cell)
@@ -284,7 +284,7 @@ class CGridCylindrical : public CGridBasic
         return max(Rmax, Zmax);
     }
 
-    bool next(photon_package * pp)
+    bool next(photon_basic * pp)
     {
         if(!positionPhotonInGrid(pp))
             return false;
@@ -311,7 +311,7 @@ class CGridCylindrical : public CGridBasic
         p_max.set(curr_cell->x_max, curr_cell->y_max, curr_cell->z_max);
     }*/
 
-    bool findStartingPoint(photon_package * pp);
+    bool findStartingPoint(photon_basic * pp);
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {
@@ -387,13 +387,13 @@ class CGridCylindrical : public CGridBasic
         return volume;
     }
 
-    double getVolume(photon_package * pp)
+    double getVolume(photon_basic * pp)
     {
         cell_basic * cell_pos = pp->getPositionCell();
         return getVolume(cell_pos);
     }
 
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
+    Vector3D rotateToCenter(photon_basic * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
         double phi = pp->getPosition().getPhiCoord();
@@ -407,7 +407,7 @@ class CGridCylindrical : public CGridBasic
         return dir;
     }
 
-    bool positionPhotonInGrid(photon_package * pp);
+    bool positionPhotonInGrid(photon_basic * pp);
 
     double getMaxLength()
     {
@@ -570,12 +570,12 @@ class CGridCylindrical : public CGridBasic
         return true;
     }
 
-    bool isInside(photon_package * pp, Vector3D & pos)
+    bool isInside(photon_basic * pp, Vector3D & pos)
     {
         return isInside(pos, pp->getPositionCell());
     }
 
-    void setRndPositionInCell(photon_package * pp)
+    void setRndPositionInCell(photon_basic * pp)
     {
         Vector3D pos;
         cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();

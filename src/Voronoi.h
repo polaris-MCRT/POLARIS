@@ -197,7 +197,7 @@ class CGridVoronoi : public CGridBasic
 
     bool writeGNUPlotFiles(string path, parameters & param);
 
-    bool goToNextCellBorder(photon_package * pp);
+    bool goToNextCellBorder(photon_basic * pp);
     bool updateShortestDistance(photon_package * pp);
 
     Vector3D getCenter(cell_basic * cell)
@@ -216,7 +216,7 @@ class CGridVoronoi : public CGridBasic
         return max_len;
     }
 
-    bool next(photon_package * pp)
+    bool next(photon_basic * pp)
     {
         if(!positionPhotonInGrid(pp))
             return false;
@@ -227,7 +227,7 @@ class CGridVoronoi : public CGridBasic
         return true;
     };
 
-    bool findStartingPoint(photon_package * pp);
+    bool findStartingPoint(photon_basic * pp);
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {
@@ -247,17 +247,17 @@ class CGridVoronoi : public CGridBasic
         return ((cell_vo *)cell)->getVolume();
     }
 
-    double getVolume(photon_package * pp)
+    double getVolume(photon_basic * pp)
     {
         cell_basic * cell_pos = pp->getPositionCell();
 
         return getVolume(cell_pos);
     }
 
-    bool positionPhotonInGrid(photon_package * pp);
+    bool positionPhotonInGrid(photon_basic * pp);
 
     // for debugging only
-    bool positionPhotonInGridTest(photon_package * pp);
+    bool positionPhotonInGridTest(photon_basic * pp);
     bool createArtificialGrid(string path);
 
     double getMaxLength()

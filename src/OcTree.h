@@ -179,7 +179,7 @@ class CGridOcTree : public CGridBasic
     bool nextLowLevelCell();
     bool nextLowLevelCell(cell_basic * cell);
     // end   IO functions
-    bool goToNextCellBorder(photon_package * pp);
+    bool goToNextCellBorder(photon_basic * pp);
     bool updateShortestDistance(photon_package * pp);
 
     // void deleteSubCells(slist & source);
@@ -250,7 +250,7 @@ class CGridOcTree : public CGridBasic
         return true;
     }
 
-    bool findMatchingCell(photon_package * pp)
+    bool findMatchingCell(photon_basic * pp)
     {
         Vector3D pos = pp->getPosition();
 
@@ -268,7 +268,7 @@ class CGridOcTree : public CGridBasic
         return true;
     }
 
-    bool next(photon_package * pp)
+    bool next(photon_basic * pp)
     {
         if(!findMatchingCell(pp))
             return false;
@@ -279,7 +279,7 @@ class CGridOcTree : public CGridBasic
         return true;
     };
 
-    bool findStartingPoint(photon_package * pp);
+    bool findStartingPoint(photon_basic * pp);
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {
@@ -306,7 +306,7 @@ class CGridOcTree : public CGridBasic
         return volume;
     }
 
-    double getVolume(photon_package * pp)
+    double getVolume(photon_basic * pp)
     {
         cell_oc * cell_pos = (cell_oc *)pp->getPositionCell();
 
@@ -316,7 +316,7 @@ class CGridOcTree : public CGridBasic
         return volume;
     }
 
-    bool positionPhotonInGrid(photon_package * pp)
+    bool positionPhotonInGrid(photon_basic * pp)
     {
         pp->setPositionCell(cell_oc_root);
         return findMatchingCell(pp);
@@ -374,7 +374,7 @@ class CGridOcTree : public CGridBasic
         cout << "Final cleanup                                : done" << endl;
     }
 
-    void goNextLevelDown(photon_package * pp)
+    void goNextLevelDown(photon_basic * pp)
     {
         cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
 
@@ -474,7 +474,7 @@ class CGridOcTree : public CGridBasic
     void createBoundingCell();
     void createBoundingCell(cell_oc * cell);
 
-    void goNextLevelUp(photon_package * pp)
+    void goNextLevelUp(photon_basic * pp)
     {
         cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
 
@@ -530,7 +530,7 @@ class CGridOcTree : public CGridBasic
         return true;
     }
 
-    bool isInside(photon_package * pp, Vector3D & pos)
+    bool isInside(photon_basic * pp, Vector3D & pos)
     {
         cell_oc * cell = (cell_oc *)pp->getPositionCell();
         if(pos.X() < cell->getXmin() || pos.Y() < cell->getYmin() || pos.Z() < cell->getZmin())
@@ -542,7 +542,7 @@ class CGridOcTree : public CGridBasic
         return true;
     }
 
-    void setRndPositionInCell(photon_package * pp)
+    void setRndPositionInCell(photon_basic * pp)
     {
         Vector3D pos;
         cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();

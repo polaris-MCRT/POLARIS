@@ -329,7 +329,7 @@ class CGasSpecies
         return molecular_weight;
     }
 
-    double getNumberDensity(CGridBasic * grid, photon_package * pp)
+    double getNumberDensity(CGridBasic * grid, photon_basic * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getNumberDensity(grid, cell);
@@ -350,7 +350,7 @@ class CGasSpecies
         return dens_species;
     }
 
-    double getMassDensity(CGridBasic * grid, photon_package * pp)
+    double getMassDensity(CGridBasic * grid, photon_basic * pp)
     {
         cell_basic * cell = pp->getPositionCell();
         return getMassDensity(grid, cell);
@@ -523,7 +523,7 @@ class CGasSpecies
     }
 
     Matrix2D getLineMatrix(CGridBasic * grid,
-                           photon_package * pp,
+                           photon_basic * pp,
                            uint i_line,
                            double velocity,
                            Vector3D mag_field,
@@ -539,10 +539,10 @@ class CGasSpecies
             return getGaussLineMatrix(grid, pp, i_line, velocity);
     }
 
-    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity);
+    Matrix2D getGaussLineMatrix(CGridBasic * grid, photon_basic * pp, uint i_line, double velocity);
 
     Matrix2D getZeemanSplittingMatrix(CGridBasic * grid,
-                                      photon_package * pp,
+                                      photon_basic * pp,
                                       uint i_line,
                                       double velocity,
                                       Vector3D mag_field,
@@ -551,7 +551,7 @@ class CGasSpecies
                                       double cos_2_phi,
                                       double sin_2_phi);
 
-    StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_line);
+    StokesVector calcEmissivities(CGridBasic * grid, photon_basic * pp, uint i_line);
 
     bool calcLTE(CGridBasic * grid);
     bool calcFEP(CGridBasic * grid);
@@ -770,7 +770,7 @@ class CGasMixture
         return kepler_star_mass;
     }
 
-    double getNumberDensity(CGridBasic * grid, photon_package * pp, uint i_species)
+    double getNumberDensity(CGridBasic * grid, photon_basic * pp, uint i_species)
     {
         return single_species[i_species].getNumberDensity(grid, pp);
     }
@@ -780,7 +780,7 @@ class CGasMixture
         return single_species[i_species].getNumberDensity(grid, cell);
     }
 
-    double getMassDensity(CGridBasic * grid, photon_package * pp, uint i_species)
+    double getMassDensity(CGridBasic * grid, photon_basic * pp, uint i_species)
     {
         return single_species[i_species].getMassDensity(grid, pp);
     }
@@ -801,7 +801,7 @@ class CGasMixture
     }
 
     Matrix2D getLineMatrix(CGridBasic * grid,
-                           photon_package * pp,
+                           photon_basic * pp,
                            uint i_species,
                            uint i_line,
                            double velocity,
@@ -815,7 +815,7 @@ class CGasMixture
             grid, pp, i_line, velocity, mag_field, cos_theta, sin_theta, cos_2_phi, sin_2_phi);
     }
 
-    StokesVector calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_species, uint i_line)
+    StokesVector calcEmissivities(CGridBasic * grid, photon_basic * pp, uint i_species, uint i_line)
     {
         return single_species[i_species].calcEmissivities(grid, pp, i_line);
     }

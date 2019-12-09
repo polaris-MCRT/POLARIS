@@ -2999,7 +2999,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp)
     return true;
 }
 
-uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section)
+uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_basic * pp, uint cross_section)
 {
     // Get wavelength index from photon package
     uint w = pp->getWavelengthID();
@@ -3105,7 +3105,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
 }
 
 void CDustComponent::calcCrossSections(CGridBasic * grid,
-                                       photon_package * pp,
+                                       photon_basic * pp,
                                        uint i_density,
                                        uint a,
                                        double mag_field_theta,
@@ -3334,7 +3334,7 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
 }
 
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
-                                               photon_package * pp,
+                                               photon_basic * pp,
                                                uint i_density,
                                                bool use_energy_density)
 {
@@ -3375,7 +3375,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
 }
 
 double CDustComponent::updateDustTemperature(CGridBasic * grid,
-                                             photon_package * pp,
+                                             photon_basic * pp,
                                              uint i_density,
                                              uint a,
                                              bool use_energy_density)
@@ -3962,7 +3962,7 @@ long double * CDustComponent::getStochasticProbability(uint a, spline & abs_rate
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_package * pp, uint i_density)
+StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_basic * pp, uint i_density)
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
@@ -3986,7 +3986,7 @@ StokesVector CDustComponent::calcEmissivitiesHz(CGridBasic * grid, photon_packag
     return tmp_stokes;
 }
 
-double CDustComponent::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::calcEmissivities(CGridBasic * grid, photon_basic * pp, uint i_density)
 {
     // Init variables to calculate the emission/extinction
     double temp_dust, pl_abs;
@@ -4305,7 +4305,7 @@ StokesVector CDustComponent::calcEmissivitiesEmi(CGridBasic * grid,
 }
 
 void CDustComponent::calcExtCrossSections(CGridBasic * grid,
-                                          photon_package * pp,
+                                          photon_basic * pp,
                                           uint i_density,
                                           double & avg_Cext,
                                           double & avg_Cpol,
@@ -4505,7 +4505,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     return pp_res;
 }
 
-double CDustComponent::getCellEmission(CGridBasic * grid, photon_package * pp, uint i_density)
+double CDustComponent::getCellEmission(CGridBasic * grid, photon_basic * pp, uint i_density)
 {
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
@@ -4594,7 +4594,7 @@ double CDustComponent::getCellEmissionRate(CGridBasic * grid, cell_basic * cell)
     return total_emission;
 }
 
-void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes)
+void CDustComponent::henyeygreen(photon_basic * pp, uint a, bool adjust_stokes)
 {
     // Init variables
     double cos_theta, theta, phi;
@@ -4647,7 +4647,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     }
 }
 
-void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
+void CDustComponent::miesca(photon_basic * pp, uint a, bool adjust_stokes)
 {
     // Init variables
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;

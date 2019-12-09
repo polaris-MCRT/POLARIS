@@ -149,7 +149,7 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -200,7 +200,7 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
     pp->initCoordSystem();
 }
 
-void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceStar::createDirectRay(photon_basic * pp, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -684,7 +684,7 @@ bool CSourceBackground::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-StokesVector CSourceBackground::getStokesVector(photon_package * pp)
+StokesVector CSourceBackground::getStokesVector(photon_basic * pp)
 {
     double F, T, I, Q, U, V, pl;
     StokesVector res;
@@ -872,7 +872,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceISRF::createNextRay(photon_basic * pp, ullong i_pos)
 {
     double energy, excess_x = 0, excess_y = 0, excess_z = 0;
     StokesVector tmp_stokes_vector;
@@ -915,7 +915,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos)
     pp->setStokesVector(tmp_stokes_vector);
 }
 
-void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceISRF::createDirectRay(photon_basic * pp, Vector3D dir_obs)
 {
     double energy, excess_x = 0, excess_y = 0, excess_z = 0;
     StokesVector tmp_stokes_vector;
@@ -1100,7 +1100,7 @@ bool CSourceDust::initSource(uint w)
     return true;
 }
 
-void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceDust::createNextRay(photon_basic * pp, ullong i_pos)
 {
     // Init photon package and random direction
     pp->initRandomGenerator(i_pos);
@@ -1134,7 +1134,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     pp->initCoordSystem();
 }
 
-void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceDust::createDirectRay(photon_basic * pp, Vector3D dir_obs)
 {
     // Set wavelength of photon package
     uint w = pp->getWavelengthID();
@@ -1213,7 +1213,7 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceLaser::createNextRay(photon_basic * pp, ullong i_pos)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -1242,7 +1242,7 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
     pp->initCoordSystem();
 }
 
-void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceLaser::createDirectRay(photon_basic * pp, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;

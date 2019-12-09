@@ -1540,7 +1540,7 @@ void CGridOcTree::createBoundingCell()
     cell_oc_pos->getChildren()[7].setLength(length);
 }
 
-bool CGridOcTree::goToNextCellBorder(photon_package * pp)
+bool CGridOcTree::goToNextCellBorder(photon_basic * pp)
 {
     cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
 
@@ -1870,7 +1870,7 @@ bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
     return false;
 }
 
-bool CGridOcTree::findStartingPoint(photon_package * pp)
+bool CGridOcTree::findStartingPoint(photon_basic * pp)
 {
     Vector3D p = pp->getPosition();
 

@@ -2982,7 +2982,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     dlist dust_u(max_cells);
     
     // Init photon pointer stack
-    vector<photon_package*> pp_stack;
+    vector<photon_basic*> pp_stack;
 
     // Init enthalpies
     if (!dust->initMeanEnthalpy())
@@ -3091,7 +3091,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         for (llong i = 0; i < nr_of_photons_step; i++)
         {
-            pp_stack.push_back(new photon_package());
+            pp_stack.push_back(new photon_basic());
             // Generation marker could be set here
             // pp_stack[i]->setTime(t); tbd
             
@@ -3161,7 +3161,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
             
             // If peel-off is used, add flux to the detector
-            if(peel_off)
+            /* if(peel_off)
             {
                 // Transport a separate photon to each detector
                 for(uint d = 0; d < nr_mc_detectors; d++)
@@ -3194,7 +3194,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                             &tmp_pp, wID_det, SCATTERED_DUST);
                     }
                 }
-            }
+            }*/
         }
         
         // Perform radiative transfer of all photons in photon stack
@@ -3289,7 +3289,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     // Save position of last interaction to know to which pixel
                     // the photon belongs, if it is not scattered on its further
                     // path through the model
-                    pp_stack[i]->updatePositionLastInteraction();
+                    // pp_stack[i]->updatePositionLastInteraction();
                     
                     // Calculate the dust scattering cross section (for random
                     // alignment)
@@ -3302,7 +3302,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     if(pp_stack[i]->getRND() < albedo)
                     {
                         // If peel-off is used, add flux to the detector
-                        if(peel_off)
+                        /* if(peel_off)
                         {
                             // Transport a separate photon to each detector
                             for(uint d = 0; d < nr_mc_detectors; d++)
@@ -3335,7 +3335,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                         &tmp_pp, wID_det, SCATTERED_DUST);
                                 }
                             }
-                        }
+                        }*/
                         
                         // Perform simple photon scattering without
                         // changing the Stokes vectors
@@ -3397,7 +3397,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             
             // If peel-off is not used, use classic Monte-Carlo method
             // If the photon has left the model space
-            if(!peel_off && !grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+            /*if(!peel_off && !grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
             {
                 // Move photon back to the point of last interaction
                 pp_stack[i]->resetPositionToLastInteraction();
@@ -3465,6 +3465,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // Mark photon for deletion from stack
 #pragma omp critical
                 pp_del.push_back(uint(i));
+            }*/
+            
+            
+            if(!grid->positionPhotonInGrid(pp_stack[i]) && pp_stack[i]->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+            {
+#pragma omp critical
+                pp_del.push_back(uint(i));  
             }
         
         }
@@ -3552,13 +3559,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         delete pp_stack[i];
     
     // Write results either as text or fits file
-    for(uint d = 0; d < nr_mc_detectors; d++)
+    /*for(uint d = 0; d < nr_mc_detectors; d++)
     {
         if(!detector[d].writeMap(d, RESULTS_MC))
             return false;
         if(!detector[d].writeSed(d, RESULTS_MC))
             return false;
-    }
+    }*/
     
     return true;
 }
@@ -3606,7 +3613,7 @@ bool CRadiativeTransfer::setTemperatureFromU(dlist dust_u)
     return true;
 }
 
-bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vector<photon_package*> &pp_stack)
+bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vector<photon_basic*> &pp_stack)
 {
     // Starts dust photons from every cell to get initial conditions
 
@@ -3640,7 +3647,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
         double len, dens, Cext, tau = 0;
         
         // Start temporary photon from source in direction of cell 
-        photon_package * pp_depth = new photon_package;
+        photon_basic * pp_depth = new photon_basic;
         source->createNextRay(pp_depth, c_i);
         
         // Adjust direction
@@ -3669,7 +3676,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
         // Start source photons in every cell
         for (llong i = 0; i < nr_source_photons; i++)
         {
-            pp_stack.push_back(new photon_package());
+            pp_stack.push_back(new photon_basic());
             
             ullong last = c_i*(nr_dust_photons+nr_source_photons);
             
@@ -3712,7 +3719,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
         
         for (llong i = 0; i < nr_dust_photons; i++)
         {
-            pp_stack.push_back(new photon_package());
+            pp_stack.push_back(new photon_basic());
             
             ullong last = c_i*(nr_dust_photons+nr_source_photons)+nr_source_photons;
             

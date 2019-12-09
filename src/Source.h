@@ -129,10 +129,10 @@ class CSourceBasic
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, ullong i_pos)
+    virtual void createNextRay(photon_basic * pp, ullong i_pos)
     {}
 
-    virtual void createDirectRay(photon_package * pp, Vector3D dir_obs = Vector3D())
+    virtual void createDirectRay(photon_basic * pp, Vector3D dir_obs = Vector3D())
     {}
 
     virtual ullong getNrOfPhotons()
@@ -148,7 +148,7 @@ class CSourceBasic
     virtual void setOrientation(Vector3D n1, Vector3D n2, double _theta, double _phi)
     {}
 
-    virtual StokesVector getStokesVector(photon_package * pp)
+    virtual StokesVector getStokesVector(photon_basic * pp)
     {
         return StokesVector(0, 0, 0, 0);
     }
@@ -197,8 +197,8 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_basic * pp, ullong i_pos);
+    void createDirectRay(photon_basic * pp, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -304,7 +304,7 @@ class CSourceBackground : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    StokesVector getStokesVector(photon_package * pp);
+    StokesVector getStokesVector(photon_basic * pp);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -444,8 +444,8 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, ullong i_pos);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_basic * pp, ullong i_pos);
+    void createDirectRay(photon_basic * pp, Vector3D dir_obs);
 
   private:
     Vector3D e, l;
@@ -478,8 +478,8 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_basic * pp, ullong i_pos);
+    void createDirectRay(photon_basic * pp, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
     {
@@ -509,8 +509,8 @@ class CSourceLaser : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_basic * pp, ullong i_pos);
+    void createDirectRay(photon_basic * pp, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
     {

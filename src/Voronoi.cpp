@@ -1145,7 +1145,7 @@ void CGridVoronoi::printParameters()
 }
 
 // brute force Voronoi position finder for debug purposes only
-bool CGridVoronoi::positionPhotonInGridTest(photon_package * pp)
+bool CGridVoronoi::positionPhotonInGridTest(photon_basic * pp)
 {
     Vector3D pos = pp->getPosition();
     Vector3D tmp_pos;
@@ -1187,7 +1187,7 @@ bool CGridVoronoi::positionPhotonInGridTest(photon_package * pp)
     return found;
 }
 
-bool CGridVoronoi::positionPhotonInGrid(photon_package * pp)
+bool CGridVoronoi::positionPhotonInGrid(photon_basic * pp)
 {
     Vector3D pos = pp->getPosition();
     double min_l = -0.5 * max_len;
@@ -1220,7 +1220,7 @@ bool CGridVoronoi::positionPhotonInGrid(photon_package * pp)
     return true;
 }
 
-bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
+bool CGridVoronoi::goToNextCellBorder(photon_basic * pp)
 {
     bool hit = false;
 
@@ -1392,7 +1392,7 @@ bool CGridVoronoi::updateShortestDistance(photon_package * pp)
     return found;
 }
 
-bool CGridVoronoi::findStartingPoint(photon_package * pp)
+bool CGridVoronoi::findStartingPoint(photon_basic * pp)
 {
     bool hit = false;
 

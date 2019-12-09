@@ -504,7 +504,7 @@ Matrix2D CGasSpecies::calc_collision_parameter(CGridBasic * grid, cell_basic * c
     return final_col_para;
 }
 
-StokesVector CGasSpecies::calcEmissivities(CGridBasic * grid, photon_package * pp, uint i_line)
+StokesVector CGasSpecies::calcEmissivities(CGridBasic * grid, photon_basic * pp, uint i_line)
 {
     double gauss_a = grid->getGaussA(pp, i_line);
     uint i_trans = getTransition(i_line);
@@ -517,7 +517,7 @@ StokesVector CGasSpecies::calcEmissivities(CGridBasic * grid, photon_package * p
         grid->getLvlPopUpper(pp, i_line) * getEinsteinA(i_trans) * con_eps * gauss_a, 0, 0, 0, alpha_gas);
 }
 
-Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp, uint i_line, double velocity)
+Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_basic * pp, uint i_line, double velocity)
 {
     Matrix2D line_matrix(4, 4);
     double gauss_a = grid->getGaussA(pp, i_line);
@@ -528,7 +528,7 @@ Matrix2D CGasSpecies::getGaussLineMatrix(CGridBasic * grid, photon_package * pp,
 }
 
 Matrix2D CGasSpecies::getZeemanSplittingMatrix(CGridBasic * grid,
-                                               photon_package * pp,
+                                               photon_basic * pp,
                                                uint i_line,
                                                double velocity,
                                                Vector3D mag_field,
