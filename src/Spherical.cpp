@@ -1615,9 +1615,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double tmp_length = -num / den2;
 
-                if(tmp_length >= 0 && tmp_length < min_length)
+                if(tmp_length >= 0 && tmp_length < path_length)
                 {
-                    min_length = tmp_length;
+                    path_length = tmp_length;
                     hit = true;
                     dirID = 5;
                 }

@@ -4241,6 +4241,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                 // Consider the temperature of every dust grain size or an average
                 // temperature
                 if(temp_info == TEMP_FULL)
+                {
                     temp_dust = grid->getDustTemperature(pp, i_density, a);
                     tmp_planck = getTabPlanck(w, temp_dust);
                 }
@@ -4474,8 +4475,8 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
             // Set the Stokes vector of the photon package to 0
             tmp_stokes.clear();
-            pp_res.setStokesVector(tmp_stokes);
-            return pp_res;
+            pp_escape->setStokesVector(tmp_stokes);
+            return;
         }
         else
         {
@@ -4648,7 +4649,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
 
         tmp_stokes->clear();
-        pp->setStokesVector(tmp_stokes);
+        pp->setStokesVector(*tmp_stokes);
 
         return;
     }
@@ -4745,7 +4746,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
             tmp_stokes->clear();
         }
 
-        pp->setStokesVector(tmp_stokes);
+        pp->setStokesVector(*tmp_stokes);
     }
 }
 
