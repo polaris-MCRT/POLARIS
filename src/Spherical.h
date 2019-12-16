@@ -3,9 +3,8 @@
 #include "MathFunctions.h"
 #include "Matrix2D.h"
 #include "Source.h"
+#include "Typedefs.h"
 #include "Vector.h"
-#include "chelper.h"
-#include "typedefs.h"
 
 class CGridSpherical : public CGridBasic
 {
@@ -158,8 +157,6 @@ class CGridSpherical : public CGridBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-
-        turbulent_velocity = 0;
     }
 
     ~CGridSpherical()
@@ -228,10 +225,10 @@ class CGridSpherical : public CGridBasic
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
 
-    Vector3D getCenter(cell_basic * cell)
+    Vector3D getCenter(const cell_basic & cell)const
     {
         Vector3D center;
-        cell_sp * tmp_cell = (cell_sp *)cell;
+        const cell_sp * tmp_cell = (const cell_sp *)&cell;
 
         if(tmp_cell->getRID() == MAX_UINT)
             return center;
@@ -370,9 +367,9 @@ class CGridSpherical : public CGridBasic
         return true;
     }
 
-    double getVolume(cell_basic * cell)
+    double getVolume(const cell_basic & cell) const
     {
-        cell_sp * cell_pos = (cell_sp *)cell;
+        const cell_sp * cell_pos = (const cell_sp *)&cell;
 
         if(cell_pos->getRID() == MAX_UINT)
         {
@@ -391,17 +388,10 @@ class CGridSpherical : public CGridBasic
         return volume;
     }
 
-    double getVolume(photon_package * pp)
+    Vector3D rotateToCenter(const photon_package & pp, Vector3D dir, bool inv, bool phi_only) const
     {
-        cell_basic * cell_pos = pp->getPositionCell();
-
-        return getVolume(cell_pos);
-    }
-
-    Vector3D rotateToCenter(photon_package * pp, Vector3D dir, bool inv, bool phi_only)
-    {
-        cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();
-        Vector3D pos = pp->getPosition().getSphericalCoord();
+        const cell_sp * cell_pos = (const cell_sp *)pp.getPositionCell();
+        Vector3D pos = pp.getPosition().getSphericalCoord();
 
         double phi_center = cell_pos->getRID() == MAX_UINT
                                 ? 0
@@ -520,56 +510,51 @@ class CGridSpherical : public CGridBasic
     cell_sp **** grid_cells;
     cell_sp * center_cell;
 
-    bool isInside(Vector3D & pos, cell_basic * _cell)
-    {
-        cell_sp * cell = (cell_sp *)_cell;
+    // bool isInside(const Vector3D & pos, cell_basic * _cell)
+    // {
+    //     cell_sp * cell = (cell_sp *)_cell;
 
-        if(cell->getRID() == MAX_UINT)
-        {
-            if(pos.sq_length() > Rmin * Rmin)
-                return false;
-        }
+    //     if(cell->getRID() == MAX_UINT)
+    //     {
+    //         if(pos.sq_length() > Rmin * Rmin)
+    //             return false;
+    //     }
 
-        double r1 = listR[cell->getRID()];
-        double r2 = listR[cell->getRID() + 1];
-        double ph1 = listPh[cell->getPhID()];
-        double ph2 = listPh[cell->getPhID() + 1];
-        double th1 = listTh[cell->getThID()];
-        double th2 = listTh[cell->getThID() + 1];
+    //     double r1 = listR[cell->getRID()];
+    //     double r2 = listR[cell->getRID() + 1];
+    //     double ph1 = listPh[cell->getPhID()];
+    //     double ph2 = listPh[cell->getPhID() + 1];
+    //     double th1 = listTh[cell->getThID()];
+    //     double th2 = listTh[cell->getThID() + 1];
 
-        Vector3D tmp_pos = pos.getSphericalCoord();
+    //     Vector3D tmp_pos = pos.getSphericalCoord();
 
-        if(tmp_pos.R() < r1)
-            return false;
+    //     if(tmp_pos.R() < r1)
+    //         return false;
 
-        if(tmp_pos.R() > r2)
-            return false;
+    //     if(tmp_pos.R() > r2)
+    //         return false;
 
-        if(tmp_pos.Phi() < ph1)
-            return false;
+    //     if(tmp_pos.Phi() < ph1)
+    //         return false;
 
-        if(tmp_pos.Phi() > ph2)
-            return false;
+    //     if(tmp_pos.Phi() > ph2)
+    //         return false;
 
-        if(tmp_pos.Theta() < th1)
-            return false;
+    //     if(tmp_pos.Theta() < th1)
+    //         return false;
 
-        if(tmp_pos.Theta() > th2)
-            return false;
+    //     if(tmp_pos.Theta() > th2)
+    //         return false;
 
-        return true;
-    }
+    //     return true;
+    // }
 
-    bool isInside(Vector3D & pos)
+    bool isInside(const Vector3D & pos) const
     {
         if(pos.sq_length() > Rmax * Rmax)
             return false;
 
         return true;
-    }
-
-    bool isInside(photon_package * pp, Vector3D & pos)
-    {
-        return isInside(pos, pp->getPositionCell());
     }
 };

@@ -2,7 +2,7 @@
 #include "CommandParser.h"
 #include "GasSpecies.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits.h>
 #include <limits>
 
@@ -17,8 +17,6 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     min_nrOfNeigbors = uint(1e6);
     max_nrOfNeigbors = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -29,6 +27,8 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
     }
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     max_cells = 0;
 
@@ -202,7 +202,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
         updateDataRange(tmp_cell);
 
         cell_volume += tmp_vol;
-        total_gas_mass += getGasMassDensity(tmp_cell) * tmp_vol;
+        total_gas_mass += getGasMassDensity(*tmp_cell) * tmp_vol;
 
         line_counter++;
     }
@@ -718,13 +718,13 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         if(line_counter % maxGridLines == 0)
             addGNULines(i, tetra_lines);
 
-        cell_vo * tmp_cell_pos = (cell_vo *)cell_list[i];
-        Vector3D c = getCenter(tmp_cell_pos);
+        const cell_vo * tmp_cell_pos = (const cell_vo *)cell_list[i];
+        Vector3D c = getCenter(*tmp_cell_pos);
 
         line_counter++;
 
         double p_size = 1.0;
-        double v_size = 1.0e-2;
+        double v_size = 1e-2;
 
         if(line_counter % nrOfGnuPoints == 0)
         {
@@ -732,7 +732,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
 
             if(plt_gas_dens)
             {
-                double dens = getGasDensity(tmp_cell_pos);
+                double dens = getGasDensity(*tmp_cell_pos);
 
                 if(dens > 0)
                     point_fields[1] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(p_size) << " "
@@ -741,21 +741,21 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
 
             if(plt_gas_temp)
             {
-                double Tg = getGasTemperature(tmp_cell_pos);
+                double Tg = getGasTemperature(*tmp_cell_pos);
                 point_fields[3] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(p_size) << " " << Tg
                                 << "  \n";
             }
 
             if(plt_gas_temp)
             {
-                double Td = getDustTemperature(tmp_cell_pos);
+                double Td = getDustTemperature(*tmp_cell_pos);
                 point_fields[4] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(p_size) << " " << Td
                                 << "  \n";
             }
 
             if(plt_rat)
             {
-                double a_alg = getAlignedRadius(tmp_cell_pos, 0);
+                double a_alg = getAlignedRadius(*tmp_cell_pos, 0);
                 point_fields[5] << c.X() << " " << c.Y() << " " << c.Z() << " " << float(p_size) << " "
                                 << a_alg << "  \n";
             }
@@ -765,9 +765,9 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         {
             if(plt_mag)
             {
-                double mx = getMagField(tmp_cell_pos).X();
-                double my = getMagField(tmp_cell_pos).Y();
-                double mz = getMagField(tmp_cell_pos).Z();
+                double mx = getMagField(*tmp_cell_pos).X();
+                double my = getMagField(*tmp_cell_pos).Y();
+                double mz = getMagField(*tmp_cell_pos).Z();
 
                 double b_len = sqrt(mx * mx + my * my + mz * mz);
 
@@ -785,9 +785,9 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
 
             if(plt_vel)
             {
-                double vx = getVelocityField(tmp_cell_pos).X();
-                double vy = getVelocityField(tmp_cell_pos).Y();
-                double vz = getVelocityField(tmp_cell_pos).Z();
+                double vx = getVelocityField(*tmp_cell_pos).X();
+                double vy = getVelocityField(*tmp_cell_pos).Y();
+                double vz = getVelocityField(*tmp_cell_pos).Z();
 
                 double v_len = sqrt(vx * vx + vy * vy + vz * vz);
 
@@ -1386,7 +1386,7 @@ bool CGridVoronoi::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 

@@ -33,13 +33,19 @@ class CustomStar(StellarSource):
         # Effective temperature of the star [K]
         self.parameter['temperature'] = 4000
         # Radius of the star [R_sun] or luminosity [L_sun]
-        self.parameter['radius'] = 2.0
+        self.parameter['radius'] = 2.0 * self.math.const['R_sun']
         # Number of photons if no number is chosen via --photons
         self.parameter['nr_photons'] = 1e6
         # Can the velocity field be calculated by only this star in the center?
         self.parameter['kepler_usable'] = True
         # Mass of the star [M_sun] (for Keplerian rotation)
-        self.parameter['mass'] = 0.7
+        self.parameter['mass'] = 0.7 * self.math.const['M_sun']
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set radiation source parameter with the extra parameters and update
+        radiation source parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the radiation source without changing the source.py file
 
     def get_command(self):
         """Provides radiation source command line for POLARIS .cmd file.
@@ -50,10 +56,10 @@ class CustomStar(StellarSource):
         '''To add multiple stars, use the following:
         new_command_line = str()
         self.parameter['temperature'] = 8000
-        self.parameter['radius'] = 4.0
+        self.parameter['radius'] = 4.0 * self.math.const['R_sun']
         new_command_line += self.get_command_line()
         self.parameter['temperature'] = 5000
-        self.parameter['radius'] = 3.0
+        self.parameter['radius'] = 3.0 * self.math.const['R_sun']
         new_command_line += self.get_command_line()
         return new_command_line
         '''

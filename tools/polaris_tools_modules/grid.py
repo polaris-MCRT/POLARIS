@@ -868,7 +868,7 @@ class OcTree(Grid):
             if len(is_leaf) == 0:
                 break
             is_leaf = struct.unpack('H', is_leaf)[0]
-            if is_leaf:
+            if is_leaf == 1:
                 self.read_write_node_data(
                     tmp_file=tmp_file, grid_file=grid_file)
 

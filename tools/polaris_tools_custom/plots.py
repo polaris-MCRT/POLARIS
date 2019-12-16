@@ -56,7 +56,8 @@ class CustomPlots:
                                                           header['nr_channels'], header['max_velocity']))
         for i_quantity in range(4):
             # Create Matplotlib figure
-            plot = Plot(self.model, self.parse_args, xlabel=r'$\mathit{v}\ [\si{\kilo\metre\per\second}]$',
+            plot = Plot(self.model, self.parse_args,
+                        xlabel=r'$\mathit{v}\ [\si{\kilo\metre\per\second}]$',
                         ylabel=self.file_io.get_quantity_labels(i_quantity),
                         extent=[velocity[0], velocity[-1], None, None], with_cbar=False)
             # Plot spectrum as line

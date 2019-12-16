@@ -1,25 +1,24 @@
 .idea/
 .vscode/
+**/.vscode
 .dep.inc
 .dirstamp
 
-autom4te.cache/
-CCfits/
-cfitsio/
 projects
 nbproject/
 testing/
 
 .tags
-callgrind.out*
-cachegrind.out*
-Makefile
-polaris.run
-/build/
 
-CMakeCache.txt
-cmake_install.cmake
-CMakeFiles/
-tools/install_manifest.txt
-install_manifest.txt
-create_polaris_installer.sh
+tools/scripts/*
+**/Makefile
+lib/CCfits
+lib/cfitsio
+lib/python*
+
+src/build/
+src/polaris
+bin/*
+
+**/*.bak
+examples* 

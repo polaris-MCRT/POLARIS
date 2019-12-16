@@ -221,7 +221,7 @@ class Disk(Model):
                                                      alpha=self.parameter['alpha'], beta=self.parameter['beta'])
         return gas_density
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -259,7 +259,7 @@ class Sphere(Model):
         self.parameter['radiation_source'] = 't_tauri'
         self.parameter['dust_composition'] = 'mrn'
         self.parameter['detector'] = 'cartesian'
-        self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
+        self.tmp_parameter['mag_field_geometry'] = 'toroidal'
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -267,9 +267,9 @@ class Sphere(Model):
         Returns:
             float: Gas density at a given position.
         """
-        gas_density = self.math.sphere_density(self.position,
-                                               outer_radius=self.parameter['outer_radius'],
-                                               inner_radius=self.parameter['inner_radius'])
+        gas_density = self.math.const_sphere_density(self.position,
+                                                     outer_radius=self.parameter['outer_radius'],
+                                                     inner_radius=self.parameter['inner_radius'])
         return gas_density
 
     def magnetic_field(self):
@@ -278,15 +278,27 @@ class Sphere(Model):
         Returns:
             List[float, float, float]: Magnetic field strength at a given position.
         """
-        if self.tmp_parameter['mag_field_geometrie'] == 'toroidal':
+        if self.tmp_parameter['mag_field_geometry'] == 'toroidal':
             magnetic_field = self.math.toroidal_mag_field(
                 self.position, mag_field_strength=1e-10)
-        elif self.tmp_parameter['mag_field_geometrie'] == 'vertical':
+        elif self.tmp_parameter['mag_field_geometry'] == 'vertical':
             magnetic_field = self.math.simple_mag_field(
                 mag_field_strength=1e-10, axis='z')
+        elif self.tmp_parameter['mag_field_geometry'] == 'radial':
+            magnetic_field = self.math.radial_mag_field(
+                mag_field_strength=1e-10, position=self.position)
         else:
             magnetic_field = [0, 0, 0]
         return magnetic_field
+
+    def gas_temperature(self):
+        """Calculates the gas temperature at a given position.
+
+        Returns:
+            float: Gas temperature at a given position.
+        """
+        gas_temperature = 10
+        return gas_temperature
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
@@ -295,13 +307,17 @@ class Sphere(Model):
         if extra_parameter is not None:
             if len(extra_parameter) == 1:
                 if extra_parameter[0] == 'toroidal_mag_field':
-                    self.tmp_parameter['mag_field_geometrie'] = 'toroidal'
+                    self.tmp_parameter['mag_field_geometry'] = 'toroidal'
                     print(
                         'HINT: The toroidal magnetic field is used (change with --extra)!')
                 elif extra_parameter[0] == 'vertical_mag_field':
-                    self.tmp_parameter['mag_field_geometrie'] = 'vertical'
+                    self.tmp_parameter['mag_field_geometry'] = 'vertical'
                     print(
                         'HINT: The vertical magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'radial_mag_field':
+                    self.tmp_parameter['mag_field_geometry'] = 'radial'
+                    print(
+                        'HINT: The radial magnetic field is used (change with --extra)!')
 
 
 class BokGlobule(Model):

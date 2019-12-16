@@ -1025,10 +1025,10 @@ class FileIO:
             the data (tokes I, Q, ...) and 2 dimensions for the pixel coordinates.
             2) Dictionary with information of the file header.
         """
-        if os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits'):
+        if os.path.isfile(self.path['results'] + filename + '_extra.fits'):
             # Load data and header from extra data fits if available
             extension_extra = '_extra.fits'
-        elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits.gz'):
+        elif os.path.isfile(self.path['results'] + filename + '_extra.fits.gz'):
             # Load data and header from extra data fits if available
             extension_extra = '_extra.fits.gz'
         else:
@@ -1044,9 +1044,9 @@ class FileIO:
             arcsec_squared_per_pixel = 4 * np.pi * \
                 (180 / np.pi * 60 * 60) ** 2 / header['nr_pixel_x']
             #: List: Load the velocity channels into a list
-            if os.path.isfile(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits'):
+            if os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits'):
                 extension = '.fits'
-            elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits.gz'):
+            elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits.gz'):
                 extension = '.fits.gz'
             else:
                 raise ValueError('Error: The chosen fits file ' +
@@ -1082,8 +1082,15 @@ class FileIO:
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
                 (2. *
                  self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+            if os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits'):
+                extension = '.fits'
+            elif os.path.isfile(self.path['results'] + filename + '_vel_' + str(1).zfill(4) + '.fits.gz'):
+                extension = '.fits.gz'
+            else:
+                raise ValueError('Error: The chosen fits file ' +
+                                 filename + ' does not exist!')
             #: List: Load the velocity channels into a list
-            hdulist_list = [fits.open(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + '.fits')
+            hdulist_list = [fits.open(self.path['results'] + filename + '_vel_' + str(vch + 1).zfill(4) + extension)
                             for vch in range(0, header['nr_channels'])]
             #: Numpy array for the vel_map data
             tbldata = np.zeros(
@@ -1163,8 +1170,7 @@ class FileIO:
             tbldata = np.transpose(hdulist[0].data, (0, 2, 1))
             #: Amount of arcseconds per pixel to convert flux from Jy/pixel into Jy/arcsec^2
             arcsec_squared_per_pixel = (2. * self.model.tmp_parameter['radius_x_arcsec'] / header['nr_pixel_x']) * \
-                (2. *
-                 self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
+                (2. * self.model.tmp_parameter['radius_y_arcsec'] / header['nr_pixel_y'])
             if self.cmap_unit == 'total' or self.cmap_unit == 'px':
                 pass
             else:

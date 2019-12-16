@@ -2,7 +2,7 @@
 #include "Faddeeva.hh"
 #include "Matrix2D.h"
 #include "Stokes.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <complex>
 #include <limits>
 
@@ -60,7 +60,7 @@ class spline
             delete[] y;
     }
 
-    uint size()
+    uint size() const
     {
         return N + 1;
     }
@@ -181,7 +181,7 @@ class spline
                 y[i] += spline2.getValue(x[i]);
     }
 
-    double f(double x)
+    double f(double x) const
     {
         return x * x * x - x;
     }
@@ -322,13 +322,13 @@ class spline
         return y[N];
     }
 
-    double getLinear(uint i, double v)
+    double getLinear(uint i, double v) const
     {
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
 
-    double getValue(double v, uint extrapolation = SPLINE)
+    double getValue(double v, uint extrapolation = SPLINE) const
     {
         uint min = 0, max = N;
 
@@ -482,7 +482,7 @@ class spline
         return min;
     }
 
-    uint getYIndex(double v)
+    uint getYIndex(double v) const
     {
         uint min = 0, max = N;
 
@@ -501,7 +501,7 @@ class spline
         return min;
     }
 
-    double getValue(uint i)
+    double getValue(uint i) const
     {
         if(i < 0 || i > N)
             return 0;
@@ -527,52 +527,25 @@ class interp
     interp()
     {
         N = 0;
-        x = 0;
-        y = 0;
     }
 
     interp(uint size)
     {
         N = size - 1;
-        x = new double[size];
-        y = new double[size];
-
-        for(uint i = 0; i < size; i++)
-        {
-            x[i] = 0;
-            y[i] = 0;
-        }
+        x.resize(size);
+        y.resize(size);
     }
 
-    ~interp()
-    {
-        if(x != 0)
-            delete[] x;
-        if(y != 0)
-            delete[] y;
-    }
-
-    uint size()
+    uint size() const
     {
         return N + 1;
     }
 
     void resize(uint size)
     {
-        if(x != 0)
-            delete[] x;
-        if(y != 0)
-            delete[] y;
-
         N = size - 1;
-        x = new double[size];
-        y = new double[size];
-
-        for(uint i = 0; i < size; i++)
-        {
-            x[i] = 0;
-            y[i] = 0;
-        }
+        x.resize(size);
+        y.resize(size);
     }
 
     void setValue(uint pos, double _x, double _y)
@@ -588,66 +561,66 @@ class interp
         y[pos] = _y;
     }
 
-    double getLinear(uint i, double v)
+    void addValue(double _x, double _y)
+    {
+        x.push_back(_x);
+        y.push_back(_y);
+    }
+
+    double getLinear(uint i, double v) const
     {
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
 
-    double getValue(double v, uint interpolation = LINEAR)
+    double getValue(double v, uint interpolation = LINEAR) const
     {
         uint min = 0, max = N;
-
-        if(x == 0)
-            return 0;
 
         if(min == max)
             return y[0];
 
-        if(x != 0)
-        {
-            if(v < x[0])
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[0];
-                        break;
-
-                    case LINEAR:
-                        return getLinear(0, v);
-                        break;
-                }
-            else if(v > x[N])
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[N];
-                        break;
-
-                    case LINEAR:
-                        return getLinear(N - 1, v);
-                        break;
-                }
-            else
+        if(v < x[0])
+            switch(interpolation)
             {
-                while(max - min > 1)
-                {
-                    uint i = min + (max - min) / 2;
-                    if(x[i] >= v)
-                        max = i;
-                    else
-                        min = i;
-                }
-                switch(interpolation)
-                {
-                    case CONST:
-                        return y[max];
-                        break;
+                case CONST:
+                    return y[0];
+                    break;
 
-                    case LINEAR:
-                        return getLinear(min, v);
-                        break;
-                }
+                case LINEAR:
+                    return getLinear(0, v);
+                    break;
+            }
+        else if(v > x[N])
+            switch(interpolation)
+            {
+                case CONST:
+                    return y[N];
+                    break;
+
+                case LINEAR:
+                    return getLinear(N - 1, v);
+                    break;
+            }
+        else
+        {
+            while(max - min > 1)
+            {
+                uint i = min + (max - min) / 2;
+                if(x[i] >= v)
+                    max = i;
+                else
+                    min = i;
+            }
+            switch(interpolation)
+            {
+                case CONST:
+                    return y[max];
+                    break;
+
+                case LINEAR:
+                    return getLinear(min, v);
+                    break;
             }
         }
 
@@ -656,8 +629,8 @@ class interp
 
   private:
     uint N;
-    double * x;
-    double * y;
+    dlist x;
+    dlist y;
 };
 
 class prob_list
@@ -1179,7 +1152,7 @@ class CMathFunctions
         return MAX_UINT;
     }
 
-    static inline uint biListIndexSearch(double val, dlist & list)
+    static inline uint biListIndexSearch(double val, const dlist & list)
     {
         uint N = uint(list.size());
         uint min = 0, max = N - 1;
@@ -1199,7 +1172,7 @@ class CMathFunctions
         return min;
     }
 
-    static inline uint biListIndexSearchRec(double val, dlist & list)
+    static inline uint biListIndexSearchRec(double val, const dlist & list)
     {
         uint N = uint(list.size());
         uint min = 0, max = N - 1;
@@ -1366,11 +1339,12 @@ class CMathFunctions
         Vector3D velo;
 
         double r = sqrt(pos.X() * pos.X() + pos.Y() * pos.Y());
-        double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
-
-        velo.setX(-1.0 * pos.Y() / r * kep_const);
-        velo.setY(pos.X() / r * kep_const);
-        velo.setZ(0.0);
+        if(r > 0)
+        {
+            double kep_const = sqrt(con_G * stellar_mass * M_sun / r);
+            velo.setX(-1.0 * pos.Y() / r * kep_const);
+            velo.setY(pos.X() / r * kep_const);
+        }
 
         return velo;
     }
@@ -1503,7 +1477,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist x, double * y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, double * y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
@@ -1528,7 +1502,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist & x, dlist & y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, const dlist & y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
@@ -1538,7 +1512,7 @@ class CMathFunctions
         return res;
     }
 
-    static inline double integ(dlist & x, uilist & y, uint xlow, uint xup)
+    static inline double integ(const dlist & x, const uilist & y, uint xlow, uint xup)
     {
         double res = 0;
         if(xlow != xup)
@@ -1883,6 +1857,22 @@ class CMathFunctions
         list[N - 1] = stop;
     }
 
+    static inline dlist LinearList(double start, double stop, uint N)
+    {
+        dlist list(N);
+
+        double dx = (stop - start) / (N - 1);
+
+        list[0] = start;
+
+        for(uint i_x = 1; i_x < N - 1; i_x++)
+            list[i_x] = start + i_x * dx;
+
+        list[N - 1] = stop;
+
+        return list;
+    }
+
     static inline void ExpList(double start, double stop, double * list, uint N, double base)
     {
         if(N == 1)
@@ -2080,7 +2070,9 @@ class CMathFunctions
         return D;
     }
 
-    static inline double getRotationAngleObserver(Vector3D obs_ex, Vector3D photon_ex, Vector3D photon_ey)
+    static inline double getRotationAngleObserver(const Vector3D & obs_ex,
+                                                  const Vector3D & photon_ex,
+                                                  const Vector3D & photon_ey)
     {
         double cos_angle_1 = obs_ex * photon_ey;
         double cos_angle_2 = obs_ex * photon_ex;
@@ -2088,145 +2080,102 @@ class CMathFunctions
         return atan3(cos_angle_1, cos_angle_2);
     }
 
-    static inline void getDetCoordSystem(Vector3D n1,
-                                         Vector3D n2,
-                                         double rot_angle1,
-                                         double rot_angle2,
-                                         Vector3D & ex,
-                                         Vector3D & ey,
-                                         Vector3D & ez)
+    static inline void getPropMatrixAPi(double cos_theta,
+                                        double sin_theta,
+                                        double cos_2_phi,
+                                        double sin_2_phi,
+                                        double mult,
+                                        Matrix2D * propMatrix)
     {
-        ex.set(1, 0, 0);
-        ey.set(0, 1, 0);
-        ez.set(0, 0, 1);
-
-        double cos_a = cos(rot_angle1);
-        double sin_a = sin(rot_angle1);
-
-        ex.rot(n1, cos_a, sin_a);
-        ey.rot(n1, cos_a, sin_a);
-        ez.rot(n1, cos_a, sin_a);
-
-        cos_a = cos(rot_angle2);
-        sin_a = sin(rot_angle2);
-
-        ex.rot(n2, cos_a, sin_a);
-        ey.rot(n2, cos_a, sin_a);
-        ez.rot(n2, cos_a, sin_a);
-
-        ex.normalize();
-        ey.normalize();
-        ez.normalize();
+        propMatrix->addValue(0, 0, sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 3, sin_theta * sin_theta * mult);
     }
 
-    static inline Matrix2D getPropMatrixASigmaP(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 3, -2 * cos_theta * mult);
-        propMatrix.addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(3, 0, -2 * cos_theta * mult);
-        propMatrix.addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixASigmaM(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 3, +2 * cos_theta * mult);
-        propMatrix.addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
-        propMatrix.addValue(3, 0, +2 * cos_theta * mult);
-        propMatrix.addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixAPi(double cos_theta,
+    static inline void getPropMatrixBSigmaP(double cos_theta,
                                             double sin_theta,
                                             double cos_2_phi,
                                             double sin_2_phi,
-                                            double mult)
+                                            double mult,
+                                            Matrix2D * propMatrix)
     {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(0, 0, sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 1, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(0, 2, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 0, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(1, 1, sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 0, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 2, sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 3, sin_theta * sin_theta * mult);
-
-        return propMatrix;
+        propMatrix->addValue(1, 2, -2 * cos_theta * mult);
+        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 1, +2 * cos_theta * mult);
+        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
     }
 
-    static inline Matrix2D getPropMatrixBSigmaP(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 2, -2 * cos_theta * mult);
-        propMatrix.addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 1, +2 * cos_theta * mult);
-        propMatrix.addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixBSigmaM(double cos_theta,
-                                                double sin_theta,
-                                                double cos_2_phi,
-                                                double sin_2_phi,
-                                                double mult)
-    {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 2, +2 * cos_theta * mult);
-        propMatrix.addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 1, -2 * cos_theta * mult);
-        propMatrix.addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
-
-        return propMatrix;
-    }
-
-    static inline Matrix2D getPropMatrixBPi(double cos_theta,
+    static inline void getPropMatrixASigmaP(double cos_theta,
                                             double sin_theta,
                                             double cos_2_phi,
                                             double sin_2_phi,
-                                            double mult)
+                                            double mult,
+                                            Matrix2D * propMatrix)
     {
-        Matrix2D propMatrix(4, 4);
-        propMatrix.addValue(1, 3, -sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(2, 3, cos_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 1, sin_2_phi * sin_theta * sin_theta * mult);
-        propMatrix.addValue(3, 2, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 3, -2 * cos_theta * mult);
+        propMatrix->addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(3, 0, -2 * cos_theta * mult);
+        propMatrix->addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
+    }
 
-        return propMatrix;
+    static inline void getPropMatrixASigmaM(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult,
+                                            Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(0, 0, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(0, 1, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 2, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(0, 3, +2 * cos_theta * mult);
+        propMatrix->addValue(1, 0, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(1, 1, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(2, 0, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 2, (1 + cos_theta * cos_theta) * mult);
+        propMatrix->addValue(3, 0, +2 * cos_theta * mult);
+        propMatrix->addValue(3, 3, (1 + cos_theta * cos_theta) * mult);
+    }
+
+    static inline void getPropMatrixBSigmaM(double cos_theta,
+                                            double sin_theta,
+                                            double cos_2_phi,
+                                            double sin_2_phi,
+                                            double mult,
+                                            Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 2, +2 * cos_theta * mult);
+        propMatrix->addValue(1, 3, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 1, -2 * cos_theta * mult);
+        propMatrix->addValue(2, 3, -cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, cos_2_phi * sin_theta * sin_theta * mult);
+    }
+
+    static inline void getPropMatrixBPi(double cos_theta,
+                                        double sin_theta,
+                                        double cos_2_phi,
+                                        double sin_2_phi,
+                                        double mult,
+                                        Matrix2D * propMatrix)
+    {
+        propMatrix->addValue(1, 3, -sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(2, 3, cos_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 1, sin_2_phi * sin_theta * sin_theta * mult);
+        propMatrix->addValue(3, 2, -cos_2_phi * sin_theta * sin_theta * mult);
     }
 
     static inline Vector3D interpVector(Vector3D y_1, Vector3D y_2, double x_1, double x_2)
@@ -2241,15 +2190,15 @@ class CMathFunctions
 
         double freq = con_c / wavelength;             // [s^-1]
         double L = intensity * con_c / (freq * freq); // [W Hz^-1 sr^-1]
-        return L * 1.0e+26 / (distance * distance);   // [Jy]
+        return L * 1e+26 / (distance * distance);     // [Jy]
     }
 
-    static inline void lum2Jy(class StokesVector & S, double wavelength, double distance)
+    static inline void lum2Jy(StokesVector * S, double wavelength, double distance)
     {
-        S.setI(lum2Jy(S.I(), wavelength, distance));
-        S.setQ(lum2Jy(S.Q(), wavelength, distance));
-        S.setU(lum2Jy(S.U(), wavelength, distance));
-        S.setV(lum2Jy(S.V(), wavelength, distance));
+        S->setI(lum2Jy(S->I(), wavelength, distance));
+        S->setQ(lum2Jy(S->Q(), wavelength, distance));
+        S->setU(lum2Jy(S->U(), wavelength, distance));
+        S->setV(lum2Jy(S->V(), wavelength, distance));
     }
 
     static inline uint findListIndex(double * list, uint l_limit, uint h_limit, double val)

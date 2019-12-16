@@ -180,6 +180,8 @@ dust_args.add_argument('--fhj', dest='f_highj', default=None, type=float,
                        help='define f_highJ parameter.\n')
 dust_args.add_argument('--fc', dest='f_c', default=None, type=float,
                        help='define f_c parameter.\n')
+dust_args.add_argument('--split_dust_emission', dest='split_dust_emission', default=False, action='store_true',
+                       help='Add entries to fits output file to distinguish thermal emission from scattering.')
 
 gas_args = parser.add_argument_group('gas component')
 gas_args.add_argument('--gas', dest='gas_species', default=None,

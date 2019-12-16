@@ -2623,6 +2623,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<Q_ref>") == 0)
+    {
+        param->setQref(atof(data.c_str()));
+        return true;
+    }
+
+    if(cmd.compare("<alpha_Q>") == 0)
+    {
+        param->setAlphaQ(atof(data.c_str()));
+        return true;
+    }
+
     if(cmd.compare("<f_c>") == 0)
     {
         param->setFcorr(atof(data.c_str()));
@@ -2784,6 +2796,16 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->setScatteringToRay(true);
         else
             param->setScatteringToRay(false);
+
+        return true;
+    }
+
+    if(cmd.compare("<split_dust_emission>") == 0)
+    {
+        if(atob(atoi(data.c_str())))
+            param->setSplitDustEmission(true);
+        else
+            param->setSplitDustEmission(false);
 
         return true;
     }
@@ -3081,6 +3103,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<turbulent_velocity>") == 0)
     {
         param->setTurbulentVelocity(atof(data.c_str()));
+        return true;
+    }
+
+    if(cmd.compare("<mc_lvl_pop_photons>") == 0)
+    {
+        param->setMCLvlPopNrOfPhotons(uint(atof(data.c_str())));
+        return true;
+    }
+
+    if(cmd.compare("<mc_lvl_pop_seed>") == 0)
+    {
+        param->setMCLvlPopSeed(uint(atof(data.c_str())));
         return true;
     }
 

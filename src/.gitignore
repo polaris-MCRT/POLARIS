@@ -1,6 +1,7 @@
 *.o
--*
 
+.directory
+.clang-format
 .deps
 .tags*
 *.bak
@@ -8,6 +9,4 @@
 polaris
 Makefile
 
-
-
-
+/build/

@@ -1145,6 +1145,19 @@ class Math:
         return g_f
 
     @staticmethod
+    def lande_g_co(n, j):
+        """Calculates the lande g-factor for CO.
+
+        Args:
+            n (float): Quantum number of the total orbital angular momentum.
+            j (float): Quantum number of the effective angular momentum.
+
+        Returns:
+            Float: Lande g-factor of the chosen hyperfine sublevel.
+        """
+        return 0
+
+    @staticmethod
     def lande_g_so(n, j):
         """Calculates the lande g-factor for SO.
 
@@ -1277,7 +1290,7 @@ class Math:
 
     @staticmethod
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
-                             ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tappered_gamma=None,
+                             ref_radius=100. * 149597870700.0, alpha=2.625, beta=1.125, tapered_gamma=None,
                              column_dens_exp=None, real_zero=True):
         """Shakura and Sunyaev disk density profile.
 
@@ -1290,6 +1303,7 @@ class Math:
             alpha (float): Exponent for radial density decrease.
             beta (float): Exponent for disk flaring.
             column_dens_exp (float): If set, calculate alpha from the surface density exponent.
+                (Defined positively)
             real_zero (bool): No minimum value for the density.
 
         Returns:
@@ -1299,7 +1313,7 @@ class Math:
         radius_cy = np.sqrt(position[0] ** 2 + position[1] ** 2)
         if outer_radius >= radius_cy >= inner_radius:
             if column_dens_exp is not None:
-                alpha = beta - column_dens_exp
+                alpha = beta + column_dens_exp
             #: float: Vertical height
             vert_height = abs(position[2])
             #: float: Vertical scale height
@@ -1310,9 +1324,9 @@ class Math:
         else:
             density = 0.
 
-        if tappered_gamma is not None:
+        if tapered_gamma is not None:
             density *= np.exp(-(radius_cy / ref_radius)
-                              ** (2 + tappered_gamma))
+                              ** (2 - tapered_gamma))
         if not real_zero:
             density = max(density, 1e-200)
 
@@ -1336,7 +1350,7 @@ class Math:
         return scale_height
 
     @staticmethod
-    def sphere_density(position, outer_radius, inner_radius=None):
+    def const_sphere_density(position, outer_radius, inner_radius=None):
         """Density profile with a sphere of constant density.
 
         Args:
@@ -1409,6 +1423,7 @@ class Math:
         Args:
             mag_field_strength (float): Amplitude of the magnetic field strength.
             axis (str): Axis name of the magnetic field direction.
+                [x, y, z]
             random_variations (bool): Instead of a constant magnetic field strength,
                 the field strength is randomly chosen between rnd_b_min and mag_field_strength.
             rnd_b_min (float): Minimum magnetic field strength for random_variations.
@@ -1417,7 +1432,7 @@ class Math:
             List[float, float, float]: Magnetic field strength at any position.
         """
         #: List: Magnetic field strength
-        mag = [0., 0., 0.]
+        mag = np.array([0., 0., 0.])
         if random_variations:
             mag_field_strength = rnd_b_min + \
                 np.random.random() * (mag_field_strength - rnd_b_min)
@@ -1431,6 +1446,22 @@ class Math:
             raise ValueError(
                 'Chosen axis direction for the magnetic field strength is not valid!')
         return mag
+
+    @staticmethod
+    def radial_mag_field(mag_field_strength, position):
+        """Magnetic field pointing in one direction.
+
+        Args:
+            mag_field_strength (float): Amplitude of the magnetic field strength.
+            position ([float, float, float]): Position in the grid
+
+        Returns:
+            List[float, float, float]: Magnetic field strength at any position.
+        """
+        #: List: Magnetic field strength
+        if np.linalg.norm(position) == 0:
+            return np.zeros(3)
+        return np.ones(3) * mag_field_strength * position[:] / np.linalg.norm(position)
 
     @staticmethod
     def disturbed_mag_field(mag_field_strength, main_axis='z', rel_strength=0.1):

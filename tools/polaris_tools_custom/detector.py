@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
 from polaris_tools_modules.base import Detector
+
 
 """Add your defined classes to this dictionary with a unique name
  to use it with PolarisTools.
@@ -31,7 +33,7 @@ class CustomDetector(Detector):
         self.parameter['wavelength_min'] = 1e-6
         # Last wavelength of the observing wavelengths
         self.parameter['wavelength_max'] = 1e-6
-        # Number of logaritmically distributed wavelengths
+        # Number of logarithmically distributed wavelengths
         # between wavelength_min and wavelength_max
         self.parameter['nr_of_wavelength'] = 1
         # Rotation angle around the first rotation axis

@@ -780,7 +780,7 @@ class Model:
         Returns:
             float: Width between two cell borders.
         """
-        return 10. * self.scale_height(radius) / self.cylindrical_parameter['n_z']
+        return 10. * self.get_scale_height(radius) / self.cylindrical_parameter['n_z']
 
     def adjust_extent(self, sidelength_x, sidelength_y):
         """Adjust the extent of the model.
@@ -853,7 +853,7 @@ class Model:
             Possible options:
                 gas_density = 1.
                 gas_density = self.math.shakura_disk(self.position)
-                gas_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                gas_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 gas_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -868,7 +868,7 @@ class Model:
             Possible options:
                 dust_density = 1.
                 dust_density = self.math.shakura_disk(self.position)
-                dust_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                dust_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 dust_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -943,7 +943,7 @@ class Model:
         """
         return None
 
-    def scale_height(self, radius):
+    def get_scale_height(self, radius):
         """Calculates the scale height at a certain position.
 
         Args:
@@ -1376,7 +1376,7 @@ class ExternalInput:
             Possible options:
                 gas_density = 1.
                 gas_density = self.math.shakura_disk(self.position)
-                gas_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                gas_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 gas_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:
@@ -1391,7 +1391,7 @@ class ExternalInput:
             Possible options:
                 dust_density = 1.
                 dust_density = self.math.shakura_disk(self.position)
-                dust_density = self.math.sphere_density(self.position,inner_radius, outer_radius)
+                dust_density = self.math.const_sphere_density(self.position,inner_radius, outer_radius)
                 dust_density = self.math.bonor_ebert_density(self.position, outer_radius, truncation_radius)
 
         Returns:

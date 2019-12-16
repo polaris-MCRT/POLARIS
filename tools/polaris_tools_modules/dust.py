@@ -438,7 +438,8 @@ class Themis(Dust):
         """
         new_command_line = str()
         dust = self.dust_chooser.get_module_from_name('CM20')
-        dust.parameter['fraction'] = 0.229
+        dust.parameter['choice_id'] = 0
+        #dust.parameter['fraction'] = 0.229
         # If more than the fraction is changed, overwrite parameter with user input
         self.dust_chooser.update_user_parameters(dust)
         new_command_line += dust.get_command_line()
@@ -447,15 +448,18 @@ class Themis(Dust):
         dust.parameter['size_keyword'] = 'logn'
         dust.parameter['size_parameter'] = [7e-9, 1.0]
         dust.parameter['amin'] = 0.5e-9
-        dust.parameter['fraction'] = 0.085
+        dust.parameter['choice_id'] = 1
+        #dust.parameter['fraction'] = 0.085
         # If more than the fraction is changed, overwrite parameter with user input
         self.dust_chooser.update_user_parameters(dust)
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('aPyM5')
-        dust.parameter['fraction'] = 0.343
+        dust.parameter['choice_id'] = 2
+        #dust.parameter['fraction'] = 0.343
         new_command_line += dust.get_command_line()
         dust = self.dust_chooser.get_module_from_name('aOlM5')
-        dust.parameter['fraction'] = 0.343
+        dust.parameter['choice_id'] = 3
+        #dust.parameter['fraction'] = 0.343
         new_command_line += dust.get_command_line()
         return new_command_line
 

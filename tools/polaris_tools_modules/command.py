@@ -382,6 +382,10 @@ class CmdPolaris:
             cmd_file.write('\t<stochastic_heating>\t' +
                            str(self.parse_args.temp_a_max) + '\n')
             cmd_file.write('\n')
+        if self.parse_args.split_dust_emission is not None:
+            cmd_file.write('\t<split_dust_emission>\t' +
+                           str(int(self.parse_args.split_dust_emission)) + '\n')
+            cmd_file.write('\n')
         cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
         cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
         cmd_file.write('\t<conv_mag>\t\t' + str(conv_mag) + '\n')

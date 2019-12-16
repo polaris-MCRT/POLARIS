@@ -1,5 +1,5 @@
 #include "Matrix2D.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CVECTOR3D
 #define CVECTOR3D
@@ -24,7 +24,7 @@ class Vector3D
     ~Vector3D(void)
     {}
 
-    void printValues()
+    void printValues() const
     {
         cout << "(" << float(x) << ":" << float(y) << ":" << float(z) << ")";
     }
@@ -109,7 +109,7 @@ class Vector3D
         return tmp;
     }
 
-    void rot(Vector3D & n, double cos_a, double sin_a)
+    void rot(const Vector3D & n, double cos_a, double sin_a)
     {
         Vector3D cx(x, y, z);
         Vector3D cr = cross(n, cx);
@@ -186,7 +186,7 @@ class Vector3D
         y = r * sin(ph);
     }
 
-    Vector3D getSphericalCoord()
+    Vector3D getSphericalCoord() const
     {
         double r = sqrt(x * x + y * y + z * z);
 
@@ -204,7 +204,7 @@ class Vector3D
         return Vector3D(r, ph, th);
     }
 
-    Vector3D getCylindricalCoord()
+    Vector3D getCylindricalCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return Vector3D(0, 0, 0);
@@ -218,7 +218,7 @@ class Vector3D
         return Vector3D(r, ph, z);
     }
 
-    double getPhiCoord()
+    double getPhiCoord() const
     {
         if(x * x + y * y + z * z == 0)
             return 0;
@@ -267,12 +267,12 @@ class Vector3D
         return Vector3D(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx);
     }
 
-    Vector3D operator+(const Vector3D & rhs)
+    Vector3D operator+(const Vector3D & rhs) const
     {
         return Vector3D(x + rhs.X(), y + rhs.Y(), z + rhs.Z());
     }
 
-    Vector3D operator-(const Vector3D & rhs)
+    Vector3D operator-(const Vector3D & rhs) const
     {
         return Vector3D(x - rhs.X(), y - rhs.Y(), z - rhs.Z());
     }
@@ -570,7 +570,7 @@ double atan3(double x, double y)
 // inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return
 // Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};
 
-inline Vector3D operator*(double val, const Vector3D & rhs)
+inline const Vector3D operator*(double val, const Vector3D & rhs)
 {
     return Vector3D(rhs.X() * val, rhs.Y() * val, rhs.Z() * val);
 }
@@ -621,7 +621,7 @@ double getAngleTheta(Vector3D lhs, Vector3D rhs)
     //	/(lhs.length()*rhs.length()) ));
 }
 
-Vector3D projection(Vector3D v, Vector3D w)
+Vector3D projection(const Vector3D & v, const Vector3D & w)
 {
     double tmp = w.sq_length();
     tmp = (v * w) / tmp;
@@ -630,7 +630,7 @@ Vector3D projection(Vector3D v, Vector3D w)
     return res;
 }
 
-double getAnglePhi(Vector3D ex, Vector3D ey, Vector3D proj)
+double getAnglePhi(const Vector3D & ex, const Vector3D & ey, const Vector3D & proj)
 {
     Vector3D px, py;
     double lx, ly, sx, sy;
@@ -705,7 +705,6 @@ double rot_sgn(Vector3D n, Vector3D o_d, Vector3D n_d)
 
     return 0;
 }
-
-}
+};
 
 #endif

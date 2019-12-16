@@ -4,8 +4,7 @@
 #include "Dust.h"
 #include "GasSpecies.h"
 #include "Source.h"
-#include "chelper.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #ifndef CPIPELINE
 #define CPIPELINE

@@ -1,7 +1,7 @@
 #include "OcTree.h"
 #include "CommandParser.h"
 #include "MathFunctions.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <limits>
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)
@@ -106,7 +106,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
 {
     if(cell->getChildren() == 0)
     {
-        Vector3D c = getCenter(cell);
+        Vector3D c = getCenter(*cell);
         float x = float(c.X());
         float y = float(c.Y());
         float z = float(c.Z());
@@ -128,27 +128,27 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
                 if(plt_gas_dens)
                     file_streams[1] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getGasDensity(cell))) << endl;
+                                    << float(log10(getGasDensity(*cell))) << endl;
 
                 if(plt_dust_dens)
                     file_streams[2] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getDustDensity(cell))) << endl;
+                                    << float(log10(getDustDensity(*cell))) << endl;
 
                 if(plt_gas_temp)
                     file_streams[3] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getGasTemperature(cell))) << endl;
+                                    << float(log10(getGasTemperature(*cell))) << endl;
 
                 if(plt_dust_temp)
                     file_streams[4] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << float(log10(getDustTemperature(cell))) << endl;
+                                    << float(log10(getDustTemperature(*cell))) << endl;
 
                 if(plt_rat)
                     file_streams[5] << x << " " << y << " " << z << " "
                                     << float(max_level + 1.5 - cell->getLevel()) / 0.9 << " "
-                                    << getAlignedRadius(cell, 0) << endl;
+                                    << getAlignedRadius(*cell, 0) << endl;
 
                 /*if(plt_delta)
                 {
@@ -388,8 +388,6 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     line_counter = 0;
     char_counter = 0;
 
-    turbulent_velocity = param.getTurbulentVelocity();
-
     ifstream bin_reader(filename.c_str(), ios::in | ios::binary);
 
     if(bin_reader.fail())
@@ -403,6 +401,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     cell_oc_pos = cell_oc_root;
 
     resetGridValues();
+
+    turbulent_velocity = param.getTurbulentVelocity();
 
     line_counter = 1;
     char_counter = 0;
@@ -533,8 +533,8 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
                 return false;
             }
 
-            double tmp_vol = getVolume(cell_oc_pos->getChild(cube_pos));
-            total_gas_mass += getGasMassDensity(cell_oc_pos->getChild(cube_pos)) * tmp_vol;
+            double tmp_vol = getVolume(*cell_oc_pos->getChild(cube_pos));
+            total_gas_mass += getGasMassDensity(*cell_oc_pos->getChild(cube_pos)) * tmp_vol;
             cell_volume += tmp_vol;
 
             if(level > max_level)
@@ -1359,7 +1359,7 @@ bool CGridOcTree::createArtificialGrid(string path)
 
 void CGridOcTree::createNextLevel(cell_oc * cell)
 {
-    Vector3D p = getCenter(cell);
+    Vector3D p = getCenter(*cell);
     double r = p.length();
     uint tmp_level = uint(max_level);
 
@@ -1675,7 +1675,7 @@ bool CGridOcTree::updateShortestDistance(photon_package * pp)
         }
     }
 
-    pp->setShortestDistance(min_dist);
+    // pp->setShortestDistance(min_dist);
     return found;
 }
 
@@ -1944,13 +1944,13 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
             }
 
             double num = v_n * (p - v_a);
-            double length = -num / den;
+            double tmp_length = -num / den;
 
-            if(length >= 0 && length < min_length)
+            if(tmp_length >= 0 && tmp_length < min_length)
             {
-                if(isInside(p + d * (length + MIN_LEN_STEP * min_len)))
+                if(isInside(p + d * (tmp_length + MIN_LEN_STEP * min_len)))
                 {
-                    min_length = length;
+                    min_length = tmp_length;
                     hit = true;
                 }
             }
@@ -2184,7 +2184,7 @@ bool CGridOcTree::createTree(cell_oc * parent,
     if(parent->getLevel() == max_level)
     {
         treelevel_counter++;
-        Vector3D center = getCenter((cell_basic *)parent);
+        Vector3D center = getCenter((const cell_basic &)parent);
 
         px = center.X();
         py = center.Y();
@@ -2329,17 +2329,22 @@ bool CGridOcTree::createTree(cell_oc * parent,
 
     parent->setChildren(new cell_oc[8]);
     uint level = parent->getLevel() + 1;
-    double length = 0.5 * parent->getLength();
+    double tmp_length = 0.5 * parent->getLength();
 
-    createTree(parent->getChild(0), _x_min, _y_min, _z_min, length, level);
-    createTree(parent->getChild(1), _x_min + length, _y_min, _z_min, length, level);
-    createTree(parent->getChild(2), _x_min, _y_min + length, _z_min, length, level);
-    createTree(parent->getChild(3), _x_min + length, _y_min + length, _z_min, length, level);
+    createTree(parent->getChild(0), _x_min, _y_min, _z_min, tmp_length, level);
+    createTree(parent->getChild(1), _x_min + tmp_length, _y_min, _z_min, tmp_length, level);
+    createTree(parent->getChild(2), _x_min, _y_min + tmp_length, _z_min, tmp_length, level);
+    createTree(parent->getChild(3), _x_min + tmp_length, _y_min + tmp_length, _z_min, tmp_length, level);
 
-    createTree(parent->getChild(4), _x_min, _y_min, _z_min + length, length, level);
-    createTree(parent->getChild(5), _x_min + length, _y_min, _z_min + length, length, level);
-    createTree(parent->getChild(6), _x_min, _y_min + length, _z_min + length, length, level);
-    createTree(parent->getChild(7), _x_min + length, _y_min + length, _z_min + length, length, level);
+    createTree(parent->getChild(4), _x_min, _y_min, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(5), _x_min + tmp_length, _y_min, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(6), _x_min, _y_min + tmp_length, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(7),
+               _x_min + tmp_length,
+               _y_min + tmp_length,
+               _z_min + tmp_length,
+               tmp_length,
+               level);
 
     for(int i = 0; i < 8; i++)
         parent->getChild(i)->setParent(parent);
