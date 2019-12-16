@@ -132,24 +132,34 @@ class parameters
         axis1.set(1, 0, 0);
         axis2.set(0, 1, 0);
 
-        // opiate parmeter
-        opiate_param_path = "";
-        opiate_data_path = "";
+        // opiate parmeters
+        opiata_path_emi="";
+        opiata_path_abs="";
     }
 
     ~parameters()
     {}
+    
+    string getOpiatePathEmission()
+    {
+        return opiata_path_emi;
+    }
+    
+    string getOpiatePathAbsorption()
+    {
+        return opiata_path_abs;
+    }
+    
+    string getOpiateSpec(uint pos)
+    {
+        return opiate_spec_ids[pos];
+    }
 
-    string getOpiateParamPath() const
+    /*string getOpiateParamPath() const
     {
         return opiate_param_path;
-    }
-
-    string getOpiateDataPath() const
-    {
-        return opiate_data_path;
-    }
-
+    }*/
+    
     const Vector3D & getAxis1() const
     {
         return axis1;
@@ -208,10 +218,10 @@ class parameters
         return nr_ofOutMidDataPoints;
     }
 
-    const dlist & getOpiateSequence() const
+    /*const dlist & getOpiateSequence() const
     {
         return line_opiate_detectors;
-    }
+    }*/
 
     uint getMidplaneZoom() const
     {
@@ -779,6 +789,18 @@ class parameters
     {
         return stop;
     }
+    
+    
+    void setOpiatePathEmission(string str)
+    {
+        opiata_path_emi=str;
+    }
+    
+    void setOpiatePathAbsorption(string str)
+    {
+        opiata_path_abs=str;
+    }
+       
 
     void setXYMin(double val)
     {
@@ -872,6 +894,11 @@ class parameters
     void setNrOfISRFPhotons(long val)
     {
         nr_ofISRFPhotons = val;
+    }
+    
+    void addOpiateSpec(string str)
+    {
+        opiate_spec_ids.push_back(str);
     }
 
     void AddDustComponentChoice(uint dust_component_choice)
@@ -1394,12 +1421,14 @@ class parameters
         dust_ray_detectors.push_back(val[9]);
         // delta_y (cart, slice) / None (polar) / b_min (healpix)
         dust_ray_detectors.push_back(val[10]);
-        // dust detector type/grid (all)
+        //bubble radius (heal)
         dust_ray_detectors.push_back(val[11]);
-        // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
+        // dust detector type/grid (all)
         dust_ray_detectors.push_back(val[12]);
-        // number of pixel in y-direction (cart, polar, slice)
+        // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
         dust_ray_detectors.push_back(val[13]);
+        // number of pixel in y-direction (cart, polar, slice)
+        dust_ray_detectors.push_back(val[14]);
 
         switch(uint(val[NR_OF_RAY_DET - 3]))
         {
@@ -1435,6 +1464,99 @@ class parameters
                 {
                     rt_grid_description += "cartesian";
                     if(dust_ray_detectors.size() > NR_OF_RAY_DET)
+                        rt_grid_description += ", ";
+                }
+                break;
+        }
+    }
+        
+    void addOpiateRayDetector(dlist & val)
+    {
+        // Abundance or species id
+        opiate_ray_detectors.push_back(val[0]);
+        
+        // BG surce ID
+        opiate_ray_detectors.push_back(val[1]);
+        
+        // Maximum velocity (SI)
+        opiate_ray_detectors.push_back(val[2]);
+        
+        // ang1 or pos_x
+        opiate_ray_detectors.push_back(val[3]);
+        
+        // ang2 or pos_y
+        opiate_ray_detectors.push_back(val[4]);
+        
+        // dist or pos_z
+        opiate_ray_detectors.push_back(val[5]);
+        
+        // sidelength_x or l_min
+        opiate_ray_detectors.push_back(val[6]);
+        
+        // sidelength_y or l_max
+        opiate_ray_detectors.push_back(val[7]);
+        
+        // off_x or b_min
+        opiate_ray_detectors.push_back(val[8]);
+        
+        // off_y or b_max
+        opiate_ray_detectors.push_back(val[9]);
+        
+        // empty or d_vx
+        opiate_ray_detectors.push_back(val[10]);
+        
+        // empty or d_vy
+        opiate_ray_detectors.push_back(val[11]);
+        
+        // empty or d_vz
+        opiate_ray_detectors.push_back(val[12]);
+        
+        // det. type
+        opiate_ray_detectors.push_back(val[13]);
+        
+        // N_x or n_side
+        opiate_ray_detectors.push_back(val[14]);
+        
+        // N_y or n_side
+        opiate_ray_detectors.push_back(val[15]);
+        
+        // N_vel
+        opiate_ray_detectors.push_back(val[16]);
+
+        switch(uint(val[13]))
+        {
+            case DET_SPHER:
+                if(rt_grid_description.find("healpix") == string::npos)
+                {
+                    rt_grid_description += "healpix";
+                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
+                        rt_grid_description += ", ";
+                }
+                break;
+
+            case DET_POLAR:
+                if(rt_grid_description.find("polar") == string::npos)
+                {
+                    rt_grid_description += "polar";
+                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
+                        rt_grid_description += ", ";
+                }
+                break;
+
+            case DET_SLICE:
+                if(rt_grid_description.find("slice") == string::npos)
+                {
+                    rt_grid_description += "slice";
+                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
+                        rt_grid_description += ", ";
+                }
+                break;
+
+            default:
+                if(rt_grid_description.find("cartesian") == string::npos)
+                {
+                    rt_grid_description += "cartesian";
+                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
                         rt_grid_description += ", ";
                 }
                 break;
@@ -1466,14 +1588,16 @@ class parameters
         sync_ray_detectors.push_back(val[9]);
         // delta_y (cart, slice) / None (polar) / b_min (healpix)
         sync_ray_detectors.push_back(val[10]);
-        // dust detector type/grid (all)
+        // bubble size (heal)
         sync_ray_detectors.push_back(val[11]);
-        // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
+        // dust detector type/grid (all)
         sync_ray_detectors.push_back(val[12]);
-        // number of pixel in y-direction (cart, polar, slice)
+        // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
         sync_ray_detectors.push_back(val[13]);
+        // number of pixel in y-direction (cart, polar, slice)
+        sync_ray_detectors.push_back(val[14]);
 
-        switch(uint(val[NR_OF_RAY_DET - 3]))
+        switch(uint(val[NR_OF_RAY_DET - 3]))//
         {
             case DET_SPHER:
                 if(rt_grid_description.find("healpix") == string::npos)
@@ -1513,7 +1637,7 @@ class parameters
         }
     }
 
-    void addLineOpiateDetector(dlist & val)
+    /*void addLineOpiateDetector(dlist & val)
     {
         // ang1
         line_opiate_detectors.push_back(val[0]);
@@ -1543,7 +1667,7 @@ class parameters
     void setOpiateDataPath(string val)
     {
         opiate_data_path = val;
-    }
+    }*/
 
     void addLineRayDetector(dlist & val)
     {
@@ -2207,9 +2331,10 @@ class parameters
 
     bool reset_dust_files;
 
-    // opiate data
-    string opiate_param_path;
-    string opiate_data_path;
-    dlist line_opiate_detectors;
+    // opiate parameters
+    dlist opiate_ray_detectors;
+    strlist opiate_spec_ids;
+    string opiata_path_emi;
+    string opiata_path_abs;
 };
 #endif

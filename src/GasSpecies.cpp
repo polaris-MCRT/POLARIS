@@ -1061,6 +1061,8 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
     // Init the current value of the line function as a complex value
     complex<double> line_function;
+    
+    //uint tmp_counter=0;
 
     // Init temporary matrix
     Matrix2D * tmp_matrix = new Matrix2D(4, 4);
@@ -1519,6 +1521,8 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     {
         lande_factor[i_lvl] = 0;
     }
+    
+    //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
 
     if(reader.fail())
     {
@@ -1601,6 +1605,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             }
             // Save the lande factor of the upper energy level
             lande_factor[getUpperEnergyLevel(i_trans_zeeman)] = values[0];
+            //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
         }
         else if(cmd_counter == 6)
         {
@@ -1611,6 +1616,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             }
             // Save the lande factor of the lower energy level
             lande_factor[getLowerEnergyLevel(i_trans_zeeman)] = values[0];
+            //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
         }
         else if(cmd_counter == 7)
         {
@@ -1721,17 +1727,30 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             double tmp_einst_A = getEinsteinA(i_trans_zeeman);
             delete[] trans_einstA[i_trans_zeeman];
             trans_einstA[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-            trans_einstA[i_trans_zeeman][0] = tmp_einst_A;
+            
 
             double tmp_einst_Bul = getEinsteinBul(i_trans_zeeman);
             delete[] trans_einstB_ul[i_trans_zeeman];
             trans_einstB_ul[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-            trans_einstB_ul[i_trans_zeeman][0] = tmp_einst_Bul;
+            
 
             double tmp_einst_Blu = getEinsteinBlu(i_trans_zeeman);
             delete[] trans_einstB_lu[i_trans_zeeman];
             trans_einstB_lu[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
+            
+            for(uint ie=0;ie<nr_sublevel_trans + 1;ie++)
+            {
+                trans_einstA[i_trans_zeeman][ie] = 0;
+                trans_einstB_ul[i_trans_zeeman][ie] = 0;
+                trans_einstB_lu[i_trans_zeeman][ie] = 0;
+            }
+            
+            trans_einstA[i_trans_zeeman][0] = tmp_einst_A;
+            trans_einstB_ul[i_trans_zeeman][0] = tmp_einst_Bul;
             trans_einstB_lu[i_trans_zeeman][0] = tmp_einst_Blu;
+            
+            //cout << CLR_LINE;
+            //cout << "Here A\n" << trans_einstB_lu[i_trans_zeeman][0] << "  " << i_trans_zeeman <<  "  " << nr_sublevel_trans + 1 << endl;
 
             // Calculate the contribution of each allowed transition between Zeeman sublevels
             for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
@@ -1743,8 +1762,8 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 {
                     // Calculate the quantum number of the lower energy level
                     float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
-
                     uint i_sublvl = getSublevelIndex(i_trans_zeeman, i_sublvl_u, i_sublvl_l);
+
 
                     switch(int(sublvl_l - sublvl_u))
                     {
@@ -1782,13 +1801,29 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                         tmp_einst_A * line_strength * nr_of_sublevel[i_lvl_u];
                     trans_einstB_ul[i_trans_zeeman][i_sublvl + 1] =
                         tmp_einst_Bul * line_strength * nr_of_sublevel[i_lvl_u];
-                    trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] =
-                        tmp_einst_Blu * line_strength * nr_of_sublevel[i_lvl_l];
+                    trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] = tmp_einst_Blu * line_strength * nr_of_sublevel[i_lvl_l];
                 }
             }
         }
     }
     reader.close();
+
+    for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+    {
+        uint i_trans = getTransitionFromSpectralLine(i_line);
+        
+        if(getLandeUpper(i_trans) == 0) // || getLandeLower(i_trans) == 0
+        {
+            cout << SEP_LINE;
+            cout << "\nERROR: For transition number " << uint(i_trans + 1)
+                 << " exists no Zeeman splitting data" << endl;
+            return false;
+        }
+        else
+        {
+            trans_is_zeeman_split[i_trans] = true;
+        }
+    }
 
     return true;
 }

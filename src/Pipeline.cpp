@@ -56,8 +56,12 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    // CCommandParser parser("/home/s0reissl/polaris projects/Francois/cmd_file");
-    // CCommandParser parser("/home/s0reissl/polaris projects/Camilo/dustPolaris.cmd");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/first/cmd_file_4");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/OPIATE/cmd_file");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/daniel/cmd_file");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/En/cmd_file");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Ann/cmd_file_syn");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Michael/cmd_file");
 
     if(!parser.parse())
     {
@@ -86,7 +90,7 @@ void CPipeline::Finish()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing: %luh %02lumin. %02lusec.  \n", h, m, s);
+    printf("  Total time of processing: %lu h. %02lu min. %02lu sec.  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;
@@ -152,7 +156,7 @@ void CPipeline::Run()
                 break;
 
             case CMD_OPIATE:
-                // TBD
+                result = calcOpiateMapsViaRayTracing(param);
                 break;
 
             case CMD_SYNCHROTRON:
@@ -182,7 +186,7 @@ void CPipeline::Error()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing: %luh %02lumin. %02lusec.  \n", h, m, s);
+    printf("  Total time of processing: %lu h. %02lu min. %02lu sec.  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;
@@ -518,6 +522,78 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 
     return true;
 }
+
+bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
+{
+    CGridBasic * grid = 0;
+    CDustMixture * dust = new CDustMixture();
+    CGasMixture * gas = new CGasMixture();
+    
+    if(!createOutputPaths(param.getPathOutput()))
+        return false;
+
+    if(!assignGridType(grid, param))
+        return false;
+
+    if(!assignGasSpecies(param, gas, grid))
+        return false;
+
+    if(!createWavelengthList(param, dust, gas))
+        return false;
+
+    if(!assignDustMixture(param, dust, grid))
+        return false;
+
+    grid->setSIConversionFactors(param);
+
+    if(!grid->loadGridFromBinrayFile(param, gas->getNrOffsetEntries(grid, param)))
+        return false;
+
+    // Print helpfull information
+    grid->createCellList();
+    dust->printParameter(param, grid);
+    gas->printParameter(param, grid);
+    grid->printParameters();
+
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
+        return false;
+
+    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+        return false;
+
+    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
+        return false;
+
+    createSourceLists(param, dust, grid);
+    if(sources_ray.size() == 0)
+    {
+        cout << "\nERROR: No sources for raytracing simulations defined!" << endl;
+        return false;
+    }
+
+    CRadiativeTransfer rad(param);
+
+    rad.setGrid(grid);
+    rad.setDust(dust);
+    rad.setGas(gas);
+    rad.setSourcesLists(sources_mc, sources_ray);
+
+    if(!rad.initiateLineRaytrace(param))
+        return false;
+
+    omp_set_num_threads(param.getNrOfThreads());
+
+    if(!rad.calcChMapsViaRaytracing(param))
+        return false;
+
+    delete grid;
+    delete dust;
+    delete gas;
+    deleteSourceLists();
+
+    return true;
+}
+
 
 bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
 {

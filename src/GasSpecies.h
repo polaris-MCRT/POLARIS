@@ -19,6 +19,9 @@ struct VelFieldInterp
 class CGasSpecies
 {
   public:
+      
+    //uint tmp_counter;  
+      
     CGasSpecies()
     {
         molecular_weight = 0;
@@ -28,6 +31,8 @@ class CGasSpecies
         nr_of_transitions = 0;
         nr_of_col_partner = 0;
         nr_of_spectral_lines = 0;
+        
+        //tmp_counter=0;
 
         abundance = 0;
 
@@ -308,11 +313,13 @@ class CGasSpecies
 
     double getLandeUpper(uint i_trans) const
     {
+        //cout << "Landeu up:" << lande_factor[upper_level[i_trans]] << endl;
         return lande_factor[upper_level[i_trans]];
     }
 
     double getLandeLower(uint i_trans) const
     {
+        //cout << "Landee low:" << lande_factor[lower_level[i_trans]] << endl;
         return lande_factor[lower_level[i_trans]];
     }
 
@@ -865,6 +872,8 @@ class CGasSpecies
     uint nr_of_spectral_lines;
     uint nr_zeeman_spectral_lines;
     uint lvl_pop_type;
+    
+
 
     uint ** level_to_index;
     uint *** trans_to_index;
@@ -1344,6 +1353,7 @@ class CGasMixture
     uint **** line_to_pos;
 
     uint nr_of_species;
+
 };
 
 #endif

@@ -7,17 +7,34 @@
 #define CGRIDBASIC
 
 // Additional Structures
-struct MagFieldInfo
+class MagFieldInfo
 {
-    double cos_theta;
-    double sin_theta;
-    double cos_2_phi;
-    double sin_2_phi;
-    Vector3D mag_field;
+    public:
+        MagFieldInfo()
+        {
+            cos_theta=0;
+            sin_theta=0;
+            cos_2_phi=0;
+            sin_2_phi=0;
+        }
+        
+        
+        double cos_theta;
+        double sin_theta;
+        double cos_2_phi;
+        double sin_2_phi;
+        Vector3D mag_field;
 };
 
-struct LineBroadening
+class LineBroadening
 {
+    public:
+    LineBroadening()
+    {
+        gauss_a=0;
+        voigt_a=0;
+    }
+        
     double gauss_a;
     double voigt_a;
 };
@@ -156,6 +173,7 @@ class CGridBasic
         nr_rad_field_comp = 1;
 
         plt_gas_dens = false;
+        plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp = false;
         plt_dust_temp = false;
@@ -186,6 +204,7 @@ class CGridBasic
         cell_volume = 0;
 
         buffer_gas_dens = 0;
+        buffer_mol_dens = 0;
         buffer_dust_dens = 0;
         buffer_gas_temp = 0;
         buffer_dust_temp = 0;
@@ -366,6 +385,7 @@ class CGridBasic
         nr_rad_field_comp = 1;
 
         plt_gas_dens = false;
+        plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp = false;
         plt_dust_temp = false;
@@ -396,6 +416,7 @@ class CGridBasic
         cell_volume = 0;
 
         buffer_gas_dens = 0;
+        buffer_mol_dens = 0;
         buffer_dust_dens = 0;
         buffer_gas_temp = 0;
         buffer_dust_temp = 0;
@@ -1806,7 +1827,6 @@ class CGridBasic
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell)
     {
-
         photon_package pp = photon_package();
         pp.setPosition(Vector3D(tx, ty, tz));
         if(positionPhotonInGrid(&pp))
@@ -1819,6 +1839,11 @@ class CGridBasic
                 if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density + 1] = getGasDensity(pp, i_density);
+            }
+            if(plt_mol_dens)
+            {
+                for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
+                        buffer_mol_dens[i_cell][i_density] = getGasDensity(pp, i_density)*getCellAbundance(pp, i_density);
             }
             if(plt_dust_dens)
             {
@@ -1949,6 +1974,11 @@ class CGridBasic
                 if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density] = 0;
+            }
+            if(plt_mol_dens)
+            {
+                for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
+                        buffer_mol_dens[i_cell][i_density] = getCellAbundance(pp, i_density);
             }
             if(plt_dust_dens)
             {
@@ -2291,6 +2321,9 @@ class CGridBasic
 
     double getCellAbundance(const photon_package & pp, uint id) const
     {
+        if(id > nrOfDensRatios - 1)
+            return 0;
+
         return getCellAbundance(*pp.getPositionCell(), id);
     }
 
@@ -3736,6 +3769,7 @@ class CGridBasic
     double rot_angle1, rot_angle2;
 
     bool plt_gas_dens;
+    bool plt_mol_dens;
     bool plt_dust_dens;
     bool plt_gas_temp;
     bool plt_dust_temp;
@@ -3758,6 +3792,8 @@ class CGridBasic
     bool plt_g_min;
     bool plt_g_max;
     bool plt_p;
+    
+    
 
     bool plt_avg_dir;
     bool plt_avg_th;
@@ -3773,6 +3809,7 @@ class CGridBasic
     double cell_volume;
 
     double ** buffer_gas_dens;
+    double ** buffer_mol_dens;
     double ** buffer_dust_dens;
     double * buffer_gas_temp;
     double ** buffer_dust_temp;

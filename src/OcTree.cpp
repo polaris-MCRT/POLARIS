@@ -289,6 +289,8 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
 
     if(!loadGridFromBinrayFile(param))
         return false;
+    
+    printParameters();
 
     reduceLevelOfBinrayFile(cell_oc_root, tr_level);
 
@@ -322,48 +324,30 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
 
         if(comb)
         {
-            double dens = 0, Tg = 0, Td = 0;
-            double mx = 0, my = 0, mz = 0;
-            double vx = 0, vy = 0, vz = 0;
+            double * tmp_data=new double[data_len];
 
+            for(int j=0;j<data_len;j++)
+            {
+                tmp_data[j]=0;
+            }
+                        
             for(int i = 0; i < 8; i++)
             {
-                dens += cell->getChildren()[i].getData(data_pos_gd_list[0]);
-                Tg += cell->getChildren()[i].getData(data_pos_tg);
-                Td += cell->getChildren()[i].getData(data_pos_dt_list[0]);
-                mx += cell->getChildren()[i].getData(data_pos_mx);
-                my += cell->getChildren()[i].getData(data_pos_my);
-                mz += cell->getChildren()[i].getData(data_pos_mz);
-
-                vx += cell->getChildren()[i].getData(data_pos_vx);
-                vy += cell->getChildren()[i].getData(data_pos_vy);
-                vz += cell->getChildren()[i].getData(data_pos_vz);
+                for(int j =0;j<data_len;j++)
+                {
+                    tmp_data[j]+=cell->getChildren()[i].getData(j)/8.0;
+                }
             }
-
-            dens /= 8;
-            Tg /= 8;
-            Td /= 8;
-            mx /= 8;
-            my /= 8;
-            mz /= 8;
-            vx /= 8;
-            vy /= 8;
-            vz /= 8;
 
             delete[] cell->getChildren();
             cell->setChildren(0);
-            max_data = 9;
-            cell->resize(max_data);
-            cell->setData(data_pos_gd_list[0], dens);
-            cell->setData(data_pos_tg, Tg);
-            cell->setData(data_pos_dt_list[0], Td);
-            cell->setData(data_pos_mx, mx);
-            cell->setData(data_pos_my, my);
-            cell->setData(data_pos_mz, mz);
-            cell->setData(data_pos_vx, vx);
-            cell->setData(data_pos_vy, vy);
-            cell->setData(data_pos_vz, vz);
+            cell->resize(data_len);
 
+            for(int j=0;j<data_len;j++)
+            {
+                cell->setData(j, tmp_data[j]); ;
+            }
+            
             if(cell->getLevel() > tr_level)
                 return true;
 
@@ -662,6 +646,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_mol_dens = (nrOfDensRatios>0); 
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4

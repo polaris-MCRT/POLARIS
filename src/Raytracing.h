@@ -43,6 +43,8 @@ class CRaytracingBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
+        
+        rad_bubble = 0;
 
         distance = 0;
         max_length = 0;
@@ -183,7 +185,7 @@ class CRaytracingBasic
             off_len_y = int(0.5 * (map_pixel_y - 1));
     }
 
-    bool getRelPositionMap(int i_pix, double & cx, double & cy)
+    virtual bool getRelPositionMap(int i_pix, double & cx, double & cy)
     {
         int y = (i_pix % map_pixel_y);
         int x = i_pix / map_pixel_y - off_len_x;
@@ -261,6 +263,18 @@ class CRaytracingBasic
 
     virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false)
     {}
+
+    virtual void addToDetector(photon_package * pp1, photon_package * pp2, int i_pix, bool direct = false)
+    {
+        // pos was only traced of first photon package
+        pp2->setPosition(pp1->getPosition());
+
+        // Add first package of photons to detector
+        addToDetector(pp1, i_pix, direct);
+        
+        // Add second package of photons to detector
+        addToDetector(pp2, i_pix, direct);
+    }
 
     virtual void setObserverPosition(Vector3D pos)
     {}
@@ -385,6 +399,7 @@ class CRaytracingBasic
     double map_shift_x, map_shift_y;
     double distance, max_length;
     double rot_angle1, rot_angle2;
+    double rad_bubble;
 
     int off_len_x, off_len_y;
 
@@ -694,6 +709,7 @@ class CRaytracingCartesian : public CRaytracingBasic
     void addToDetector(photon_package * pp, int i_pix, bool direct = false)
     {
         pp->setDetectorProjection();
+
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins * nr_extra; i_spectral++)
         {
             // Set wavelength of photon package
@@ -777,11 +793,20 @@ class CRaytracingHealPix : public CRaytracingBasic
         sx = dust_ray_detectors[pos + 4];
         sy = dust_ray_detectors[pos + 5];
         sz = dust_ray_detectors[pos + 6];
+        
+        double tmp_l_min = dust_ray_detectors[pos + 7];
+        double tmp_l_max = dust_ray_detectors[pos + 8];
+        
+        double tmp_b_min = dust_ray_detectors[pos + 9];
+        double tmp_b_max = dust_ray_detectors[pos + 10];
 
         l_min = PI * (-dust_ray_detectors[pos + 8] + 180.0) / 180.0;
         l_max = PI * (-dust_ray_detectors[pos + 7] + 180.0) / 180.0;
         b_min = PI * (-dust_ray_detectors[pos + 10] + 90.0) / 180;
         b_max = PI * (-dust_ray_detectors[pos + 9] + 90.0) / 180;
+        
+        if(dust_ray_detectors[pos + 11]>0)
+            rad_bubble = dust_ray_detectors[pos + 11];
 
         nside = uint(dust_ray_detectors[pos + NR_OF_RAY_DET - 1]);
 
@@ -795,17 +820,10 @@ class CRaytracingHealPix : public CRaytracingBasic
 
         setOrientation(param.getHealpixOrientation());
 
-        detector = new CDetector(path,
-                                 npix,
-                                 1,
-                                 det_pos,
-                                 max_length,
-                                 lam_min,
-                                 lam_max,
-                                 nr_spectral_bins,
-                                 nr_extra,
-                                 param.getAlignmentMechanism());
-        detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
+        detector = new CDetector(
+            path, npix, 1, det_pos, max_length, lam_min, lam_max, rad_bubble, nr_spectral_bins, 1, param.getAlignmentMechanism());
+        detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), tmp_l_min, tmp_l_max, tmp_b_min, tmp_b_max);
+
 
         return true;
     }
@@ -836,11 +854,20 @@ class CRaytracingHealPix : public CRaytracingBasic
         sx = sync_ray_detectors[pos + 4];
         sy = sync_ray_detectors[pos + 5];
         sz = sync_ray_detectors[pos + 6];
+        
+        double tmp_l_min = sync_ray_detectors[pos + 7];
+        double tmp_l_max = sync_ray_detectors[pos + 8];
+        
+        double tmp_b_min = sync_ray_detectors[pos + 9];
+        double tmp_b_max = sync_ray_detectors[pos + 10];
 
         l_min = PI * (-sync_ray_detectors[pos + 8] + 180.0) / 180.0;
         l_max = PI * (-sync_ray_detectors[pos + 7] + 180.0) / 180.0;
         b_min = PI * (-sync_ray_detectors[pos + 10] + 90.0) / 180;
         b_max = PI * (-sync_ray_detectors[pos + 9] + 90.0) / 180;
+        
+        if(sync_ray_detectors[pos + 11]>0)
+            rad_bubble = sync_ray_detectors[pos + 11];
 
         nside = uint(sync_ray_detectors[pos + NR_OF_RAY_DET - 1]);
 
@@ -855,8 +882,8 @@ class CRaytracingHealPix : public CRaytracingBasic
         setOrientation(param.getHealpixOrientation());
 
         detector =
-            new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max, nr_spectral_bins, nr_extra);
-        detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), l_min, l_max, b_min, b_max);
+            new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max,rad_bubble, nr_spectral_bins, nr_extra);
+        detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), tmp_l_min, tmp_l_max, tmp_b_min, tmp_b_max);
 
         return true;
     }
@@ -947,10 +974,10 @@ class CRaytracingHealPix : public CRaytracingBasic
 
     bool isNotAtCenter(photon_package * pp, double cx, double cy)
     {
-        double theta = cx;
+        /*double theta = cx;
         double phi = cy;
 
-        /*if(theta <(45-40)*PI/180)
+        if(theta <(45-40)*PI/180)
             return false;
 
         if(theta > (45+40)*PI/180)
@@ -964,7 +991,7 @@ class CRaytracingHealPix : public CRaytracingBasic
 
         Vector3D ph_dir = pp->getDirection();
         Vector3D ph_pos = pp->getPosition();
-        Vector3D new_dir = det_pos - ph_pos;
+        Vector3D new_dir = det_pos - (rad_bubble*pp->getDirection()+ph_pos);
 
         double lam = ph_dir * new_dir;
 
@@ -1889,8 +1916,8 @@ class CRaytracingSlice : public CRaytracingBasic
                                  dID,
                                  sidelength_x,
                                  sidelength_y,
-                                 map_shift_x,
-                                 map_shift_y,
+                                 0,
+                                 0,
                                  distance,
                                  lam_min,
                                  lam_max,
@@ -1899,6 +1926,36 @@ class CRaytracingSlice : public CRaytracingBasic
                                  param.getAlignmentMechanism());
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
+        return true;
+    }
+    
+    bool getRelPositionMap(int i_pix, double & cx, double & cy)
+    {
+        int y = (i_pix % map_pixel_y);
+        int x = i_pix / map_pixel_y - off_len_x;
+        y -= off_len_y;
+
+        if(map_pixel_x % 2 == 1)
+            cx = x * step_x;
+        else
+        {
+            if(x > -1)
+                x++;
+
+            cx = x * step_x - CMathFunctions::sgn(x) * off_x;
+            //cx += map_shift_x;
+        }
+
+        if(map_pixel_y % 2 == 1)
+            cy = y * step_y;
+        else
+        {
+            if(y > -1)
+                y++;
+
+            cy = y * step_y - CMathFunctions::sgn(y) * off_y;
+            //cy += map_shift_y;
+        }
         return true;
     }
 
@@ -1957,8 +2014,8 @@ class CRaytracingSlice : public CRaytracingBasic
                                  dID,
                                  sidelength_x,
                                  sidelength_y,
-                                 map_shift_x,
-                                 map_shift_y,
+                                 0,
+                                 0,
                                  distance,
                                  lam_min,
                                  lam_max,
@@ -2023,8 +2080,8 @@ class CRaytracingSlice : public CRaytracingBasic
                                  dID,
                                  sidelength_x,
                                  sidelength_y,
-                                 map_shift_x,
-                                 map_shift_y,
+                                 0,
+                                 0,
                                  distance,
                                  i_trans,
                                  nr_spectral_bins,
@@ -2036,7 +2093,7 @@ class CRaytracingSlice : public CRaytracingBasic
 
     void preparePhoton(photon_package * pp, double cx, double cy)
     {
-        Vector3D pos = cx * ex + cy * ez;
+        Vector3D pos = cx * ex + cy * ez + map_shift_x *ey;
         pp->setPosition(pos);
         pp->setEX(ex);
         pp->setEY(ey);

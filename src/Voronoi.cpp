@@ -254,6 +254,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_mol_dens = (nrOfDensRatios>0);
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
@@ -1340,7 +1341,8 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         }
     }
 
-    pp->setPosition(pos + dir * path_length);
+
+    pp->setPosition(pos + dir * (path_length + 1));
     pp->setTmpPathLength(path_length);
 
     return hit;
