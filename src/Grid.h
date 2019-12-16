@@ -7,17 +7,34 @@
 #define CGRIDBASIC
 
 // Additional Structures
-struct MagFieldInfo
+class MagFieldInfo
 {
-    double cos_theta;
-    double sin_theta;
-    double cos_2_phi;
-    double sin_2_phi;
-    Vector3D mag_field;
+    public:
+        MagFieldInfo()
+        {
+            cos_theta=0;
+            sin_theta=0;
+            cos_2_phi=0;
+            sin_2_phi=0;
+        }
+        
+        
+        double cos_theta;
+        double sin_theta;
+        double cos_2_phi;
+        double sin_2_phi;
+        Vector3D mag_field;
 };
 
-struct LineBroadening
+class LineBroadening
 {
+    public:
+    LineBroadening()
+    {
+        gauss_a=0;
+        voigt_a=0;
+    }
+        
     double gauss_a;
     double voigt_a;
 };

@@ -1073,6 +1073,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         return res;
 
     int cmd = param.getCommand();
+    
+    
+    cout << CLR_LINE;
+    cout << " -> Allocating memory for midplane files ...             \r" << flush;
 
     if(all)
     {
@@ -2480,6 +2484,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         pFits->pHDU().addKey(str_1, "avg. RAT aniso. (gamma)", str_2);
     }
 
+    
+    cout << CLR_LINE;
+    cout << "Memory cleanup of the plotting arrays ...     \r" << flush;
     // Free memory of pointer arrays
     if(plt_gas_dens)
     {

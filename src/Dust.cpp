@@ -4366,6 +4366,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
         case PH_MIE:
             getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
 
+            break;
         default:
         {
             // Get wavelength index of the photon package

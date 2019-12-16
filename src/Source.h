@@ -229,7 +229,7 @@ class CSourceAGN : public CSourceBasic
     CSourceAGN()
     {
         pos = 0;
-        source_id = SRC_POINT;
+        source_id = SRC_AGN;
     }
 
     ~CSourceAGN()

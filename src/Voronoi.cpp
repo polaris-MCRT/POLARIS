@@ -1339,9 +1339,8 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     }
 
     path_length *= 1.0001;
-
-    if(path_length < 1e-4)
-        path_length = 1e-4;
+    
+    path_length = path_length + 1e-3 * min_len+1;
 
     pp->setPosition(pos + dir * path_length);
     pp->setTmpPathLength(path_length);

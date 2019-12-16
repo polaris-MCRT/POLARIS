@@ -36,6 +36,7 @@ class CPipeline
     bool calcPolarizationMapsViaSynchrotron(parameters & param);
     bool calcChMapsViaRayTracing(parameters & param);
     bool calcPolarizationMapsViaMC(parameters & param);
+    bool calcOpiateMapsViaRayTracing(parameters & param);
     bool proberobeLineOfSight(parameters & param);
 
     bool assignDustMixture(parameters & param, CDustMixture * dust, CGridBasic * grid);

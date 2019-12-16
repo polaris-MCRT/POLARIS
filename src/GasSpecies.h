@@ -11,6 +11,9 @@
 class CGasSpecies
 {
   public:
+      
+    //uint tmp_counter;  
+      
     CGasSpecies()
     {
         molecular_weight = 0;
@@ -20,6 +23,8 @@ class CGasSpecies
         nr_of_transitions = 0;
         nr_of_col_partner = 0;
         nr_of_spectral_lines = 0;
+        
+        //tmp_counter=0;
 
         abundance = 0;
 
@@ -241,6 +246,10 @@ class CGasSpecies
     double getLineStrengthAndEinsteinBlu(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
         uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        //                i_sublvl_u * getNrOfSublevel(i_lvl_u) + i_sublvl_l
+        //cout << CLR_LINE;
+        //cout << "here B " << trans_einstB_lu[i_trans][i_sublvl + 1] << "  " << i_trans << "  " << i_sublvl +1 << "  " << i_sublvl_u << "  " <<  getNrOfSublevelLower(i_trans) << "  " <<  i_sublvl_l << "  " << endl;
+        
         return trans_einstB_lu[i_trans][i_sublvl + 1];
     }
 
@@ -289,11 +298,13 @@ class CGasSpecies
 
     double getLandeUpper(uint i_trans) const
     {
+        //cout << "Landeu up:" << lande_factor[upper_level[i_trans]] << endl;
         return lande_factor[upper_level[i_trans]];
     }
 
     double getLandeLower(uint i_trans) const
     {
+        //cout << "Landee low:" << lande_factor[lower_level[i_trans]] << endl;
         return lande_factor[lower_level[i_trans]];
     }
 
@@ -745,6 +756,8 @@ class CGasSpecies
     uint nr_of_spectral_lines;
     uint nr_zeeman_spectral_lines;
     uint lvl_pop_type;
+    
+
 
     uint ** level_to_index;
     uint *** trans_to_index;
@@ -1256,6 +1269,7 @@ class CGasMixture
 
     double kepler_star_mass;
     uint nr_of_species;
+
 };
 
 #endif

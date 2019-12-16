@@ -15,7 +15,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     double tmp_luminosity, diff_luminosity, max_flux = 0;
     ullong kill_counter = 0;
 
-    if(use_energy_density)
+    if(use_energy_density && !is_ext)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
@@ -29,7 +29,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
             double sp_energy;
 
             if(is_ext)
-                sp_energy = sp_ext.getValue(wavelength_list[w]);
+                sp_energy = sp_ext.getValue(wavelength_list[w],LINEAR);
             else
                 sp_energy =
                     4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
@@ -165,7 +165,7 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
         wID = pp->getDustWavelengthID();
         if(is_ext)
         {
-            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
+            energy = abs(sp_ext.getValue(wavelength_list[wID])) / nr_of_photons;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
             tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
@@ -514,7 +514,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
     cout << CLR_LINE << flush;
     cout << "-> Initiating source star field      \r" << flush;
 
-    if(use_energy_density)
+    if(use_energy_density && !is_ext)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
              << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
     else
@@ -987,10 +987,10 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         }
         else
         {
-            F = abs(c_f); //[W m^-1]
-            Q = c_q*F;
-            U = c_u*F;
-            V = c_v*F;
+            I = abs(c_f); //[W m^-1]
+            Q = c_q*I;
+            U = c_u*I;
+            V = c_v*I;
         }
     }
     else
@@ -1007,8 +1007,6 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         U *= I;
         V *= I;
     }
-
-
 
     res.set(I, Q, U, V);
 

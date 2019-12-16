@@ -21,6 +21,7 @@ class CDetector
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
+        rad_bubble=0;
 
         obs_pos.set(0, 0, 0);
         obs_vel.set(0, 0, 0);
@@ -90,6 +91,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
+        rad_bubble=0;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -163,6 +165,7 @@ class CDetector
               double _sidelength,
               double _l_min,
               double _l_max,
+              double _rad_bubble,
               uint _nr_of_spectral_bins,
               uint nr_extra,
               uint _alignment = ALIG_RND)
@@ -171,6 +174,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
+        rad_bubble=_rad_bubble;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -257,6 +261,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
+        rad_bubble = 0;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -339,6 +344,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
+        rad_bubble = 0; //tbd: implementation for line detectors!
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -423,6 +429,7 @@ class CDetector
     {
         rot_angle1 = 0;
         rot_angle2 = 0;
+        rad_bubble = 0;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -1217,12 +1224,14 @@ class CDetector
         newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
         newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
 
+
         if(results_type == RESULTS_RAY)
             newTable->addKey("ETYPE", "thermal emission", "type of emission");
         else if(results_type == RESULTS_FULL)
             newTable->addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
         else
             newTable->addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+        
         newTable->addKey("ID", nr, "detector ID");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -1233,7 +1242,9 @@ class CDetector
         newTable->addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
         newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
-        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");   
+        newTable->addKey("BUBBLE RADIUS", rad_bubble, "bubble radius [m]");
+                
         string alignment_descr = getAlignmentDescription();
         if(alignment_descr != "")
             pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
@@ -1645,7 +1656,7 @@ class CDetector
         newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
         newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
         newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
-
+        
         newTable->addKey("ETYPE", "synchotron emission", "type of emission");
         newTable->addKey("ID", nr, "detector ID");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
@@ -1658,6 +1669,7 @@ class CDetector
         newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
         newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+        newTable->addKey("BUBBLE RADIUS", rad_bubble, "bubble radius [m]");
 
         cout << CLR_LINE << flush;
 
@@ -2974,6 +2986,7 @@ class CDetector
   private:
     double cos_acceptance_angle;
     double rot_angle1, rot_angle2, distance;
+    double rad_bubble;
     double l_min, l_max, b_min, b_max;
     double lam_min, lam_max;
     double sidelength_x, sidelength_y;
