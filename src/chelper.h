@@ -1,8 +1,438 @@
-#include "Typedefs.h"
+#include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Stokes.h"
 #include "Vector.h"
+#include "typedefs.h"
 
-#ifndef PARAMETERS
-#define PARAMETERS
+#ifndef CHELPER
+#define CHELPER
+
+class cell_basic
+{
+  public:
+    cell_basic()
+    {
+        data = 0;
+    }
+
+    virtual ~cell_basic()
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = 0;
+    }
+
+    bool isValid()
+    {
+        return data != 0;
+    }
+
+    double getData(uint i)
+    {
+        if(data == 0)
+            return 0;
+
+        if(i == MAX_UINT)
+            return 0;
+
+        if(i > 4138637280)
+            return 0;
+
+        return data[i];
+    }
+
+    void setData(uint i, double d)
+    {
+#pragma omp atomic write
+        data[i] = d;
+    }
+
+    void updateData(uint i, double d)
+    {
+#pragma omp atomic update
+        data[i] += d;
+    }
+
+    void convertData(uint i, double c)
+    {
+#pragma omp atomic update
+        data[i] *= c;
+    }
+
+    void resize(uint size)
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = new double[size];
+        for(uint i = 0; i < size; i++)
+            data[i] = 0;
+    }
+
+    void setID(uint _id)
+    {
+        id = _id;
+    }
+
+    uint getID()
+    {
+        return id;
+    }
+
+    virtual ulong getUniqueID()
+    {
+        return ulong(id);
+    }
+
+    void updateID(uint _id)
+    {
+        id += _id;
+    }
+
+  protected:
+    double * data;
+    uint id;
+};
+
+class cell_oc : public cell_basic
+{
+  public:
+    cell_oc()
+    {
+        parent = 0;
+        children = 0;
+        level = 0;
+        id = 0;
+        x_min = 0;
+        y_min = 0;
+        z_min = 0;
+        length = 0;
+        data = 0;
+    }
+
+    ~cell_oc()
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = 0;
+    }
+
+    void setXmin(double _x_min)
+    {
+        x_min = _x_min;
+    }
+
+    void setYmin(double _y_min)
+    {
+        y_min = _y_min;
+    }
+
+    void setZmin(double _z_min)
+    {
+        z_min = _z_min;
+    }
+
+    void setLength(double _length)
+    {
+        length = _length;
+    }
+
+    void setLevel(uchar _level)
+    {
+        level = _level;
+    }
+
+    void setParent(cell_oc * _parent)
+    {
+        parent = _parent;
+    }
+
+    void setChildren(cell_oc * _children)
+    {
+        children = _children;
+    }
+
+    double getXmin()
+    {
+        return x_min;
+    }
+
+    double getYmin()
+    {
+        return y_min;
+    }
+
+    double getZmin()
+    {
+        return z_min;
+    }
+
+    double getXmax()
+    {
+        return x_min + length;
+    }
+
+    double getYmax()
+    {
+        return y_min + length;
+    }
+
+    double getZmax()
+    {
+        return z_min + length;
+    }
+
+    double getLength()
+    {
+        return length;
+    }
+
+    uchar getLevel()
+    {
+        return level;
+    }
+
+    ulong getUniqueID()
+    {
+        uint parent_id = parent->getID();
+        ulong res = 8 ^ level + 8 * parent_id + id;
+        return res;
+    }
+
+    cell_oc * getParent()
+    {
+        return parent;
+    }
+
+    cell_oc * getChildren()
+    {
+        return children;
+    }
+
+    cell_oc * getChild(uint i)
+    {
+        return &children[i];
+    }
+
+  private:
+    double x_min, y_min, z_min, length;
+    cell_oc * children;
+    cell_oc * parent;
+    uchar level;
+};
+
+class cell_vo : public cell_basic
+{
+  public:
+    cell_vo()
+    {
+        id = 0;
+        data = 0;
+        nr_neighbors = 0;
+        neighbors = 0;
+        volume = -1;
+    }
+
+    ~cell_vo()
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = 0;
+
+        if(neighbors != 0)
+            delete[] neighbors;
+
+        neighbors = 0;
+    }
+
+    void initNeighbors(short nr)
+    {
+        nr_neighbors = nr;
+        neighbors = new int[nr];
+
+        for(ushort i = 0; i < nr; i++)
+            neighbors[i] = 0;
+    }
+
+    void setNeighbor(uint pos, int id)
+    {
+        if(pos > 500)
+            return;
+
+        neighbors[pos] = id;
+    }
+
+    void setCenter(double cx, double cy, double cz)
+    {
+        center.set(cx, cy, cz);
+    };
+
+    void setVolume(double v)
+    {
+        volume = v;
+    };
+
+    Vector3D getCenter()
+    {
+        return center;
+    };
+
+    double getX()
+    {
+        return center.X();
+    }
+
+    double getY()
+    {
+        return center.Y();
+    }
+
+    double getZ()
+    {
+        return center.Z();
+    }
+
+    double getVolume()
+    {
+        return volume;
+    };
+
+    int getNeighborID(uint pos)
+    {
+        return neighbors[pos];
+    }
+
+    ushort getNrOfNeighbors()
+    {
+        return nr_neighbors;
+    }
+
+  private:
+    Vector3D center;
+    ushort nr_neighbors;
+    int * neighbors;
+    double volume;
+};
+
+class cell_sp : public cell_basic
+{
+  public:
+    cell_sp()
+    {
+        rID = 0;
+        phID = 0;
+        thID = 0;
+        data = 0;
+        id = 0;
+    }
+
+    cell_sp(uint _rID, uint _phID, uint _thID)
+    {
+        rID = _rID;
+        phID = _phID;
+        thID = _thID;
+        data = 0;
+        id = 0;
+    }
+
+    ~cell_sp()
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = 0;
+    }
+
+    void setRID(uint id)
+    {
+        rID = id;
+    }
+
+    void setPhID(uint id)
+    {
+        phID = id;
+    }
+
+    void setThID(uint id)
+    {
+        thID = id;
+    }
+
+    uint getRID()
+    {
+        return rID;
+    }
+
+    uint getPhID()
+    {
+        return phID;
+    }
+
+    uint getThID()
+    {
+        return thID;
+    }
+
+  private:
+    uint rID, phID, thID;
+};
+
+class cell_cyl : public cell_basic
+{
+  public:
+    cell_cyl()
+    {
+        rID = 0;
+        phID = 0;
+        zID = 0;
+        data = 0;
+        id = 0;
+    }
+
+    ~cell_cyl()
+    {
+        if(data != 0)
+            delete[] data;
+
+        data = 0;
+    }
+
+    void setRID(uint id)
+    {
+        rID = id;
+    }
+
+    void setPhID(uint id)
+    {
+        phID = id;
+    }
+
+    void setZID(uint id)
+    {
+        zID = id;
+    }
+
+    uint getRID()
+    {
+        return rID;
+    }
+
+    uint getPhID()
+    {
+        return phID;
+    }
+
+    uint getZID()
+    {
+        return zID;
+    }
+
+  private:
+    uint rID, phID, zID;
+};
 
 class parameters
 {
@@ -50,9 +480,6 @@ class parameters
         delta0 = 8.28e23 * 2.5e-12 * 1e8 * 1e-6 * 1e6;
         larm_f = 4.1e-21;
 
-        nr_of_mc_lvl_pop_photons = 0;
-        mc_lvl_pop_seed = 0;
-
         kepler_star_mass = 0;
         turbulent_velocity = 0;
         offset_min_gas_dens = 0;
@@ -73,7 +500,6 @@ class parameters
         full_dust_temp = false;
         save_radiation_field = false;
         scattering_to_raytracing = true;
-        split_dust_emision = false;
         sublimate = false;
         individual_dust_fractions = false;
 
@@ -85,8 +511,6 @@ class parameters
         maxGridLines = 0;
         cmd = -1;
 
-        healpix_orientation = HEALPIX_YAXIS;
-
         start = MAX_UINT;
         stop = MAX_UINT;
 
@@ -95,15 +519,13 @@ class parameters
 
         plot_inp_points = false;
         plot_out_points = false;
-        write_radiation_field = 0;
+        write_radiation_field = false;
+        write_full_radiation_field = false;
         write_g_zero = false;
         nr_ofInpMidDataPoints = 0;
         nr_ofOutMidDataPoints = 0;
 
         f_highJ = 0.25;
-        Q_ref = 0.4;
-        alpha_Q = 3.0;
-
         f_cor = 0.6;
         adjTgas = 0;
         isrf_g_zero = 0;
@@ -132,70 +554,60 @@ class parameters
         axis1.set(1, 0, 0);
         axis2.set(0, 1, 0);
 
-        // opiate parmeters
-        opiata_path_emi="";
-        opiata_path_abs="";
+        // opiate parmeter
+        opiate_param_path = "";
+        opiate_data_path = "";
     }
 
     ~parameters()
     {}
-    
-    string getOpiatePathEmission()
-    {
-        return opiata_path_emi;
-    }
-    
-    string getOpiatePathAbsorption()
-    {
-        return opiata_path_abs;
-    }
-    
-    string getOpiateSpec(uint pos)
-    {
-        return opiate_spec_ids[pos];
-    }
 
-    /*string getOpiateParamPath() const
+    string getOpiateParamPath()
     {
         return opiate_param_path;
-    }*/
-    
-    const Vector3D & getAxis1() const
+    }
+
+    string getOpiateDataPath()
+    {
+        return opiate_data_path;
+    }
+
+    Vector3D getAxis1()
     {
         return axis1;
     }
 
-    const Vector3D & getAxis2() const
+    Vector3D getAxis2()
     {
         return axis2;
     }
 
-    uint getOutAMIRAPoints() const
+    uint getOutAMIRAPoints()
     {
         return nr_ofOutAMIRAPoints;
     }
 
-    uint getInpAMIRAPoints() const
+    uint getInpAMIRAPoints()
     {
         return nr_ofInpAMIRAPoints;
     }
 
-    bool plotInpMidPoints() const
+    bool plotInpMidPoints()
     {
         return plot_inp_points;
     }
 
-    bool plotOutMidPoints() const
+    bool plotOutMidPoints()
     {
         return plot_out_points;
     }
 
-    dlist getMidplane3dParams() const
+    dlist getMidplane3dParams()
     {
         return midplane_3d_param;
     }
 
-    const uilist & getPlotList() const
+    uilist & getPlotList()
     {
         return plot_list;
     }
@@ -208,46 +620,46 @@ class parameters
         return (find(plot_list.begin(), plot_list.end(), id) != plot_list.end());
     }
 
-    uint getInpMidDataPoints() const
+    uint getInpMidDataPoints()
     {
         return nr_ofInpMidDataPoints;
     }
 
-    uint getOutMidDataPoints() const
+    uint getOutMidDataPoints()
     {
         return nr_ofOutMidDataPoints;
     }
 
-    /*const dlist & getOpiateSequence() const
+    dlist getOpiateSequence()
     {
         return line_opiate_detectors;
-    }*/
+    }
 
-    uint getMidplaneZoom() const
+    uint getMidplaneZoom()
     {
         return midplane_zoom;
     }
 
-    int getCommand() const
+    int getCommand()
     {
         return cmd;
     }
 
-    bool isRatSimulation() const
+    bool isRatSimulation()
     {
         if(getCommand() == CMD_RAT || getCommand() == CMD_TEMP_RAT)
             return true;
         return false;
     }
 
-    bool isMonteCarloSimulation() const
+    bool isMonteCarloSimulation()
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT)
             return true;
         return false;
     }
 
-    bool isRaytracing() const
+    bool isRaytracing()
     {
         if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
            getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
@@ -255,314 +667,309 @@ class parameters
         return false;
     }
 
-    bool isTemperatureSimulation() const
+    bool isTemperatureSimulation()
     {
         if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT)
             return true;
         return false;
     }
 
-    double getStarMass(uint i) const
+    double getStarMass(uint i)
     {
         return star_mass[i];
     }
 
-    string getPathGrid() const
+    string getPathGrid()
     {
         return path_grid;
     }
 
-    string getPathOutput() const
+    string getPathOutput()
     {
         return path_output;
     }
 
-    string getPathInput() const
+    string getPathInput()
     {
         return path_input;
     }
 
-    uint getMinDetectorPixelX() const
+    uint getMinDetectorPixelX()
     {
         return min_detector_pixel_x;
     }
 
-    uint getMaxDetectorPixelX() const
+    uint getMaxDetectorPixelX()
     {
         return max_detector_pixel_x;
     }
 
-    uint getMinDetectorPixelY() const
+    uint getMinDetectorPixelY()
     {
         return min_detector_pixel_y;
     }
 
-    uint getMaxDetectorPixelY() const
+    uint getMaxDetectorPixelY()
     {
         return max_detector_pixel_y;
     }
 
-    double getMinDetectorAngle1() const
+    double getMinDetectorAngle1()
     {
         return min_rot_angle_1;
     }
 
-    double getMaxDetectorAngle1() const
+    double getMaxDetectorAngle1()
     {
         return max_rot_angle_1;
     }
 
-    double getMinDetectorAngle2() const
+    double getMinDetectorAngle2()
     {
         return min_rot_angle_2;
     }
 
-    double getMaxDetectorAngle2() const
+    double getMaxDetectorAngle2()
     {
         return max_rot_angle_2;
     }
 
-    double getMinSidelengthX() const
+    double getMinSidelengthX()
     {
         return min_sidelength_x;
     }
 
-    double getMaxSidelengthX() const
+    double getMaxSidelengthX()
     {
         return max_sidelength_x;
     }
 
-    double getMinSidelengthY() const
+    double getMinSidelengthY()
     {
         return min_sidelength_y;
     }
 
-    double getMaxSidelengthY() const
+    double getMaxSidelengthY()
     {
         return max_sidelength_y;
     }
 
-    bool getUseGridSidelengthX() const
+    bool getUseGridSidelengthX()
     {
         return use_grid_sidelength_x;
     }
 
-    bool getUseGridSidelengthY() const
+    bool getUseGridSidelengthY()
     {
         return use_grid_sidelength_y;
     }
 
-    double getMinMapShiftX() const
+    double getMinMapShiftX()
     {
         return min_ray_map_shift_x;
     }
 
-    double getMinMapShiftY() const
+    double getMinMapShiftY()
     {
         return min_ray_map_shift_y;
     }
 
-    double getMaxMapShiftX() const
+    double getMaxMapShiftX()
     {
         return max_ray_map_shift_x;
     }
 
-    double getMaxMapShiftY() const
+    double getMaxMapShiftY()
     {
         return max_ray_map_shift_y;
     }
 
-    double getSIConvLength() const
+    double getSIConvLength()
     {
         return conv_l_in_SI;
     }
 
-    double getSIConvDH() const
+    double getSIConvDH()
     {
         return conv_dH_in_SI;
     }
 
-    double getDelta0() const
+    double getDelta0()
     {
         return delta0;
     }
 
-    double getLarmF() const
+    double getLarmF()
     {
         return larm_f;
     }
 
-    double getSIConvBField() const
+    double getSIConvBField()
     {
         return conv_B_in_SI;
     }
 
-    double getSIConvVField() const
+    double getSIConvVField()
     {
         return conv_V_in_SI;
     }
 
-    bool getDustOffset() const
+    bool getDustOffset()
     {
         return dust_offset;
     }
 
-    bool getDustGasCoupling() const
+    bool getDustGasCoupling()
     {
         return dust_gas_coupling;
     }
 
-    double getOffsetMinGasDensity() const
+    double getOffsetMinGasDensity()
     {
         return offset_min_gas_dens;
     }
 
-    bool getDustTempMulti() const
+    bool getDustTempMulti()
     {
         return full_dust_temp;
     }
 
-    double getSizeMin(uint i) const
+    double getSizeMin(uint i)
     {
         return a_min_global[i];
     }
 
-    double getSizeMax(uint i) const
+    double getSizeMax(uint i)
     {
         return a_max_global[i];
     }
 
-    double getMaterialDensity(uint i) const
+    double getMaterialDensity(uint i)
     {
         return material_density[i];
     }
 
-    bool getDustSource() const
+    bool getDustSource()
     {
         return nr_ofDustPhotons > 0;
     }
 
-    bool getISRFSource() const
+    bool getISRFSource()
     {
         return nr_ofISRFPhotons > 0;
     }
 
-    ullong getNrOfDustPhotons() const
+    ullong getNrOfDustPhotons()
     {
         return nr_ofDustPhotons;
     }
 
-    double getDustMassFraction() const
+    double getDustMassFraction()
     {
         return conv_mass_fraction;
     }
 
-    uint getAlign() const
+    uint getAlign()
     {
         return align;
     }
 
-    bool getAligRANDOM() const
+    bool getAligRANDOM()
     {
         return align == 0;
     }
 
-    bool getAligPA() const
+    bool getAligPA()
     {
         return (align & ALIG_PA) == ALIG_PA;
     }
 
-    bool getAligIDG() const
+    bool getAligIDG()
     {
         return (align & ALIG_IDG) == ALIG_IDG;
     }
 
-    bool getAligRAT() const
+    bool getAligRAT()
     {
         return (align & ALIG_RAT) == ALIG_RAT;
     }
 
-    bool getAligGOLD() const
+    bool getAligGOLD()
     {
         return (align & ALIG_GOLD) == ALIG_GOLD;
     }
 
-    bool getAligINTERNAL() const
+    bool getAligINTERNAL()
     {
         return (align & ALIG_INTERNAL) == ALIG_INTERNAL;
     }
 
-    double getMu() const
+    double getMu()
     {
         return mu;
     }
 
-    bool getMRW() const
+    bool getMRW()
     {
         return b_mrw;
     }
 
-    bool getPDA() const
+    bool getPDA()
     {
         return b_pda;
     }
 
-    bool getEnfScattering() const
+    bool getEnfScattering()
     {
         return b_enforced;
     }
 
-    double getStochasticHeatingMaxSize() const
+    double getStochasticHeatingMaxSize()
     {
         return stochastic_heating_max_size;
     }
 
-    bool getSaveRadiationField() const
+    bool getSaveRadiationField()
     {
         return save_radiation_field;
     }
 
-    bool getScatteringToRay() const
+    bool getScatteringToRay()
     {
         return scattering_to_raytracing;
     }
 
-    bool splitDustEmission() const
-    {
-        return split_dust_emision;
-    }
-
-    bool getIndividualDustMassFractions() const
+    bool getIndividualDustMassFractions()
     {
         return individual_dust_fractions;
     }
 
-    bool getIsSpeedOfSound() const
+    bool getIsSpeedOfSound()
     {
         return is_speed_of_sound;
     }
 
-    bool getPeelOff() const
+    bool getPeelOff()
     {
         return peel_off;
     }
 
-    double getForegroundExtinctionMagnitude() const
+    double getForegroundExtinctionMagnitude()
     {
         return extinction_magnitude;
     }
 
-    double getForegroundExtinctionWavelength() const
+    double getForegroundExtinctionWavelength()
     {
         return extinction_magnitude_wavelength;
     }
 
-    uint getForegroundExtinctionDustMixture() const
+    uint getForegroundExtinctionDustMixture()
     {
         return extinction_i_mixture;
     }
 
-    bool getVelFieldType() const
+    bool getVelFieldType()
     {
         if(kepler_star_mass == 0)
         {
@@ -574,87 +981,82 @@ class parameters
         }
     }
 
-    uint getWriteRadiationField() const
+    bool getWriteRadiationField()
     {
         return write_radiation_field;
     }
 
-    bool getWriteGZero() const
+    bool getWriteFullRadiationField()
+    {
+        return write_full_radiation_field;
+    }
+
+    bool getWriteGZero()
     {
         return write_g_zero;
     }
 
-    double getISRFGZero() const
+    double getISRFGZero()
     {
         return isrf_g_zero;
     }
 
-    double getISRFRadius() const
+    double getISRFRadius()
     {
         return isrf_radius;
     }
 
-    string getISRFPath() const
+    string getISRFPath()
     {
         return isrf_path;
     }
 
-    string getZeemanCatalog(uint i_species) const
+    string getZeemanCatalog(uint i_species)
     {
         return zeeman_catalog_path[i_species];
     }
 
-    uint getAlignmentMechanism() const
+    uint getAlignmentMechanism()
     {
         return align;
     }
 
-    double getMinObserverDistance() const
+    double getMinObserverDistance()
     {
         return min_obs_distance;
     }
 
-    double getMaxObserverDistance() const
+    double getMaxObserverDistance()
     {
         return max_obs_distance;
     }
 
-    double getKeplerStarMass() const
+    double getKeplerStarMass()
     {
         return kepler_star_mass;
     }
 
-    double getTurbulentVelocity() const
+    double getTurbulentVelocity()
     {
         return turbulent_velocity;
     }
 
-    uint getMCLvlPopNrOfPhotons() const
-    {
-        return nr_of_mc_lvl_pop_photons;
-    }
-
-    uint getMCLvlPopSeed() const
-    {
-        return mc_lvl_pop_seed;
-    }
-
-    uint getTaskID() const
+    uint getTaskID()
     {
         return task_id;
     }
 
-    uint getNrOfThreads() const
+    uint getNrOfThreads()
     {
         return nr_ofThreads;
     }
 
-    ullong getNrOfISRFPhotons() const
+    ullong getNrOfISRFPhotons()
     {
         return nr_ofISRFPhotons;
     }
 
-    uint getNrOfMixtures() const
+    uint getNrOfMixtures()
     {
         if(!dust_choices.empty())
             return dust_choices.size();
@@ -662,95 +1064,79 @@ class parameters
             return 1;
     }
 
-    uilist getDustComponentChoices() const
+    uilist getDustComponentChoices()
     {
         return dust_choices;
     }
 
-    uint getPhaseFunctionID() const
+    uint getPhaseFunctionID()
     {
         return phID;
     }
 
-    double getFHighJ() const
+    double getFHighJ()
     {
         return f_highJ;
     }
 
-    double getQref() const
-    {
-        return Q_ref;
-    }
-
-    double getAlphaQ() const
-    {
-        return alpha_Q;
-    }
-
-    double getFcorr() const
+    double getFcorr()
     {
         return f_cor;
     }
 
-    double getAdjTgas() const
+    double getAdjTgas()
     {
         return adjTgas;
     }
 
-    uint getNrOfDiffuseSources() const
+    uint getNrOfDiffuseSources()
     {
         return uint(diffuse_sources.size() / NR_OF_DIFF_SOURCES);
     }
 
-    uint getNrOfPointSources() const
+    uint getNrOfPointSources()
     {
         return uint(point_sources.size() / NR_OF_POINT_SOURCES);
     }
 
-    uint getNrOfLaserSources() const
-    {
-        return uint(laser_sources.size() / NR_OF_LASER_SOURCES);
-    }
-
-    uint getNrOfBackgroundSources() const
+    uint getNrOfBackgroundSources()
     {
         return uint(background_sources.size() / NR_OF_BG_SOURCES);
     }
 
-    double getXYMin() const
+    double getXYMin()
     {
         return xymin;
     }
 
-    double getXYMax() const
+    double getXYMax()
     {
         return xymax;
     }
 
-    double getXYSteps() const
+    double getXYSteps()
     {
         return xysteps;
     }
 
-    uint getXYBins() const
+    uint getXYBins()
     {
         return xy_bins;
     }
 
-    string getXYLabel() const
+    string getXYLabel()
     {
         return xylabel;
     }
 
-    bool isAutoScale() const
+    bool isAutoScale()
     {
         return autoscale;
     }
 
-    uint getNrOfSources() const
+    uint getNrOfSources()
     {
-        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources() +
-                   getNrOfLaserSources();
+        uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources();
 
         if(nr_ofDustPhotons > 0)
             res++;
@@ -758,49 +1144,33 @@ class parameters
         if(nr_ofISRFPhotons > 0)
             res++;
 
-        // Add gas source for levl population calculation
-        if(isGasSpeciesLevelPopMC())
-            res++;
-
         return res;
     }
 
-    uint getNrOfGnuPoints() const
+    uint getNrOfGnuPoints()
     {
         return nrOfGnuPoints;
     }
 
-    uint getNrOfGnuVectors() const
+    uint getNrOfGnuVectors()
     {
         return nrOfGnuVectors;
     }
 
-    uint getmaxGridLines() const
+    uint getmaxGridLines()
     {
         return maxGridLines;
     }
 
-    uint getStart() const
+    uint getStart()
     {
         return start;
     }
 
-    uint getStop() const
+    uint getStop()
     {
         return stop;
     }
-    
-    
-    void setOpiatePathEmission(string str)
-    {
-        opiata_path_emi=str;
-    }
-    
-    void setOpiatePathAbsorption(string str)
-    {
-        opiata_path_abs=str;
-    }
-       
 
     void setXYMin(double val)
     {
@@ -894,11 +1264,6 @@ class parameters
     void setNrOfISRFPhotons(long val)
     {
         nr_ofISRFPhotons = val;
-    }
-    
-    void addOpiateSpec(string str)
-    {
-        opiate_spec_ids.push_back(str);
     }
 
     void AddDustComponentChoice(uint dust_component_choice)
@@ -1092,9 +1457,14 @@ class parameters
         midplane_zoom = val;
     }
 
-    void setWriteRadiationField(uint val)
+    void setWriteRadiationField(bool val)
     {
         write_radiation_field = val;
+    }
+
+    void setWriteFullRadiationField(bool val)
+    {
+        write_full_radiation_field = val;
     }
 
     void setWriteGZero(double val)
@@ -1184,11 +1554,6 @@ class parameters
         scattering_to_raytracing = val;
     }
 
-    void setSplitDustEmission(bool val)
-    {
-        split_dust_emision = val;
-    }
-
     void setSIConvLength(double val)
     {
         conv_l_in_SI = val;
@@ -1270,17 +1635,6 @@ class parameters
         kepler_star_mass = val;
     }
 
-    void setMCLvlPopNrOfPhotons(uint val)
-    {
-        nr_of_mc_lvl_pop_photons = val;
-    }
-
-    void setMCLvlPopSeed(uint val)
-    {
-        if(val > 0)
-            mc_lvl_pop_seed = val;
-    }
-
     void setTurbulentVelocity(double val)
     {
         turbulent_velocity = val;
@@ -1299,16 +1653,6 @@ class parameters
     void setFhighJ(double val)
     {
         f_highJ = val;
-    }
-
-    void setQref(double val)
-    {
-        Q_ref = val;
-    }
-
-    void setAlphaQ(double val)
-    {
-        alpha_Q = val;
     }
 
     void setFcorr(double val)
@@ -1349,11 +1693,6 @@ class parameters
     dlist & getPointSources()
     {
         return point_sources;
-    }
-
-    dlist & getLaserSources()
-    {
-        return laser_sources;
     }
 
     strlist & getPointSourceStringList()
@@ -1421,14 +1760,12 @@ class parameters
         dust_ray_detectors.push_back(val[9]);
         // delta_y (cart, slice) / None (polar) / b_min (healpix)
         dust_ray_detectors.push_back(val[10]);
-        //bubble radius (heal)
-        dust_ray_detectors.push_back(val[11]);
         // dust detector type/grid (all)
-        dust_ray_detectors.push_back(val[12]);
+        dust_ray_detectors.push_back(val[11]);
         // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
-        dust_ray_detectors.push_back(val[13]);
+        dust_ray_detectors.push_back(val[12]);
         // number of pixel in y-direction (cart, polar, slice)
-        dust_ray_detectors.push_back(val[14]);
+        dust_ray_detectors.push_back(val[13]);
 
         switch(uint(val[NR_OF_RAY_DET - 3]))
         {
@@ -1469,99 +1806,6 @@ class parameters
                 break;
         }
     }
-        
-    void addOpiateRayDetector(dlist & val)
-    {
-        // Abundance or species id
-        opiate_ray_detectors.push_back(val[0]);
-        
-        // BG surce ID
-        opiate_ray_detectors.push_back(val[1]);
-        
-        // Maximum velocity (SI)
-        opiate_ray_detectors.push_back(val[2]);
-        
-        // ang1 or pos_x
-        opiate_ray_detectors.push_back(val[3]);
-        
-        // ang2 or pos_y
-        opiate_ray_detectors.push_back(val[4]);
-        
-        // dist or pos_z
-        opiate_ray_detectors.push_back(val[5]);
-        
-        // sidelength_x or l_min
-        opiate_ray_detectors.push_back(val[6]);
-        
-        // sidelength_y or l_max
-        opiate_ray_detectors.push_back(val[7]);
-        
-        // off_x or b_min
-        opiate_ray_detectors.push_back(val[8]);
-        
-        // off_y or b_max
-        opiate_ray_detectors.push_back(val[9]);
-        
-        // empty or d_vx
-        opiate_ray_detectors.push_back(val[10]);
-        
-        // empty or d_vy
-        opiate_ray_detectors.push_back(val[11]);
-        
-        // empty or d_vz
-        opiate_ray_detectors.push_back(val[12]);
-        
-        // det. type
-        opiate_ray_detectors.push_back(val[13]);
-        
-        // N_x or n_side
-        opiate_ray_detectors.push_back(val[14]);
-        
-        // N_y or n_side
-        opiate_ray_detectors.push_back(val[15]);
-        
-        // N_vel
-        opiate_ray_detectors.push_back(val[16]);
-
-        switch(uint(val[13]))
-        {
-            case DET_SPHER:
-                if(rt_grid_description.find("healpix") == string::npos)
-                {
-                    rt_grid_description += "healpix";
-                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
-                        rt_grid_description += ", ";
-                }
-                break;
-
-            case DET_POLAR:
-                if(rt_grid_description.find("polar") == string::npos)
-                {
-                    rt_grid_description += "polar";
-                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
-                        rt_grid_description += ", ";
-                }
-                break;
-
-            case DET_SLICE:
-                if(rt_grid_description.find("slice") == string::npos)
-                {
-                    rt_grid_description += "slice";
-                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
-                        rt_grid_description += ", ";
-                }
-                break;
-
-            default:
-                if(rt_grid_description.find("cartesian") == string::npos)
-                {
-                    rt_grid_description += "cartesian";
-                    if(opiate_ray_detectors.size() > NR_OF_OPIATE_DET)
-                        rt_grid_description += ", ";
-                }
-                break;
-        }
-    }
 
     void addSyncRayDetector(dlist & val)
     {
@@ -1588,16 +1832,14 @@ class parameters
         sync_ray_detectors.push_back(val[9]);
         // delta_y (cart, slice) / None (polar) / b_min (healpix)
         sync_ray_detectors.push_back(val[10]);
-        // bubble size (heal)
-        sync_ray_detectors.push_back(val[11]);
         // dust detector type/grid (all)
-        sync_ray_detectors.push_back(val[12]);
+        sync_ray_detectors.push_back(val[11]);
         // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
-        sync_ray_detectors.push_back(val[13]);
+        sync_ray_detectors.push_back(val[12]);
         // number of pixel in y-direction (cart, polar, slice)
-        sync_ray_detectors.push_back(val[14]);
+        sync_ray_detectors.push_back(val[13]);
 
-        switch(uint(val[NR_OF_RAY_DET - 3]))//
+        switch(uint(val[NR_OF_RAY_DET - 3]))
         {
             case DET_SPHER:
                 if(rt_grid_description.find("healpix") == string::npos)
@@ -1637,7 +1879,7 @@ class parameters
         }
     }
 
-    /*void addLineOpiateDetector(dlist & val)
+    void addLineOpiateDetector(dlist & val)
     {
         // ang1
         line_opiate_detectors.push_back(val[0]);
@@ -1667,7 +1909,7 @@ class parameters
     void setOpiateDataPath(string val)
     {
         opiate_data_path = val;
-    }*/
+    }
 
     void addLineRayDetector(dlist & val)
     {
@@ -1773,14 +2015,10 @@ class parameters
         dust_mc_detectors.push_back(val[6]);
         // Side length of dust detector in y-dir
         dust_mc_detectors.push_back(val[7]);
-        // Shift length of dust detector in x-dir
-        dust_mc_detectors.push_back(val[8]);
-        // Shift length of dust detector in y-dir
-        dust_mc_detectors.push_back(val[9]);       
         // number of pixel in x-direction
-        dust_mc_detectors.push_back(val[10]);
+        dust_mc_detectors.push_back(val[8]);
         // number of pixel in y-direction
-        dust_mc_detectors.push_back(val[11]);
+        dust_mc_detectors.push_back(val[9]);
     }
 
     uint getNrOfDustMCDetectors()
@@ -1812,34 +2050,6 @@ class parameters
         // Number of photons
         point_sources.push_back(val[7]);
         point_sources_str.push_back(path);
-    }
-
-    void addLaserSource(dlist & val)
-    {
-        // Position X
-        laser_sources.push_back(val[0]);
-        // Position Y
-        laser_sources.push_back(val[1]);
-        // Position Z
-        laser_sources.push_back(val[2]);
-        // Direction X
-        laser_sources.push_back(val[3]);
-        // Direction Y
-        laser_sources.push_back(val[4]);
-        // Direction Z
-        laser_sources.push_back(val[5]);
-        // Total power [W]
-        laser_sources.push_back(val[6]);
-        // Central wavelength [m]
-        laser_sources.push_back(val[7]);
-        // FWHM of the laser emission [m]
-        laser_sources.push_back(val[8]);
-        // Stokes Q plarization
-        laser_sources.push_back(val[9]);
-        // Stokes U plarization
-        laser_sources.push_back(val[10]);
-        // Number of photons
-        laser_sources.push_back(val[11]);
     }
 
     void addBackgroundSource(dlist & val)
@@ -1934,23 +2144,32 @@ class parameters
         return uint(gas_species_abundance.size());
     }
 
-    uint getNrOfSpectralLines(uint i_species)
+    uint getMaxNrOfTransitions()
+    {
+        uint max_transitions = 0;
+        for(uint i_species = 0; i_species < line_ray_detector_list.size(); i_species++)
+            if(getNrOfGasSpeciesTransitions(i_species) > max_transitions)
+                max_transitions = getNrOfGasSpeciesTransitions(i_species);
+        return max_transitions;
+    }
+
+    uint getNrOfGasSpeciesTransitions(uint i_species)
     {
         return uint(line_ray_detector_list[i_species].size() / NR_OF_LINE_DET);
     }
 
-    int * getSpectralLines(uint i_species)
+    int * getGasSpeciesTransitions(uint i_species)
     {
-        uint nr_of_spectral_lines = getNrOfSpectralLines(i_species);
-        int * spectral_lines = new int[nr_of_spectral_lines];
+        uint nr_of_transitions = getNrOfGasSpeciesTransitions(i_species);
+        int * transitions = new int[nr_of_transitions];
         dlist line_ray_detector = getLineRayDetector(i_species);
         for(uint i = 0; i < line_ray_detector_list[i_species].size(); i += NR_OF_LINE_DET)
         {
             uint pos = i / NR_OF_LINE_DET;
 
-            spectral_lines[pos] = int(line_ray_detector[i]);
+            transitions[pos] = int(line_ray_detector[i]);
         }
-        return spectral_lines;
+        return transitions;
     }
 
     uint getNrOfDustRayDetectors()
@@ -1968,22 +2187,12 @@ class parameters
         sublimate = val;
     }
 
-    void setHealpixOrientation(uint val)
+    dlist getLineRayDetector(uint i_species)
     {
-        healpix_orientation = val;
+        return line_ray_detector_list[i_species];
     }
 
-    uint getHealpixOrientation() const
-    {
-        return healpix_orientation;
-    }
-
-    const dlist & getLineRayDetector(uint i_species) const
-    {
-        return line_ray_detector_list.at(i_species);
-    }
-
-    const maplist & getLineRayDetectors() const
+    maplist getLineRayDetectors()
     {
         return line_ray_detector_list;
     }
@@ -2006,17 +2215,17 @@ class parameters
             size_parameter_map[i].push_back(size_parameter[i]);
     }
 
-    bool getVelMaps() const
+    bool getVelMaps()
     {
         return vel_maps;
     }
 
-    uint getDustChoiceFromComponentId(uint i) const
+    uint getDustChoiceFromComponentId(uint i)
     {
         return component_id_to_choice[i];
     }
 
-    uint getDustChoiceFromMixtureId(uint i) const
+    uint getDustChoiceFromMixtureId(uint i)
     {
         return dust_choices[i];
     }
@@ -2026,12 +2235,12 @@ class parameters
         cout << "- background grid shape : " << rt_grid_description << endl;
     }
 
-    double getAcceptanceAngle() const
+    double getAcceptanceAngle()
     {
         return acceptance_angle;
     }
 
-    string getDustPath(uint i) const
+    string getDustPath(uint i)
     {
         return dust_paths[i];
     }
@@ -2041,53 +2250,50 @@ class parameters
         return sublimate;
     }
 
-    double getDustFraction(uint i) const
+    double getDustFraction(uint i)
     {
         return dust_fractions[i];
     }
 
-    string getDustSizeKeyword(uint i) const
+    string getDustSizeKeyword(uint i)
     {
         return size_keywords[i];
     }
 
-    dlist getDustSizeParameter(uint i_comp) const
+    dlist getDustSizeParameter(uint i_comp)
     {
         dlist res;
         for(uint i = 0; i < NR_OF_SIZE_DIST_PARAM; i++)
-            res.push_back(size_parameter_map.at(i).at(i_comp));
+            res.push_back(size_parameter_map[i][i_comp]);
         return res;
     }
 
-    string getGasSpeciesCatalogPath(uint i_species) const
+    string getGasSpeciesCatalogPath(uint i)
     {
-        return gas_species_cat_path[i_species];
+        return gas_species_cat_path[i];
     }
 
-    double getGasSpeciesAbundance(uint i_species) const
+    double getGasSpeciesAbundance(uint i)
     {
-        return gas_species_abundance[i_species];
+        return gas_species_abundance[i];
     }
 
-    uint getGasSpeciesLevelPopType(uint i_species) const
+    uint getGasSpeciesLevelPopType(uint i)
     {
-        return gas_species_level_pop_type[i_species];
+        return gas_species_level_pop_type[i];
     }
 
-    bool isGasSpeciesLevelPopMC() const
+    uint getNrVelocityChannel(uint i)
     {
-        for(uint i_species = 0; i_species < gas_species_level_pop_type.size(); i_species++)
-            if(gas_species_level_pop_type[i_species] == POP_MC)
-                return true;
-        return false;
+        return nr_ofVelocityChannels[i];
     }
 
-    uint getMaxSubpixelLvl() const
+    uint getMaxSubpixelLvl()
     {
         return max_subpixel_lvl;
     }
 
-    uint getTotalNrOfDustComponents() const
+    uint getTotalNrOfDustComponents()
     {
         return (uint)dust_paths.size();
     }
@@ -2231,7 +2437,8 @@ class parameters
 
     bool plot_inp_points;
     bool plot_out_points;
-    uint write_radiation_field;
+    bool write_radiation_field;
+    bool write_full_radiation_field;
     bool write_g_zero;
 
     dlist midplane_3d_param;
@@ -2249,7 +2456,6 @@ class parameters
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
     bool scattering_to_raytracing;
-    bool split_dust_emision;
     bool individual_dust_fractions;
 
     strlist zeeman_catalog_path;
@@ -2268,14 +2474,11 @@ class parameters
     double extinction_magnitude_wavelength;
     uint extinction_i_mixture;
 
+    uilist nr_ofVelocityChannels;
+
     uint nrOfGnuPoints;
     uint nrOfGnuVectors;
     uint maxGridLines;
-
-    uint nr_of_mc_lvl_pop_photons;
-    uint mc_lvl_pop_seed;
-
-    uint healpix_orientation;
 
     maplist line_ray_detector_list;
 
@@ -2287,7 +2490,6 @@ class parameters
 
     dlist point_sources;
     dlist diffuse_sources;
-    dlist laser_sources;
     dlist background_sources;
     dlist gas_species_abundance;
 
@@ -2312,9 +2514,6 @@ class parameters
 
     double f_highJ;
     double f_cor;
-    double Q_ref;
-    double alpha_Q;
-
     double adjTgas;
     double isrf_g_zero;
     double isrf_radius;
@@ -2335,10 +2534,392 @@ class parameters
 
     bool reset_dust_files;
 
-    // opiate parameters
-    dlist opiate_ray_detectors;
-    strlist opiate_spec_ids;
-    string opiata_path_emi;
-    string opiata_path_abs;
+    // opiate data
+    string opiate_param_path;
+    string opiate_data_path;
+    dlist line_opiate_detectors;
+};
+
+class photon_package
+{
+  public:
+    photon_package()
+    {
+        sc_counter = 0;
+        cell_pos = 0;
+        tmp_path = 0;
+
+        wID = MAX_UINT;
+
+        sh_distance = 0;
+
+        mD.resize(3, 3);
+        mD.unityMatrix();
+
+        stokes.set(1, 0, 0, 0, 0);
+        multi_stokes = 0;
+
+        sc_counter = 0;
+        abs_counter = 0;
+
+        hasSpare = false;
+        rand1 = 0.5;
+        rand2 = 0.5;
+
+        X1 = 0;
+        X2 = 0;
+        call = 0;
+    }
+
+    double randn(double mu, double sigma)
+    {
+        double U1, U2, W, mult;
+        double X1, X2;
+        int call = 0;
+
+        if(call == 1)
+        {
+            call = !call;
+            return (mu + sigma * (double)X2);
+        }
+
+        do
+        {
+            U1 = -1 + getRND() * 2;
+            U2 = -1 + getRND() * 2;
+            W = pow(U1, 2) + pow(U2, 2);
+        } while(W >= 1 || W == 0);
+
+        mult = sqrt((-2 * log(W)) / W);
+        X1 = U1 * mult;
+        X2 = U2 * mult;
+
+        call = !call;
+
+        double res = mu + sigma * (double)X1;
+
+        if(res < 0)
+            return randn(mu, sigma);
+
+        return res;
+    }
+
+    double generateGaussianNoise(const double & variance)
+    {
+        hasSpare = false;
+        rand1 = getRND(), rand2 = getRND();
+
+        if(hasSpare)
+        {
+            hasSpare = false;
+            return sqrt(variance * rand1) * sin(rand2);
+        }
+
+        hasSpare = true;
+
+        rand1 = getRND();
+        if(rand1 < 1e-100)
+            rand1 = 1e-100;
+        rand1 = -2 * log(rand1);
+        rand2 = (getRND() / ((double)RAND_MAX)) * PIx2;
+
+        return sqrt(variance * rand1) * cos(rand2);
+    }
+
+    ~photon_package()
+    {
+        if(multi_stokes != 0)
+            delete[] multi_stokes;
+    }
+
+    void initRandomGenerator(ullong seed)
+    {
+        rand_gen.setSeed(seed);
+    }
+
+    uint getAbsorptionEvents()
+    {
+        return abs_counter;
+    }
+
+    Matrix2D mD;
+
+    void setD(Matrix2D & _mD)
+    {
+        mD = _mD;
+    }
+
+    Matrix2D & getD()
+    {
+        return mD;
+    }
+
+    Vector3D & getPosition()
+    {
+        return pos;
+    }
+
+    Vector3D & getDirection()
+    {
+        return ez;
+    }
+
+    StokesVector & getStokesVector()
+    {
+        return stokes;
+    }
+
+    double const getRND()
+    {
+        return rand_gen.getValue();
+    }
+
+    double & getTmpPathLength()
+    {
+        return tmp_path;
+    }
+
+    uint getScatteringEvents()
+    {
+        return sc_counter;
+    }
+
+    cell_basic * getPositionCell()
+    {
+        return cell_pos;
+    }
+
+    double getWavelengthID()
+    {
+        return wID;
+    }
+
+    double getShortestDistance()
+    {
+        return sh_distance;
+    }
+
+    StokesVector & getMultiStokesVector(uint vch)
+    {
+        return multi_stokes[vch];
+    }
+
+    void calcRandomDirection()
+    {
+        ez.rndDir(getRND(), getRND());
+    }
+
+    void initCoordSystem()
+    {
+        double phi = atan3(ez.Y(), -ez.X());
+        double theta = acos(ez.Z());
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = ez.Z();
+        double sin_theta = sin(theta);
+
+        mD = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+
+        ex = mD * Vector3D(1, 0, 0);
+        ey = mD * Vector3D(0, 1, 0);
+    }
+
+    void updateCoordSystem()
+    {
+        double phi = atan3(ez.Y(), -ez.X());
+        double theta = acos(ez.Z());
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = ez.Z();
+        double sin_theta = sin(theta);
+
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = mD * D_help;
+
+        ex = mD * Vector3D(1, 0, 0);
+        ey = mD * Vector3D(0, 1, 0);
+        ez = mD * Vector3D(0, 0, 1);
+    }
+
+    void updateCoordSystem(double phi, double theta)
+    {
+        double cos_phi = cos(phi);
+        double sin_phi = sin(phi);
+        double cos_theta = cos(theta);
+        double sin_theta = sin(theta);
+
+        Matrix2D D_help = CMathFunctions::getRotationMatrix(cos_phi, sin_phi, cos_theta, sin_theta);
+        mD = mD * D_help;
+
+        ex = mD * Vector3D(1, 0, 0);
+        ey = mD * Vector3D(0, 1, 0);
+        ez = mD * Vector3D(0, 0, 1);
+    }
+
+    void adjustPosition(Vector3D _pos, double _len)
+    {
+        tmp_path = _len;
+        pos = _pos + tmp_path * ez;
+    }
+
+    void setPosition(Vector3D val)
+    {
+        pos = val;
+    }
+
+    void setPositionLastInteraction(Vector3D val)
+    {
+        pos_li = val;
+    }
+
+    void updatePositionLastInteraction()
+    {
+        pos_li = pos;
+    }
+
+    void resetPositionToLastInteraction()
+    {
+        pos = pos_li;
+    }
+
+    void setDetectorProjection()
+    {
+        double tmp_vec = ey * pos;
+        pos.setX(ex * pos);
+        pos.setY(tmp_vec);
+    }
+
+    void setRelativePosition(double tx, double ty, double tz)
+    {
+        pos = tx * ex + ty * ey + tz * ez;
+    }
+
+    void setDirection(Vector3D val)
+    {
+        ez = val;
+    }
+
+    void setStokesVector(StokesVector val)
+    {
+        stokes = val;
+    }
+
+    void initMultiStokesVector(uint nr_stokes_vector)
+    {
+        multi_stokes = new StokesVector[nr_stokes_vector];
+    }
+
+    void setMultiStokesVector(StokesVector st, uint i)
+    {
+        multi_stokes[i] = st;
+    }
+
+    void scattered()
+    {
+        sc_counter++;
+    }
+
+    void absorbed()
+    {
+        abs_counter++;
+    }
+
+    void addStokesVector(StokesVector val)
+    {
+        stokes += val;
+    }
+
+    Vector3D getEX()
+    {
+        return ex;
+    }
+
+    Vector3D getEY()
+    {
+        return ey;
+    }
+
+    Vector3D getEZ()
+    {
+        return ez;
+    }
+
+    void setEX(Vector3D _e)
+    {
+        ex = _e;
+    }
+
+    void setEY(Vector3D _e)
+    {
+        ey = _e;
+    }
+
+    void setEZ(Vector3D _e)
+    {
+        ez = _e;
+    }
+
+    void setCoordinateSystem(Vector3D _ex, Vector3D _ey, Vector3D _ez)
+    {
+        ex = _ex;
+        ey = _ey;
+        ez = _ez;
+    }
+
+    void getCoordinateSystem(Vector3D & _ex, Vector3D & _ey, Vector3D & _ez)
+    {
+        _ex = ex;
+        _ey = ey;
+        _ez = ez;
+    }
+
+    void setTmpPathLength(double val)
+    {
+        tmp_path = val;
+    }
+
+    void setScatteringEvents(uint val)
+    {
+        sc_counter = val;
+    }
+
+    void setPositionCell(cell_basic * val)
+    {
+        cell_pos = val;
+    }
+
+    void setWavelengthID(uint val)
+    {
+        wID = val;
+    }
+
+    void setShortestDistance(double val)
+    {
+        sh_distance = val;
+    }
+
+  private:
+    CRandomGenerator rand_gen;
+    Vector3D pos;
+    Vector3D pos_li;
+    Vector3D ex;
+    Vector3D ey;
+    Vector3D ez;
+    StokesVector stokes;
+    StokesVector * multi_stokes;
+
+    uint wID;
+
+    uint sc_counter;
+    uint abs_counter;
+    double tmp_path;
+    double sh_distance;
+    cell_basic * cell_pos;
+
+    bool hasSpare;
+    double rand1, rand2;
+
+    double X1, X2;
+    int call;
 };
 #endif

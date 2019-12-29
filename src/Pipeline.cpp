@@ -46,7 +46,7 @@ bool CPipeline::Init(int argc, char ** argv)
     }
     cout << SEP_LINE;
 
-    if(argc != 2)
+    /*if(argc != 2)
     {
         cout << "\nERROR: Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -60,8 +60,10 @@ bool CPipeline::Init(int argc, char ** argv)
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/OPIATE/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/daniel/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/En/cmd_file");
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Ann/cmd_file_syn");
+    CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/Ann/cmd_file_syn");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Michael/cmd_file");
+    
+    
 
     if(!parser.parse())
     {
@@ -748,6 +750,9 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
         double sideLength_x = dust_mc_detectors[i + 6];
         double sideLength_y = dust_mc_detectors[i + 7];
+        
+        double map_shift_x = dust_mc_detectors[i + 8];
+        double map_shift_y = dust_mc_detectors[i + 9];
 
         uint bins_x = uint(dust_mc_detectors[i + NR_OF_MC_DET - 2]);
         uint bins_y = uint(dust_mc_detectors[i + NR_OF_MC_DET - 1]);
@@ -774,6 +779,8 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
                            bins_y,
                            sideLength_x,
                            sideLength_y,
+                           map_shift_x,
+                           map_shift_y,
                            distance,
                            lam_min,
                            lam_max,

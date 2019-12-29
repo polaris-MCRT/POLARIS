@@ -428,6 +428,8 @@ class CDetector
               uint _bins_y,
               double _sidelength_x,
               double _sidelength_y,
+              double _map_shift_x,
+              double _map_shift_y,
               double _distance,
               double _l_min,
               double _l_max,
@@ -457,8 +459,8 @@ class CDetector
         sidelength_x = _sidelength_x;
         sidelength_y = _sidelength_y;
 
-        map_shift_x = 0;
-        map_shift_y = 0;
+        map_shift_x = _map_shift_x;
+        map_shift_y = _map_shift_y;
 
         channel_width = 0;
         i_trans = 0, cos_acceptance_angle = 0;
@@ -682,12 +684,13 @@ class CDetector
         double lx = pos * ex;
         double ly = pos * ey;
 
-        int x = int((lx + 0.5 * sidelength_x) / sidelength_x * double(bins_x));
+        //uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
+        int x = int((lx + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
         if(x < 0 || x >= int(bins_x))
             return;
 
-        int y = int((ly + 0.5 * sidelength_y) / sidelength_y * double(bins_y));
+        int y = int((ly + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
 
         if(y < 0 || y >= int(bins_y))
             return;

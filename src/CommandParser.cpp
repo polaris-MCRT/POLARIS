@@ -1815,19 +1815,29 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         while(values[4] < 0)
             values[4] += 360;
 
-        if(values.size() == NR_OF_MC_DET - 4)
+        if(values.size() == NR_OF_MC_DET - 6)//
         {
             // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            
             // Set sidelength in x-direction of cube sidelength
             values.push_back(-1);
             // Set sidelength in y-direction of cube sidelength
             values.push_back(-1);
+
+            // Set shift in x-direction of cube sidelength
+            values.push_back(0);
+            // Set shift in y-direction of cube sidelength
+            values.push_back(0);
+
         }
-        else if(values.size() == NR_OF_MC_DET - 3)
+        else if(values.size() == NR_OF_MC_DET - 4)//
         {
-            // As above, but with one sidelength for both directions of cube sidelength
-            // Set given sidelength also for y-direction of cube sidelength
-            values.push_back(values[NR_OF_MC_DET - 4]);
+            //only sidelength but no shift
+            
+            // Set shift in x-direction of cube sidelength
+            values.push_back(0);
+            // Set shift in y-direction of cube sidelength
+            values.push_back(0);
         }
 
         if(!checkPixel(values, nr_of_pixel))

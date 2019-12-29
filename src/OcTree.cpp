@@ -290,10 +290,103 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
     if(!loadGridFromBinrayFile(param))
         return false;
     
+    createCellList();
+    
     printParameters();
+    
+    cell_oc_root=&cell_oc_root->getChildren()[6];
+    
+    
+    ulong max_cells = getMaxDataCells();
 
-    reduceLevelOfBinrayFile(cell_oc_root, tr_level);
+    cout << CLR_LINE;
 
+
+#pragma omp parallel for schedule(dynamic)
+    
+    for(long c_i = 0; c_i < long(max_cells); c_i++)
+    {
+        cell_basic * cell = getCellFromIndex(c_i);
+        double dens0 = getGasDensity(*cell, 0);
+        double dens1 = getGasDensity(*cell, 1);
+        
+        
+        if(c_i%5000==0)
+            cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
+        
+        double dens = dens0+dens1;
+        
+        
+        double length = ((cell_oc *)cell)->getLength();
+        
+        double cx = ((cell_oc *)cell)->getXmin()+0.5*length;
+        double cy = ((cell_oc *)cell)->getYmin()+0.5*length;
+        double cz = ((cell_oc *)cell)->getZmin()+0.5*length;
+        
+        vector<Vector3D> vlist;
+        
+        length=0.6*length;
+        
+        Vector3D center=Vector3D(cx,cy,cz);
+        
+        vlist.push_back(Vector3D(cx+length,cy,cz));
+        vlist.push_back(Vector3D(cx-length,cy,cz));
+        
+        vlist.push_back(Vector3D(cx,cy+length,cz));
+        vlist.push_back(Vector3D(cx,cy-length,cz));
+        
+        vlist.push_back(Vector3D(cx,cy,cz+length));
+        vlist.push_back(Vector3D(cx,cy,cz-length));
+        
+        length=1.7*length;
+        
+        vlist.push_back(Vector3D(cx+length,cy+length,cz+length));
+        vlist.push_back(Vector3D(cx+length,cy-length,cz+length));
+        vlist.push_back(Vector3D(cx-length,cy-length,cz+length));
+        vlist.push_back(Vector3D(cx-length,cy+length,cz+length));
+        
+        vlist.push_back(Vector3D(cx+length,cy+length,cz-length));
+        vlist.push_back(Vector3D(cx+length,cy-length,cz-length));
+        vlist.push_back(Vector3D(cx-length,cy-length,cz-length));
+        vlist.push_back(Vector3D(cx-length,cy+length,cz-length));
+        
+        photon_package pp;
+        
+        pp.setPosition(center);
+        
+        if(positionPhotonInGrid(&pp))
+        {
+            //cell_basic * cell = pp.getPositionCell()
+            double tg= 0.6*getGasTemperature(pp);
+                        
+            for(uint g=0;g<vlist.size();g++)
+            {
+                pp.setPosition(vlist[g]);
+        
+                if(positionPhotonInGrid(&pp))
+                {
+                    tg+=0.6/14.0*getGasTemperature(pp);
+                }   
+            }
+            
+            setGasTemperature(cell, tg);
+        }
+             
+        
+        if(dens*254098.7886>3e12)
+        {
+            setGasDensity(cell, 0, 0.05*dens);
+            setGasDensity(cell, 1, 0.95*dens);
+        }
+        else
+        {
+            setGasDensity(cell, 0, 0.95*dens);
+            setGasDensity(cell, 1, 0.05*dens);
+        }
+    }
+
+    //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
+    
     if(!saveBinaryGridFile(out_filename))
         return false;
 
@@ -1246,7 +1339,7 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
         }
 
         isleaf = (ushort)1;
-        level = (ushort)cell->getLevel();
+        level = (ushort)cell->getLevel();//-1;
 
         file_stream.write((char *)&isleaf, 2);
         file_stream.write((char *)&level, 2);
@@ -1260,7 +1353,7 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
     else
     {
         isleaf = (ushort)0;
-        level = (ushort)cell->getLevel();
+        level = (ushort)cell->getLevel();//-1;
 
         file_stream.write((char *)&isleaf, 2);
         file_stream.write((char *)&level, 2);

@@ -1265,9 +1265,6 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 
             v_n = n_pos - c_pos;
             v_a = c_pos + 0.5 * v_n;
-            // distance to cell border is enlarged to ensure
-            // a large enough step length
-            v_a *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
 
             num = v_n * (pos - v_a);
             den = v_n * (dir);
@@ -1341,8 +1338,11 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         }
     }
 
+    path_length *= 1.0001;
+    
+    path_length = path_length + 1e-3 * min_len+1;
 
-    pp->setPosition(pos + dir * (path_length + 1));
+    pp->setPosition(pos + dir * path_length);
     pp->setTmpPathLength(path_length);
 
     return hit;

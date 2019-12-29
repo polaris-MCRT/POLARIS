@@ -1269,6 +1269,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     float last_percentage = 0;
 
     // Show Initial message
+    cout << CLR_LINE;
     cout << "-> Initiating dust grain emission          \r" << flush;
 
     for(uint w = 0; w < nr_of_wavelengths; w++)
@@ -1298,7 +1299,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             {
 //#pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                    cout << "-> Calculating prob. distribution for dust source: " << percentage << " [%]    \r"
                          << flush;
                     last_percentage = percentage;
                 }
@@ -1319,6 +1320,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     }
 
     // Show information
+    cout << CLR_LINE;
     cout << "- Source (" << id + 1 << " of " << max
          << ") DUST: photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
 
@@ -1364,8 +1366,7 @@ bool CSourceDust::initSource(uint w)
         {
 //#pragma omp critical
             {
-                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
-                     << flush;
+                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r" << flush;
                 last_percentage = percentage;
             }
         }
