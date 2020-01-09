@@ -977,6 +977,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             break;
                         }
 
+                        // Get path length through current cell
+                        len = pp->getTmpPathLength();
+
                         // Get dust number density of the current cell
                         dens = dust->getNumberDensity(grid, pp);
 
@@ -991,9 +994,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // alignment)
                         Cext = dust->getCextMean(grid, pp);
 
-                        // Get path length through current cell
-                        len = pp->getTmpPathLength();
-
                         // Calculate optical depth that is obtained on the path_length
                         tmp_tau = Cext * len * dens;
 
@@ -1005,6 +1005,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                             // Reduce the photon position to match the exact
                             // interaction position
+                            
                             len = len * end_tau / tmp_tau;
                             pp->adjustPosition(old_pos, len);
 
@@ -2956,6 +2957,9 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
 // ------ Calculation of time-dependent radiation transfer -------
 // ---------------------------------------------------------------
 
+
+// Full time-dependent transfer with temperature calculations
+
 bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                                     parameters & param,
                                                     bool use_energy_density,
@@ -2972,7 +2976,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 10000.0;
+    tend = 20000.0;
     dt = 10;
     
     // Init arrays for emission, absorption and inner energy
@@ -2989,7 +2993,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         return false;
     
     // Set or load initial temperature dist  
-    if(dust->getDustTemperature(grid,grid->getCellFromIndex(0)) > 0)
+    if(dust->getDustTemperature(grid,grid->getCellFromIndex(1)) > 0)
     {
         // Start initial dust photons in every cell according to given temp dist
         if(!dust->initLamCdf())
@@ -3024,7 +3028,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 10000;
+    llong nr_of_photons_step = 100;
     
     pp_stack.reserve(nr_of_photons_step*(tend/dt));
     
@@ -3032,7 +3036,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     uilist pp_del;
     
     // Set points in time to print out results
-    double t_results = 1000;
+    double t_results = 100;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3088,7 +3092,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         ullong last = (pp_stack.size() > 0) ? pp_stack.size() : 0;
         
         // Start photons from dust and/or source and store in photon stack
-        
         for (llong i = 0; i < nr_of_photons_step; i++)
         {
             pp_stack.push_back(new photon_basic());
@@ -3364,7 +3367,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/testrt/dust_mc/data/temp/";
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/simple/dust_mc/data/temp/";
             grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         }
@@ -3445,9 +3448,17 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
     // Starts dust photons from every cell to get initial conditions
 
     ulong max_cells = grid->getMaxDataCells();
-    ullong nr_dust_photons = 1000;
-    ullong nr_source_photons = 5;
+    ullong nr_dust_photons = 100;
+    ullong nr_source_photons = 1000;
     double L_d = 0;
+    
+    dt = (100 * con_AU) / con_c;
+    
+    // Write N_z - 2 to take empty cells out
+    uint N_z = grid->getNumberZ()-2;
+    
+    // Index of last outer cell
+    ulong last_cell = (grid->getDataID() == GRID_ID_CYL) ? (max_cells-grid->getNumberZ()-1) : (max_cells-2);
     
     CSourceBasic * source = sources_mc[0];
     CSourceBasic * dust_source = sources_mc[1];
@@ -3458,13 +3469,64 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
     ullong per_counter = 0;
     float last_percentage = 0;
     
-    pp_stack.reserve((nr_dust_photons+nr_source_photons)*(max_cells-1));
+    float total_size = nr_source_photons*max_cells+nr_dust_photons*(max_cells-(max_cells-last_cell));
+    pp_stack.reserve(uint(total_size));
     
     // Progress output
     cout << CLR_LINE;
     cout << "-> Start initial photons from temp dist : 0.0[%]                        \r";
     
-    for(long c_i = 0; c_i < long(max_cells)-1; c_i++)
+    // Set last position in photon stack
+    ullong last = 0;
+    
+    // Set photons in inner cells (r<Rin)
+    for(long c_i = long(last_cell); c_i < long(max_cells)-1; c_i++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(c_i);
+       
+        // Place source photons in center cell
+        for (llong i = 0; i < nr_source_photons; i++)
+        {
+            pp_stack.push_back(new photon_basic());
+            
+            // Set random direction, position and coordinate system for scattering
+            source->createNextRay(pp_stack[last+i], i);
+            
+            // Set photon package into cell
+            pp_stack[last+i]->setPositionCell(cell);
+            // Set random position in cell
+            grid->setRndPositionInCell(pp_stack[last+i]);
+            
+            // Adjust direction
+            Vector3D dir = (pp_stack[last+i]->getPosition()-source->getPosition()).normalized();
+            pp_stack[last+i]->setDirection(dir);
+            
+            // Correct Stokes vector of (stellar) source emission
+            double energy = ((source->getLuminosity())*dt/(nr_source_photons*max_cells))*grid->getSolidAngle(cell);
+            pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
+            
+            // Get tau for first interaction
+            pp_stack[last+i]->setTmpPathLength(-log(1.0 - pp_stack[i]->getRND()));
+            
+            // Increase progress counter
+            per_counter++;
+            float percentage = 100.0 * float(per_counter) / total_size;
+        
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+                    cout << "-> Start initial photons from temp dist : "
+                        << percentage << " [%]              \r" << flush;
+                    last_percentage = percentage;
+            }
+        }
+        
+        // Update last position in stack
+        last += nr_source_photons;
+    }
+    
+    // Set photons in rest of grid
+    for(long c_i = 0; c_i < long(last_cell); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
         
@@ -3505,8 +3567,6 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
         {
             pp_stack.push_back(new photon_basic());
             
-            ullong last = c_i*(nr_dust_photons+nr_source_photons);
-            
             // Set random direction, position and coordinate system for scattering
             source->createNextRay(pp_stack[last+i], i);
             
@@ -3515,8 +3575,12 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             // Set random position in cell
             grid->setRndPositionInCell(pp_stack[last+i]);
             
+            // Adjust direction
+            Vector3D dir = (pp_stack[last+i]->getPosition()-source->getPosition()).normalized();
+            pp_stack[last+i]->setDirection(dir);
+            
             // Correct Stokes vector of (stellar) source emission
-            double energy = (source->getLuminosity())*dt/nr_source_photons;
+            double energy = ((source->getLuminosity())*dt/(nr_source_photons*max_cells))*grid->getSolidAngle(cell);
             pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             
             // Reduce Stokes vector by the optical depth
@@ -3527,7 +3591,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             
             // Increase progress counter
             per_counter++;
-            float percentage = 100.0 * float(per_counter) / float((max_cells-1)*(nr_dust_photons+nr_source_photons));
+            float percentage = 100.0 * float(per_counter) / total_size;
         
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -3538,6 +3602,9 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             }
         }
         
+        // Update last position in stack
+        last += nr_source_photons;
+        
         // Get emission rate
         dust_em[c_i] = dust->getCellEmissionRate(grid,cell);
         
@@ -3547,8 +3614,6 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
         for (llong i = 0; i < nr_dust_photons; i++)
         {
             pp_stack.push_back(new photon_basic());
-            
-            ullong last = c_i*(nr_dust_photons+nr_source_photons)+nr_source_photons;
             
             // Set photon package into cell
             pp_stack[last+i]->setPositionCell(cell);
@@ -3564,7 +3629,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             
             // Set Stokes vector of photon package
             // double energy = L_d*dt/nr_dust_photons;
-            double energy = (L_d*dt/(dust->getCabsMean(grid, pp_stack[last+i])*con_c))/nr_dust_photons;
+            double energy = (L_d*dt)/nr_dust_photons;
             pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             
             // Get tau for first interaction
@@ -3572,7 +3637,7 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
             
             // Increase progress counter
             per_counter++;
-            float percentage = 100.0 * float(per_counter) / float((max_cells-1)*(nr_dust_photons+nr_source_photons));
+            float percentage = 100.0 * float(per_counter) / total_size;
         
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
@@ -3582,6 +3647,9 @@ bool CRadiativeTransfer::startInitialDustPhotons(double dt, dlist dust_em, vecto
                     last_percentage = percentage;
             }
         }
+        
+        // Update last position in stack
+        last += nr_dust_photons;
     }
     
     cout << CLR_LINE;

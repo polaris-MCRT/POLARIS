@@ -477,6 +477,11 @@ class CGridBasic
         return 0;
     }
 
+    virtual uint getNumberZ()
+    {
+        return 0;
+    }
+    
     ulong getMaxDataCells()
     {
         return max_cells;
@@ -2072,6 +2077,11 @@ class CGridBasic
     }
 
     virtual double getVolume(photon_basic * pp)
+    {
+        return 0;
+    }
+    
+    virtual double getSolidAngle(cell_basic * cell)
     {
         return 0;
     }

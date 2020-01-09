@@ -398,6 +398,35 @@ class CGridSpherical : public CGridBasic
         return getVolume(cell_pos);
     }
 
+    double getSolidAngle(cell_basic * cell)
+    {
+        // Returns the solid angle for flux scaling needed for time-dependent RT
+        
+        cell_sp * cell_pos = (cell_sp *)cell;
+        
+        double dphi = 0;
+        double dtheta = 0;
+        
+        double solang = 0;
+
+        if(cell_pos->getRID() == MAX_UINT)
+        {
+            return 4.0 * PI;
+        }
+        
+        double ph1 = listPh[cell_pos->getPhID()];
+        double ph2 = listPh[cell_pos->getPhID() + 1];
+        double th1 = listTh[cell_pos->getThID()];
+        double th2 = listTh[cell_pos->getThID() + 1];
+        
+        dphi = ph2 - ph1;
+        dtheta = th2 - th1;
+
+        solang = dtheta * dphi / (4 * PI);
+
+        return solang;
+    }
+    
     Vector3D rotateToCenter(photon_basic * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_sp * cell_pos = (cell_sp *)pp->getPositionCell();

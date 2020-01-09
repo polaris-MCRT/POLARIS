@@ -393,6 +393,62 @@ class CGridCylindrical : public CGridBasic
         return getVolume(cell_pos);
     }
 
+    double getSolidAngle(cell_basic * cell)
+    {
+        // Returns the solid angle for flux scaling needed for time-dependent RT
+        
+        cell_cyl * cell_pos = (cell_cyl *)cell;
+        
+        double dphi = 0;
+        double dtheta = 0;
+        
+        double solang = 0;
+        
+        if(cell_pos->getRID() == MAX_UINT)
+        {
+            double z1 = listZ[0][cell_pos->getZID()];
+            
+            dphi = 2 * PI;
+            
+            // cos(arctan(x)) = 1/sqrt(x^2+1)
+            dtheta = 1 - 1 / sqrt( 1 + ( Rmin / z1 ) * ( Rmin / z1 ));
+            
+            solang = dtheta * dphi / (4 * PI);
+        }
+        else
+        {
+            double r1 = listR[cell_pos->getRID()];
+            double r2 = listR[cell_pos->getRID() + 1];
+            double ph1 = listPh[cell_pos->getRID()][cell_pos->getPhID()];
+            double ph2 = listPh[cell_pos->getRID()][cell_pos->getPhID() + 1];
+            double z1 = listZ[cell_pos->getRID()][cell_pos->getZID()];
+            double z2 = listZ[cell_pos->getRID()][cell_pos->getZID() + 1];
+
+            dphi = ph2 - ph1;
+             
+            // cos(arctan(x)) = 1/sqrt(x^2+1)
+            
+            if (abs(z2) > abs(z1))
+                dtheta = abs(1 / sqrt( 1 + ( r1 / z2 ) * ( r1 / z2 )) 
+                        - 1 / sqrt( 1 + ( r2 / z1 ) * ( r2 / z1 )));
+            else
+                dtheta = abs(1 / sqrt( 1 + ( r1 / z1 ) * ( r1 / z1 )) 
+                        - 1 / sqrt( 1 + ( r2 / z2 ) * ( r2 / z2 )));
+            
+            solang = dtheta * dphi / (4 * PI);
+            
+            //cout << "r1 " << r1 << " r2 " << r2 << " ph1 " << ph1 << " ph2 "  << ph2 << " z1 " << z1 << " z2 " << z2 << " dth " << dtheta << " solang " << solang << endl;
+        }
+
+        return solang;
+    }
+    
+    uint getNumberZ()
+    {
+        // Returns number of z cells to calculate number of inner cells
+        return N_z;
+    }
+    
     Vector3D rotateToCenter(photon_basic * pp, Vector3D dir, bool inv, bool phi_only)
     {
         cell_cyl * cell_pos = (cell_cyl *)pp->getPositionCell();
