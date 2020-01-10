@@ -2801,6 +2801,8 @@ class photon_package : public photon_basic
         X1 = 0;
         X2 = 0;
         call = 0;
+        
+        dl = 0;
     }
 
     double randn(double mu, double sigma)
@@ -3026,6 +3028,16 @@ class photon_package : public photon_basic
     {
         sh_distance = val;
     }
+    
+    void updateTotalPathLength(double val)
+    {
+        dl += val;
+    }
+    
+    double getTotalPathLength()
+    {
+        return dl;
+    }
 
   private:
     Vector3D pos_li;
@@ -3045,5 +3057,8 @@ class photon_package : public photon_basic
 
     double X1, X2;
     int call;
+    
+    // total path length for time dependent scattering
+    double dl;
 };
 #endif

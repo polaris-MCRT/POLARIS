@@ -112,6 +112,10 @@ using namespace std;
 #define DET_SPHER 2
 #define DET_SLICE 3
 
+// timestep and offset for time-dependent scattering
+#define SCA_DT 10000
+#define SCA_OFF 50000
+
 // phase functions
 #define PH_ISO 0
 #define PH_HG 1
@@ -188,10 +192,6 @@ using namespace std;
 
 #define GRIDavg_th 34
 #define GRIDavg_dir 35
-
-//#define GRIDdust_erate 36 // dust emission rate
-//#define GRIDdust_arate 37 // dust absorption rate
-//#define GRIDdust_u 38     // dust inner energy
 
 #define minGRID GRIDgas_dens
 #define maxGRID GRIDavg_dir
