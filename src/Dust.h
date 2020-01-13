@@ -3389,20 +3389,12 @@ class CDustMixture
 
             // Init variables for optical depth calculation
             double len, dens, Cext, tau_obs = 0;
-
-            // Add total pathlength of scattered photon if time-dependent
-            if(SCA_DT > 0)
-                pp_res.updateTotalPathLength(pp->getTotalPathLength());
         
             // Transport the photon package through the grid
             while(grid->next(&pp_res))
             {
                 // Get the traveled distance
                 len = pp_res.getTmpPathLength();
-                
-                // Update total pathlength of photon if time-dependent
-                if(SCA_DT > 0)
-                    pp_res.updateTotalPathLength(len);
 
                 // Get the current density
                 dens = getNumberDensity(grid, &pp_res);
@@ -3413,6 +3405,12 @@ class CDustMixture
                 // Add the optical depth of the current path to the total optical depth
                 tau_obs += Cext * len * dens;
             }
+            
+            // Add path length from grid to detector to photon if time-dependent
+            if(SCA_DT > 0)
+                pp_res.updateTotalPathLength(((grid->getDetectorVector(&pp_res, dir_obs)-pp->getPosition())*dir_obs)+pp->getTotalPathLength());
+
+            //cout << "p " << grid->getDetectorVector(&pp_res,dir_obs) << " r_o " << last << " n " << dir_obs << " len "<< grid->getDetectorVector(&pp_res, dir_obs)*dir_obs-last*dir_obs << endl;
             
             // Reduce the Stokes vector by the optical depth
             pp_res.getStokesVector() *= exp(-tau_obs);

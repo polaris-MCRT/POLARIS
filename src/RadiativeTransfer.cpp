@@ -1073,7 +1073,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             if(SCA_DT > 0)
                                             {
                                                 // Add the photon package to the detector if in time
-                                                if(floor(tmp_pp.getTotalPathLength()/con_c) < (SCA_DT*(d+1)+SCA_OFF))
+                                                if(tmp_pp.getTotalPathLength()/con_c < (SCA_DT*(d+1)+SCA_OFF))
                                                 {
                                                     detector[d].addToMonteCarloDetector(
                                                         &tmp_pp, wID_det, SCATTERED_DUST);
@@ -1172,7 +1172,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     {
                                         if(SCA_DT > 0)
                                             // Add the photon package to the detector if in time
-                                            if(floor(pp->getTotalPathLength()/con_c) < (SCA_DT*(d+1)+SCA_OFF))
+                                            if(pp->getTotalPathLength()/con_c < (SCA_DT*(d+1)+SCA_OFF))
                                                 detector[d].addToMonteCarloDetector(pp, wID_det, DIRECT_STAR);
                                         else
                                             // Add the photon package to the detector
@@ -1182,7 +1182,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     {
                                         if(SCA_DT > 0)
                                             // Add the photon package to the detector if in time
-                                            if(floor(pp->getTotalPathLength()/con_c) < (SCA_DT*(d+1)+SCA_OFF))
+                                            if(pp->getTotalPathLength()/con_c < (SCA_DT*(d+1)+SCA_OFF))
                                                 detector[d].addToMonteCarloDetector(pp, wID_det, SCATTERED_DUST);
                                         else
                                             // Add the photon package to the detector
@@ -1239,10 +1239,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             double len = tmp_pp.getTmpPathLength();
                             double dens = dust->getNumberDensity(grid, &tmp_pp);
                             double Cext = dust->getCextMean(grid, &tmp_pp);
-                            
-                            // Add to total pathlength if time-dependent
-                            if(SCA_DT > 0)
-                                tmp_pp.updateTotalPathLength(len);
 
                             // Increase the optical depth by the current cell
                             tau_obs += Cext * len * dens;
@@ -1264,10 +1260,13 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Consider foreground extinction
                         tmp_pp.getStokesVector() *= dust->getForegroundExtinction(dust->getWavelength(wID));
-                        
+
                         if(SCA_DT > 0)
+                            // Add total pathlength to detector if time-dependent
+                            Vector3D dir_obs = detector[d].getDirection();
+                            tmp_pp.updateTotalPathLength((grid->getDetectorVector(&tmp_pp, dir_obs)-tm_source->getPosition())*dir_obs);
                             // Add the photon package to the detector if in time
-                            if(floor(tmp_pp.getTotalPathLength()/con_c) < (SCA_DT*(d+1)+SCA_OFF))
+                            if(tmp_pp.getTotalPathLength()/con_c < (SCA_DT*(d+1)+SCA_OFF))
                             {
                                 detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
                                 break;

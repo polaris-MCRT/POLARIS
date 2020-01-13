@@ -284,6 +284,24 @@ class CGridCylindrical : public CGridBasic
         return max(Rmax, Zmax);
     }
 
+    Vector3D getDetectorVector(photon_basic * pp, Vector3D & dir_obs)
+    {
+        // Returns vector for calculation of Hessian normal form of the detector plane
+        Vector3D plane;
+        
+        if(dir_obs.X() != 0 || dir_obs.Y() != 0)
+        {
+            double len_xy = sqrt( dir_obs.X() * dir_obs.X() + dir_obs.Y() * dir_obs.Y());
+            
+            plane.set(Rmax*(dir_obs.X()/len_xy),Rmax*(dir_obs.Y()/len_xy),
+                    Zmax*((dir_obs.Z() > 0) ? 1 : ((dir_obs.Z() < 0) ? -1 : 0)));
+        }
+        else
+           plane.set(0,0,Zmax*((dir_obs.Z() > 0) ? 1 : ((dir_obs.Z() < 0) ? -1 : 0))); 
+        
+        return plane;
+    }
+    
     bool next(photon_basic * pp)
     {
         if(!positionPhotonInGrid(pp))
