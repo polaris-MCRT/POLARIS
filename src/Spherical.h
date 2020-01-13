@@ -297,7 +297,7 @@ class CGridSpherical : public CGridBasic
     {
         return Rmax;
     }
-
+    
     bool next(photon_basic * pp)
     {
         if(!positionPhotonInGrid(pp))

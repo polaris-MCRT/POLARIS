@@ -3406,12 +3406,6 @@ class CDustMixture
                 tau_obs += Cext * len * dens;
             }
             
-            // Add path length from grid to detector to photon if time-dependent
-            if(SCA_DT > 0)
-                pp_res.updateTotalPathLength(((grid->getDetectorVector(&pp_res, dir_obs)-pp->getPosition())*dir_obs)+pp->getTotalPathLength());
-
-            //cout << "p " << grid->getDetectorVector(&pp_res,dir_obs) << " r_o " << last << " n " << dir_obs << " len "<< grid->getDetectorVector(&pp_res, dir_obs)*dir_obs-last*dir_obs << endl;
-            
             // Reduce the Stokes vector by the optical depth
             pp_res.getStokesVector() *= exp(-tau_obs);
 

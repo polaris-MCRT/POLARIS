@@ -114,7 +114,6 @@ using namespace std;
 
 // timestep and offset for time-dependent scattering
 #define SCA_DT 10000
-#define SCA_OFF 50000
 
 // phase functions
 #define PH_ISO 0

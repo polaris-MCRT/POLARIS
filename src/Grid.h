@@ -567,9 +567,6 @@ class CGridBasic
     {
         return false;
     }
-    
-    virtual Vector3D getDetectorVector(photon_basic * pp, Vector3D & dir_obs)
-    {}
 
     double getMinLength()
     {
