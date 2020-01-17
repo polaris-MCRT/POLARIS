@@ -1831,6 +1831,10 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
 void CGasSpecies::calcLineBroadening(CGridBasic * grid)
 {
     long max_cells = grid->getMaxDataCells();
+    
+    cout << CLR_LINE;
+    cout << "-> Calculating line broadening for each grid cell ...     \r" << flush;
+       
 #pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
     {
@@ -1866,6 +1870,8 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
             }
         }
     }
+    
+    cout << CLR_LINE;
 }
 
 void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
@@ -2020,7 +2026,7 @@ bool CGasMixture::updateLevelPopulation(CGridBasic * grid,
     return true;
 }
 
-void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
+void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
 {
     cout << CLR_LINE;
     cout << "Gas parameters                             " << endl;
@@ -2029,15 +2035,18 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
     if(getKeplerStarMass() > 0)
         cout << "kepler rotation, M_star: " << getKeplerStarMass() << " [M_sun]\n"
              << "    HINT: only available with one central star" << endl;
-    else if(grid->getVelocityFieldAvailable())
-        cout << "velocity field of the grid is used" << endl;
+    else if(grid->isVelocityFieldAvailable())
+        cout << "taken from grid" << endl;
     else
-        cout << "velocity field is zero" << endl;
+        cout << "none" << endl;
+    
     cout << "- Turbulent Velocity            : ";
     if(param.getTurbulentVelocity() > 0)
         cout << param.getTurbulentVelocity() << " [m/s]" << endl;
+    else if(grid->isTurbulentVelocityAvailable())
+        cout << "taken from grid" << endl;
     else
-        cout << "turbulent velocity of the grid is used" << endl;
+        cout << "none" << endl;
 
     for(uint i_species = 0; i_species < nr_of_species; i_species++)
     {

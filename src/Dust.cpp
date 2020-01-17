@@ -4934,7 +4934,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
     return true;
 }
 
-void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
+void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 {
     // If no mixture was defined, show basic information
     if(getNrOfMixtures() == 0)
@@ -5029,7 +5029,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         }
 
         cout << "- Include scattered light : ";
-        if(grid->getRadiationFieldAvailable())
+        if(grid->isRadiationFieldAvailable())
         {
             if(scattering_to_raytracing)
                 cout << "yes, based on the radiation field" << endl;

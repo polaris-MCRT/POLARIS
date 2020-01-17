@@ -3084,7 +3084,7 @@ class CDustMixture
             uint w = pp.getDustWavelengthID();
 
             // Get radiation field and calculate angle to the photon package direction
-            if(grid->getRadiationFieldAvailable())
+            if(grid->isRadiationFieldAvailable())
                 grid->getRadiationFieldInterp(pp, wavelength_list[w], &energy, &en_dir);
             else if(i_offset != MAX_UINT)
             {
@@ -3372,7 +3372,7 @@ class CDustMixture
     bool mixComponents(parameters & param, uint i_mixture);
     bool preCalcDustProperties(parameters & param, uint i_mixture);
 
-    void printParameter(parameters & param, CGridBasic * grid);
+    void printParameters(parameters & param, CGridBasic * grid);
 
   private:
     CDustComponent * single_component;

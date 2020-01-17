@@ -1366,7 +1366,8 @@ bool CSourceDust::initSource(uint w)
         {
 //#pragma omp critical
             {
-                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r" << flush;
+                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                     << flush;
                 last_percentage = percentage;
             }
         }

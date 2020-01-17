@@ -2293,9 +2293,17 @@ class CGridBasic
         return false;
     };
 
-    bool getVelocityFieldAvailable()
+    bool isVelocityFieldAvailable()
     {
         if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return false;
+        return true;
+    }
+    
+    
+    bool isTurbulentVelocityAvailable()
+    {
+        if(data_pos_vt == MAX_UINT)
             return false;
         return true;
     }
@@ -2399,7 +2407,7 @@ class CGridBasic
         return gas_is_mass_density;
     }
 
-    bool getRadiationFieldAvailable() const
+    bool isRadiationFieldAvailable() const
     {
         if(data_pos_rx_list.empty() || data_pos_ry_list.empty() || data_pos_rz_list.empty() ||
            data_pos_rf_list.empty())

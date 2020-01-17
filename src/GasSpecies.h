@@ -1344,7 +1344,7 @@ class CGasMixture
         return single_species[0].getProjCellVelocityInterp(tmp_pos, dir_map_xyz, vel_field_interp);
     }
 
-    void printParameter(parameters & param, CGridBasic * grid);
+    void printParameters(parameters & param, CGridBasic * grid);
 
   private:
     CGasSpecies * single_species;

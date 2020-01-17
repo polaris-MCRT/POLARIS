@@ -325,7 +325,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         
         vector<Vector3D> vlist;
         
-        length=0.6*length;
+        length=0.51*length;
         
         Vector3D center=Vector3D(cx,cy,cz);
         
@@ -338,7 +338,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         vlist.push_back(Vector3D(cx,cy,cz+length));
         vlist.push_back(Vector3D(cx,cy,cz-length));
         
-        length=1.7*length;
+        length=1.732*length;
         
         vlist.push_back(Vector3D(cx+length,cy+length,cz+length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz+length));
@@ -357,7 +357,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         if(positionPhotonInGrid(&pp))
         {
             //cell_basic * cell = pp.getPositionCell()
-            double tg= 0.6*getGasTemperature(pp);
+            double tg= 0.8*getGasTemperature(pp);
                         
             for(uint g=0;g<vlist.size();g++)
             {
@@ -365,7 +365,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         
                 if(positionPhotonInGrid(&pp))
                 {
-                    tg+=0.6/14.0*getGasTemperature(pp);
+                    tg+=0.8/14.0*getGasTemperature(pp);
                 }   
             }
             
@@ -373,15 +373,15 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         }
              
         
-        if(dens*254098.7886>3e12)
+        if(dens*254098.7886>1e13)
         {
-            setGasDensity(cell, 0, 0.05*dens);
-            setGasDensity(cell, 1, 0.95*dens);
+            setGasDensity(cell, 0, 0.005*dens);
+            setGasDensity(cell, 1, 0.995*dens);
         }
         else
         {
-            setGasDensity(cell, 0, 0.95*dens);
-            setGasDensity(cell, 1, 0.05*dens);
+            setGasDensity(cell, 0, 0.995*dens);
+            setGasDensity(cell, 1, 0.005*dens);
         }
     }
 

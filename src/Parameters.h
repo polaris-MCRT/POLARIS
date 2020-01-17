@@ -154,11 +154,11 @@ class parameters
     {
         return opiate_spec_ids[pos];
     }
-
-    /*string getOpiateParamPath() const
+    
+    uint getNrOfOPIATESpecies()
     {
-        return opiate_param_path;
-    }*/
+        return uint(opiate_spec_ids.size());
+    }
     
     const Vector3D & getAxis1() const
     {
@@ -247,7 +247,7 @@ class parameters
         return false;
     }
 
-    bool isRaytracing() const
+    bool isRaytracingSimulation() const
     {
         if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
            getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
@@ -1345,6 +1345,11 @@ class parameters
     {
         return sync_ray_detectors;
     }
+    
+    dlist & getOPIATERayDetectors()
+    {
+        return opiate_ray_detectors;
+    }
 
     dlist & getPointSources()
     {
@@ -1472,43 +1477,43 @@ class parameters
         
     void addOpiateRayDetector(dlist & val)
     {
-        // Abundance or species id
+        // BG surce ID
         opiate_ray_detectors.push_back(val[0]);
         
-        // BG surce ID
+        // Maximum velocity (SI)
         opiate_ray_detectors.push_back(val[1]);
         
-        // Maximum velocity (SI)
+        // ang1 or pos_x
         opiate_ray_detectors.push_back(val[2]);
         
-        // ang1 or pos_x
+        // ang2 or pos_y
         opiate_ray_detectors.push_back(val[3]);
         
-        // ang2 or pos_y
+        // dist or pos_z
         opiate_ray_detectors.push_back(val[4]);
         
-        // dist or pos_z
+        // sidelength_x or l_min
         opiate_ray_detectors.push_back(val[5]);
         
-        // sidelength_x or l_min
+        // sidelength_y or l_max
         opiate_ray_detectors.push_back(val[6]);
         
-        // sidelength_y or l_max
+        // off_x or b_min
         opiate_ray_detectors.push_back(val[7]);
         
-        // off_x or b_min
+        // off_y or b_max
         opiate_ray_detectors.push_back(val[8]);
         
-        // off_y or b_max
+        // empty or d_vx
         opiate_ray_detectors.push_back(val[9]);
         
-        // empty or d_vx
+        // empty or d_vy
         opiate_ray_detectors.push_back(val[10]);
         
-        // empty or d_vy
+        // empty or d_vz
         opiate_ray_detectors.push_back(val[11]);
         
-        // empty or d_vz
+        // empty or bubble radius
         opiate_ray_detectors.push_back(val[12]);
         
         // det. type
