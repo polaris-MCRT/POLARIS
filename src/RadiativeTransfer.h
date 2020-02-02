@@ -8,9 +8,9 @@
 #include "Photon.h"
 #include "Source.h"
 #include "Typedefs.h"
-//#include "OPIATE.h"
 #include "Raytracing.h"
 #include "Synchrotron.h"
+#include "OPIATE.h"
 
 class CRadiativeTransfer
 {
@@ -20,7 +20,7 @@ class CRadiativeTransfer
         grid = 0;
         dust = 0;
         gas = 0;
-        // op = 0;
+        op = 0;
         tracer = 0;
         b_forced = true;
         peel_off = false;
@@ -76,7 +76,7 @@ class CRadiativeTransfer
     bool initiateDustRaytrace(parameters & param);
     bool initiateSyncRaytrace(parameters & param);
     bool initiateLineRaytrace(parameters & param);
-    bool initiateOPIATE(parameters & param);
+    bool initiateOPIATERaytrace(parameters & param);
     bool initiateProbing(parameters & param);
     void initiateRadFieldMC(parameters & param);
     void initiateDustMC(parameters & param);
@@ -154,7 +154,10 @@ class CRadiativeTransfer
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
     bool calcMonteCarloLvlPopulation(uint i_species, uint global_seed);
-    void rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans);
+    void rayThroughCellForLvlPop(photon_package * pp,
+                                 uint i_species,
+                                 uint i_trans,
+                                 const VelFieldInterp & vel_field_interp);
 
     // Set temperature (old!)
     bool setTemperatureDistribution();
@@ -188,16 +191,46 @@ class CRadiativeTransfer
                                uint subpixel_lvl,
                                int pos_id);
     void getSyncIntensity(photon_package * pp1,
-                          photon_package * pp2,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
                           uint i_det,
                           uint subpixel_lvl);
-    void rayThroughCellSync(photon_package * pp1, photon_package * pp2, uint i_det, uint nr_used_wavelengths);
+    void rayThroughCellSync(photon_package * pp1, uint i_det, uint nr_used_wavelengths);
 
+    
+    //OPIATE database RT
+    
+    bool calcOPIATEMapsViaRaytracing(parameters & param);
+    void getOPIATEPixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               uint i_species,
+                               uint i_trans,
+                               uint i_det,
+                               uint subpixel_lvl,
+                               int pos_id);
+    
+    void getOPIATEIntensity(photon_package * pp,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint i_species,
+                          uint i_trans,
+                          uint i_det,
+                          uint subpixel_lvl);
+    
+    void rayThroughCellOPIATE(photon_package * pp,
+                            uint i_species,
+                            uint i_trans,
+                            uint i_det,
+                            uint nr_velocity_channels,
+                            const VelFieldInterp & vel_field_interp);
+    
+    
     // Line emission
     bool calcChMapsViaRaytracing(parameters & param);
+    
     void getLinePixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
@@ -206,6 +239,9 @@ class CRadiativeTransfer
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
+    
+    
+    
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -219,16 +255,18 @@ class CRadiativeTransfer
                             uint i_trans,
                             uint i_det,
                             uint nr_velocity_channels,
-                            bool zero_vel_field = true,
-                            const spline & vel_field = spline(),
-                            Vector3D pos_in_grid_0 = Vector3D());
+                            const VelFieldInterp & vel_field_interp);
+
+    void preCalcVelocityInterp(CGridBasic * grid,
+                               const photon_package & pp,
+                               VelFieldInterp * vel_field_interp);
 
     // Calc radiation pressure
     // bool calcRadiativePressure(parameter & param);
 
     void updateRadiationField(photon_package * pp)
     {
-        double energy = pp->getTmpPathLength() * pp->getStokesVector().I();
+        double energy = pp->getTmpPathLength() * pp->getStokesVector()->I();
 
         if(stokes_dust_rad_field)
         {
@@ -282,6 +320,11 @@ class CRadiativeTransfer
     {
         gas = _gas;
     }
+    
+    void setOpiateDataBase(COpiateDataBase * _op)
+    {
+        op=_op;
+    }
 
     void setSourcesLists(slist & _sources_mc, slist & _sources_ray)
     {
@@ -317,11 +360,11 @@ class CRadiativeTransfer
     void calcStepWidth(StokesVector & stokes_new,
                        StokesVector & stokes_new2,
                        double cell_d_l,
-                       double & epsi,
-                       double & dz_new)
+                       double * epsi,
+                       double * dz_new)
     {
-        epsi = 2.0;
-        dz_new = 0.9 * cell_d_l;
+        *epsi = 2.0;
+        *dz_new = 0.9 * cell_d_l;
         if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
         {
             double epsi_I =
@@ -341,8 +384,8 @@ class CRadiativeTransfer
             double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
             double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
 
-            epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
-            dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
+            *epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
+            *dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
         }
     }
 
@@ -358,7 +401,7 @@ class CRadiativeTransfer
 
     CRaytracingBasic ** tracer;
     CGridBasic * grid;
-    // COpiate * op;
+    COpiateDataBase * op;
     CDustMixture * dust;
     CGasMixture * gas;
     slist sources_mc, sources_ray;

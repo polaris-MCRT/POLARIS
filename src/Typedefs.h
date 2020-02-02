@@ -68,7 +68,7 @@ using namespace std;
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION 1500000
+#define MAX_INTERACTION 1500000000
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e-6
 #define ACC_SELECT_LEVEL 1e-6
@@ -78,11 +78,11 @@ using namespace std;
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
 #define ABS_ERROR 1e-30
-#define MAX_SOLVER_STEPS 1500000
+#define MAX_SOLVER_STEPS 15000000
 
 // Limits for the Monte-Carlo level population calculation
-#define MC_LVL_POP_DIFF_LIMIT 1e-3
-#define MC_LVL_POP_LIMIT 1e-30
+#define MC_LVL_POP_DIFF_LIMIT 1e-6
+#define MC_LVL_POP_LIMIT 1e-200
 #define MC_LVL_POP_MAX_LOCAL_ITER 1000
 #define MC_LVL_POP_MAX_GLOBAL_ITER 100
 
@@ -98,7 +98,7 @@ using namespace std;
 #define NR_OF_SIZE_DIST_PARAM 14
 
 // Number of entries for different detectors
-#define NR_OF_MC_DET 10
+#define NR_OF_MC_DET 12
 #define NR_OF_RAY_DET 15
 #define NR_OF_LINE_DET 17
 #define NR_OF_OPIATE_DET 17
@@ -119,7 +119,7 @@ using namespace std;
 #define DET_SPHER 2
 #define DET_SLICE 3
 
-// sources ids
+// phase functions
 #define SRC_BASIC 0
 #define SRC_POINT 1
 #define SRC_SFIELD 2
@@ -212,6 +212,9 @@ using namespace std;
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
 
+#define EPS_DOUBLE numeric_limits<double>::epsilon()
+#define EPS_FLOAT numeric_limits<float>::epsilon()
+
 // grid types
 #define GRID_ID_OCT 20
 #define GRID_ID_SPH 30
@@ -222,6 +225,7 @@ using namespace std;
 #define POP_LTE 1
 #define POP_FEP 2
 #define POP_LVG 3
+#define POP_DEGUCHI_LVG 4
 
 #define COL_H2_FULL 1
 #define COL_H2_PARA 2
@@ -234,6 +238,12 @@ using namespace std;
 #define TEMP_EFF 2
 #define TEMP_STOCH 3
 #define TEMP_FULL 4
+
+// Dust emission components
+#define DUST_EMI_FULL 0
+#define DUST_EMI_SCAT 1
+#define DUST_EMI_TEMP 2
+#define DUST_EMI_STOCH 3
 
 // Cross-sections IDs
 #define CROSS_ABS 1

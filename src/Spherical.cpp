@@ -398,18 +398,18 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     return true;
 }
 
-bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
+bool CGridSpherical::writePlotFiles(string path, parameters & param)
 {
-    nrOfGnuPoints = param.getNrOfGnuPoints();
-    nrOfGnuVectors = param.getNrOfGnuVectors();
-    maxGridLines = param.getmaxGridLines();
+    nrOfPlotPoints = param.getNrOfPlotPoints();
+    nrOfPlotVectors = param.getNrOfPlotVectors();
+    maxPlotLines = param.getMaxPlotLines();
 
-    if(nrOfGnuPoints + nrOfGnuVectors == 0)
+    if(nrOfPlotPoints + nrOfPlotVectors == 0)
         return true;
 
     if(max_cells == 0)
     {
-        cout << "\nERROR: Cannot plot spherical grid to Gnuplot file to:" << endl;
+        cout << "\nERROR: Cannot plot spherical plot file to:" << endl;
         cout << path;
         cout << "Not enough tree cells available! " << endl;
         return false;
@@ -431,9 +431,9 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
 
-    if(nrOfGnuPoints <= 1)
+    if(nrOfPlotPoints <= 1)
     {
-        nrOfGnuPoints = max_cells / 10;
+        nrOfPlotPoints = max_cells / 10;
 
         plt_gas_dens = false;
         plt_dust_dens = false;
@@ -445,36 +445,36 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         plt_mach = false;
     }
     else
-        nrOfGnuPoints = max_cells / nrOfGnuPoints;
+        nrOfPlotPoints = max_cells / nrOfPlotPoints;
 
-    if(nrOfGnuVectors <= 1)
+    if(nrOfPlotVectors <= 1)
     {
-        nrOfGnuVectors = max_cells / 10;
+        nrOfPlotVectors = max_cells / 10;
         plt_mag = false;
         plt_vel = false;
     }
     else
-        nrOfGnuVectors = max_cells / nrOfGnuVectors;
+        nrOfPlotVectors = max_cells / nrOfPlotVectors;
 
-    if(nrOfGnuPoints == 0)
-        nrOfGnuPoints = 1;
+    if(nrOfPlotPoints == 0)
+        nrOfPlotPoints = 1;
 
-    if(nrOfGnuVectors == 0)
-        nrOfGnuVectors = 1;
+    if(nrOfPlotVectors == 0)
+        nrOfPlotVectors = 1;
 
     stringstream point_header, vec_header, basic_grid_l0, basic_grid_l1;
 
-    string grid_filename = path + "grid_geometry.plt";
-    string dens_gas_filename = path + "grid_gas_density.plt";
-    string dens_dust_filename = path + "grid_dust_density.plt";
-    string temp_gas_filename = path + "grid_gas_temp.plt";
-    string temp_dust_filename = path + "grid_dust_temp.plt";
-    string rat_filename = path + "grid_RAT.plt";
+    string grid_filename = path + "grid_geometry.py";
+    string dens_gas_filename = path + "grid_gas_density.py";
+    string dens_dust_filename = path + "grid_dust_density.py";
+    string temp_gas_filename = path + "grid_gas_temp.py";
+    string temp_dust_filename = path + "grid_dust_temp.py";
+    string rat_filename = path + "grid_RAT.py";
     string delta_filename = path + "grid_data.dat";
-    string larm_filename = path + "grid_mag.plt";
-    string mach_filename = path + "grid_vel.plt";
-    string mag_filename = path + "grid_mag.plt";
-    string vel_filename = path + "grid_vel.plt";
+    string larm_filename = path + "grid_mag.py";
+    string mach_filename = path + "grid_vel.py";
+    string mag_filename = path + "grid_mag.py";
+    string vel_filename = path + "grid_vel.py";
 
     ofstream point_fields[9];
     ofstream vec_fields[2];
@@ -907,7 +907,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                 double dph = listPh[i_ph + 1] - listPh[i_ph];
                 double dth = listTh[i_th + 1] - listTh[i_th];
 
-                if(line_counter % nrOfGnuPoints == 0)
+                if(line_counter % nrOfPlotPoints == 0)
                 {
                     if(plt_gas_dens)
                     {
@@ -940,7 +940,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                     }
                 }
 
-                if(line_counter % nrOfGnuVectors == 0)
+                if(line_counter % nrOfPlotVectors == 0)
                 {
                     if(plt_mag)
                     {
@@ -1087,8 +1087,8 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
-
-    cout << "- Writing of Gnuplot files             : done" << endl;
+    
+    cout << "- Writing of plot files             : done" << endl;
     return true;
 }
 
@@ -1423,28 +1423,30 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     Vector3D d = pp->getDirection();
 
     bool hit = false;
-    double min_length = 1e300;
-    double tmp_length[2];
+    double path_length = 1e300;
+    double tmp_length[4];
     uint dirID = MAX_UINT;
 
     uint rID = tmp_cell->getRID();
 
     if(rID == MAX_UINT)
     {
+        double r2 = Rmin * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+
         double B = 2 * p * d;
-        double C = p.sq_length() - Rmin * Rmin;
+        double C = p.sq_length() - r2 * r2;
+        // dscr is always positive, we are inside the inner cell
         double dscr = B * B - 4 * C;
 
-        // dscr always positive for surrounding sphere [RBru 2019]
         dscr = sqrt(dscr);
         tmp_length[0] = (-B + dscr) / 2;
-        tmp_length[1] = (-B - dscr) / 2;
+        tmp_length[1] = 1e200;
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = 1;
             }
@@ -1454,8 +1456,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     {
         // --- Radial cell borders ---
 
-        double r1 = listR[rID];
-        double r2 = listR[rID + 1];
+        double r1 = listR[rID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double r2 = listR[rID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double p_sq = p.sq_length();
         double B = 2 * p * d;
@@ -1465,29 +1467,32 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double C2 = p_sq - r2 * r2;
 
         double dscr1 = B_sq - 4 * C1;
+        // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * C2;
 
-        if(dscr1 > 0)
+        if(dscr1 >= 0)
         {
             dscr1 = sqrt(dscr1);
-            // Only the smaller case (shortest distance) has to be checked [RBru 2019]
-            tmp_length[0] = (-B - dscr1) / 2;
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            tmp_length[0] = 1e200;
+            tmp_length[1] = (-B - dscr1) / 2;
         }
         else
         {
             tmp_length[0] = 1e200;
+            tmp_length[1] = 1e200;
         }
 
-        // dscr always positive for surrounding sphere [RBru 2019]
         dscr2 = sqrt(dscr2);
-        // One negative and the other positive (take the highest case) [RBru 2019]
-        tmp_length[1] = (-B + dscr2) / 2;
+        tmp_length[2] = (-B + dscr2) / 2;
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        tmp_length[3] = 1e200;
 
-        for(uint i = 0; i < 2; i++)
+        for(uint i = 0; i < 4; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = tmp_length[i];
                 hit = true;
                 dirID = uint(i / 2.0);
             }
@@ -1496,7 +1501,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         // --- Theta cell borders ---
         uint thID = tmp_cell->getThID();
 
-        double th1 = listTh[thID];
+        double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
         double cos_th1 = cos(th1);
         double cos_th1_sq = cos_th1 * cos_th1;
 
@@ -1506,10 +1511,11 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         double dscr3 = B1 * B1 - A1 * C3;
 
-        if(dscr3 > 0)
+        if(dscr3 >= 0 && A1 > 0)
         {
             dscr3 = sqrt(dscr3);
-            tmp_length[0] = (-B1 + dscr3) / A1;
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            tmp_length[0] = 1e200;
             tmp_length[1] = (-B1 - dscr3) / A1;
         }
         else
@@ -1520,18 +1526,18 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
                 {
-                    min_length = tmp_length[i];
+                    path_length = tmp_length[i];
                     hit = true;
                     dirID = 2;
                 }
             }
         }
 
-        double th2 = listTh[thID + 1];
+        double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
         double cos_th2 = cos(th2);
         double cos_th2_sq = cos_th2 * cos_th2;
 
@@ -1539,27 +1545,26 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double B2 = d.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y());
         double C4 = p.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y());
 
+        // dscr4 is always >= 0
         double dscr4 = B2 * B2 - A2 * C4;
 
-        if(dscr4 > 0)
+        if(A2 > 0)
         {
             dscr4 = sqrt(dscr4);
             tmp_length[0] = (-B2 + dscr4) / A2;
-            tmp_length[1] = (-B2 - dscr4) / A2;
         }
         else
-        {
             tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        tmp_length[1] = 1e200;
 
         for(uint i = 0; i < 2; i++)
         {
-            if(tmp_length[i] > 0 && tmp_length[i] < min_length)
+            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
             {
                 if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
                 {
-                    min_length = tmp_length[i];
+                    path_length = tmp_length[i];
                     hit = true;
                     dirID = 3;
                 }
@@ -1576,8 +1581,8 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             double cos_th = p.Z() / r;
 
             uint phID = tmp_cell->getPhID();
-            double ph1 = listPh[phID];
-            double ph2 = listPh[phID + 1];
+            double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+            double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);
@@ -1594,9 +1599,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n1 * (p - v_a1);
                 double tmp_length = -num / den1;
 
-                if(tmp_length > 0 && tmp_length < min_length)
+                if(tmp_length >= 0 && tmp_length < path_length)
                 {
-                    min_length = tmp_length;
+                    path_length = tmp_length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1611,9 +1616,9 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
                 double num = v_n2 * (p - v_a2);
                 double tmp_length = -num / den2;
 
-                if(tmp_length > 0 && tmp_length < min_length)
+                if(tmp_length >= 0 && tmp_length < path_length)
                 {
-                    min_length = tmp_length;
+                    path_length = tmp_length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1627,7 +1632,6 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    double path_length = min_length + 1e-3 * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
     pp->setDirectionID(dirID);

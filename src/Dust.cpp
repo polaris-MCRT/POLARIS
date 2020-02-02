@@ -1442,7 +1442,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Init strings for various filenames/titles
     string path_cross, path_eff, path_kappa, path_diff, path_g;
-    string path_scat, path_size_dist, str_title, gnu_title;
+    string path_scat, path_size_dist, str_title, plot_title;
     string plot_sign = "points";
 
     // Check if enough points to draw lines
@@ -1474,17 +1474,17 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     {
         // For the dust mixture, set the different strings
         str_title = "#Dust mixture\n " + stringID;
-        gnu_title = "#Dust mixture ";
-        gnu_title += str_mix_ID_end;
-        gnu_title += "\n";
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.plt";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
+        plot_title = "#Dust mixture ";
+        plot_title += str_mix_ID_end;
+        plot_title += "\n";
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.py";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.py";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.py";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.py";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
-        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.plt";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.py";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.py";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.py";
 
         // Format the strings
         uint pos = 0;
@@ -1502,17 +1502,17 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         }
 
         pos = 0;
-        while(gnu_title.find("\n") != string::npos)
+        while(plot_title.find("\n") != string::npos)
         {
-            pos = uint(gnu_title.find("\n"));
-            gnu_title.replace(pos, 1, "; ");
+            pos = uint(plot_title.find("\n"));
+            plot_title.replace(pos, 1, "; ");
         }
 
         pos = 0;
-        while(gnu_title.find("#") != string::npos)
+        while(plot_title.find("#") != string::npos)
         {
-            pos = uint(gnu_title.find("#"));
-            gnu_title.replace(pos, 1, " ");
+            pos = uint(plot_title.find("#"));
+            plot_title.replace(pos, 1, " ");
         }
     }
     else
@@ -1525,15 +1525,15 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         str_title += " mat.: " + stringID;
         str_title += " frac.: ";
         str_title += str_frac_end;
-        gnu_title = str_title;
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.plt";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.plt";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
+        plot_title = str_title;
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.py";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.py";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.py";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.py";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.py";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.py";
         path_size_dist =
-            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.plt";
+            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.py";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
@@ -1584,7 +1584,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     cross_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         cross_writer << "set log x" << endl;
@@ -1598,7 +1598,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set format y \"%.1te%02T\"" << endl;
     cross_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     cross_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    cross_writer << "set title \"" << gnu_title << "\"" << endl;
+    cross_writer << "set title \"" << plot_title << "\"" << endl;
     cross_writer << "plot \'-\' with " << plot_sign << " title \'C_{ext,x}\' lc rgb \"#0000F0\","
                  << "\'-\' with " << plot_sign << " title \'C_{ext,y}\' lc rgb \"#000090\","
                  << "\'-\' with " << plot_sign << " title \'C_{abs,x}\' lc rgb \"#FF0000\","
@@ -1694,7 +1694,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Qmin *= 0.9;
     Qmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     eff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         eff_writer << "set log x" << endl;
@@ -1708,7 +1708,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     eff_writer << "set format y \"%.1te%02T\"" << endl;
     eff_writer << "set ylabel \'Q_{avg}\'" << endl;
     eff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    eff_writer << "set title \"" << gnu_title << "\"" << endl;
+    eff_writer << "set title \"" << plot_title << "\"" << endl;
     eff_writer << "plot \'-\' with " << plot_sign << " title \'Q_{ext,x}\' lc rgb \"#0000F0\","
                << "\'-\' with " << plot_sign << " title \'Q_{ext,y}\' lc rgb \"#000090\","
                << "\'-\' with " << plot_sign << " title \'Q_{abs,x}\' lc rgb \"#FF0000\","
@@ -1805,7 +1805,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Kappa_min *= 0.9;
     Kappa_max *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     kappa_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         kappa_writer << "set log x" << endl;
@@ -1819,7 +1819,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     kappa_writer << "set format y \"%.1te%02T\"" << endl;
     kappa_writer << "set ylabel \'{/Symbol k}_{avg}  [m^2/kg]\'" << endl;
     kappa_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    kappa_writer << "set title \"" << gnu_title << "\"" << endl;
+    kappa_writer << "set title \"" << plot_title << "\"" << endl;
     kappa_writer << "plot \'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,x}\' lc rgb \"#0000F0\","
                  << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,y}\' lc rgb \"#000090\","
                  << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{abs,x}\' lc rgb \"#FF0000\","
@@ -1904,7 +1904,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     diff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         diff_writer << "set log x" << endl;
@@ -1918,7 +1918,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set format y \"%.1te%02T\"" << endl;
     diff_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     diff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    diff_writer << "set title \"" << gnu_title << "\"" << endl;
+    diff_writer << "set title \"" << plot_title << "\"" << endl;
     diff_writer << "plot \'-\' with " << plot_sign << " title \'|dC_{ext}| (Cpol)\' lc rgb \"#0000FF\","
                 << "\'-\' with " << plot_sign << " title \'|dC_{abd}|\'  lc rgb \"#FF0000\","
                 << "\'-\' with " << plot_sign << " title \'|dC_{phas}| (C_{circ})\' lc rgb \"#800080\""
@@ -1957,7 +1957,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         return false;
     }
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     data_writer << "#material" << endl;
     data_writer << str_title << endl;
     data_writer << "#weight" << endl;
@@ -2035,7 +2035,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     g_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         g_writer << "set log x" << endl;
@@ -2050,7 +2050,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set format y \"%.1te%02T\"" << endl;
     g_writer << "set ylabel \'|g_{avg}|'" << endl;
     g_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    g_writer << "set title \"" << gnu_title << "\"" << endl;
+    g_writer << "set title \"" << plot_title << "\"" << endl;
     g_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 
     // Add HG g factor to file (if larger than 0)
@@ -2135,10 +2135,13 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     S11max = S11[wID][sth];
                 if(S12[wID][sth] > S12max)
                     S12max = S12[wID][sth];
+
+                delete[] S11_tmp;
+                delete[] S12_tmp;
             }
         }
 
-        // Add Gnuplot commands to file
+        // Add plot commands to file
         scat_writer << "reset" << endl;
         scat_writer << "set grid" << endl;
         scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
@@ -2150,7 +2153,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         scat_writer << "set format y \"%.1te%02T\"" << endl;
         scat_writer << "set ylabel \'S11\'" << endl;
         scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
-        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "set title \"" << plot_title << "\"" << endl;
         scat_writer << "plot ";
         for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
         {
@@ -2177,7 +2180,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         scat_writer << "set format y \"%.1te%02T\"" << endl;
         scat_writer << "set ylabel \'S12\'" << endl;
         scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
-        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "set title \"" << plot_title << "\"" << endl;
         scat_writer << "plot ";
         for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
         {
@@ -2244,7 +2247,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     SizeDistMin *= 0.9;
     SizeDistMax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     size_dist_writer << "reset" << endl;
     if(nr_of_dust_species > 1)
         size_dist_writer << "set log x" << endl;
@@ -2258,7 +2261,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     size_dist_writer << "set format y \"%.1te%02T\"" << endl;
     size_dist_writer << "set ylabel \'{/Symbol d}N(a)'" << endl;
     size_dist_writer << "set xlabel \'a [m]\'" << endl;
-    size_dist_writer << "set title \"" << gnu_title << "\"" << endl;
+    size_dist_writer << "set title \"" << plot_title << "\"" << endl;
     size_dist_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 
     // Add HG g factor to file (if larger than 0)
@@ -3480,7 +3483,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                if(temp[a] >= getSublimationTemperature())
+                if(temp[a] >= sub_temp)
                     temp[a] = 0;
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
@@ -3535,13 +3538,15 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     delete[] temp;
 
     if(sublimate)
-        if(avg_temp >= getSublimationTemperature())
+        if(avg_temp >= sub_temp)
         {
             // Set temperature to zero
             avg_temp = 0;
 
             // Remove sublimated dust from grid
-            grid->adjustDustDensity(cell, i_density, 0);
+            // Not if rad field can be used for stochastic heating later
+            if(grid->specLengthIsVector())
+                grid->adjustDustDensity(cell, i_density, 0);
         }
 
     // Set average dust temperature in grid
@@ -3631,7 +3636,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double arr_en_dens = 0;
 
                 // Get radiation field (4 * PI * vol * J)
-                grid->getSpecLength(*cell, w, arr_en_dens, en_dir);
+                grid->getSpecLength(*cell, w, &arr_en_dens, &en_dir);
 
                 // If the radiation field is zero -> set arrays to zero and move on
                 if(arr_en_dens == 0)
@@ -3949,9 +3954,10 @@ long double * CDustComponent::getStochasticProbability(uint a, const spline & ab
     return X_vec;
 }
 
-StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid,
-                                              const photon_package & pp,
-                                              uint i_density) const
+void CDustComponent::calcEmissivityHz(CGridBasic * grid,
+                                      const photon_package & pp,
+                                      uint i_density,
+                                      StokesVector * dust_emissivity) const
 {
     // Get extinction and absorption cross-sections
     double Cext = getCextMean(grid, pp);
@@ -3970,9 +3976,8 @@ StokesVector CDustComponent::calcEmissivityHz(CGridBasic * grid,
     double dens_dust = getNumberDensity(grid, pp, i_density);
 
     // Fill Stokes vector including optical depth
-    StokesVector tmp_stokes(Cabs * pl_hz * dens_dust, 0, 0, 0, Cext * dens_dust);
-
-    return tmp_stokes;
+    dust_emissivity->addI(Cabs * pl_hz * dens_dust);
+    dust_emissivity->addT(Cext * dens_dust);
 }
 
 double CDustComponent::calcEmissivity(CGridBasic * grid, const photon_package & pp, uint i_density) const
@@ -4139,12 +4144,14 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
 StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                                                const photon_package & pp,
                                                uint i_density,
+                                               uint emission_component,
                                                double phi,
                                                double energy,
                                                Vector3D en_dir) const
 {
     // Init variables to calculate the emission/extinction
     double temp_dust = 0;
+    double tmp_planck = 0;
     double scattering_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
 
@@ -4181,6 +4188,13 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
+    // If dust temperature is const for all grains, calc planck only once
+    if(temp_info != TEMP_FULL)
+    {
+        temp_dust = grid->getDustTemperature(pp, i_density);
+        tmp_planck = getTabPlanck(w, temp_dust);
+    }
+
     // Init temporary Stokes array for integration
     StokesVector * tmp_stokes = new StokesVector[nr_of_dust_species];
 
@@ -4195,40 +4209,44 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
             // grid
             if(getEffectiveRadius(a) <= getStochasticHeatingMaxSize())
             {
-                // Consider stochastic heating for the emission if chosen
-                for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                if(emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_STOCH)
                 {
                     // Get current calorimetric temperature
-                    temp_dust = getCalorimetricTemperature(t);
+                    for(uint t = 0; t < getNrOfCalorimetryTemperatures(); t++)
+                    {
+                        // Get current calorimetric temperature
+                        temp_dust = getCalorimetricTemperature(t);
 
-                    // Get propability that the dust grains have the current calorimetric
-                    // temperature
-                    double pl = grid->getDustTempProbability(pp, i_density, a, t);
+                        // Get propability that the dust grains have the current calorimetric
+                        // temperature
+                        double pl = grid->getDustTempProbability(pp, i_density, a, t);
 
-                    // Get relative Planck emission
-                    pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
+                        // Get relative Planck emission
+                        pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
 #ifdef CAMPS_BENCHMARK
-                    // To perform Camps et. al (2015) benchmark.
-                    tmp_stokes[a].addI(cs.Cabs * pl);
+                        // To perform Camps et. al (2015) benchmark.
+                        tmp_stokes[a].addI(cs.Cabs * pl);
 #else
-                    // Add relative emissivity from this temperature
-                    tmp_stokes[a].addI(cs.Cabs * pl);
-                    tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
-                    tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
+                        // Add relative emissivity from this temperature
+                        tmp_stokes[a].addI(cs.Cabs * pl);
+                        tmp_stokes[a].addQ(cs.Cpabs * pl * cos_2ph);
+                        tmp_stokes[a].addU(cs.Cpabs * pl * sin_2ph);
 #endif
+                    }
                 }
             }
-            else
+            else if(emission_component == DUST_EMI_FULL || emission_component == DUST_EMI_TEMP)
             {
                 // Consider the temperature of every dust grain size or an average
                 // temperature
                 if(temp_info == TEMP_FULL)
+                {
                     temp_dust = grid->getDustTemperature(pp, i_density, a);
-                else
-                    temp_dust = grid->getDustTemperature(pp, i_density);
+                    tmp_planck = getTabPlanck(w, temp_dust);
+                }
 
-                double pl = rel_weight[a] * getTabPlanck(w, temp_dust);
+                double pl = rel_weight[a] * tmp_planck;
 
 #ifdef CAMPS_BENCHMARK
                 // To perform Camps et. al (2015) benchmark.
@@ -4365,6 +4383,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
     {
         case PH_MIE:
             getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
+            break;
 
             break;
         default:
@@ -4386,21 +4405,22 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             double scattered_fraction = getScatteredFraction(a, w, theta_photon_to_obs);
 
             // Get the Stokes vector of the current photon package
-            StokesVector tmp_stokes = pp->getStokesVector();
+            StokesVector tmp_stokes = *pp->getStokesVector();
 
             // Reduce the photon package Stokes vector by albedo and scattering fraction
             tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
 
-            // Set the photon package at the position of the current photon
+            // Init temporary photon package
             pp_escape->setPosition(pp->getPosition());
             pp_escape->setPositionCell(pp->getPositionCell());
 
-            // Synchronize the direction and wavelength as well
+            // Set the photon package at the position of the current photon
             pp_escape->setDirection(dir_obs);
             pp_escape->setWavelength(w, wavelength_list[w]);
 
-            // Set the new Stokes vector to the photon package
+            // Synchronize the direction and wavelength as well
             pp_escape->setStokesVector(tmp_stokes);
+            break;
         }
     }
 }
@@ -4416,13 +4436,13 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     uint w = pp->getDustWavelengthID();
 
     // Get the Stokes vector of the current photon package
-    StokesVector tmp_stokes = pp->getStokesVector();
+    StokesVector tmp_stokes = *pp->getStokesVector();
 
-    // Set the photon package at the position of the current photon
+    // Init temporary photon package
     pp_escape->setPosition(pp->getPosition());
     pp_escape->setPositionCell(pp->getPositionCell());
 
-    // Synchronize the direction and wavelength as well
+    // Set the photon package at the position of the current photon
     pp_escape->setD(pp->getD());
     pp_escape->setWavelength(w, wavelength_list[w]);
 
@@ -4449,20 +4469,27 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double phi_fraction = 1;
     if(phID == PH_MIE)
     {
-        double PHIPAR = 0;
         // Get PHIPAR to take non equal distribution of phi angles into account
         if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+        {
             cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+
+            // Set the Stokes vector of the photon package to 0
+            tmp_stokes.clear();
+            pp_escape->setStokesVector(tmp_stokes);
+            return;
+        }
         else
-            PHIPAR =
-                (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-                (-mat_sca(0, 1) / mat_sca(0, 0));
+        {
+            double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
+                            (-mat_sca(0, 1) / mat_sca(0, 0));
 
-        // Get cos(2 * phi)
-        double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
+            // Get cos(2 * phi)
+            double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
 
-        // Calculate the fraction that is scattered into this phi direction
-        phi_fraction = (1.0 - PHIPAR * cos_2_phi);
+            // Calculate the fraction that is scattered into this phi direction
+            phi_fraction = (1.0 - PHIPAR * cos_2_phi);
+        }
     }
 
     // Calculate the fraction that is scattered into this theta direction
@@ -4478,7 +4505,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     tmp_stokes.rot(phi_photon_to_obs);
 
     // Multiply Stokes vector with scattering matrix
-    tmp_stokes = mat_sca * tmp_stokes;
+    tmp_stokes *= mat_sca;
 
     // Normalize Stokes vector to preserve total intensity
     tmp_stokes *= stokes_1_bak / tmp_stokes.I();
@@ -4583,18 +4610,17 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
     if(adjust_stokes)
     {
-        StokesVector tmp_stokes = pp->getStokesVector();
+        StokesVector * tmp_stokes = pp->getStokesVector();
         if(getCextMean(a, w) > 0)
         {
             double theta_fraction = getScatteredFraction(w, a, theta);
-            tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            *tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
         }
         else
         {
             cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
+            tmp_stokes->clear();
         }
-        pp->setStokesVector(tmp_stokes);
     }
 }
 
@@ -4613,17 +4639,25 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     uint thID = getScatThetaID(theta);
 
     // Get Stokes vector from photon package
-    StokesVector tmp_stokes = pp->getStokesVector();
+    StokesVector * tmp_stokes = pp->getStokesVector();
 
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+    if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
+    {
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+
+        tmp_stokes->clear();
+        pp->setStokesVector(*tmp_stokes);
+
+        return;
+    }
     else
-        PHIPAR = (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-                 (-mat_sca(0, 1) / mat_sca(0, 0));
+        PHIPAR =
+            (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
+            (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;
@@ -4676,17 +4710,17 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
         phi = phi / 2.0;
 
-        if(tmp_stokes.Q() != 0.0)
+        if(tmp_stokes->Q() != 0.0)
         {
-            GAMMA = 0.5 * atan2(tmp_stokes.U(), tmp_stokes.Q());
-            if(tmp_stokes.U() < 0.0)
+            GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
+            if(tmp_stokes->U() < 0.0)
                 GAMMA = PI + GAMMA;
         }
         else
         {
-            if(tmp_stokes.U() < 0.0)
+            if(tmp_stokes->U() < 0.0)
                 GAMMA = PI4x3;
-            else if(tmp_stokes.U() > 0.0)
+            else if(tmp_stokes->U() > 0.0)
                 GAMMA = PI4;
         }
 
@@ -4700,18 +4734,20 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     {
         if(getCextMean(a, w) > 0)
         {
-            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+            *tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
 
-            double i_1 = tmp_stokes.I();
-            tmp_stokes.rot(phi);
-            tmp_stokes = mat_sca * tmp_stokes;
-            tmp_stokes *= i_1 / tmp_stokes.I();
+            double i_1 = tmp_stokes->I();
+            tmp_stokes->rot(phi);
+            *tmp_stokes *= mat_sca;
+            *tmp_stokes *= i_1 / tmp_stokes->I();
         }
         else
         {
             cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
+            tmp_stokes->clear();
         }
+
+        pp->setStokesVector(*tmp_stokes);
     }
 }
 
@@ -4833,7 +4869,6 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
 
             // Get material density and similar user defined parameters
             single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
-
             single_component[i_comp].setFHighJ(param.getFHighJ());
             single_component[i_comp].setQref(param.getQref());
             single_component[i_comp].setAlphaQ(param.getAlphaQ());
@@ -4899,7 +4934,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
     return true;
 }
 
-void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
+void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 {
     // If no mixture was defined, show basic information
     if(getNrOfMixtures() == 0)
@@ -4994,7 +5029,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         }
 
         cout << "- Include scattered light : ";
-        if(grid->getRadiationFieldAvailable())
+        if(grid->isRadiationFieldAvailable())
         {
             if(scattering_to_raytracing)
                 cout << "yes, based on the radiation field" << endl;
@@ -5031,8 +5066,13 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         else
             cout << "no, enable via <foreground_extinction> A_lambda wavelength" << endl;
 
-        cout << "Observed wavelengths:" << endl;
+        if(param.splitDustEmission())
+        {
+            cout << "- Split dust emission     : "
+                 << "yes, as additional entries in fits file" << endl;
+        }
 
+        cout << "Observed wavelengths:" << endl;
         dlist dust_ray_detectors = param.getDustRayDetectors();
         for(uint i = 0; i < dust_ray_detectors.size(); i += NR_OF_RAY_DET)
         {
@@ -5224,6 +5264,12 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         return false;
 
     // Delete pointer array
+    for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
+    {
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            delete[] size_fraction[i_comp][a];
+        delete[] size_fraction[i_comp];
+    }
     delete[] size_fraction;
 
     return true;

@@ -62,7 +62,9 @@ class CDetector
         lam_min = 0;
         lam_max = 0;
 
-        nr_of_spectral_bins = 1;
+        nr_extra = 1;
+
+        nr_spectral_bins = 1;
         channel_width = 0;
 
         cos_acceptance_angle = 0;
@@ -83,8 +85,8 @@ class CDetector
               double _distance,
               double _l_min,
               double _l_max,
-              uint _nr_of_spectral_bins,
-              uint nr_extra,
+              uint _nr_spectral_bins,
+              uint _nr_extra,
               uint _alignment = ALIG_RND)
     {
         detector_id = _detector_id;
@@ -119,40 +121,41 @@ class CDetector
 
         lam_min = _l_min;
         lam_max = _l_max;
-        nr_of_spectral_bins = _nr_of_spectral_bins;
+        nr_spectral_bins = _nr_spectral_bins;
+        nr_extra = _nr_extra;
 
-        wavelength_list_det.resize(nr_of_spectral_bins);
+        wavelength_list_det.resize(nr_spectral_bins);
         CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
 
-        sedI = new double[nr_extra * nr_of_spectral_bins];
-        sedQ = new double[nr_extra * nr_of_spectral_bins];
-        sedU = new double[nr_extra * nr_of_spectral_bins];
-        sedV = new double[nr_extra * nr_of_spectral_bins];
-        sedT = new double[nr_extra * nr_of_spectral_bins];
+        sedI = new double[nr_extra * nr_spectral_bins];
+        sedQ = new double[nr_extra * nr_spectral_bins];
+        sedU = new double[nr_extra * nr_spectral_bins];
+        sedV = new double[nr_extra * nr_spectral_bins];
+        sedT = new double[nr_extra * nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixQ = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixU = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixV = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixT = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixS = new Matrix2D[nr_extra * nr_of_spectral_bins];
+        matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
 
-        for(uint w = 0; w < nr_of_spectral_bins; w++)
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
-                matrixI[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixQ[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixU[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixV[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixT[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixS[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
+                matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
-                sedI[w + i_extra * nr_of_spectral_bins] = 0;
-                sedQ[w + i_extra * nr_of_spectral_bins] = 0;
-                sedU[w + i_extra * nr_of_spectral_bins] = 0;
-                sedV[w + i_extra * nr_of_spectral_bins] = 0;
-                sedT[w + i_extra * nr_of_spectral_bins] = 0;
+                sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedU[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedV[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedT[i_spectral + i_extra * nr_spectral_bins] = 0;
             }
         }
     }
@@ -167,7 +170,7 @@ class CDetector
               double _l_max,
               double _rad_bubble,
               uint _nr_of_spectral_bins,
-              uint nr_extra,
+              uint _nr_extra,
               uint _alignment = ALIG_RND)
     {
         detector_id = DET_SPHER;
@@ -202,40 +205,41 @@ class CDetector
 
         lam_min = _l_min;
         lam_max = _l_max;
-        nr_of_spectral_bins = _nr_of_spectral_bins;
+        nr_spectral_bins = _nr_of_spectral_bins;
+        nr_extra = _nr_extra;
 
-        wavelength_list_det.resize(nr_of_spectral_bins);
+        wavelength_list_det.resize(nr_spectral_bins);
         CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
 
-        sedI = new double[nr_extra * nr_of_spectral_bins];
-        sedQ = new double[nr_extra * nr_of_spectral_bins];
-        sedU = new double[nr_extra * nr_of_spectral_bins];
-        sedV = new double[nr_extra * nr_of_spectral_bins];
-        sedT = new double[nr_extra * nr_of_spectral_bins];
+        sedI = new double[nr_extra * nr_spectral_bins];
+        sedQ = new double[nr_extra * nr_spectral_bins];
+        sedU = new double[nr_extra * nr_spectral_bins];
+        sedV = new double[nr_extra * nr_spectral_bins];
+        sedT = new double[nr_extra * nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixQ = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixU = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixV = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixT = new Matrix2D[nr_extra * nr_of_spectral_bins];
-        matrixS = new Matrix2D[nr_extra * nr_of_spectral_bins];
+        matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
 
-        for(uint w = 0; w < nr_of_spectral_bins; w++)
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
-                matrixI[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixQ[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixU[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixV[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixT[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
-                matrixS[w + i_extra * nr_of_spectral_bins].resize(bins_x, bins_y);
+                matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
-                sedI[w + i_extra * nr_of_spectral_bins] = 0;
-                sedQ[w + i_extra * nr_of_spectral_bins] = 0;
-                sedU[w + i_extra * nr_of_spectral_bins] = 0;
-                sedV[w + i_extra * nr_of_spectral_bins] = 0;
-                sedT[w + i_extra * nr_of_spectral_bins] = 0;
+                sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedU[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedV[i_spectral + i_extra * nr_spectral_bins] = 0;
+                sedT[i_spectral + i_extra * nr_spectral_bins] = 0;
             }
         }
     }
@@ -254,7 +258,7 @@ class CDetector
               double _map_shift_y,
               double _distance,
               uint _i_trans,
-              uint _nr_of_spectral_bins,
+              uint _nr_spectral_bins,
               double _max_velocity)
     {
         detector_id = _detector_id;
@@ -283,7 +287,9 @@ class CDetector
         max_cells = bins_x * bins_y;
         distance = _distance;
 
-        calcVelocityChannels(_nr_of_spectral_bins, _max_velocity);
+        nr_extra = 1;
+
+        calcVelocityChannels(_nr_spectral_bins, _max_velocity);
 
         sidelength_x = _sidelength_x;
         sidelength_y = _sidelength_y;
@@ -291,39 +297,39 @@ class CDetector
         map_shift_x = _map_shift_x;
         map_shift_y = _map_shift_y;
 
-        wavelength_list_det.resize(nr_of_spectral_bins);
+        wavelength_list_det.resize(nr_spectral_bins);
 
         i_trans = _i_trans;
 
         cos_acceptance_angle = 0;
 
-        sedI = new double[nr_of_spectral_bins];
-        sedQ = new double[nr_of_spectral_bins];
-        sedU = new double[nr_of_spectral_bins];
-        sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
+        sedI = new double[nr_spectral_bins];
+        sedQ = new double[nr_spectral_bins];
+        sedU = new double[nr_spectral_bins];
+        sedV = new double[nr_spectral_bins];
+        sedT = new double[nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_of_spectral_bins];
-        matrixQ = new Matrix2D[nr_of_spectral_bins];
-        matrixU = new Matrix2D[nr_of_spectral_bins];
-        matrixV = new Matrix2D[nr_of_spectral_bins];
-        matrixT = new Matrix2D[nr_of_spectral_bins];
-        matrixS = new Matrix2D[nr_of_spectral_bins];
+        matrixI = new Matrix2D[nr_spectral_bins];
+        matrixQ = new Matrix2D[nr_spectral_bins];
+        matrixU = new Matrix2D[nr_spectral_bins];
+        matrixV = new Matrix2D[nr_spectral_bins];
+        matrixT = new Matrix2D[nr_spectral_bins];
+        matrixS = new Matrix2D[nr_spectral_bins];
 
-        for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
-            matrixI[vch].resize(bins_x, bins_y);
-            matrixQ[vch].resize(bins_x, bins_y);
-            matrixU[vch].resize(bins_x, bins_y);
-            matrixV[vch].resize(bins_x, bins_y);
-            matrixT[vch].resize(bins_x, bins_y);
-            matrixS[vch].resize(bins_x, bins_y);
+            matrixI[i_spectral].resize(bins_x, bins_y);
+            matrixQ[i_spectral].resize(bins_x, bins_y);
+            matrixU[i_spectral].resize(bins_x, bins_y);
+            matrixV[i_spectral].resize(bins_x, bins_y);
+            matrixT[i_spectral].resize(bins_x, bins_y);
+            matrixS[i_spectral].resize(bins_x, bins_y);
 
-            sedI[vch] = 0;
-            sedQ[vch] = 0;
-            sedU[vch] = 0;
-            sedV[vch] = 0;
-            sedT[vch] = 0;
+            sedI[i_spectral] = 0;
+            sedQ[i_spectral] = 0;
+            sedU[i_spectral] = 0;
+            sedV[i_spectral] = 0;
+            sedT[i_spectral] = 0;
         }
 
         lam_min = 0;
@@ -337,7 +343,7 @@ class CDetector
               Vector3D obs_pos,
               double _sidelength,
               uint _i_trans,
-              uint _nr_of_spectral_bins,
+              uint _nr_spectral_bins,
               double _max_velocity)
     {
         detector_id = DET_SPHER;
@@ -366,7 +372,7 @@ class CDetector
         max_cells = bins_x * bins_y;
         distance = 1;
 
-        calcVelocityChannels(_nr_of_spectral_bins, _max_velocity);
+        calcVelocityChannels(_nr_spectral_bins, _max_velocity);
 
         sidelength_x = _sidelength;
         sidelength_y = _sidelength;
@@ -376,39 +382,39 @@ class CDetector
 
         pos = obs_pos;
 
-        wavelength_list_det.resize(nr_of_spectral_bins);
+        wavelength_list_det.resize(nr_spectral_bins);
 
         i_trans = _i_trans;
 
         cos_acceptance_angle = 0;
 
-        sedI = new double[nr_of_spectral_bins];
-        sedQ = new double[nr_of_spectral_bins];
-        sedU = new double[nr_of_spectral_bins];
-        sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
+        sedI = new double[nr_spectral_bins];
+        sedQ = new double[nr_spectral_bins];
+        sedU = new double[nr_spectral_bins];
+        sedV = new double[nr_spectral_bins];
+        sedT = new double[nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_of_spectral_bins];
-        matrixQ = new Matrix2D[nr_of_spectral_bins];
-        matrixU = new Matrix2D[nr_of_spectral_bins];
-        matrixV = new Matrix2D[nr_of_spectral_bins];
-        matrixT = new Matrix2D[nr_of_spectral_bins];
-        matrixS = new Matrix2D[nr_of_spectral_bins];
+        matrixI = new Matrix2D[nr_spectral_bins];
+        matrixQ = new Matrix2D[nr_spectral_bins];
+        matrixU = new Matrix2D[nr_spectral_bins];
+        matrixV = new Matrix2D[nr_spectral_bins];
+        matrixT = new Matrix2D[nr_spectral_bins];
+        matrixS = new Matrix2D[nr_spectral_bins];
 
-        for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
-            matrixI[vch].resize(bins_x, bins_y);
-            matrixQ[vch].resize(bins_x, bins_y);
-            matrixU[vch].resize(bins_x, bins_y);
-            matrixV[vch].resize(bins_x, bins_y);
-            matrixT[vch].resize(bins_x, bins_y);
-            matrixS[vch].resize(bins_x, bins_y);
+            matrixI[i_spectral].resize(bins_x, bins_y);
+            matrixQ[i_spectral].resize(bins_x, bins_y);
+            matrixU[i_spectral].resize(bins_x, bins_y);
+            matrixV[i_spectral].resize(bins_x, bins_y);
+            matrixT[i_spectral].resize(bins_x, bins_y);
+            matrixS[i_spectral].resize(bins_x, bins_y);
 
-            sedI[vch] = 0;
-            sedQ[vch] = 0;
-            sedU[vch] = 0;
-            sedV[vch] = 0;
-            sedT[vch] = 0;
+            sedI[i_spectral] = 0;
+            sedQ[i_spectral] = 0;
+            sedU[i_spectral] = 0;
+            sedV[i_spectral] = 0;
+            sedT[i_spectral] = 0;
         }
 
         lam_min = 0;
@@ -422,10 +428,12 @@ class CDetector
               uint _bins_y,
               double _sidelength_x,
               double _sidelength_y,
+              double _map_shift_x,
+              double _map_shift_y,
               double _distance,
               double _l_min,
               double _l_max,
-              uint _nr_of_spectral_bins)
+              uint _nr_spectral_bins)
     {
         rot_angle1 = 0;
         rot_angle2 = 0;
@@ -451,8 +459,8 @@ class CDetector
         sidelength_x = _sidelength_x;
         sidelength_y = _sidelength_y;
 
-        map_shift_x = 0;
-        map_shift_y = 0;
+        map_shift_x = _map_shift_x;
+        map_shift_y = _map_shift_y;
 
         channel_width = 0;
         i_trans = 0, cos_acceptance_angle = 0;
@@ -461,38 +469,38 @@ class CDetector
 
         lam_min = _l_min;
         lam_max = _l_max;
-        nr_of_spectral_bins = _nr_of_spectral_bins;
+        nr_spectral_bins = _nr_spectral_bins;
 
-        wavelength_list_det.resize(nr_of_spectral_bins);
+        wavelength_list_det.resize(nr_spectral_bins);
         CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
 
-        sedI = new double[nr_of_spectral_bins];
-        sedQ = new double[nr_of_spectral_bins];
-        sedU = new double[nr_of_spectral_bins];
-        sedV = new double[nr_of_spectral_bins];
-        sedT = new double[nr_of_spectral_bins];
+        sedI = new double[nr_spectral_bins];
+        sedQ = new double[nr_spectral_bins];
+        sedU = new double[nr_spectral_bins];
+        sedV = new double[nr_spectral_bins];
+        sedT = new double[nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_of_spectral_bins];
-        matrixQ = new Matrix2D[nr_of_spectral_bins];
-        matrixU = new Matrix2D[nr_of_spectral_bins];
-        matrixV = new Matrix2D[nr_of_spectral_bins];
-        matrixT = new Matrix2D[nr_of_spectral_bins];
-        matrixS = new Matrix2D[nr_of_spectral_bins];
+        matrixI = new Matrix2D[nr_spectral_bins];
+        matrixQ = new Matrix2D[nr_spectral_bins];
+        matrixU = new Matrix2D[nr_spectral_bins];
+        matrixV = new Matrix2D[nr_spectral_bins];
+        matrixT = new Matrix2D[nr_spectral_bins];
+        matrixS = new Matrix2D[nr_spectral_bins];
 
-        for(uint w = 0; w < nr_of_spectral_bins; w++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
-            matrixI[w].resize(bins_x, bins_y);
-            matrixQ[w].resize(bins_x, bins_y);
-            matrixU[w].resize(bins_x, bins_y);
-            matrixV[w].resize(bins_x, bins_y);
-            matrixT[w].resize(bins_x, bins_y);
-            matrixS[w].resize(bins_x, bins_y);
+            matrixI[i_spectral].resize(bins_x, bins_y);
+            matrixQ[i_spectral].resize(bins_x, bins_y);
+            matrixU[i_spectral].resize(bins_x, bins_y);
+            matrixV[i_spectral].resize(bins_x, bins_y);
+            matrixT[i_spectral].resize(bins_x, bins_y);
+            matrixS[i_spectral].resize(bins_x, bins_y);
 
-            sedI[w] = 0;
-            sedQ[w] = 0;
-            sedU[w] = 0;
-            sedV[w] = 0;
-            sedT[w] = 0;
+            sedI[i_spectral] = 0;
+            sedQ[i_spectral] = 0;
+            sedU[i_spectral] = 0;
+            sedV[i_spectral] = 0;
+            sedT[i_spectral] = 0;
         }
     }
 
@@ -606,8 +614,10 @@ class CDetector
         cos_acceptance_angle = cos(acceptance_angle);
     }
 
-    void addToSedDetector(StokesVector st, uint i_spectral)
+    void addToRaytracingSedDetector(const photon_package & pp)
     {
+        StokesVector st = pp.getStokesVector();
+        uint i_spectral = pp.getSpectralID();
         if(sedI != 0)
         {
 #pragma omp atomic update
@@ -623,46 +633,44 @@ class CDetector
         }
     }
 
-    void addToRaytracingSedDetector(const photon_package & pp, uint spectral_offset = 0)
+    void addToRaytracingDetector(const photon_package & pp, uint pos_id = MAX_UINT)
     {
+        // Get Stokes vector from photon package
         StokesVector st = pp.getStokesVector();
-        addToSedDetector(st, pp.getSpectralID() + spectral_offset);
-    }
 
-    void addToRaytracingDetector(const photon_package & pp, uint pos_id, uint spectral_offset)
-    {
-        StokesVector st = pp.getStokesVector();
+        // Get spectral index from photon package
         uint i_spectral = pp.getSpectralID();
-        matrixI[i_spectral + spectral_offset].addValue(pos_id, st.I());
-        matrixQ[i_spectral + spectral_offset].addValue(pos_id, st.Q());
-        matrixU[i_spectral + spectral_offset].addValue(pos_id, st.U());
-        matrixV[i_spectral + spectral_offset].addValue(pos_id, st.V());
-        matrixT[i_spectral + spectral_offset].addValue(pos_id, st.T());
-        matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
-    }
 
-    void addToRaytracingDetector(const photon_package & pp, uint spectral_offset)
-    {
-        Vector3D pos = pp.getPosition();
+        if(pos_id == MAX_UINT)
+        {
+            Vector3D pos = pp.getPosition();
 
-        uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
+            uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
-        if(x < 0 || x >= int(bins_x))
-            return;
+            if(x < 0 || x >= int(bins_x))
+                return;
 
-        uint y = uint((pos.Y() + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
+            uint y = uint((pos.Y() + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
 
-        if(y < 0 || y >= int(bins_y))
-            return;
+            if(y < 0 || y >= int(bins_y))
+                return;
 
-        StokesVector st = pp.getStokesVector();
-        uint i_spectral = pp.getSpectralID();
-        matrixI[i_spectral + spectral_offset].addValue(x, y, st.I());
-        matrixQ[i_spectral + spectral_offset].addValue(x, y, st.Q());
-        matrixU[i_spectral + spectral_offset].addValue(x, y, st.U());
-        matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
-        matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
-        matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
+            matrixI[i_spectral].addValue(x, y, st.I());
+            matrixQ[i_spectral].addValue(x, y, st.Q());
+            matrixU[i_spectral].addValue(x, y, st.U());
+            matrixV[i_spectral].addValue(x, y, st.V());
+            matrixT[i_spectral].addValue(x, y, st.T());
+            matrixS[i_spectral].addValue(x, y, st.Sp());
+        }
+        else
+        {
+            matrixI[i_spectral].addValue(pos_id, st.I());
+            matrixQ[i_spectral].addValue(pos_id, st.Q());
+            matrixU[i_spectral].addValue(pos_id, st.U());
+            matrixV[i_spectral].addValue(pos_id, st.V());
+            matrixT[i_spectral].addValue(pos_id, st.T());
+            matrixS[i_spectral].addValue(pos_id, st.Sp());
+        }
     }
 
     void addToMonteCarloDetector(const photon_package & pp, uint i_det_spectral, uint radiation_type)
@@ -676,12 +684,13 @@ class CDetector
         double lx = pos * ex;
         double ly = pos * ey;
 
-        int x = int((lx + 0.5 * sidelength_x) / sidelength_x * double(bins_x));
+        //uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
+        int x = int((lx + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
         if(x < 0 || x >= int(bins_x))
             return;
 
-        int y = int((ly + 0.5 * sidelength_y) / sidelength_y * double(bins_y));
+        int y = int((ly + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
 
         if(y < 0 || y >= int(bins_y))
             return;
@@ -745,7 +754,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6 };
+            long naxes[4] = { uint(bins_x), uint(bins_y), nr_spectral_bins, 6 * nr_extra };
 
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -765,42 +774,44 @@ class CDetector
         fpixel[0] = 1;
         fpixel[1] = 1;
 
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             fpixel[2] = i_spectral + 1;
+            for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+            {
+                valarray<double> array_I(nelements);
+                valarray<double> array_Q(nelements);
+                valarray<double> array_U(nelements);
+                valarray<double> array_V(nelements);
+                valarray<double> array_T(nelements);
+                valarray<double> array_S(nelements);
 
-            valarray<double> array_I(nelements);
-            valarray<double> array_Q(nelements);
-            valarray<double> array_U(nelements);
-            valarray<double> array_V(nelements);
-            valarray<double> array_T(nelements);
-            valarray<double> array_S(nelements);
+                uint i = 0;
+                for(uint i_y = 0; i_y < bins_y; i_y++)
+                    for(uint i_x = 0; i_x < bins_x; i_x++)
+                    {
+                        array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_S[i] = matrixS[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        i++;
+                    }
 
-            uint i = 0;
-            for(uint i_y = 0; i_y < bins_y; i_y++)
-                for(uint i_x = 0; i_x < bins_x; i_x++)
-                {
-                    array_I[i] = matrixI[i_spectral](i_x, i_y);
-                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
-                    array_U[i] = matrixU[i_spectral](i_x, i_y);
-                    array_V[i] = matrixV[i_spectral](i_x, i_y);
-                    array_T[i] = matrixT[i_spectral](i_x, i_y);
-                    array_S[i] = matrixS[i_spectral](i_x, i_y);
-                    i++;
-                }
-
-            fpixel[3] = 1;
-            pFits->pHDU().write(fpixel, nelements, array_I);
-            fpixel[3] = 2;
-            pFits->pHDU().write(fpixel, nelements, array_Q);
-            fpixel[3] = 3;
-            pFits->pHDU().write(fpixel, nelements, array_U);
-            fpixel[3] = 4;
-            pFits->pHDU().write(fpixel, nelements, array_V);
-            fpixel[3] = 5;
-            pFits->pHDU().write(fpixel, nelements, array_T);
-            fpixel[3] = 6;
-            pFits->pHDU().write(fpixel, nelements, array_S);
+                fpixel[3] = 0 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_I);
+                fpixel[3] = 1 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_Q);
+                fpixel[3] = 2 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_U);
+                fpixel[3] = 3 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_V);
+                fpixel[3] = 4 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_T);
+                fpixel[3] = 5 * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_S);
+            }
         }
 
         double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
@@ -902,25 +913,35 @@ class CDetector
                 "CUNIT4", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 4");
             pFits->pHDU().addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
         }
-        else
+        else if(results_type == RESULTS_MC)
         {
             pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, I_direct, I_scat [Jy/px]", "unit of axis 4");
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
+        else if(nr_extra > 1)
+        {
+            pFits->pHDU().addKey(
+                "CUNIT4", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 4");
+            pFits->pHDU().addKey(
+                "ETYPE", "Each Stokes entry for FULL / SCAT / THERMAL / STOCHASTIC", "type of emission");
+        }
         pFits->pHDU().addKey("ID", nr, "detector ID");
 
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            char str_1[1024];
-            char str_2[1024];
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+            {
+                char str_1[1024];
+                char str_2[1024];
 #ifdef WINDOWS
-            sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
-            sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+                sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
 #else
-            sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
-            sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+                sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
 #endif
-            pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+                pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+            }
         }
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -965,7 +986,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 3;
-            long naxes[3] = { nr_of_spectral_bins, 1, 5 };
+            long naxes[3] = { nr_spectral_bins, nr_extra, 5 };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -973,35 +994,39 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(nr_of_spectral_bins);
+        long nelements = uint(nr_spectral_bins);
 
         vector<long> fpixel(3);
         fpixel[0] = 1;
-        fpixel[1] = 1;
 
         std::valarray<double> array_I(nelements);
         std::valarray<double> array_Q(nelements);
         std::valarray<double> array_U(nelements);
         std::valarray<double> array_V(nelements);
         std::valarray<double> array_T(nelements);
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            array_I[i_spectral] = sedI[i_spectral];
-            array_Q[i_spectral] = sedQ[i_spectral];
-            array_U[i_spectral] = sedU[i_spectral];
-            array_V[i_spectral] = sedV[i_spectral];
-            array_T[i_spectral] = sedT[i_spectral];
+            fpixel[1] = i_extra + 1;
 
-            fpixel[2] = 1;
-            pFits->pHDU().write(fpixel, nelements, array_I);
-            fpixel[2] = 2;
-            pFits->pHDU().write(fpixel, nelements, array_Q);
-            fpixel[2] = 3;
-            pFits->pHDU().write(fpixel, nelements, array_U);
-            fpixel[2] = 4;
-            pFits->pHDU().write(fpixel, nelements, array_V);
-            fpixel[2] = 5;
-            pFits->pHDU().write(fpixel, nelements, array_T);
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+            {
+                array_I[i_spectral] = sedI[i_spectral + i_extra * nr_spectral_bins];
+                array_Q[i_spectral] = sedQ[i_spectral + i_extra * nr_spectral_bins];
+                array_U[i_spectral] = sedU[i_spectral + i_extra * nr_spectral_bins];
+                array_V[i_spectral] = sedV[i_spectral + i_extra * nr_spectral_bins];
+                array_T[i_spectral] = sedT[i_spectral + i_extra * nr_spectral_bins];
+
+                fpixel[2] = 1;
+                pFits->pHDU().write(fpixel, nelements, array_I);
+                fpixel[2] = 2;
+                pFits->pHDU().write(fpixel, nelements, array_Q);
+                fpixel[2] = 3;
+                pFits->pHDU().write(fpixel, nelements, array_U);
+                fpixel[2] = 4;
+                pFits->pHDU().write(fpixel, nelements, array_V);
+                fpixel[2] = 5;
+                pFits->pHDU().write(fpixel, nelements, array_T);
+            }
         }
 
         pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
@@ -1030,18 +1055,21 @@ class CDetector
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
         pFits->pHDU().addKey("ID", nr, "detector ID");
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            char str_1[1024];
-            char str_2[1024];
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+            {
+                char str_1[1024];
+                char str_2[1024];
 #ifdef WINDOWS
-            sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
-            sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+                sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
 #else
-            sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
-            sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+                sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
 #endif
-            pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+                pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+            }
         }
         if(detector_id == DET_SPHER)
         {
@@ -1121,11 +1149,11 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 5;
-        vector<string> colName(nr_of_quantities * nr_of_spectral_bins + 1, "");
-        vector<string> colForm(nr_of_quantities * nr_of_spectral_bins + 1, "");
-        vector<string> colUnit(nr_of_quantities * nr_of_spectral_bins + 1, "");
+        vector<string> colName(nr_of_quantities * nr_spectral_bins + 1, "");
+        vector<string> colForm(nr_of_quantities * nr_spectral_bins + 1, "");
+        vector<string> colUnit(nr_of_quantities * nr_spectral_bins + 1, "");
 
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             char str_1[1024];
 #ifdef WINDOWS
@@ -1171,13 +1199,13 @@ class CDetector
             colUnit[nr_of_quantities * i_spectral + 3] = "Jy/px";
             colUnit[nr_of_quantities * i_spectral + 4] = "";
         }
-        colName[nr_of_quantities * nr_of_spectral_bins] = "COLUMN_DENSITY";
-        colForm[nr_of_quantities * nr_of_spectral_bins] = "D";
-        colUnit[nr_of_quantities * nr_of_spectral_bins] = "m^-2";
+        colName[nr_of_quantities * nr_spectral_bins] = "COLUMN_DENSITY";
+        colForm[nr_of_quantities * nr_spectral_bins] = "D";
+        colUnit[nr_of_quantities * nr_spectral_bins] = "m^-2";
 
         CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             valarray<double> array_I(nelements);
             valarray<double> array_Q(nelements);
@@ -1213,7 +1241,7 @@ class CDetector
                 array_C[i] = matrixS[0](i_x, i_y);
                 i++;
             }
-        newTable->column(colName[nr_of_quantities * nr_of_spectral_bins]).write(array_C, 1);
+        newTable->column(colName[nr_of_quantities * nr_spectral_bins]).write(array_C, 1);
 
         // Healpix parameter
         newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
@@ -1278,7 +1306,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_of_spectral_bins, 6 * 2 };
+            long naxes[4] = { uint(bins_x), uint(bins_y), nr_spectral_bins, 6 * nr_extra };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1299,7 +1327,7 @@ class CDetector
 
         for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
-            for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 fpixel[2] = i_spectral + 1;
 
@@ -1314,12 +1342,12 @@ class CDetector
                 for(uint i_y = 0; i_y < bins_y; i_y++)
                     for(uint i_x = 0; i_x < bins_x; i_x++)
                     {
-                        array_I[i] = matrixI[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_Q[i] = matrixQ[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_U[i] = matrixU[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_V[i] = matrixV[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_T[i] = matrixT[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_S[i] = matrixS[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
+                        array_I[i] = matrixI[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_Q[i] = matrixQ[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_U[i] = matrixU[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_V[i] = matrixV[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_T[i] = matrixT[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_S[i] = matrixS[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
                         i++;
                     }
 
@@ -1434,7 +1462,7 @@ class CDetector
 
         pFits->pHDU().addKey("ID", nr, "detector ID");
 
-        for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             char str_1[1024];
             char str_2[1024];
@@ -1504,9 +1532,9 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 5;
-        vector<string> colName(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
-        vector<string> colForm(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
-        vector<string> colUnit(2 * nr_of_quantities * nr_of_spectral_bins + 2, "");
+        vector<string> colName(2 * nr_of_quantities * nr_spectral_bins + 2, "");
+        vector<string> colForm(2 * nr_of_quantities * nr_spectral_bins + 2, "");
+        vector<string> colUnit(2 * nr_of_quantities * nr_spectral_bins + 2, "");
 
         strlist e_description;
         e_description.push_back("THERMAL_ELECTRONS");
@@ -1514,10 +1542,9 @@ class CDetector
 
         for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
-            for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
-                uint id =
-                    i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
+                uint id = i_electrons * nr_of_quantities * nr_spectral_bins + nr_of_quantities * i_spectral;
                 char str_1[1024];
 #ifdef WINDOWS
                 sprintf_s(str_1,
@@ -1598,16 +1625,16 @@ class CDetector
 #else
             sprintf(str_1, "COLUMN_DENSITY (%s)", e_description[i_electrons].c_str());
 #endif
-            colName[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = str_1;
-            colForm[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "D";
-            colUnit[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons] = "m^-2";
+            colName[2 * nr_of_quantities * nr_spectral_bins + i_electrons] = str_1;
+            colForm[2 * nr_of_quantities * nr_spectral_bins + i_electrons] = "D";
+            colUnit[2 * nr_of_quantities * nr_spectral_bins + i_electrons] = "m^-2";
         }
 
         CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
         for(uint i_electrons = 0; i_electrons < 2; i_electrons++)
         {
-            for(uint i_spectral = 0; i_spectral < nr_of_spectral_bins; i_spectral++)
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 valarray<double> array_I(nelements);
                 valarray<double> array_Q(nelements);
@@ -1619,15 +1646,14 @@ class CDetector
                 for(uint i_y = 0; i_y < bins_y; i_y++)
                     for(uint i_x = 0; i_x < bins_x; i_x++)
                     {
-                        array_I[i] = matrixI[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_Q[i] = matrixQ[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_U[i] = matrixU[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_V[i] = matrixV[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
-                        array_T[i] = matrixT[i_spectral + i_electrons * nr_of_spectral_bins](i_x, i_y);
+                        array_I[i] = matrixI[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_Q[i] = matrixQ[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_U[i] = matrixU[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_V[i] = matrixV[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
+                        array_T[i] = matrixT[i_spectral + i_electrons * nr_spectral_bins](i_x, i_y);
                         i++;
                     }
-                uint id =
-                    i_electrons * nr_of_quantities * nr_of_spectral_bins + nr_of_quantities * i_spectral;
+                uint id = i_electrons * nr_of_quantities * nr_spectral_bins + nr_of_quantities * i_spectral;
                 newTable->column(colName[id + 0]).write(array_I, 1);
                 newTable->column(colName[id + 1]).write(array_Q, 1);
                 newTable->column(colName[id + 2]).write(array_U, 1);
@@ -1641,10 +1667,10 @@ class CDetector
             for(uint i_y = 0; i_y < bins_y; i_y++)
                 for(uint i_x = 0; i_x < bins_x; i_x++)
                 {
-                    array_C[i] = matrixS[0 + i_electrons * nr_of_spectral_bins](i_x, i_y);
+                    array_C[i] = matrixS[0 + i_electrons * nr_spectral_bins](i_x, i_y);
                     i++;
                 }
-            newTable->column(colName[2 * nr_of_quantities * nr_of_spectral_bins + i_electrons])
+            newTable->column(colName[2 * nr_of_quantities * nr_spectral_bins + i_electrons])
                 .write(array_C, 1);
         }
 
@@ -1700,7 +1726,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 3;
-            long naxes[3] = { nr_of_spectral_bins, 1, 5 };
+            long naxes[3] = { nr_spectral_bins, 1, 5 };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1708,7 +1734,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(nr_of_spectral_bins);
+        long nelements = uint(nr_spectral_bins);
 
         vector<long> fpixel(3);
         fpixel[0] = 1;
@@ -1719,13 +1745,13 @@ class CDetector
         std::valarray<double> array_U(nelements);
         std::valarray<double> array_V(nelements);
         std::valarray<double> array_T(nelements);
-        for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
-            array_I[vch] = sedI[vch];
-            array_Q[vch] = sedQ[vch];
-            array_U[vch] = sedU[vch];
-            array_V[vch] = sedV[vch];
-            array_T[vch] = sedT[vch];
+            array_I[i_spectral] = sedI[i_spectral];
+            array_Q[i_spectral] = sedQ[i_spectral];
+            array_U[i_spectral] = sedU[i_spectral];
+            array_V[i_spectral] = sedV[i_spectral];
+            array_T[i_spectral] = sedT[i_spectral];
 
             fpixel[2] = 1;
             pFits->pHDU().write(fpixel, nelements, array_I);
@@ -1764,7 +1790,7 @@ class CDetector
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
-        pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
                              gas->isTransZeemanSplit(i_species, i_trans),
@@ -1788,7 +1814,7 @@ class CDetector
         cout << CLR_LINE << flush;
         cout << " -> Writing velocity channel maps: 0%     \r" << flush;
 
-        for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             long naxis = 3;
             long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
@@ -1803,10 +1829,10 @@ class CDetector
 
 #ifdef WINDOWS
                 strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
+                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
 #else
                 strcpy(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
+                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
 #endif
 
                 string path_out = path + str_end + FITS_COMPRESS_EXT;
@@ -1830,7 +1856,7 @@ class CDetector
             fpixel[1] = 1;
             fpixel[2] = 1;
 
-            cout << " -> Writing velocity channel maps: " << int(100.0 * vch / (nr_of_spectral_bins - 1))
+            cout << " -> Writing velocity channel maps: " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
                  << "%     \r" << flush;
 
             std::valarray<double> array_I(nelements);
@@ -1843,11 +1869,11 @@ class CDetector
             for(uint i_y = 0; i_y < bins_y; i_y++)
                 for(uint i_x = 0; i_x < bins_x; i_x++)
                 {
-                    array_I[i] = matrixI[vch](i_x, i_y);
-                    array_Q[i] = matrixQ[vch](i_x, i_y);
-                    array_U[i] = matrixU[vch](i_x, i_y);
-                    array_V[i] = matrixV[vch](i_x, i_y);
-                    array_T[i] = matrixT[vch](i_x, i_y);
+                    array_I[i] = matrixI[i_spectral](i_x, i_y);
+                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral](i_x, i_y);
                     i++;
                 }
             fpixel[2] = 1;
@@ -1956,8 +1982,8 @@ class CDetector
             pFits->pHDU().addKey("FREQ",
                                  gas->getTransitionFrequency(i_species, i_trans),
                                  "frequency of the simulated transition");
-            pFits->pHDU().addKey("VCH", vch, "current velocity channel");
-            pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+            pFits->pHDU().addKey("VCH", i_spectral, "current velocity channel");
+            pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
             pFits->pHDU().addKey(
                 "MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             pFits->pHDU().addKey("ZEEMAN",
@@ -2038,7 +2064,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2046,7 +2072,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2054,7 +2080,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2062,7 +2088,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2172,7 +2198,7 @@ class CDetector
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
-        pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
                              gas->isTransZeemanSplit(i_species, i_trans),
@@ -2246,16 +2272,20 @@ class CDetector
         for(uint i_y = 0; i_y < bins_y; i_y++)
             for(uint i_x = 0; i_x < bins_x; i_x++)
             {
-                for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+                for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_I[i] +=
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_Q[i] +=
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_U[i] +=
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_V[i] +=
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
                 }
-                array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
+                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
-                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                 {
                     // LOS magnetic field strength
                     array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
@@ -2372,7 +2402,7 @@ class CDetector
                              "lower energy level index number (see leiden database)");
         pFits->pHDU().addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
-        pFits->pHDU().addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
                              gas->isTransZeemanSplit(i_species, i_trans),
@@ -2395,7 +2425,7 @@ class CDetector
         cout << CLR_LINE << flush;
         cout << " -> Writing velocity channel maps: 0%     \r" << flush;
 
-        for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             long naxis = 1;
             long naxes[1] = { 0 };
@@ -2410,10 +2440,10 @@ class CDetector
 
 #ifdef WINDOWS
                 strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
+                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
 #else
                 strcpy(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, vch + 1);
+                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
 #endif
 
                 string path_out = path + str_end + FITS_COMPRESS_EXT;
@@ -2459,7 +2489,7 @@ class CDetector
 
             CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-            cout << " -> Writing velocity channel maps: " << int(100.0 * vch / (nr_of_spectral_bins - 1))
+            cout << " -> Writing velocity channel maps: " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
                  << "%     \r" << flush;
 
             valarray<double> array_I(nelements);
@@ -2472,11 +2502,11 @@ class CDetector
             for(uint i_y = 0; i_y < bins_y; i_y++)
                 for(uint i_x = 0; i_x < bins_x; i_x++)
                 {
-                    array_I[i] = matrixI[vch](i_x, i_y);
-                    array_Q[i] = matrixQ[vch](i_x, i_y);
-                    array_U[i] = matrixU[vch](i_x, i_y);
-                    array_V[i] = matrixV[vch](i_x, i_y);
-                    array_T[i] = matrixT[vch](i_x, i_y);
+                    array_I[i] = matrixI[i_spectral](i_x, i_y);
+                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral](i_x, i_y);
                     i++;
                 }
 
@@ -2507,8 +2537,8 @@ class CDetector
             newTable->addKey("FREQ",
                              gas->getTransitionFrequency(i_species, i_trans),
                              "frequency of the simulated transition");
-            newTable->addKey("VCH", vch, "current velocity channel");
-            newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+            newTable->addKey("VCH", i_spectral, "current velocity channel");
+            newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
             newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
             newTable->addKey("ZEEMAN",
                              gas->isTransZeemanSplit(i_species, i_trans),
@@ -2613,7 +2643,7 @@ class CDetector
                     else if(i_extra == 1)
                     {
                         // intensity weighted LOS magnetic field
-                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2621,7 +2651,7 @@ class CDetector
                     else if(i_extra == 2)
                     {
                         // intensity weighted total magnetic field
-                        if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
                             array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2629,7 +2659,7 @@ class CDetector
                     else if(i_extra == 3)
                     {
                         // density weighted LOS magnetic field
-                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2637,7 +2667,7 @@ class CDetector
                     else if(i_extra == 4)
                     {
                         // density weighted magnetic field
-                        if(nr_of_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
                             array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                         else
                             array_S[i] = 0;
@@ -2667,7 +2697,7 @@ class CDetector
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
-        newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+        newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
                          gas->isTransZeemanSplit(i_species, i_trans),
@@ -2765,16 +2795,20 @@ class CDetector
         for(uint i_y = 0; i_y < bins_y; i_y++)
             for(uint i_x = 0; i_x < bins_x; i_x++)
             {
-                for(uint vch = 0; vch < nr_of_spectral_bins; vch++)
+                for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
                 {
-                    array_I[i] += matrixI[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_Q[i] += matrixQ[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_U[i] += matrixU[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
-                    array_V[i] += matrixV[vch](i_x, i_y) * (2 * max_velocity / nr_of_spectral_bins) * 1e-3;
+                    array_I[i] +=
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_Q[i] +=
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_U[i] +=
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                    array_V[i] +=
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
                 }
-                array_T[i] = matrixT[int(nr_of_spectral_bins / 2.0)](i_x, i_y);
+                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
-                if(nr_of_spectral_bins >= 2 && matrixS[2](i_x, i_y) == 0)
+                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) == 0)
                 {
                     // LOS magnetic field strength
                     array_S[i] = 0.0;
@@ -2811,7 +2845,7 @@ class CDetector
                          "lower energy level index number (see leiden database)");
         newTable->addKey(
             "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
-        newTable->addKey("CHANNELS", nr_of_spectral_bins, "number of velocity channels");
+        newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
         newTable->addKey("ZEEMAN",
                          gas->isTransZeemanSplit(i_species, i_trans),
@@ -2854,22 +2888,22 @@ class CDetector
         first_pix_val_deg += (deg_per_pix / 2.0);
     }
 
-    void calcVelocityChannels(uint _nr_of_spectral_bins, double _max_velocity)
+    void calcVelocityChannels(uint _nr_spectral_bins, double _max_velocity)
     {
-        nr_of_spectral_bins = _nr_of_spectral_bins;
+        nr_spectral_bins = _nr_spectral_bins;
         max_velocity = _max_velocity;
 
-        if(nr_of_spectral_bins > 1)
-            channel_width = (2.0 * max_velocity) / (nr_of_spectral_bins - 1);
+        if(nr_spectral_bins > 1)
+            channel_width = (2.0 * max_velocity) / (nr_spectral_bins - 1);
         else
             channel_width = (2.0 * max_velocity);
 
-        velocity_channel.resize(nr_of_spectral_bins);
-        if(nr_of_spectral_bins > 1)
-            for(uint i = 0; i < nr_of_spectral_bins; i++)
+        velocity_channel.resize(nr_spectral_bins);
+        if(nr_spectral_bins > 1)
+            for(uint i = 0; i < nr_spectral_bins; i++)
                 velocity_channel[i] =
-                    2 * (float)i / ((float)nr_of_spectral_bins - 1) * max_velocity - max_velocity;
-        else if(nr_of_spectral_bins == 1)
+                    2 * (float)i / ((float)nr_spectral_bins - 1) * max_velocity - max_velocity;
+        else if(nr_spectral_bins == 1)
             velocity_channel[0] = 0;
     }
 
@@ -2904,7 +2938,7 @@ class CDetector
 
     uint getNrOfSpectralBins()
     {
-        return nr_of_spectral_bins;
+        return nr_spectral_bins;
     }
 
     double getChannelWidth()
@@ -2912,9 +2946,9 @@ class CDetector
         return channel_width;
     }
 
-    double getVelocityChannel(uint vch)
+    double getVelocityChannel(uint i_spectral)
     {
-        return velocity_channel[vch];
+        return velocity_channel[i_spectral];
     }
 
     string getDetectorGridDescription()
@@ -2998,9 +3032,10 @@ class CDetector
     uint ID, detector_id;
     uint bins_x, bins_y;
     uint max_cells;
-    uint nr_of_spectral_bins;
+    uint nr_spectral_bins;
     uint nr_velocity_channels;
     uint i_trans;
+    uint nr_extra;
     uint alignment;
     Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV, *matrixT, *matrixS;
     double *sedI, *sedQ, *sedU, *sedV, *sedT;

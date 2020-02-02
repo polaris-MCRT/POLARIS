@@ -23,7 +23,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
 
     cout << CLR_LINE;
 
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
     {
         cell_basic * cell = grid->getCellFromIndex(i_cell);
@@ -44,15 +44,15 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         double ** tmp_lvl_pop = new double *[nr_of_energy_level];
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
         {
-            tmp_lvl_pop[i_lvl] = new double[getNrOfSublevel(i_lvl)];
+            tmp_lvl_pop[i_lvl] = new double[nr_of_sublevel[i_lvl]];
         }
 
         double temp_gas = grid->getGasTemperature(*cell);
-        if(temp_gas == 0)
+        if(temp_gas < 1e-200)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                     tmp_lvl_pop[i_lvl][i_sublvl] = 0;
             }
             tmp_lvl_pop[0][0] = 1;
@@ -62,19 +62,25 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
             double sum = 0;
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                // Calculate LTE level pop also for Zeeman sublevel
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                // Calculate level pop for Zeeman sublevel too.
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                 {
+                    // Calculate LTE level population
                     tmp_lvl_pop[i_lvl][i_sublvl] =
-                        getGLevel(i_lvl) *
                         exp(-con_h * getEnergyOfLevel(i_lvl) * con_c * 100.0 / (con_kB * temp_gas));
+
+                    // If the sublevel are not treated separately, multiply by degeneracy
+                    if(nr_of_sublevel[i_lvl] == 1)
+                        tmp_lvl_pop[i_lvl][i_sublvl] *= g_level[i_lvl];
+
+                    // Add the level population to the total sum
                     sum += tmp_lvl_pop[i_lvl][i_sublvl];
                 }
             }
 
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                 {
                     tmp_lvl_pop[i_lvl][i_sublvl] /= sum;
                 }
@@ -85,7 +91,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                 {
                     grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[i_lvl][i_sublvl]);
                 }
@@ -98,28 +104,32 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
                 uint i_trans = getTransitionFromSpectralLine(i_line);
 
                 uint i_lvl_l = getLowerEnergyLevel(i_trans);
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl_l); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl_l]; i_sublvl++)
                 {
                     grid->setLvlPopLower(cell, i_line, i_sublvl, tmp_lvl_pop[i_lvl_l][i_sublvl]);
                 }
 
                 uint i_lvl_u = getUpperEnergyLevel(i_trans);
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl_u); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl_u]; i_sublvl++)
                 {
                     grid->setLvlPopUpper(cell, i_line, i_sublvl, tmp_lvl_pop[i_lvl_u][i_sublvl]);
                 }
             }
         }
 
-        // if(i_cell == 500)
-        // {
-        //     cout << CLR_LINE;
-        //     cout << SEP_LINE;
-        //     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
-        //         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
-        //             cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl, i_sublvl) << TAB
-        //                  << tmp_lvl_pop[i_lvl][i_sublvl] << endl;
-        // }
+        //         if(i_cell == 500)
+        //         {
+        // #pragma omp critical
+        //             {
+        //                 cout << CLR_LINE;
+        //                 cout << SEP_LINE;
+        //                 for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        //                     for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+        //                         cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl,
+        //                         i_sublvl) << TAB
+        //                              << tmp_lvl_pop[i_lvl][i_sublvl] << endl;
+        //             }
+        //         }
 
         delete[] tmp_lvl_pop;
     }
@@ -222,7 +232,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                 {
                     grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                 }
@@ -241,13 +251,13 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
 
                     if(i_lvl == i_lvl_l)
                     {
-                        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                             grid->setLvlPopLower(
                                 cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                     }
                     else if(i_lvl == i_lvl_u)
                     {
-                        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                             grid->setLvlPopUpper(
                                 cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                     }
@@ -255,15 +265,19 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
             }
         }
 
-        // if(i_cell == 500)
-        // {
-        //     cout << CLR_LINE;
-        //     cout << SEP_LINE;
-        //     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
-        //         for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
-        //             cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl, i_sublvl) << TAB
-        //                  << tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)] << endl;
-        // }
+        //         if(i_cell == 500)
+        //         {
+        // #pragma omp critical
+        //             {
+        //                 cout << CLR_LINE;
+        //                 cout << SEP_LINE;
+        //                 for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+        //                     for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+        //                         cout << i_lvl << TAB << i_sublvl << TAB << getUniqueLevelIndex(i_lvl,
+        //                         i_sublvl) << TAB
+        //                              << tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)] << endl;
+        //             }
+        //         }
 
         delete[] tmp_lvl_pop;
     }
@@ -277,7 +291,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
 // by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
 // and based on Pavlyuchenkov et. al (2007)
 
-bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
+bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
 {
     uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
     uint nr_of_total_transitions = getNrOfTotalTransitions();
@@ -315,12 +329,8 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         for(uint i = 1; i < nr_of_total_energy_levels; i++)
         {
             tmp_lvl_pop[i] = 0.0;
-            old_pop[i] = 0.0;
         }
-        old_pop[0] = 1.0;
         tmp_lvl_pop[0] = 1.0;
-
-        double turbulent_velocity = grid->getTurbulentVelocity(cell);
 
         // Calculate percentage of total progress per source
         float percentage = 100 * float(i_cell) / float(max_cells);
@@ -342,26 +352,17 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         if(temp_gas < 1e-200 || dens_species < 1e-200)
             continue;
 
-        Vector3D pos_xyz_cell = grid->getCenter(*cell);
-        double abs_vel;
-        if(kepler_star_mass > 0)
-        {
-            Vector3D velo = CMathFunctions::calcKeplerianVelocity(pos_xyz_cell, kepler_star_mass);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else if(grid->hasVelocityField())
-        {
-            Vector3D velo = grid->getVelocityField(*cell);
-            abs_vel = sqrt(pow(velo.X(), 2) + pow(velo.Y(), 2) + pow(velo.Z(), 2));
-        }
-        else
-            abs_vel = 0;
+        // Get gauss A
+        double gauss_a = getGaussA(temp_gas, grid->getTurbulentVelocity(cell));
 
-        if(getGaussA(temp_gas, turbulent_velocity) * abs_vel < 1e-16)
+        Vector3D pos_xyz_cell = grid->getCenter(*cell);
+        double abs_vel = getCellVelocity(grid, *cell, pos_xyz_cell).length();
+
+        if(gauss_a * abs_vel < 1e-16)
             continue;
 
         double R_mid = sqrt(pow(pos_xyz_cell.X(), 2) + pow(pos_xyz_cell.Y(), 2));
-        double L = R_mid * sqrt(2.0 / 3.0 / (getGaussA(temp_gas, turbulent_velocity) * abs_vel));
+        double L = R_mid * sqrt(2.0 / 3.0 / (gauss_a * abs_vel));
         uint i_iter = 0;
 
         double *** final_col_para = calcCollisionParameter(grid, cell);
@@ -378,15 +379,10 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
                     for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
                     {
                         uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
-                        J_mid[i_tmp_trans] = elem_LVG(grid,
-                                                      dens_species,
-                                                      tmp_lvl_pop,
-                                                      getGaussA(temp_gas, turbulent_velocity),
-                                                      L,
-                                                      J_ext[i_trans],
-                                                      i_trans,
-                                                      i_sublvl_u,
-                                                      i_sublvl_l);
+                        double j, alpha;
+                        calcEmissivityFromLvlPop(
+                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, gauss_a, tmp_lvl_pop, &j, &alpha);
+                        J_mid[i_tmp_trans] = calcJFromInteractionLength(j, alpha, J_ext[i_trans], L);
                     }
                 }
             }
@@ -431,7 +427,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
         {
             for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
             {
-                for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                 {
                     grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                 }
@@ -450,13 +446,13 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
 
                     if(i_lvl == i_lvl_l)
                     {
-                        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                             grid->setLvlPopLower(
                                 cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                     }
                     else if(i_lvl == i_lvl_u)
                     {
-                        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
                             grid->setLvlPopUpper(
                                 cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
                     }
@@ -483,51 +479,238 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, double kepler_star_mass, bool full)
     return no_error;
 }
 
-// This function is based on
-// Mol3d: 3D line and dust continuum radiative transfer code
-// by Florian Ober 2015, Email: fober@astrophysik.uni-kiel.de
-
-double CGasSpecies::elem_LVG(CGridBasic * grid,
-                             double dens_species,
-                             double * tmp_lvl_pop,
-                             double gauss_a,
-                             double L,
-                             double J_ext,
-                             uint i_trans,
-                             uint i_sublvl_u,
-                             uint i_sublvl_l)
+bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
 {
-    uint i_lvl_l = getLowerEnergyLevel(i_trans);
-    uint i_lvl_u = getUpperEnergyLevel(i_trans);
+    uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
+    uint nr_of_total_transitions = getNrOfTotalTransitions();
+    uint nr_of_spectral_lines = getNrOfSpectralLines();
+    float last_percentage = 0;
+    long max_cells = grid->getMaxDataCells();
+    bool no_error = true;
 
-    double lvl_pop_l = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_l, i_sublvl_l)];
-    double lvl_pop_u = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_u, i_sublvl_u)];
+    cout << CLR_LINE;
 
-    double Einst_A = getEinsteinA(i_trans);
-    double Einst_B_u = getEinsteinBul(i_trans);
-    double Einst_B_l = getEinsteinBlu(i_trans);
-    double j, alpha, tau, beta, J_mid, S;
-
-    j = dens_species * lvl_pop_u * Einst_A * gauss_a * con_eps / sqrt(PI);
-    alpha = dens_species * (lvl_pop_l * Einst_B_l - lvl_pop_u * Einst_B_u) * gauss_a * con_eps / sqrt(PI);
-
-    if(alpha < 1e-20)
+    double * J_ext = new double[nr_of_total_transitions];
+    for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
     {
-        S = 0.0;
-        alpha = 0.0;
+        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+        {
+            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+            {
+                uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+                J_ext[i_tmp_trans] = CMathFunctions::planck_hz(getTransitionFrequency(i_trans), 2.75);
+            }
+        }
     }
-    else
-        S = j / alpha;
 
-    tau = alpha * L;
+#pragma omp parallel for schedule(dynamic)
+    for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(i_cell);
+        Matrix2D A(nr_of_total_energy_levels, nr_of_total_energy_levels);
 
-    if(tau < 1e-6)
-        beta = 1.0 - 0.5 * tau;
-    else
-        beta = (1.0 - exp(-tau)) / tau;
+        double * J_mid = new double[nr_of_total_transitions];
+        double * b = new double[nr_of_total_energy_levels];
+        double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
+        double * old_pop = new double[nr_of_total_energy_levels];
 
-    J_mid = (1.0 - beta) * S + beta * J_ext;
-    return J_mid;
+        for(uint i = 1; i < nr_of_total_energy_levels; i++)
+        {
+            tmp_lvl_pop[i] = 0.0;
+        }
+        tmp_lvl_pop[0] = 1.0;
+
+        // Calculate percentage of total progress per source
+        float percentage = 100 * float(i_cell) / float(max_cells);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+#pragma omp critical
+            {
+                cout << "-> Calculating LVG level population : " << last_percentage
+                     << " [%]                       \r";
+                last_percentage = percentage;
+            }
+        }
+
+        // Check temperature and density
+        double temp_gas = grid->getGasTemperature(*cell);
+        double dens_species = getNumberDensity(grid, *cell);
+        if(temp_gas < 1e-200 || dens_species < 1e-200)
+            continue;
+
+        // Get gauss a
+        double gauss_a = getGaussA(temp_gas, grid->getTurbulentVelocity(cell));
+
+        double *** final_col_para = calcCollisionParameter(grid, cell);
+        uint i_iter = 0;
+        for(i_iter = 0; i_iter < MAX_LVG_ITERATIONS; i_iter++)
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_total_energy_levels; i_lvl++)
+                old_pop[i_lvl] = tmp_lvl_pop[i_lvl];
+
+            for(uint i_trans = 0; i_trans < nr_of_transitions; i_trans++)
+            {
+                uint i_lvl_l = getLowerEnergyLevel(i_trans);
+                uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+                for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
+                {
+                    // Calculate the quantum number of the upper energy level
+                    float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
+
+                    for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
+                    {
+                        // Calculate the quantum number of the lower energy level
+                        float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
+
+                        uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
+
+                        double j, alpha;
+                        calcEmissivityFromLvlPop(
+                            i_trans, i_sublvl_u, i_sublvl_l, dens_species, gauss_a, tmp_lvl_pop, &j, &alpha);
+
+                        uint nr_of_theta = 181;
+                        dlist solid_angle(nr_of_theta), J_theta(nr_of_theta);
+                        double tau_0 = grid->getDustTemperature(*cell) / 100;
+                        for(uint sth = 0; sth < nr_of_theta; sth++)
+                        {
+                            double theta = PI * double(sth) / double(nr_of_theta - 1);
+                            double cos_theta = cos(theta);
+                            double sin_theta = sin(theta);
+
+                            // Calculate the modified angle for integration
+                            solid_angle[sth] = -PIx2 * cos_theta;
+
+                            double tau = tau_0 / (cos_theta * cos_theta);
+                            double J_tmp = calcJFromOpticalDepth(j, alpha, J_ext[i_trans], tau);
+                            switch(int(sublvl_l - sublvl_u))
+                            {
+                                case TRANS_PI:
+                                    // Update radiation field
+                                    J_theta[sth] = J_tmp;
+                                    if(isTransZeemanSplit(i_trans))
+                                        J_theta[sth] *= (3.0 / 2.0) * (sin_theta * sin_theta);
+                                    break;
+                                case TRANS_SIGMA_P:
+                                case TRANS_SIGMA_M:
+                                    // Update radiation field
+                                    J_theta[sth] = (3.0 / 4.0) * (1 + cos_theta * cos_theta) * J_tmp;
+                                    break;
+                            }
+                        }
+                        J_mid[i_tmp_trans] =
+                            CMathFunctions::integ(solid_angle, J_theta, 0, nr_of_theta - 1) / PIx4;
+                    }
+                }
+            }
+
+            createMatrix(J_mid, &A, b, final_col_para);
+            CMathFunctions::gauss(A, b, tmp_lvl_pop, nr_of_total_energy_levels);
+
+            // if(i_iter == 0)
+            // {
+            //     for(uint i_col_transition = 0; i_col_transition < getNrCollisionTransitions(0);
+            //         i_col_transition++)
+            //     {
+            //         // Get level indices for lower and upper energy level
+            //         uint i_lvl_u = getUpperCollisionLevel(0, i_col_transition);
+            //         uint i_lvl_l = getLowerCollisionLevel(0, i_col_transition);
+            //         if(i_lvl_u == 1 && i_lvl_l == 0)
+            //             cout << final_col_para[0][i_col_transition][0] / getEinsteinA(0) << endl;
+            //     }
+            // }
+
+            double sum_p = 0;
+            for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
+            {
+                if(tmp_lvl_pop[j_lvl] >= 0)
+                    sum_p += tmp_lvl_pop[j_lvl];
+                else
+                {
+                    cout << "WARNING: Level population element not greater than zero! Level = " << j_lvl
+                         << ", Level pop = " << tmp_lvl_pop[j_lvl] << endl;
+                    no_error = false;
+                }
+            }
+            for(uint j_lvl = 0; j_lvl < nr_of_total_energy_levels; j_lvl++)
+                tmp_lvl_pop[j_lvl] /= sum_p;
+
+            if(i_iter > 1)
+            {
+                uint j_lvl = 0;
+                for(uint i_lvl = 1; i_lvl < nr_of_total_energy_levels; i_lvl++)
+                    if(tmp_lvl_pop[i_lvl] > tmp_lvl_pop[j_lvl])
+                        j_lvl = i_lvl;
+
+                if(abs(tmp_lvl_pop[j_lvl] - old_pop[j_lvl]) /
+                       (tmp_lvl_pop[j_lvl] + old_pop[j_lvl] + __DBL_EPSILON__) <
+                   1e-3)
+                    break;
+            }
+        }
+        if(i_iter == MAX_LVG_ITERATIONS)
+            cout << endl << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
+
+        if(full)
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+            {
+                for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                {
+                    grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                }
+            }
+        }
+        else
+        {
+            for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
+            {
+                for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
+                {
+                    // Get indices
+                    uint i_trans = getTransitionFromSpectralLine(i_line);
+                    uint i_lvl_l = getLowerEnergyLevel(i_trans);
+                    uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+                    if(i_lvl == i_lvl_l)
+                    {
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                            grid->setLvlPopLower(
+                                cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                    }
+                    else if(i_lvl == i_lvl_u)
+                    {
+                        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
+                            grid->setLvlPopUpper(
+                                cell, i_line, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
+                    }
+                }
+            }
+        }
+
+        // cout << CLR_LINE;
+        // cout << grid->getDustTemperature(*cell) / 100 << TAB
+        //      << tmp_lvl_pop[getUniqueLevelIndex(1, 0)] / tmp_lvl_pop[getUniqueLevelIndex(1, 1)] << endl;
+
+        delete[] J_mid;
+        delete[] b;
+        delete[] tmp_lvl_pop;
+        delete[] old_pop;
+        for(uint i_col_partner = 0; i_col_partner < nr_of_col_partner; i_col_partner++)
+        {
+            for(uint i_col_transition = 0; i_col_transition < nr_of_col_transition[i_col_partner];
+                i_col_transition++)
+            {
+                delete[] final_col_para[i_col_partner][i_col_transition];
+            }
+            delete[] final_col_para[i_col_partner];
+        }
+        delete[] final_col_para;
+    }
+    delete[] J_ext;
+    return no_error;
 }
 
 bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total)
@@ -583,7 +766,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 
     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
     {
-        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
         {
             grid->setLvlPop(cell, i_lvl, i_sublvl, tmp_lvl_pop[getUniqueLevelIndex(i_lvl, i_sublvl)]);
         }
@@ -686,7 +869,7 @@ dlist CGasSpecies::calcCollisionRate(uint i_col_partner, uint i_col_transition, 
         uint i_col_lvl_l = getLowerCollisionLevel(i_col_partner, i_col_transition);
 
         col_mtr_tmp[1] =
-            col_mtr_tmp[0] * getGLevel(i_col_lvl_u) / getGLevel(i_col_lvl_l) *
+            col_mtr_tmp[0] * g_level[i_col_lvl_u] / g_level[i_col_lvl_l] *
             exp(-con_h * con_c * 100.0 * (getEnergyOfLevel(i_col_lvl_u) - getEnergyOfLevel(i_col_lvl_l)) /
                 (con_kB * temp_gas));
     }
@@ -713,12 +896,12 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
         uint i_lvl_u = getUpperEnergyLevel(i_trans);
         uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
-        for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevelUpper(i_trans); i_sublvl_u++)
+        for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
         {
             // Get index that goes over all level and sublevel
             uint i_tmp_lvl_u = getUniqueLevelIndex(i_lvl_u, i_sublvl_u);
 
-            for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevelLower(i_trans); i_sublvl_l++)
+            for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
             {
                 // Get index that goes over all level and sublevel
                 uint i_tmp_lvl_l = getUniqueLevelIndex(i_lvl_l, i_sublvl_l);
@@ -727,20 +910,26 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
                 uint i_tmp_trans = getUniqueTransitionIndex(i_trans, i_sublvl_u, i_sublvl_l);
 
                 // Level u can be populated by level l
-                A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, getEinsteinBlu(i_trans) * J_mid[i_tmp_trans]);
+                A->addValue(i_tmp_lvl_u,
+                            i_tmp_lvl_l,
+                            getEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) * J_mid[i_tmp_trans]);
 
                 // Level u can be depopulated to level l
                 A->addValue(i_tmp_lvl_u,
                             i_tmp_lvl_u,
-                            -(getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]));
+                            -(getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) +
+                              getEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l) * J_mid[i_tmp_trans]));
 
                 // Level l can be populated by level u
                 A->addValue(i_tmp_lvl_l,
                             i_tmp_lvl_u,
-                            (getEinsteinA(i_trans) + getEinsteinBul(i_trans) * J_mid[i_tmp_trans]));
+                            (getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) +
+                             getEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l) * J_mid[i_tmp_trans]));
 
                 // Level l can be depopulated to level u
-                A->addValue(i_tmp_lvl_l, i_tmp_lvl_l, -getEinsteinBlu(i_trans) * J_mid[i_tmp_trans]);
+                A->addValue(i_tmp_lvl_l,
+                            i_tmp_lvl_l,
+                            -getEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) * J_mid[i_tmp_trans]);
             }
         }
     }
@@ -757,29 +946,37 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
             uint i_lvl_u = getUpperCollisionLevel(i_col_partner, i_col_transition);
             uint i_lvl_l = getLowerCollisionLevel(i_col_partner, i_col_transition);
 
-            for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+            for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
             {
                 // Get index that goes over all level and sublevel
                 uint i_tmp_lvl_u = getUniqueLevelIndex(i_lvl_u, i_sublvl_u);
 
-                for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+                for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
                 {
                     // Get index that goes over all level and sublevel
                     uint i_tmp_lvl_l = getUniqueLevelIndex(i_lvl_l, i_sublvl_l);
 
                     // Level u can be populated by level l
-                    A->addValue(i_tmp_lvl_u, i_tmp_lvl_l, final_col_para[i_col_partner][i_col_transition][1]);
+                    A->addValue(i_tmp_lvl_u,
+                                i_tmp_lvl_l,
+                                final_col_para[i_col_partner][i_col_transition][1] / nr_of_sublevel[i_lvl_u]);
 
                     // Level u can be depopulated to level l
-                    A->addValue(
-                        i_tmp_lvl_u, i_tmp_lvl_u, -final_col_para[i_col_partner][i_col_transition][0]);
+                    A->addValue(i_tmp_lvl_u,
+                                i_tmp_lvl_u,
+                                -final_col_para[i_col_partner][i_col_transition][0] /
+                                    nr_of_sublevel[i_lvl_l]);
 
                     // Level l can be populated by level u
-                    A->addValue(i_tmp_lvl_l, i_tmp_lvl_u, final_col_para[i_col_partner][i_col_transition][0]);
+                    A->addValue(i_tmp_lvl_l,
+                                i_tmp_lvl_u,
+                                final_col_para[i_col_partner][i_col_transition][0] / nr_of_sublevel[i_lvl_l]);
 
                     // Level l can be depopulated to level u
-                    A->addValue(
-                        i_tmp_lvl_l, i_tmp_lvl_l, -final_col_para[i_col_partner][i_col_transition][1]);
+                    A->addValue(i_tmp_lvl_l,
+                                i_tmp_lvl_l,
+                                -final_col_para[i_col_partner][i_col_transition][1] /
+                                    nr_of_sublevel[i_lvl_u]);
                 }
             }
         }
@@ -788,7 +985,7 @@ void CGasSpecies::createMatrix(double * J_mid, Matrix2D * A, double * b, double 
     // Setting startpoint for gaussian solving
     for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
     {
-        for(uint i_sublvl = 0; i_sublvl < getNrOfSublevel(i_lvl); i_sublvl++)
+        for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
         {
             uint i_tmp_lvl = getUniqueLevelIndex(i_lvl, i_sublvl);
             A->setValue(0, i_tmp_lvl, 1.0);
@@ -807,6 +1004,10 @@ void CGasSpecies::calcEmissivity(CGridBasic * grid,
                                  StokesVector * line_emissivity,
                                  Matrix2D * line_absorption_matrix) const
 {
+    // Reset absorption matrix and emissivity
+    line_absorption_matrix->resize(4, 4);
+    *line_emissivity = 0;
+
     if(isTransZeemanSplit(i_trans))
     {
         // Calculate the line matrix from rotation polarization matrix and line shape
@@ -870,12 +1071,12 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
     double trans_frequency = pp.getTransFrequency();
 
     // Calculate the contribution of each allowed transition between Zeeman sublevels
-    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+    for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
     {
         // Calculate the quantum number of the upper energy level
         float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
 
-        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+        for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
         {
             // Calculate the quantum number of the lower energy level
             float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
@@ -884,41 +1085,17 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
             if(abs(sublvl_l - sublvl_u) > 1)
                 continue;
 
-            // Reset temporary matrix
-            tmp_matrix->fill(0);
-
             // Calculate the emissivity of the gas particles in the current cell
             // nr_of_sublevel to take the line strength into account that is normalized to the full lvl pop
-            double emission = (grid->getLvlPop(pp, i_lvl_u, i_sublvl_u)) *
-                              getLineStrengthAndEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) * con_eps *
-                              line_broadening.gauss_a;
+            double emission = con_eps * line_broadening.gauss_a * grid->getLvlPop(pp, i_lvl_u, i_sublvl_u) *
+                              getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l);
 
             // Calculate the optical depth of the gas particles in the current cell
             // nr_of_sublevel to take the line strength into account that is normalized to the full lvl pop
-            
-            
-            //tmp_counter++;
-            
-            //if(tmp_counter==2)
-            //    tmp_counter=2;
-            
-            //cout << tmp_counter << "\n\n";
-            
-            /*cout << "A " << grid->getLvlPop(pp, i_lvl_l, i_sublvl_l) << "\n";
-            cout << "B " << getLineStrengthAndEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) << "\n";
-            cout << "C " << grid->getLvlPop(pp, i_lvl_u, i_sublvl_u)<< "\n";
-            cout << "D " << getLineStrengthAndEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l)<< "\n";
-            cout << "E " << con_eps * line_broadening.gauss_a<< "\n";*/
-            
-            
-            double absorption = (grid->getLvlPop(pp, i_lvl_l, i_sublvl_l) *
-                                     getLineStrengthAndEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) -
-                                 grid->getLvlPop(pp, i_lvl_u, i_sublvl_u) *
-                                     getLineStrengthAndEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l)) *
-                                con_eps * line_broadening.gauss_a;
-            
-            //if(absorption>10)
-            //    absorption=0;
+            double absorption =
+                con_eps * line_broadening.gauss_a *
+                (grid->getLvlPop(pp, i_lvl_l, i_sublvl_l) * getEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) -
+                 grid->getLvlPop(pp, i_lvl_u, i_sublvl_u) * getEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l));
 
             // Calculate the frequency shift in relation to the not shifted line peak
             // Delta nu = (B * mu_Bohr) / h * (m' * g' - m'' * g'')
@@ -942,36 +1119,58 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
             // and Faraday-Voigt function into account
             double mult_B = imag(line_function) / (PIsq * 2.0);
 
+            // Reset temporary matrix
+            tmp_matrix->fill(0);
+
             // Use the correct propagation matrix and relative line strength that
             // depends on the current type of Zeeman transition (pi, sigma_-, sigma_+)
+            // PI        : line_function * 1.0 -> (/ 1.0)
+            // Sigma_+/- : line_function * 1.0 / 2.0 -> (/ 2.0)
+            // EinsteinA is in total 1.0 / 3.0 -> (* 3.0)
             switch(int(sublvl_l - sublvl_u))
             {
+                case TRANS_SIGMA_P:
+                    // Get the propagation matrix for extinction/emission
+                    CMathFunctions::getPropMatrixASigmaP(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_A * (3.0 / 2.0),
+                                                         tmp_matrix);
+
+                    // Get the propagation matrix for Faraday rotation
+                    CMathFunctions::getPropMatrixBSigmaP(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_B * (3.0 / 2.0),
+                                                         tmp_matrix);
+                    break;
                 case TRANS_PI:
                     // Get the propagation matrix for extinction/emission
                     CMathFunctions::getPropMatrixAPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A * 3.0, tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
                     CMathFunctions::getPropMatrixBPi(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
-                    break;
-                case TRANS_SIGMA_P:
-                    // Get the propagation matrix for extinction/emission
-                    CMathFunctions::getPropMatrixASigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
-
-                    // Get the propagation matrix for Faraday rotation
-                    CMathFunctions::getPropMatrixBSigmaP(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
+                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B * 3.0, tmp_matrix);
                     break;
                 case TRANS_SIGMA_M:
                     // Get the propagation matrix for extinction/emission
-                    CMathFunctions::getPropMatrixASigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_A, tmp_matrix);
+                    CMathFunctions::getPropMatrixASigmaM(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_A * (3.0 / 2.0),
+                                                         tmp_matrix);
 
                     // Get the propagation matrix for Faraday rotation
-                    CMathFunctions::getPropMatrixBSigmaM(
-                        mfo.cos_theta, mfo.sin_theta, mfo.cos_2_phi, mfo.sin_2_phi, mult_B, tmp_matrix);
+                    CMathFunctions::getPropMatrixBSigmaM(mfo.cos_theta,
+                                                         mfo.sin_theta,
+                                                         mfo.cos_2_phi,
+                                                         mfo.sin_2_phi,
+                                                         mult_B * (3.0 / 2.0),
+                                                         tmp_matrix);
                     break;
             }
 
@@ -1392,6 +1591,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 {
                     // Set current zeeman transition index
                     i_trans_zeeman = int(values[0] - 1);
+                    trans_is_zeeman_split[i_trans] = true;
                     break;
                 }
             }
@@ -1497,6 +1697,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
                 {
                     // Set current zeeman transition index
                     i_trans_zeeman = int(values[0] - 1);
+                    trans_is_zeeman_split[i_trans] = true;
                     break;
                 }
             }
@@ -1552,38 +1753,39 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             //cout << "Here A\n" << trans_einstB_lu[i_trans_zeeman][0] << "  " << i_trans_zeeman <<  "  " << nr_sublevel_trans + 1 << endl;
 
             // Calculate the contribution of each allowed transition between Zeeman sublevels
-            for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+            for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
             {
                 // Calculate the quantum number of the upper energy level
                 float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
 
-                for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+                for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
                 {
                     // Calculate the quantum number of the lower energy level
                     float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
+                    uint i_sublvl = getSublevelIndex(i_trans_zeeman, i_sublvl_u, i_sublvl_l);
 
-                    uint i_sublvl = i_sublvl_l * getNrOfSublevel(i_lvl_u) + i_sublvl_u;
-                    //uint i_sublvl = i_sublvl_u * getNrOfSublevel(i_lvl_u) + i_sublvl_l;
 
                     switch(int(sublvl_l - sublvl_u))
                     {
+                        // Factor 2/3 or 1/3 comes from normalization in the Larsson paper
+                        // See Deguchi & Watson 1984 as well!
                         case TRANS_SIGMA_P:
                             // Get the relative line strength from Zeeman file
-                            line_strength = line_strength_sigma_p[i_sigma_p];
+                            line_strength = line_strength_sigma_p[i_sigma_p] * (2.0 / 3.0);
 
                             // Increase the sigma_+ counter to circle through the line strengths
                             i_sigma_p++;
                             break;
                         case TRANS_PI:
                             // Get the relative line strength from Zeeman file
-                            line_strength = line_strength_pi[i_pi];
+                            line_strength = line_strength_pi[i_pi] * (1.0 / 3.0);
 
                             // Increase the pi counter to circle through the line strengths
                             i_pi++;
                             break;
                         case TRANS_SIGMA_M:
                             // Get the relative line strength from Zeeman file
-                            line_strength = line_strength_sigma_m[i_sigma_m];
+                            line_strength = line_strength_sigma_m[i_sigma_m] * (2.0 / 3.0);
 
                             // Increase the sigma_- counter to circle through the line strengths
                             i_sigma_m++;
@@ -1596,19 +1798,10 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
 
                     // Set the einstein coefficients for the sublevels
                     trans_einstA[i_trans_zeeman][i_sublvl + 1] =
-                        tmp_einst_A * line_strength * getNrOfSublevel(i_lvl_u);
+                        tmp_einst_A * line_strength * nr_of_sublevel[i_lvl_u];
                     trans_einstB_ul[i_trans_zeeman][i_sublvl + 1] =
-                        tmp_einst_Bul * line_strength * getNrOfSublevel(i_lvl_u);
-                    trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] =
-                        tmp_einst_Blu * line_strength * getNrOfSublevel(i_lvl_l);
-                    
-                    
-                    //cout << CLR_LINE;
-                    
-                    
-                    //cout << "A:     " << trans_einstA[i_trans_zeeman][i_sublvl + 1] << "  "  << i_trans_zeeman << "  "  << i_sublvl + 1 << endl;
-                    //cout << "B_ul: " << trans_einstB_ul[i_trans_zeeman][i_sublvl + 1] << "  "  << i_trans_zeeman << "  "  << i_sublvl + 1 << endl;
-                    //cout << "B_lu: " << trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] << "  "  << i_trans_zeeman << "  "  << i_sublvl + 1 << endl;
+                        tmp_einst_Bul * line_strength * nr_of_sublevel[i_lvl_u];
+                    trans_einstB_lu[i_trans_zeeman][i_sublvl + 1] = tmp_einst_Blu * line_strength * nr_of_sublevel[i_lvl_l];
                 }
             }
         }
@@ -1618,8 +1811,6 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
     {
         uint i_trans = getTransitionFromSpectralLine(i_line);
-        
-        //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
         
         if(getLandeUpper(i_trans) == 0) // || getLandeLower(i_trans) == 0
         {
@@ -1633,13 +1824,18 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             trans_is_zeeman_split[i_trans] = true;
         }
     }
+
     return true;
 }
 
 void CGasSpecies::calcLineBroadening(CGridBasic * grid)
 {
     long max_cells = grid->getMaxDataCells();
-#pragma omp parallel for schedule(dynamic)
+    
+    cout << CLR_LINE;
+    cout << "-> Calculating line broadening for each grid cell ...     \r" << flush;
+       
+//#pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
     {
         cell_basic * cell = grid->getCellFromIndex(i_cell);
@@ -1674,13 +1870,15 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
             }
         }
     }
+    
+    cout << CLR_LINE;
 }
 
 void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
                                             double sin_theta,
                                             double cos_theta,
                                             double energy,
-                                            double * J_nu)
+                                            double * J_nu) const
 {
     if(!isTransZeemanSplit(i_trans))
     {
@@ -1695,12 +1893,12 @@ void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
     uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
     // Calculate the contribution of each allowed transition between Zeeman sublevels
-    for(uint i_sublvl_u = 0; i_sublvl_u < getNrOfSublevel(i_lvl_u); i_sublvl_u++)
+    for(uint i_sublvl_u = 0; i_sublvl_u < nr_of_sublevel[i_lvl_u]; i_sublvl_u++)
     {
         // Calculate the quantum number of the upper energy level
         float sublvl_u = -getMaxM(i_lvl_u) + i_sublvl_u;
 
-        for(uint i_sublvl_l = 0; i_sublvl_l < getNrOfSublevel(i_lvl_l); i_sublvl_l++)
+        for(uint i_sublvl_l = 0; i_sublvl_l < nr_of_sublevel[i_lvl_l]; i_sublvl_l++)
         {
             // Calculate the quantum number of the lower energy level
             float sublvl_l = -getMaxM(i_lvl_l) + i_sublvl_l;
@@ -1715,12 +1913,12 @@ void CGasSpecies::applyRadiationFieldFactor(uint i_trans,
             {
                 case TRANS_PI:
                     // Update radiation field
-                    J_nu[i_trans_unique] += sin_theta * sin_theta * energy;
+                    J_nu[i_trans_unique] += (3.0 / 2.0) * (sin_theta * sin_theta) * energy;
                     break;
                 case TRANS_SIGMA_P:
                 case TRANS_SIGMA_M:
                     // Update radiation field
-                    J_nu[i_trans_unique] += (1 + cos_theta * cos_theta) * energy;
+                    J_nu[i_trans_unique] += (3.0 / 4.0) * (1 + cos_theta * cos_theta) * energy;
                     break;
             }
         }
@@ -1792,9 +1990,14 @@ bool CGasMixture::calcLevelPopulation(CGridBasic * grid, uint i_species)
                 return false;
             break;
         case POP_LVG:
-            if(!single_species[i_species].calcLVG(grid, getKeplerStarMass()))
+            if(!single_species[i_species].calcLVG(grid))
                 return false;
             break;
+        case POP_DEGUCHI_LVG:
+            if(!single_species[i_species].calcDeguchiWatsonLVG(grid))
+                return false;
+            break;
+
         default:
             return false;
             break;
@@ -1823,7 +2026,7 @@ bool CGasMixture::updateLevelPopulation(CGridBasic * grid,
     return true;
 }
 
-void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
+void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
 {
     cout << CLR_LINE;
     cout << "Gas parameters                             " << endl;
@@ -1832,15 +2035,18 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
     if(getKeplerStarMass() > 0)
         cout << "kepler rotation, M_star: " << getKeplerStarMass() << " [M_sun]\n"
              << "    HINT: only available with one central star" << endl;
-    else if(grid->getVelocityFieldAvailable())
-        cout << "velocity field of the grid is used" << endl;
+    else if(grid->isVelocityFieldAvailable())
+        cout << "taken from grid" << endl;
     else
-        cout << "velocity field is zero" << endl;
+        cout << "none" << endl;
+    
     cout << "- Turbulent Velocity            : ";
     if(param.getTurbulentVelocity() > 0)
         cout << param.getTurbulentVelocity() << " [m/s]" << endl;
+    else if(grid->isTurbulentVelocityAvailable())
+        cout << "taken from grid" << endl;
     else
-        cout << "turbulent velocity of the grid is used" << endl;
+        cout << "none" << endl;
 
     for(uint i_species = 0; i_species < nr_of_species; i_species++)
     {
@@ -1887,6 +2093,9 @@ void CGasMixture::printParameter(parameters & param, CGridBasic * grid)
                 break;
             case POP_LVG:
                 cout << "LVG" << endl;
+                break;
+            case POP_DEGUCHI_LVG:
+                cout << "LVG (Deguchi & Watson 1984)" << endl;
                 break;
             default:
                 cout << "\nERROR: UNKNOWN!" << endl;

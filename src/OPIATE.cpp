@@ -25,6 +25,7 @@
 
 #include "OPIATE.h"
 
+
 /*void OPIATE::formatLine(string &line)
 {
     string::size_type pos = 0;
@@ -119,13 +120,119 @@
     }
 }*/
 
+void COpiateDataBase::printParameters(parameters & param, CGridBasic * grid)
+{
+    cout << CLR_LINE;
+    cout << "OPIATE parameters                             " << endl;
+    cout << SEP_LINE;
+    
+    if(database_counter==0)
+    {
+        cout << "\nERROR: No OPIATE database available!               \n" ;
+        return;
+    }
+    
+    if(database_counter==1)
+    {
+        cout << "- Emission   database:\n   " << path_emi << endl;
+        cout << "- Absorption database: none                 \n";
+    }
+    
+    if(database_counter==2)
+    {
+        cout << "- Emission   database:\n   " << path_emi << endl;
+        cout << "- Absorption database:\n   " << path_abs << endl;
+    }
+
+    cout << "- Velocity field     : ";
+    
+    if(grid->isVelocityFieldAvailable())
+        cout << "taken from grid" << endl;
+    else
+        cout << "none" << endl;
+
+    cout << "- Turbulent Velocity : ";
+    if(param.getTurbulentVelocity() > 0)
+        cout << param.getTurbulentVelocity() << " [m/s]" << endl;
+    else if(grid->isTurbulentVelocityAvailable())
+        cout << "taken from grid" << endl;
+    else
+        cout << "none" << endl;
+
+    cout << "\n- Available species:    " << endl;
+    for(uint i = 0; i<max_species; i++)
+    {
+        cout << "  - Species nr. " << i +1 << ", label: " <<  list_names[i];
+        
+        if(list_weight[i]>0)
+            cout << ", weight: " << list_weight[i];
+        
+        double freq=list_freq[i];
+        
+        if(freq/1.0e9>1.0)
+        { 
+            cout << ", freq.: " << freq/1.0e9 << " GHz" << endl;
+        }
+        else if(freq/1.0e6>1.0)
+        {
+            cout << ", freq.: " << freq/1.0e6 << " MHz" << endl;
+        }
+        else if(freq/1.0e3>1.0)
+        {
+            cout << ",freq.: " << freq/1.0e6 << " kHz" << endl;
+        }
+        else
+        {
+            cout << "   freq. : " << freq/1.0e6 << " Hz" << endl;
+        }
+    }
+    
+    cout << "\n- Selected species :    " << endl;
+    
+    for(uint i=0;i<param.getNrOfOPIATESpecies();i++)
+    {
+        cout << "  - Detector nr. " << i+1 << ", label: " << param.getOpiateSpec(i) << endl;
+    }
+    
+    cout << SEP_LINE;
+}
+
+
+bool COpiateDataBase::readOpiateDataBase(parameters & param)
+{
+    string path_emi=param.getOpiatePathEmission();
+    string path_abs=param.getOpiatePathAbsorption();
+    
+    
+    if(path_emi.size()>0)
+    {
+        if(!readEmissivityData(path_emi))
+            return false;
+    }
+    else
+    { 
+        cout << CLR_LINE; 
+        cout << "\nERROR: A path to an OPIATE emissivity database is required!               \n" ;
+        return false;
+    }
+    
+    if(path_abs.size()>0)
+    {
+        if(!readAbsorptionData(path_abs))
+            return false;
+    }
+    
+    return true;
+}
+
 bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
 {
-        cout << CLR_LINE; 
-        cout << "Reading OPIATE fits data from:\n       " << filename <<  "               \n" << flush;
+        //
+        //cout << "Reading OPIATE fits data from:\n       " << filename <<  "               \n" << flush;
         auto_ptr<FITS> pInfile(0);
       
-        cout << "-> Reading fits ...              \r" << flush;
+        cout << CLR_LINE;
+        cout << "-> Reading fits data...              \r" << flush;
         
         try
         {
@@ -134,8 +241,8 @@ bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
         catch(CCfits::FITS::CantOpen)
         {
             cout << CLR_LINE; 
-            cout << "\nERROR: Cannot open OPIATE file!               \n" ;
-            cout << "         Check path and file name!                   \n" ;
+            cout << "\nERROR: Cannot open OPIATE file:\n" << filename << "   \n" ;
+            cout << "         Check path and file format!                   \n" ;
             return false;
         }
         
@@ -184,6 +291,7 @@ bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
             return false; 
         }
         
+        cout << CLR_LINE;
         cout << "-> Scanning for keys ...              \r" << flush;
         
         for(uint i=0; i<max_species;i++)
@@ -241,9 +349,9 @@ bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
                 return false;
             }
             
-            cout << "Data:" << key_name << ":\t\"" << s_name << "\"\n" << flush; 
-            cout << "Data:" << key_weight << ":\t\"" << s_weight << "\"\n" << flush; 
-            cout << "Data:" << key_freq << ":\t\"" << s_frequ << "\"\n" << flush; 
+            //cout << "Data:" << key_name << ":\t\"" << s_name << "\"\n" << flush; 
+            //cout << "Data:" << key_weight << ":\t\"" << s_weight << "\"\n" << flush; 
+            //cout << "Data:" << key_freq << ":\t\"" << s_frequ << "\"\n" << flush; 
             
             if(database_counter==0)
             {
@@ -283,23 +391,25 @@ bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
         
         Matrix2D tmp_mat;
         
-        cout << "row: " << max_row << "\n";
-        cout << "col: " << max_col << "\n";
+        //cout << "row: " << max_row << "\n";
+        //cout << "col: " << max_col << "\n";
         
         mat.resize(max_row,max_col-1);
         tmp_mat.resize(max_row,max_col);
-        cout << contents.size() << "\n";
+        //cout << contents.size() << "\n";
         
+        cout << CLR_LINE;
         cout << "Creating matrix ...                \r" << flush; 
         for (long i = 0; i < max_col*max_row; i++)
         {
             tmp_mat.set(i,contents[i]);
         }
         
-        cout << "\n";
+        //cout << "\n";
         
-        tmp_mat.printMatrix();
+        //tmp_mat.printMatrix();
         
+        cout << CLR_LINE;
         cout << "-> Creating ID table ...              \r" << flush;
         for (long i = 0; i < max_row; i++)
         {
@@ -348,7 +458,7 @@ bool COpiateDataBase::readFitsData(string filename, Matrix2D & mat)
             }
         } 
         
-        cout << "\n";
+        //cout << "\n";
         
         mat.printMatrix();
         

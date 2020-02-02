@@ -116,9 +116,9 @@ class CGridBasic
         velocity_field_needed = false;
         spec_length_as_vector = false;
 
-        nrOfGnuPoints = 1000;
-        nrOfGnuVectors = 1000;
-        maxGridLines = 3;
+        nrOfPlotPoints = 1000;
+        nrOfPlotVectors = 1000;
+        maxPlotLines = 3;
 
         cell_list = 0;
 
@@ -572,7 +572,7 @@ class CGridBasic
 
         // Get the theta and phi angle from the magnetic field direction
         double theta = getThetaMag(pp);
-        double phi = abs(getPhiMag(pp));
+        double phi = getPhiMag(pp);
 
         // Calculate the sine and cosine including double angles
         mfo->cos_theta = cos(theta);
@@ -627,7 +627,7 @@ class CGridBasic
         conv_Vfield_in_SI = param.getSIConvVField();
     }
 
-    virtual bool writeGNUPlotFiles(string path, parameters & param) = 0;
+    virtual bool writePlotFiles(string path, parameters & param) = 0;
 
     void setDataSize(uint sz)
     {
@@ -683,6 +683,11 @@ class CGridBasic
         spec_length_as_vector = val;
     }
 
+    bool specLengthIsVector()
+    {
+        return spec_length_as_vector;
+    }
+
     void updateSpecLength(photon_package * pp, double len)
     {
         cell_basic * cell = pp->getPositionCell();
@@ -733,14 +738,14 @@ class CGridBasic
         return getSpecLength(*pp.getPositionCell(), wID);
     }
 
-    void getSpecLength(const cell_basic & cell, uint wID, double & us, Vector3D & e_dir) const
+    void getSpecLength(const cell_basic & cell, uint wID, double * us, Vector3D * e_dir) const
     {
         uint data_pos = data_offset + 4 * wID;
 
-        us = cell.getData(data_pos + 0);
-        e_dir.setX(cell.getData(data_pos + 1));
-        e_dir.setY(cell.getData(data_pos + 2));
-        e_dir.setZ(cell.getData(data_pos + 3));
+        *us = cell.getData(data_pos + 0);
+        e_dir->setX(cell.getData(data_pos + 1));
+        e_dir->setY(cell.getData(data_pos + 2));
+        e_dir->setZ(cell.getData(data_pos + 3));
     }
 
     void saveRadiationField()
@@ -848,7 +853,7 @@ class CGridBasic
         return getRadiationFieldZ(*pp.getPositionCell(), wID);
     }
 
-    void getRadiationField(const photon_package & pp, uint w, double & us, Vector3D & e_dir) const
+    void getRadiationField(const photon_package & pp, uint w, double * us, Vector3D * e_dir) const
     {
         // Init variables and get current cell
         Vector3D tmp_dir;
@@ -860,25 +865,25 @@ class CGridBasic
             if(spec_length_as_vector)
             {
                 // Get SpecLength instead if no radiation field in grid
-                getSpecLength(cell, w, us, tmp_dir);
-                us /= getVolume(cell);
+                getSpecLength(cell, w, us, &tmp_dir);
+                *us /= getVolume(cell);
             }
             else
                 cout << "ERROR: This should not happen" << endl;
         }
         else
         {
-            us = cell.getData(data_pos_rf_list[w]);
+            *us = cell.getData(data_pos_rf_list[w]);
             tmp_dir.setX(cell.getData(data_pos_rx_list[w]));
             tmp_dir.setY(cell.getData(data_pos_ry_list[w]));
             tmp_dir.setZ(cell.getData(data_pos_rz_list[w]));
         }
 
         // Rotate vector from cell center to position
-        e_dir = rotateToCenter(pp, tmp_dir, true);
+        *e_dir = rotateToCenter(pp, tmp_dir, true);
 
         // Normalize the radiation field vector
-        e_dir.normalize();
+        e_dir->normalize();
     }
 
     StokesVector getStokesFromRadiationField(const photon_package & pp, uint i_offset) const
@@ -908,8 +913,8 @@ class CGridBasic
 
     void getRadiationFieldInterp(const photon_package & pp,
                                  double wavelength,
-                                 double & us,
-                                 Vector3D & e_dir) const
+                                 double * us,
+                                 Vector3D * e_dir) const
     {
         // Do not interpolate if outside of wavelength list
         if(wl_list.back() < wavelength || wl_list.front() > wavelength)
@@ -932,11 +937,11 @@ class CGridBasic
         uint wID2 = wID1 + 1;
 
         // Interpolate radiation field strength and direction
-        us = CMathFunctions::interpolate(wl_list[wID1],
-                                         wl_list[wID2],
-                                         cell.getData(data_pos_rf_list[wID1]),
-                                         cell.getData(data_pos_rf_list[wID2]),
-                                         wavelength);
+        *us = CMathFunctions::interpolate(wl_list[wID1],
+                                          wl_list[wID2],
+                                          cell.getData(data_pos_rf_list[wID1]),
+                                          cell.getData(data_pos_rf_list[wID2]),
+                                          wavelength);
         tmp_dir.setX(CMathFunctions::interpolate(wl_list[wID1],
                                                  wl_list[wID2],
                                                  cell.getData(data_pos_rx_list[wID1]),
@@ -954,10 +959,10 @@ class CGridBasic
                                                  wavelength));
 
         // Rotate vector to cell center
-        e_dir = rotateToCenter(pp, tmp_dir, true);
+        *e_dir = rotateToCenter(pp, tmp_dir, true);
 
         // Normalize the radiation field vector
-        e_dir.normalize();
+        e_dir->normalize();
     }
 
     double getGZero(const cell_basic & cell) const
@@ -1722,7 +1727,7 @@ class CGridBasic
 
     double getGasTemperature(const cell_basic & cell) const
     {
-        return cell.getData(data_pos_tg);
+        return max(TEMP_MIN, cell.getData(data_pos_tg));
     }
 
     void setPlaneParameter(uint plane_index,
@@ -2288,9 +2293,17 @@ class CGridBasic
         return false;
     };
 
-    bool getVelocityFieldAvailable()
+    bool isVelocityFieldAvailable()
     {
         if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return false;
+        return true;
+    }
+    
+    
+    bool isTurbulentVelocityAvailable()
+    {
+        if(data_pos_vt == MAX_UINT)
             return false;
         return true;
     }
@@ -2370,6 +2383,7 @@ class CGridBasic
 
     double getPhiMag(const photon_package & pp) const
     {
+        // 0 deg are in the e_y direction
         return getAnglePhi(pp.getEX(), pp.getEY(), getMagField(pp)) - PI2;
     }
 
@@ -2393,7 +2407,7 @@ class CGridBasic
         return gas_is_mass_density;
     }
 
-    bool getRadiationFieldAvailable() const
+    bool isRadiationFieldAvailable() const
     {
         if(data_pos_rx_list.empty() || data_pos_ry_list.empty() || data_pos_rz_list.empty() ||
            data_pos_rf_list.empty())
@@ -2420,7 +2434,7 @@ class CGridBasic
 
     bool doPDA(parameters & param, uint pda_id);
 
-    uint getTemperatureFieldInformation()
+    uint getTemperatureFieldInformation() const
     {
         // Check which kind of temperature calculation the grid supports
         if(multi_temperature_entries > nr_densities && data_pos_dt_list.size() == multi_temperature_entries)
@@ -3025,22 +3039,6 @@ class CGridBasic
         }
         else
         {
-            /*if(data_pos_tg == MAX_UINT)
-            {
-                cout << "\nERROR: Grid contains no gas temperature!" << endl;
-                cout << "       No SYNCHROTRON calculation possible." << endl;
-                return MAX_UINT;
-            }*/
-
-            /*if(data_pos_T_e == MAX_UINT)
-            {
-                cout << "\nWARNING: Grid contains no electron temperature component!" << endl;
-                cout << "         Electron temperature will be set to equal gas "
-                        "temperature!"
-                     << endl;
-                data_pos_T_e = data_pos_tg;
-            }*/
-
             if(data_pos_T_e != MAX_UINT)
             {
                 cout << "\nHINT: Grid contains a electron temperature component!" << endl;
@@ -3486,7 +3484,7 @@ class CGridBasic
             }
         }
 
-        if(data_pos_tg == MAX_UINT)
+        if(data_pos_tg == MAX_UINT && !param.isGasSpeciesLevelPopMC())
         {
             cout << "\nERROR: Grid contains no gas temperature!" << endl;
             cout << "       No line transfer with possible.  " << endl;
@@ -3702,8 +3700,8 @@ class CGridBasic
     uint char_counter;
     unsigned char ru[4];
 
-    uint nrOfGnuPoints, nrOfGnuVectors;
-    uint maxGridLines;
+    uint nrOfPlotPoints, nrOfPlotVectors;
+    uint maxPlotLines;
 
     Vector3D ex, ey, ez;
 

@@ -8,6 +8,14 @@
 #ifndef CMOLECULE
 #define CMOLECULE
 
+// Additional Structure
+struct VelFieldInterp
+{
+    spline vel_field;
+    bool zero_vel_field;
+    Vector3D start_pos;
+};
+
 class CGasSpecies
 {
   public:
@@ -29,6 +37,8 @@ class CGasSpecies
         abundance = 0;
 
         gas_species_radius = 0;
+
+        kepler_star_mass = 0;
 
         nr_zeeman_spectral_lines = 0;
 
@@ -184,15 +194,20 @@ class CGasSpecies
 
     double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         if(getEinsteinA(i_trans) > 0)
-            return getLineStrengthAndEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) /
-                   (getNrOfSublevelUpper(i_trans) * getEinsteinA(i_trans));
+            return getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) / getEinsteinA(i_trans);
         return 0;
     }
 
     double getAbundance() const
     {
         return abundance;
+    }
+
+    double getKeplerStarMass() const
+    {
+        return kepler_star_mass;
     }
 
     int getTransitionFromSpectralLine(uint i_line) const
@@ -231,39 +246,39 @@ class CGasSpecies
         return trans_einstB_lu[i_trans][0];
     }
 
-    double getLineStrengthAndEinsteinA(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    uint getSublevelIndex(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        return i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+    }
+
+    double getEinsteinA(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    {
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinA(i_trans) / getNrOfSublevelLower(i_trans);
+
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         return trans_einstA[i_trans][i_sublvl + 1];
     }
 
-    double getLineStrengthAndEinsteinBul(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    double getEinsteinBul(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinBul(i_trans) / getNrOfSublevelLower(i_trans);
+
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         return trans_einstB_ul[i_trans][i_sublvl + 1];
     }
 
-    double getLineStrengthAndEinsteinBlu(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
+    double getEinsteinBlu(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
-        uint i_sublvl = i_sublvl_u * getNrOfSublevelLower(i_trans) + i_sublvl_l;
-        //                i_sublvl_u * getNrOfSublevel(i_lvl_u) + i_sublvl_l
-        //cout << CLR_LINE;
-        //cout << "here B " << trans_einstB_lu[i_trans][i_sublvl + 1] << "  " << i_trans << "  " << i_sublvl +1 << "  " << i_sublvl_u << "  " <<  getNrOfSublevelLower(i_trans) << "  " <<  i_sublvl_l << "  " << endl;
-        
-        return trans_einstB_lu[i_trans][i_sublvl + 1];
-    }
+        // If not Zeeman split, use total value
+        if(!isTransZeemanSplit(i_trans))
+            return getEinsteinBlu(i_trans) / getNrOfSublevelUpper(i_trans);
 
-    double getGLevel(uint i_lvl) const
-    {
-        if(nr_of_sublevel[i_lvl] == 1)
-            return g_level[i_lvl];
-        else if(g_level[i_lvl] == nr_of_sublevel[i_lvl])
-            return 1;
-        else
-        {
-            cout << "HINT: G level problem!" << endl;
-            return 1;
-        }
+        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
+        return trans_einstB_lu[i_trans][i_sublvl + 1];
     }
 
     double getJLevel(uint i_lvl) const
@@ -364,6 +379,46 @@ class CGasSpecies
         return dens_species;
     }
 
+    Vector3D getCellVelocity(CGridBasic * grid, const cell_basic & cell, const Vector3D & tmp_pos) const
+    {
+        Vector3D cell_velocity;
+
+        // Get the velocity in the photon
+        // direction of the current position
+        if(kepler_star_mass > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, kepler_star_mass);
+        }
+        else if(grid->hasVelocityField())
+        {
+            // Get velocity from grid cell
+            cell_velocity = grid->getVelocityField(cell);
+        }
+        return cell_velocity;
+    }
+
+    double getProjCellVelocityInterp(const Vector3D & tmp_pos,
+                                     const Vector3D & dir_map_xyz,
+                                     const VelFieldInterp & vel_field_interp)
+    {
+        double cell_velocity = 0;
+
+        // Get the velocity in the photon direction of the current position
+        if(kepler_star_mass > 0)
+        {
+            // Get velocity from Kepler rotation
+            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, kepler_star_mass) * dir_map_xyz;
+        }
+        else if(vel_field_interp.vel_field.size() > 0 && !vel_field_interp.zero_vel_field)
+        {
+            // Get velocity from grid cell with interpolation
+            Vector3D rel_pos = tmp_pos - vel_field_interp.start_pos;
+            cell_velocity = vel_field_interp.vel_field.getValue(rel_pos.length());
+        }
+        return cell_velocity;
+    }
+
     void initReferenceLists()
     {
         // Init first dimension of 2D array
@@ -372,12 +427,10 @@ class CGasSpecies
         uint i_lvl_unique = 0;
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
         {
-            uint nr_of_sublevel = getNrOfSublevel(i_lvl);
-
             // Init second dimension of 2D array
-            level_to_index[i_lvl] = new uint[nr_of_sublevel];
+            level_to_index[i_lvl] = new uint[nr_of_sublevel[i_lvl]];
 
-            for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel; i_sublvl++)
+            for(uint i_sublvl = 0; i_sublvl < nr_of_sublevel[i_lvl]; i_sublvl++)
             {
                 level_to_index[i_lvl][i_sublvl] = i_lvl_unique;
                 i_lvl_unique++;
@@ -393,8 +446,8 @@ class CGasSpecies
             // Get all indices and number of sublevels
             uint i_lvl_u = getUpperEnergyLevel(i_trans);
             uint i_lvl_l = getLowerEnergyLevel(i_trans);
-            uint nr_of_sublevel_u = getNrOfSublevel(i_lvl_u);
-            uint nr_of_sublevel_l = getNrOfSublevel(i_lvl_l);
+            uint nr_of_sublevel_u = nr_of_sublevel[i_lvl_u];
+            uint nr_of_sublevel_l = nr_of_sublevel[i_lvl_l];
 
             // Init second dimension of 2D array
             trans_to_index[i_trans] = new uint *[nr_of_sublevel_u];
@@ -498,7 +551,7 @@ class CGasSpecies
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
         {
             // Includes the 1 for no Zeeman split energy levels
-            res += getNrOfSublevel(i_lvl);
+            res += nr_of_sublevel[i_lvl];
         }
         return res;
     }
@@ -515,7 +568,7 @@ class CGasSpecies
             uint i_lvl_l = getLowerEnergyLevel(i_trans);
 
             // Includes the 1 for no Zeeman split energy levels
-            res += getNrOfSublevel(i_lvl_u) * getNrOfSublevel(i_lvl_l);
+            res += nr_of_sublevel[i_lvl_u] * nr_of_sublevel[i_lvl_l];
         }
         return res;
     }
@@ -583,6 +636,11 @@ class CGasSpecies
     float getMaxM(uint i_lvl) const
     {
         return float((nr_of_sublevel[i_lvl] - 1) / 2.0);
+    }
+
+    void setKeplerStarMass(double val)
+    {
+        kepler_star_mass = val;
     }
 
     void setLevelPopType(uint type)
@@ -706,18 +764,75 @@ class CGasSpecies
 
     bool calcLTE(CGridBasic * grid, bool full = false);
     bool calcFEP(CGridBasic * grid, bool full = false);
-    bool calcLVG(CGridBasic * grid, double kepler_star_mass, bool full = false);
+    bool calcLVG(CGridBasic * grid, bool full = false);
+    bool calcDeguchiWatsonLVG(CGridBasic * grid, bool full = false);
     bool updateLevelPopulation(CGridBasic * grid, cell_basic * cell, double * J_total);
 
-    double elem_LVG(CGridBasic * grid,
-                    double dens_species,
-                    double * tmp_lvl_pop,
-                    double doppler,
-                    double L,
-                    double J_ext,
-                    uint i_trans,
-                    uint i_sublvl_u,
-                    uint i_sublvl_l);
+    void calcEmissivityFromLvlPop(uint i_trans,
+                                  uint i_sublvl_u,
+                                  uint i_sublvl_l,
+                                  double dens_species,
+                                  double gauss_a,
+                                  double * tmp_lvl_pop,
+                                  double * j,
+                                  double * alpha)
+    {
+        uint i_lvl_l = getLowerEnergyLevel(i_trans);
+        uint i_lvl_u = getUpperEnergyLevel(i_trans);
+
+        double lvl_pop_l = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_l, i_sublvl_l)];
+        double lvl_pop_u = tmp_lvl_pop[getUniqueLevelIndex(i_lvl_u, i_sublvl_u)];
+
+        *j = dens_species * lvl_pop_u * getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) * gauss_a * con_eps /
+             PIsq;
+        *alpha = dens_species *
+                 (lvl_pop_l * getEinsteinBlu(i_trans, i_sublvl_u, i_sublvl_l) -
+                  lvl_pop_u * getEinsteinBul(i_trans, i_sublvl_u, i_sublvl_l)) *
+                 gauss_a * con_eps / PIsq;
+    }
+
+    double calcJFromInteractionLength(double j, double alpha, double J_ext, double L)
+    {
+        // Init variables
+        double beta, S;
+
+        if(alpha < 1e-20)
+        {
+            S = 0.0;
+            alpha = 0.0;
+        }
+        else
+            S = j / alpha;
+
+        double tau = alpha * L;
+
+        if(tau < 1e-6)
+            beta = 1.0 - 0.5 * tau;
+        else
+            beta = (1.0 - exp(-tau)) / tau;
+
+        double J_mid = (1.0 - beta) * S + beta * J_ext;
+        return J_mid;
+    }
+
+    double calcJFromOpticalDepth(double j, double alpha, double J_ext, double tau)
+    {
+        // Init variables
+        double beta, S;
+
+        if(alpha < 1e-20)
+            S = 0.0;
+        else
+            S = j / alpha;
+
+        if(tau < 1e-6)
+            beta = 1.0 - 0.5 * tau;
+        else
+            beta = (1.0 - exp(-tau)) / tau;
+
+        double J_mid = (1.0 - beta) * S + beta * J_ext;
+        return J_mid;
+    }
 
     void createMatrix(double * J_mid, Matrix2D * A, double * b, double *** final_col_para);
 
@@ -732,7 +847,7 @@ class CGasSpecies
                                    double sin_theta,
                                    double cos_theta,
                                    double energy,
-                                   double * J_nu);
+                                   double * J_nu) const;
 
   private:
     double ** collision_temp;
@@ -747,6 +862,7 @@ class CGasSpecies
     double abundance;
     double max_velocity;
     double gas_species_radius;
+    double kepler_star_mass;
 
     uint i_species;
 
@@ -792,8 +908,6 @@ class CGasMixture
     CGasMixture()
     {
         nr_of_species = 0;
-
-        kepler_star_mass = 0;
 
         level_to_pos = 0;
         line_to_pos = 0;
@@ -1016,7 +1130,7 @@ class CGasMixture
 
     double getKeplerStarMass() const
     {
-        return kepler_star_mass;
+        return single_species[0].getKeplerStarMass();
     }
 
     double getNumberDensity(CGridBasic * grid, const photon_package & pp, uint i_species) const
@@ -1041,7 +1155,8 @@ class CGasMixture
 
     void setKeplerStarMass(double val)
     {
-        kepler_star_mass = val;
+        for(uint i_species = 0; i_species < nr_of_species; i_species++)
+            single_species[i_species].setKeplerStarMass(val);
     }
 
     void calcLineBroadening(CGridBasic * grid, uint i_species)
@@ -1054,7 +1169,7 @@ class CGasMixture
                                    double sin_theta,
                                    double cos_theta,
                                    double energy,
-                                   double * J_nu)
+                                   double * J_nu) const
     {
         single_species[i_species].applyRadiationFieldFactor(i_trans, sin_theta, cos_theta, energy, J_nu);
     }
@@ -1219,47 +1334,17 @@ class CGasMixture
 
     Vector3D getCellVelocity(CGridBasic * grid, const cell_basic & cell, const Vector3D & tmp_pos) const
     {
-        Vector3D cell_velocity;
-
-        // Get the velocity in the photon
-        // direction of the current position
-        if(getKeplerStarMass() > 0)
-        {
-            // Get velocity from Kepler rotation
-            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass());
-        }
-        else if(grid->hasVelocityField())
-        {
-            // Get velocity from grid cell
-            cell_velocity = grid->getVelocityField(cell);
-        }
-        return cell_velocity;
+        return single_species[0].getCellVelocity(grid, cell, tmp_pos);
     }
 
     double getProjCellVelocityInterp(const Vector3D & tmp_pos,
                                      const Vector3D & dir_map_xyz,
-                                     const Vector3D & pos_in_grid_0,
-                                     const spline & vel_field,
-                                     bool zero_vel_field = false)
+                                     const VelFieldInterp & vel_field_interp)
     {
-        double cell_velocity = 0;
-
-        // Get the velocity in the photon direction of the current position
-        if(getKeplerStarMass() > 0)
-        {
-            // Get velocity from Kepler rotation
-            cell_velocity = CMathFunctions::calcKeplerianVelocity(tmp_pos, getKeplerStarMass()) * dir_map_xyz;
-        }
-        else if(vel_field.size() > 0 && !zero_vel_field)
-        {
-            // Get velocity from grid cell with interpolation
-            Vector3D rel_pos = tmp_pos - pos_in_grid_0;
-            cell_velocity = vel_field.getValue(rel_pos.length());
-        }
-        return cell_velocity;
+        return single_species[0].getProjCellVelocityInterp(tmp_pos, dir_map_xyz, vel_field_interp);
     }
 
-    void printParameter(parameters & param, CGridBasic * grid);
+    void printParameters(parameters & param, CGridBasic * grid);
 
   private:
     CGasSpecies * single_species;
@@ -1267,7 +1352,6 @@ class CGasMixture
     uint *** level_to_pos;
     uint **** line_to_pos;
 
-    double kepler_star_mass;
     uint nr_of_species;
 
 };

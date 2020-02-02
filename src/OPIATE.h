@@ -33,6 +33,8 @@
 #include <vector>
 
 #include "CommandParser.h"
+#include "Grid.h"
+#include "Parameters.h"
 
 using namespace std;
 using namespace CCfits;
@@ -56,6 +58,9 @@ class COpiateDataBase
 
         max_velocity = 1;
         velocity_channel = 0;
+        
+        path_emi="";
+        path_abs="";
     }
 
     ~COpiateDataBase()
@@ -89,6 +94,51 @@ class COpiateDataBase
 
         cout << CLR_LINE;
     }
+    
+    double getGaussA(double temp_gas, double v_turb)
+    {
+        double v_th = sqrt(2.0 * con_kB * temp_gas / (list_weight[current_index] * 1e-3 / con_Na));
+        double gauss_a = 1.0 / sqrt(pow(v_th, 2) + pow(v_turb, 2));
+        return gauss_a;
+    }
+    
+    void calcLineBroadening(CGridBasic * grid)
+    {
+        long max_cells = grid->getMaxDataCells();
+        
+        cout << CLR_LINE;
+        cout << "-> Calculating line broadening for each grid cell ...     \r" << flush;
+        
+    #pragma omp parallel for schedule(dynamic)
+        for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
+        {
+            cell_basic * cell = grid->getCellFromIndex(i_cell);
+
+            // Get necessary quantities from the current cell
+            double temp_gas = grid->getGasTemperature(*cell);
+            double turbulent_velocity = grid->getTurbulentVelocity(cell);
+
+            // Set gauss_a for each transition only once
+            grid->setGaussA(cell, getGaussA(temp_gas, turbulent_velocity));
+        }
+        
+        cout << CLR_LINE;
+    }
+    
+    uint getMaxSpecies()
+    {
+        return max_species;
+    }
+    
+    double getFrequency(uint pos)
+    {
+        return list_freq[pos];
+    }
+    
+    
+    bool readOpiateDataBase(parameters & param);
+    
+    void printParameters(parameters & param, CGridBasic * grid);
 
     bool findIndexByName(string name)
     {
@@ -103,18 +153,20 @@ class COpiateDataBase
 
         cout << CLR_LINE;
         cout << "ERROR: A species by the name of \"" << name
-             << "\" is not listed in loaded OPIATE file!              \n";
+             << "\" is not listed in the loaded OPIATE databases!              \n";
         return false;
     }
 
     bool readEmissivityData(string filename)
     {
+        path_emi=filename;
         return readFitsData(filename, mat_emissivity);
     }
 
-    bool readExtincitonData(string filename)
+    bool readAbsorptionData(string filename)
     {
-        return readFitsData(filename, mat_extinction);
+        path_abs=filename;
+        return readFitsData(filename, mat_absorption);
     }
 
     bool readFitsData(string filename, Matrix2D & mat);
@@ -252,11 +304,14 @@ class COpiateDataBase
     }/**/
 
     Matrix2D mat_emissivity;
-    Matrix2D mat_extinction;
+    Matrix2D mat_absorption;
 
     uint current_index;
     uint max_species;
     uint max_ids;
+    
+    string path_emi;
+    string path_abs;
 
     double * list_freq;
     double * list_IDs;

@@ -94,55 +94,25 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
         {
             case DET_PLANE:
                 tracer[i_det] = new CRaytracingCartesian(grid);
-                if(!tracer[i_det]->setDustDetector(pos,
-                                                   dust_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getMaxSubpixelLvl(),
-                                                   param.getAxis1(),
-                                                   param.getAxis2(),
-                                                   param.getAlignmentMechanism()))
-                    return false;
                 break;
 
             case DET_SPHER:
                 tracer[i_det] = new CRaytracingHealPix(grid);
-                if(!tracer[i_det]->setDustDetector(pos,
-                                                   dust_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getAlignmentMechanism(),
-                                                   param.getHealpixOrientation()))
-                    return false;
                 // Disable Stokes rad field for HealPix detector
                 stokes_dust_rad_field = false;
                 break;
 
             case DET_POLAR:
                 tracer[i_det] = new CRaytracingPolar(grid);
-                if(!tracer[i_det]->setDustDetector(pos,
-                                                   dust_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getMaxSubpixelLvl(),
-                                                   param.getAxis1(),
-                                                   param.getAxis2(),
-                                                   param.getAlignmentMechanism()))
-                    return false;
                 break;
 
             case DET_SLICE:
                 tracer[i_det] = new CRaytracingSlice(grid);
-                if(!tracer[i_det]->setDustDetector(pos,
-                                                   dust_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getAxis1(),
-                                                   param.getAxis2(),
-                                                   param.getAlignmentMechanism()))
-                    return false;
                 break;
         }
+
+        if(!tracer[i_det]->setDustDetector(pos, param, dust_ray_detectors, max_length, pathOutput))
+            return false;
     }
 
     // Initiate RKF coefficients for numerical solving the radiative transfer equation
@@ -215,42 +185,28 @@ bool CRadiativeTransfer::initiateSyncRaytrace(parameters & param)
         {
             case DET_PLANE:
                 tracer[i_det] = new CRaytracingCartesian(grid);
-                if(!tracer[i_det]->setSyncDetector(pos,
-                                                   sync_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getMaxSubpixelLvl(),
-                                                   param.getAxis1(),
-                                                   param.getAxis2()))
-                    return false;
                 break;
 
             case DET_SPHER:
                 tracer[i_det] = new CRaytracingHealPix(grid);
-                if(!tracer[i_det]->setSyncDetector(
-                       pos, sync_ray_detectors, max_length, pathOutput, param.getHealpixOrientation()))
-                    return false;
                 break;
 
             case DET_POLAR:
                 tracer[i_det] = new CRaytracingPolar(grid);
-                if(!tracer[i_det]->setSyncDetector(pos,
-                                                   sync_ray_detectors,
-                                                   max_length,
-                                                   pathOutput,
-                                                   param.getMaxSubpixelLvl(),
-                                                   param.getAxis1(),
-                                                   param.getAxis2()))
-                    return false;
                 break;
 
             case DET_SLICE:
                 tracer[i_det] = new CRaytracingSlice(grid);
-                if(!tracer[i_det]->setSyncDetector(
-                       pos, sync_ray_detectors, max_length, pathOutput, param.getAxis1(), param.getAxis2()))
-                    return false;
+                break;
+
+            default:
+                cout << "ERROR: Wrong detector ID" << endl;
+                return false;
                 break;
         }
+
+        if(!tracer[i_det]->setSyncDetector(pos, param, sync_ray_detectors, max_length, pathOutput))
+            return false;
     }
 
     synchrotron = new CSynchrotron();
@@ -335,53 +291,22 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
             {
                 case DET_PLANE:
                     tracer[i_det] = new CRaytracingCartesian(grid);
-                    if(!tracer[i_det]->setLineDetector(pos,
-                                                       line_ray_detectors,
-                                                       pathOutput,
-                                                       max_length,
-                                                       param.getVelMaps(),
-                                                       param.getMaxSubpixelLvl(),
-                                                       param.getAxis1(),
-                                                       param.getAxis2()))
-                        return false;
                     break;
 
                 case DET_SPHER:
                     tracer[i_det] = new CRaytracingHealPix(grid);
-                    if(!tracer[i_det]->setLineDetector(pos,
-                                                       line_ray_detectors,
-                                                       pathOutput,
-                                                       max_length,
-                                                       param.getVelMaps(),
-                                                       param.getHealpixOrientation()))
-                        return false;
                     break;
 
                 case DET_POLAR:
                     tracer[i_det] = new CRaytracingPolar(grid);
-                    if(!tracer[i_det]->setLineDetector(pos,
-                                                       line_ray_detectors,
-                                                       pathOutput,
-                                                       max_length,
-                                                       param.getVelMaps(),
-                                                       param.getMaxSubpixelLvl(),
-                                                       param.getAxis1(),
-                                                       param.getAxis2()))
-                        return false;
                     break;
 
                 case DET_SLICE:
                     tracer[i_det] = new CRaytracingSlice(grid);
-                    if(!tracer[i_det]->setLineDetector(pos,
-                                                       line_ray_detectors,
-                                                       pathOutput,
-                                                       max_length,
-                                                       param.getVelMaps(),
-                                                       param.getAxis1(),
-                                                       param.getAxis2()))
-                        return false;
                     break;
             }
+            if(!tracer[i_det]->setLineDetector(pos, param, line_ray_detectors, pathOutput, max_length))
+                return false;
 
             // Increment index for line RT since its distributed over species and transitions
             i_det++;
@@ -393,7 +318,7 @@ bool CRadiativeTransfer::initiateLineRaytrace(parameters & param)
     return true;
 }
 
-bool CRadiativeTransfer::initiateOPIATE(parameters & param)
+bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
 {
     if(grid == 0)
     {
@@ -403,13 +328,65 @@ bool CRadiativeTransfer::initiateOPIATE(parameters & param)
 
     if(dust == 0)
     {
-        cout << "\nHINT: No dust model defined!" << endl;
+        cout << "\nERROR: No dust model defined!" << endl;
+        return false;
+    }
+
+    if(op == 0)
+    {
+        cout << "\nERROR: No OPIATE database loaded!" << endl;
         return false;
     }
 
     // Get start and stop id of detectors
     start = param.getStart();
     stop = param.getStop();
+
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    // Init array of tracer base class pointer
+    nr_ray_detectors = param.getNrOfOPIATESpecies();
+    tracer = new CRaytracingBasic *[nr_ray_detectors];
+    
+    dlist op_ray_detectors = param.getOPIATERayDetectors();
+
+    for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
+    {
+        // Calculate the starting position of each detector for a gas species
+        uint pos = NR_OF_OPIATE_DET * i_det;
+
+        uint nr_source = uint(op_ray_detectors[pos]);
+
+        // Get the ID of the chosen detector
+        uint detector_id = uint(op_ray_detectors[pos + NR_OF_OPIATE_DET - 4]);
+
+        if(nr_source > sources_ray.size())
+        {
+            cout << "\nERROR: ID of source (" << nr_source << ") larger than max. amount ("
+                 << sources_ray.size() << ") of defined sources!" << endl;
+            return false;
+        }
+
+        // Create detector for current simulation
+        switch(detector_id)
+        {
+            case DET_PLANE:
+                tracer[i_det] = new CRaytracingCartesian(grid);
+                break;
+
+            case DET_SPHER:
+                tracer[i_det] = new CRaytracingHealPix(grid);
+                break;
+
+            case DET_SLICE:
+                tracer[i_det] = new CRaytracingSlice(grid);
+                break;
+        }
+        
+        if(!tracer[i_det]->setOPIATEDetector(pos, param, op_ray_detectors, pathOutput, max_length))
+            return false;
+    }
 
     initiateRungeKuttaFehlberg();
 
@@ -550,7 +527,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 else
                     tm_source->createNextRay(&pp, ullong(i_phot));
 
-                if(pp.getStokesVector().I() < 1e-200)
+                if(pp.getStokesVector()->I() < 1e-200)
                 {
                     kill_counter++;
                     continue;
@@ -870,11 +847,18 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                             pp.setStokesVector(StokesVector(tmp_energy, 0, 0, 0));
                         }
 
+                        // Set/Get Necessary information about velocity field interpolation
+                        VelFieldInterp vel_field_interp;
+                        vel_field_interp.start_pos = pp.getPosition();
+
+                        // Precalculate the velocity interpolation
+                        preCalcVelocityInterp(grid, pp, &vel_field_interp);
+
                         // Transport the photon package through the model to the current final cell
                         while(!pp.reachedBackupPosition() && grid->next(&pp))
                         {
                             // Solve radiative transfer equation by raytracing through a cell
-                            rayThroughCellForLvlPop(&pp, i_species, i_trans);
+                            rayThroughCellForLvlPop(&pp, i_species, i_trans, vel_field_interp);
                         }
 
                         // Add energy to the corresponding radiation field entry
@@ -882,7 +866,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                                                        i_trans,
                                                        sin_theta,
                                                        cos_theta,
-                                                       pp.getStokesVector().I() / nr_of_photons,
+                                                       pp.getStokesVector()->I() / nr_of_photons,
                                                        only_J_in ? J_nu_in : J_nu_total);
                     }
                 }
@@ -897,7 +881,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                     {
                         // Check if limit is reached
                         if(abs(J_nu_in[i_trans_tot] - J_nu_in_old[i_trans_tot]) >
-                           MC_LVL_POP_DIFF_LIMIT * J_nu_total[i_trans_tot] + MC_LVL_POP_LIMIT)
+                           MC_LVL_POP_DIFF_LIMIT * abs(J_nu_in[i_trans_tot] + J_nu_in_old[i_trans_tot]) +
+                               MC_LVL_POP_LIMIT)
                         {
                             // Not converged
                             local_converged = false;
@@ -967,28 +952,31 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
     return true;
 }
 
-void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_species, uint i_trans)
+void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
+                                                 uint i_species,
+                                                 uint i_trans,
+                                                 const VelFieldInterp & vel_field_interp)
 {
-    // Get gas temperature from grid
-    double temp_gas = grid->getGasTemperature(*pp);
 
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
 
-    // Init matrix for absorption
-    Matrix2D total_absorption_matrix(4, 4);
-
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
-    if(temp_gas > 1e-200 && dens_species > 1e-200)
+    if(dens_species > 1e-200)
     {
+        // Init matrix for absorption and dust emissivity
+        Matrix2D total_absorption_matrix(4, 4);
+        StokesVector dust_emi_and_ext;
+
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
-        if(gas->isTransZeemanSplit(i_species, i_trans))
+        uint i_zeeman = gas->getZeemanSplitIndex(i_species, i_trans);
+        if(i_zeeman != MAX_UINT)
         {
             grid->getMagFieldInfo(*pp, &mag_field_info);
-            grid->getLineBroadening(*pp, i_trans, &line_broadening);
+            grid->getLineBroadening(*pp, i_zeeman, &line_broadening);
         }
         else
         {
@@ -999,8 +987,11 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
         // Get the path length through the current cell
         double len = pp->getTmpPathLength();
 
+        // Get necessary quantities from the current cell
+        double dens_gas = grid->getGasNumberDensity(*pp);
+
         // Calculate the emission of the dust grains
-        StokesVector dust_emissivity = dust->calcEmissivityHz(grid, *pp);
+        dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
 
         // Init variables
         double cell_sum = 0, cell_d_l = len;
@@ -1033,13 +1024,14 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
             for(uint k = 0; k < 6; k++)
             {
                 // Calculate projected velocity on each Runge-Kutta position
-                double rel_velocity = pp->getVelocity() -
-                                      gas->getProjCellVelocity(
-                                          grid, *pp, pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k]);
+                double rel_velocity =
+                    pp->getVelocity() -
+                    gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
+                                                   pp->getDirection(),
+                                                   vel_field_interp);
 
-                // Init emission and line matrix
+                // Init emission
                 StokesVector total_emission;
-                total_absorption_matrix.fill(0);
 
                 // Get line emissivity (also combined Zeeman lines)
                 gas->calcEmissivity(grid,
@@ -1054,12 +1046,12 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
                 // Combine the Stokes vectors from gas and dust for emission
                 total_emission *= dens_species;
-                total_emission += dust_emissivity;
+                total_emission += dust_emi_and_ext;
                 // and extinction
                 total_absorption_matrix *= dens_species;
-                if(dust_emissivity.T() != 0)
+                if(dust_emi_and_ext.T() != 0)
                     for(uint i = 0; i < 4; i++)
-                        total_absorption_matrix(i, i) += dust_emissivity.T();
+                        total_absorption_matrix(i, i) += dust_emi_and_ext.T();
                 total_absorption_matrix *= -1;
 
                 // Init scalar product
@@ -1071,13 +1063,13 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
                 // Calculate new Runge-Kutta parameters as the result of the
                 // radiative transfer equation at the Runge-Kutta sub positions
-                RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + pp->getStokesVector()) +
+                RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + *pp->getStokesVector()) +
                           total_emission;
             }
 
             // Init two temporary Stokes vectors
-            StokesVector stokes_new = pp->getStokesVector();
-            StokesVector stokes_new2 = pp->getStokesVector();
+            StokesVector stokes_new = *pp->getStokesVector();
+            StokesVector stokes_new2 = *pp->getStokesVector();
 
             for(uint i = 0; i < 6; i++)
             {
@@ -1090,14 +1082,14 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp, uint i_spe
 
             // Ignore very small values
             if(abs(stokes_new.I()) < 1e-200)
-                stokes_new.clearIntensity();
+                stokes_new.resetIntensity();
             if(abs(stokes_new2.I()) < 1e-200)
-                stokes_new2.clearIntensity();
+                stokes_new2.resetIntensity();
 
             // Calculate the difference between the results with two
             // different precisions to see if smaller steps are needed
             double epsi, dz_new;
-            calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
+            calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
 
             // Is a smaller step width needed
             if(epsi <= 1.0)
@@ -1390,7 +1382,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions >= MAX_INTERACTION || pp->getStokesVector().I() < 1e-200)
+                        if(interactions >= MAX_INTERACTION || pp->getStokesVector()->I() < 1e-200)
                         {
                             if(ph_i == 0)
                                 kill_counter++;
@@ -1484,7 +1476,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                                    detector[d].getDistance());
 
                                             // Consider foreground extinction
-                                            pp_escape.getStokesVector() *=
+                                            *pp_escape.getStokesVector() *=
                                                 dust->getForegroundExtinction(pp->getWavelength());
 
                                             // Add the photon package to the detector
@@ -1523,7 +1515,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector().I() > 1e-200 && interactions <= MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToBackupPos();
@@ -1558,11 +1550,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                         detector[d].getEX(), pp->getEX(), pp->getEY());
 
                                     // Rotate the Stokes vector
-                                    pp->getStokesVector().rot(rot_angle_phot_obs);
+                                    pp->getStokesVector()->rot(rot_angle_phot_obs);
 
                                     // Consider the greater solid angle due
                                     // to the acceptance angle
-                                    pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
+                                    *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
 
                                     // Convert the flux into Jy and consider
                                     // the distance to the observer
@@ -1571,7 +1563,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                            detector[d].getDistance());
 
                                     // Consider foreground extinction
-                                    pp->getStokesVector() *=
+                                    *pp->getStokesVector() *=
                                         dust->getForegroundExtinction(pp->getWavelength());
 
                                     if(interactions == 0)
@@ -1643,11 +1635,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Rotate photon package into the coordinate space of the detector
                         double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
                             detector[d].getEX(), pp_direct.getEX(), pp_direct.getEY());
-                        pp_direct.getStokesVector().rot(rot_angle_phot_obs);
+                        pp_direct.getStokesVector()->rot(rot_angle_phot_obs);
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
-                        pp_direct.getStokesVector() *= exp(-tau_obs);
+                        *pp_direct.getStokesVector() *= exp(-tau_obs);
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
@@ -1656,7 +1648,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                detector[d].getDistance());
 
                         // Consider foreground extinction
-                        pp_direct.getStokesVector() *=
+                        *pp_direct.getStokesVector() *=
                             dust->getForegroundExtinction(pp_direct.getWavelength());
 
                         // Add the photon package to the detector
@@ -1789,7 +1781,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         dust->calcTemperature(grid, cell, use_energy_density);
 
         if(adjTgas > 0)
-            grid->setGasTemperature(cell, adjTgas * dust->getDustTemperature(grid, *cell));
+            grid->setGasTemperature(cell, adjTgas * grid->getDustTemperature(*cell));
 
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);
@@ -1874,7 +1866,7 @@ double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
     rays[0].setPosition(old_pos);
     rays[0].setPositionCell(tmp_cell);
 
-    stokes = rays[0].getStokesVector();
+    stokes = *rays[0].getStokesVector();
     factor = exp(-enf_tau);
 
     rays[0].setStokesVector(stokes);
@@ -1987,16 +1979,14 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
         uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
 
         // Create new photon package
-        photon_package pp1(nr_used_wavelengths);
-        photon_package pp2(nr_used_wavelengths);
+        photon_package pp(tracer[i_det]->getNrExtra() * nr_used_wavelengths);
 
-        tracer[i_det]->preparePhoton(&pp1, cx, cy);
-        tracer[i_det]->preparePhoton(&pp2, cx, cy);
+        tracer[i_det]->preparePhoton(&pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getSyncIntensity(&pp1, &pp2, tmp_source, cx, cy, i_det, subpixel_lvl);
+        getSyncIntensity(&pp, tmp_source, cx, cy, i_det, subpixel_lvl);
 
-        tracer[i_det]->addToDetector(&pp1, &pp2, i_pix);
+        tracer[i_det]->addToDetector(&pp, i_pix);
     }
     else
     {
@@ -2016,8 +2006,7 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
     }
 }
 
-void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
-                                          photon_package * pp2,
+void CRadiativeTransfer::getSyncIntensity(photon_package * pp,
                                           CSourceBasic * tmp_source,
                                           double cx,
                                           double cy,
@@ -2031,257 +2020,220 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp1,
     uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
 
     // Update Stokes vectors with emission from background source
-    for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
     {
-        // Set current index in photon package
-        pp1->setSpectralID(i_wave);
-        pp2->setSpectralID(i_wave);
-
-        // Set wavelength index in photon package
-        double wavelength = tracer[i_det]->getWavelength(i_wave);
-        uint wID = dust->getWavelengthID(wavelength);
-        pp1->setWavelength(wavelength, wID);
-        pp2->setWavelength(wavelength, wID);
-
-        // Set related index of the multi wavelength map to the wavelength ID
-        pp1->getStokesVector().set(tmp_source->getStokesVector(pp1));
-        pp2->getStokesVector().set(tmp_source->getStokesVector(pp1));
-    };
-
-    // Find starting point inside the model and travel through it
-    if(grid->findStartingPoint(pp1))
-    {
-        while(grid->next(pp1) && tracer[i_det]->isNotAtCenter(pp1, cx, cy))
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
         {
-            rayThroughCellSync(pp1, pp2, i_det, nr_used_wavelengths);
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
+
+            // Set wavelength index in photon package
+            double wavelength = tracer[i_det]->getWavelength(i_wave);
+            uint wID = dust->getWavelengthID(wavelength);
+            pp->setWavelength(wavelength, wID);
+
+            // Set related index of the multi wavelength map to the wavelength ID
+            pp->getStokesVector()->set(tmp_source->getStokesVector(pp));
         }
     }
 
-    // Update the multi Stokes vectors for each wavelength
-    for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+    // Find starting point inside the model and travel through it
+    if(grid->findStartingPoint(pp))
     {
-        // Get wavelength/frequency of the photon package
-        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                      (pp1->getFrequency() * pp1->getFrequency());
+        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
+        {
+            rayThroughCellSync(pp, i_det, nr_used_wavelengths);
+        }
+    }
 
-        // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(pp1->getWavelength()));
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
+    {
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-        // Set current index in photon package
-        pp1->setSpectralID(i_wave);
+            // Get wavelength/frequency of the photon package
+            double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                          (pp->getFrequency() * pp->getFrequency());
 
-        // Update the photon package with the Stokes vectors
-        if(pp1->getStokesVector().I() < 0)
-            pp1->getStokesVector().setI(0);
+            // Include foreground extinction if necessary
+            mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(pp->getWavelength()));
 
-        pp1->getStokesVector().multS(mult);
-        pp1->getStokesVector().multT(subpixel_fraction);
-        pp1->getStokesVector().multSp(subpixel_fraction);
+            // Update the photon package with the Stokes vectors
+            if(pp->getStokesVector()->I() < 0)
+                pp->getStokesVector()->setI(0);
 
-        // Set current index in photon package
-        pp1->setSpectralID(i_wave);
-
-        // Update the photon package with the Stokes vectors
-        if(pp2->getStokesVector().I() < 0)
-            pp2->getStokesVector().setI(0);
-
-        pp2->getStokesVector().multS(mult);
-        pp2->getStokesVector().multT(subpixel_fraction);
-        pp2->getStokesVector().multSp(subpixel_fraction);
+            pp->getStokesVector()->multS(mult);
+            pp->getStokesVector()->multT(subpixel_fraction);
+            pp->getStokesVector()->multSp(subpixel_fraction);
+        }
     }
 }
 
-void CRadiativeTransfer::rayThroughCellSync(photon_package * pp1,
-                                            photon_package * pp2,
-                                            uint i_det,
-                                            uint nr_used_wavelengths)
+void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uint nr_used_wavelengths)
 {
-    double n_th = grid->getThermalElectronDensity(*pp1);
-    double T_e = 0.0; // grid->getElectronTemperature(pp1); //reserved for later use
+    double n_th = grid->getThermalElectronDensity(*pp);
+    double T_e = 0.0; // grid->getElectronTemperature(pp); //reserved for later use
 
-    double n_cr = grid->getCRElectronDensity(*pp1);
-    double g_min = grid->getGammaMin(*pp1);
-    double g_max = grid->getGammaMax(*pp1);
-    double pow_p = grid->getPowerLawIndex(*pp1);
+    double n_cr = grid->getCRElectronDensity(*pp);
+    double g_min = grid->getGammaMin(*pp);
+    double g_max = grid->getGammaMax(*pp);
+    double pow_p = grid->getPowerLawIndex(*pp);
 
-    double B = grid->getMagField(*pp1).length();
+    double B = grid->getMagField(*pp).length();
 
     // If the all the electron densities are far too low, skip the current cell
     if(n_cr + n_th >= 1e-200)
     {
         // Get path length through current cell
-        double len = pp1->getTmpPathLength();
+        double len = pp->getTmpPathLength();
 
         // Calculate orientation of the Stokes vector in relation to the detector
-        double phi = grid->getPhiMag(*pp1);
-        double theta = grid->getThetaMag(*pp1);
+        double phi = grid->getPhiMag(*pp);
+        double theta = grid->getThetaMag(*pp);
 
         double sin_2ph = sin(2.0 * phi);
         double cos_2ph = cos(2.0 * phi);
 
-        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
         {
-            // Set current index in photon package
-            pp1->setSpectralID(i_wave);
-            pp2->setSpectralID(i_wave);
-
-            syn_param syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, pp1->getWavelength(), B, theta);
-            syn_param syn_cr = synchrotron->get_Power_Law_Parameter(
-                n_cr, pp2->getWavelength(), B, theta, g_min, g_max, pow_p);
-            syn_param syn_ca = syn_cr + syn_th;
-
-            // Get matrixes with the absorption's and conversions
-            Matrix2D alpha_cr = -1 * syn_cr.getSyncMatrix();
-            Matrix2D alpha_ca = -1 * syn_ca.getSyncMatrix();
-
-            // Init a variable to sum up path lengths until cell is crossed
-            double cell_sum = 0.0;
-
-            // First path length is path through cell
-            double cell_d_l = len;
-
-            // Save the cell entry position of the photon package
-            // (Hint: next(pp) puts the photon onto the border to the next cell)
-            Vector3D pos_xyz_cell = pp1->getPosition() - (len * pp1->getDirection());
-
-            // Set stokes vector with emission
-            StokesVector S_em_cr(syn_cr.j_I, syn_cr.j_Q * cos_2ph, syn_cr.j_Q * sin_2ph, syn_cr.j_V);
-
-            StokesVector S_em_ca(syn_ca.j_I, syn_ca.j_Q * cos_2ph, syn_ca.j_Q * sin_2ph, syn_ca.j_V);
-
-            // Initiating the kill counter
-            ullong kill_counter = 0;
-
-            // Initiating the fail-save
-            bool fail = false;
-
-            // Make sub steps until cell is completely crossed
-            // If the error of a sub step is too high, make the step smaller
-            while(cell_sum < len)
+            for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
             {
-                // Increase the kill counter
-                kill_counter++;
+                // Set current index in photon package
+                pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-                // If too many sub steps are needed, kill the photon
-                if(kill_counter > 2.0 * MAX_SOLVER_STEPS)
+                // Init variables
+                syn_param syn_th, syn_cr, syn_ca;
+                Matrix2D alpha_cr, alpha_ca;
+                StokesVector S_em_cr, S_em_ca;
+
+                // Get syn parameter
+                syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, pp->getWavelength(), B, theta);
+                syn_cr = synchrotron->get_Power_Law_Parameter(
+                    n_cr, pp->getWavelength(), B, theta, g_min, g_max, pow_p);
+
+                // Get matrixes with the absorption's and conversions
+                alpha_cr = -1 * syn_cr.getSyncMatrix();
+
+                // Set stokes vector with emission
+                S_em_cr = StokesVector(syn_cr.j_I, syn_cr.j_Q * cos_2ph, syn_cr.j_Q * sin_2ph, syn_cr.j_V);
+
+                if(i_extra == 1)
                 {
-#pragma omp critical
-                    {
-                        cout << CLR_LINE;
-                        cout << "\nWARNING: Solver steps > " << 2.0 * MAX_SOLVER_STEPS << ". Too many steps!"
-                             << endl
-                             << flush;
-                        cout << "         Skipping entire cell!" << endl << flush;
-                    }
-                    break;
+                    syn_ca = syn_cr + syn_th;
+                    alpha_ca = -1 * syn_ca.getSyncMatrix();
+                    S_em_ca =
+                        StokesVector(syn_ca.j_I, syn_ca.j_Q * cos_2ph, syn_ca.j_Q * sin_2ph, syn_ca.j_V);
                 }
 
-                if(kill_counter > 1.0 * MAX_SOLVER_STEPS)
+                // Init a variable to sum up path lengths until cell is crossed
+                double cell_sum = 0.0;
+
+                // First path length is path through cell
+                double cell_d_l = len;
+
+                // Save the cell entry position of the photon package
+                // (Hint: next(pp) puts the photon onto the border to the next cell)
+                Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
+
+                // Initiating the kill counter
+                ullong kill_counter = 0;
+
+                // Initiating the fail-save
+                bool fail = false;
+
+                // Make sub steps until cell is completely crossed
+                // If the error of a sub step is too high, make the step smaller
+                while(cell_sum < len)
                 {
-                    if(fail == false)
+                    // Increase the kill counter
+                    kill_counter++;
+
+                    // If too many sub steps are needed, kill the photon
+                    if(kill_counter > 2.0 * MAX_SOLVER_STEPS)
                     {
-                        fail = true;
 #pragma omp critical
                         {
                             cout << CLR_LINE;
-                            cout << "\nWARNING: Solver steps > " << 1.0 * MAX_SOLVER_STEPS
+                            cout << "\nWARNING: Solver steps > " << 2.0 * MAX_SOLVER_STEPS
                                  << ". Too many steps!" << endl
                                  << flush;
-                            cout << "         Switching to approximate solver!" << endl << flush;
+                            cout << "         Skipping entire cell!" << endl << flush;
+                        }
+                        break;
+                    }
+
+                    if(kill_counter > 1.0 * MAX_SOLVER_STEPS)
+                    {
+                        if(!fail)
+                        {
+                            fail = true;
+#pragma omp critical
+                            {
+                                cout << CLR_LINE;
+                                cout << "\nWARNING: Solver steps > " << 1.0 * MAX_SOLVER_STEPS
+                                     << ". Too many steps!" << endl
+                                     << flush;
+                                cout << "         Switching to approximate solver!" << endl << flush;
+                            }
                         }
                     }
-                }
 
-                // Init Runge-Kutta parameters and set it to zero
-                // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
-                StokesVector * RK_k_cr = new StokesVector[6];
-                StokesVector * RK_k_ca = new StokesVector[6];
+                    // Init Runge-Kutta parameters and set it to zero
+                    // (see https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method)
+                    StokesVector * RK_k = new StokesVector[6];
 
-                // Calculate result of the radiative transfer equation at each
-                // Runge-Kutta sub position
-                for(uint k = 0; k < 6; k++)
-                {
-                    // Init scalar product
-                    StokesVector scalar_product_cr, scalar_product_ca;
+                    // Calculate result of the radiative transfer equation at each
+                    // Runge-Kutta sub position
+                    for(uint k = 0; k < 6; k++)
+                    {
+                        // Init scalar product
+                        StokesVector scalar_product;
 
-                    // Calculate multiplication between Runge-Kutta parameter
+                        // Calculate multiplication between Runge-Kutta parameter
+                        for(uint i = 0; i < 6; i++)
+                        {
+                            scalar_product += (RK_k[i] * RK_a(i, k));
+                        }
+
+                        // Calculate new Runge-Kutta parameters as the result of the
+                        // radiative transfer equation at the Runge-Kutta sub
+                        // positions
+                        if(i_extra == 0)
+                            RK_k[k] =
+                                alpha_cr * (scalar_product * cell_d_l + *pp->getStokesVector()) + S_em_cr;
+                        else
+                            RK_k[k] =
+                                alpha_ca * (scalar_product * cell_d_l + *pp->getStokesVector()) + S_em_ca;
+                    }
+
+                    // Init two temporary Stokes vectors
+                    StokesVector stokes_new = *pp->getStokesVector();
+                    StokesVector stokes_new2 = *pp->getStokesVector();
+
+                    // Add the result at each Runge-Kutta sub position
+                    // to the total Stokes vector (Using Runge-Kutta Fehlberg)
                     for(uint i = 0; i < 6; i++)
                     {
-                        scalar_product_cr += (RK_k_cr[i] * RK_a(i, k));
-                        scalar_product_ca += (RK_k_ca[i] * RK_a(i, k));
+                        stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                        stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
                     }
 
-                    // Calculate new Runge-Kutta parameters as the result of the
-                    // radiative transfer equation at the Runge-Kutta sub
-                    // positions
-                    RK_k_cr[k] = alpha_cr * (scalar_product_cr * cell_d_l + pp1->getStokesVector()) + S_em_cr;
-                    RK_k_ca[k] = alpha_ca * (scalar_product_ca * cell_d_l + pp2->getStokesVector()) + S_em_ca;
-                }
+                    // Delete the Runge-Kutta pointer
+                    delete[] RK_k;
 
-                // Init two temporary Stokes vectors
-                StokesVector stokes_new_cr = pp1->getStokesVector();
-                StokesVector stokes_new2_cr = pp1->getStokesVector();
+                    // Calculate the difference between the results with two
+                    // different precisions to see if smaller steps are needed
+                    // (see Reissl)
 
-                StokesVector stokes_new_ca = pp2->getStokesVector();
-                StokesVector stokes_new2_ca = pp2->getStokesVector();
-
-                // Add the result at each Runge-Kutta sub position
-                // to the total Stokes vector (Using Runge-Kutta Fehlberg)
-                for(uint i = 0; i < 6; i++)
-                {
-                    stokes_new_cr += RK_k_cr[i] * cell_d_l * RK_b1[i];
-                    stokes_new2_cr += RK_k_cr[i] * cell_d_l * RK_b2[i];
-
-                    if(!fail)
-                    {
-                        stokes_new_ca += RK_k_ca[i] * cell_d_l * RK_b1[i];
-                        stokes_new2_ca += RK_k_ca[i] * cell_d_l * RK_b2[i];
-                    }
-                }
-
-                // Delete the Runge-Kutta pointer
-                delete[] RK_k_cr;
-                delete[] RK_k_ca;
-
-                // Calculate the difference between the results with two
-                // different precisions to see if smaller steps are needed
-                // (see Reissl)
-
-                double epsi, dz_new;
-                if(stokes_new_cr.I() < 0 || stokes_new2_cr.I() < 0 || stokes_new_ca.I() < 0 ||
-                   stokes_new2_ca.I() < 0)
-                {
-                    epsi = 2.0;
-                    dz_new = 0.0;
-                }
-                else
-                {
-                    double epsi_cr = abs(stokes_new2_cr.I() - stokes_new_cr.I()) /
-                                     (REL_ERROR * abs(stokes_new_cr.I()) + ABS_ERROR);
-                    double epsi_ca = abs(stokes_new2_ca.I() - stokes_new_ca.I()) /
-                                     (REL_ERROR * abs(stokes_new_ca.I()) + ABS_ERROR);
-
-                    double epsi_Q = abs(abs(stokes_new2_ca.Q()) - abs(stokes_new_ca.Q())) /
-                                    (REL_ERROR * abs(stokes_new_ca.Q()) + ABS_ERROR);
-
-                    double epsi_U = abs(abs(stokes_new2_ca.U()) - abs(stokes_new_ca.U())) /
-                                    (REL_ERROR * abs(stokes_new_ca.U()) + ABS_ERROR);
-
-                    double epsi_V = abs(abs(stokes_new2_ca.V()) - abs(stokes_new_ca.V())) /
-                                    (REL_ERROR * abs(stokes_new_ca.V()) + ABS_ERROR);
-
-                    double dz_new_cr = 0.9 * cell_d_l * pow(epsi_cr, -0.2);
-                    double dz_new_ca = 0.9 * cell_d_l * pow(epsi_ca, -0.2);
-
-                    double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);
-                    double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
-                    double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
-
+                    double epsi, dz_new;
                     // Do approximate solution
-                    if(fail)
+                    if(!fail)
+                        calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
+                    else if(i_extra == 1)
                     {
-                        epsi = epsi_cr;
-                        dz_new = dz_new_cr;
+                        calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
 
                         double j_Q = syn_ca.j_Q * cos_2ph;
                         double j_U = syn_ca.j_Q * sin_2ph;
@@ -2307,59 +2259,56 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp1,
                         V += k_V / k_3 * (j_Q * k_V + j_V * k_Q) * sin(rot_ang);
                         V -= j_U * k_Q / k_2 * (1.0 - cos(rot_ang));
 
-                        stokes_new_ca = stokes_new_cr + StokesVector(0, Q, U, V);
-                    }
-                    else
-                    {
-                        epsi = max(epsi_cr, max(epsi_ca, max(epsi_Q, max(epsi_U, epsi_V))));
-                        dz_new = min(dz_new_cr, min(dz_new_ca, min(dz_new_Q, min(dz_new_U, dz_new_V))));
+                        stokes_new = *pp->getStokesVector(i_wave) + StokesVector(0, Q, U, V);
                     }
 
                     if(epsi == 0)
                     {
                         dz_new = 0.01 * len;
                     }
-                }
 
-                // Is a smaller step width needed
-                if(epsi <= 1.0)
-                {
-                    // Add the temporary Stokes vector to the total one
-                    pp1->setStokesVector(stokes_new_cr);
+                    // Is a smaller step width needed
+                    if(epsi <= 1.0)
+                    {
+                        // Add the temporary Stokes vector to the total one
+                        pp->setStokesVector(stokes_new);
 
-                    // tau is set to Farraday rotation*lambda^2 for CR electrons
-                    // (currently its set to zero)
-                    pp1->getStokesVector().addT(syn_cr.kappa_V * cell_d_l);
+                        if(i_extra == 0)
+                        {
+                            // tau is set to Farraday rotation*lambda^2 for CR electrons
+                            // (currently its set to zero)
+                            pp->getStokesVector()->addT(syn_cr.kappa_V * cell_d_l);
 
-                    // Sp is set to the thermal electron column
-                    pp1->getStokesVector().addSp(n_th * cell_d_l); //
+                            // Sp is set to the thermal electron column
+                            pp->getStokesVector()->addSp(n_th * cell_d_l);
+                        }
+                        else
+                        {
+                            // tau is set to Farraday rotation*lambda^2 for all
+                            pp->getStokesVector()->addT(syn_ca.kappa_V * cell_d_l);
 
-                    // Add the temporary Stokes vector to the total one
-                    pp2->setStokesVector(stokes_new_ca);
+                            // Sp is set to the CR electron column
+                            pp->getStokesVector()->addSp(n_cr * cell_d_l);
+                        }
 
-                    // tau is set to Farraday rotation*lambda^2 for all
-                    pp2->getStokesVector().addT(syn_ca.kappa_V * cell_d_l);
+                        // Update the position of the photon package
+                        pos_xyz_cell += cell_d_l * pp->getDirection();
 
-                    // Sp is set to the CR electron column
-                    pp2->getStokesVector().addSp(n_cr * cell_d_l);
+                        // Increase the sum of the cell path lengths
+                        cell_sum += cell_d_l;
 
-                    // Update the position of the photon package
-                    pos_xyz_cell += cell_d_l * pp1->getDirection();
+                        // Find a new path length
+                        cell_d_l = min(dz_new, 4 * cell_d_l);
 
-                    // Increase the sum of the cell path lengths
-                    cell_sum += cell_d_l;
-
-                    // Find a new path length
-                    cell_d_l = min(dz_new, 4 * cell_d_l);
-
-                    // If the new step would exceed the cell, make it smaller
-                    if(cell_sum + cell_d_l > len)
-                        cell_d_l = len - cell_sum;
-                }
-                else
-                {
-                    // Find a smaller path length
-                    cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                        // If the new step would exceed the cell, make it smaller
+                        if(cell_sum + cell_d_l > len)
+                            cell_d_l = len - cell_sum;
+                    }
+                    else
+                    {
+                        // Find a smaller path length
+                        cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                    }
                 }
             }
         }
@@ -2465,7 +2414,6 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                int i_pix)
 {
     bool subpixel = false;
-    photon_package * pp;
 
     subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
 
@@ -2476,15 +2424,16 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
         uint nr_used_wavelengths = tracer[i_det]->getNrOfSpectralBins();
 
         // Create new photon package
-        pp = new photon_package(nr_used_wavelengths);
+        photon_package pp =
+            photon_package(nr_used_wavelengths * (tracer[i_det]->splitDustEmission() ? 4 : 1));
 
         // Init photon package
-        tracer[i_det]->preparePhoton(pp, cx, cy);
+        tracer[i_det]->preparePhoton(&pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl);
+        getDustIntensity(&pp, tmp_source, cx, cy, i_det, subpixel_lvl);
 
-        tracer[i_det]->addToDetector(pp, i_pix);
+        tracer[i_det]->addToDetector(&pp, i_pix);
     }
     else
     {
@@ -2518,17 +2467,20 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
 
     // Update Stokes vectors with emission from background source
-    for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
     {
-        // Set current index in photon package
-        pp->setSpectralID(i_wave);
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-        // Set wavelength index in photon package
-        double wavelength = tracer[i_det]->getWavelength(i_wave);
-        pp->setWavelength(wavelength, dust->getWavelengthID(wavelength));
+            // Set wavelength index in photon package
+            double wavelength = tracer[i_det]->getWavelength(i_wave);
+            pp->setWavelength(wavelength, dust->getWavelengthID(wavelength));
 
-        // Get emission from background source
-        pp->getStokesVector().set(tmp_source->getStokesVector(pp));
+            // Get emission from background source
+            pp->getStokesVector()->set(tmp_source->getStokesVector(pp));
+        }
     };
 
     // Find starting point inside the model and travel through it
@@ -2539,25 +2491,29 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             rayThroughCellDust(pp, i_det, nr_used_wavelengths);
         }
     }
+
     // Update the multi Stokes vectors for each wavelength
-    for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
     {
-        // Set current index in photon package
-        pp->setSpectralID(i_wave);
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-        // Get frequency at background grid position
-        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * pp->getWavelength() /
-                      pp->getFrequency();
+            // Get frequency at background grid position
+            double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() *
+                          pp->getWavelength() / pp->getFrequency();
 
-        // Include foreground extinction if necessary
-        mult *= dust->getForegroundExtinction(pp->getWavelength());
+            // Include foreground extinction if necessary
+            mult *= dust->getForegroundExtinction(pp->getWavelength());
 
-        if(pp->getStokesVector().I() < 0)
-            pp->getStokesVector().setI(0);
+            if(pp->getStokesVector()->I() < 0)
+                pp->getStokesVector()->setI(0);
 
-        pp->getStokesVector().multS(mult);
-        pp->getStokesVector().multT(subpixel_fraction);
-        pp->getStokesVector().multSp(subpixel_fraction);
+            pp->getStokesVector()->multS(mult);
+            pp->getStokesVector()->multT(subpixel_fraction);
+            pp->getStokesVector()->multSp(subpixel_fraction);
+        }
     }
 }
 
@@ -2570,12 +2526,11 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
     // If the dust density is far too low, skip the current cell
     if(dens_dust >= 1e-200)
     {
-        // Init dust matrix
-        Matrix2D dust_extinction_matrix;
-        StokesVector dust_emissivity;
-
         // Get path length through current cell
         double len = pp->getTmpPathLength();
+
+        // Init dust extinction matrix
+        Matrix2D dust_extinction_matrix(4, 4);
 
 #ifdef CAMPS_BENCHMARK
         // Part to perform Camps et. al (2015) benchmark.
@@ -2598,135 +2553,146 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
             double wavelength = tracer[i_det]->getWavelength(i_wave);
             pp->setWavelength(wavelength, dust->getWavelengthID(wavelength), i_wave);
 
-            StokesVector tmp_stokes = dust->calcEmissivityEmi(grid, pp);
-            myfile << wavelength << TAB << corr_factor * wavelength * tmp_stokes.I() << TAB
-                   << corr_factor * wavelength * tmp_stokes.Q() << TAB
-                   << corr_factor * wavelength * (tmp_stokes.I() + tmp_stokes.Q()) << endl;
+            StokesVector dust_emissivity;
+            dust->calcEmissivityEmi(grid, pp, false, dust_emissivity);
+            myfile << wavelength << TAB << corr_factor * wavelength * dust_emissivity.I() << TAB
+                   << corr_factor * wavelength * dust_emissivity.Q() << TAB
+                   << corr_factor * wavelength * (dust_emissivity.I() + dust_emissivity.Q()) << endl;
         }
         myfile.close();
         break;
 #endif
 
-        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
         {
-            // Set current index in photon package
-            pp->setSpectralID(i_wave);
-
-            // Set stokes vector with thermal emission of the dust grains and
-            // radiation scattered at dust grains
-            dust_emissivity = dust->calcEmissivityEmi(
-                grid,
-                *pp,
-                stokes_dust_rad_field ? detector_wl_index[i_det] + pp->getDustWavelengthID() : MAX_UINT);
-
-            // Get the extinction matrix of the dust grains in the current cell
-            dust_extinction_matrix = -1 * dust->calcEmissivityExt(grid, *pp);
-
-            // Init a variable to sum up path lengths until cell is crossed
-            double cell_sum = 0.0;
-
-            // First path length is path through cell
-            double cell_d_l = len;
-
-            // Save the cell entry position of the photon package
-            // (Hint: next(pp) puts the photon onto the border to the next cell)
-            Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
-
-            // Init number of steps
-            ullong kill_counter = 0;
-
-            // Make sub steps until cell is completely crossed
-            // If the error of a sub step is too high, make the step smaller
-            while(cell_sum < len)
+            for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
             {
-                // Increase the kill counter
-                kill_counter++;
+                // Set current index in photon package
+                pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-                // If too many sub steps are needed, kill the photon
-                if(kill_counter >= MAX_SOLVER_STEPS)
+                // Init dust emission matrix
+                StokesVector dust_emissivity;
+
+                // Set stokes vector with thermal emission of the dust grains and
+                // radiation scattered at dust grains
+                dust->calcEmissivityEmi(
+                    grid,
+                    *pp,
+                    stokes_dust_rad_field ? detector_wl_index[i_det] + pp->getDustWavelengthID() : MAX_UINT,
+                    i_extra,
+                    &dust_emissivity);
+
+                // Get the extinction matrix of the dust grains in the current cell
+                dust->calcEmissivityExt(grid, *pp, &dust_extinction_matrix);
+
+                // Init a variable to sum up path lengths until cell is crossed
+                double cell_sum = 0.0;
+
+                // First path length is path through cell
+                double cell_d_l = len;
+
+                // Save the cell entry position of the photon package
+                // (Hint: next(pp) puts the photon onto the border to the next cell)
+                Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
+
+                // Init number of steps
+                ullong kill_counter = 0;
+
+                // Make sub steps until cell is completely crossed
+                // If the error of a sub step is too high, make the step smaller
+                while(cell_sum < len)
                 {
-                    cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
-                    break;
-                }
+                    // Increase the kill counter
+                    kill_counter++;
 
-                // Init Runge-Kutta parameters and set it to zero
-                // (see
-                // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
-                StokesVector * RK_k = new StokesVector[6];
+                    // If too many sub steps are needed, kill the photon
+                    if(kill_counter >= MAX_SOLVER_STEPS)
+                    {
+                        cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!"
+                             << endl;
+                        break;
+                    }
 
-                // Calculate result of the radiative transfer equation at each
-                // Runge-Kutta sub position
-                for(uint k = 0; k < 6; k++)
-                {
-                    // Init scalar product
-                    StokesVector scalar_product;
+                    // Init Runge-Kutta parameters and set it to zero
+                    // (see
+                    // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                    StokesVector * RK_k = new StokesVector[6];
 
-                    // Calculate multiplication between Runge-Kutta parmeter
+                    // Calculate result of the radiative transfer equation at each
+                    // Runge-Kutta sub position
+                    for(uint k = 0; k < 6; k++)
+                    {
+                        // Init scalar product
+                        StokesVector scalar_product;
+
+                        // Calculate multiplication between Runge-Kutta parmeter
+                        for(uint i = 0; i < 6; i++)
+                            scalar_product += (RK_k[i] * RK_a(i, k));
+
+                        // Calculate new Runge-Kutta parameters as the result of the
+                        // radiative transfer equation at the Runge-Kutta sub
+                        // positions
+                        RK_k[k] =
+                            dust_extinction_matrix * (scalar_product * cell_d_l + *pp->getStokesVector()) +
+                            dust_emissivity;
+                    }
+
+                    // Init two temporary Stokes vectors
+                    StokesVector stokes_new = *pp->getStokesVector();
+                    StokesVector stokes_new2 = *pp->getStokesVector();
+
+                    // Add the result at each Runge-Kutta sub position
+                    // to the total Stokes vector (Using Runge-Kutta Fehlberg)
                     for(uint i = 0; i < 6; i++)
-                        scalar_product += (RK_k[i] * RK_a(i, k));
+                    {
+                        stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                        stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
+                    }
 
-                    // Calculate new Runge-Kutta parameters as the result of the
-                    // radiative transfer equation at the Runge-Kutta sub
-                    // positions
-                    RK_k[k] = dust_extinction_matrix * (scalar_product * cell_d_l + pp->getStokesVector()) +
-                              dust_emissivity;
-                }
+                    // Delete the Runge-Kutta pointer
+                    delete[] RK_k;
 
-                // Init two temporary Stokes vectors
-                StokesVector stokes_new = pp->getStokesVector();
-                StokesVector stokes_new2 = pp->getStokesVector();
+                    // Ignore very small values
+                    if(abs(stokes_new.I()) < 1e-200)
+                        stokes_new.resetIntensity();
+                    if(abs(stokes_new2.I()) < 1e-200)
+                        stokes_new2.resetIntensity();
 
-                // Add the result at each Runge-Kutta sub position
-                // to the total Stokes vector (Using Runge-Kutta Fehlberg)
-                for(uint i = 0; i < 6; i++)
-                {
-                    stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
-                    stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
-                }
+                    // Calculate the difference between the results with two
+                    // different precisions to see if smaller steps are needed
+                    double epsi, dz_new;
+                    calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
 
-                // Delete the Runge-Kutta pointer
-                delete[] RK_k;
+                    // Is a smaller step width needed
+                    if(epsi <= 1.0)
+                    {
+                        // Add the temporary Stokes vector to the total one
+                        pp->setStokesVector(stokes_new);
 
-                // Ignore very small values
-                if(abs(stokes_new.I()) < 1e-200)
-                    stokes_new.clearIntensity();
-                if(abs(stokes_new2.I()) < 1e-200)
-                    stokes_new2.clearIntensity();
+                        // Add optical depth
+                        pp->getStokesVector()->addT(-dust_extinction_matrix(0, 0) * cell_d_l);
 
-                // Calculate the difference between the results with two
-                // different precisions to see if smaller steps are needed
-                double epsi, dz_new;
-                calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
+                        // Add to column density
+                        pp->getStokesVector()->addSp(dens_gas * cell_d_l);
 
-                // Is a smaller step width needed
-                if(epsi <= 1.0)
-                {
-                    // Add the temporary Stokes vector to the total one
-                    pp->setStokesVector(stokes_new);
+                        // Update the position of the photon package
+                        pos_xyz_cell += cell_d_l * pp->getDirection();
 
-                    // Add optical depth
-                    pp->getStokesVector().addT(-dust_extinction_matrix(0, 0) * cell_d_l);
+                        // Increase the sum of the cell path lengths
+                        cell_sum += cell_d_l;
 
-                    // Add to column density
-                    pp->getStokesVector().addSp(dens_gas * cell_d_l);
+                        // Find a new path length
+                        cell_d_l = min(dz_new, 4 * cell_d_l);
 
-                    // Update the position of the photon package
-                    pos_xyz_cell += cell_d_l * pp->getDirection();
-
-                    // Increase the sum of the cell path lengths
-                    cell_sum += cell_d_l;
-
-                    // Find a new path length
-                    cell_d_l = min(dz_new, 4 * cell_d_l);
-
-                    // If the new step would exceed the cell, make it smaller
-                    if(cell_sum + cell_d_l > len)
-                        cell_d_l = len - cell_sum;
-                }
-                else
-                {
-                    // Find a smaller path length
-                    cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                        // If the new step would exceed the cell, make it smaller
+                        if(cell_sum + cell_d_l > len)
+                            cell_d_l = len - cell_sum;
+                    }
+                    else
+                    {
+                        // Find a smaller path length
+                        cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                    }
                 }
             }
         }
@@ -2798,13 +2764,98 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
             mult *= exp(-tau_obs) * tracer[i_det]->getDistanceFactor(source_pos);
 
             // Update the photon package with the multi Stokes vectors
-            pp->getStokesVector().multS(mult);
+            pp->getStokesVector()->multS(mult);
         }
 
         tracer[i_det]->addToDetector(pp, i_pix, true);
     }
 
     cout << CLR_LINE;
+}
+
+
+// -------------------------------------------
+// ------ Calculation of OPIATE transfer -------
+// -------------------------------------------
+
+bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
+{
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    // Create a list for all gas species
+    dlist op_ray_detector_list = param.getOPIATERayDetectors();
+
+    // Perform radiative transfer for each chosen gas species
+    for(uint i_det = start; i_det <= stop; i_det++)
+    {
+        // Get total number of pixel
+        uint per_max = tracer[i_det]->getNpix();
+        string spec_name=param.getOpiateSpec(i_det);
+        
+        if(!op->findIndexByName(spec_name))
+            return false;
+    
+        // Get BG source
+        uint sID = tracer[i_det]->getSourceIndex();
+        CSourceBasic * tmp_source;
+        tmp_source = sources_ray[sID];
+
+        // Calculate the line broadening for each cell
+        op->calcLineBroadening(grid);
+
+        // Show progress of the current sequence and gas species
+        cout << CLR_LINE;
+        cout << "-> OPIATE maps: species " << i_det + 1 << " of " << stop + 1
+             << " : 0.0 [%]       \r" << flush;
+
+        // Init counter and percentage to show progress
+        ullong per_counter = 0;
+        float last_percentage = 0;
+
+        // Calculate pixel intensity for each pixel
+#pragma omp parallel for schedule(dynamic)
+        for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+        {
+            double cx = 0, cy = 0;
+            if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
+                continue;
+
+            // Increase counter used to show progress
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100.0 * float(per_counter) / float(per_max);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+#pragma omp critical
+                {
+                    cout << "-> OPIATE maps: species " << i_det + 1 << " of " << stop + 1
+                         << " : " << percentage << " [%]       \r" << flush;
+                    last_percentage = percentage;
+                }
+            }
+
+            // Get radiative transfer results for one pixel/ray
+            getOPIATEPixelIntensity(tmp_source, cx, cy, 0, 0, i_det, uint(0), i_pix);
+            //getLinePixelIntensity(tmp_source, cx, cy, i_species, i_trans, i_det, uint(0), i_pix);
+        }
+
+        // post-process raytracing simulation
+        //if(!tracer[i_det]->postProcessing())
+        //    return false;
+
+        //if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))
+        //    return false;
+        
+    }
+
+    cout << CLR_LINE;
+    cout << "- Raytracing channel maps       : done" << endl;
+
+    return true;
 }
 
 // -------------------------------------------
@@ -2890,7 +2941,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             float last_percentage = 0;
 
             // Calculate pixel intensity for each pixel
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic)
             for(int i_pix = 0; i_pix < int(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
@@ -2936,6 +2987,124 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
     return true;
 }
+
+
+void CRadiativeTransfer::getOPIATEPixelIntensity(CSourceBasic * tmp_source,
+                                               double cx,
+                                               double cy,
+                                               uint i_species,
+                                               uint i_trans,
+                                               uint i_det,
+                                               uint subpixel_lvl,
+                                               int i_pix)
+{
+    bool subpixel = false;
+
+    subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
+
+    // If any subpixel traveled through other cells, perform subpixelling
+    if(subpixel == false)
+    {
+        // Get rest frequency of current transition
+        double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
+
+        // Create new photon package
+        photon_package pp = photon_package(trans_frequency,
+                                           dust->getWavelengthID(con_c / trans_frequency),
+                                           tracer[i_det]->getNrSpectralBins());
+
+        // Init photon package
+        tracer[i_det]->preparePhoton(&pp, cx, cy);
+
+        // Calculate line emission along one path
+        getOPIATEIntensity(&pp, tmp_source, cx, cy, i_species, i_trans, i_det, subpixel_lvl);
+
+        tracer[i_det]->addToDetector(&pp, i_pix);
+    }
+    else
+    {
+        // Repeat this function for each subpixel
+        for(int i_sub_x = -1; i_sub_x <= 1; i_sub_x += 2)
+        {
+            for(int i_sub_y = -1; i_sub_y <= 1; i_sub_y += 2)
+            {
+                // Calculate positions of each subpixel
+                double tmp_cx, tmp_cy;
+                tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
+
+                // Calculate radiative transfer of the current pixel
+                // and add it to the detector at the corresponding position
+                getOPIATEPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_species, i_trans, i_det, (subpixel_lvl + 1), i_pix);
+            }
+        }
+    }
+}
+
+void CRadiativeTransfer::getOPIATEIntensity(photon_package * pp,
+                                          CSourceBasic * tmp_source,
+                                          double cx,
+                                          double cy,
+                                          uint i_species,
+                                          uint i_trans,
+                                          uint i_det,
+                                          uint subpixel_lvl)
+{
+    // Set amount of radiation coming from this pixel
+    double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
+
+    // Number of velocity channels from tracer
+    uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
+
+    // Set background radiation field
+    for(uint vch = 0; vch < nr_velocity_channels; vch++)
+    {
+        // Set current index in photon package
+        pp->setSpectralID(vch);
+
+        // Set velocity of the different velocity channels
+        pp->setVelocity(tracer[i_det]->getVelocityChannel(vch));
+
+        // Set background emission
+        pp->setStokesVector(tmp_source->getStokesVector(pp) * pp->getWavelength() / pp->getFrequency());
+    }
+
+    tracer[i_det]->preparePhoton(pp, cx, cy);
+    if(grid->findStartingPoint(pp))
+    {
+        // Set/Get Necessary information about velocity field interpolation
+        VelFieldInterp vel_field_interp;
+        vel_field_interp.start_pos = pp->getPosition();
+
+        // Precalculate the velocity interpolation
+        preCalcVelocityInterp(grid, *pp, &vel_field_interp);
+
+        // Transport the photon package through the model
+        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
+        {
+            rayThroughCellOPIATE(pp, i_species, i_trans, i_det, nr_velocity_channels, vel_field_interp);
+        }
+    }
+    // Update the multi Stokes vectors for each velocity channel
+    for(uint vch = 0; vch < nr_velocity_channels; vch++)
+    {
+        // Set current index in photon package
+        pp->setSpectralID(vch);
+
+        // Convert W/m2/Hz/sr to Jy
+        double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor();
+
+        // Include foreground extinction if necessary
+        mult *= dust->getForegroundExtinction(pp->getWavelength());
+
+        if(pp->getStokesVector()->I() < 0)
+            pp->getStokesVector()->setI(0);
+
+        pp->getStokesVector()->multS(mult);
+        pp->getStokesVector()->multT(subpixel_fraction);
+        pp->getStokesVector()->multSp(subpixel_fraction);
+    }
+}
+
 
 void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
                                                double cx,
@@ -3005,10 +3174,6 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
 
-    // velocity interpolation
-    spline vel_field;
-    bool zero_vel_field = true;
-
     // Number of velocity channels from tracer
     uint nr_velocity_channels = tracer[i_det]->getNrSpectralBins();
 
@@ -3025,60 +3190,20 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         pp->setStokesVector(tmp_source->getStokesVector(pp) * pp->getWavelength() / pp->getFrequency());
     }
 
-    if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
-    {
-        photon_package pp_interp = photon_package();
-        tracer[i_det]->preparePhoton(&pp_interp, cx, cy);
-        if(grid->findStartingPoint(&pp_interp))
-        {
-            Vector3D pos_in_grid_0 = pp_interp.getPosition();
-            double spline_x_old = 0;
-            while(grid->next(&pp_interp))
-            {
-                Vector3D pos_xyz_cell =
-                    pp_interp.getPosition() - (pp_interp.getTmpPathLength() * pp_interp.getDirection());
-                Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
-
-                const cell_basic & tmp_cell_pos = *pp_interp.getPositionCell();
-                Vector3D cell_center = grid->getCenter(tmp_cell_pos);
-
-                double length_on_line =
-                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, pp_interp.getPosition(), cell_center);
-                double spline_x = length_on_line + rel_pos.length();
-
-                if((spline_x_old - spline_x) != 0.0)
-                {
-                    double spline_y = grid->getVelocityField(pp_interp) * pp_interp.getDirection();
-
-                    spline_x_old = spline_x;
-
-                    if(spline_y != 0)
-                        zero_vel_field = false;
-
-                    vel_field.setDynValue(spline_x, spline_y);
-                }
-            }
-            vel_field.createDynSpline();
-        }
-    }
-
     tracer[i_det]->preparePhoton(pp, cx, cy);
     if(grid->findStartingPoint(pp))
     {
-        // Save the starting position, to obtain relative positions
-        Vector3D pos_in_grid_0 = pp->getPosition();
+        // Set/Get Necessary information about velocity field interpolation
+        VelFieldInterp vel_field_interp;
+        vel_field_interp.start_pos = pp->getPosition();
+
+        // Precalculate the velocity interpolation
+        preCalcVelocityInterp(grid, *pp, &vel_field_interp);
 
         // Transport the photon package through the model
         while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
         {
-            rayThroughCellLine(pp,
-                               i_species,
-                               i_trans,
-                               i_det,
-                               nr_velocity_channels,
-                               zero_vel_field,
-                               vel_field,
-                               pos_in_grid_0);
+            rayThroughCellLine(pp, i_species, i_trans, i_det, nr_velocity_channels, vel_field_interp);
         }
     }
     // Update the multi Stokes vectors for each velocity channel
@@ -3093,37 +3218,34 @@ void CRadiativeTransfer::getLineIntensity(photon_package * pp,
         // Include foreground extinction if necessary
         mult *= dust->getForegroundExtinction(pp->getWavelength());
 
-        if(pp->getStokesVector().I() < 0)
-            pp->getStokesVector().setI(0);
+        if(pp->getStokesVector()->I() < 0)
+            pp->getStokesVector()->setI(0);
 
-        pp->getStokesVector().multS(mult);
-        pp->getStokesVector().multT(subpixel_fraction);
-        pp->getStokesVector().multSp(subpixel_fraction);
+        pp->getStokesVector()->multS(mult);
+        pp->getStokesVector()->multT(subpixel_fraction);
+        pp->getStokesVector()->multSp(subpixel_fraction);
     }
 }
 
-void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
+
+void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                                             uint i_species,
                                             uint i_trans,
                                             uint i_det,
                                             uint nr_velocity_channels,
-                                            bool zero_vel_field,
-                                            const spline & vel_field,
-                                            Vector3D pos_in_grid_0)
+                                            const VelFieldInterp & vel_field_interp)
 {
-    // Get gas temperature from grid
-    double temp_gas = grid->getGasTemperature(*pp);
-
     // Get gas species density from grid
     double dens_species = gas->getNumberDensity(grid, *pp, i_species);
 
-    // Init matrix for absorption
-    Matrix2D total_absorption_matrix(4, 4);
-
     // Perform radiative transfer only if the temperature of the current species
     // are not negligible
-    if(temp_gas > 1e-200 && dens_species > 1e-200)
+    if(dens_species > 1e-200)
     {
+        // Init matrix for absorption and dust emissivity
+        Matrix2D total_absorption_matrix(4, 4);
+        StokesVector dust_emi_and_ext;
+
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
@@ -3146,7 +3268,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
-        StokesVector dust_emissivity = dust->calcEmissivityHz(grid, *pp);
+        dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
 
         // Perform radiative transfer for each velocity channel separately
         for(uint vch = 0; vch < nr_velocity_channels; vch++)
@@ -3184,22 +3306,18 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                 // Runge-Kutta sub position
                 for(uint k = 0; k < 6; k++)
                 {
-
                     double rel_velocity =
                         pp->getVelocity() -
                         gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
                                                        pp->getDirection(),
-                                                       pos_in_grid_0,
-                                                       vel_field,
-                                                       zero_vel_field);
+                                                       vel_field_interp);
 
                     Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
                     if(obs_vel.length() > 0)
                         rel_velocity += obs_vel * pp->getDirection();
 
-                    // Init emission and line matrix
+                    // Init emission
                     StokesVector total_emission;
-                    total_absorption_matrix.fill(0);
 
                     // Get line emissivity (also combined Zeeman lines)
                     gas->calcEmissivity(grid,
@@ -3214,12 +3332,12 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                     // Combine the Stokes vectors from gas and dust for emission
                     total_emission *= dens_species;
-                    total_emission += dust_emissivity;
+                    total_emission += dust_emi_and_ext;
                     // and extinction
                     total_absorption_matrix *= dens_species;
-                    if(dust_emissivity.T() != 0)
+                    if(dust_emi_and_ext.T() != 0)
                         for(uint i = 0; i < 4; i++)
-                            total_absorption_matrix(i, i) += dust_emissivity.T();
+                            total_absorption_matrix(i, i) += dust_emi_and_ext.T();
                     total_absorption_matrix *= -1;
 
                     // Init scalar product
@@ -3232,12 +3350,12 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     // Calculate new Runge-Kutta parameters as the result of the
                     // radiative transfer equation at the Runge-Kutta sub
                     // positions
-                    RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + pp->getStokesVector()) +
+                    RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + *pp->getStokesVector()) +
                               total_emission;
                 }
                 // Init two temporary Stokes vectors
-                StokesVector stokes_new = pp->getStokesVector();
-                StokesVector stokes_new2 = pp->getStokesVector();
+                StokesVector stokes_new = *pp->getStokesVector();
+                StokesVector stokes_new2 = *pp->getStokesVector();
 
                 for(uint i = 0; i < 6; i++)
                 {
@@ -3250,20 +3368,20 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                 // Ignore very small values
                 if(abs(stokes_new.I()) < 1e-200)
-                    stokes_new.clearIntensity();
+                    stokes_new.resetIntensity();
                 if(abs(stokes_new2.I()) < 1e-200)
-                    stokes_new2.clearIntensity();
+                    stokes_new2.resetIntensity();
 
                 // Calculate the difference between the results with two
                 // different precisions to see if smaller steps are needed
                 double epsi, dz_new;
-                calcStepWidth(stokes_new, stokes_new2, cell_d_l, epsi, dz_new);
+                calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
 
                 // Is a smaller step width needed
                 if(epsi <= 1.0)
                 {
                     // Backup old intensity
-                    double old_stokes = pp->getStokesVector().I();
+                    double old_stokes = pp->getStokesVector()->I();
 
                     // Stokes_new is the current flux of this line-of-sight
                     pp->setStokesVector(stokes_new);
@@ -3293,13 +3411,13 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         double column_int_mag_field = mag_strength * column_flux;
 
                         // Intensity weighted LOS magnetic field
-                        pp->getStokesVector(0).addSp(column_int_mag_field_los);
+                        pp->getStokesVector(0)->addSp(column_int_mag_field_los);
 
                         // Intensity weighted total magnetic field
-                        pp->getStokesVector(1).addSp(column_int_mag_field);
+                        pp->getStokesVector(1)->addSp(column_int_mag_field);
 
                         // Flux component for weighting
-                        pp->getStokesVector(2).addSp(column_flux);
+                        pp->getStokesVector(2)->addSp(column_flux);
 
                         if(vch == 0)
                         {
@@ -3313,24 +3431,24 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                             double column_dens_mag_field = mag_strength * column_density;
 
                             // Density weighted LOS magnetic field
-                            pp->getStokesVector(3).addSp(column_dens_mag_field_los);
+                            pp->getStokesVector(3)->addSp(column_dens_mag_field_los);
 
                             // Density weighted magnetic field
-                            pp->getStokesVector(4).addSp(column_dens_mag_field);
+                            pp->getStokesVector(4)->addSp(column_dens_mag_field);
 
                             // Column density of the total gas
-                            pp->getStokesVector(5).addSp(column_density);
+                            pp->getStokesVector(5)->addSp(column_density);
                         }
                     }
                     else if(vch == 0)
                     {
                         // Column density of the total gas
-                        pp->getStokesVector().addSp(column_density);
+                        pp->getStokesVector()->addSp(column_density);
                     }
 
                     // Save the optical depth of each velocity channel, if
                     // magnetic field analysis is not chosen
-                    pp->getStokesVector().addT(-total_absorption_matrix(0, 0) * cell_d_l);
+                    pp->getStokesVector()->addT(-total_absorption_matrix(0, 0) * cell_d_l);
 
                     // Update the position of the photon package
                     pos_xyz_cell += cell_d_l * pp->getDirection();
@@ -3352,5 +3470,300 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                 }
             }
         }
+    }
+}
+
+void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
+                                            uint i_species,
+                                            uint i_trans,
+                                            uint i_det,
+                                            uint nr_velocity_channels,
+                                            const VelFieldInterp & vel_field_interp)
+{
+    // Get gas species density from grid
+    double dens_species = gas->getNumberDensity(grid, *pp, i_species);
+
+    // Perform radiative transfer only if the temperature of the current species
+    // are not negligible
+    if(dens_species > 1e-200)
+    {
+        // Init matrix for absorption and dust emissivity
+        Matrix2D total_absorption_matrix(4, 4);
+        StokesVector dust_emi_and_ext;
+
+        // Get extra information about the magnetic field and ine broadening
+        MagFieldInfo mag_field_info;
+        LineBroadening line_broadening;
+        uint i_zeeman = gas->getZeemanSplitIndex(i_species, i_trans);
+        if(i_zeeman != MAX_UINT)
+        {
+            grid->getMagFieldInfo(*pp, &mag_field_info);
+            grid->getLineBroadening(*pp, i_zeeman, &line_broadening);
+        }
+        else
+        {
+            // Set only gauss_a if not zeeman split
+            line_broadening.gauss_a = grid->getGaussA(*pp);
+        }
+
+        // Get the path length through the current cell
+        double len = pp->getTmpPathLength();
+
+        // Get necessary quantities from the current cell
+        double dens_gas = grid->getGasNumberDensity(*pp);
+
+        // Calculate the emission of the dust grains
+        dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
+
+        // Perform radiative transfer for each velocity channel separately
+        for(uint vch = 0; vch < nr_velocity_channels; vch++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(vch);
+
+            // Init variables
+            double cell_sum = 0, cell_d_l = len;
+            ullong kill_counter = 0;
+
+            // Get direction and entry position of the current cell
+            Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
+
+            // Make sub steps until cell is completely crossed
+            // If the error of a sub step is too high, make the step smaller
+            while(cell_sum < len)
+            {
+                // Increase the kill counter
+                kill_counter++;
+
+                // If too many sub steps are needed, kill the photon
+                if(kill_counter >= MAX_SOLVER_STEPS)
+                {
+                    cout << "\nWARNING: Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!" << endl;
+                    break;
+                }
+
+                // Init Runge-Kutta parameters and set it to zero
+                // (see
+                // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                StokesVector * RK_k = new StokesVector[6];
+
+                // Calculate result of the radiative transfer equation at each
+                // Runge-Kutta sub position
+                for(uint k = 0; k < 6; k++)
+                {
+                    double rel_velocity =
+                        pp->getVelocity() -
+                        gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
+                                                       pp->getDirection(),
+                                                       vel_field_interp);
+
+                    Vector3D obs_vel = tracer[i_det]->getObserverVelocity();
+                    if(obs_vel.length() > 0)
+                        rel_velocity += obs_vel * pp->getDirection();
+
+                    // Init emission
+                    StokesVector total_emission;
+
+                    // Get line emissivity (also combined Zeeman lines)
+                    gas->calcEmissivity(grid,
+                                        *pp,
+                                        i_species,
+                                        i_trans,
+                                        rel_velocity,
+                                        line_broadening,
+                                        mag_field_info,
+                                        &total_emission,
+                                        &total_absorption_matrix);
+
+                    // Combine the Stokes vectors from gas and dust for emission
+                    total_emission *= dens_species;
+                    total_emission += dust_emi_and_ext;
+                    // and extinction
+                    total_absorption_matrix *= dens_species;
+                    if(dust_emi_and_ext.T() != 0)
+                        for(uint i = 0; i < 4; i++)
+                            total_absorption_matrix(i, i) += dust_emi_and_ext.T();
+                    total_absorption_matrix *= -1;
+
+                    // Init scalar product
+                    StokesVector scalar_product;
+
+                    // Calculate multiplication between Runge-Kutta parameter
+                    for(uint i = 0; i <= k; i++)
+                        scalar_product += (RK_k[i] * RK_a(i, k));
+
+                    // Calculate new Runge-Kutta parameters as the result of the
+                    // radiative transfer equation at the Runge-Kutta sub
+                    // positions
+                    RK_k[k] = total_absorption_matrix * (scalar_product * cell_d_l + *pp->getStokesVector()) +
+                              total_emission;
+                }
+                // Init two temporary Stokes vectors
+                StokesVector stokes_new = *pp->getStokesVector();
+                StokesVector stokes_new2 = *pp->getStokesVector();
+
+                for(uint i = 0; i < 6; i++)
+                {
+                    stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                    stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
+                }
+
+                // Delete the Runge-Kutta pointer
+                delete[] RK_k;
+
+                // Ignore very small values
+                if(abs(stokes_new.I()) < 1e-200)
+                    stokes_new.resetIntensity();
+                if(abs(stokes_new2.I()) < 1e-200)
+                    stokes_new2.resetIntensity();
+
+                // Calculate the difference between the results with two
+                // different precisions to see if smaller steps are needed
+                double epsi, dz_new;
+                calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
+
+                // Is a smaller step width needed
+                if(epsi <= 1.0)
+                {
+                    // Backup old intensity
+                    double old_stokes = pp->getStokesVector()->I();
+
+                    // Stokes_new is the current flux of this line-of-sight
+                    pp->setStokesVector(stokes_new);
+
+                    // Columns density
+                    //double column_density = dens_gas * cell_d_l;
+                    double column_density = dens_species * cell_d_l;
+
+                    if(gas->isTransZeemanSplit(i_species, i_trans))
+                    {
+                        // Total increase of the intensity along the line-of-sight
+                        double column_flux = (stokes_new.I() - old_stokes);
+
+                        // Total magnetic field strength of the current cell
+                        double mag_strength = mag_field_info.mag_field.length();
+
+                        // LOS magnetic field strength of the current cell
+                        double los_mag_strength = (pp->getDirection() * mag_field_info.mag_field);
+
+                        // Magnetic field strength in the line-of-sight direction
+                        // weighted with the intensity increase of the current
+                        // cell
+                        double column_int_mag_field_los = los_mag_strength * column_flux;
+
+                        // Total magnetic field strength weighted with the
+                        // intensity increase of the current cell
+                        double column_int_mag_field = mag_strength * column_flux;
+
+                        // Intensity weighted LOS magnetic field
+                        pp->getStokesVector(0)->addSp(column_int_mag_field_los);
+
+                        // Intensity weighted total magnetic field
+                        pp->getStokesVector(1)->addSp(column_int_mag_field);
+
+                        // Flux component for weighting
+                        pp->getStokesVector(2)->addSp(column_flux);
+
+                        if(vch == 0)
+                        {
+                            // Magnetic field strength in the line-of-sight
+                            // direction weighted with the gas density of the
+                            // current cell
+                            double column_dens_mag_field_los = los_mag_strength * column_density;
+
+                            // Total magnetic field strength weighted with the
+                            // gas density of the current cell
+                            double column_dens_mag_field = mag_strength * column_density;
+
+                            // Density weighted LOS magnetic field
+                            pp->getStokesVector(3)->addSp(column_dens_mag_field_los);
+
+                            // Density weighted magnetic field
+                            pp->getStokesVector(4)->addSp(column_dens_mag_field);
+
+                            // Column density of the total gas
+                            pp->getStokesVector(5)->addSp(column_density);
+                        }
+                    }
+                    else if(vch == 0)
+                    {
+                        // Column density of the total gas
+                        pp->getStokesVector()->addSp(column_density);
+                    }
+
+                    // Save the optical depth of each velocity channel, if
+                    // magnetic field analysis is not chosen
+                    pp->getStokesVector()->addT(-total_absorption_matrix(0, 0) * cell_d_l);
+
+                    // Update the position of the photon package
+                    pos_xyz_cell += cell_d_l * pp->getDirection();
+
+                    // Increase the sum of the cell path lengths
+                    cell_sum += cell_d_l;
+
+                    // Find a new path length
+                    cell_d_l = min(dz_new, 4 * cell_d_l);
+
+                    // If the new step would exceed the cell, make it smaller
+                    if(cell_sum + cell_d_l > len)
+                        cell_d_l = len - cell_sum;
+                }
+                else
+                {
+                    // Find a smaller path length
+                    cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                }
+            }
+        }
+    }
+}
+
+void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
+                                               const photon_package & pp,
+                                               VelFieldInterp * vel_field_interp)
+{
+    vel_field_interp->zero_vel_field = true;
+    vel_field_interp->start_pos = pp.getPosition();
+
+    if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
+    {
+        photon_package pp_interp = photon_package();
+        pp_interp.setPosition(pp.getPosition());
+        pp_interp.setDirection(pp.getDirection());
+        if(grid->findStartingPoint(&pp_interp))
+        {
+            uint counter=1;
+            Vector3D pos_in_grid_0 = pp_interp.getPosition();
+            double spline_x_old = 0;
+            while(grid->next(&pp_interp))
+            {
+                cout << CLR_LINE;
+                //cout << counter << " " << pp_interp.getPosition().Z()<<endl;
+                counter++;
+                Vector3D pos_xyz_cell =
+                    pp_interp.getPosition() - (pp_interp.getTmpPathLength() * pp_interp.getDirection());
+                Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;
+
+                const cell_basic & tmp_cell_pos = *pp_interp.getPositionCell();
+                Vector3D cell_center = grid->getCenter(tmp_cell_pos);
+
+                double length_on_line =
+                    CMathFunctions::getClosestLinePoint(pos_xyz_cell, pp_interp.getPosition(), cell_center);
+                double spline_x = length_on_line + rel_pos.length();
+
+                if((spline_x_old - spline_x) != 0.0)
+                {
+                    double spline_y = grid->getVelocityField(pp_interp) * pp_interp.getDirection();
+
+                    spline_x_old = spline_x;
+
+                    if(spline_y != 0)
+                        vel_field_interp->zero_vel_field = false;
+
+                    vel_field_interp->vel_field.setDynValue(spline_x, spline_y);
+                }
+            }
+        }
+        vel_field_interp->vel_field.createDynSpline();
     }
 }

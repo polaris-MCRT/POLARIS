@@ -19,7 +19,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
     }
     else
     {
@@ -516,7 +516,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density && !is_ext)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
     else
     {
         // Init variables
@@ -1035,7 +1035,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") ISRF initiated with " << nr_of_photons
-             << " photons per wavelength"
+             << " photons FOR EACH wavelength"
              << "      " << endl;
     }
     else
@@ -1269,6 +1269,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     float last_percentage = 0;
 
     // Show Initial message
+    cout << CLR_LINE;
     cout << "-> Initiating dust grain emission          \r" << flush;
 
     for(uint w = 0; w < nr_of_wavelengths; w++)
@@ -1283,7 +1284,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
         total_energy[w] = 0;
         cell_prob[w].setValue(0, total_energy[w]);
 
-#pragma omp parallel for schedule(dynamic)
+// Causes problems. Find better solution!
+//#pragma omp parallel for schedule(dynamic)
         for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
             // Increase counter used to show progress
@@ -1295,9 +1297,9 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
+//#pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                    cout << "-> Calculating prob. distribution for dust source: " << percentage << " [%]    \r"
                          << flush;
                     last_percentage = percentage;
                 }
@@ -1318,8 +1320,9 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     }
 
     // Show information
-    cout << "- Source (" << id + 1 << " of " << max << ") DUST: photons per wavelength: " << nr_of_photons
-         << "      " << endl;
+    cout << CLR_LINE;
+    cout << "- Source (" << id + 1 << " of " << max
+         << ") DUST: photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
 
     return true;
 }
@@ -1348,7 +1351,8 @@ bool CSourceDust::initSource(uint w)
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
-#pragma omp parallel for schedule(dynamic)
+// Causes problems. Find better solution!
+//#pragma omp parallel for schedule(dynamic)
     for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
     {
         // Increase counter used to show progress
@@ -1360,7 +1364,7 @@ bool CSourceDust::initSource(uint w)
         // Show only new percentage number if it changed
         if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
-#pragma omp critical
+//#pragma omp critical
             {
                 cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
                      << flush;
@@ -1397,7 +1401,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd) + 1;
+    ulong i_cell = cell_prob[w].getIndex(rnd);
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
@@ -1411,7 +1415,7 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));
 
-    // Init coordinate System for scattering
+    // // Init coordinate System for polarization
     pp->initCoordSystem();
 }
 
@@ -1424,7 +1428,7 @@ void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd) + 1;
+    ulong i_cell = cell_prob[w].getIndex(rnd);
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
@@ -1479,7 +1483,7 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
         grid->next(pp);
 
         // Invert direction
-        pp->setDirection(-1 * pp->getDirection());
+        pp->multDirection(-1);
 
         // Go into cell again
         grid->next(pp);
@@ -1487,11 +1491,14 @@ void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_
     else
     {
         // Move photon along the path outwards the grid
-        pp->setPosition(pp->getDirection() + pp->getDirection() * grid->maxLength());
+        pp->addPosition(pp->getDirection() * grid->maxLength());
 
         // Invert direction
-        pp->setDirection(-1 * pp->getDirection());
+        pp->multDirection(-1);
     }
+
+    // // Init coordinate System for polarization
+    pp->initCoordSystem();
 }
 
 bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
@@ -1505,7 +1512,7 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
              << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
-        cout << "    photons per wavelength: " << nr_of_photons << "      " << endl;
+        cout << "    photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
         // cout << "\nERROR: Laser source cannot be used for dust temperature calculation!\n" << endl;
         // return false;
     }
