@@ -3732,14 +3732,10 @@ void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
         pp_interp.setDirection(pp.getDirection());
         if(grid->findStartingPoint(&pp_interp))
         {
-            uint counter=1;
             Vector3D pos_in_grid_0 = pp_interp.getPosition();
             double spline_x_old = 0;
             while(grid->next(&pp_interp))
             {
-                cout << CLR_LINE;
-                //cout << counter << " " << pp_interp.getPosition().Z()<<endl;
-                counter++;
                 Vector3D pos_xyz_cell =
                     pp_interp.getPosition() - (pp_interp.getTmpPathLength() * pp_interp.getDirection());
                 Vector3D rel_pos = pos_xyz_cell - pos_in_grid_0;

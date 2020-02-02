@@ -212,8 +212,8 @@ using namespace std;
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
 
-#define EPS_DOUBLE numeric_limits<double>::epsilon()
-#define EPS_FLOAT numeric_limits<float>::epsilon()
+//#define EPS_DOUBLE numeric_limits<double>::epsilon()
+//#define EPS_FLOAT numeric_limits<float>::epsilon()
 
 // grid types
 #define GRID_ID_OCT 20
