@@ -153,6 +153,10 @@ class CRadiativeTransfer
 
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
+    
+    // Temperature calculation with polychromatic photons
+    bool calcMonteCarloRadiationFieldPoly(uint command, bool use_energy_density, bool disable_reemission = false);
+    
     // Set temperature (old!)
     bool setTemperatureDistribution();
     
@@ -259,6 +263,13 @@ class CRadiativeTransfer
         {
             grid->updateSpecLength(pp, energy);
         }
+    }
+    
+    void updateRadiationField(photon_polychrom * pp)
+    {
+        // Only update SpecLength in case of polychromatic packages
+        double energy = pp->getTmpPathLength() * pp->getStokesVector().I() * pp->getSingleIntensity(pp->getWavelengthID());
+        grid->updateSpecLength(pp, energy);
     }
 
     void setGrid(CGridBasic * _grid)

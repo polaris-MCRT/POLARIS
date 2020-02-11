@@ -131,6 +131,9 @@ class CSourceBasic
 
     virtual void createNextRay(photon_basic * pp, ullong i_pos)
     {}
+    
+    virtual void createSpectrum(photon_polychrom * pp)
+    {}
 
     virtual void createDirectRay(photon_basic * pp, Vector3D dir_obs = Vector3D())
     {}
@@ -198,6 +201,9 @@ class CSourceStar : public CSourceBasic
     bool initSource(uint id, uint max, bool use_energy_density);
 
     void createNextRay(photon_basic * pp, ullong i_pos);
+    
+    void createSpectrum(photon_polychrom * pp);
+    
     void createDirectRay(photon_basic * pp, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);

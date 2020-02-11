@@ -73,7 +73,7 @@ using namespace std;
 #define MIN_LEN_STEP 1e-6
 #define ACC_SELECT_LEVEL 1.0e-6
 #define DIFF_GAMMA 7.00
-#define PERCENTAGE_STEP 0.01
+#define PERCENTAGE_STEP 0.1
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define rel_err 1.0e-6
@@ -145,6 +145,7 @@ using namespace std;
 #define CMD_OPIATE 8
 #define CMD_SYNCHROTRON 9
 #define CMD_DUST_TIME 10
+#define CMD_TEMP_POLY 11
 
 // PDA IDs
 #define PDA_TEMP 0

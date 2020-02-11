@@ -3374,6 +3374,53 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
     return true;
 }
 
+bool CDustComponent::adjustTempAndWavelengthBWPoly(CGridBasic * grid,
+                                               photon_polychrom * pp,
+                                               uint i_density,
+                                               bool use_energy_density)
+{
+    // Init variables
+    double t_dust_new = 0;
+    uint wIDnew = 0;
+    uint tIDnew = 0;
+
+    // Get random number for wavelength of reemitting photon
+    double rnd1 = pp->getRND();
+
+    // Get the interacting dust grain size
+    uint a = getInteractingDust(grid, pp);
+
+    // Get dust temperature of the emitting grains in current cell
+    t_dust_new = updateDustTemperature(grid, pp, i_density, a, use_energy_density);
+
+    // If new dust grain temperature is larger zero -> start reemission
+    if(t_dust_new > 0)
+    {
+        // Find temperature ID for the obtained temperature
+        tIDnew = findTemperatureID(t_dust_new);
+
+        // Pick a random wavelength from plank distribution related to the temperature
+        wIDnew = findWavelengthID(a, tIDnew, rnd1);
+    }
+    else
+        return false;
+
+    // Mol3D uses the upper value of the wavelength interval,
+    // used for the selection of the emitting wavelengths from source!
+    pp->setWavelengthID(wIDnew + 1);
+    
+    // Scale photon spectrum from plank distribution related to the temperature
+    pp->setSingleIntensity(nr_of_wavelength-1,0.0);
+    for(uint w = 0; w < nr_of_wavelength-1; w++)
+    {
+        double pl = avg_planck_frac[tIDnew*nr_of_dust_species+a].X(w+1)-avg_planck_frac[tIDnew*nr_of_dust_species+a].X(w);
+        
+        pp->setSingleIntensity(w,pl);
+    }
+    
+    return true;
+}
+
 double CDustComponent::updateDustTemperature(CGridBasic * grid,
                                              photon_basic * pp,
                                              uint i_density,
@@ -3535,7 +3582,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
         // Get average absorption rate via interpolation
         double avg_abs_rate =
             CMathFunctions::integ_dust_size(a_eff, abs_rate, nr_of_dust_species, a_min, a_max);
-
+            
         // Calculate average temperature from absorption rate
         avg_temp = findTemperature(grid, cell, avg_abs_rate);
     }
@@ -4647,7 +4694,7 @@ void CDustComponent::henyeygreen(photon_basic * pp, uint a, bool adjust_stokes)
     }
 }
 
-void CDustComponent::miesca(photon_basic * pp, uint a, bool adjust_stokes)
+void CDustComponent::miesca(photon_basic * pp, uint a, bool adjust_stokes, bool polychrom)
 {
     // Init variables
     double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
@@ -4764,6 +4811,21 @@ void CDustComponent::miesca(photon_basic * pp, uint a, bool adjust_stokes)
 
         pp->setStokesVector(tmp_stokes);
     }
+    
+    if(polychrom)
+    {
+        // Weight spectrum of polychromatic photon packages
+        double angle_weight = 0;
+        double phase_ref = getScatteredFraction(a,w,theta);
+        
+        
+        for(uint i = 0; i < nr_of_wavelength; i++)
+        {
+            angle_weight = getScatteredFraction(a,i,theta)/phase_ref;
+            pp->weightSingleIntensity(i,angle_weight);
+        }
+    }
+    
 }
 
 bool CDustMixture::createDustMixtures(parameters & param, string path_data, string path_plot)

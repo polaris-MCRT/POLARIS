@@ -1097,7 +1097,7 @@ class CDustComponent
         return phase_pdf[a][w].getValue(sth);
     }
 
-    void scatter(CGridBasic * grid, photon_basic * pp, bool adjust_stokes = false)
+    void scatter(CGridBasic * grid, photon_basic * pp, bool adjust_stokes = false, bool polychrom = false)
     {
         switch(phID)
         {
@@ -1111,7 +1111,7 @@ class CDustComponent
             case PH_MIE:
             {
                 uint a = getInteractingDust(grid, pp, CROSS_SCA);
-                miesca(pp, a, adjust_stokes);
+                miesca(pp, a, adjust_stokes, polychrom);
                 break;
             }
 
@@ -1629,6 +1629,7 @@ class CDustComponent
     double getAbsRate(CGridBasic * grid, cell_basic * cell, uint a, bool use_energy_density)
     {
         double abs_rate = 0;
+
         if(use_energy_density)
         {
             double * sp_energy = new double[nr_of_wavelength];
@@ -2143,7 +2144,7 @@ class CDustComponent
     void preCalcEffProperties(parameters & param);
 
     void henyeygreen(photon_basic * pp, uint a, bool adjust_stokes = false);
-    void miesca(photon_basic * pp, uint a, bool adjust_stokes = false);
+    void miesca(photon_basic * pp, uint a, bool adjust_stokes = false, bool polychrom = false);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
     void preCalcAbsorptionRates();
@@ -2158,6 +2159,10 @@ class CDustComponent
                          bool use_gas_temp);
     bool adjustTempAndWavelengthBW(CGridBasic * grid,
                                    photon_basic * pp,
+                                   uint i_density,
+                                   bool use_energy_density);
+    bool adjustTempAndWavelengthBWPoly(CGridBasic * grid,
+                                   photon_polychrom * pp,
                                    uint i_density,
                                    bool use_energy_density);
     double updateDustTemperature(CGridBasic * grid,
@@ -2744,6 +2749,17 @@ class CDustMixture
         }
         return false;
     }
+    
+    bool adjustTempAndWavelengthBWPoly(CGridBasic * grid, photon_polychrom * pp, bool use_energy_density)
+    {
+        if(mixed_component != 0)
+        {
+            uint i_mixture = getEmittingMixture(grid, pp);
+            return mixed_component[i_mixture].adjustTempAndWavelengthBWPoly(
+                grid, pp, i_mixture, use_energy_density);
+        }
+        return false;
+    }
 
     void calcAlignedRadii(CGridBasic * grid, cell_basic * cell)
     {
@@ -3292,12 +3308,12 @@ class CDustMixture
         return 0;
     }
 
-    void scatter(CGridBasic * grid, photon_basic * pp, bool adjust_stokes = false)
+    void scatter(CGridBasic * grid, photon_basic * pp, bool adjust_stokes = false, bool polychrom = false)
     {
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp);
-            mixed_component[i_mixture].scatter(grid, pp, adjust_stokes);
+            mixed_component[i_mixture].scatter(grid, pp, adjust_stokes, polychrom);
         }
     }
 

@@ -399,6 +399,11 @@ uint CGridBasic::validateDataPositions(parameters & param)
             if(CheckTemp(param, tmp_data_offset) == MAX_UINT)
                 return MAX_UINT;
             break;
+            
+        case CMD_TEMP_POLY:
+            if(CheckTemp(param, tmp_data_offset) == MAX_UINT)
+                return MAX_UINT;
+            break;
 
         case CMD_TEMP_RAT:
             if(CheckTemp(param, tmp_data_offset) == MAX_UINT)

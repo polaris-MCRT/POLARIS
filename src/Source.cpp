@@ -27,7 +27,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 
         star_emi.push_back(sp_energy);
     }
-
+    
     tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
     L = tmp_luminosity;
 
@@ -198,6 +198,16 @@ void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
+}
+
+void CSourceStar::createSpectrum(photon_polychrom * pp)
+{
+    // Initiates spectrum for polychromatic photons
+    for(uint w = 0; w < getNrOfWavelength()-1; w++)
+    {
+        pp->addToSpectrum(lam_pf.getX(w+1) - lam_pf.getX(w));
+    }
+    pp->addToSpectrum(0.0);
 }
 
 void CSourceStar::createDirectRay(photon_basic * pp, Vector3D dir_obs)

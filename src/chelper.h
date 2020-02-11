@@ -655,7 +655,7 @@ class parameters
 
     bool isMonteCarloSimulation()
     {
-        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT ||
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_POLY || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_RAT ||
            getCommand() == CMD_DUST_TIME) 
             return true;
         return false;
@@ -671,7 +671,7 @@ class parameters
 
     bool isTemperatureSimulation()
     {
-        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_DUST_TIME)
+        if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_POLY || getCommand() == CMD_TEMP_RAT || getCommand() == CMD_DUST_TIME)
             return true;
         return false;
     }
@@ -2605,6 +2605,9 @@ class photon_basic
         stokes.set(1, 0, 0, 0, 0);
     }
     
+    virtual void weightSingleIntensity(uint i, double weight)
+    {}
+    
     void initRandomGenerator(ullong seed)
     {
         rand_gen.setSeed(seed);
@@ -3060,5 +3063,53 @@ class photon_package : public photon_basic
     
     // total path length for time dependent scattering
     double dl;
+};
+
+class photon_polychrom : public photon_basic
+{
+    // Polychromatic photon_package for fast temperature calculations
+    public:
+        photon_polychrom()
+        {}
+        
+        ~photon_polychrom()
+        {
+                vector<double>().swap(spectrum);
+                spectrum.clear();
+        }
+        
+        void setSpectrum(dlist tmp_spec)
+        {
+            spectrum = tmp_spec;
+        }
+        
+        dlist getSpectrum()
+        {
+            return spectrum;
+        }
+        
+        void addToSpectrum(double intensity)
+        {
+            // Add Intensity to spectrum
+            spectrum.push_back(intensity);
+        }
+        
+        void setSingleIntensity(uint i, double intensity)
+        {
+            spectrum[i] = intensity;
+        }
+        
+        double getSingleIntensity(uint i)
+        {
+            return spectrum[i];
+        }
+        
+        void weightSingleIntensity(uint i, double weight)
+        {
+            spectrum[i] *= weight;
+        }
+        
+    private:
+        dlist spectrum;
 };
 #endif
