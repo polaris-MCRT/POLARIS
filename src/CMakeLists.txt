@@ -28,10 +28,10 @@ INCLUDE_DIRECTORIES (${CMAKE_CURRENT_LIST_DIR})
 INCLUDE_DIRECTORIES (${PROJECT_PATH}/lib/)
 INCLUDE_DIRECTORIES (${PROJECT_PATH}/lib/cfitsio/)
 
-SET (SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp 
-    Faddeeva.cc Grid.cpp GasSpecies.cpp OcTree.cpp Pipeline.cpp 
-    RadiativeTransfer.cpp Source.cpp Spherical.cpp Voronoi.cpp 
-    main.cpp Synchrotron.cpp
+SET (SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp
+    Faddeeva.cc Grid.cpp GasSpecies.cpp OcTree.cpp OPIATE.cpp
+    Pipeline.cpp RadiativeTransfer.cpp Source.cpp Spherical.cpp
+    Voronoi.cpp main.cpp Synchrotron.cpp
 )
 
 ADD_EXECUTABLE (polaris ${SRC_FILES})
