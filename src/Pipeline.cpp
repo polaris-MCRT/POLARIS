@@ -47,7 +47,7 @@ bool CPipeline::Init(int argc, char ** argv)
     }
     cout << SEP_LINE;
 
-    /*if(argc != 2)
+    if(argc != 2)
     {
         cout << "\nERROR: Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -55,10 +55,10 @@ bool CPipeline::Init(int argc, char ** argv)
         return false;
     }
 
-    CCommandParser parser(argv[1]); /**/
+    CCommandParser parser(argv[1]);
 
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/first/cmd_file_4");
-    CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/opiate/cmd_file");
+    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/opiate/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/daniel/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/En/cmd_file");
     //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/Ann/cmd_file_syn");
@@ -530,16 +530,16 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     CDustMixture * dust = new CDustMixture();
     //CGasMixture * gas = new CGasMixture();
     COpiateDataBase * op = new COpiateDataBase();
-    
+
     if(!createOutputPaths(param.getPathOutput()))
         return false;
 
     if(!assignGridType(grid, param))
         return false;
-    
+
     if(!op->readOpiateDataBase(param))
         return false;
-    
+
     if(!createWavelengthList(param, dust, 0, op))
         return false;
 
@@ -552,7 +552,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
         return false;
 
     grid->createCellList();
-    
+
     // Print helpfull information
     dust->printParameters(param, grid);
     //gas->printParameters(param, grid);
@@ -753,7 +753,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
         double sideLength_x = dust_mc_detectors[i + 6];
         double sideLength_y = dust_mc_detectors[i + 7];
-        
+
         double map_shift_x = dust_mc_detectors[i + 8];
         double map_shift_y = dust_mc_detectors[i + 9];
 
@@ -1366,7 +1366,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
         case CMD_RAT:
             dust->addToWavelengthGrid(WL_MIN, WL_MAX, WL_STEPS);
             break;
-            
+
         case CMD_DUST_EMISSION:
             // Add wavelength for stochastic heating
             if(param.getStochasticHeatingMaxSize() > 0)
@@ -1461,8 +1461,8 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             }
             break;
         }
-        
-        case CMD_OPIATE:     
+
+        case CMD_OPIATE:
             // Get detector parameters list
             values = param.getOPIATERayDetectors();
 
@@ -1472,7 +1472,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 cout << "\nERROR: No OPIATE detector defined (see <detector_opiate>)!" << endl;
                 return false;
             }
-            
+
             for(uint i=0;i<param.getNrOfOPIATESpecies();i++)
             {
                 string spec_name=param.getOpiateSpec(i);
@@ -1483,12 +1483,12 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 }
                 else
                 {
-                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl; 
+                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl;
                     cout << "         Check the command \"<detector_opiate>\" in command file!" << endl;
                     return false;
                 }
             }
-            
+
             break;
 
         case CMD_SYNCHROTRON:
