@@ -348,7 +348,7 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
     // Init array of tracer base class pointer
     nr_ray_detectors = param.getNrOfOPIATESpecies();
     tracer = new CRaytracingBasic *[nr_ray_detectors];
-    
+
     dlist op_ray_detectors = param.getOPIATERayDetectors();
 
     for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
@@ -383,7 +383,7 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
                 tracer[i_det] = new CRaytracingSlice(grid);
                 break;
         }
-        
+
         if(!tracer[i_det]->setOPIATEDetector(pos, param, op_ray_detectors, pathOutput, max_length))
             return false;
     }
@@ -2481,16 +2481,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             // Get emission from background source
             pp->getStokesVector()->set(tmp_source->getStokesVector(pp));
         }
-    };
+    }
 
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp))
-    {
         while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
-        {
             rayThroughCellDust(pp, i_det, nr_used_wavelengths);
-        }
-    }
 
     // Update the multi Stokes vectors for each wavelength
     for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
@@ -2792,10 +2788,10 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
         // Get total number of pixel
         uint per_max = tracer[i_det]->getNpix();
         string spec_name=param.getOpiateSpec(i_det);
-        
+
         if(!op->findIndexByName(spec_name))
             return false;
-    
+
         // Get BG source
         uint sID = tracer[i_det]->getSourceIndex();
         CSourceBasic * tmp_source;
@@ -2849,7 +2845,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 
         //if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))
         //    return false;
-        
+
     }
 
     cout << CLR_LINE;

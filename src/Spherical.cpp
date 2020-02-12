@@ -335,7 +335,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
             center_cell->setThID(MAX_UINT);
             center_cell->resize(data_len + tmp_data_offset);
             tmp_cell = center_cell;
-            tmp_cell->setID(0);
+            tmp_cell->setID(max_cells);
             r_counter++;
         }
         else
@@ -1691,17 +1691,20 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
         return positionPhotonInGrid(pp);
 
     double tmp_length[2];
-    double min_length = 1e200;
+    double path_length = 1e300;
     bool hit = false;
 
+    double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+
     double B = 2 * p * d;
-    double C = p.sq_length() - Rmax * Rmax;
+    double C = p.sq_length() - r2 * r2;
     double dscr = B * B - 4 * C;
 
     if(dscr >= 0)
     {
         dscr = sqrt(dscr);
-        tmp_length[0] = (-B + dscr) / 2;
+        // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+        tmp_length[0] = 1e200;
         tmp_length[1] = (-B - dscr) / 2;
     }
     else
@@ -1712,9 +1715,9 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
 
     for(uint i = 0; i < 2; i++)
     {
-        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+        if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
         {
-            min_length = tmp_length[i];
+            path_length = tmp_length[i];
             hit = true;
         }
     }
@@ -1722,7 +1725,6 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     if(!hit)
         return false;
 
-    double path_length = min_length + 1e-3 * min_len;
     pp->setPosition(p + d * path_length);
     pp->setDirectionID(MAX_UINT);
     return positionPhotonInGrid(pp);

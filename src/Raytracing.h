@@ -43,7 +43,7 @@ class CRaytracingBasic
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-        
+
         rad_bubble = 0;
 
         distance = 0;
@@ -88,7 +88,7 @@ class CRaytracingBasic
     {
         return false;
     }
-    
+
     virtual bool setOPIATEDetector(uint pos,
                                  const parameters & param,
                                  dlist op_ray_detectors,
@@ -280,7 +280,7 @@ class CRaytracingBasic
 
         // Add first package of photons to detector
         addToDetector(pp1, i_pix, direct);
-        
+
         // Add second package of photons to detector
         addToDetector(pp2, i_pix, direct);
     }
@@ -637,8 +637,8 @@ class CRaytracingCartesian : public CRaytracingBasic
 
         return true;
     }
-    
-    
+
+
     bool setOPIATEDetector(uint pos,
                          const parameters & param,
                          dlist op_ray_detectors,
@@ -662,7 +662,7 @@ class CRaytracingCartesian : public CRaytracingBasic
 
         double tmp_angle1 = op_ray_detectors[pos + 2];
         double tmp_angle2 = op_ray_detectors[pos + 3];
-        
+
         rot_angle1 = PI / 180.0 * tmp_angle1;
         rot_angle2 = PI / 180.0 * tmp_angle2;
 
@@ -730,8 +730,8 @@ class CRaytracingCartesian : public CRaytracingBasic
 
         if(subpixel_lvl < max_subpixel_lvl)
         {
-            // Init sum of indices
-            ulong ID_sum_1 = 0;
+            // Init vector of indices
+            uilist ID_1;
 
             // Create new photon package with wavelength index wID and position it in
             // model
@@ -743,18 +743,17 @@ class CRaytracingCartesian : public CRaytracingBasic
             {
                 while(grid->next(&pp))
                 {
-                    // Add the index of each cell along the path onto ID_sum_1
-                    ID_sum_1 += pp.getPositionCell()->getUniqueID();
+                    // Push the index of each cell along the path into ID_1
+                    ID_1.push_back(pp.getPositionCell()->getUniqueID());
                 }
             }
 
-            // Delete photon package after usage
             for(int i_sub_x = -1; i_sub_x <= 1 && subpixel == false; i_sub_x += 2)
             {
                 for(int i_sub_y = -1; i_sub_y <= 1 && subpixel == false; i_sub_y += 2)
                 {
-                    // Init sum of indices
-                    ulong ID_sum_2 = 0;
+                    // Init vector of indices
+                    uilist ID_2;
 
                     // Calculate positions of each subpixel
                     double tmp_cx, tmp_cy;
@@ -770,13 +769,13 @@ class CRaytracingCartesian : public CRaytracingBasic
                     {
                         while(grid->next(&pp))
                         {
-                            // Add the index of each cell along the path onto ID_sum_2
-                            ID_sum_2 += pp.getPositionCell()->getUniqueID();
+                            // Push the index of each cell along the path into ID_2
+                            ID_2.push_back(pp.getPositionCell()->getUniqueID());
                         }
                     }
 
-                    // If any subpixel travel through other cells, perform subpixelling
-                    if(ID_sum_1 != ID_sum_2)
+                    // If any subpixel travel through different cells, perform subpixeling
+                    if(ID_1 != ID_2)
                     {
                         subpixel = true;
                         break;
@@ -874,10 +873,10 @@ class CRaytracingHealPix : public CRaytracingBasic
         sx = dust_ray_detectors[pos + 4];
         sy = dust_ray_detectors[pos + 5];
         sz = dust_ray_detectors[pos + 6];
-        
+
         double tmp_l_min = dust_ray_detectors[pos + 7];
         double tmp_l_max = dust_ray_detectors[pos + 8];
-        
+
         double tmp_b_min = dust_ray_detectors[pos + 9];
         double tmp_b_max = dust_ray_detectors[pos + 10];
 
@@ -885,7 +884,7 @@ class CRaytracingHealPix : public CRaytracingBasic
         l_max = PI * (-dust_ray_detectors[pos + 7] + 180.0) / 180.0;
         b_min = PI * (-dust_ray_detectors[pos + 10] + 90.0) / 180;
         b_max = PI * (-dust_ray_detectors[pos + 9] + 90.0) / 180;
-        
+
         if(dust_ray_detectors[pos + 11]>0)
             rad_bubble = dust_ray_detectors[pos + 11];
 
@@ -935,10 +934,10 @@ class CRaytracingHealPix : public CRaytracingBasic
         sx = sync_ray_detectors[pos + 4];
         sy = sync_ray_detectors[pos + 5];
         sz = sync_ray_detectors[pos + 6];
-        
+
         double tmp_l_min = sync_ray_detectors[pos + 7];
         double tmp_l_max = sync_ray_detectors[pos + 8];
-        
+
         double tmp_b_min = sync_ray_detectors[pos + 9];
         double tmp_b_max = sync_ray_detectors[pos + 10];
 
@@ -946,7 +945,7 @@ class CRaytracingHealPix : public CRaytracingBasic
         l_max = PI * (-sync_ray_detectors[pos + 7] + 180.0) / 180.0;
         b_min = PI * (-sync_ray_detectors[pos + 10] + 90.0) / 180;
         b_max = PI * (-sync_ray_detectors[pos + 9] + 90.0) / 180;
-        
+
         if(sync_ray_detectors[pos + 11]>0)
             rad_bubble = sync_ray_detectors[pos + 11];
 
@@ -2009,7 +2008,7 @@ class CRaytracingSlice : public CRaytracingBasic
 
         return true;
     }
-    
+
     bool getRelPositionMap(int i_pix, double & cx, double & cy)
     {
         int y = (i_pix % map_pixel_y);

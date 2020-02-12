@@ -70,7 +70,7 @@ using namespace std;
 #define MAX_LVG_ITERATIONS 200
 #define MAX_INTERACTION 1500000000
 #define MAX_RT_RAYS 1e7
-#define MIN_LEN_STEP 1e2
+#define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
 #define PERCENTAGE_STEP 0.001
