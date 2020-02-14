@@ -1343,7 +1343,6 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
     if(dirID < 6 && pp->getPositionCell() != 0)
     {
         cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
-        bool skip = false;
 
         rID = tmp_cell->getRID();
         thID = tmp_cell->getThID();
@@ -1424,7 +1423,6 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
     bool hit = false;
     double path_length = 1e300;
-    double tmp_length[4];
     uint dirID = MAX_UINT;
 
     uint rID = tmp_cell->getRID();
@@ -1439,17 +1437,13 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double dscr = B * B - 4 * C;
 
         dscr = sqrt(dscr);
-        tmp_length[0] = (-B + dscr) / 2;
-        tmp_length[1] = 1e200;
+        double length = (-B + dscr) / 2;
 
-        for(uint i = 0; i < 2; i++)
+        if(length > 0 && length < path_length)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
-            {
-                path_length = tmp_length[i];
-                hit = true;
-                dirID = 1;
-            }
+            path_length = length;
+            hit = true;
+            dirID = 1;
         }
     }
     else
@@ -1470,32 +1464,29 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         // dscr2 is always >= 0
         double dscr2 = B_sq - 4 * C2;
 
-        if(dscr1 >= 0)
+        if(dscr1 > 0)
         {
             dscr1 = sqrt(dscr1);
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-            tmp_length[0] = 1e200;
-            tmp_length[1] = (-B - dscr1) / 2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
+            double length = (-B - dscr1) / 2;
+
+            if(length > 0 && length < path_length)
+            {
+                path_length = length;
+                hit = true;
+                dirID = 0;
+            }
         }
 
         dscr2 = sqrt(dscr2);
-        tmp_length[2] = (-B + dscr2) / 2;
         // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
-        tmp_length[3] = 1e200;
+        double length = (-B + dscr2) / 2;
 
-        for(uint i = 0; i < 4; i++)
+        if(length != 0 && length < path_length)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
-            {
-                path_length = tmp_length[i];
-                hit = true;
-                dirID = uint(i / 2.0);
-            }
+            path_length = length;
+            hit = true;
+            dirID = 1;
         }
 
         // --- Theta cell borders ---
@@ -1515,26 +1506,15 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         {
             dscr3 = sqrt(dscr3);
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-            tmp_length[0] = 1e200;
-            tmp_length[1] = (-B1 - dscr3) / A1;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+            double length = (-B1 - dscr3) / A1;
 
-        for(uint i = 0; i < 2; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
-            {
-                if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
+            if(length > 0 && length < path_length)
+                if((p.Z() + d.Z() * length) * cos_th1 > 0)
                 {
-                    path_length = tmp_length[i];
+                    path_length = length;
                     hit = true;
                     dirID = 2;
                 }
-            }
         }
 
         double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
@@ -1551,36 +1531,28 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         if(A2 > 0)
         {
             dscr4 = sqrt(dscr4);
-            tmp_length[0] = (-B2 + dscr4) / A2;
-        }
-        else
-            tmp_length[0] = 1e200;
-        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
-        tmp_length[1] = 1e200;
+            double length = (-B2 + dscr4) / A2;
 
-        for(uint i = 0; i < 2; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
-            {
-                if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
+            if(length > 0 && length < path_length)
+                if((p.Z() + d.Z() * length) * cos_th2 > 0)
                 {
-                    path_length = tmp_length[i];
+                    path_length = length;
                     hit = true;
                     dirID = 3;
                 }
-            }
         }
 
         // --- Phi cell borders ---
         if(N_ph > 1)
         {
+            uint phID = tmp_cell->getPhID();
+
             double r = sqrt(p.sq_length());
             double rho = sqrt(p.X() * p.X() + p.Y() * p.Y());
 
             double sin_th = rho / r;
             double cos_th = p.Z() / r;
 
-            uint phID = tmp_cell->getPhID();
             double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
             double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
@@ -1597,11 +1569,11 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             if(den1 != 0)
             {
                 double num = v_n1 * (p - v_a1);
-                double tmp_length = -num / den1;
+                double length = -num / den1;
 
-                if(tmp_length >= 0 && tmp_length < path_length)
+                if(length > 0 && length < path_length)
                 {
-                    path_length = tmp_length;
+                    path_length = length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1614,11 +1586,11 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             if(den2 != 0)
             {
                 double num = v_n2 * (p - v_a2);
-                double tmp_length = -num / den2;
+                double length = -num / den2;
 
-                if(tmp_length >= 0 && tmp_length < path_length)
+                if(length > 0 && length < path_length)
                 {
-                    path_length = tmp_length;
+                    path_length = length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1690,7 +1662,6 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     if(isInside(p))
         return positionPhotonInGrid(pp);
 
-    double tmp_length[2];
     double path_length = 1e300;
     bool hit = false;
 
@@ -1704,20 +1675,11 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     {
         dscr = sqrt(dscr);
         // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-        tmp_length[0] = 1e200;
-        tmp_length[1] = (-B - dscr) / 2;
-    }
-    else
-    {
-        tmp_length[0] = 1e200;
-        tmp_length[1] = 1e200;
-    }
+        double length = (-B - dscr) / 2;
 
-    for(uint i = 0; i < 2; i++)
-    {
-        if(tmp_length[i] >= 0 && tmp_length[i] < path_length)
+        if(length > 0 && length < path_length)
         {
-            path_length = tmp_length[i];
+            path_length = length;
             hit = true;
         }
     }
