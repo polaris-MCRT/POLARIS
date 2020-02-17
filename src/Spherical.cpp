@@ -335,7 +335,7 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
             center_cell->setThID(MAX_UINT);
             center_cell->resize(data_len + tmp_data_offset);
             tmp_cell = center_cell;
-            tmp_cell->setID(max_cells);
+            tmp_cell->setID(line_counter);
             r_counter++;
         }
         else
@@ -901,12 +901,6 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
                 line_counter++;
 
-                double scale = 0;
-
-                double dr = listR[i_r + 1] - listR[i_r];
-                double dph = listPh[i_ph + 1] - listPh[i_ph];
-                double dth = listTh[i_th + 1] - listTh[i_th];
-
                 if(line_counter % nrOfGnuPoints == 0)
                 {
                     if(plt_gas_dens)
@@ -1431,13 +1425,14 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
     {
         double r2 = Rmin * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
-        double B = 2 * p * d;
+        double B = p * d;
         double C = p.sq_length() - r2 * r2;
         // dscr is always positive, we are inside the inner cell
-        double dscr = B * B - 4 * C;
+        double dscr = B * B - C;
 
         dscr = sqrt(dscr);
-        double length = (-B + dscr) / 2;
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        double length = -B + dscr;
 
         if(length > 0 && length < path_length)
         {
@@ -1454,21 +1449,21 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         double r2 = listR[rID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double p_sq = p.sq_length();
-        double B = 2 * p * d;
+        double B = p * d;
         double B_sq = pow(B, 2);
 
         double C1 = p_sq - r1 * r1;
         double C2 = p_sq - r2 * r2;
 
-        double dscr1 = B_sq - 4 * C1;
+        double dscr1 = B_sq - C1;
         // dscr2 is always >= 0
-        double dscr2 = B_sq - 4 * C2;
+        double dscr2 = B_sq - C2;
 
         if(dscr1 > 0)
         {
             dscr1 = sqrt(dscr1);
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-            double length = (-B - dscr1) / 2;
+            double length = -B - dscr1;
 
             if(length > 0 && length < path_length)
             {
@@ -1480,7 +1475,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         dscr2 = sqrt(dscr2);
         // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
-        double length = (-B + dscr2) / 2;
+        double length = -B + dscr2;
 
         if(length != 0 && length < path_length)
         {
@@ -1490,56 +1485,77 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
         }
 
         // --- Theta cell borders ---
-        uint thID = tmp_cell->getThID();
-
-        double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
-        double cos_th1 = cos(th1);
-        double cos_th1_sq = cos_th1 * cos_th1;
-
-        double A1 = d.Z() * d.Z() - cos_th1_sq;
-        double B1 = d.Z() * p.Z() * (1 - cos_th1_sq) - cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y());
-        double C3 = p.Z() * p.Z() * (1 - cos_th1_sq) - cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y());
-
-        double dscr3 = B1 * B1 - A1 * C3;
-
-        if(dscr3 >= 0 && A1 > 0)
+        if(N_th > 1)
         {
-            dscr3 = sqrt(dscr3);
-            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-            double length = (-B1 - dscr3) / A1;
+            uint thID = tmp_cell->getThID();
 
-            if(length > 0 && length < path_length)
-                if((p.Z() + d.Z() * length) * cos_th1 > 0)
+            double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+            double cos_th1 = cos(th1);
+
+            // For the inner theta border, d.Z must be larger than cos(th1)
+            // Otherwise photon will not hit the border
+            // If equal: path is parallel to theta cell border
+            if(cos_th1 < d.Z())
+            {
+                double cos_th1_sq = cos_th1 * cos_th1;
+                double A1 = cos_th1_sq - d.Z() * d.Z();
+                double B1 = cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th1_sq);
+                double C3 = cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th1_sq);
+
+                double dscr3 = B1 * B1 - A1 * C3;
+
+                // dscr < 0 should not happen, but might if d.Z = 1, p = p.Z, and th1 = 0 or PI
+                if(dscr3 >= 0)
                 {
-                    path_length = length;
-                    hit = true;
-                    dirID = 2;
+                    dscr3 = sqrt(dscr3);
+
+                    double length[2];
+                    length[0] = (-B1 + dscr3) / A1;
+                    length[1] = (-B1 - dscr3) / A1;
+
+                    for(uint i=0; i<2; i++)
+                        if(length[i] > 0 && length[i] < path_length)
+                        {
+                            path_length = length[i];
+                            hit = true;
+                            dirID = 2;
+                        }
                 }
-        }
+            }
 
-        double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
-        double cos_th2 = cos(th2);
-        double cos_th2_sq = cos_th2 * cos_th2;
+            double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+            double cos_th2 = cos(th2);
 
-        double A2 = d.Z() * d.Z() - cos_th2_sq;
-        double B2 = d.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y());
-        double C4 = p.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y());
+            // For the outer theta border, d.Z must be smaller than cos(th2)
+            // Otherwise photon will not hit the border
+            // If equal: path is parallel to theta cell border (should not happen)
+            if(cos_th2 > d.Z())
+            {
+                double cos_th2_sq = cos_th2 * cos_th2;
+                double A2 = cos_th2_sq - d.Z() * d.Z();
+                double B2 = cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th2_sq);
+                double C4 = cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th2_sq);
 
-        // dscr4 is always >= 0
-        double dscr4 = B2 * B2 - A2 * C4;
+                double dscr4 = B2 * B2 - A2 * C4;
 
-        if(A2 > 0)
-        {
-            dscr4 = sqrt(dscr4);
-            double length = (-B2 + dscr4) / A2;
-
-            if(length > 0 && length < path_length)
-                if((p.Z() + d.Z() * length) * cos_th2 > 0)
+                // dscr < 0 should not happen, but might if d.Z = -1, p = p.Z, and th1 = 0 or PI
+                if(dscr4 >= 0)
                 {
-                    path_length = length;
-                    hit = true;
-                    dirID = 3;
+                    dscr4 = sqrt(dscr4);
+
+                    double length[2];
+                    length[0] = (-B2 + dscr4) / A2;
+                    length[1] = (-B2 - dscr4) / A2;
+
+                    for(uint i=0; i<2; i++)
+                        if(length[i] > 0 && length[i] < path_length)
+                        {
+                            path_length = length[i];
+                            hit = true;
+                            dirID = 3;
+                        }
                 }
+            }
         }
 
         // --- Phi cell borders ---
@@ -1667,15 +1683,16 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
 
     double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
 
-    double B = 2 * p * d;
+    double B = p * d;
+    // C is positive, we are outside of the cell
     double C = p.sq_length() - r2 * r2;
-    double dscr = B * B - 4 * C;
+    double dscr = B * B - C;
 
     if(dscr >= 0)
     {
         dscr = sqrt(dscr);
         // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
-        double length = (-B - dscr) / 2;
+        double length = -B - dscr;
 
         if(length > 0 && length < path_length)
         {
