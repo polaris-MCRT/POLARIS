@@ -3334,7 +3334,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 20000.0;
+    tend = 7500.0;
     dt = 10;
     
     // Init arrays for emission, absorption and inner energy
@@ -3386,15 +3386,16 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 100;
+    llong nr_of_photons_step = 1e+4;
     
     pp_stack.reserve(nr_of_photons_step*(tend/dt));
     
     // Init photon deletion marker stack
     uilist pp_del;
+    pp_del.reserve(nr_of_photons_step);
     
     // Set points in time to print out results
-    double t_results = 100;
+    double t_results = 1000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3684,19 +3685,35 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         }
         
-        // Sort deletion marker in ascending order
-        sort(pp_del.begin(), pp_del.end());
+//         
+//         // Erase photons from stack that left the grid or are absorbed
+//         for (llong i = pp_del.size()-1; i>0; i--)
+//         {
+//                 kill_counter++;
+//                 delete pp_stack[pp_del[i]];
+//                 pp_stack.erase(pp_stack.begin()+pp_del[i]);
+//         }
+
+        // Erase photons from stack (remove_if)
+        uint del_size = pp_del.size();
+        uint pp_size = pp_stack.size();
         
-        // Erase photons from stack that left the grid or are absorbed
-        for (llong i = pp_del.size()-1; i>0; i--)
+        if(del_size > 0)
         {
+            // Sort deletion marker in descending order with reverse iterators
+            sort(pp_del.rbegin(), pp_del.rend());
+            
+            for (llong i = 0; i < del_size-1; i++)
+            {
                 kill_counter++;
                 delete pp_stack[pp_del[i]];
-                pp_stack.erase(pp_stack.begin()+pp_del[i]);
+                swap(pp_stack[pp_del[i]], pp_stack[pp_size-(i+1)]);
+            }
+            pp_stack.erase(pp_stack.end()-del_size,pp_stack.end());
+            
+            // Reset photon deletion marker
+            pp_del.clear();
         }
-        
-        // Reset photon deletion marker
-        pp_del.clear();
         
         // Calc new inner energy for all cells e = e + (A-E)*dt
 #pragma omp parallel for schedule(dynamic)
@@ -3725,7 +3742,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/disk/simple/dust_mc/data/temp/";
+            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/1D/dust_mc/data/temp/";
             grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         }
