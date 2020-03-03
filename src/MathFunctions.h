@@ -1183,19 +1183,24 @@ class CMathFunctions
     {
         uint N = uint(list.size());
         uint min = 0, max = N - 1;
+        uint min2 = 0;
 
         if(val < list[0] || val > list[N - 1])
             return MAX_UINT;
+        if(val == list[0])
+            return 0;
 
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2;
-            if(list[i] >= val)
-                max = i;
-            else
-                min = i;
-        }
-
+//         while(max - min > 1)
+//         {
+//             uint i = min + (max - min) / 2;
+//             if(list[i] >= val)
+//                 max = i;
+//             else
+//                 min = i;
+//         }
+        
+        min = lower_bound(list.begin(),list.end(),val)-list.begin()-1;
+        
         return min;
     }
 
@@ -1256,15 +1261,18 @@ class CMathFunctions
 
         if(val < list[0] || val > list[max])
             return MAX_UINT;
+        if(val == list[0])
+            return 0;
 
-        while(max - min > 1)
-        {
-            uint i = min + uint((max - min) / 2);
-            if(list[i] >= val)
-                max = i;
-            else
-                min = i;
-        }
+//         while(max - min > 1)
+//         {
+//             uint i = min + uint((max - min) / 2);
+//             if(list[i] >= val)
+//                 max = i;
+//             else
+//                 min = i;
+//         }
+        min = lower_bound(list,list+N,val)-list-1;
 
         return min;
     }
