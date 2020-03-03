@@ -3381,15 +3381,15 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             return false;
     }
     
+    // Number of photons per timestep
+    llong nr_of_photons_step = 1e+4;
+    
     // Progress output
     cout << CLR_LINE;
     cout << "Timestep in seconds: " << dt << endl;
     cout << "Number of photons per timestep: " << nr_of_photons_step << endl;
     cout << "Length of simulation in seconds: " << tend << endl;
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
-    
-    // Number of photons per timestep
-    llong nr_of_photons_step = 1e+4;
     
     pp_stack.reserve(nr_of_photons_step*(tend/dt));
     
