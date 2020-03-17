@@ -179,7 +179,8 @@ class CRadiativeTransfer
                           double cx,
                           double cy,
                           uint i_det,
-                          uint subpixel_lvl);
+                          uint subpixel_lvl,
+                          int i_pix);
     void calcStellarEmission(uint i_det);
 
     // Synchrontron emission

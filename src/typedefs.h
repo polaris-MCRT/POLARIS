@@ -112,8 +112,9 @@ using namespace std;
 #define DET_SPHER 2
 #define DET_SLICE 3
 
-// timestep and offset for time-dependent scattering
+// timestep and offset for time-dependent scattering and dust emission
 #define SCA_DT 10000
+#define RAY_DT 10000
 
 // phase functions
 #define PH_ISO 0

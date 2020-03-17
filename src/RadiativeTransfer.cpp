@@ -2396,6 +2396,23 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             // Write results either as text or fits file
             if(!tracer[i_det]->writeDustResults(ray_result_type))
                 return false;
+            
+            // Break if time-dependent
+            if(RAY_DT > 0)
+            {
+                for(uint i_det = start+1; i_det <= stop; i_det++)
+                {
+                    // Do final steps for the rest of the detectors
+                    if(!tracer[i_det]->postProcessing())
+                        return false;
+                    uint ray_result_type = RESULTS_RAY;
+                    if(dust->getScatteringToRay())
+                        ray_result_type = RESULTS_FULL;
+                    if(!tracer[i_det]->writeDustResults(ray_result_type))
+                        return false;
+                }
+                break;
+            }
         }
     }
 
@@ -2432,9 +2449,11 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
         tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl);
+        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix);
 
-        tracer[i_det]->addToDetector(pp, i_pix);
+        if(RAY_DT == 0)
+            // Add the photon package to the detector
+            tracer[i_det]->addToDetector(pp, i_pix);
 
         // Delete photon package after usage
         delete pp;
@@ -2462,7 +2481,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                                           double cx,
                                           double cy,
                                           uint i_det,
-                                          uint subpixel_lvl)
+                                          uint subpixel_lvl,
+                                          int i_pix)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -2472,6 +2492,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
 
     // Init multiple Stokes vectors
     MultiStokesVector WMap(nr_used_wavelengths);
+    
+    // Reset next results counter for time-dependent raytracing
+    double t_nextres = RAY_DT;
 
     // Update Stokes vectors with emission from background source
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
@@ -2504,6 +2527,10 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
 
                 // Get path length through current cell
                 double len = pp->getTmpPathLength();
+                
+                // Update total pathlength of photon if time-dependent
+                if(RAY_DT > 0)
+                    pp->updateTotalPathLength(len);
 
 #ifdef CAMPS_BENCHMARK
                 // Part to perform Camps et. al (2015) benchmark.
@@ -2668,6 +2695,44 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                         }
                     }
                 }
+            }
+            
+            // Add photon_package to detector if in time
+            if(RAY_DT > 0 && (pp->getTotalPathLength()/con_c)/t_nextres >= 1)
+            {
+                // Calculate detector to add to
+                double dt = RAY_DT;
+                uint i_next = (stop+1) - floor(pp->getTotalPathLength()/con_c/dt);
+                
+                // Update the multi Stokes vectors for each wavelength
+                for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+                {
+                    // Get frequency at background grid position
+                    double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+                    double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                                (frequency * frequency);
+
+                    // Include foreground extinction if necessary
+                    mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
+
+                    if(WMap.S(i_wave).I() < 0)
+                        WMap.S(i_wave).setI(0);
+
+                    WMap.S(i_wave) *= mult;
+                    WMap.setT(WMap.T(i_wave) * subpixel_fraction, i_wave);
+                    WMap.setSp(WMap.Sp(i_wave) * subpixel_fraction, i_wave);
+
+                    // Update the photon package with the multi Stokes vectors
+                    pp->setMultiStokesVector(WMap.S(i_wave), i_wave);
+                }
+                
+                // Add to detector
+                Vector3D old_pos = pp->getPosition();
+                tracer[i_next]->addToDetector(pp, i_pix);
+                pp->setPosition(old_pos);
+                
+                // Increase t_nextres
+                t_nextres += dt;
             }
         }
     }
