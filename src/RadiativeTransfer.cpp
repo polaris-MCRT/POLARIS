@@ -2519,7 +2519,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             double dens_dust = dust->getNumberDensity(grid, pp);
 
             // If the dust density is far too low, skip the current cell
-            if(dens_dust >= 1e-200)
+            if(dens_dust >= 1e-200 || RAY_DT > 0)
             {
                 // Init dust matrix
                 Matrix2D alpha_dust;
@@ -2531,7 +2531,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 // Update total pathlength of photon if time-dependent
                 if(RAY_DT > 0)
                     pp->updateTotalPathLength(len);
-
+                    
 #ifdef CAMPS_BENCHMARK
                 // Part to perform Camps et. al (2015) benchmark.
                 ofstream myfile;
@@ -2736,6 +2736,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             }
         }
     }
+    
     // Update the multi Stokes vectors for each wavelength
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
