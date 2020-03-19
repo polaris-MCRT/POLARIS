@@ -2702,11 +2702,19 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             {
                 // Calculate detector to add to
                 double dt = RAY_DT;
-                uint i_next = (stop+1) - floor(pp->getTotalPathLength()/con_c/dt);
+                uint i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
+                
+                // Init temporary multiple Stokes vectors
+                MultiStokesVector WTmp(nr_used_wavelengths);
                 
                 // Update the multi Stokes vectors for each wavelength
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
+                    // Copy MultiStokesVector
+                    WTmp.setS(WMap.S(i_wave), i_wave);
+                    WTmp.setT(WMap.T(i_wave), i_wave);
+                    WTmp.setSp(WMap.Sp(i_wave), i_wave);
+                    
                     // Get frequency at background grid position
                     double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
                     double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
@@ -2714,22 +2722,20 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
 
                     // Include foreground extinction if necessary
                     mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
+                    
+                    if(WTmp.S(i_wave).I() < 0)
+                        WTmp.S(i_wave).setI(0);
 
-                    if(WMap.S(i_wave).I() < 0)
-                        WMap.S(i_wave).setI(0);
-
-                    WMap.S(i_wave) *= mult;
-                    WMap.setT(WMap.T(i_wave) * subpixel_fraction, i_wave);
-                    WMap.setSp(WMap.Sp(i_wave) * subpixel_fraction, i_wave);
-
+                    WTmp.S(i_wave) *= mult;
+                    WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
+                    WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
+                    
                     // Update the photon package with the multi Stokes vectors
-                    pp->setMultiStokesVector(WMap.S(i_wave), i_wave);
+                    pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
                 }
                 
                 // Add to detector
-                Vector3D old_pos = pp->getPosition();
                 tracer[i_next]->addToDetector(pp, i_pix);
-                pp->setPosition(old_pos);
                 
                 // Increase t_nextres
                 t_nextres += dt;
@@ -2737,6 +2743,10 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         }
     }
     
+    // End function here if time-dependent
+    if(RAY_DT > 0)
+        return;
+        
     // Update the multi Stokes vectors for each wavelength
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
