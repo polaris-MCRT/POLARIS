@@ -464,7 +464,7 @@ class CGridSpherical : public CGridBasic
             double r2 = listR[i_r];
             uint N_r_sub = min(subpixel_multiplier, uint(ceil((r2 - r1) * 5.0 / pixel_width)));
 
-            for(int i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
+            for(uint i_r_sub = 1; i_r_sub <= N_r_sub; i_r_sub++)
                 _listR.push_back(r1 + (r2 - r1) * i_r_sub / double(N_r_sub));
 
             // break if sidelength is smaller than full grid

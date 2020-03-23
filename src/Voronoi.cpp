@@ -95,7 +95,7 @@ bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
 
     while(!bin_reader.eof())
     {
-        if(line_counter == max_cells)
+        if(line_counter == int(max_cells))
             break;
 
         // Calculate percentage of total progress per source
@@ -1265,6 +1265,9 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 
             v_n = n_pos - c_pos;
             v_a = c_pos + 0.5 * v_n;
+            // distance to cell border is enlarged to ensure
+            // a large enough step length
+            v_a *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
 
             num = v_n * (pos - v_a);
             den = v_n * (dir);
@@ -1338,10 +1341,6 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         }
     }
 
-    path_length *= 1.0001;
-    
-    path_length = path_length + 1e-3 * min_len+1;
-
     pp->setPosition(pos + dir * path_length);
     pp->setTmpPathLength(path_length);
 
@@ -1409,9 +1408,6 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
 
     Vector3D v_n, v_a, v_S, v_ds, new_pos;
     double lamb, num, den;
-
-    double min_dl = 2e300;
-    double d_ls = -1;
 
     for(int i_side = 1; i_side <= 6; i_side++)
     {

@@ -1250,11 +1250,13 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
         return true;
     }
 
-    Vector3D cy_pos = pp->getPosition().getCylindricalCoord();
+    uint i_r = 0, i_ph = 0, i_z = 0;
+    Vector3D pos = pp->getPosition();
+    double cy_r = sqrt( pos.X()*pos.X() + pos.Y()*pos.Y() );
 
-    if(cy_pos.R() < Rmin)
+    if(cy_r < Rmin)
     {
-        uint i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[0], N_z + 1);
+        i_z = CMathFunctions::biListIndexSearch(pos.Z(), listZ[0], N_z + 1);
         if(i_z == MAX_UINT)
             return false;
 
@@ -1262,20 +1264,31 @@ bool CGridCylindrical::positionPhotonInGrid(photon_package * pp)
         return true;
     }
 
-    uint i_r = 0, i_ph = 0, i_z = 0;
+    if(pp->getPositionCell() != 0 && (dirID == 0 || dirID == 1))
+    {
+        cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();
+        rID = tmp_cell->getRID();
 
-    i_r = CMathFunctions::biListIndexSearch(cy_pos.R(), listR, N_r + 1);
-    if(i_r == MAX_UINT)
+        if(dirID == 0)
+            i_r = rID - 1;
+        else
+            i_r = rID + 1;
+    }
+    else
+        i_r = CMathFunctions::biListIndexSearch(cy_r, listR, N_r + 1);
+
+    if(i_r >= N_r || i_r == MAX_UINT)
         return false;
 
     if(N_ph[i_r] > 1)
     {
-        i_ph = CMathFunctions::biListIndexSearch(cy_pos.Phi(), listPh[i_r], N_ph[i_r] + 1);
+        double phi_tmp = pos.getPhiCoord();
+        i_ph = CMathFunctions::biListIndexSearch(phi_tmp, listPh[i_r], N_ph[i_r] + 1);
         if(i_ph == MAX_UINT)
             return false;
     }
 
-    i_z = CMathFunctions::biListIndexSearch(cy_pos.Z(), listZ[i_r], N_z + 1);
+    i_z = CMathFunctions::biListIndexSearch(pos.Z(), listZ[i_r], N_z + 1);
     if(i_z == MAX_UINT)
         return false;
 
@@ -1323,7 +1336,7 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
 
         // --- vertical cell borders ---
         double z1 = listZ[0][zID] - (abs(listZ[0][zID]) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-        double z2 = listZ[0][zID + 1] + (abs(listZ[0][zID+1]) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+        double z2 = listZ[0][zID + 1] + (abs(listZ[0][zID + 1]) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
         Vector3D v_n1(0, 0, -1);
         Vector3D v_a1(0, 0, z1);
@@ -1414,14 +1427,16 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
         double z1 = listZ[rID][zID] - (abs(listZ[rID][zID]) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
         double z2 = listZ[rID][zID + 1] + abs(listZ[rID][zID + 1] + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
-        Vector3D v_n1(0, 0, -1);
-        Vector3D v_a1(0, 0, z1);
+        // Vector3D v_n1(0, 0, -1);
+        // Vector3D v_a1(0, 0, z1);
 
-        double den1 = v_n1 * d;
+        //double den1 = v_n1 * d;
+        double den1 = -d.Z();
         // if den1 < 0, photon moves in +z, but p.Z() >= z1
         if(den1 > 0)
         {
-            double num = v_n1 * (p - v_a1);
+            //double num = v_n1 * (p - v_a1);
+            double num = z1 - p.Z();
             double length = -num / den1;
 
             if(length != 0 && length < path_length)
@@ -1432,14 +1447,16 @@ bool CGridCylindrical::goToNextCellBorder(photon_package * pp)
             }
         }
 
-        Vector3D v_n2(0, 0, 1);
-        Vector3D v_a2(0, 0, z2);
+        // Vector3D v_n2(0, 0, 1);
+        // Vector3D v_a2(0, 0, z2);
 
-        double den2 = v_n2 * d;
+        //double den2 = v_n2 * d;
+        double den2 = d.Z();
         // if den2 < 0, photon moves in -z, but p.Z() <= z2
         if(den2 > 0)
         {
-            double num = v_n2 * (p - v_a2);
+            //double num = v_n2 * (p - v_a2);
+            double num = p.Z() - z2;
             double length = -num / den2;
 
             if(length != 0 && length < path_length)
@@ -1598,7 +1615,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     double den1 = v_n1 * d;
     if(den1 > 0)
     {
-        Vector3D v_a1(0, 0, -Zmax);
+        Vector3D v_a1(0, 0, Zmax);
         double num = v_n1 * (p - v_a1);
         double length = -num / den1;
 
@@ -1614,7 +1631,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     double den2 = v_n2 * d;
     if(den2 > 0)
     {
-        Vector3D v_a2(0, 0, Zmax);
+        Vector3D v_a2(0, 0, -Zmax);
         double num = v_n2 * (p - v_a2);
         double length = -num / den2;
 

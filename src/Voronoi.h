@@ -1228,7 +1228,7 @@ class CGridVoronoi : public CGridBasic
     {
         int id = cell->getNeighborID(nID);
 
-        if(id > max_cells)
+        if(id > int(max_cells))
             return false;
 
         return id > -1;

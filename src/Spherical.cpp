@@ -1379,9 +1379,10 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
         }
     }
 
-    Vector3D sp_pos = pp->getPosition().getSphericalCoord();
+    Vector3D pos = pp->getPosition();
+    double sp_r = pos.length();
 
-    if(Rmin > sp_pos.R())
+    if(sp_r < Rmin)
     {
         pp->setPositionCell(center_cell);
         return true;
@@ -1389,18 +1390,21 @@ bool CGridSpherical::positionPhotonInGrid(photon_package * pp)
 
     uint i_r = 0, i_ph = 0, i_th = 0;
 
-    i_r = CMathFunctions::biListIndexSearch(sp_pos.R(), listR, N_r + 1);
+    i_r = CMathFunctions::biListIndexSearch(sp_r, listR, N_r + 1);
     if(i_r == MAX_UINT)
         return false;
 
     if(N_ph > 1)
     {
-        i_ph = CMathFunctions::biListIndexSearch(sp_pos.Phi(), listPh, N_ph + 1);
+        double tmp_phi = pos.getPhiCoord();
+        i_ph = CMathFunctions::biListIndexSearch(tmp_phi, listPh, N_ph + 1);
         if(i_ph == MAX_UINT)
             return false;
     }
 
-    i_th = CMathFunctions::biListIndexSearch(sp_pos.Z(), listTh, N_th + 1);
+    double tmp_theta = acos( pos.Z() / sp_r );
+
+    i_th = CMathFunctions::biListIndexSearch(tmp_theta, listTh, N_th + 1);
     if(i_th == MAX_UINT)
         return false;
 
@@ -1427,7 +1431,7 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 
         double B = p * d;
         double C = p.sq_length() - r2 * r2;
-        // dscr is always positive, we are inside the inner cell
+        // dscr is always >=0, we are inside the inner cell
         double dscr = B * B - C;
 
         dscr = sqrt(dscr);
