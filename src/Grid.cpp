@@ -1073,8 +1073,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         return res;
 
     int cmd = param.getCommand();
-    
-    
+
+
     cout << CLR_LINE;
     cout << " -> Allocating memory for midplane files ...             \r" << flush;
 
@@ -1313,8 +1313,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     ullong per_counter = 0;
 
-    auto_ptr<CCfits::FITS> pFits(0);
-    // unique_ptr<CCfits::FITS> pFits;
+    // auto_ptr<CCfits::FITS> pFits(0);
+    unique_ptr<CCfits::FITS> pFits;
 
     try
     {
@@ -1378,7 +1378,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 buffer_gas_dens[i_cell] = new double[nr_densities];
         }
     }
-    
+
     if(plt_mol_dens)
     {
         buffer_mol_dens = new double *[nelements];
@@ -1387,9 +1387,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             buffer_mol_dens[i_cell] = new double[nrOfDensRatios];
         }
     }
-    
-    
-    
+
+
+
     if(plt_dust_dens)
     {
         buffer_dust_dens = new double *[nelements];
@@ -1554,7 +1554,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 {
                     for(int i_cell = 0; i_cell < nelements; i_cell++)
                         array_mol_dens[i_cell] = buffer_mol_dens[i_cell][i_density];
-                    
+
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_mol_dens);
                 }
@@ -2484,7 +2484,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         pFits->pHDU().addKey(str_1, "avg. RAT aniso. (gamma)", str_2);
     }
 
-    
+
     cout << CLR_LINE;
     cout << "Memory cleanup of the plotting arrays ...     \r" << flush;
     // Free memory of pointer arrays
