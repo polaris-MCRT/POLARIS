@@ -1496,7 +1496,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                             // If the photon intensity
                                             // is too low, end photon transfer
-                                            if(*pp_escape.getStokesVector().I() < 1e-200)
+                                            if(pp_escape.getStokesVector()->I() < 1e-200)
                                                 break;
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
