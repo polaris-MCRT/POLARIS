@@ -51,7 +51,7 @@ double CSynchrotron::Gamma(double x)
         else
         {
             // Use the identity gamma(z+n) = z*(z+1)* ... *(z+n-1)*gamma(z)
-            for(uint i = 0; i < n; i++)
+            for(int i = 0; i < n; i++)
                 result *= y++;
         }
 

@@ -39,7 +39,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
                 last_percentage = percentage;
             }
         }
-
+#pragma omp atomic update
         cell_count++;
         double ** tmp_lvl_pop = new double *[nr_of_energy_level];
         for(uint i_lvl = 0; i_lvl < nr_of_energy_level; i_lvl++)
@@ -1061,7 +1061,7 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
     // Init the current value of the line function as a complex value
     complex<double> line_function;
-    
+
     //uint tmp_counter=0;
 
     // Init temporary matrix
@@ -1386,8 +1386,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             orientation_H2 = new int[nr_of_col_partner];
 
             collision_temp = new double *[nr_of_col_partner];
-            col_upper = new int *[nr_of_col_partner];
-            col_lower = new int *[nr_of_col_partner];
+            col_upper = new uint *[nr_of_col_partner];
+            col_lower = new uint *[nr_of_col_partner];
 
             col_matrix = new double **[nr_of_col_partner];
 
@@ -1423,8 +1423,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             }
 
             nr_of_col_transition[i_col_partner] = int(values[0]);
-            col_upper[i_col_partner] = new int[int(values[0])];
-            col_lower[i_col_partner] = new int[int(values[0])];
+            col_upper[i_col_partner] = new uint[int(values[0])];
+            col_lower[i_col_partner] = new uint[int(values[0])];
             col_matrix[i_col_partner] = new double *[int(values[0])];
 
             for(uint i = 0; i < uint(values[0]); i++)
@@ -1474,8 +1474,8 @@ bool CGasSpecies::readGasParamaterFile(string _filename, uint id, uint max)
             }
 
             i_col_transition = cmd_counter - 10 - nr_of_energy_level - nr_of_transitions - row_offset;
-            col_upper[i_col_partner][i_col_transition] = int(values[1] - 1);
-            col_lower[i_col_partner][i_col_transition] = int(values[2] - 1);
+            col_upper[i_col_partner][i_col_transition] = uint(values[1] - 1);
+            col_lower[i_col_partner][i_col_transition] = uint(values[2] - 1);
 
             col_matrix[i_col_partner][i_col_transition] = new double[nr_of_col_temp[i_col_partner]];
 
@@ -1521,7 +1521,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     {
         lande_factor[i_lvl] = 0;
     }
-    
+
     //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
 
     if(reader.fail())
@@ -1727,28 +1727,28 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             double tmp_einst_A = getEinsteinA(i_trans_zeeman);
             delete[] trans_einstA[i_trans_zeeman];
             trans_einstA[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-            
+
 
             double tmp_einst_Bul = getEinsteinBul(i_trans_zeeman);
             delete[] trans_einstB_ul[i_trans_zeeman];
             trans_einstB_ul[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-            
+
 
             double tmp_einst_Blu = getEinsteinBlu(i_trans_zeeman);
             delete[] trans_einstB_lu[i_trans_zeeman];
             trans_einstB_lu[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-            
+
             for(uint ie=0;ie<nr_sublevel_trans + 1;ie++)
             {
                 trans_einstA[i_trans_zeeman][ie] = 0;
                 trans_einstB_ul[i_trans_zeeman][ie] = 0;
                 trans_einstB_lu[i_trans_zeeman][ie] = 0;
             }
-            
+
             trans_einstA[i_trans_zeeman][0] = tmp_einst_A;
             trans_einstB_ul[i_trans_zeeman][0] = tmp_einst_Bul;
             trans_einstB_lu[i_trans_zeeman][0] = tmp_einst_Blu;
-            
+
             //cout << CLR_LINE;
             //cout << "Here A\n" << trans_einstB_lu[i_trans_zeeman][0] << "  " << i_trans_zeeman <<  "  " << nr_sublevel_trans + 1 << endl;
 
@@ -1811,7 +1811,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
     {
         uint i_trans = getTransitionFromSpectralLine(i_line);
-        
+
         if(getLandeUpper(i_trans) == 0) // || getLandeLower(i_trans) == 0
         {
             cout << SEP_LINE;
@@ -1831,10 +1831,10 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
 void CGasSpecies::calcLineBroadening(CGridBasic * grid)
 {
     long max_cells = grid->getMaxDataCells();
-    
+
     cout << CLR_LINE;
     cout << "-> Calculating line broadening for each grid cell ...     \r" << flush;
-       
+
 #pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
     {
@@ -1870,7 +1870,7 @@ void CGasSpecies::calcLineBroadening(CGridBasic * grid)
             }
         }
     }
-    
+
     cout << CLR_LINE;
 }
 
@@ -2039,7 +2039,7 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
         cout << "taken from grid" << endl;
     else
         cout << "none" << endl;
-    
+
     cout << "- Turbulent Velocity            : ";
     if(param.getTurbulentVelocity() > 0)
         cout << param.getTurbulentVelocity() << " [m/s]" << endl;
@@ -2063,8 +2063,6 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
         dlist line_ray_detectors = param.getLineRayDetector(i_species);
         for(uint i = 0; i < line_ray_detectors.size(); i += NR_OF_LINE_DET)
         {
-            uint pos = i / NR_OF_LINE_DET;
-
             transition_str << uint(line_ray_detectors[i] + 1);
             max_vel_str << line_ray_detectors[i + 2];
             vel_channels_str << uint(line_ray_detectors[i + NR_OF_LINE_DET - 1]);
@@ -2110,8 +2108,8 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
             cout << "- Abundance                     : " << ab << endl;
         else
         {
-            double dens_species, min_dens_species = 1e200, max_dens_species = 0;
-            for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
+            double min_dens_species = 1e200, max_dens_species = 0;
+            for(ulong i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
             {
                 const cell_basic & cell = *grid->getCellFromIndex(i_cell);
 
@@ -2130,7 +2128,7 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
         }
 
         double total_species_mass = 0;
-        for(long i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
+        for(ulong i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
             cell_basic * cell = grid->getCellFromIndex(i_cell);
             total_species_mass += getMassDensity(grid, *cell, i_species) * grid->getVolume(*cell);

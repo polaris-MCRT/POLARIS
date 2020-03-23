@@ -19,9 +19,9 @@ struct VelFieldInterp
 class CGasSpecies
 {
   public:
-      
-    //uint tmp_counter;  
-      
+
+    //uint tmp_counter;
+
     CGasSpecies()
     {
         molecular_weight = 0;
@@ -31,7 +31,7 @@ class CGasSpecies
         nr_of_transitions = 0;
         nr_of_col_partner = 0;
         nr_of_spectral_lines = 0;
-        
+
         //tmp_counter=0;
 
         abundance = 0;
@@ -291,12 +291,12 @@ class CGasSpecies
         return energy_level[i_lvl];
     }
 
-    int getUpperCollisionLevel(uint m, uint n) const
+    uint getUpperCollisionLevel(uint m, uint n) const
     {
         return col_upper[m][n];
     }
 
-    int getLowerCollisionLevel(uint m, uint n) const
+    uint getLowerCollisionLevel(uint m, uint n) const
     {
         return col_lower[m][n];
     }
@@ -851,7 +851,7 @@ class CGasSpecies
 
   private:
     double ** collision_temp;
-    int **col_upper, **col_lower;
+    uint **col_upper, **col_lower;
     double **trans_einstA, **trans_einstB_lu, **trans_einstB_ul;
 
     double *** col_matrix;
@@ -872,7 +872,7 @@ class CGasSpecies
     uint nr_of_spectral_lines;
     uint nr_zeeman_spectral_lines;
     uint lvl_pop_type;
-    
+
 
 
     uint ** level_to_index;

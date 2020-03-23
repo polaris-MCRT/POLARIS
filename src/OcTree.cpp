@@ -289,90 +289,90 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
 
     if(!loadGridFromBinrayFile(param))
         return false;
-    
+
     createCellList();
-    
+
     printParameters();
-    
+
     cell_oc_root=&cell_oc_root->getChildren()[6];
-    
-    
+
+
     ulong max_cells = getMaxDataCells();
 
     cout << CLR_LINE;
 
 
 #pragma omp parallel for schedule(dynamic)
-    
+
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = getCellFromIndex(c_i);
         double dens0 = getGasDensity(*cell, 0);
         double dens1 = getGasDensity(*cell, 1);
-        
-        
+
+
         if(c_i%5000==0)
             cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
-        
+
         double dens = dens0+dens1;
-        
-        
+
+
         double length = ((cell_oc *)cell)->getLength();
-        
+
         double cx = ((cell_oc *)cell)->getXmin()+0.5*length;
         double cy = ((cell_oc *)cell)->getYmin()+0.5*length;
         double cz = ((cell_oc *)cell)->getZmin()+0.5*length;
-        
+
         vector<Vector3D> vlist;
-        
+
         length=0.51*length;
-        
+
         Vector3D center=Vector3D(cx,cy,cz);
-        
+
         vlist.push_back(Vector3D(cx+length,cy,cz));
         vlist.push_back(Vector3D(cx-length,cy,cz));
-        
+
         vlist.push_back(Vector3D(cx,cy+length,cz));
         vlist.push_back(Vector3D(cx,cy-length,cz));
-        
+
         vlist.push_back(Vector3D(cx,cy,cz+length));
         vlist.push_back(Vector3D(cx,cy,cz-length));
-        
+
         length=1.732*length;
-        
+
         vlist.push_back(Vector3D(cx+length,cy+length,cz+length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz+length));
-        
+
         vlist.push_back(Vector3D(cx+length,cy+length,cz-length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz-length));
-        
+
         photon_package pp;
-        
+
         pp.setPosition(center);
-        
+
         if(positionPhotonInGrid(&pp))
         {
             //cell_basic * cell = pp.getPositionCell()
             double tg= 0.8*getGasTemperature(pp);
-                        
+
             for(uint g=0;g<vlist.size();g++)
             {
                 pp.setPosition(vlist[g]);
-        
+
                 if(positionPhotonInGrid(&pp))
                 {
                     tg+=0.8/14.0*getGasTemperature(pp);
-                }   
+                }
             }
-            
+
             setGasTemperature(cell, tg);
         }
-             
-        
+
+
         if(dens*254098.7886>1e13)
         {
             setGasDensity(cell, 0, 0.005*dens);
@@ -386,7 +386,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
     }
 
     //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
-    
+
     if(!saveBinaryGridFile(out_filename))
         return false;
 
@@ -423,7 +423,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 tmp_data[j]=0;
             }
-                        
+
             for(int i = 0; i < 8; i++)
             {
                 for(int j =0;j<data_len;j++)
@@ -440,7 +440,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 cell->setData(j, tmp_data[j]); ;
             }
-            
+
             if(cell->getLevel() > tr_level)
                 return true;
 
@@ -739,7 +739,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (!data_pos_gd_list.empty());  // 1
-    plt_mol_dens = (nrOfDensRatios>0); 
+    plt_mol_dens = (nrOfDensRatios>0);
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
@@ -1277,7 +1277,6 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
         return false;
     }
 
-    double x_min, y_min, z_min, cube_length;
     line_counter = 0;
     char_counter = 0;
 
@@ -1290,8 +1289,9 @@ bool CGridOcTree::saveBinaryGridFile(string filename, ushort id, ushort data_siz
         return false;
     }
 
-    x_min = y_min = z_min = cell_oc_root->getXmin();
-    cube_length = cell_oc_root->getLength();
+    // double x_min, y_min, z_min;
+    // x_min = y_min = z_min = cell_oc_root->getXmin();
+    double cube_length = cell_oc_root->getLength();
 
     bin_writer.write((char *)&id, 2);
     bin_writer.write((char *)&data_size, 2);
@@ -1474,7 +1474,6 @@ void CGridOcTree::createNextLevel(cell_oc * cell)
     else
     {
         cell->setChildren(new cell_oc[8]);
-        bool found = false;
         cell_oc_pos = cell;
         createBoundingCell();
 
@@ -2022,13 +2021,13 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
             }
 
             double num = v_n * (p - v_a);
-            double tmp_length = -num / den;
+            double length = -num / den;
 
-            if(tmp_length >= 0 && tmp_length < min_length)
+            if(length >= 0 && length < min_length)
             {
-                if(isInside(p + d * (tmp_length + MIN_LEN_STEP * min_len)))
+                if(isInside(p + d * (length + MIN_LEN_STEP * min_len)))
                 {
-                    min_length = tmp_length;
+                    min_length = length;
                     hit = true;
                 }
             }
@@ -2200,8 +2199,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx,
             }
         }
     }
-
-    double xyz_min = -0.5 * max_len;
 
     f_min = 1e30;
     f_max = -1e30;
@@ -2407,21 +2404,21 @@ bool CGridOcTree::createTree(cell_oc * parent,
 
     parent->setChildren(new cell_oc[8]);
     uint level = parent->getLevel() + 1;
-    double tmp_length = 0.5 * parent->getLength();
+    double length = 0.5 * parent->getLength();
 
-    createTree(parent->getChild(0), _x_min, _y_min, _z_min, tmp_length, level);
-    createTree(parent->getChild(1), _x_min + tmp_length, _y_min, _z_min, tmp_length, level);
-    createTree(parent->getChild(2), _x_min, _y_min + tmp_length, _z_min, tmp_length, level);
-    createTree(parent->getChild(3), _x_min + tmp_length, _y_min + tmp_length, _z_min, tmp_length, level);
+    createTree(parent->getChild(0), _x_min, _y_min, _z_min, length, level);
+    createTree(parent->getChild(1), _x_min + length, _y_min, _z_min, length, level);
+    createTree(parent->getChild(2), _x_min, _y_min + length, _z_min, length, level);
+    createTree(parent->getChild(3), _x_min + length, _y_min + length, _z_min, length, level);
 
-    createTree(parent->getChild(4), _x_min, _y_min, _z_min + tmp_length, tmp_length, level);
-    createTree(parent->getChild(5), _x_min + tmp_length, _y_min, _z_min + tmp_length, tmp_length, level);
-    createTree(parent->getChild(6), _x_min, _y_min + tmp_length, _z_min + tmp_length, tmp_length, level);
+    createTree(parent->getChild(4), _x_min, _y_min, _z_min + length, length, level);
+    createTree(parent->getChild(5), _x_min + length, _y_min, _z_min + length, length, level);
+    createTree(parent->getChild(6), _x_min, _y_min + length, _z_min + length, length, level);
     createTree(parent->getChild(7),
-               _x_min + tmp_length,
-               _y_min + tmp_length,
-               _z_min + tmp_length,
-               tmp_length,
+               _x_min + length,
+               _y_min + length,
+               _z_min + length,
+               length,
                level);
 
     for(int i = 0; i < 8; i++)

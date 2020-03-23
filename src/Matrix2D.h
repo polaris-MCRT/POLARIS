@@ -307,7 +307,7 @@ class Matrix2D
         dlist res;
         res.resize(m_n);
         for(uint i = 0; i < m_n; i++)
-            m_data[i * m_n + j];
+            res[i] = m_data[i * m_n + j];
         return res;
     }
 
@@ -316,7 +316,7 @@ class Matrix2D
         dlist res;
         res.resize(m_n);
         for(uint j = 0; j < m_m; j++)
-            m_data[i * m_n + j];
+            res[j] = m_data[i * m_n + j];
         return res;
     }
 
