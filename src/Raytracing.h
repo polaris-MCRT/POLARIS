@@ -744,7 +744,7 @@ class CRaytracingCartesian : public CRaytracingBasic
                 while(grid->next(&pp))
                 {
                     // Push the index of each cell along the path into ID_1
-                    ID_1.push_back(pp.getPositionCell()->getUniqueID());
+                    ID_1.push_back(pp.getPositionCell()->getID());
                 }
             }
 
@@ -770,7 +770,7 @@ class CRaytracingCartesian : public CRaytracingBasic
                         while(grid->next(&pp))
                         {
                             // Push the index of each cell along the path into ID_2
-                            ID_2.push_back(pp.getPositionCell()->getUniqueID());
+                            ID_2.push_back(pp.getPositionCell()->getID());
                         }
                     }
 
@@ -1303,8 +1303,6 @@ class CRaytracingHealPix : public CRaytracingBasic
 
     static void ang2pix_ring_z_phi(int nside_, double z, double phi, int * pix)
     {
-        long ncap_ = nside_ * (nside_ - 1) * 2;
-        long npix_ = 12 * nside_ * nside_;
         double za = abs(z);
         double tt = CMathFunctions::fmodulo(phi, PIx2) * invPI2; // in [0,4)
         if(za <= TWOTHIRD)                                       // Equatorial region
@@ -1655,15 +1653,15 @@ class CRaytracingPolar : public CRaytracingBasic
     bool getRelPosition(int i_pix, double & cx, double & cy)
     {
         // Return (0,0) coordinate, if central pixel
-        if(i_pix == npix_total - 1)
+        if(i_pix == int(npix_total - 1))
         {
             cx = 0;
             cy = 0;
             return true;
         }
 
-        int rID, phID;
-        getCoordinateIDs(i_pix, rID, phID);
+        uint rID, phID;
+        getCoordinateIDs(uint(i_pix), rID, phID);
 
         double phi = (phID + 0.5) * PIx2 / double(npix_ph[rID]);
 
@@ -1695,8 +1693,8 @@ class CRaytracingPolar : public CRaytracingBasic
         }
         else
         {
-            int rID, phID;
-            getCoordinateIDs(i_pix, rID, phID);
+            uint rID, phID;
+            getCoordinateIDs(uint(i_pix), rID, phID);
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins * nr_extra; i_spectral++)
             {
                 // Set wavelength of photon package
@@ -1733,12 +1731,13 @@ class CRaytracingPolar : public CRaytracingBasic
             // Init variables
             Vector3D pos;
             StokesVector Q1, Q2, Q3, Q4;
-            int rID, rID1, rID2;
-            int phID, phID1, phID2, phID3, phID4;
+            uint rID, rID1, rID2;
+            int phID1, phID2, phID3, phID4;
             double r1, r2, p1, p2, p3, p4, dph1, dph2;
             double cx = 0, cy = 0;
 
             // Increase counter used to show progress
+#pragma omp atomic update
             per_counter++;
 
             // Calculate percentage of total progress per source
@@ -1826,9 +1825,9 @@ class CRaytracingPolar : public CRaytracingBasic
                 phID3 += npix_ph[rID2];
 
             // Modify phi index if phi is close to PIx2
-            if(phID2 >= npix_ph[rID1])
+            if(phID2 >= int(npix_ph[rID1]))
                 phID2 -= npix_ph[rID1];
-            if(phID4 >= npix_ph[rID2])
+            if(phID4 >= int(npix_ph[rID2]))
                 phID4 -= npix_ph[rID2];
 
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins * nr_extra; i_spectral++)
@@ -1886,7 +1885,7 @@ class CRaytracingPolar : public CRaytracingBasic
     }
 
   private:
-    void getCoordinateIDs(int i_pix, int & rID, int & phID)
+    void getCoordinateIDs(uint i_pix, uint & rID, uint & phID)
     {
         rID = 0;
         phID = 0;
@@ -1911,7 +1910,7 @@ class CRaytracingPolar : public CRaytracingBasic
         }
     }
 
-    double getRingElementArea(int rID)
+    double getRingElementArea(uint rID)
     {
         if(rID == npix_r)
             return PI * listR[0] * listR[0];

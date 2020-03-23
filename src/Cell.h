@@ -77,11 +77,6 @@ class cell_basic
         return id;
     }
 
-    virtual ulong getUniqueID()
-    {
-        return ulong(id);
-    }
-
     void updateID(uint _id)
     {
         id += _id;
@@ -189,13 +184,6 @@ class cell_oc : public cell_basic
     uchar getLevel()
     {
         return level;
-    }
-
-    ulong getUniqueID()
-    {
-        uint parent_id = parent->getID();
-        ulong res = 8 ^ level + 8 * parent_id + id;
-        return res;
     }
 
     cell_oc * getParent()
