@@ -64,21 +64,36 @@ if [ $CXX = "icc" ]; then
 
     elif [ $CO = "fast-debug-multi" ]; then
         CXXFLAGS="-O3 -parallel -ip -ipo -g -debug inline-debug-info -xAVX -axCORE-AVX512,CORE-AVX2"
+
+    else
+        echo "No valid option chosen"
+        exit 1
     fi
 
-    if [ $TARGET = "fenrir" ]; then
-            CXXFLAGS="$CXXFLAGS -I/usr/include/x86_64-linux-gnu/c++/8/"
-    fi
+    CXXFLAGS="$CXXFLAGS -I/usr/include/x86_64-linux-gnu/c++/8/"
 
 elif [ $CXX = "g++" ]; then
     if [ $CO = "debug" ]; then
 	   CXXFLAGS="-O0 -g3 -Wall -Wno-unused-function -Wno-unused-but-set-variable -Wno-comment -Wno-unknown-pragmas"
+
+    elif [ $CO = "fast-debug" ]; then
+	   CXXFLAGS="-march=native -O3 -funroll-loops -ffast-math -fno-finite-math-only -flto -g3 -Wall -Wno-unused-function -Wno-unused-but-set-variable -Wno-comment -Wno-unknown-pragmas"
+
     elif [ $CO = "fast" ]; then
         CXXFLAGS="-march=native -O3 -funroll-loops -ffast-math -fno-finite-math-only -flto"
+
+    else
+        echo "No valid option chosen"
+        exit 1
     fi
 fi
 
-CXXFLAGS="$CXXFLAGS -fopenmp"
+CXXFLAGS="$CXXFLAGS -fopenmp -std=c++17"
+
+echo ""
+echo "CXX:  $CXX"
+echo "CO:   $CO"
+echo ""
 
 
 # remove old bin
@@ -86,9 +101,8 @@ rm bin/polaris
 
 # remove old build dir
 cd src/
-rm -r build
+rm -r build/*
 
-mkdir build
 cd build
 
 # configure POLARIS with appropriate flags

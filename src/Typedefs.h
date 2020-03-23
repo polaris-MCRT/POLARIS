@@ -51,7 +51,7 @@ using namespace std;
 #define con_m_e 9.10938356e-31                        // Electron mass [kg]
 #define con_m_p 1.672621898e-27                       // Proton mass [kg]
 #define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
-#define con_eps con_h * con_c / (4.0 * PI)            // (h * c / (4 * PI))
+#define con_eps con_h * con_c / PIx4                  // (h * c / (4 * PI))
 
 #ifdef CAMPS_BENCHMARK
 // Part to perform Camps et. al (2015) benchmark (adjust definition below, if
@@ -68,7 +68,7 @@ using namespace std;
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION 1500000000
+#define MAX_INTERACTION 1e9
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
@@ -119,7 +119,7 @@ using namespace std;
 #define DET_SPHER 2
 #define DET_SLICE 3
 
-// phase functions
+// source ids
 #define SRC_BASIC 0
 #define SRC_POINT 1
 #define SRC_SFIELD 2
@@ -282,9 +282,10 @@ using namespace std;
 #define MIE_SIZE_STEPS 100
 // Number of angles for scattering between 0° and 90°
 #define NANG 91
-#define MAX_MIE_ITERATIONS 1000000
+#define MAX_MIE_ITERATIONS 20000000
 #define MIN_MIE_SIZE_PARAM 1e-6
-#define MIE_ACCURACY 1e-20
+#define MIE_ACCURACY 1e-15
+#define MAX_MIE_SCA_REL_DIFF 1e-2
 
 // Projections for midplane files
 #define PROJ_XY 1

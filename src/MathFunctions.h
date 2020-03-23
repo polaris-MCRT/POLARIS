@@ -1155,19 +1155,14 @@ class CMathFunctions
     static inline uint biListIndexSearch(double val, const dlist & list)
     {
         uint N = uint(list.size());
-        uint min = 0, max = N - 1;
 
         if(val < list[0] || val > list[N - 1])
             return MAX_UINT;
 
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2;
-            if(list[i] >= val)
-                max = i;
-            else
-                min = i;
-        }
+        if(val == list[0])
+            return 0;
+
+        uint min = lower_bound(list.begin(), list.end(), val) - list.begin() - 1;
 
         return min;
     }
@@ -1225,19 +1220,13 @@ class CMathFunctions
 
     static inline uint biListIndexSearch(double val, const double * list, uint N)
     {
-        uint min = 0, max = N - 1;
-
-        if(val < list[0] || val > list[max])
+        if(val < list[0] || val > list[N - 1])
             return MAX_UINT;
 
-        while(max - min > 1)
-        {
-            uint i = min + uint((max - min) / 2);
-            if(list[i] >= val)
-                max = i;
-            else
-                min = i;
-        }
+        if(val == list[0])
+            return 0;
+
+        uint min = lower_bound(list, list+N, val) - list - 1;
 
         return min;
     }
@@ -1822,7 +1811,6 @@ class CMathFunctions
         if(f == 1)
         {
             double inter = (stop - start);
-            double dx = inter / double(N - 1);
             double dang = PI / double(N - 1);
 
             double mid = (double(N) - 1.5) / 2.0;
@@ -1903,9 +1891,8 @@ class CMathFunctions
         else if(base > 1)
         {
             uint tmpN;
-            double tmp_start1, tmp_mid, tmp_stop;
+            double tmp_mid, tmp_stop;
 
-            tmp_start1 = start;
             tmp_mid = start + 0.5 * (stop - start);
             tmp_stop = stop;
 
@@ -2639,7 +2626,7 @@ class CMathFunctions
         qsca = (2.0 / (x * x)) * qsca;
         qext = (4.0 / (x * x)) * real(cxs1[0]);
         qabs = qext - qsca;
-        //*qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
+        // qback = (4.0/(x * x)) * abs(cxs1[2 * NANG - 1]) * abs(cxs1[2 * NANG - 1]);
 
         for(int j = 0; j < 2 * NANG - 1; j++)
         {
@@ -2653,6 +2640,7 @@ class CMathFunctions
     }*/
 
     static bool calcWVMie(double x,
+                          dlist scat_angle,
                           dcomplex refractive_index,
                           double & qext,
                           double & qabs,
@@ -2665,7 +2653,7 @@ class CMathFunctions
     // Wolf & Voshchinnikov approximation of optical properties for spherical grains.
     {
         // Step width
-        double dang = PI2 / float(NANG - 1);
+        uint n_scat_angle = scat_angle.size();
         double factor = 1e250;
 
         if(x <= MIN_MIE_SIZE_PARAM)
@@ -2681,11 +2669,11 @@ class CMathFunctions
         double y = abs(refractive_index) * x;
         uint num = uint(1.25 * y + 15.5);
         if(y < 1)
-            num = 7.5 * y + 9.0;
+            num = uint(7.5 * y + 9.0);
         else if(y > 100 && y < 50000)
-            num = 1.0625 * y + 28.5;
+            num = uint(1.0625 * y + 28.5);
         else if(y >= 50000)
-            num = 1.005 * y + 50.5;
+            num = uint(1.005 * y + 50.5);
 
         if(num >= MAX_MIE_ITERATIONS - 1)
         {
@@ -2746,53 +2734,39 @@ class CMathFunctions
         qsca = an * (norm(ra0) + norm(rb0));
 
         // first term (iterm=1)
-        dlist dAMU(NANG), dPI0(NANG), dPI1(NANG);
-        for(uint iang = 0; iang < NANG; iang++)
-        {
-            dAMU[iang] = cos(double(iang) * dang);
-
-            dPI0[iang] = 0;
-            dPI1[iang] = 1;
-        }
-
-        uint NN = 2 * NANG - 1;
-        dcomplex SM1[NN], SM2[NN];
-        for(uint iang = 0; iang < NN; iang++)
-        {
-            SM1[iang] = dcomplex(0, 0);
-            SM2[iang] = dcomplex(0, 0);
-        }
-
-        double r_iterm = double(iterm), P, T;
+        double r_iterm = double(iterm);
         double FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
-        dlist dPI(NANG), dTAU(NANG);
-        for(uint iang = 0; iang < NANG; iang++)
+
+        dlist dPI(n_scat_angle), dTAU(n_scat_angle);
+        dlist dAMU(n_scat_angle), dPI0(n_scat_angle), dPI1(n_scat_angle);
+
+        dcomplex SM1[n_scat_angle], SM2[n_scat_angle];
+
+        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
         {
-            uint iang2 = 2 * NANG - 2 - iang;
+            dAMU[i_scat_ang] = cos(scat_angle[i_scat_ang]);
 
-            dPI[iang] = dPI1[iang];
-            dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
+            dPI0[i_scat_ang] = 0;
+            dPI1[i_scat_ang] = 1;
 
-            P = pow(-1, iterm - 1);
-            SM1[iang] = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
+            SM1[i_scat_ang] = dcomplex(0, 0);
+            SM2[i_scat_ang] = dcomplex(0, 0);
 
-            T = pow(-1, iterm);
-            SM2[iang] = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
+            dPI[i_scat_ang] = dPI1[i_scat_ang];
+            dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
 
-            if(iang != iang2)
-            {
-                SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
-                SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
-            }
+            SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
+
+            SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI[i_scat_ang]);
         }
 
         iterm++;
         r_iterm = double(iterm);
-        for(uint iang = 0; iang < NANG; iang++)
+        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
         {
-            dPI1[iang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[iang] * dPI[iang];
-            dPI1[iang] = dPI1[iang] - r_iterm * dPI0[iang] / (r_iterm - 1);
-            dPI0[iang] = dPI[iang];
+            dPI1[i_scat_ang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[i_scat_ang] * dPI[i_scat_ang];
+            dPI1[i_scat_ang] = dPI1[i_scat_ang] - r_iterm * dPI0[i_scat_ang] / (r_iterm - 1);
+            dPI0[i_scat_ang] = dPI[i_scat_ang];
         }
 
         double z = -1, besY2, besJ2, an2, qq;
@@ -2818,7 +2792,7 @@ class CMathFunctions
 
             // rbrunngraeber 10/14: Changed from besJ2 = (w1 + besY2 * besJ1) / besY1,
             // because besY2*besJ1 could become very large (1e300) for large grain sizes,
-            // besY2/besY1 is about 1 animated by fkirchschlager
+            // besY2/besY1 is about 1; suggested by fkirchschlager
             besJ2 = besY2 / besY1;
             besJ2 = w1 / besY1 + besJ2 * besJ1;
 
@@ -2870,33 +2844,23 @@ class CMathFunctions
             // terms iterm=2,...
             r_iterm = double(iterm);
             FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
-            for(uint iang = 0; iang < NANG; iang++)
+            for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
             {
-                uint iang2 = 2 * NANG - 2 - iang;
+                dPI[i_scat_ang] = dPI1[i_scat_ang];
+                dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
 
-                dPI[iang] = dPI1[iang];
-                dTAU[iang] = r_iterm * dAMU[iang] * dPI[iang] - (r_iterm + 1) * dPI0[iang];
+                SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
 
-                P = pow(-1, r_iterm - 1);
-                SM1[iang] = SM1[iang] + FN * (ra0 * dPI[iang] + rb0 * dTAU[iang]);
-
-                T = pow(-1, r_iterm);
-                SM2[iang] = SM2[iang] + FN * (ra0 * dTAU[iang] + rb0 * dPI[iang]);
-
-                if(iang != iang2)
-                {
-                    SM1[iang2] = SM1[iang2] + FN * (ra0 * dPI[iang] * P + rb0 * dTAU[iang] * T);
-                    SM2[iang2] = SM2[iang2] + FN * (ra0 * dTAU[iang] * T + rb0 * dPI[iang] * P);
-                }
+                SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI[i_scat_ang]);
             }
 
             iterm++;
             r_iterm = double(iterm);
-            for(uint iang = 0; iang < NANG; iang++)
+            for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
             {
-                dPI1[iang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[iang] * dPI[iang];
-                dPI1[iang] = dPI1[iang] - r_iterm * dPI0[iang] / (r_iterm - 1);
-                dPI0[iang] = dPI[iang];
+                dPI1[i_scat_ang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[i_scat_ang] * dPI[i_scat_ang];
+                dPI1[i_scat_ang] = dPI1[i_scat_ang] - r_iterm * dPI0[i_scat_ang] / (r_iterm - 1);
+                dPI0[i_scat_ang] = dPI[i_scat_ang];
             }
 
             if(iterm == MAX_MIE_ITERATIONS)
@@ -2911,12 +2875,18 @@ class CMathFunctions
         qabs = qext - qsca;
         gsca = (qext - qpr) / qsca;
 
-        for(int j = 0; j < 2 * NANG - 1; j++)
+        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
         {
-            S11[j] = 0.5 * (abs(SM2[j]) * abs(SM2[j]) + abs(SM1[j]) * abs(SM1[j]));
-            S12[j] = 0.5 * (abs(SM2[j]) * abs(SM2[j]) - abs(SM1[j]) * abs(SM1[j]));
-            S33[j] = real(SM2[j] * conj(SM1[j]));
-            S34[j] = imag(SM2[j] * conj(SM1[j]));
+            S11[i_scat_ang] = 0.5 * (abs(SM2[i_scat_ang]) * abs(SM2[i_scat_ang]) + abs(SM1[i_scat_ang]) * abs(SM1[i_scat_ang]));
+            S12[i_scat_ang] = 0.5 * (abs(SM2[i_scat_ang]) * abs(SM2[i_scat_ang]) - abs(SM1[i_scat_ang]) * abs(SM1[i_scat_ang]));
+            S33[i_scat_ang] = real(SM2[i_scat_ang] * conj(SM1[i_scat_ang]));
+            S34[i_scat_ang] = imag(SM2[i_scat_ang] * conj(SM1[i_scat_ang]));
+
+            // if SM2 and SM1 get really large (if x >> 1 for instance)
+            // then double precision may not be enough
+            // to get S12 = 0 for theta = 0/180 degrees (cos(theta) = +-1)
+            if(abs(dAMU[i_scat_ang]) == 1)
+                S12[i_scat_ang] = 0;
         }
 
         return true;

@@ -116,6 +116,7 @@ class CDustComponent
         nr_of_dust_species = 0;
         nr_of_incident_angles = 0;
         nr_of_scat_theta = 0;
+        scat_theta = 0;
         nr_of_scat_phi = 0;
         nr_of_scat_mat_elements = 0;
         nr_of_calorimetry_temperatures = 0;
@@ -191,6 +192,22 @@ class CDustComponent
             for(uint a = 0; a < nr_of_dust_species; a++)
                 delete[] enthalpy[a];
             delete[] enthalpy;
+        }
+        if(nr_of_scat_theta != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] nr_of_scat_theta[a];
+            delete[] nr_of_scat_theta;
+        }
+        if(scat_theta != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+            {
+                for(uint w = 0; w < nr_of_wavelength; w++)
+                    delete[] scat_theta[a][w];
+                delete[] scat_theta[a];
+            }
+            delete[] scat_theta;
         }
         if(Qtrq != 0)
             delete[] Qtrq;
@@ -1842,7 +1859,12 @@ class CDustComponent
         return nr_of_incident_angles;
     }
 
-    uint getNrOfScatTheta() const
+    uint getNrOfScatTheta(uint a, uint w) const
+    {
+        return nr_of_scat_theta[a][w];
+    }
+
+    uint ** getNrOfScatTheta()
     {
         return nr_of_scat_theta;
     }
@@ -2120,14 +2142,35 @@ class CDustComponent
         return nr_of_components;
     }
 
-    uint getScatThetaID(double theta) const
+    void SetNrOfScatTheta(uint ** nr_of_scat_theta_tmp)
     {
-        uint res = uint(theta / PI * double(nr_of_scat_theta - 1) + 0.5);
+        nr_of_scat_theta = nr_of_scat_theta_tmp;
+    }
 
-        if(res > nr_of_scat_theta - 1)
-            res = nr_of_scat_theta - 1;
+    void SetScatTheta(double *** scat_theta_tmp)
+    {
+        scat_theta = scat_theta_tmp;
+    }
 
-        return res;
+    double *getScatTheta(uint a, uint w)
+    {
+        return scat_theta[a][w];
+    }
+
+    double getScatTheta(uint a, uint w, uint sth) const
+    {
+        return scat_theta[a][w][sth];
+    }
+
+    uint getScatThetaID(double theta, uint a, uint w) const
+    {
+        if(theta == scat_theta[a][w][0])
+            return 0;
+
+        uint sth = CMathFunctions::biListIndexSearch(theta,scat_theta[a][w],nr_of_scat_theta[a][w]);
+        if(sth != MAX_UINT)
+            sth++;
+        return sth;
     }
 
     void preCalcEffProperties(parameters & param);
@@ -2165,6 +2208,9 @@ class CDustComponent
 
     void initDustProperties();
     void initScatteringMatrixArray();
+    void initScatteringMatrixArray(uint nr_of_scat_theta);
+    void initNrOfScatThetaArray();
+    void initScatThetaArray();
     void initCalorimetry();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
@@ -2177,7 +2223,7 @@ class CDustComponent
 
     bool writeComponent(string path_data, string path_plot);
     bool calcSizeDistribution(dlist values, double * mass);
-    bool add(double ** size_fraction, CDustComponent * comp);
+    bool add(double ** size_fraction, CDustComponent * comp, uint ** nr_of_scat_theta_tmp, double *** scat_theta_tmp);
 
     uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS) const;
 
@@ -2246,7 +2292,6 @@ class CDustComponent
     double * calorimetry_temperatures;
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
-    double * scattering_angles;
 
     string stringID;
     string size_keyword;
@@ -2293,7 +2338,8 @@ class CDustComponent
     uint phID;
     uint nr_of_dust_species;
     uint nr_of_incident_angles;
-    uint nr_of_scat_theta;
+    uint **nr_of_scat_theta;
+    double ***scat_theta;
     uint nr_of_scat_phi;
     uint nr_of_scat_mat_elements;
     uint nr_of_calorimetry_temperatures;
@@ -2313,6 +2359,8 @@ class CDustMixture
     {
         single_component = 0;
         mixed_component = 0;
+
+        nr_of_dust_species = 0;
 
         scattering_to_raytracing = false;
 
@@ -2713,7 +2761,7 @@ class CDustMixture
 
     void finalizeWavelengthList()
     {
-        // sort(wavelength_list.begin(), wavelength_list.end());
+        sort(wavelength_list.begin(), wavelength_list.end());
         wavelength_list.erase(unique(wavelength_list.begin(), wavelength_list.end()), wavelength_list.end());
 
         nr_of_wavelength = wavelength_list.size();
@@ -3374,6 +3422,8 @@ class CDustMixture
 
     void printParameters(parameters & param, CGridBasic * grid);
 
+    void GetNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double *** & scat_theta);
+
   private:
     CDustComponent * single_component;
     CDustComponent * mixed_component;
@@ -3387,6 +3437,7 @@ class CDustMixture
     uint nr_of_components;
     uint nr_of_wavelength;
     uint wavelength_offset;
+    uint nr_of_dust_species;
 
     uilist dust_choices;
     uilist dust_choices_to_index;
