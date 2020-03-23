@@ -57,13 +57,6 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]);
 
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/first/cmd_file_4");
-    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/opiate/cmd_file");
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/daniel/cmd_file");
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/En/cmd_file");
-    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/Ann/cmd_file_syn");
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/Michael/cmd_file");
-
     if(!parser.parse())
     {
         Error();
@@ -104,7 +97,7 @@ void CPipeline::Finish()
     ofstream t_writer(opath.c_str());
     t_writer << "Total time:\r" << endl;
     t_writer << h << "h " << m << "min " << s << "sec\r\n\r" << endl;
-    t_writer << len << " ms\r" << endl;
+    t_writer << len << " s\r" << endl;
     t_writer.close();
 
     /*#ifdef WINDOWS
@@ -123,6 +116,7 @@ void CPipeline::Run()
     {
         parameters & param = param_list[i];
 
+        omp_set_num_threads(param.getNrOfThreads());
         printParameters(param, size);
 
         switch(param.getCommand())
@@ -255,8 +249,6 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     rad.setSourcesLists(sources_mc, sources_ray);
     rad.initiateRadFieldMC(param);
 
-    omp_set_num_threads(param.getNrOfThreads());
-
     if(param.isTemperatureSimulation())
     {
         if(param.getDustOffset())
@@ -357,8 +349,6 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     rad.setSourcesLists(sources_mc, sources_ray);
     rad.setDetectors(detector);
 
-    omp_set_num_threads(param.getNrOfThreads());
-
     rad.initiateDustMC(param);
     rad.calcPolMapsViaMC();
 
@@ -423,8 +413,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 
     if(!rad.initiateDustRaytrace(param))
         return false;
-
-    omp_set_num_threads(param.getNrOfThreads());
 
     if(param.getStochasticHeatingMaxSize() > 0)
         rad.calcStochasticHeating();
@@ -511,8 +499,6 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
     if(!rad.initiateLineRaytrace(param))
         return false;
 
-    omp_set_num_threads(param.getNrOfThreads());
-
     if(!rad.calcChMapsViaRaytracing(param))
         return false;
 
@@ -585,8 +571,6 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     if(!rad.initiateOPIATERaytrace(param))
         return false;
 
-    omp_set_num_threads(param.getNrOfThreads());
-
     if(!rad.calcOPIATEMapsViaRaytracing(param))
         return false;
 
@@ -652,7 +636,6 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     if(!rad.initiateSyncRaytrace(param))
         return false;
 
-    omp_set_num_threads(param.getNrOfThreads());
     if(!rad.calcSyncMapsViaRaytracing(param))
         return false;
 
@@ -1564,8 +1547,6 @@ true)) return false;
     rad.setDust(dust);
     rad.setSourcesLists(sources_mc, sources_ray);
     rad.initiateRadFieldMC(param);
-
-    omp_set_num_threads(param.getNrOfThreads());
 
     //rad.calcRadiativePressure(param);
     preparePressureData(grid, dust, param, true, 0);
