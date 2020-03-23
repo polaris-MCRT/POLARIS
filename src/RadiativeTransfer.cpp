@@ -1250,9 +1250,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         CSourceBasic * tm_source = sources_mc[s];
         cout << CLR_LINE;
 
-        // Get number of photons that have to be emitted from the current source source
-        nr_of_photons = tm_source->getNrOfPhotons();
-
         // Get number of wavelength
         nr_of_wavelength = dust->getNrOfWavelength();
 
@@ -1263,6 +1260,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             // Init source parameters for scattering maps
             if(!tm_source->initSource(wID))
                 continue;
+
+            // Get number of photons that have to be emitted from the current source
+            nr_of_photons = tm_source->getNrOfPhotons();
 
             // Init progress visualization
             cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)

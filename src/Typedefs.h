@@ -24,7 +24,7 @@ using namespace std;
 // OR
 // all cells launch the same amount of photons with photon energies weighted
 // by the cell energy (DUST_EMI_PROB false)
-#define DUST_EMI_PROB false
+#define DUST_EMI_PROB true
 
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
@@ -75,12 +75,12 @@ using namespace std;
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION 1e9
+#define MAX_INTERACTION 1e7
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
-#define PERCENTAGE_STEP 0.001
+#define PERCENTAGE_STEP 0.01
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
