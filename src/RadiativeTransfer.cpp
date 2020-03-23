@@ -472,6 +472,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 cout << "-> MC radiation field: 0 [%]      \r" << flush;
                 break;
         }
+
             // A loop for each wavelength
 #pragma omp parallel for schedule(dynamic) collapse(2)
         for(int wID = 0; wID < int(nr_used_wavelengths); wID++)
@@ -484,6 +485,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 Vector3D old_pos;
 
                 // Increase counter used to show progress
+#pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
@@ -529,6 +531,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                 if(pp.getStokesVector()->I() < 1e-200)
                 {
+#pragma omp atomic update
                     kill_counter++;
                     continue;
                 }
@@ -536,6 +539,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 if(!grid->positionPhotonInGrid(&pp))
                     if(!grid->findStartingPoint(&pp))
                     {
+#pragma omp atomic update
                         kill_counter++;
                         continue;
                     }
@@ -558,6 +562,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     // If max interactions is reached, end photon transfer
                     if(interactions >= MAX_INTERACTION)
                     {
+#pragma omp atomic update
                         kill_counter++;
                         break;
                     }
@@ -754,6 +759,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
         for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
             // Increase counter used to show progress
+#pragma omp atomic update
             per_counter++;
 
             // Pointer to final cell
@@ -828,6 +834,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                         {
                             if(!grid->findStartingPoint(&pp))
                             {
+#pragma omp atomic update
                                 kill_counter++;
                                 continue;
                             }
@@ -1289,13 +1296,14 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 }
 
                 // Increase counter used to show progress
+#pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
                 float percentage = 100.0 * float(per_counter) / float(nr_of_photons);
 
                 // Show only new percentage number if it changed
-                if((percentage - last_percentage) > PERCENTAGE_STEP)
+                if((percentage - last_percentage) >= PERCENTAGE_STEP)
                 {
 #pragma omp critical
                     {
@@ -1332,6 +1340,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         if(!grid->positionPhotonInGrid(pp))
                             if(!grid->findStartingPoint(pp))
                             {
+#pragma omp atomic update
                                 kill_counter++;
                                 break;
                             }
@@ -1365,6 +1374,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
                     else
                     {
+                        // For single scattering only the forced photons should be considered
+                        if(MAX_INTERACTION==1)
+                            break;
                         // Get tau for first interaction
                         end_tau = -log(1.0 - pp->getRND());
                     }
@@ -1385,7 +1397,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         if(interactions >= MAX_INTERACTION || pp->getStokesVector()->I() < 1e-200)
                         {
                             if(ph_i == 0)
+                            {
+#pragma omp atomic update
                                 kill_counter++;
+                            }
                             break;
                         }
 
@@ -1423,7 +1438,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // Modify second photon if enforced scattering is used
                             if(b_forced && interactions == 1 && ph_i == 0)
                             {
-                                rays[1].initRandomGenerator(int(i_phot * pp->getRND()));
+                                rays[1].initRandomGenerator(ullong(i_phot * pp->getRND()));
                                 rays[1].setWavelength(pp->getWavelength(), pp->getDustWavelengthID());
                                 rays[1].setPosition(pp->getPosition());
                                 rays[1].setPositionCell(pp->getPositionCell());
@@ -1479,6 +1494,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             *pp_escape.getStokesVector() *=
                                                 dust->getForegroundExtinction(pp->getWavelength());
 
+                                            // If the photon intensity
+                                            // is too low, end photon transfer
+                                            if(*pp_escape.getStokesVector().I() < 1e-200)
+                                                break;
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
                                                 pp_escape, wID_det, SCATTERED_DUST);
@@ -1488,6 +1507,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             }
                             else
                             {
+#pragma omp atomic update
                                 mrw_counter++;
                                 if(mrw_counter % 500000 == 0)
                                 {
@@ -1709,6 +1729,7 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
 
         dust->convertTempInQB(grid, cell, min_gas_density, use_gas_temp);
 
+#pragma omp atomic update
         pos_counter++;
 
         if(pos_counter % 10000 == 0)
@@ -1741,6 +1762,7 @@ void CRadiativeTransfer::calcAlignedRadii()
         cell_basic * cell = grid->getCellFromIndex(c_i);
         dust->calcAlignedRadii(grid, cell);
 
+#pragma omp atomic update
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);
 
@@ -1783,6 +1805,7 @@ void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
         if(adjTgas > 0)
             grid->setGasTemperature(cell, adjTgas * grid->getDustTemperature(*cell));
 
+#pragma omp atomic update
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);
 
@@ -1824,6 +1847,7 @@ void CRadiativeTransfer::calcStochasticHeating()
 
         dust->calcStochasticHeatingPropabilities(grid, cell, wl_list);
 
+#pragma omp atomic update
         per_counter++;
         float percentage = 100.0 * float(per_counter) / float(max_cells);
 
@@ -1865,6 +1889,9 @@ double CRadiativeTransfer::getEscapeTauForced(photon_package * rays)
     // Reset the photon position
     rays[0].setPosition(old_pos);
     rays[0].setPositionCell(tmp_cell);
+
+    // Unset the direction ID
+    rays[0].setDirectionID(MAX_UINT);
 
     stokes = *rays[0].getStokesVector();
     factor = exp(-enf_tau);
@@ -1921,6 +1948,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
                 getSyncPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
 
                 // Increase counter used to show progress
+#pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
@@ -2324,9 +2352,6 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist dust_ray_detectors = param.getDustRayDetectors();
 
-    // Get maximum length of the simulation model
-    double max_length = grid->getMaxLength();
-
     if(!dust_ray_detectors.empty())
     {
         for(uint i_det = start; i_det <= stop; i_det++)
@@ -2359,6 +2384,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
 
                 // Increase counter used to show progress
+#pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
@@ -2776,9 +2802,6 @@ void CRadiativeTransfer::calcStellarEmission(uint i_det)
 
 bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 {
-    // Get maximum length of the simulation model
-    double max_length = grid->getMaxLength();
-
     // Create a list for all gas species
     dlist op_ray_detector_list = param.getOPIATERayDetectors();
 
@@ -2818,6 +2841,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
                 continue;
 
             // Increase counter used to show progress
+# pragma omp atomic update
             per_counter++;
 
             // Calculate percentage of total progress per source
@@ -2860,9 +2884,6 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 
 bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 {
-    // Get maximum length of the simulation model
-    double max_length = grid->getMaxLength();
-
     // Create a list for all gas species
     maplist line_ray_detector_list = param.getLineRayDetectors();
     maplist::iterator it;
@@ -2945,6 +2966,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                     continue;
 
                 // Increase counter used to show progress
+#pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
