@@ -19,6 +19,13 @@ using namespace std;
 //#define WINDOWS
 //#define CAMPS_BENCHMARK
 
+// if dust is a source, the cell from which the photons start are calculated
+// via the cell energy CDF with constant photon energies (DUST_EMI_PROB true)
+// OR
+// all cells launch the same amount of photons with photon energies weighted
+// by the cell energy (DUST_EMI_PROB false)
+#define DUST_EMI_PROB false
+
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
 #define PIsq sqrt(PI)                                 // sqrt(PI)

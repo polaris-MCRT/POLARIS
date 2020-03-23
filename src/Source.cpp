@@ -150,14 +150,14 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStar::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->calcRandomDirection();
 
     if(pp->getDustWavelengthID() != MAX_UINT)
@@ -403,14 +403,14 @@ bool CSourceAGN::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceAGN::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceAGN::createNextRay(photon_package * pp, ullong i_phot)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->calcRandomDirection();
 
     if(pp->getDustWavelengthID() != MAX_UINT)
@@ -653,13 +653,13 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStarField::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceStarField::createNextRay(photon_package * pp, ullong i_phot)
 {
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->calcRandomDirection();
 
     double len = pp->randn(0, var);
@@ -669,9 +669,9 @@ void CSourceStarField::createNextRay(photon_package * pp, ullong i_pos)
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
+        wID = pp->getDustWavelengthID();
         if(is_ext)
         {
-            wID = pp->getDustWavelengthID();
             energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
@@ -713,9 +713,9 @@ void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
+        wID = pp->getDustWavelengthID();
         if(is_ext)
         {
-            wID = pp->getDustWavelengthID();
             energy = sp_ext.getValue(wavelength_list[wID]) / PIx4;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
@@ -760,7 +760,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     off_xy = step_xy / 2.0;
 
     cout << CLR_LINE;
-    
+
     if(constant)
     {
         cout << "Initiating constant background source             \r";
@@ -769,7 +769,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         {
             double pl = 0.0;
             double sp_energy = 0.0;
-            
+
             if(c_f>=0)
             {
                 pl=CMathFunctions::planck(wavelength_list[w], c_temp); //[W m^-2 m^-1]
@@ -810,7 +810,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
                      << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
             else
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell" << endl;        
+                     << "with " << nr_of_photons << " photons per cell" << endl;
         }
 
     }
@@ -1000,7 +1000,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         Q = q(x, y);
         U = u(x, y);
         V = v(x, y);
-        
+
         pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
         I = F * pl;                                           //[W m^-1] energy per second and wavelength
         Q *= I;
@@ -1162,11 +1162,11 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceISRF::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 {
     double energy, excess_x = 0, excess_y = 0, excess_z = 0;
     StokesVector tmp_stokes_vector;
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     uint wID;
 
     if(pp->getDustWavelengthID() != MAX_UINT)
@@ -1351,47 +1351,55 @@ bool CSourceDust::initSource(uint w)
     // Show Initial message
     cout << "-> Initiating dust grain emission          \r" << flush;
 
+    #if (DUST_EMI_PROB)
 // Causes problems. Find better solution!
 //#pragma omp parallel for schedule(dynamic)
-    for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
-    {
-        // Increase counter used to show progress
-        per_counter++;
-
-        // Calculate percentage of total progress
-        float percentage = 100.0 * float(per_counter) / float(max_counter);
-
-        // Show only new percentage number if it changed
-        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
         {
-//#pragma omp critical
+            // Increase counter used to show progress
+//#pragma omp atomic update
+            per_counter++;
+
+            // Calculate percentage of total progress
+            float percentage = 100.0 * float(per_counter) / float(max_counter);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-                cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
-                     << flush;
-                last_percentage = percentage;
+//#pragma omp critical
+                {
+                    cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                        << flush;
+                    last_percentage = percentage;
+                }
             }
+
+            // Put photon package into current cell
+            pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+            // Get total energy of thermal emission
+            total_energy[w] += dust->getTotalCellEmission(grid, *pp);
+
+            // Add energy to probability distribution
+            cell_prob[w].setValue(i_cell + 1, total_energy[w]);
         }
 
-        // Put photon package into current cell
-        pp.setPositionCell(grid->getCellFromIndex(i_cell));
-
-        // Get total energy of thermal emission
-        total_energy[w] += dust->getTotalCellEmission(grid, pp);
-
-        // Add energy to probability distribution
-        cell_prob[w].setValue(i_cell + 1, total_energy[w]);
-    }
-
-    // Normalize probability distribution
-    cell_prob[w].normalize(total_energy[w]);
+        // Normalize probability distribution
+        cell_prob[w].normalize(total_energy[w]);
+    #else
+        // reduce the total number of photons, so that each cell launches the same amount of photons,
+        // i.e. (n_photon % n_cell) should be zero
+        nr_of_photons -= nr_of_photons % grid->getMaxDataCells();
+        nr_of_photons_per_cell = ullong(nr_of_photons / double(nr_of_cells));
+    #endif
 
     return true;
 }
 
-void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceDust::createNextRay(photon_package * pp, ullong i_phot)
 {
     // Init photon package and random direction
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->calcRandomDirection();
 
     // Set wavelength of photon package
@@ -1401,7 +1409,15 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     double rnd = pp->getRND();
 
     // Get index of current cell
-    ulong i_cell = cell_prob[w].getIndex(rnd);
+    ulong i_cell = 0;
+    #if (DUST_EMI_PROB)
+        // Get random number
+        double rnd = pp->getRND();
+
+        i_cell = cell_prob[w].getIndex(rnd);
+    #else
+        i_cell = ulong(i_phot % grid->getMaxDataCells());
+    #endif
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
@@ -1410,12 +1426,17 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_pos)
     grid->setRndPositionInCell(pp);
 
     // Set Stokes vector of photon package
-    double energy = total_energy[w] / double(nr_of_photons);
+    double energy = 0;
+    #if (DUST_EMI_PROB)
+        energy = total_energy[w] / double(nr_of_photons);
+    #else
+        energy = dust->getTotalCellEmission(grid, *pp) / double(nr_of_photons_per_cell);
+    #endif
 
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));
 
-    // // Init coordinate System for polarization
+    // Init coordinate System for polarization
     pp->initCoordSystem();
 }
 
@@ -1462,10 +1483,10 @@ bool CSourceGas::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, bool cell_as_border)
+void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_phot, ulong i_cell, bool cell_as_border)
 {
     // Init photon package and random direction
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->calcRandomDirection();
 
     // Put photon package into current cell
@@ -1549,20 +1570,18 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceLaser::createNextRay(photon_package * pp, ullong i_pos)
+void CSourceLaser::createNextRay(photon_package * pp, ullong i_phot)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     uint wID = 0;
 
-    pp->initRandomGenerator(i_pos);
+    pp->initRandomGenerator(i_phot);
     pp->setDirection(dir);
     pp->setPosition(pos);
 
     if(pp->getDustWavelengthID() != MAX_UINT)
-    {
         wID = pp->getDustWavelengthID();
-    }
     else
     {
         wID = lam_pf.getXIndex(pp->getRND());

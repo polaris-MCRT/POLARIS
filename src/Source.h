@@ -127,11 +127,11 @@ class CSourceBasic
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, ullong i_pos)
+    virtual void createNextRay(photon_package * pp, ullong i_phot)
     {}
 
     virtual void createNextRayToCell(photon_package * pp,
-                                     ullong i_pos,
+                                     ullong i_phot,
                                      ulong i_cell,
                                      bool cell_as_border = false)
     {}
@@ -201,7 +201,7 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
@@ -237,7 +237,7 @@ class CSourceAGN : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
@@ -273,7 +273,7 @@ class CSourceStarField : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
@@ -484,7 +484,7 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
   private:
@@ -505,6 +505,8 @@ class CSourceDust : public CSourceBasic
         total_energy = 0;
         cell_prob = 0;
 
+        nr_of_photons_per_cell = 0;
+
         source_id = SRC_DUST;
     }
 
@@ -520,7 +522,7 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
@@ -536,6 +538,7 @@ class CSourceDust : public CSourceBasic
   private:
     double * total_energy;
     prob_list * cell_prob;
+    ullong nr_of_photons_per_cell;
 };
 
 class CSourceGas : public CSourceBasic
@@ -547,7 +550,7 @@ class CSourceGas : public CSourceBasic
     }
 
     bool initSource(uint id, uint max, bool use_energy_density);
-    void createNextRayToCell(photon_package * pp, ullong i_pos, ulong i_cell, bool cell_as_border);
+    void createNextRayToCell(photon_package * pp, ullong i_phot, ulong i_cell, bool cell_as_border);
 
     void setParameter(parameters & param, uint p)
     {
@@ -573,7 +576,7 @@ class CSourceLaser : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_pos);
+    void createNextRay(photon_package * pp, ullong i_phot);
     void createDirectRay(photon_package * pp, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
