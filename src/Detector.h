@@ -69,6 +69,28 @@ class CDetector
 
         cos_acceptance_angle = 0;
         alignment = ALIG_RND;
+
+        w1_I = 0;
+        w1_Q = 0;
+        w1_U = 0;
+        w1_V = 0;
+
+        w2_I = 0;
+        w2_Q = 0;
+        w2_U = 0;
+        w2_V = 0;
+
+        w3_I = 0;
+        w3_Q = 0;
+        w3_U = 0;
+        w3_V = 0;
+
+        w4_I = 0;
+        w4_Q = 0;
+        w4_U = 0;
+        w4_V = 0;
+
+        N_photon = 0;
     }
 
     // Detector for dust and synchrotron
@@ -487,6 +509,28 @@ class CDetector
         matrixT = new Matrix2D[nr_spectral_bins];
         matrixS = new Matrix2D[nr_spectral_bins];
 
+        w1_I = new Matrix2D[nr_spectral_bins];
+        w1_Q = new Matrix2D[nr_spectral_bins];
+        w1_U = new Matrix2D[nr_spectral_bins];
+        w1_V = new Matrix2D[nr_spectral_bins];
+
+        w2_I = new Matrix2D[nr_spectral_bins];
+        w2_Q = new Matrix2D[nr_spectral_bins];
+        w2_U = new Matrix2D[nr_spectral_bins];
+        w2_V = new Matrix2D[nr_spectral_bins];
+
+        w3_I = new Matrix2D[nr_spectral_bins];
+        w3_Q = new Matrix2D[nr_spectral_bins];
+        w3_U = new Matrix2D[nr_spectral_bins];
+        w3_V = new Matrix2D[nr_spectral_bins];
+
+        w4_I = new Matrix2D[nr_spectral_bins];
+        w4_Q = new Matrix2D[nr_spectral_bins];
+        w4_U = new Matrix2D[nr_spectral_bins];
+        w4_V = new Matrix2D[nr_spectral_bins];
+
+        N_photon = new Matrix2D[nr_spectral_bins];
+
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             matrixI[i_spectral].resize(bins_x, bins_y);
@@ -501,6 +545,28 @@ class CDetector
             sedU[i_spectral] = 0;
             sedV[i_spectral] = 0;
             sedT[i_spectral] = 0;
+
+            w1_I[i_spectral].resize(bins_x, bins_y);
+            w1_Q[i_spectral].resize(bins_x, bins_y);
+            w1_U[i_spectral].resize(bins_x, bins_y);
+            w1_V[i_spectral].resize(bins_x, bins_y);
+
+            w2_I[i_spectral].resize(bins_x, bins_y);
+            w2_Q[i_spectral].resize(bins_x, bins_y);
+            w2_U[i_spectral].resize(bins_x, bins_y);
+            w2_V[i_spectral].resize(bins_x, bins_y);
+
+            w3_I[i_spectral].resize(bins_x, bins_y);
+            w3_Q[i_spectral].resize(bins_x, bins_y);
+            w3_U[i_spectral].resize(bins_x, bins_y);
+            w3_V[i_spectral].resize(bins_x, bins_y);
+
+            w4_I[i_spectral].resize(bins_x, bins_y);
+            w4_Q[i_spectral].resize(bins_x, bins_y);
+            w4_U[i_spectral].resize(bins_x, bins_y);
+            w4_V[i_spectral].resize(bins_x, bins_y);
+
+            N_photon[i_spectral].resize(bins_x, bins_y);
         }
     }
 
@@ -518,6 +584,45 @@ class CDetector
             delete[] matrixT;
         if(matrixS != 0)
             delete[] matrixS;
+
+        if(w1_I != 0)
+            delete[] w1_I;
+        if(w1_Q != 0)
+            delete[] w1_Q;
+        if(w1_U != 0)
+            delete[] w1_U;
+        if(w1_V != 0)
+            delete[] w1_V;
+
+        if(w2_I != 0)
+            delete[] w2_I;
+        if(w2_Q != 0)
+            delete[] w2_Q;
+        if(w2_U != 0)
+            delete[] w2_U;
+        if(w2_V != 0)
+            delete[] w2_V;
+
+        if(w3_I != 0)
+            delete[] w3_I;
+        if(w3_Q != 0)
+            delete[] w3_Q;
+        if(w3_U != 0)
+            delete[] w3_U;
+        if(w3_V != 0)
+            delete[] w3_V;
+
+        if(w4_I != 0)
+            delete[] w4_I;
+        if(w4_Q != 0)
+            delete[] w4_Q;
+        if(w4_U != 0)
+            delete[] w4_U;
+        if(w4_V != 0)
+            delete[] w4_V;
+
+        if(N_photon != 0)
+            delete[] N_photon;
 
         if(sedI != 0)
             delete[] sedI;
@@ -684,7 +789,6 @@ class CDetector
         double lx = pos * ex;
         double ly = pos * ey;
 
-        //uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
         int x = int((lx + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
         if(x < 0 || x >= int(bins_x))
@@ -696,10 +800,33 @@ class CDetector
             return;
 
         StokesVector st = pp.getStokesVector();
+
         matrixI[i_det_spectral].addValue(x, y, st.I());
         matrixQ[i_det_spectral].addValue(x, y, st.Q());
         matrixU[i_det_spectral].addValue(x, y, st.U());
         matrixV[i_det_spectral].addValue(x, y, st.V());
+
+        w1_I[i_det_spectral].addValue(x, y, st.I());
+        w1_Q[i_det_spectral].addValue(x, y, st.Q());
+        w1_U[i_det_spectral].addValue(x, y, st.U());
+        w1_V[i_det_spectral].addValue(x, y, st.V());
+
+        w2_I[i_det_spectral].addValue(x, y, pow(st.I(),2));
+        w2_Q[i_det_spectral].addValue(x, y, pow(st.Q(),2));
+        w2_U[i_det_spectral].addValue(x, y, pow(st.U(),2));
+        w2_V[i_det_spectral].addValue(x, y, pow(st.V(),2));
+
+        w3_I[i_det_spectral].addValue(x, y, pow(st.I(),3));
+        w3_Q[i_det_spectral].addValue(x, y, pow(st.Q(),3));
+        w3_U[i_det_spectral].addValue(x, y, pow(st.U(),3));
+        w3_V[i_det_spectral].addValue(x, y, pow(st.V(),3));
+
+        w4_I[i_det_spectral].addValue(x, y, pow(st.I(),4));
+        w4_Q[i_det_spectral].addValue(x, y, pow(st.Q(),4));
+        w4_U[i_det_spectral].addValue(x, y, pow(st.U(),4));
+        w4_V[i_det_spectral].addValue(x, y, pow(st.V(),4));
+
+        N_photon[i_det_spectral].addValue(x, y, 1);
 
         // Add to SED
         if(sedI != 0)
@@ -729,12 +856,94 @@ class CDetector
         }
     }
 
+    double calc_R(uint i_spectral, int x, int y, int quantity)
+    {
+        double w1, w2, N;
+        double R = 1;
+
+        N = N_photon[i_spectral](x,y);
+        if(N >= 2)
+        {
+            if(quantity == 0)
+            {
+                w1 = w1_I[i_spectral](x,y);
+                w2 = w2_I[i_spectral](x,y);
+            }
+            else if(quantity == 1)
+            {
+                w1 = w1_Q[i_spectral](x,y);
+                w2 = w2_Q[i_spectral](x,y);
+            }
+            else if(quantity == 2)
+            {
+                w1 = w1_U[i_spectral](x,y);
+                w2 = w2_U[i_spectral](x,y);
+            }
+            else if(quantity == 3)
+            {
+                w1 = w1_V[i_spectral](x,y);
+                w2 = w2_V[i_spectral](x,y);
+            }
+
+            if(w1 != 0)
+            {
+                R = w2 / pow(w1,2) - 1/N;
+                R = sqrt(R);
+            }
+        }
+        return R;
+    }
+
+    double calc_VOV(uint i_spectral, int x, int y, int quantity)
+    {
+        double w1, w2, w3, w4, N;
+        double VOV = 1;
+
+        N = N_photon[i_spectral](x,y);
+        if(N >= 2)
+        {
+            if(quantity == 0)
+            {
+                w1 = w1_I[i_spectral](x,y);
+                w2 = w2_I[i_spectral](x,y);
+                w3 = w3_I[i_spectral](x,y);
+                w4 = w4_I[i_spectral](x,y);
+            }
+            else if(quantity == 1)
+            {
+                w1 = w1_Q[i_spectral](x,y);
+                w2 = w2_Q[i_spectral](x,y);
+                w3 = w3_Q[i_spectral](x,y);
+                w4 = w4_Q[i_spectral](x,y);
+            }
+            else if(quantity == 2)
+            {
+                w1 = w1_U[i_spectral](x,y);
+                w2 = w2_U[i_spectral](x,y);
+                w3 = w3_U[i_spectral](x,y);
+                w4 = w4_U[i_spectral](x,y);
+            }
+            else if(quantity == 3)
+            {
+                w1 = w1_V[i_spectral](x,y);
+                w2 = w2_V[i_spectral](x,y);
+                w3 = w3_V[i_spectral](x,y);
+                w4 = w4_V[i_spectral](x,y);
+            }
+
+            VOV = w4 + w1 / N * ( -3*w1 * pow(w1 / N, 2) + 6*w1*w2 / N - 4*w3 );
+            VOV /= pow(w2 - pow(w1,2) / N, 2);
+            VOV -= 1 / N;
+        }
+        return VOV;
+    }
+
     bool writeMap(uint nr, uint results_type)
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing map ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -785,6 +994,15 @@ class CDetector
                 valarray<double> array_V(nelements);
                 valarray<double> array_T(nelements);
                 valarray<double> array_S(nelements);
+                valarray<double> array_N_photon(nelements);
+                valarray<double> array_R_I(nelements);
+                valarray<double> array_VOV_I(nelements);
+                valarray<double> array_R_Q(nelements);
+                valarray<double> array_VOV_Q(nelements);
+                valarray<double> array_R_U(nelements);
+                valarray<double> array_VOV_U(nelements);
+                valarray<double> array_R_V(nelements);
+                valarray<double> array_VOV_V(nelements);
 
                 uint i = 0;
                 for(uint i_y = 0; i_y < bins_y; i_y++)
@@ -796,6 +1014,18 @@ class CDetector
                         array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_S[i] = matrixS[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        if(results_type == RESULTS_MC)
+                        {
+                            array_N_photon[i] = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                            array_R_I[i] = calc_R(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 0);
+                            array_VOV_I[i] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 0);
+                            array_R_Q[i] = calc_R(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 1);
+                            array_VOV_Q[i] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 1);
+                            array_R_U[i] = calc_R(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 2);
+                            array_VOV_U[i] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 2);
+                            array_R_V[i] = calc_R(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 3);
+                            array_VOV_V[i] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, i_x, i_y, 3);
+                        }
                         i++;
                     }
 
@@ -811,6 +1041,27 @@ class CDetector
                 pFits->pHDU().write(fpixel, nelements, array_T);
                 fpixel[3] = 5 * nr_extra + i_extra + 1;
                 pFits->pHDU().write(fpixel, nelements, array_S);
+                if(results_type == RESULTS_MC)
+                {
+                    fpixel[3] = 6 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_N_photon);
+                    fpixel[3] = 7 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_R_I);
+                    fpixel[3] = 8 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_VOV_I);
+                    fpixel[3] = 9 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_R_Q);
+                    fpixel[3] = 10 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_VOV_Q);
+                    fpixel[3] = 11 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_R_U);
+                    fpixel[3] = 12 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_VOV_U);
+                    fpixel[3] = 13 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_R_V);
+                    fpixel[3] = 14 * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_VOV_V);
+                }
             }
         }
 
@@ -965,8 +1216,8 @@ class CDetector
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing line spectrum ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1110,8 +1361,8 @@ class CDetector
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing healpix map ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1259,7 +1510,7 @@ class CDetector
             newTable->addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
         else
             newTable->addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
-        
+
         newTable->addKey("ID", nr, "detector ID");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
@@ -1270,9 +1521,9 @@ class CDetector
         newTable->addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
         newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
         newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
-        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");   
+        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
         newTable->addKey("BUBBLE RADIUS", rad_bubble, "bubble radius [m]");
-                
+
         string alignment_descr = getAlignmentDescription();
         if(alignment_descr != "")
             pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
@@ -1285,8 +1536,8 @@ class CDetector
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing synchrotron plane detector ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1493,8 +1744,8 @@ class CDetector
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing synchrotron healpix detector ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1682,7 +1933,7 @@ class CDetector
         newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
         newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
         newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
-        
+
         newTable->addKey("ETYPE", "synchotron emission", "type of emission");
         newTable->addKey("ID", nr, "detector ID");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
@@ -1706,8 +1957,8 @@ class CDetector
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing line spectrum ...  \r" << flush;
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -1819,8 +2070,8 @@ class CDetector
             long naxis = 3;
             long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
 
-            auto_ptr<CCfits::FITS> pFits(0);
-            // unique_ptr<CCfits::FITS> pFits;
+            // auto_ptr<CCfits::FITS> pFits(0);
+            unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -2008,8 +2259,8 @@ class CDetector
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), nr_of_quantities };
 
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2224,8 +2475,8 @@ class CDetector
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
 
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2430,8 +2681,8 @@ class CDetector
             long naxis = 1;
             long naxes[1] = { 0 };
 
-            auto_ptr<CCfits::FITS> pFits(0);
-            // unique_ptr<CCfits::FITS> pFits;
+            // auto_ptr<CCfits::FITS> pFits(0);
+            unique_ptr<CCfits::FITS> pFits;
 
             try
             {
@@ -2558,8 +2809,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -2625,7 +2876,7 @@ class CDetector
         CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
         // Column density / extra data
-        for(int i_extra = 0; i_extra < nr_of_quantities; i_extra++)
+        for(uint i_extra = 0; i_extra < nr_of_quantities; i_extra++)
         {
             valarray<double> array_S(nelements);
             uint i = 0;
@@ -2724,8 +2975,8 @@ class CDetector
         long naxis = 1;
         long naxes[1] = { 0 };
 
-        auto_ptr<CCfits::FITS> pFits(0);
-        // unique_ptr<CCfits::FITS> pFits;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
 
         try
         {
@@ -3038,6 +3289,11 @@ class CDetector
     uint nr_extra;
     uint alignment;
     Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV, *matrixT, *matrixS;
+    Matrix2D *w1_I, *w2_I, *w3_I, *w4_I;
+    Matrix2D *w1_Q, *w2_Q, *w3_Q, *w4_Q;
+    Matrix2D *w1_U, *w2_U, *w3_U, *w4_U;
+    Matrix2D *w1_V, *w2_V, *w3_V, *w4_V;
+    Matrix2D *N_photon;
     double *sedI, *sedQ, *sedU, *sedV, *sedT;
     dlist wavelength_list_det;
     dlist velocity_channel;
