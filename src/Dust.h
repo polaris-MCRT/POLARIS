@@ -3214,14 +3214,28 @@ class CDustMixture
             else
             {
                 double rnd = pp->getRND();
-                double pb = 1.0;
+                double dens = 0;
+                double pb[getNrOfMixtures()];
+
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    if(mixed_component[i_mixture].getCscaMean(grid, *pp) > 0)
-                        pb -= getRelativeDustNumberDensity(grid, *pp, i_mixture) *
-                              mixed_component[i_mixture].getCscaMean(grid, *pp) / getCscaMean(grid, *pp);
-                    if(rnd > pb)
-                        return i_mixture;
+                    double i_dens = getNumberDensity(grid, *pp, i_mixture);
+                    pb[i_mixture] = i_dens * mixed_component[i_mixture].getCscaMean(grid, *pp);
+                    if(i_mixture > 0)
+                        pb[i_mixture] += pb[i_mixture-1];
+                    dens += i_dens;
+                }
+
+                double cscamean_tmp = getCscaMean(grid, *pp);
+
+                if(dens!=0 && cscamean_tmp != 0)
+                {
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    {
+                        pb[i_mixture] /= dens * cscamean_tmp;
+                        if(pb[i_mixture] > (1-rnd))
+                            return i_mixture;
+                    }
                 }
             }
         }
@@ -3240,14 +3254,28 @@ class CDustMixture
             else
             {
                 double rnd = pp->getRND();
-                double pb = 1.0;
+                double dens = 0;
+                double pb[getNrOfMixtures()];
+
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
-                    if(mixed_component[i_mixture].getCabsMean(grid, *pp) > 0)
-                        pb -= getRelativeDustNumberDensity(grid, *pp, i_mixture) *
-                              mixed_component[i_mixture].getCabsMean(grid, *pp) / getCabsMean(grid, *pp);
-                    if(rnd > pb)
-                        return i_mixture;
+                    double i_dens = getNumberDensity(grid, *pp, i_mixture);
+                    pb[i_mixture] = i_dens * mixed_component[i_mixture].getCabsMean(grid, *pp);
+                    if(i_mixture > 0)
+                        pb[i_mixture] += pb[i_mixture-1];
+                    dens += i_dens;
+                }
+
+                double cabsmean_tmp = getCabsMean(grid, *pp);
+
+                if(dens!=0 && cabsmean_tmp != 0)
+                {
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    {
+                        pb[i_mixture] /= dens * cabsmean_tmp;
+                        if(pb[i_mixture] > (1-rnd))
+                            return i_mixture;
+                    }
                 }
             }
         }

@@ -4729,17 +4729,26 @@ double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package &
     // Get wavelength of photon package
     uint w = pp.getDustWavelengthID();
 
-    for(uint a = 0; a < nr_of_dust_species; a++)
+    if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+    {
+        for(uint a = 0; a < nr_of_dust_species; a++)
+        {
+            // Get dust temperature from grid
+            double temp = grid->getDustTemperature(pp, i_density, a);
+
+            // Calculate energy of current grain size
+            rel_weight[a] *= getCabsMean(a, w) * getTabPlanck(w, temp);
+        }
+    }
+    else
     {
         // Get dust temperature from grid
-        double temp;
-        if(grid->getTemperatureFieldInformation() == TEMP_FULL)
-            temp = grid->getDustTemperature(pp, i_density, a);
-        else
-            temp = grid->getDustTemperature(pp, i_density);
+        double temp = grid->getDustTemperature(pp, i_density);
+        double planck_tmp = getTabPlanck(w, temp);
 
         // Calculate energy of current grain size
-        rel_weight[a] *= getCabsMean(a, w) * getTabPlanck(w, temp);
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= getCabsMean(a, w) * planck_tmp;
     }
 
     // Calculate the total energy via integration
@@ -5405,7 +5414,7 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     double *** size_fraction = getSizeFractions();
 
     // Get common parameters grid
-    uint nr_of_dust_species = single_component[0].getNrOfDustSpecies();
+    nr_of_dust_species = single_component[0].getNrOfDustSpecies();
     uint nr_of_incident_angles = single_component[0].getNrOfIncidentAngles();
 
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
