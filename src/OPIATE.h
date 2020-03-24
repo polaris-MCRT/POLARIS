@@ -58,7 +58,7 @@ class COpiateDataBase
 
         max_velocity = 1;
         velocity_channel = 0;
-        
+
         path_emi="";
         path_abs="";
     }
@@ -94,21 +94,21 @@ class COpiateDataBase
 
         cout << CLR_LINE;
     }
-    
+
     double getGaussA(double temp_gas, double v_turb)
     {
         double v_th = sqrt(2.0 * con_kB * temp_gas / (list_weight[current_index] * 1e-3 / con_Na));
         double gauss_a = 1.0 / sqrt(pow(v_th, 2) + pow(v_turb, 2));
         return gauss_a;
     }
-    
+
     void calcLineBroadening(CGridBasic * grid)
     {
         long max_cells = grid->getMaxDataCells();
-        
+
         cout << CLR_LINE;
         cout << "-> Calculating line broadening for each grid cell ...     \r" << flush;
-        
+
     #pragma omp parallel for schedule(dynamic)
         for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
         {
@@ -121,23 +121,23 @@ class COpiateDataBase
             // Set gauss_a for each transition only once
             grid->setGaussA(cell, getGaussA(temp_gas, turbulent_velocity));
         }
-        
+
         cout << CLR_LINE;
     }
-    
+
     uint getMaxSpecies()
     {
         return max_species;
     }
-    
+
     double getFrequency(uint pos)
     {
         return list_freq[pos];
     }
-    
-    
+
+
     bool readOpiateDataBase(parameters & param);
-    
+
     void printParameters(parameters & param, CGridBasic * grid);
 
     bool findIndexByName(string name)
@@ -260,7 +260,7 @@ class COpiateDataBase
         uint lower = min - 1;
         uint upper = min + 1;
 
-        if(lower = MAX_UINT)
+        if(lower == MAX_UINT)
             lower = 0;
 
         if(upper >= N)
@@ -309,7 +309,7 @@ class COpiateDataBase
     uint current_index;
     uint max_species;
     uint max_ids;
-    
+
     string path_emi;
     string path_abs;
 

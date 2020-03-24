@@ -752,12 +752,12 @@ class CDetector
 
             uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
-            if(x < 0 || x >= int(bins_x))
+            if(x < 0 || x >= bins_x)
                 return;
 
             uint y = uint((pos.Y() + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
 
-            if(y < 0 || y >= int(bins_y))
+            if(y < 0 || y >= bins_y)
                 return;
 
             matrixI[i_spectral].addValue(x, y, st.I());
@@ -789,14 +789,14 @@ class CDetector
         double lx = pos * ex;
         double ly = pos * ey;
 
-        int x = int((lx + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
+        uint x = uint((lx + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
 
-        if(x < 0 || x >= int(bins_x))
+        if(x < 0 || x >= bins_x)
             return;
 
-        int y = int((ly + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
+        uint y = uint((ly + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
 
-        if(y < 0 || y >= int(bins_y))
+        if(y < 0 || y >= bins_y)
             return;
 
         StokesVector st = pp.getStokesVector();
@@ -856,7 +856,7 @@ class CDetector
         }
     }
 
-    double calc_R(uint i_spectral, int x, int y, int quantity)
+    double calc_R(uint i_spectral, uint x, uint y, uint quantity)
     {
         double w1, w2, N;
         double R = 1;
@@ -864,25 +864,32 @@ class CDetector
         N = N_photon[i_spectral](x,y);
         if(N >= 2)
         {
-            if(quantity == 0)
+            switch(quantity)
             {
-                w1 = w1_I[i_spectral](x,y);
-                w2 = w2_I[i_spectral](x,y);
-            }
-            else if(quantity == 1)
-            {
-                w1 = w1_Q[i_spectral](x,y);
-                w2 = w2_Q[i_spectral](x,y);
-            }
-            else if(quantity == 2)
-            {
-                w1 = w1_U[i_spectral](x,y);
-                w2 = w2_U[i_spectral](x,y);
-            }
-            else if(quantity == 3)
-            {
-                w1 = w1_V[i_spectral](x,y);
-                w2 = w2_V[i_spectral](x,y);
+                case 0:
+                {
+                    w1 = w1_I[i_spectral](x,y);
+                    w2 = w2_I[i_spectral](x,y);
+                    break;
+                }
+                case 1:
+                {
+                    w1 = w1_Q[i_spectral](x,y);
+                    w2 = w2_Q[i_spectral](x,y);
+                    break;
+                }
+                case 2:
+                {
+                    w1 = w1_U[i_spectral](x,y);
+                    w2 = w2_U[i_spectral](x,y);
+                    break;
+                }
+                case 3:
+                {
+                    w1 = w1_V[i_spectral](x,y);
+                    w2 = w2_V[i_spectral](x,y);
+                    break;
+                }
             }
 
             if(w1 != 0)
@@ -894,7 +901,7 @@ class CDetector
         return R;
     }
 
-    double calc_VOV(uint i_spectral, int x, int y, int quantity)
+    double calc_VOV(uint i_spectral, uint x, uint y, uint quantity)
     {
         double w1, w2, w3, w4, N;
         double VOV = 1;
@@ -902,33 +909,40 @@ class CDetector
         N = N_photon[i_spectral](x,y);
         if(N >= 2)
         {
-            if(quantity == 0)
+            switch(quantity)
             {
-                w1 = w1_I[i_spectral](x,y);
-                w2 = w2_I[i_spectral](x,y);
-                w3 = w3_I[i_spectral](x,y);
-                w4 = w4_I[i_spectral](x,y);
-            }
-            else if(quantity == 1)
-            {
-                w1 = w1_Q[i_spectral](x,y);
-                w2 = w2_Q[i_spectral](x,y);
-                w3 = w3_Q[i_spectral](x,y);
-                w4 = w4_Q[i_spectral](x,y);
-            }
-            else if(quantity == 2)
-            {
-                w1 = w1_U[i_spectral](x,y);
-                w2 = w2_U[i_spectral](x,y);
-                w3 = w3_U[i_spectral](x,y);
-                w4 = w4_U[i_spectral](x,y);
-            }
-            else if(quantity == 3)
-            {
-                w1 = w1_V[i_spectral](x,y);
-                w2 = w2_V[i_spectral](x,y);
-                w3 = w3_V[i_spectral](x,y);
-                w4 = w4_V[i_spectral](x,y);
+                case 0:
+                {
+                    w1 = w1_I[i_spectral](x,y);
+                    w2 = w2_I[i_spectral](x,y);
+                    w3 = w3_I[i_spectral](x,y);
+                    w4 = w4_I[i_spectral](x,y);
+                    break;
+                }
+                case 1:
+                {
+                    w1 = w1_Q[i_spectral](x,y);
+                    w2 = w2_Q[i_spectral](x,y);
+                    w3 = w3_Q[i_spectral](x,y);
+                    w4 = w4_Q[i_spectral](x,y);
+                    break;
+                }
+                case 2:
+                {
+                    w1 = w1_U[i_spectral](x,y);
+                    w2 = w2_U[i_spectral](x,y);
+                    w3 = w3_U[i_spectral](x,y);
+                    w4 = w4_U[i_spectral](x,y);
+                    break;
+                }
+                case 3:
+                {
+                    w1 = w1_V[i_spectral](x,y);
+                    w2 = w2_V[i_spectral](x,y);
+                    w3 = w3_V[i_spectral](x,y);
+                    w4 = w4_V[i_spectral](x,y);
+                    break;
+                }
             }
 
             VOV = w4 + w1 / N * ( -3*w1 * pow(w1 / N, 2) + 6*w1*w2 / N - 4*w3 );
@@ -963,7 +977,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_spectral_bins, 6 * nr_extra };
+            long naxes[4] = { bins_x, bins_y, nr_spectral_bins, 6 * nr_extra };
 
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
@@ -972,7 +986,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -1390,7 +1404,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -1557,7 +1571,7 @@ class CDetector
             remove(path_out.c_str());
 
             long naxis = 4;
-            long naxes[4] = { uint(bins_x), uint(bins_y), nr_spectral_bins, 6 * nr_extra };
+            long naxes[4] = { bins_x, bins_y, nr_spectral_bins, 6 * nr_extra };
             pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
         }
         catch(CCfits::FITS::CantCreate)
@@ -1565,7 +1579,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -1773,7 +1787,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2068,7 +2082,7 @@ class CDetector
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             long naxis = 3;
-            long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
+            long naxes[3] = { bins_x, bins_y, 5 };
 
             // auto_ptr<CCfits::FITS> pFits(0);
             unique_ptr<CCfits::FITS> pFits;
@@ -2095,7 +2109,7 @@ class CDetector
                 return false;
             }
 
-            long nelements = uint(bins_x) * uint(bins_y);
+            long nelements = bins_x * bins_y;
             if(max_cells != nelements)
             {
                 cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2257,7 +2271,7 @@ class CDetector
             nr_of_quantities += 4;
 
         long naxis = 3;
-        long naxes[3] = { uint(bins_x), uint(bins_y), nr_of_quantities };
+        long naxes[3] = { bins_x, bins_y, nr_of_quantities };
 
         // auto_ptr<CCfits::FITS> pFits(0);
         unique_ptr<CCfits::FITS> pFits;
@@ -2284,7 +2298,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2473,7 +2487,7 @@ class CDetector
         cout << " -> Writing integrated velocity channel maps: 0%  \r" << flush;
 
         long naxis = 3;
-        long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
+        long naxes[3] = { bins_x, bins_y, 6 };
 
         // auto_ptr<CCfits::FITS> pFits(0);
         unique_ptr<CCfits::FITS> pFits;
@@ -2500,7 +2514,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2706,7 +2720,7 @@ class CDetector
                 return false;
             }
 
-            long nelements = uint(bins_x) * uint(bins_y);
+            long nelements = bins_x * bins_y;
             if(max_cells != nelements)
             {
                 cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2835,7 +2849,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -3000,7 +3014,7 @@ class CDetector
             return false;
         }
 
-        long nelements = uint(bins_x) * uint(bins_y);
+        long nelements = bins_x * bins_y;
         if(max_cells != nelements)
         {
             cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;

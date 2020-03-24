@@ -17,8 +17,8 @@ class MagFieldInfo
             cos_2_phi=0;
             sin_2_phi=0;
         }
-        
-        
+
+
         double cos_theta;
         double sin_theta;
         double cos_2_phi;
@@ -34,7 +34,7 @@ class LineBroadening
         gauss_a=0;
         voigt_a=0;
     }
-        
+
     double gauss_a;
     double voigt_a;
 };
@@ -1831,7 +1831,6 @@ class CGridBasic
         pp.setPosition(Vector3D(tx, ty, tz));
         if(positionPhotonInGrid(&pp))
         {
-            uint id = 0;
             if(plt_gas_dens)
             {
                 buffer_gas_dens[i_cell][0] = getGasDensity(pp);
@@ -1893,7 +1892,6 @@ class CGridBasic
             }
             if(plt_larm)
             {
-                double gas_temp = getGasTemperature(pp);
                 double field = getMagField(pp).length();
                 double Td = getDustTemperature(pp);
                 double Tg = getGasTemperature(pp);
@@ -1917,7 +1915,7 @@ class CGridBasic
             if(plt_size_param)
                 buffer_dust_size_param[i_cell] = getGrainSizeParam(pp);
             if(plt_rad_field1)
-                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
                     for(int wID = 0; wID < WL_STEPS; wID++)
                     {
@@ -2030,7 +2028,7 @@ class CGridBasic
             if(plt_size_param)
                 buffer_dust_size_param[i_cell] = 0;
             if(plt_rad_field1)
-                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                     for(uint wID = 0; wID < WL_STEPS; wID++)
                         buffer_rad_field[i_cell][wID][i_comp] = 0;
             if(plt_g_zero1)
@@ -2299,8 +2297,8 @@ class CGridBasic
             return false;
         return true;
     }
-    
-    
+
+
     bool isTurbulentVelocityAvailable()
     {
         if(data_pos_vt == MAX_UINT)
@@ -3800,8 +3798,8 @@ class CGridBasic
     bool plt_g_min;
     bool plt_g_max;
     bool plt_p;
-    
-    
+
+
 
     bool plt_avg_dir;
     bool plt_avg_th;

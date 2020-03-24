@@ -419,14 +419,14 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
         {
             double * tmp_data=new double[data_len];
 
-            for(int j=0;j<data_len;j++)
+            for(uint j=0;j<data_len;j++)
             {
                 tmp_data[j]=0;
             }
 
             for(int i = 0; i < 8; i++)
             {
-                for(int j =0;j<data_len;j++)
+                for(uint j =0;j<data_len;j++)
                 {
                     tmp_data[j]+=cell->getChildren()[i].getData(j)/8.0;
                 }
@@ -436,7 +436,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             cell->setChildren(0);
             cell->resize(data_len);
 
-            for(int j=0;j<data_len;j++)
+            for(uint j=0;j<data_len;j++)
             {
                 cell->setData(j, tmp_data[j]); ;
             }

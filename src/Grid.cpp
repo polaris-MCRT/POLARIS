@@ -12,9 +12,6 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     double vx = 0;
     double vy = 0;
     double vz = 0;
-    double px = 0;
-    double py = 0;
-    double pz = 0;
     double a_alg = 0;
     double dust_temp = 0;
     double gas_temp = 0;
@@ -460,12 +457,14 @@ void CGridBasic::printPhysicalParameters()
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]"
              << endl;
     if(!data_pos_dd_list.empty())
+    {
         if(dust_is_mass_density)
             cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
                  << "] [kg m^-3]" << endl;
         else
             cout << "- Dust number density (min,max) : [" << min_dust_dens << ", " << max_dust_dens
                  << "] [m^-3]" << endl;
+    }
     if(data_pos_tg != MAX_UINT)
         cout << "- Gas temperature     (min,max) : [" << min_gas_temp << ", " << max_gas_temp << "] [K]"
              << endl;
@@ -1368,7 +1367,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_gas_dens)
     {
         buffer_gas_dens = new double *[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
@@ -1382,7 +1381,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_mol_dens)
     {
         buffer_mol_dens = new double *[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             buffer_mol_dens[i_cell] = new double[nrOfDensRatios];
         }
@@ -1393,7 +1392,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_dust_dens)
     {
         buffer_dust_dens = new double *[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
@@ -1408,7 +1407,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_dust_temp)
     {
         buffer_dust_temp = new double *[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
@@ -1421,7 +1420,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_rat)
     {
         buffer_rat = new double *[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
             buffer_rat[i_cell] = new double[data_pos_aalg_list.size()];
     }
     if(plt_delta)
@@ -1455,10 +1454,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_rad_field1)
     {
         buffer_rad_field = new double **[nelements];
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             buffer_rad_field[i_cell] = new double *[WL_STEPS];
-            for(int wID = 0; wID < WL_STEPS; wID++)
+            for(uint wID = 0; wID < WL_STEPS; wID++)
                 buffer_rad_field[i_cell][wID] = new double[nr_rad_field_comp];
         }
     }
@@ -1534,7 +1533,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             fpixel[3] = 0;
             if(plt_gas_dens)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_gas_dens[i_cell] = buffer_gas_dens[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_dens);
@@ -1542,7 +1541,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_gas_dens[i_cell] = buffer_gas_dens[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_gas_dens);
@@ -1552,7 +1551,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             {
                 for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
                 {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
                         array_mol_dens[i_cell] = buffer_mol_dens[i_cell][i_density];
 
                     fpixel[3]++;
@@ -1561,7 +1560,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_dens)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_dens[i_cell] = buffer_dust_dens[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
@@ -1569,7 +1568,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_dust_dens[i_cell] = buffer_dust_dens[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_dust_dens);
@@ -1577,7 +1576,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_gas_temp)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
 
                 fpixel[3]++;
@@ -1585,7 +1584,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_temp)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_temp[i_cell] = buffer_dust_temp[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_temp);
@@ -1593,7 +1592,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_dust_temp[i_cell] = buffer_dust_temp[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_dust_temp);
@@ -1603,7 +1602,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             {
                 for(uint i_density = 0; i_density < nr_densities; i_density++)
                 {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
                         array_rat[i_cell] = buffer_rat[i_cell][i_density];
 
                     fpixel[3]++;
@@ -1612,7 +1611,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_delta)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_delta[i_cell] = buffer_delta[i_cell];
 
                 fpixel[3]++;
@@ -1620,7 +1619,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_mag)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                 {
                     array_mag[i_cell] = buffer_mag[i_cell];
                     array_mag_x[i_cell] = buffer_mag_x[i_cell];
@@ -1639,7 +1638,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_vel)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                 {
                     array_vel[i_cell] = buffer_vel[i_cell];
                     array_vel_x[i_cell] = buffer_vel_x[i_cell];
@@ -1658,7 +1657,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_larm)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_larm[i_cell] = buffer_larm[i_cell];
 
                 fpixel[3]++;
@@ -1666,7 +1665,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_mach)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_mach[i_cell] = buffer_mach[i_cell];
 
                 fpixel[3]++;
@@ -1674,7 +1673,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_id)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_mixture[i_cell] = buffer_dust_mixture[i_cell];
 
                 fpixel[3]++;
@@ -1682,7 +1681,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_amin)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_amin[i_cell] = buffer_dust_amin[i_cell];
 
                 fpixel[3]++;
@@ -1690,7 +1689,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_amax)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_amax[i_cell] = buffer_dust_amax[i_cell];
 
                 fpixel[3]++;
@@ -1698,7 +1697,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_size_param)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_size_param[i_cell] = buffer_dust_size_param[i_cell];
 
                 fpixel[3]++;
@@ -1706,10 +1705,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field1)
             {
-                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
-                    for(int wID = 0; wID < WL_STEPS; wID++)
+                for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                    for(uint wID = 0; wID < WL_STEPS; wID++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_rad_field[i_cell] = buffer_rad_field[i_cell][wID][i_comp];
 
                         fpixel[3]++;
@@ -1718,7 +1717,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_g_zero1)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_zero1[i_cell] = buffer_g_zero1[i_cell];
 
                 fpixel[3]++;
@@ -1726,7 +1725,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_u_rad)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_u_rad[i_cell] = buffer_u_rad[i_cell];
 
                 fpixel[3]++;
@@ -1734,7 +1733,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_n_th)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_n_th[i_cell] = buffer_n_th[i_cell];
 
                 fpixel[3]++;
@@ -1742,7 +1741,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_T_e)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_T_e[i_cell] = buffer_T_e[i_cell];
 
                 fpixel[3]++;
@@ -1750,7 +1749,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_n_cr)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_n_cr[i_cell] = buffer_n_cr[i_cell];
 
                 fpixel[3]++;
@@ -1758,7 +1757,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_g_min)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_min[i_cell] = buffer_g_min[i_cell];
 
                 fpixel[3]++;
@@ -1766,7 +1765,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(buffer_g_max)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_max[i_cell] = buffer_g_max[i_cell];
 
                 fpixel[3]++;
@@ -1774,7 +1773,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_p)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_p[i_cell] = buffer_p[i_cell];
 
                 fpixel[3]++;
@@ -1782,7 +1781,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_avg_th)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_avg_th[i_cell] = buffer_avg_th[i_cell];
 
                 fpixel[3]++;
@@ -1790,7 +1789,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_avg_dir)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_avg_dir[i_cell] = buffer_avg_dir[i_cell];
 
                 fpixel[3]++;
@@ -1841,7 +1840,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             fpixel[3] = 0;
             if(plt_gas_dens)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_gas_dens[i_cell] = buffer_gas_dens[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_dens);
@@ -1849,7 +1848,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_gas_dens[i_cell] = buffer_gas_dens[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_gas_dens);
@@ -1859,7 +1858,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             {
                 for(uint i_density = 0; i_density < nrOfDensRatios; i_density++)
                 {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
                         array_mol_dens[i_cell] = buffer_mol_dens[i_cell][i_density];
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_mol_dens);
@@ -1867,7 +1866,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_dens)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_dens[i_cell] = buffer_dust_dens[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
@@ -1875,7 +1874,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_dust_dens[i_cell] = buffer_dust_dens[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_dust_dens);
@@ -1883,7 +1882,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_gas_temp)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_gas_temp[i_cell] = buffer_gas_temp[i_cell];
 
                 fpixel[3]++;
@@ -1891,7 +1890,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_temp)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_temp[i_cell] = buffer_dust_temp[i_cell][0];
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_temp);
@@ -1899,7 +1898,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_dust_temp[i_cell] = buffer_dust_temp[i_cell][i_density + 1];
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_dust_temp);
@@ -1909,7 +1908,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             {
                 for(uint i_density = 0; i_density < nr_densities; i_density++)
                 {
-                    for(int i_cell = 0; i_cell < nelements; i_cell++)
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
                         array_rat[i_cell] = buffer_rat[i_cell][i_density];
 
                     fpixel[3]++;
@@ -1918,7 +1917,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_delta)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_delta[i_cell] = buffer_delta[i_cell];
 
                 fpixel[3]++;
@@ -1926,7 +1925,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_mag)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                 {
                     array_mag[i_cell] = buffer_mag[i_cell];
                     array_mag_x[i_cell] = buffer_mag_x[i_cell];
@@ -1945,7 +1944,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_vel)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                 {
                     array_vel[i_cell] = buffer_vel[i_cell];
                     array_vel_x[i_cell] = buffer_vel_x[i_cell];
@@ -1964,7 +1963,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_larm)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_larm[i_cell] = buffer_larm[i_cell];
 
                 fpixel[3]++;
@@ -1972,7 +1971,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_mach)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_mach[i_cell] = buffer_mach[i_cell];
 
                 fpixel[3]++;
@@ -1980,7 +1979,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_dust_id)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_dust_mixture[i_cell] = buffer_dust_mixture[i_cell];
 
                 fpixel[3]++;
@@ -1988,7 +1987,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_amin)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_amin[i_cell] = buffer_dust_amin[i_cell];
 
                 fpixel[3]++;
@@ -1996,7 +1995,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_amax)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_amax[i_cell] = buffer_dust_amax[i_cell];
 
                 fpixel[3]++;
@@ -2004,7 +2003,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_size_param)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_size_param[i_cell] = buffer_dust_size_param[i_cell];
 
                 fpixel[3]++;
@@ -2012,10 +2011,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_rad_field1)
             {
-                for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
-                    for(int wID = 0; wID < WL_STEPS; wID++)
+                for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+                    for(uint wID = 0; wID < WL_STEPS; wID++)
                     {
-                        for(int i_cell = 0; i_cell < nelements; i_cell++)
+                        for(long i_cell = 0; i_cell < nelements; i_cell++)
                             array_rad_field[i_cell] = buffer_rad_field[i_cell][wID][i_comp];
 
                         fpixel[3]++;
@@ -2024,7 +2023,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_g_zero1)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_zero1[i_cell] = buffer_g_zero1[i_cell];
 
                 fpixel[3]++;
@@ -2032,7 +2031,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_u_rad)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_u_rad[i_cell] = buffer_u_rad[i_cell];
 
                 fpixel[3]++;
@@ -2040,7 +2039,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_n_th)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_n_th[i_cell] = buffer_n_th[i_cell];
 
                 fpixel[3]++;
@@ -2048,7 +2047,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_T_e)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_T_e[i_cell] = buffer_T_e[i_cell];
 
                 fpixel[3]++;
@@ -2056,7 +2055,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_n_cr)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_n_cr[i_cell] = buffer_n_cr[i_cell];
 
                 fpixel[3]++;
@@ -2064,7 +2063,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_g_min)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_min[i_cell] = buffer_g_min[i_cell];
 
                 fpixel[3]++;
@@ -2072,7 +2071,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(buffer_g_max)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_g_max[i_cell] = buffer_g_max[i_cell];
 
                 fpixel[3]++;
@@ -2080,7 +2079,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_p)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_p[i_cell] = buffer_p[i_cell];
 
                 fpixel[3]++;
@@ -2088,7 +2087,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_avg_th)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_avg_th[i_cell] = buffer_avg_th[i_cell];
 
                 fpixel[3]++;
@@ -2096,7 +2095,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             }
             if(plt_avg_dir)
             {
-                for(int i_cell = 0; i_cell < nelements; i_cell++)
+                for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_avg_dir[i_cell] = buffer_avg_dir[i_cell];
 
                 fpixel[3]++;
@@ -2378,9 +2377,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_rad_field1)
     {
-        for(int i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
+        for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
         {
-            for(int wID = 0; wID < WL_STEPS; wID++)
+            for(uint wID = 0; wID < WL_STEPS; wID++)
             {
                 counter++;
                 updateMidplaneString(str_1, str_2, counter);
@@ -2490,19 +2489,19 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     // Free memory of pointer arrays
     if(plt_gas_dens)
     {
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_gas_dens[i_cell];
         delete[] buffer_gas_dens;
     }
     if(plt_mol_dens)
     {
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_mol_dens[i_cell];
         delete[] buffer_mol_dens;
     }
     if(plt_dust_dens)
     {
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_dens[i_cell];
         delete[] buffer_dust_dens;
     }
@@ -2510,7 +2509,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_gas_temp;
     if(plt_dust_temp)
     {
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
             delete[] buffer_dust_temp[i_cell];
         delete[] buffer_dust_temp;
     }
@@ -2546,7 +2545,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_dust_size_param;
     if(plt_rad_field1)
     {
-        for(int i_cell = 0; i_cell < nelements; i_cell++)
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
             for(uint wID = 0; wID < WL_STEPS; wID++)
                 delete[] buffer_rad_field[i_cell][wID];

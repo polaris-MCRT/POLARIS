@@ -769,7 +769,8 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
             double max_velocity = 2.0 / grid->getGaussA(*final_cell);
 
             // Obtain magnetic field strength and orientation
-            double cos_theta = 0, sin_theta = 0, cos_2_phi = 0, sin_2_phi = 0;
+            double cos_theta = 0, sin_theta = 0;
+            //double cos_2_phi = 0, sin_2_phi = 0;
             Vector3D mag_field;
 
             // Each cell automatically converged except the last one for local iteration
@@ -995,7 +996,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
         double len = pp->getTmpPathLength();
 
         // Get necessary quantities from the current cell
-        double dens_gas = grid->getGasNumberDensity(*pp);
+        // double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
         dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
@@ -3283,7 +3284,7 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
         double len = pp->getTmpPathLength();
 
         // Get necessary quantities from the current cell
-        double dens_gas = grid->getGasNumberDensity(*pp);
+        // double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
         dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
@@ -3528,7 +3529,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         double len = pp->getTmpPathLength();
 
         // Get necessary quantities from the current cell
-        double dens_gas = grid->getGasNumberDensity(*pp);
+        // double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
         dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
