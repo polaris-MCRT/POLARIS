@@ -1378,7 +1378,7 @@ bool CSourceDust::initSource(uint w)
             pp.setPositionCell(grid->getCellFromIndex(i_cell));
 
             // Get total energy of thermal emission
-            total_energy[w] += dust->getTotalCellEmission(grid, *pp);
+            total_energy[w] += dust->getTotalCellEmission(grid, pp);
 
             // Add energy to probability distribution
             cell_prob[w].setValue(i_cell + 1, total_energy[w]);
@@ -1404,9 +1404,6 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_phot)
 
     // Set wavelength of photon package
     uint w = pp->getDustWavelengthID();
-
-    // Get random number
-    double rnd = pp->getRND();
 
     // Get index of current cell
     ulong i_cell = 0;
