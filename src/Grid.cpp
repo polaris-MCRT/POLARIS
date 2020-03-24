@@ -2,6 +2,96 @@
 #include <CCfits/CCfits>
 #include <cmath>
 
+
+double CGridBasic::getCextMeanTab(uint cellID) const
+{
+    if(cextMeanTab != 0)
+        return cextMeanTab[chosen_wID][cellID];
+    return MAX_DOUBLE;
+}
+
+double CGridBasic::getCabsMeanTab(uint cellID) const
+{
+    if(cabsMeanTab != 0)
+        return cabsMeanTab[chosen_wID][cellID];
+    return MAX_DOUBLE;
+}
+
+double CGridBasic::getCscaMeanTab(uint cellID) const
+{
+    if(cscaMeanTab != 0)
+        return cscaMeanTab[chosen_wID][cellID];
+    return MAX_DOUBLE;
+}
+
+double CGridBasic::getNumberDensityTab(uint cellID) const
+{
+    if(numberDensityTab != 0)
+        return numberDensityTab[cellID];
+    return MAX_DOUBLE;
+}
+
+double CGridBasic::getTotalCellEmissionTab(uint cellID) const
+{
+    if(totalCellEmissionTab != 0)
+        return totalCellEmissionTab[cellID];
+    return MAX_DOUBLE;
+}
+
+void CGridBasic::setCextMeanTab(double Cext, uint cellID)
+{
+    cextMeanTab[chosen_wID][cellID] = Cext;
+}
+
+void CGridBasic::setCabsMeanTab(double Cext, uint cellID)
+{
+    cabsMeanTab[chosen_wID][cellID] = Cext;
+}
+
+void CGridBasic::setCscaMeanTab(double Cext, uint cellID)
+{
+    cscaMeanTab[chosen_wID][cellID] = Cext;
+}
+
+void CGridBasic::setNumberDensityTab(double number_density, uint cellID)
+{
+    numberDensityTab[cellID] = number_density;
+}
+
+void CGridBasic::setTotalCellEmissionTab(double cell_emission, uint cellID)
+{
+    totalCellEmissionTab[cellID] = cell_emission;
+}
+
+void CGridBasic::setWaveID(uint wID)
+{
+    chosen_wID = wID;
+}
+
+void CGridBasic::initPreCalcTables(uint nr_used_wavelengths)
+{
+    max_wavelengths = nr_used_wavelengths;
+    cextMeanTab = new double *[max_wavelengths];
+    cabsMeanTab = new double *[max_wavelengths];
+    cscaMeanTab = new double *[max_wavelengths];
+
+    for(uint wID = 0; wID < max_wavelengths; wID++)
+    {
+        cextMeanTab[wID] = new double[max_cells];
+        fill(cextMeanTab[wID], cextMeanTab[wID] + max_cells, MAX_DOUBLE);
+        cabsMeanTab[wID] = new double[max_cells];
+        fill(cabsMeanTab[wID], cabsMeanTab[wID] + max_cells, MAX_DOUBLE);
+        cscaMeanTab[wID] = new double[max_cells];
+        fill(cscaMeanTab[wID], cscaMeanTab[wID] + max_cells, MAX_DOUBLE);
+    }
+
+    numberDensityTab = new double[max_cells];
+    fill(numberDensityTab, numberDensityTab + max_cells, MAX_DOUBLE);
+
+    totalCellEmissionTab = new double[max_cells];
+    fill(totalCellEmissionTab, totalCellEmissionTab + max_cells, MAX_DOUBLE);
+}
+
 void CGridBasic::updateDataRange(cell_basic * cell)
 {
     double gas_dens = 0;

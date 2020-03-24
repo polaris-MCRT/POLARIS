@@ -72,7 +72,7 @@ class cell_basic
         id = _id;
     }
 
-    uint getID()
+    uint getID() const
     {
         return id;
     }

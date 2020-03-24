@@ -453,6 +453,40 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         if(use_energy_density)
             nr_used_wavelengths = dust->getNrOfWavelength();
 
+        #if (USE_PRECALC_TABLE)
+            grid->initPreCalcTables(nr_used_wavelengths);
+
+            ulong nr_of_cells = grid->getMaxDataCells();
+
+            for(uint wID = 0; wID < nr_used_wavelengths; wID++)
+            {
+                grid->setWaveID(wID);
+                for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+                {
+                    photon_package pp = photon_package();
+
+                    pp.setWavelength(dust->getWavelength(wID), wID);
+                    // Put photon package into current cell
+                    pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+                    double i_cext = dust->getCextMean(grid, pp);
+                    double i_cabs = dust->getCabsMean(grid, pp);
+                    double i_csca = dust->getCscaMean(grid, pp);
+                    grid->setCextMeanTab(i_cext, i_cell);
+                    grid->setCabsMeanTab(i_cabs, i_cell);
+                    grid->setCscaMeanTab(i_csca, i_cell);
+
+                    if(wID == 0)
+                    {
+                        double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
+                        grid->setNumberDensityTab(number_denisty, i_cell);
+                        double cell_emission = dust->getTotalCellEmission(grid, pp);
+                        grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                    }
+                }
+            }
+        #endif
+
         // Init progress visualization
         per_counter = 0;
         cout << CLR_LINE;
@@ -480,6 +514,11 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
             // A loop for each photon
             for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
             {
+                #if (USE_PRECALC_TABLE)
+                    if(i_phot == 0)
+                        grid->setWaveID(wID);
+                #endif
+
                 // Init variables
                 double end_tau, Cext, Csca;
                 Vector3D old_pos;
@@ -1254,6 +1293,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         // Get number of wavelength
         nr_of_wavelength = dust->getNrOfWavelength();
 
+        #if (USE_PRECALC_TABLE)
+            grid->initPreCalcTables(nr_of_wavelength);
+        #endif
+
         // Perform Monte-Carlo radiative transfer for
         // each chosen wavelength of the chosen source
         for(uint wID = 0; wID < nr_of_wavelength; wID++)
@@ -1264,6 +1307,35 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Get number of photons that have to be emitted from the current source
             nr_of_photons = tm_source->getNrOfPhotons();
+
+            #if (USE_PRECALC_TABLE)
+                ulong nr_of_cells = grid->getMaxDataCells();
+
+                grid->setWaveID(wID);
+                for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+                {
+                    photon_package pp = photon_package();
+
+                    pp.setWavelength(dust->getWavelength(wID), wID);
+                    // Put photon package into current cell
+                    pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+                    double i_cext = dust->getCextMean(grid, pp);
+                    double i_cabs = dust->getCabsMean(grid, pp);
+                    double i_csca = dust->getCscaMean(grid, pp);
+                    grid->setCextMeanTab(i_cext, i_cell);
+                    grid->setCabsMeanTab(i_cabs, i_cell);
+                    grid->setCscaMeanTab(i_csca, i_cell);
+
+                    if(wID == 0)
+                    {
+                        double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
+                        grid->setNumberDensityTab(number_denisty, i_cell);
+                        double cell_emission = dust->getTotalCellEmission(grid, pp);
+                        grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                    }
+                }
+            #endif
 
             // Init progress visualization
             cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
@@ -2362,6 +2434,41 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             uint sID = tracer[i_det]->getSourceIndex();
             tmp_source = sources_ray[sID];
 
+            #if (USE_PRECALC_TABLE)
+                uint nr_used_wavelengths = tracer[i_det]->getNrOfSpectralBins();
+                grid->initPreCalcTables(nr_used_wavelengths);
+
+                ulong nr_of_cells = grid->getMaxDataCells();
+
+                for(uint wID = 0; wID < nr_used_wavelengths; wID++)
+                {
+                    grid->setWaveID(wID);
+                    for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+                    {
+                        photon_package pp = photon_package();
+
+                        pp.setWavelength(dust->getWavelength(wID), wID);
+                        // Put photon package into current cell
+                        pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+                        double i_cext = dust->getCextMean(grid, pp);
+                        double i_cabs = dust->getCabsMean(grid, pp);
+                        double i_csca = dust->getCscaMean(grid, pp);
+                        grid->setCextMeanTab(i_cext, i_cell);
+                        grid->setCabsMeanTab(i_cabs, i_cell);
+                        grid->setCscaMeanTab(i_csca, i_cell);
+
+                        if(wID == 0)
+                        {
+                            double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
+                            grid->setNumberDensityTab(number_denisty, i_cell);
+                            double cell_emission = dust->getTotalCellEmission(grid, pp);
+                            grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                        }
+                    }
+                }
+            #endif
+
             // Calculate total number of pixel
             uint per_max = tracer[i_det]->getNpix();
 
@@ -2592,6 +2699,10 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
             {
                 // Set current index in photon package
                 pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
+
+                #if (USE_PRECALC_TABLE)
+                    grid->setWaveID(pp->getDustWavelengthID());
+                #endif
 
                 // Init dust emission matrix
                 StokesVector dust_emissivity;

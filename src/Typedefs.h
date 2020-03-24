@@ -19,6 +19,12 @@ using namespace std;
 //#define WINDOWS
 //#define CAMPS_BENCHMARK
 
+// use pre-calculated values (per cell) for mean cross-sections,
+// number densities, cell emission. This saves a lot of time if
+// all these quantities are const throughout the simulation
+// but it eats some RAM (depend on n_wavel and n_cell)
+#define USE_PRECALC_TABLE true
+
 // if dust is a source, the cell from which the photons start are calculated
 // via the cell energy CDF with constant photon energies (DUST_EMI_PROB true)
 // OR

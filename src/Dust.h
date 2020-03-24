@@ -2644,15 +2644,20 @@ class CDustMixture
             }
             else
             {
-                double dens = 0;
-                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                if(grid->getCextMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
+                    sum = grid->getCextMeanTab(pp.getPositionCell()->getID());
+                else
                 {
-                    double i_dens = getNumberDensity(grid, pp, i_mixture);
-                    dens += i_dens;
-                    sum += mixed_component[i_mixture].getCextMean(grid, pp) * i_dens;
+                    double dens = 0;
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    {
+                        double i_dens = getNumberDensity(grid, pp, i_mixture);
+                        dens += i_dens;
+                        sum += mixed_component[i_mixture].getCextMean(grid, pp) * i_dens;
+                    }
+                    if(dens != 0)
+                        sum /= dens;
                 }
-                if(dens != 0)
-                    sum /= dens;
             }
         }
         return sum;
@@ -2670,15 +2675,20 @@ class CDustMixture
             }
             else
             {
-                double dens = 0;
-                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                if(grid->getCabsMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
+                    sum = grid->getCabsMeanTab(pp.getPositionCell()->getID());
+                else
                 {
-                    double i_dens = getNumberDensity(grid, pp, i_mixture);
-                    dens += i_dens;
-                    sum += mixed_component[i_mixture].getCabsMean(grid, pp) * i_dens;
+                    double dens = 0;
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    {
+                        double i_dens = getNumberDensity(grid, pp, i_mixture);
+                        dens += i_dens;
+                        sum += mixed_component[i_mixture].getCabsMean(grid, pp) * i_dens;
+                    }
+                    if(dens != 0)
+                        sum /= dens;
                 }
-                if(dens != 0)
-                    sum /= dens;
             }
         }
         return sum;
@@ -2696,15 +2706,20 @@ class CDustMixture
             }
             else
             {
-                double dens = 0;
-                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                if(grid->getCscaMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
+                    sum = grid->getCscaMeanTab(pp.getPositionCell()->getID());
+                else
                 {
-                    double i_dens = getNumberDensity(grid, pp, i_mixture);
-                    dens += i_dens;
-                    sum += mixed_component[i_mixture].getCscaMean(grid, pp) * i_dens;
+                    double dens = 0;
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                    {
+                        double i_dens = getNumberDensity(grid, pp, i_mixture);
+                        dens += i_dens;
+                        sum += mixed_component[i_mixture].getCscaMean(grid, pp) * i_dens;
+                    }
+                    if(dens != 0)
+                        sum /= dens;
                 }
-                if(dens != 0)
-                    sum /= dens;
             }
         }
         return sum;
@@ -2912,8 +2927,13 @@ class CDustMixture
                 sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
             }
             else
-                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+            {
+                if(grid->getNumberDensityTab(cell.getID()) != MAX_DOUBLE)
+                    sum = grid->getNumberDensityTab(cell.getID());
+                else
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                        sum += mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+            }
         }
         return sum;
     }
@@ -3430,8 +3450,11 @@ class CDustMixture
             }
             else
             {
-                for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
+                if(grid->getTotalCellEmissionTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
+                    sum = grid->getTotalCellEmissionTab(pp.getPositionCell()->getID());
+                else
+                    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                        sum += mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
             }
         }
         return sum;
