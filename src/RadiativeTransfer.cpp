@@ -2495,7 +2495,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     
     // Reset next results counter for time-dependent raytracing
     double t_nextres = RAY_DT;
-
+    double tmp_len = 0.0;
+    double len_diff = 0.0;
+    Vector3D new_pos_xyz;
+    Vector3D old_pos_xyz;
+    cell_basic * old_cell;
+    
     // Update Stokes vectors with emission from background source
     for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
     {
@@ -2512,25 +2517,40 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp))
     {
-        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
+        while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
         {
             // Get necessary quantities from current cell
             double dens_gas = grid->getGasNumberDensity(pp);
             double dens_dust = dust->getNumberDensity(grid, pp);
+            
+            // Get path length through current cell
+            double len = pp->getTmpPathLength();
+            
+            // Set diff length if necessary
+            if(len_diff > 0)
+            {
+                pp->setPosition(old_pos_xyz);
+                pp->setPositionCell(old_cell);
+                len = len_diff;
+            }
+                
+            // Update total pathlength of photon if time-dependent
+            if(RAY_DT > 0)
+            {
+                tmp_len = len/con_c > RAY_DT ? RAY_DT*con_c : len;
+                pp->updateTotalPathLength(tmp_len);
+                len_diff = len - tmp_len;
+                old_pos_xyz = pp->getPosition();
+                old_cell = pp->getPositionCell();
+                new_pos_xyz = old_pos_xyz - ((len - tmp_len)*pp->getDirection());
+            }
 
             // If the dust density is far too low, skip the current cell
-            if(dens_dust >= 1e-200 || RAY_DT > 0)
+            if(dens_dust >= 1e-200)
             {
                 // Init dust matrix
                 Matrix2D alpha_dust;
                 StokesVector S_dust;
-
-                // Get path length through current cell
-                double len = pp->getTmpPathLength();
-                
-                // Update total pathlength of photon if time-dependent
-                if(RAY_DT > 0)
-                    pp->updateTotalPathLength(len);
                     
 #ifdef CAMPS_BENCHMARK
                 // Part to perform Camps et. al (2015) benchmark.
@@ -2597,6 +2617,13 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     // (Hint: next(pp) puts the photon onto the border to the next cell)
                     Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
 
+                    // Set new length if time-dependent
+                    if(RAY_DT > 0)
+                    {
+                        len = tmp_len;
+                        cell_d_l = tmp_len;
+                    }
+                    
                     // Init number of steps
                     ullong kill_counter = 0;
 
@@ -2695,6 +2722,10 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                         }
                     }
                 }
+                
+                if(RAY_DT > 0)
+                    // Set photon to adjusted position
+                    pp->setPosition(new_pos_xyz);
             }
             
             // Add photon_package to detector if in time
@@ -2736,7 +2767,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 
                 // Add to detector
                 tracer[i_next]->addToDetector(pp, i_pix);
-                
+                        
                 // Increase t_nextres
                 t_nextres += dt;
             }
