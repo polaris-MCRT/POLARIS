@@ -1446,7 +1446,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                 rays[1].setBackupPosition(start_pos);
                                 rays[1].setDirection(pp->getDirection());
                                 rays[1].initCoordSystem();
-                                pp->setStokesVector(pp->getStokesVector() - rays[1].getStokesVector());
+                                pp->setStokesVector(*pp->getStokesVector() - *rays[1].getStokesVector());
                             }
 
                             // Save position of last interaction to know to which pixel
@@ -1626,7 +1626,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         photon_package pp_direct = photon_package();
 
                         // Set current wavelength to temporary photon package
-                        pp_direct.setWavelength(wID, dust->getWavelength(wID));
+                        pp_direct.setWavelength(dust->getWavelength(wID), wID);
 
                         // Get direction to the current detector
                         Vector3D dir_obs = detector[d].getDirection();
