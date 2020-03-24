@@ -14,7 +14,6 @@
 
 bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
 {
-    uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
     uint nr_of_spectral_lines = getNrOfSpectralLines();
     float last_percentage = 0;
     long cell_count = 0;
@@ -717,7 +716,6 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
 {
     // uint nr_of_energy_level = getNrOfEnergyLevels();
     uint nr_of_total_energy_levels = getNrOfTotalEnergyLevels();
-    uint nr_of_spectral_lines = getNrOfSpectralLines();
 
     double * tmp_lvl_pop = new double[nr_of_total_energy_levels];
 

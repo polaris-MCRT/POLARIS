@@ -196,13 +196,6 @@ class photon_package
     {
         double U1, U2, W, mult;
         double X1, X2;
-        int call = 0;
-
-        if(call == 1)
-        {
-            call = !call;
-            return (mu + sigma * (double)X2);
-        }
 
         do
         {
@@ -215,9 +208,7 @@ class photon_package
         X1 = U1 * mult;
         X2 = U2 * mult;
 
-        call = !call;
-
-        double res = mu + sigma * (double)X1;
+        double res = mu + sigma * X1;
 
         if(res < 0)
             return randn(mu, sigma);

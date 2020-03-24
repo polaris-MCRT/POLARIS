@@ -777,7 +777,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
             }
             else
             {
-                sp_energy==abs(c_f);
+                sp_energy = abs(c_f);
             }
 
             star_emi[w] = sp_energy;
@@ -1164,7 +1164,7 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
 
 void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 {
-    double energy, excess_x = 0, excess_y = 0, excess_z = 0;
+    double energy;
     StokesVector tmp_stokes_vector;
     pp->initRandomGenerator(i_phot);
     uint wID;
@@ -1207,7 +1207,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 
 void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
 {
-    double energy, excess_x = 0, excess_y = 0, excess_z = 0;
+    double energy;
     StokesVector tmp_stokes_vector;
     uint wID;
 

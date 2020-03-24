@@ -74,7 +74,7 @@ if [ $CXX = "icc" ]; then
 
 elif [ $CXX = "g++" ]; then
     if [ $CO = "debug" ]; then
-	   CXXFLAGS="-O0 -g3 -Wall -Wno-unused-function -Wno-unused-but-set-variable -Wno-comment -Wno-unknown-pragmas"
+	   CXXFLAGS="-O0 -g3 -Wall -Wno-unused-function -Wno-sign-compare -Wno-unused-but-set-variable -Wno-comment -Wno-unknown-pragmas"
 
     elif [ $CO = "fast-debug" ]; then
 	   CXXFLAGS="-march=native -O3 -funroll-loops -ffast-math -fno-finite-math-only -flto -g3 -Wall -Wno-unused-function -Wno-unused-but-set-variable -Wno-comment -Wno-unknown-pragmas"
@@ -97,12 +97,14 @@ echo ""
 
 
 # remove old bin
-rm bin/polaris
+rm -f bin/polaris
 
-# remove old build dir
+# remove content of build dir
 cd src/
-rm -r build/*
+rm -rf build/*
 
+# make build dir if necessary
+mkdir -p build
 cd build
 
 # configure POLARIS with appropriate flags

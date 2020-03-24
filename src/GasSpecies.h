@@ -194,7 +194,6 @@ class CGasSpecies
 
     double getLineStrength(uint i_trans, uint i_sublvl_u, uint i_sublvl_l) const
     {
-        uint i_sublvl = getSublevelIndex(i_trans, i_sublvl_u, i_sublvl_l);
         if(getEinsteinA(i_trans) > 0)
             return getEinsteinA(i_trans, i_sublvl_u, i_sublvl_l) / getEinsteinA(i_trans);
         return 0;
