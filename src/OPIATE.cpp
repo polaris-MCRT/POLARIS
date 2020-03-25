@@ -25,7 +25,6 @@
 
 #include "OPIATE.h"
 
-
 /*void OPIATE::formatLine(string &line)
 {
     string::size_type pos = 0;

@@ -41,6 +41,7 @@ class CDustComponent
         a_eff_3_5 = 0;
         a_eff_2 = 0;
         mass = 0;
+        relWeightTab = 0;
         fraction = 0;
         calorimetry_temperatures = 0;
 
@@ -259,6 +260,8 @@ class CDustComponent
             delete[] a_eff_2;
         if(mass != 0)
             delete[] mass;
+        if(relWeightTab != 0)
+            delete[] relWeightTab;
 
         if(sca_mat != 0)
             cleanScatteringData();
@@ -934,21 +937,39 @@ class CDustComponent
     {
         double * rel_weight = new double[nr_of_dust_species];
 
-        // Create normalization factor
-        for(uint a = 0; a < nr_of_dust_species; a++)
+        if(getRelWeightTab(0) != MAX_DOUBLE)
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                rel_weight[a] = getRelWeightTab(a);
+        else
         {
-            rel_weight[a] = a_eff_3_5[a] * pow(a_eff[a], size_param);
-        }
+            // Create normalization factor
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                rel_weight[a] = a_eff_3_5[a] * pow(a_eff[a], size_param);
 
-        double weight = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+            double weight = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
-        // Create the final relative mass distribution
-        for(uint a = 0; a < nr_of_dust_species; a++)
-        {
-            rel_weight[a] /= weight;
+            // Create the final relative mass distribution
+            for(uint a = 0; a < nr_of_dust_species; a++)
+            {
+                rel_weight[a] /= weight;
+            }
         }
 
         return rel_weight;
+    }
+
+    double getRelWeightTab(uint a) const
+    {
+        if(relWeightTab != 0)
+            return relWeightTab[a];
+        return MAX_DOUBLE;
+    }
+
+    void preCalcRelWeight()
+    {
+        relWeightTab = new double[nr_of_dust_species];
+        fill(relWeightTab,relWeightTab+nr_of_dust_species,MAX_DOUBLE);
+        relWeightTab = getRelWeight(a_min_global, a_max_global);
     }
 
     double getWeight() const
@@ -2292,6 +2313,7 @@ class CDustComponent
     double * calorimetry_temperatures;
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
+    double * relWeightTab;
 
     string stringID;
     string size_keyword;
@@ -2412,6 +2434,13 @@ class CDustMixture
         if(mixed_component != 0)
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 mixed_component[i_mixture].preCalcEffProperties(param);
+    }
+
+    void preCalcRelWeight()
+    {
+        if(mixed_component != 0)
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                mixed_component[i_mixture].preCalcRelWeight();
     }
 
     string getPhaseFunctionStr()

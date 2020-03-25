@@ -318,7 +318,6 @@ class CGridBasic
             delete[] totalCellEmissionTab;
             totalCellEmissionTab = 0;
         }
-
     }
 
     void printPhysicalParameters();
@@ -495,6 +494,14 @@ class CGridBasic
         buffer_avg_th = 0;
 
         turbulent_velocity = 0;
+
+        cextMeanTab = 0;
+        cabsMeanTab = 0;
+        cscaMeanTab = 0;
+        numberDensityTab = 0;
+        totalCellEmissionTab = 0;
+        chosen_wID = 0;
+        max_wavelengths = 0;
     }
 
     double getCextMeanTab(uint cellID) const;
@@ -1977,7 +1984,7 @@ class CGridBasic
             if(plt_rad_field1)
                 for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
                 {
-                    for(int wID = 0; wID < WL_STEPS; wID++)
+                    for(uint wID = 0; wID < WL_STEPS; wID++)
                     {
                         double val = 0;
                         switch(i_comp)
@@ -3858,8 +3865,6 @@ class CGridBasic
     bool plt_g_min;
     bool plt_g_max;
     bool plt_p;
-
-
 
     bool plt_avg_dir;
     bool plt_avg_th;

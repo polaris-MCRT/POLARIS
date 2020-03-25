@@ -478,8 +478,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                     if(wID == 0)
                     {
-                        double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
-                        grid->setNumberDensityTab(number_denisty, i_cell);
+                        double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
+                        grid->setNumberDensityTab(number_density, i_cell);
                         double cell_emission = dust->getTotalCellEmission(grid, pp);
                         grid->setTotalCellEmissionTab(cell_emission, i_cell);
                     }
@@ -1309,9 +1309,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             nr_of_photons = tm_source->getNrOfPhotons();
 
             #if (USE_PRECALC_TABLE)
+                grid->setWaveID(wID);
                 ulong nr_of_cells = grid->getMaxDataCells();
 
-                grid->setWaveID(wID);
                 for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
                 {
                     photon_package pp = photon_package();
@@ -1329,8 +1329,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     if(wID == 0)
                     {
-                        double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
-                        grid->setNumberDensityTab(number_denisty, i_cell);
+                        double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
+                        grid->setNumberDensityTab(number_density, i_cell);
                         double cell_emission = dust->getTotalCellEmission(grid, pp);
                         grid->setTotalCellEmissionTab(cell_emission, i_cell);
                     }
@@ -1567,8 +1567,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             *pp_escape.getStokesVector() *=
                                                 dust->getForegroundExtinction(pp->getWavelength());
 
-                                            // If the photon intensity
-                                            // is too low, end photon transfer
+                                            // If the photon intensity is too low, end
+                                            // photon transfer (for better R and VOV statistics)
                                             if(pp_escape.getStokesVector()->I() < 1e-200)
                                                 break;
                                             // Add the photon package to the detector
@@ -2460,8 +2460,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
                         if(wID == 0)
                         {
-                            double number_denisty = dust->getNumberDensity(grid, *pp.getPositionCell());
-                            grid->setNumberDensityTab(number_denisty, i_cell);
+                            double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
+                            grid->setNumberDensityTab(number_density, i_cell);
                             double cell_emission = dust->getTotalCellEmission(grid, pp);
                             grid->setTotalCellEmissionTab(cell_emission, i_cell);
                         }

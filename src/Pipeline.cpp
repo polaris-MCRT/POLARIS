@@ -84,7 +84,7 @@ void CPipeline::Finish()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing: %lu h. %02lu min. %02lu sec.  \n", h, m, s);
+    printf("  Total time of processing: %lu h %02lu min %02lu sec  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;
@@ -96,7 +96,7 @@ void CPipeline::Finish()
     string opath = path_data + "time.txt";
     ofstream t_writer(opath.c_str());
     t_writer << "Total time:\r" << endl;
-    t_writer << h << "h " << m << "min " << s << "sec\r\n\r" << endl;
+    t_writer << h << " h " << m << " min " << s << " sec\r\n\r" << endl;
     t_writer << len << " s\r" << endl;
     t_writer.close();
 
@@ -181,7 +181,7 @@ void CPipeline::Error()
     s = len - h * 3600 - m * 60;
 
     cout << SEP_LINE;
-    printf("  Total time of processing: %lu h. %02lu min. %02lu sec.  \n", h, m, s);
+    printf("  Total time of processing: %lu h %02lu min %02lu sec  \n", h, m, s);
 
     cout << CLR_LINE;
     cout << SEP_LINE;

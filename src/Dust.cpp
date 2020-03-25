@@ -4605,7 +4605,7 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
 
             // Set the photon package at the position of the current photon
             pp_escape->setDirection(dir_obs);
-            pp_escape->setWavelength(w, wavelength_list[w]);
+            pp_escape->setWavelength(wavelength_list[w], w);
 
             // Synchronize the direction and wavelength as well
             pp_escape->setStokesVector(tmp_stokes);
@@ -4633,7 +4633,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Set the photon package at the position of the current photon
     pp_escape->setD(pp->getD());
-    pp_escape->setWavelength(w, wavelength_list[w]);
+    pp_escape->setWavelength(wavelength_list[w], w);
 
     // Determination of the scattering angle (phi, theta) towards the observing map in the
     // photon frame. Get the rotation matrix of the photon (photon space to lab space)
@@ -5375,7 +5375,12 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 
     // If dust optical properties are constant -> pre calc some values
     if(grid->useConstantGrainSizes())
+    {
         preCalcEffProperties(param);
+        #if (USE_PRECALC_TABLE)
+            preCalcRelWeight();
+        #endif
+    }
 }
 
 bool CDustMixture::mixComponents(parameters & param, uint i_mixture)

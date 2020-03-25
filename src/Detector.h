@@ -115,7 +115,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-        rad_bubble=0;
+        rad_bubble = 0;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
@@ -199,7 +199,7 @@ class CDetector
 
         rot_angle1 = 0;
         rot_angle2 = 0;
-        rad_bubble=_rad_bubble;
+        rad_bubble = _rad_bubble;
         ex.set(1, 0, 0);
         ey.set(0, 1, 0);
         ez.set(0, 0, 1);
