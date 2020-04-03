@@ -3502,7 +3502,7 @@ class CDustMixture
 
     void printParameters(parameters & param, CGridBasic * grid);
 
-    void GetNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double *** & scat_theta);
+    void getNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double *** & scat_theta);
 
   private:
     CDustComponent * single_component;

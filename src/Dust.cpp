@@ -3084,10 +3084,11 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                     for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                         for(uint sth_mix = 0; sth_mix < nr_of_scat_theta[a][w]; sth_mix++)
                         {
-                            uint sth_comp = 0;
-                            while(comp->getScatTheta(a,w,sth_comp) < scat_theta[a][w][sth_mix])
-                                sth_comp++;
-                            if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
+                            uint sth_comp = lower_bound(comp->getScatTheta(a,w),
+                                                        comp->getScatTheta(a,w) + comp->getNrOfScatTheta(a,w),
+                                                        scat_theta[a][w][sth_mix]) - comp->getScatTheta(a,w);
+                            
+			    if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
                                 for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
                                     for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
                                         sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) +=
@@ -3541,7 +3542,7 @@ bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
     double t_dust_new = 0;
     uint wIDnew = 0;
 
-    // Get random number for wavelength of reemitting photon
+    // Get random number for wavelength of re-emitted photon
     double rnd1 = pp->getRND();
 
     // Get the interacting dust grain size
@@ -5463,7 +5464,7 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     double *** scat_theta;
 
     if(mixed_component[i_mixture].getScatLoaded())
-        GetNrOfUniqueScatTheta(nr_of_scat_theta, scat_theta);
+        getNrOfUniqueScatTheta(nr_of_scat_theta, scat_theta);
 
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
@@ -5488,7 +5489,7 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     return true;
 }
 
-void CDustMixture::GetNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double *** & scat_theta)
+void CDustMixture::getNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double *** & scat_theta)
 {
     nr_of_scat_theta = new uint *[nr_of_dust_species];
     scat_theta = new double **[nr_of_dust_species];
@@ -5500,16 +5501,14 @@ void CDustMixture::GetNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double ***
         {
             dlist scat_theta_tmp;
             for(uint i_comp=0; i_comp < nr_of_components; i_comp++)
-            {
-                for(uint sth=0; sth < single_component[i_comp].getNrOfScatTheta(a,w); sth++)
-                {
-                    if(find(scat_theta_tmp.begin(), scat_theta_tmp.end(), single_component[i_comp].getScatTheta(a,w,sth)) == scat_theta_tmp.end())
-                        scat_theta_tmp.insert(scat_theta_tmp.end(),single_component[i_comp].getScatTheta(a,w,sth));
-                }
-            }
-            sort(scat_theta_tmp.begin(),scat_theta_tmp.end());
-
-            nr_of_scat_theta[a][w] = scat_theta_tmp.size();
+                scat_theta_tmp.insert(scat_theta_tmp.end(),
+                                      single_component[i_comp].getScatTheta(a,w),
+                                      single_component[i_comp].getScatTheta(a,w) + single_component[i_comp].getNrOfScatTheta(a,w));
+            
+	    sort(scat_theta_tmp.begin(),scat_theta_tmp.end());
+            scat_theta_tmp.erase( unique(scat_theta_tmp.begin(),scat_theta_tmp.end()), scat_theta_tmp.end() );
+            
+	    nr_of_scat_theta[a][w] = scat_theta_tmp.size();
 
             scat_theta[a][w] = new double[nr_of_scat_theta[a][w]];
             copy(scat_theta_tmp.begin(),scat_theta_tmp.end(),scat_theta[a][w]);
