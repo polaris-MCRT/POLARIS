@@ -114,7 +114,7 @@ using namespace std;
 
 // timestep and offset for time-dependent scattering and dust emission
 #define SCA_DT 10000
-#define RAY_DT 10000
+#define RAY_DT 0
 
 // phase functions
 #define PH_ISO 0

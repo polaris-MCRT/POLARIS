@@ -2497,6 +2497,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     double t_nextres = RAY_DT;
     double tmp_len = 0.0;
     double len_diff = 0.0;
+    uint i_next = 0;
     Vector3D new_pos_xyz;
     Vector3D old_pos_xyz;
     cell_basic * old_cell;
@@ -2513,10 +2514,16 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         // Get emission from background source
         WMap.setS(tmp_source->getStokesVector(pp), i_wave);
     };
-
+    
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp))
     {
+        if(RAY_DT > 0)
+        {
+            pp->updateTotalPathLength(pp->getTmpPathLength());
+//             cout << "Dist " << pp->getTotalPathLength()/con_c << endl;
+        }
+        
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
         {
             // Get necessary quantities from current cell
@@ -2733,7 +2740,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             {
                 // Calculate detector to add to
                 double dt = RAY_DT;
-                uint i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
+                i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
                 
                 // Init temporary multiple Stokes vectors
                 MultiStokesVector WTmp(nr_used_wavelengths);
@@ -2772,6 +2779,45 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 t_nextres += dt;
             }
         }
+        
+        // Add to rest of detectors if time-dependent
+        if(RAY_DT > 0 && i_next != 0)
+        {
+           // Init temporary multiple Stokes vectors
+            MultiStokesVector WTmp(nr_used_wavelengths);
+            
+            // Update the multi Stokes vectors for each wavelength
+            for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+            {
+                // Copy MultiStokesVector
+                WTmp.setS(WMap.S(i_wave), i_wave);
+                WTmp.setT(WMap.T(i_wave), i_wave);
+                WTmp.setSp(WMap.Sp(i_wave), i_wave);
+                
+                // Get frequency at background grid position
+                double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+                double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                            (frequency * frequency);
+
+                // Include foreground extinction if necessary
+                mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
+                
+                if(WTmp.S(i_wave).I() < 0)
+                    WTmp.S(i_wave).setI(0);
+
+                WTmp.S(i_wave) *= mult;
+                WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
+                WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
+                
+                // Update the photon package with the multi Stokes vectors
+                pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
+            }
+            
+            // Loop rest of detectors
+            for(uint det = i_next+1; det > 0; det--)
+                tracer[det]->addToDetector(pp, i_pix);
+        }
+        
     }
     
     // End function here if time-dependent

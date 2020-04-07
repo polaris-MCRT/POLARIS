@@ -1635,6 +1635,7 @@ bool CGridCylindrical::findStartingPoint(photon_basic * pp)
 
     pp->setPosition(p + d * path_length);
     pp->setDirectionID(MAX_UINT);
-        
+    if(RAY_DT > 0)
+        pp->setTmpPathLength(path_length);
     return positionPhotonInGrid(pp);
 }
