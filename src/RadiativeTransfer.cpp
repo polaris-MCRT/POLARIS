@@ -1176,7 +1176,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
     }
 }
 
-bool CRadiativeTransfer::setTemperatureDistribution()
+/*bool CRadiativeTransfer::setTemperatureDistribution()
 {
     ulong per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
@@ -1277,7 +1277,7 @@ bool CRadiativeTransfer::setTemperatureDistribution()
     cout << " " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << endl;
     cout << "- Estimation of final temperatures: done" << endl;
     return true;
-}
+}*/
 
 bool CRadiativeTransfer::calcPolMapsViaMC()
 {
@@ -2334,7 +2334,7 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uin
                     // different precisions to see if smaller steps are needed
                     // (see Reissl)
 
-                    double epsi, dz_new;
+                    double epsi=0, dz_new;
                     // Do approximate solution
                     if(!fail)
                         calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);

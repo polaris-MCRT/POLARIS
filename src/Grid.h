@@ -145,6 +145,7 @@ class CGridBasic
         nrOfOpiateIDs = 0;
 
         nr_densities = 1;
+        nr_dust_densities = 0;
         multi_temperature_entries = 0;
         stochastic_temperature_entries = 0;
         nr_mixtures = 0;
@@ -254,9 +255,9 @@ class CGridBasic
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
 
-        cextMeanTab = 0;
-        cabsMeanTab = 0;
-        cscaMeanTab = 0;
+        CextMeanTab = 0;
+        CabsMeanTab = 0;
+        CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
         chosen_wID = 0;
@@ -295,28 +296,28 @@ class CGridBasic
         if(size_skip != 0)
             delete[] size_skip;
 
-        if(cextMeanTab != 0)
+        if(CextMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cextMeanTab[wID];
-            delete[] cextMeanTab;
-            cextMeanTab = 0;
+                delete[] CextMeanTab[wID];
+            delete[] CextMeanTab;
+            CextMeanTab = 0;
         }
 
-        if(cabsMeanTab != 0)
+        if(CabsMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cabsMeanTab[wID];
-            delete[] cabsMeanTab;
-            cabsMeanTab = 0;
+                delete[] CabsMeanTab[wID];
+            delete[] CabsMeanTab;
+            CabsMeanTab = 0;
         }
 
-        if(cscaMeanTab != 0)
+        if(CscaMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cscaMeanTab[wID];
-            delete[] cscaMeanTab;
-            cscaMeanTab = 0;
+                delete[] CscaMeanTab[wID];
+            delete[] CscaMeanTab;
+            CscaMeanTab = 0;
         }
 
         if(numberDensityTab != 0)
@@ -507,9 +508,9 @@ class CGridBasic
 
         turbulent_velocity = 0;
 
-        cextMeanTab = 0;
-        cabsMeanTab = 0;
-        cscaMeanTab = 0;
+        CextMeanTab = 0;
+        CabsMeanTab = 0;
+        CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
         chosen_wID = 0;
@@ -1927,7 +1928,7 @@ class CGridBasic
             {
                 buffer_dust_dens[i_cell][0] = getDustDensity(pp);
                 // Do it only once if only one dust distribution is defined
-                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
+                if(nr_densities > 1 && nr_dust_densities == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density + 1] = getDustDensity(pp, i_density);
             }
@@ -2060,7 +2061,7 @@ class CGridBasic
             if(plt_dust_dens)
             {
                 buffer_dust_dens[i_cell][0] = 0;
-                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
+                if(nr_densities > 1 && nr_dust_densities == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density] = 0;
             }
@@ -2263,7 +2264,7 @@ class CGridBasic
 
     bool useDustChoice()
     {
-        if(data_pos_gd_list.size() > 1 || data_pos_dd_list.size() > 1)
+        if(nr_densities > 1)
             return false;
         return true;
     }
@@ -2277,7 +2278,7 @@ class CGridBasic
 
     bool useDustDensities()
     {
-        if(data_pos_dd_list.size() > 1)
+        if(nr_dust_densities > 1)
             return true;
         return false;
     }
@@ -2285,7 +2286,7 @@ class CGridBasic
     void setDustDensity(cell_basic * cell, double val)
     {
         if(!data_pos_dd_list.empty())
-            for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
+            for(uint i_density = 0; i_density < nr_dust_densities; i_density++)
                 cell->setData(data_pos_dd_list[i_density], val);
         else
             for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
@@ -2313,9 +2314,9 @@ class CGridBasic
     double getDustDensity(const cell_basic & cell) const
     {
         double sum = 0;
-        if(!data_pos_dd_list.empty())
+        if(nr_dust_densities > 0)
         {
-            for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
+            for(uint i_density = 0; i_density < nr_dust_densities; i_density++)
                 sum += cell.getData(data_pos_dd_list[i_density]);
             return sum;
         }
@@ -2325,7 +2326,7 @@ class CGridBasic
 
     double getDustDensity(const cell_basic & cell, uint i_density) const
     {
-        if(data_pos_dd_list.size() > i_density)
+        if(nr_dust_densities > i_density)
             return cell.getData(data_pos_dd_list[i_density]);
         else
             return 0;
@@ -2861,7 +2862,7 @@ class CGridBasic
                     break;
 
                 case GRIDdust_id:
-                    if(data_pos_gd_list.size() > 1 || data_pos_dd_list.size() > 1)
+                    if(nr_densities > 1)
                     {
                         cout << "\nERROR: Multiple densities and dust choices cannot be "
                                 "combined!"
@@ -3794,6 +3795,7 @@ class CGridBasic
 
     uint nr_mixtures;
     uint nr_densities;
+    uint nr_dust_densities;
     uint multi_temperature_entries;
     uint stochastic_temperature_entries;
     uint * nr_dust_temp_sizes;
@@ -3925,9 +3927,9 @@ class CGridBasic
     double * buffer_avg_th;
     double * buffer_avg_dir;
 
-    double ** cextMeanTab;
-    double ** cabsMeanTab;
-    double ** cscaMeanTab;
+    double ** CextMeanTab;
+    double ** CabsMeanTab;
+    double ** CscaMeanTab;
     double * numberDensityTab;
     double * totalCellEmissionTab;
     uint chosen_wID;

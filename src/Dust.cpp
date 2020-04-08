@@ -29,6 +29,10 @@ void CDustComponent::initDustProperties()
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
 
+    CextMean = new double *[nr_of_dust_species];
+    CabsMean = new double *[nr_of_dust_species];
+    CscaMean = new double *[nr_of_dust_species];
+
     // Set pointer array values to zero or add second dimension
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -46,6 +50,13 @@ void CDustComponent::initDustProperties()
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+
+        CextMean[a] = new double [nr_of_wavelength];
+        fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
+        CabsMean[a] = new double [nr_of_wavelength];
+        fill(CabsMean[a], CabsMean[a] + nr_of_wavelength, 0);
+        CscaMean[a] = new double [nr_of_wavelength];
+        fill(CscaMean[a], CscaMean[a] + nr_of_wavelength, 0);
 
         // Set pointer array values to zero
         for(uint w = 0; w < nr_of_wavelength; w++)
@@ -507,6 +518,10 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
 
+    CextMean = new double *[nr_of_dust_species];
+    CabsMean = new double *[nr_of_dust_species];
+    CscaMean = new double *[nr_of_dust_species];
+
     // Init splines for incident angle interpolation of Qtrq and HG g factor
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
@@ -522,6 +537,13 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+
+        CextMean[a] = new double [nr_of_wavelength];
+        fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
+        CabsMean[a] = new double [nr_of_wavelength];
+        fill(CabsMean[a], CabsMean[a] + nr_of_wavelength, 0);
+        CscaMean[a] = new double [nr_of_wavelength];
+        fill(CscaMean[a], CscaMean[a] + nr_of_wavelength, 0);
 
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
@@ -828,6 +850,10 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
 
+    CextMean = new double *[nr_of_dust_species];
+    CabsMean = new double *[nr_of_dust_species];
+    CscaMean = new double *[nr_of_dust_species];
+
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         Qext1[a] = new double[nr_of_wavelength];
@@ -838,6 +864,13 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+
+        CextMean[a] = new double [nr_of_wavelength];
+        fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
+        CabsMean[a] = new double [nr_of_wavelength];
+        fill(CabsMean[a], CabsMean[a] + nr_of_wavelength, 0);
+        CscaMean[a] = new double [nr_of_wavelength];
+        fill(CscaMean[a], CscaMean[a] + nr_of_wavelength, 0);
     }
 
     // Init splines for incident angle interpolation of Qtrq and HG g factor
@@ -1085,6 +1118,10 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             // Activate the splines of Qtrq and HG g factor
             Qtrq[w * nr_of_dust_species + a].createSpline();
             HG_g_factor[w * nr_of_dust_species + a].createSpline();
+
+            CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         }
     }
 
@@ -3093,7 +3130,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                                                         comp->getScatTheta(a,w) + comp->getNrOfScatTheta(a,w),
                                                         scat_theta[a][w][sth_mix]) - comp->getScatTheta(a,w);
                             
-			    if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
+                            if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
                                 for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
                                     for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
                                         sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) +=
@@ -3133,6 +3170,10 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 addQsca2(a, w, size_fraction[a][1] * comp->getQsca2(a, w));
                 addQcirc(a, w, size_fraction[a][1] * comp->getQcirc(a, w));
                 addHGg(a, w, size_fraction[a][1] * comp->getHGg(a, w));
+
+                CextMean[a][w] = PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
+                CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
+                CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
             }
 
     if(comp->isAligned())
@@ -3609,10 +3650,8 @@ double CDustComponent::updateDustTemperature(CGridBasic * grid,
             temp = 0;
 
     // Update min and max temperatures for visualization
-    if(temp > max_temp)
-        max_temp = temp;
-    if(temp < min_temp)
-        min_temp = temp;
+    max_temp = max(max_temp,temp);
+    // min_temp = min(min_temp,temp);
 
     return temp;
 }
@@ -3716,10 +3755,9 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
                 grid->setDustTemperature(cell, i_density, a, temp[a]);
 
                 // Update min and max temperatures for visualization
-                if(temp[a] > max_temp)
-                    max_temp = temp[a];
-                if(temp[a] < min_temp)
-                    min_temp = temp[a];
+                max_temp = max(max_temp,temp[a]);
+                // if(temp[a] < min_temp)
+                //     min_temp = temp[a];
             }
 
             // Multiply with the amount of dust grains in the current bin for integration
@@ -3763,8 +3801,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     // Update min and max temperatures for visualization
     if(avg_temp > max_temp)
         max_temp = avg_temp;
-    if(avg_temp < min_temp)
-        min_temp = avg_temp;
+    // if(avg_temp < min_temp)
+    //     min_temp = avg_temp;
 }
 
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
@@ -5510,10 +5548,10 @@ void CDustMixture::getNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double ***
                                       single_component[i_comp].getScatTheta(a,w),
                                       single_component[i_comp].getScatTheta(a,w) + single_component[i_comp].getNrOfScatTheta(a,w));
             
-	    sort(scat_theta_tmp.begin(),scat_theta_tmp.end());
+            sort(scat_theta_tmp.begin(),scat_theta_tmp.end());
             scat_theta_tmp.erase( unique(scat_theta_tmp.begin(),scat_theta_tmp.end()), scat_theta_tmp.end() );
             
-	    nr_of_scat_theta[a][w] = scat_theta_tmp.size();
+            nr_of_scat_theta[a][w] = scat_theta_tmp.size();
 
             scat_theta[a][w] = new double[nr_of_scat_theta[a][w]];
             copy(scat_theta_tmp.begin(),scat_theta_tmp.end(),scat_theta[a][w]);

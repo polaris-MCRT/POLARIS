@@ -61,6 +61,10 @@ class CDustComponent
         fraction = 0;
         calorimetry_temperatures = 0;
 
+        CextMean = 0;
+        CabsMean = 0;
+        CscaMean = 0;
+
         tCext1 = 0;
         tCext2 = 0;
         tCabs1 = 0;
@@ -85,7 +89,7 @@ class CDustComponent
         Q_ref = 0.4;
         alpha_Q = 3.0;
 
-        min_temp = 0;
+        // min_temp = 0;
         max_temp = 0;
         min_a_alig = 1e200;
         max_a_alig = 0;
@@ -230,6 +234,25 @@ class CDustComponent
             delete[] Qtrq;
         if(HG_g_factor != 0)
             delete[] HG_g_factor;
+
+        if(CextMean != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] CextMean[a];
+            delete[] CextMean;
+        }
+        if(CabsMean != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] CabsMean[a];
+            delete[] CabsMean;
+        }
+        if(CscaMean != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] CscaMean[a];
+            delete[] CscaMean;
+        }
 
         if(tCext1 != 0)
             delete[] tCext1;
@@ -629,19 +652,20 @@ class CDustComponent
     // -----------------------------------------------------------------------------
     // ----------- Average cross-sections for grain size and wavelength ------------
     // -----------------------------------------------------------------------------
+
     inline double getCextMean(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
+        return CextMean[a][w];
     }
 
     inline double getCabsMean(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
+        return CabsMean[a][w];
     }
 
     inline double getCscaMean(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
+        return CscaMean[a][w];
     }
 
     // -----------------------------------------------------------------------------
@@ -1054,10 +1078,10 @@ class CDustComponent
         return nr_stochastic_sizes;
     }
 
-    double getMinDustTemp()
-    {
-        return min_temp;
-    }
+    // double getMinDustTemp()
+    // {
+    //     return min_temp;
+    // }
 
     double getMaxDustTemp()
     {
@@ -1652,7 +1676,7 @@ class CDustComponent
         // Create spline for interpolation
         tmp_tab_em.createSpline();
 
-        // Return temperature from current absorbed eneryg
+        // Return temperature from current absorbed energy
         return max(double(TEMP_MIN), tmp_tab_em.getValue(qb));
     }
 
@@ -2330,6 +2354,7 @@ class CDustComponent
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
     double * relWeightTab;
+    double **CextMean, **CabsMean, **CscaMean;
 
     string stringID;
     string size_keyword;
@@ -2340,7 +2365,8 @@ class CDustComponent
     double sub_temp;
     double material_density;
     double dust_mass_fraction;
-    double min_temp, max_temp;
+    // double min_temp;
+    double max_temp;
     double min_a_alig, max_a_alig;
 
     // alignment paramaters
@@ -2908,18 +2934,18 @@ class CDustMixture
         return mixed_component[i_mixture].getNrOfCalorimetryTemperatures();
     }
 
-    double getMinDustTemp()
-    {
-        double min_temp = 1e200;
-        if(mixed_component != 0)
-            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-            {
-                double temp = mixed_component[i_mixture].getMinDustTemp();
-                if(temp < min_temp)
-                    min_temp = temp;
-            }
-        return min_temp;
-    }
+    // double getMinDustTemp()
+    // {
+    //     double min_temp = 1e200;
+    //     if(mixed_component != 0)
+    //         for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+    //         {
+    //             double temp = mixed_component[i_mixture].getMinDustTemp();
+    //             if(temp < min_temp)
+    //                 min_temp = temp;
+    //         }
+    //     return min_temp;
+    // }
 
     double getMaxDustTemp()
     {

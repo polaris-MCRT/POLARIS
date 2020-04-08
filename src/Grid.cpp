@@ -16,22 +16,22 @@
 
 double CGridBasic::getCextMeanTab(uint cellID) const
 {
-    if(cextMeanTab != 0)
-        return cextMeanTab[chosen_wID][cellID];
+    if(CextMeanTab != 0)
+        return CextMeanTab[chosen_wID][cellID];
     return MAX_DOUBLE;
 }
 
 double CGridBasic::getCabsMeanTab(uint cellID) const
 {
-    if(cabsMeanTab != 0)
-        return cabsMeanTab[chosen_wID][cellID];
+    if(CabsMeanTab != 0)
+        return CabsMeanTab[chosen_wID][cellID];
     return MAX_DOUBLE;
 }
 
 double CGridBasic::getCscaMeanTab(uint cellID) const
 {
-    if(cscaMeanTab != 0)
-        return cscaMeanTab[chosen_wID][cellID];
+    if(CscaMeanTab != 0)
+        return CscaMeanTab[chosen_wID][cellID];
     return MAX_DOUBLE;
 }
 
@@ -51,17 +51,17 @@ double CGridBasic::getTotalCellEmissionTab(uint cellID) const
 
 void CGridBasic::setCextMeanTab(double Cext, uint cellID)
 {
-    cextMeanTab[chosen_wID][cellID] = Cext;
+    CextMeanTab[chosen_wID][cellID] = Cext;
 }
 
-void CGridBasic::setCabsMeanTab(double Cext, uint cellID)
+void CGridBasic::setCabsMeanTab(double Cabs, uint cellID)
 {
-    cabsMeanTab[chosen_wID][cellID] = Cext;
+    CabsMeanTab[chosen_wID][cellID] = Cabs;
 }
 
-void CGridBasic::setCscaMeanTab(double Cext, uint cellID)
+void CGridBasic::setCscaMeanTab(double Csca, uint cellID)
 {
-    cscaMeanTab[chosen_wID][cellID] = Cext;
+    CscaMeanTab[chosen_wID][cellID] = Csca;
 }
 
 void CGridBasic::setNumberDensityTab(double number_density, uint cellID)
@@ -82,18 +82,18 @@ void CGridBasic::setWaveID(uint wID)
 void CGridBasic::initPreCalcTables(uint nr_used_wavelengths)
 {
     max_wavelengths = nr_used_wavelengths;
-    cextMeanTab = new double *[max_wavelengths];
-    cabsMeanTab = new double *[max_wavelengths];
-    cscaMeanTab = new double *[max_wavelengths];
+    CextMeanTab = new double *[max_wavelengths];
+    CabsMeanTab = new double *[max_wavelengths];
+    CscaMeanTab = new double *[max_wavelengths];
 
     for(uint wID = 0; wID < max_wavelengths; wID++)
     {
-        cextMeanTab[wID] = new double[max_cells];
-        fill(cextMeanTab[wID], cextMeanTab[wID] + max_cells, MAX_DOUBLE);
-        cabsMeanTab[wID] = new double[max_cells];
-        fill(cabsMeanTab[wID], cabsMeanTab[wID] + max_cells, MAX_DOUBLE);
-        cscaMeanTab[wID] = new double[max_cells];
-        fill(cscaMeanTab[wID], cscaMeanTab[wID] + max_cells, MAX_DOUBLE);
+        CextMeanTab[wID] = new double[max_cells];
+        fill(CextMeanTab[wID], CextMeanTab[wID] + max_cells, MAX_DOUBLE);
+        CabsMeanTab[wID] = new double[max_cells];
+        fill(CabsMeanTab[wID], CabsMeanTab[wID] + max_cells, MAX_DOUBLE);
+        CscaMeanTab[wID] = new double[max_cells];
+        fill(CscaMeanTab[wID], CscaMeanTab[wID] + max_cells, MAX_DOUBLE);
     }
 
     numberDensityTab = new double[max_cells];
@@ -443,7 +443,10 @@ uint CGridBasic::validateDataPositions(parameters & param)
     {
         // Get Number of temperature fields for temperature calculation
         if(!data_pos_dd_list.empty())
+        {
             nr_densities = data_pos_dd_list.size();
+            nr_dust_densities = nr_densities;
+        }
         else
             nr_densities = data_pos_gd_list.size();
 
@@ -1341,7 +1344,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
             nr_parameters += nr_densities;
     if(plt_dust_dens)
-        if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+        if(nr_densities > 1 && nr_dust_densities >= nr_densities)
             nr_parameters += nr_densities;
     if(plt_dust_temp)
         if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
@@ -1497,7 +1500,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
-            if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
+            if(nr_densities > 1 && nr_dust_densities == nr_densities)
                 buffer_dust_dens[i_cell] = new double[nr_densities + 1];
             else
                 buffer_dust_dens[i_cell] = new double[nr_densities];
@@ -1666,7 +1669,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
 
-                if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+                if(nr_densities > 1 && nr_dust_densities >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -1972,7 +1975,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
 
-                if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+                if(nr_densities > 1 && nr_dust_densities >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -2337,7 +2340,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1 && data_pos_dd_list.size() >= nr_densities)
+        if(nr_densities > 1 && nr_dust_densities >= nr_densities)
         {
             if(dust_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_dust_mass_density [kg/m^3]", str_2);
