@@ -1588,7 +1588,7 @@ bool CGridCylindrical::findStartingPoint(photon_basic * pp)
             // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
             double length = (-B - dscr) / A;
 
-            if(length >= 0 && length < path_length)
+            if(length > 0 && length < path_length)
                 if(abs(p.Z() + d.Z() * length) < Zmax)
                 {
                     path_length = length;
@@ -1602,7 +1602,7 @@ bool CGridCylindrical::findStartingPoint(photon_basic * pp)
     double den1 = v_n1 * d;
     if(den1 > 0)
     {
-        Vector3D v_a1(0, 0, Zmax);
+        Vector3D v_a1(0, 0, Zmax * (1 -  MIN_LEN_STEP*EPS_DOUBLE));
         double num = v_n1 * (p - v_a1);
         double length = -num / den1;
 
@@ -1618,7 +1618,7 @@ bool CGridCylindrical::findStartingPoint(photon_basic * pp)
     double den2 = v_n2 * d;
     if(den2 > 0)
     {
-        Vector3D v_a2(0, 0, -Zmax);
+        Vector3D v_a2(0, 0, -Zmax * (1 -  MIN_LEN_STEP*EPS_DOUBLE));
         double num = v_n2 * (p - v_a2);
         double length = -num / den2;
 
