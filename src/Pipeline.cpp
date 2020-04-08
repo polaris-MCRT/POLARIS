@@ -1,3 +1,9 @@
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <map>
+#include <utility>
+
 #include "Pipeline.h"
 #include "CommandParser.h"
 #include "Cylindrical.h"
@@ -10,6 +16,8 @@
 #include "Spherical.h"
 #include "Voronoi.h"
 #include "OPIATE.h"
+#include "Detector.h"
+#include "MathFunctions.h"
 
 bool CPipeline::Init(int argc, char ** argv)
 {

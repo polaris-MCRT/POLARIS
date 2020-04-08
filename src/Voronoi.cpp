@@ -1,10 +1,10 @@
+#include <algorithm>
+#include <vector>
+
 #include "Voronoi.h"
-#include "CommandParser.h"
-#include "GasSpecies.h"
-#include "MathFunctions.h"
 #include "Typedefs.h"
-#include <limits.h>
-#include <limits>
+#include "Parameters.h"
+#include "Photon.h"
 
 bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {

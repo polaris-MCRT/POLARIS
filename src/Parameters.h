@@ -967,10 +967,10 @@ class parameters
         dust_offset = val;
     }
 
-    void setDustOffset(double offset_min_gas_dens)
+    void setDustOffset(double _offset_min_gas_dens)
     {
         dust_offset = true;
-        offset_min_gas_dens = offset_min_gas_dens;
+        offset_min_gas_dens = _offset_min_gas_dens;
     }
 
     void setDustGasCoupling(bool val)
@@ -978,10 +978,10 @@ class parameters
         dust_gas_coupling = val;
     }
 
-    void setDustGasCoupling(double offset_min_gas_dens)
+    void setDustGasCoupling(double _offset_min_gas_dens)
     {
         dust_gas_coupling = true;
-        offset_min_gas_dens = offset_min_gas_dens;
+        offset_min_gas_dens = _offset_min_gas_dens;
     }
 
     void setFullDustTemp(bool val)

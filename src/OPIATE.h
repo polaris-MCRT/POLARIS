@@ -23,18 +23,17 @@
 /* History:   05.12.2016                                                    */
 /****************************************************************************/
 
-#include <CCfits/CCfits>
-#include <algorithm>
-#include <fstream>
+#include <math.h>
 #include <iostream>
-#include <stdlib.h>
 #include <string>
-#include <utility>
-#include <vector>
 
-#include "CommandParser.h"
 #include "Grid.h"
-#include "Parameters.h"
+#include "CCfits/FitsError.h"
+#include "Matrix2D.h"
+#include "Typedefs.h"
+
+class cell_basic;
+class parameters;
 
 using namespace std;
 using namespace CCfits;

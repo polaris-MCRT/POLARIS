@@ -1,7 +1,23 @@
 #pragma once
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
+
 #include "Grid.h"
 #include "Matrix2D.h"
 #include "Typedefs.h"
+#include "Cell.h"
+#include "MathFunctions.h"
+#include "Photon.h"
+#include "Stokes.h"
+#include "Vector.h"
+
+class parameters;
 
 #ifndef CDUST
 #define CDUST

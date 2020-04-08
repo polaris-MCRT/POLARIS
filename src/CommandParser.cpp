@@ -1,5 +1,11 @@
-#include "CommandParser.h"
 #include <omp.h>
+#include <ext/alloc_traits.h>
+#include <math.h>
+#include <stdlib.h>
+#include <iostream>
+
+#include "CommandParser.h"
+#include "MathFunctions.h"
 
 dlist CCommandParser::parseDataString(string data)
 {

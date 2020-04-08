@@ -1,10 +1,15 @@
 #pragma once
+#include <iostream>
+#include <string>
+
 #include "Grid.h"
-#include "MathFunctions.h"
 #include "Matrix2D.h"
-#include "Source.h"
 #include "Typedefs.h"
 #include "Vector.h"
+#include "Cell.h"
+#include "Photon.h"
+
+class parameters;
 
 class CGridOcTree : public CGridBasic
 {

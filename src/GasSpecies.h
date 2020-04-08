@@ -1,9 +1,20 @@
 #pragma once
+#include <math.h>
+#include <complex>
+#include <iosfwd>
+#include <string>
+
 #include "Faddeeva.hh"
 #include "Grid.h"
 #include "Matrix2D.h"
 #include "Typedefs.h"
-#include <complex>
+#include "MathFunctions.h"
+#include "Parameters.h"
+#include "Photon.h"
+#include "Vector.h"
+
+class StokesVector;
+class cell_basic;
 
 #ifndef CMOLECULE
 #define CMOLECULE

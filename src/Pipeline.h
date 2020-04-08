@@ -1,12 +1,22 @@
 #pragma once
+#include <sys/stat.h>
+#include <unistd.h>
+#include <algorithm>
+#include <iostream>
+#include <string>
+
 #include "CommandParser.h"
-#include "Detector.h"
 #include "Dust.h"
-#include "GasSpecies.h"
 #include "Source.h"
 #include "Typedefs.h"
 #include "Parameters.h"
-#include "OPIATE.h"
+#include "CCfits/FitsError.h"
+#include "Grid.h"
+#include "Vector.h"
+
+class CDetector;
+class CGasMixture;
+class COpiateDataBase;
 
 #ifndef CPIPELINE
 #define CPIPELINE

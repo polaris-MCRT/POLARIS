@@ -1,7 +1,17 @@
 #pragma once
+#include <math.h>
+#include <vector>
+
 #include "Dust.h"
-#include "Grid.h"
 #include "Vector.h"
+#include "MathFunctions.h"
+#include "Matrix2D.h"
+#include "Parameters.h"
+#include "Stokes.h"
+#include "Typedefs.h"
+
+class CGridBasic;
+class photon_package;
 
 #ifndef CSOURCE
 #define CSOURCE

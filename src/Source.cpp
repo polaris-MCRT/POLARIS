@@ -1,8 +1,14 @@
+#include <ext/alloc_traits.h>
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+
 #include "Source.h"
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Parameters.h"
+#include "Photon.h"
 
 bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 {

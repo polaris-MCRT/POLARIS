@@ -1,7 +1,19 @@
 #pragma once
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <iostream>
+#include <limits>
+#include <string>
+
 #include "Parameters.h"
 #include "Photon.h"
 #include "Vector.h"
+#include "Cell.h"
+#include "MathFunctions.h"
+#include "Stokes.h"
+#include "Typedefs.h"
 
 #ifndef CGRIDBASIC
 #define CGRIDBASIC

@@ -1,16 +1,27 @@
 #pragma once
-#include "Detector.h"
+#include <math.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <limits>
+#include <string>
+
 #include "Dust.h"
-#include "GasSpecies.h"
 #include "Grid.h"
-#include "MathFunctions.h"
-#include "OcTree.h"
 #include "Photon.h"
 #include "Source.h"
 #include "Typedefs.h"
 #include "Raytracing.h"
 #include "Synchrotron.h"
-#include "OPIATE.h"
+#include "CCfits/FitsError.h"
+#include "Matrix2D.h"
+#include "Parameters.h"
+#include "Stokes.h"
+#include "Vector.h"
+
+class CDetector;
+class CGasMixture;
+class COpiateDataBase;
+struct VelFieldInterp;
 
 class CRadiativeTransfer
 {

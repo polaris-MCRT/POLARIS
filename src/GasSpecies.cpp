@@ -1,8 +1,17 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <iostream>
+#include <limits>
+
 #include "GasSpecies.h"
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Typedefs.h"
+#include "Stokes.h"
+
+class cell_basic;
 
 #define TRANS_SIGMA_P +1
 #define TRANS_PI 0

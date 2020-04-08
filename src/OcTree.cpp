@@ -1,8 +1,14 @@
+#include <ext/alloc_traits.h>
+#include <math.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <memory>
+#include <vector>
+
 #include "OcTree.h"
-#include "CommandParser.h"
 #include "MathFunctions.h"
 #include "Typedefs.h"
-#include <limits>
+#include "Parameters.h"
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)
 {

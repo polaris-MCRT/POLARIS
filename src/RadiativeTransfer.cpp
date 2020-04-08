@@ -1,9 +1,15 @@
+#include <iostream>
+#include <map>
+#include <utility>
+
 #include "RadiativeTransfer.h"
-#include "CommandParser.h"
 #include "Detector.h"
 #include "Stokes.h"
-#include <complex>
-#include <limits>
+#include "GasSpecies.h"
+#include "MathFunctions.h"
+#include "OPIATE.h"
+
+class cell_basic;
 
 #define XAxis 10
 #define YAxis 20

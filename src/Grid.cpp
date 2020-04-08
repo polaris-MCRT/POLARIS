@@ -1,6 +1,17 @@
+#include <limits.h>
+#include <memory>
+#include <valarray>
+#include <vector>
+
+#include "CCfits/FITS.h"
+#include "CCfits/FITSUtilT.h"
+#include "CCfits/FitsError.h"
+#include "CCfits/KeyData.h"
+#include "CCfits/PHDU.h"
+#include "CCfits/PHDUT.h"
+#include "fitsio.h"
+
 #include "Grid.h"
-#include <CCfits/CCfits>
-#include <cmath>
 
 
 double CGridBasic::getCextMeanTab(uint cellID) const
