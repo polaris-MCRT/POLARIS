@@ -1692,7 +1692,7 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     double C = p.sq_length() - r2 * r2;
     double dscr = B * B - C;
 
-    if(dscr >= 0)
+    if(dscr > 0)
     {
         dscr = sqrt(dscr);
         // "+"-solution is not needed for inner cells; only the "-"-solution can be correct

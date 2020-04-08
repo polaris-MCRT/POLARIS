@@ -1225,7 +1225,7 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 {
     bool hit = false;
 
-    double path_length = 0;
+    double path_length = 2e300;
 
     double min_l = -0.5 * max_len;
     double max_l = 0.5 * max_len;
@@ -1233,10 +1233,9 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     Vector3D pos = pp->getPosition();
     Vector3D dir = pp->getDirection();
 
-    double min_dl = 2e300;
     double d_ls = -1;
 
-    Vector3D v_n, v_a, v_S, v_ds;
+    Vector3D v_n, v_a;
     double lamb, num, den;
 
     cell_vo * center_cell = (cell_vo *)pp->getPositionCell();
@@ -1264,10 +1263,10 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
             Vector3D n_pos = n_cell->getCenter();
 
             v_n = n_pos - c_pos;
-            v_a = c_pos + 0.5 * v_n;
-            // distance to cell border is enlarged to ensure
+            // distance to center of adjacent cell (here: v_n) is enlarged to ensure
             // a large enough step length
-            v_a *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
+            v_n *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
+            v_a = c_pos + 0.5 * v_n;
 
             num = v_n * (pos - v_a);
             den = v_n * (dir);
@@ -1275,14 +1274,10 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
             if(den != 0)
             {
                 lamb = -num / den;
-                v_S = pos + dir * lamb;
-                v_ds = v_S - pos;
-                d_ls = v_ds.length();
 
-                if(lamb > 0 && d_ls < min_dl)
+                if(lamb > 0 && lamb < path_length)
                 {
-                    min_dl = d_ls;
-                    path_length = min_dl;
+                    path_length = lamb;
                     hit = true;
                 }
             }
@@ -1321,6 +1316,9 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
                 v_a.setX(max_l);
                 break;
         }
+        // distance to cell border (here: v_a) is enlarged to ensure
+        // a large enough step length
+        v_a *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
 
         num = v_n * (pos - v_a);
         den = v_n * (dir);
@@ -1328,14 +1326,10 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         if(den != 0)
         {
             lamb = -num / den;
-            v_S = pos + dir * lamb;
-            v_ds = v_S - pos;
-            d_ls = v_ds.length();
 
-            if(lamb > 0 && d_ls < min_dl)
+            if(lamb > 0 && d_ls < path_length)
             {
-                min_dl = d_ls;
-                path_length = min_dl;
+                path_length = lamb;
                 hit = true;
             }
         }
@@ -1406,7 +1400,7 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
     if(isInside(pos))
         return true;
 
-    Vector3D v_n, v_a, v_S, v_ds, new_pos;
+    Vector3D v_n, v_a;
     double lamb, num, den;
 
     for(int i_side = 1; i_side <= 6; i_side++)
@@ -1441,6 +1435,9 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
                 v_a.setX(max_l);
                 break;
         }
+        // v_a must be smaller (because we are outside of the grid)
+        // to ensure a large enough step length -> grid is a bit squeezed
+        v_a *= 1 - MIN_LEN_STEP*EPS_DOUBLE;
 
         num = v_n * (pos - v_a);
         den = v_n * (dir);
@@ -1450,20 +1447,16 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
             lamb = -num / den;
 
             if(lamb > 0)
-            {
-                new_pos = pos + dir * 1.0001 * lamb;
-
-                if(isInside(new_pos))
+                if(isInside(pos + dir * path_length))
                 {
                     hit = true;
                     path_length = lamb;
                     break;
                 }
-            }
         }
     }
 
-    pp->setPosition(new_pos);
+    pp->setPosition(pos + dir * path_length);
     pp->setTmpPathLength(0);
 
     return positionPhotonInGrid(pp);

@@ -1585,14 +1585,17 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     if(isInside(p))
         return positionPhotonInGrid(pp);
 
-    // --- Radial cell borders ---
-    double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+    // need distance to inner cell, we are outside the grid
+    double r1 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+    double z1 = Zmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
 
+
+    // --- Radial cell border ---
     double A = d.X() * d.X() + d.Y() * d.Y();
     if(A > 0)
     {
         double B = p.X() * d.X() + p.Y() * d.Y();
-        double C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
+        double C = p.X() * p.X() + p.Y() * p.Y() - r1 * r1;
         double dscr = B * B - A * C;
 
         if(dscr > 0)
@@ -1602,7 +1605,7 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
             double length = (-B - dscr) / A;
 
             if(length >= 0 && length < path_length)
-                if(abs(p.Z() + d.Z() * length) < Zmax)
+                if(abs(p.Z() + d.Z() * length) < z1)
                 {
                     path_length = length;
                     hit = true;
@@ -1615,12 +1618,12 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     double den1 = v_n1 * d;
     if(den1 > 0)
     {
-        Vector3D v_a1(0, 0, Zmax);
+        Vector3D v_a1(0, 0, z1);
         double num = v_n1 * (p - v_a1);
         double length = -num / den1;
 
         if(length != 0 && length < path_length)
-            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r2 * r2)
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r1 * r1)
             {
                 path_length = length;
                 hit = true;
@@ -1631,12 +1634,12 @@ bool CGridCylindrical::findStartingPoint(photon_package * pp)
     double den2 = v_n2 * d;
     if(den2 > 0)
     {
-        Vector3D v_a2(0, 0, -Zmax);
+        Vector3D v_a2(0, 0, -z1);
         double num = v_n2 * (p - v_a2);
         double length = -num / den2;
 
         if(length != 0 && length < path_length)
-            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r2 * r2)
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r1 * r1)
             {
                 path_length = length;
                 hit = true;

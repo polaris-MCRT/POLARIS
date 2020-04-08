@@ -1693,7 +1693,7 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
             double num = v_n * (p - v_a);
             double length = -num / den;
 
-            if(length >= 0 && length < path_length)
+            if(length > 0 && length < path_length)
             {
                 path_length = length;
                 hit = true;
@@ -1954,16 +1954,18 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
         return positionPhotonInGrid(pp);
 
     bool hit = false;
-    double min_length = 1e300;
+    double path_length = 1e300;
     Vector3D d = pp->getDirection();
 
-    double loc_x_min = cell_oc_root->getXmin();
-    double loc_y_min = cell_oc_root->getYmin();
-    double loc_z_min = cell_oc_root->getZmin();
+    // signs are switched compared to goToNextCellBorder because we are outside the cell
+    // so the cell needs to get smaller to get a larger path_length
+    double loc_x_min = cell_oc_root->getXmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_min = cell_oc_root->getYmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_min = cell_oc_root->getZmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
-    double loc_x_max = cell_oc_root->getXmax();
-    double loc_y_max = cell_oc_root->getYmax();
-    double loc_z_max = cell_oc_root->getZmax();
+    double loc_x_max = cell_oc_root->getXmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_max = cell_oc_root->getYmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_max = cell_oc_root->getZmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
     double loc_dx = loc_x_max - loc_x_min;
     double loc_dy = loc_y_max - loc_y_min;
@@ -2023,11 +2025,11 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
             double num = v_n * (p - v_a);
             double length = -num / den;
 
-            if(length >= 0 && length < min_length)
+            if(length > 0 && length < path_length)
             {
-                if(isInside(p + d * (length + MIN_LEN_STEP * min_len)))
+                if(isInside(p + d * path_length))
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                 }
             }
@@ -2037,7 +2039,6 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
     if(!hit)
         return false;
 
-    double path_length = min_length + MIN_LEN_STEP * min_len;
     pp->setPosition(p + d * path_length);
     return positionPhotonInGrid(pp);
 }
