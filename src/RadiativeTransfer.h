@@ -12,7 +12,6 @@
 #include "Typedefs.h"
 #include "Raytracing.h"
 #include "Synchrotron.h"
-#include "CCfits/FitsError.h"
 #include "Matrix2D.h"
 #include "Parameters.h"
 #include "Stokes.h"

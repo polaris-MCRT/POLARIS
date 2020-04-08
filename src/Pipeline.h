@@ -10,7 +10,6 @@
 #include "Source.h"
 #include "Typedefs.h"
 #include "Parameters.h"
-#include "CCfits/FitsError.h"
 #include "Grid.h"
 #include "Vector.h"
 

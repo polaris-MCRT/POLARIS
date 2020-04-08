@@ -134,7 +134,7 @@ void CGridBasic::updateDataRange(cell_basic * cell)
 
     if(!data_pos_dd_list.empty())
     {
-        for(uint i_dens = 0; i_dens < data_pos_dd_list.size(); i_dens++)
+        for(uint i_dens = 0; i_dens < nr_dust_densities; i_dens++)
             cell->convertData(data_pos_dd_list[i_dens], conv_dens_in_SI);
 
         dust_dens = getDustDensity(*cell);

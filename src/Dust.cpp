@@ -633,6 +633,10 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             // Activate the splines of Qtrq and HG g factor
             Qtrq[w * nr_of_dust_species + a].createSpline();
             HG_g_factor[w * nr_of_dust_species + a].createSpline();
+
+            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         }
     }
 
@@ -3129,7 +3133,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                             uint sth_comp = lower_bound(comp->getScatTheta(a,w),
                                                         comp->getScatTheta(a,w) + comp->getNrOfScatTheta(a,w),
                                                         scat_theta[a][w][sth_mix]) - comp->getScatTheta(a,w);
-                            
+
                             if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
                                 for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
                                     for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
@@ -3799,8 +3803,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     grid->setDustTemperature(cell, i_density, max(double(TEMP_MIN), avg_temp));
 
     // Update min and max temperatures for visualization
-    if(avg_temp > max_temp)
-        max_temp = avg_temp;
+    max_temp = max(max_temp,avg_temp);
     // if(avg_temp < min_temp)
     //     min_temp = avg_temp;
 }
@@ -5547,10 +5550,10 @@ void CDustMixture::getNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double ***
                 scat_theta_tmp.insert(scat_theta_tmp.end(),
                                       single_component[i_comp].getScatTheta(a,w),
                                       single_component[i_comp].getScatTheta(a,w) + single_component[i_comp].getNrOfScatTheta(a,w));
-            
+
             sort(scat_theta_tmp.begin(),scat_theta_tmp.end());
             scat_theta_tmp.erase( unique(scat_theta_tmp.begin(),scat_theta_tmp.end()), scat_theta_tmp.end() );
-            
+
             nr_of_scat_theta[a][w] = scat_theta_tmp.size();
 
             scat_theta[a][w] = new double[nr_of_scat_theta[a][w]];
