@@ -253,7 +253,7 @@ bool CGridVoronoi::writeGNUPlotFiles(string path, parameters & param)
         return false;
     }
 
-    plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_gas_dens = (size_gd_list > 0);  // 1
     plt_mol_dens = (nrOfDensRatios>0);
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3

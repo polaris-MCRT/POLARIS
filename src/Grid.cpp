@@ -120,9 +120,9 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     double delta = 0;
     double a_limit = 0;
 
-    if(!data_pos_gd_list.empty())
+    if(size_gd_list > 0)
     {
-        for(uint i_dens = 0; i_dens < data_pos_gd_list.size(); i_dens++)
+        for(uint i_dens = 0; i_dens < size_gd_list; i_dens++)
             cell->convertData(data_pos_gd_list[i_dens], conv_dens_in_SI);
         gas_dens = getGasDensity(*cell);
 
@@ -132,9 +132,9 @@ void CGridBasic::updateDataRange(cell_basic * cell)
             min_gas_dens = gas_dens;
     }
 
-    if(!data_pos_dd_list.empty())
+    if(size_dd_list > 0)
     {
-        for(uint i_dens = 0; i_dens < nr_dust_densities; i_dens++)
+        for(uint i_dens = 0; i_dens < size_dd_list; i_dens++)
             cell->convertData(data_pos_dd_list[i_dens], conv_dens_in_SI);
 
         dust_dens = getDustDensity(*cell);
@@ -430,7 +430,7 @@ uint CGridBasic::validateDataPositions(parameters & param)
 
     cout << CLR_LINE;
 
-    if(data_pos_gd_list.size() == 0)
+    if(size_gd_list == 0)
     {
         cout << "\nERROR: Grid contains no gas (number) density!" << endl;
         cout << "       No RT calculations possible!" << endl;
@@ -442,13 +442,10 @@ uint CGridBasic::validateDataPositions(parameters & param)
                            param.getCommand() == CMD_PROBING))
     {
         // Get Number of temperature fields for temperature calculation
-        if(!data_pos_dd_list.empty())
-        {
-            nr_densities = data_pos_dd_list.size();
-            nr_dust_densities = nr_densities;
-        }
+        if(size_dd_list > 0)
+            nr_densities = size_dd_list;
         else
-            nr_densities = data_pos_gd_list.size();
+            nr_densities = size_gd_list;
 
         // Precalculate the number of temperature entries, if the grid has a
         // temperature for each grain size or stochastically heated grains
@@ -560,7 +557,7 @@ void CGridBasic::printPhysicalParameters()
     else
         cout << "- Gas number density  (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [m^-3]"
              << endl;
-    if(!data_pos_dd_list.empty())
+    if(size_dd_list > 0)
     {
         if(dust_is_mass_density)
             cout << "- Dust mass density   (min,max) : [" << min_dust_dens << ", " << max_dust_dens
@@ -688,7 +685,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     if(bins == 0)
         return true;
 
-    bool plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
+    bool plt_gas_dens = (size_gd_list > 0) && param.isInPlotList(GRIDgas_dens);
     // bool plt_dust_dens = param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); //to
     // do if dust denity is possible
     bool plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
@@ -1183,9 +1180,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
     if(all)
     {
-        plt_gas_dens = (!data_pos_gd_list.empty()) && param.isInPlotList(GRIDgas_dens);
+        plt_gas_dens = (size_gd_list > 0) && param.isInPlotList(GRIDgas_dens);
         plt_mol_dens = (nrOfDensRatios>0 && param.isInPlotList(GRIDratio) );
-        plt_dust_dens = (!data_pos_dd_list.empty()) && param.isInPlotList(GRIDdust_dens);
+        plt_dust_dens = (size_dd_list > 0) && param.isInPlotList(GRIDdust_dens);
         plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
 
         plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT) &&
@@ -1341,10 +1338,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         return res;
 
     if(plt_gas_dens)
-        if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+        if(nr_densities > 1 && size_gd_list >= nr_densities)
             nr_parameters += nr_densities;
     if(plt_dust_dens)
-        if(nr_densities > 1 && nr_dust_densities >= nr_densities)
+        if(nr_densities > 1 && size_dd_list >= nr_densities)
             nr_parameters += nr_densities;
     if(plt_dust_temp)
         if(nr_densities > 1 && data_pos_dt_list.size() >= nr_densities)
@@ -1475,7 +1472,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
-            if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
+            if(nr_densities > 1 && size_gd_list == nr_densities)
                 buffer_gas_dens[i_cell] = new double[nr_densities + 1];
             else
                 buffer_gas_dens[i_cell] = new double[nr_densities];
@@ -1491,8 +1488,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
     }
 
-
-
     if(plt_dust_dens)
     {
         buffer_dust_dens = new double *[nelements];
@@ -1500,7 +1495,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             // +1 for the average/sum of the quantity, but only if multiple quantities are
             // in the grid
-            if(nr_densities > 1 && nr_dust_densities == nr_densities)
+            if(nr_densities > 1 && size_dd_list == nr_densities)
                 buffer_dust_dens[i_cell] = new double[nr_densities + 1];
             else
                 buffer_dust_dens[i_cell] = new double[nr_densities];
@@ -1642,7 +1637,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_dens);
 
-                if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+                if(nr_densities > 1 && size_gd_list >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -1669,7 +1664,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
 
-                if(nr_densities > 1 && nr_dust_densities >= nr_densities)
+                if(nr_densities > 1 && size_dd_list >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -1949,7 +1944,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_dens);
 
-                if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+                if(nr_densities > 1 && size_gd_list >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -1975,7 +1970,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_dust_dens);
 
-                if(nr_densities > 1 && nr_dust_densities >= nr_densities)
+                if(nr_densities > 1 && size_dd_list >= nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -2293,7 +2288,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1 && data_pos_gd_list.size() >= nr_densities)
+        if(nr_densities > 1 && size_gd_list >= nr_densities)
         {
             if(gas_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_gas_mass_density [kg/m^3]", str_2);
@@ -2340,7 +2335,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(nr_densities > 1 && nr_dust_densities >= nr_densities)
+        if(nr_densities > 1 && size_dd_list >= nr_densities)
         {
             if(dust_is_mass_density)
                 pFits->pHDU().addKey(str_1, "total_dust_mass_density [kg/m^3]", str_2);
