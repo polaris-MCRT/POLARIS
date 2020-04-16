@@ -39,7 +39,7 @@ using namespace std;
 #define PI4 PI / 4.0                                  // PI / 4
 #define invPI2 2.0 / PI                               // 2 / PI
 #define PIx2 PI * 2.0                                 // 2 * PI
-#define PIx4 PI * 4.0                                 // 4 * PI
+#define PIx4 (PI * 4.0)                                 // 4 * PI
 #define PI4x3 PI * 3.0 / 4.0                          // 3 * PI / 4
 #define TWOTHIRD 0.6666666666666666666666666666666    // 2 / 3
 #define m_H 1.66053904e-27                            // Atomic mass unit [kg]
