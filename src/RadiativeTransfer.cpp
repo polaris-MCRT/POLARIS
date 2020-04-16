@@ -605,7 +605,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(&pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions >= MAX_INTERACTION)
+                    if(interactions >= MAX_INTERACTION_RADFIELD)
                     {
 #pragma omp atomic update
                         kill_counter++;
@@ -1454,7 +1454,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     else
                     {
                         // For single scattering only the forced photons should be considered
-                        if(MAX_INTERACTION==1)
+                        if(MAX_INTERACTION_DUST_MC==1)
                             break;
                         // Get tau for first interaction
                         end_tau = -log(1.0 - pp->getRND());
@@ -1473,7 +1473,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions >= MAX_INTERACTION || pp->getStokesVector()->I() < 1e-200)
+                        if(interactions >= MAX_INTERACTION_DUST_MC || pp->getStokesVector()->I() < 1e-200)
                         {
                             if(ph_i == 0)
                             {
@@ -1614,7 +1614,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION_DUST_MC)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToBackupPos();
