@@ -25,6 +25,19 @@
 
 #include "OPIATE.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <memory>
+#include <valarray>
+
+#include "CCfits/CCfits.h"
+#include "CCfits/FITS.h"
+#include "CCfits/FITSUtilT.h"
+#include "CCfits/HDU.h"
+#include "CCfits/PHDU.h"
+#include "CCfits/PHDUT.h"
+#include "Parameters.h"
+
 /*void OPIATE::formatLine(string &line)
 {
     string::size_type pos = 0;

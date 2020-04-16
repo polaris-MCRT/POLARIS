@@ -1,6 +1,16 @@
 #pragma once
+#include <math.h>
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+
 #include "Grid.h"
 #include "Vector.h"
+#include "Cell.h"
+#include "Typedefs.h"
+
+class parameters;
+class photon_package;
 
 // search tree parameters
 #define MAX_CELLS 31 // max. cells per tree node

@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <iostream>
+
 #include "Synchrotron.h"
 
 double CSynchrotron::Gamma(double x)

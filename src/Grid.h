@@ -1,7 +1,19 @@
 #pragma once
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <iostream>
+#include <limits>
+#include <string>
+
 #include "Parameters.h"
 #include "Photon.h"
 #include "Vector.h"
+#include "Cell.h"
+#include "MathFunctions.h"
+#include "Stokes.h"
+#include "Typedefs.h"
 
 #ifndef CGRIDBASIC
 #define CGRIDBASIC
@@ -133,6 +145,8 @@ class CGridBasic
         nrOfOpiateIDs = 0;
 
         nr_densities = 1;
+        size_gd_list = 0;
+        size_dd_list = 0;
         multi_temperature_entries = 0;
         stochastic_temperature_entries = 0;
         nr_mixtures = 0;
@@ -242,9 +256,9 @@ class CGridBasic
         wl_list.resize(WL_STEPS);
         CMathFunctions::LogList(WL_MIN, WL_MAX, wl_list, 10);
 
-        cextMeanTab = 0;
-        cabsMeanTab = 0;
-        cscaMeanTab = 0;
+        CextMeanTab = 0;
+        CabsMeanTab = 0;
+        CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
         chosen_wID = 0;
@@ -283,28 +297,28 @@ class CGridBasic
         if(size_skip != 0)
             delete[] size_skip;
 
-        if(cextMeanTab != 0)
+        if(CextMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cextMeanTab[wID];
-            delete[] cextMeanTab;
-            cextMeanTab = 0;
+                delete[] CextMeanTab[wID];
+            delete[] CextMeanTab;
+            CextMeanTab = 0;
         }
 
-        if(cabsMeanTab != 0)
+        if(CabsMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cabsMeanTab[wID];
-            delete[] cabsMeanTab;
-            cabsMeanTab = 0;
+                delete[] CabsMeanTab[wID];
+            delete[] CabsMeanTab;
+            CabsMeanTab = 0;
         }
 
-        if(cscaMeanTab != 0)
+        if(CscaMeanTab != 0)
         {
             for(uint wID = 0; wID < max_wavelengths; wID++)
-                delete[] cscaMeanTab[wID];
-            delete[] cscaMeanTab;
-            cscaMeanTab = 0;
+                delete[] CscaMeanTab[wID];
+            delete[] CscaMeanTab;
+            CscaMeanTab = 0;
         }
 
         if(numberDensityTab != 0)
@@ -495,9 +509,9 @@ class CGridBasic
 
         turbulent_velocity = 0;
 
-        cextMeanTab = 0;
-        cabsMeanTab = 0;
-        cscaMeanTab = 0;
+        CextMeanTab = 0;
+        CabsMeanTab = 0;
+        CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
         chosen_wID = 0;
@@ -1902,7 +1916,7 @@ class CGridBasic
             {
                 buffer_gas_dens[i_cell][0] = getGasDensity(pp);
                 // Do it only once if only one gas distribution is defined
-                if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
+                if(nr_densities > 1 && size_gd_list == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density + 1] = getGasDensity(pp, i_density);
             }
@@ -1915,7 +1929,7 @@ class CGridBasic
             {
                 buffer_dust_dens[i_cell][0] = getDustDensity(pp);
                 // Do it only once if only one dust distribution is defined
-                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
+                if(nr_densities > 1 && size_dd_list == nr_densities)
                     for(uint i_density = 0; i_density < nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density + 1] = getDustDensity(pp, i_density);
             }
@@ -2036,7 +2050,7 @@ class CGridBasic
             if(plt_gas_dens)
             {
                 buffer_gas_dens[i_cell][0] = 0;
-                if(nr_densities > 1 && data_pos_gd_list.size() == nr_densities)
+                if(nr_densities > 1 && size_gd_list == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_gas_dens[i_cell][i_density] = 0;
             }
@@ -2048,7 +2062,7 @@ class CGridBasic
             if(plt_dust_dens)
             {
                 buffer_dust_dens[i_cell][0] = 0;
-                if(nr_densities > 1 && data_pos_dd_list.size() == nr_densities)
+                if(nr_densities > 1 && size_dd_list == nr_densities)
                     for(uint i_density = 1; i_density <= nr_densities; i_density++)
                         buffer_dust_dens[i_cell][i_density] = 0;
             }
@@ -2166,14 +2180,14 @@ class CGridBasic
     inline double getGasDensity(const cell_basic & cell) const
     {
         double sum = 0;
-        for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
+        for(uint i_density = 0; i_density < size_gd_list; i_density++)
             sum += getGasDensity(cell, i_density);
         return sum;
     }
 
     inline double getGasDensity(const cell_basic & cell, uint i_density) const
     {
-        if(data_pos_gd_list.size() > i_density)
+        if(size_gd_list > i_density)
             return cell.getData(data_pos_gd_list[i_density]);
         else
             return 0;
@@ -2192,7 +2206,7 @@ class CGridBasic
     inline double getGasNumberDensity(const cell_basic & cell) const
     {
         double sum = 0;
-        for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
+        for(uint i_density = 0; i_density < size_gd_list; i_density++)
             sum += cell.getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
             sum /= (mu * m_H);
@@ -2202,7 +2216,7 @@ class CGridBasic
     inline double getGasNumberDensity(const cell_basic & cell, uint i_density) const
     {
         double dens = 0;
-        if(data_pos_gd_list.size() > i_density)
+        if(size_gd_list > i_density)
             dens = cell.getData(data_pos_gd_list[i_density]);
         if(gas_is_mass_density)
             dens /= (mu * m_H);
@@ -2222,7 +2236,7 @@ class CGridBasic
     inline double getGasMassDensity(const cell_basic & cell) const
     {
         double sum = 0;
-        for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
+        for(uint i_density = 0; i_density < size_gd_list; i_density++)
             sum += cell.getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
             sum *= (mu * m_H);
@@ -2232,7 +2246,7 @@ class CGridBasic
     inline double getGasMassDensity(const cell_basic & cell, uint i_density) const
     {
         double dens = 0;
-        if(data_pos_gd_list.size() > i_density)
+        if(size_gd_list > i_density)
             dens = cell.getData(data_pos_gd_list[i_density]);
         if(!gas_is_mass_density)
             dens *= (mu * m_H);
@@ -2251,7 +2265,7 @@ class CGridBasic
 
     bool useDustChoice()
     {
-        if(data_pos_gd_list.size() > 1 || data_pos_dd_list.size() > 1)
+        if(size_gd_list > 1 || size_dd_list > 1)
             return false;
         return true;
     }
@@ -2265,24 +2279,24 @@ class CGridBasic
 
     bool useDustDensities()
     {
-        if(data_pos_dd_list.size() > 1)
+        if(size_dd_list > 1)
             return true;
         return false;
     }
 
     void setDustDensity(cell_basic * cell, double val)
     {
-        if(!data_pos_dd_list.empty())
-            for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
+        if(size_dd_list > 0)
+            for(uint i_density = 0; i_density < size_dd_list; i_density++)
                 cell->setData(data_pos_dd_list[i_density], val);
         else
-            for(uint i_density = 0; i_density < data_pos_gd_list.size(); i_density++)
+            for(uint i_density = 0; i_density < size_gd_list; i_density++)
                 cell->setData(data_pos_gd_list[i_density], val);
     }
 
     void setDustDensity(cell_basic * cell, uint i_density, double val)
     {
-        if(!data_pos_dd_list.empty())
+        if(size_dd_list > 0)
             cell->setData(data_pos_dd_list[i_density], val);
         else
             cell->setData(data_pos_gd_list[i_density], val);
@@ -2301,9 +2315,9 @@ class CGridBasic
     double getDustDensity(const cell_basic & cell) const
     {
         double sum = 0;
-        if(!data_pos_dd_list.empty())
+        if(size_dd_list > 0)
         {
-            for(uint i_density = 0; i_density < data_pos_dd_list.size(); i_density++)
+            for(uint i_density = 0; i_density < size_dd_list; i_density++)
                 sum += cell.getData(data_pos_dd_list[i_density]);
             return sum;
         }
@@ -2313,7 +2327,7 @@ class CGridBasic
 
     double getDustDensity(const cell_basic & cell, uint i_density) const
     {
-        if(data_pos_dd_list.size() > i_density)
+        if(size_dd_list > i_density)
             return cell.getData(data_pos_dd_list[i_density]);
         else
             return 0;
@@ -2341,7 +2355,7 @@ class CGridBasic
 
     void adjustDustDensity(cell_basic * cell, uint i_density, double factor)
     {
-        if(!data_pos_dd_list.empty())
+        if(size_dd_list > 0)
         {
             double dust_dens = getDustDensity(*cell, i_density);
             cell->setData(data_pos_dd_list[i_density], dust_dens * factor);
@@ -2888,8 +2902,10 @@ class CGridBasic
                     return false;
             }
         }
+        size_gd_list = data_pos_gd_list.size();
+        size_dd_list = data_pos_dd_list.size();
 
-        if(data_pos_gd_list.size() == 0)
+        if(size_gd_list == 0)
         {
             cout << "\nERROR: Grid requires a gas density! " << endl;
             return false;
@@ -3782,6 +3798,8 @@ class CGridBasic
 
     uint nr_mixtures;
     uint nr_densities;
+    uint size_gd_list;
+    uint size_dd_list;
     uint multi_temperature_entries;
     uint stochastic_temperature_entries;
     uint * nr_dust_temp_sizes;
@@ -3913,9 +3931,9 @@ class CGridBasic
     double * buffer_avg_th;
     double * buffer_avg_dir;
 
-    double ** cextMeanTab;
-    double ** cabsMeanTab;
-    double ** cscaMeanTab;
+    double ** CextMeanTab;
+    double ** CabsMeanTab;
+    double ** CscaMeanTab;
     double * numberDensityTab;
     double * totalCellEmissionTab;
     uint chosen_wID;

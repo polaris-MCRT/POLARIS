@@ -1,8 +1,14 @@
+#include <ext/alloc_traits.h>
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+
 #include "Source.h"
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Parameters.h"
+#include "Photon.h"
 
 bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
 {
@@ -1022,10 +1028,10 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
 
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
-        double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1 sr^-1]
-        double sp_energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2);
-        if(g_zero > 0)
-            sp_energy *= PIx2; //[W m^-1] energy per second an wavelength
+        double pl = sp_ext.getValue(wavelength_list[w]) / PIx4; //[W m^-2 m^-1 sr^-1]
+        double sp_energy = pl * PI * PI * 3 * pow(radius * grid->getMaxLength(), 2);    //[W m^-1] energy per second and wavelength
+        // if(g_zero > 0)
+        //     sp_energy *= PIx2; //[W m^-1]
         star_emi[w] = sp_energy;
     }
 
@@ -1172,10 +1178,10 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
         wID = pp->getDustWavelengthID();
-        double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
-        energy = pl * PI * 3 * pow(radius * grid->getMaxLength(), 2) / nr_of_photons;
-        if(g_zero > 0)
-            energy *= PIx2; //[W m^-1] energy per second an wavelength
+        double pl = sp_ext.getValue(wavelength_list[wID]) / PIx4; //[W m^-2 m^-1 sr^-1]
+        energy = pl * PI * PI * 3 * pow(radius * grid->getMaxLength(), 2) / nr_of_photons; //[W m^-1] energy per second and wavelength
+        // if(g_zero > 0)
+        //     energy *= PIx2;
     }
     else
     {
@@ -1189,19 +1195,26 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
 
-    e.rndDir(pp->getRND(), pp->getRND());
-    l.setX(e.X() * sqrt(3) * radius * grid->getMaxLength() / 2);
-    l.setY(e.Y() * sqrt(3) * radius * grid->getMaxLength() / 2);
-    l.setZ(e.Z() * sqrt(3) * radius * grid->getMaxLength() / 2);
-
+    // Get random direction for the postion (not the direction of travel) of the photon
     pp->calcRandomDirection();
-    while(pp->getDirection() * e >= 0)
-        pp->calcRandomDirection();
     pp->initCoordSystem();
 
-    pos.set(l.X(), l.Y(), l.Z());
+    // pos is center position of the sphere where the ISRF is emitted from
+    pos = Vector3D(0,0,0);
+    // set photon position to be on the surface of that sphere
+    // negative sign, so that the direction of travel is inside of the cell
+    pp->adjustPosition(pos, -sqrt(3) * radius * grid->getMaxLength() / 2);
 
-    pp->setPosition(pos);
+    // the emission has to obey Lambert's cosine law
+    // Thus, the square of cos(theta) of the direction of the photon
+    // is given by a random number -> theta is only in (0,pi/2)
+    double theta_direction = acos( sqrt( pp->getRND() ) );
+    double phi_direction = PIx2 * pp->getRND();
+
+    // the direction was calculated in the coord system of the photon
+    // now we have to update the coord system acoordingly
+    pp->updateCoordSystem(phi_direction, theta_direction)
+
     pp->setStokesVector(tmp_stokes_vector);
 }
 

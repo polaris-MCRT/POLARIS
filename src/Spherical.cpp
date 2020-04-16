@@ -1,8 +1,9 @@
+#include <stdlib.h>
+
 #include "Spherical.h"
-#include "CommandParser.h"
 #include "MathFunctions.h"
 #include "Typedefs.h"
-#include <limits>
+#include "Parameters.h"
 
 bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
 {
@@ -415,7 +416,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         return false;
     }
 
-    plt_gas_dens = (!data_pos_gd_list.empty());  // 1
+    plt_gas_dens = (size_gd_list > 0);  // 1
     plt_mol_dens = (nrOfDensRatios>0);
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
@@ -1692,7 +1693,7 @@ bool CGridSpherical::findStartingPoint(photon_package * pp)
     double C = p.sq_length() - r2 * r2;
     double dscr = B * B - C;
 
-    if(dscr >= 0)
+    if(dscr > 0)
     {
         dscr = sqrt(dscr);
         // "+"-solution is not needed for inner cells; only the "-"-solution can be correct

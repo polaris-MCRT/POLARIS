@@ -1,9 +1,15 @@
+#include <iostream>
+#include <map>
+#include <utility>
+
 #include "RadiativeTransfer.h"
-#include "CommandParser.h"
 #include "Detector.h"
 #include "Stokes.h"
-#include <complex>
-#include <limits>
+#include "GasSpecies.h"
+#include "MathFunctions.h"
+#include "OPIATE.h"
+
+class cell_basic;
 
 #define XAxis 10
 #define YAxis 20
@@ -599,7 +605,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 while(grid->next(&pp))
                 {
                     // If max interactions is reached, end photon transfer
-                    if(interactions >= MAX_INTERACTION)
+                    if(interactions >= MAX_INTERACTION_RADFIELD)
                     {
 #pragma omp atomic update
                         kill_counter++;
@@ -1170,7 +1176,7 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
     }
 }
 
-bool CRadiativeTransfer::setTemperatureDistribution()
+/*bool CRadiativeTransfer::setTemperatureDistribution()
 {
     ulong per_counter = 0;
     ulong max_cells = grid->getMaxDataCells();
@@ -1271,7 +1277,7 @@ bool CRadiativeTransfer::setTemperatureDistribution()
     cout << " " << dust->getMinDustTemp() << " " << dust->getMaxDustTemp() << endl;
     cout << "- Estimation of final temperatures: done" << endl;
     return true;
-}
+}*/
 
 bool CRadiativeTransfer::calcPolMapsViaMC()
 {
@@ -1448,7 +1454,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     else
                     {
                         // For single scattering only the forced photons should be considered
-                        if(MAX_INTERACTION==1)
+                        if(MAX_INTERACTION_DUST_MC==1)
                             break;
                         // Get tau for first interaction
                         end_tau = -log(1.0 - pp->getRND());
@@ -1467,7 +1473,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         // If max interactions is reached or the photon intensity
                         // is too low, end photon transfer
-                        if(interactions >= MAX_INTERACTION || pp->getStokesVector()->I() < 1e-200)
+                        if(interactions >= MAX_INTERACTION_DUST_MC || pp->getStokesVector()->I() < 1e-200)
                         {
                             if(ph_i == 0)
                             {
@@ -1608,7 +1614,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If peel-off is not used, use classic Monte-Carlo method
                     // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION)
+                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION_DUST_MC)
                     {
                         // Move photon back to the point of last interaction
                         pp->resetPositionToBackupPos();
@@ -2328,7 +2334,7 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uin
                     // different precisions to see if smaller steps are needed
                     // (see Reissl)
 
-                    double epsi, dz_new;
+                    double epsi=0, dz_new;
                     // Do approximate solution
                     if(!fail)
                         calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);

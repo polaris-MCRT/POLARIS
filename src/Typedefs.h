@@ -81,7 +81,8 @@ using namespace std;
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION 1e7
+#define MAX_INTERACTION_RADFIELD 1e7
+#define MAX_INTERACTION_DUST_MC 15
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6

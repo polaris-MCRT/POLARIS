@@ -395,10 +395,10 @@ class Vector3D
     void rndDir(double r1, double r2)
     {
         double u = 1.0 - 2.0 * r1;
-        double th = PIx2 * r2;
+        double ph = PIx2 * r2;
         double sqr = sqrt(1.0 - u * u);
-        x = sqr * cos(th);
-        y = sqr * sin(th);
+        x = sqr * cos(ph);
+        y = sqr * sin(ph);
         z = u;
         normalize();
     }

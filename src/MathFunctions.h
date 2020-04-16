@@ -330,12 +330,12 @@ class spline
 
     double getValue(double v, uint extrapolation = SPLINE) const
     {
-        uint min = 0, max = N;
+        uint min = 0;
 
         if(x == 0)
             return 0;
 
-        if(min == max)
+        if(N == 0)
             return y[0];
 
         // Extrapolation
@@ -369,17 +369,10 @@ class spline
                     min = N - 1;
                     break;
             }
+        else if(v == x[0])
+            min = 0;
         else
-        {
-            while(max - min > 1)
-            {
-                uint i = min + (max - min) / 2;
-                if(x[i] >= v)
-                    max = i;
-                else
-                    min = i;
-            }
-        }
+            min = lower_bound(x, x+N, v) - x - 1;
 
         double t = (v - x[min]) / (u[min]);
 
@@ -465,38 +458,20 @@ class spline
 
     uint getXIndex(double v)
     {
-        uint min = 0, max = N;
-
         if(v < x[0] || v > x[N])
             return 0;
 
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2; // /2 only for positive!!
-            if(x[i] > v)
-                max = i;
-            else
-                min = i;
-        }
+        uint min = upper_bound(x, x+N-1, v) - x - 1;
 
         return min;
     }
 
     uint getYIndex(double v) const
     {
-        uint min = 0, max = N;
-
         if(v < y[0] || v > y[N])
             return 0;
 
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2; // /2 only for positive!!
-            if(y[i] > v)
-                max = i;
-            else
-                min = i;
-        }
+        uint min = upper_bound(y, y+N-1, v) - y - 1;
 
         return min;
     }
@@ -575,9 +550,7 @@ class interp
 
     double getValue(double v, uint interpolation = LINEAR) const
     {
-        uint min = 0, max = N;
-
-        if(min == max)
+        if(N == 0)
             return y[0];
 
         if(v < x[0])
@@ -604,18 +577,15 @@ class interp
             }
         else
         {
-            while(max - min > 1)
-            {
-                uint i = min + (max - min) / 2;
-                if(x[i] >= v)
-                    max = i;
-                else
-                    min = i;
-            }
+            uint min = 0;
+
+            if(v != x[0])
+                min = lower_bound(x.begin(), x.end(), v) - x.begin() - 1;
+
             switch(interpolation)
             {
                 case CONST:
-                    return y[max];
+                    return y[min+1];
                     break;
 
                 case LINEAR:
@@ -693,19 +663,12 @@ class prob_list
 
     uint getIndex(double v)
     {
-        uint min = 0, max = N;
+        uint min = 0;
 
         if(v < x[0] || v > x[N])
             return 0;
 
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2; // /2 only for positive!!
-            if(x[i] > v)
-                max = i;
-            else
-                min = i;
-        }
+        min = upper_bound(x, x+N-1, v) - x - 1;
 
         return min;
     }
@@ -1170,50 +1133,21 @@ class CMathFunctions
     static inline uint biListIndexSearchRec(double val, const dlist & list)
     {
         uint N = uint(list.size());
-        uint min = 0, max = N - 1;
 
-        if(val < list[0] || val > list[max])
+        if(val < list[0] || val > list[N - 1])
             return MAX_UINT;
 
-        if(val == list[0])
-            return 0;
-
-        if(val == list[max])
-            return max;
-
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2;
-            if(list[i] > val)
-                max = i;
-            else
-                min = i;
-        }
+        uint min = upper_bound(list.begin(), list.end(), val) - list.begin() - 1;
 
         return min;
     }
 
     static inline uint biListIndexSearchRec(double val, const double * list, uint N)
     {
-        uint min = 0, max = N - 1;
-
-        if(val < list[0] || val > list[max])
+        if(val < list[0] || val > list[N - 1])
             return MAX_UINT;
 
-        if(val == list[0])
-            return 0;
-
-        if(val == list[max])
-            return max;
-
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2;
-            if(list[i] > val)
-                max = i;
-            else
-                min = i;
-        }
+        uint min = upper_bound(list, list+N, val) - list - 1;
 
         return min;
     }
@@ -2738,7 +2672,7 @@ class CMathFunctions
         double FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
 
         dlist dPI(n_scat_angle), dTAU(n_scat_angle);
-        dlist dAMU(n_scat_angle), dPI0(n_scat_angle), dPI1(n_scat_angle);
+        dlist dAMU(n_scat_angle), dPI0(n_scat_angle, 0), dPI1(n_scat_angle, 1);
 
         dcomplex SM1[n_scat_angle], SM2[n_scat_angle];
 
@@ -2746,28 +2680,22 @@ class CMathFunctions
         {
             dAMU[i_scat_ang] = cos(scat_angle[i_scat_ang]);
 
-            dPI0[i_scat_ang] = 0;
-            dPI1[i_scat_ang] = 1;
-
             SM1[i_scat_ang] = dcomplex(0, 0);
             SM2[i_scat_ang] = dcomplex(0, 0);
 
+            dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI1[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
+
+            SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI1[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
+            SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI1[i_scat_ang]);
+
             dPI[i_scat_ang] = dPI1[i_scat_ang];
-            dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
-
-            SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
-
-            SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI[i_scat_ang]);
+            dPI1[i_scat_ang] *= (2 + 1 / r_iterm) * dAMU[i_scat_ang];
+            dPI1[i_scat_ang] -= dPI0[i_scat_ang] * (1 + 1 / r_iterm);
+            dPI0[i_scat_ang] = dPI[i_scat_ang];
         }
 
         iterm++;
         r_iterm = double(iterm);
-        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
-        {
-            dPI1[i_scat_ang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[i_scat_ang] * dPI[i_scat_ang];
-            dPI1[i_scat_ang] = dPI1[i_scat_ang] - r_iterm * dPI0[i_scat_ang] / (r_iterm - 1);
-            dPI0[i_scat_ang] = dPI[i_scat_ang];
-        }
 
         double z = -1, besY2, besJ2, an2, qq;
         dcomplex ra1, rb1, rr;
@@ -2846,22 +2774,19 @@ class CMathFunctions
             FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
             for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
             {
+                dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI1[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
+
+                SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI1[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
+                SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI1[i_scat_ang]);
+
                 dPI[i_scat_ang] = dPI1[i_scat_ang];
-                dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
-
-                SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
-
-                SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI[i_scat_ang]);
+                dPI1[i_scat_ang] *= (2 + 1 / r_iterm) * dAMU[i_scat_ang];
+                dPI1[i_scat_ang] -= dPI0[i_scat_ang] * (1 + 1 / r_iterm);
+                dPI0[i_scat_ang] = dPI[i_scat_ang];
             }
 
             iterm++;
             r_iterm = double(iterm);
-            for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
-            {
-                dPI1[i_scat_ang] = ((2 * r_iterm - 1) / (r_iterm - 1)) * dAMU[i_scat_ang] * dPI[i_scat_ang];
-                dPI1[i_scat_ang] = dPI1[i_scat_ang] - r_iterm * dPI0[i_scat_ang] / (r_iterm - 1);
-                dPI0[i_scat_ang] = dPI[i_scat_ang];
-            }
 
             if(iterm == MAX_MIE_ITERATIONS)
                 return false;
@@ -2884,9 +2809,12 @@ class CMathFunctions
 
             // if SM2 and SM1 get really large (if x >> 1 for instance)
             // then double precision may not be enough
-            // to get S12 = 0 for theta = 0/180 degrees (cos(theta) = +-1)
+            // to get S12/S34 = 0 for theta = 0/pi (cos(theta) = +-1)
             if(abs(dAMU[i_scat_ang]) == 1)
+            {
                 S12[i_scat_ang] = 0;
+                S34[i_scat_ang] = 0;
+            }
         }
 
         return true;

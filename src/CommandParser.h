@@ -1,5 +1,8 @@
 #pragma once
-#include "MathFunctions.h"
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include "Parameters.h"
 #include "Typedefs.h"
 
