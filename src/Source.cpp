@@ -261,8 +261,6 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
     pp->setStokesVector(tmp_stokes_vector);
 }
 
-
-
 bool CSourceAGN::initSource(uint id, uint max, bool use_energy_density)
 {
     // Initial output
@@ -1028,7 +1026,7 @@ bool CSourceISRF::initSource(uint id, uint max, bool use_energy_density)
 
     for(uint w = 0; w < getNrOfWavelength(); w++)
     {
-        double pl = sp_ext.getValue(wavelength_list[w]) / PIx4; //[W m^-2 m^-1 sr^-1]
+        double pl = sp_ext.getValue(wavelength_list[w]); //[W m^-2 m^-1 sr^-1]
         double sp_energy = pl * PI * PI * 3 * pow(radius * grid->getMaxLength(), 2);    //[W m^-1] energy per second and wavelength
         // if(g_zero > 0)
         //     sp_energy *= PIx2; //[W m^-1]
@@ -1157,7 +1155,8 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
         if(wavelength_list[w] > w_min && wavelength_list[w] < w_max)
         {
             // Get radiation field from dynamic spline
-            rad_field = sp_ext_wl.getValue(wavelength_list[w]);
+            // Divide by 4PI to get per steradian to match mathis_isrf
+            rad_field = sp_ext_wl.getValue(wavelength_list[w]) / PIx4;
         }
 
         // Calculate final emission
@@ -1178,7 +1177,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
         wID = pp->getDustWavelengthID();
-        double pl = sp_ext.getValue(wavelength_list[wID]) / PIx4; //[W m^-2 m^-1 sr^-1]
+        double pl = sp_ext.getValue(wavelength_list[wID]); //[W m^-2 m^-1 sr^-1]
         energy = pl * PI * PI * 3 * pow(radius * grid->getMaxLength(), 2) / nr_of_photons; //[W m^-1] energy per second and wavelength
         // if(g_zero > 0)
         //     energy *= PIx2;
@@ -1213,7 +1212,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 
     // the direction was calculated in the coord system of the photon
     // now we have to update the coord system acoordingly
-    pp->updateCoordSystem(phi_direction, theta_direction)
+    pp->updateCoordSystem(phi_direction, theta_direction);
 
     pp->setStokesVector(tmp_stokes_vector);
 }
