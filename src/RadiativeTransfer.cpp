@@ -2519,10 +2519,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     if(grid->findStartingPoint(pp))
     {
         if(RAY_DT > 0)
-        {
             pp->updateTotalPathLength(pp->getTmpPathLength());
-//             cout << "Dist " << pp->getTotalPathLength()/con_c << endl;
-        }
         
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
         {
@@ -2730,11 +2727,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     }
                 }
                 
-                if(RAY_DT > 0)
-                    // Set photon to adjusted position
-                    pp->setPosition(new_pos_xyz);
             }
             
+            if(RAY_DT > 0)
+                // Set photon to adjusted position
+                pp->setPosition(new_pos_xyz);
+
             // Add photon_package to detector if in time
             if(RAY_DT > 0 && (pp->getTotalPathLength()/con_c)/t_nextres >= 1)
             {
@@ -2772,18 +2770,24 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
                 }
                 
+                // Save old position and StokesVector
+                Vector3D old_pos = pp->getPosition();
+                
                 // Add to detector
                 tracer[i_next]->addToDetector(pp, i_pix);
-                        
+                
+                // Set back to old position
+                pp->setPosition(old_pos);
+                
                 // Increase t_nextres
                 t_nextres += dt;
             }
         }
         
         // Add to rest of detectors if time-dependent
-        if(RAY_DT > 0 && i_next != 0)
+        if(RAY_DT > 0 && i_next != start)
         {
-           // Init temporary multiple Stokes vectors
+            // Init temporary multiple Stokes vectors
             MultiStokesVector WTmp(nr_used_wavelengths);
             
             // Update the multi Stokes vectors for each wavelength
@@ -2813,9 +2817,17 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
             }
             
+            // Save old position
+            Vector3D old_pos = pp->getPosition();
+            
             // Loop rest of detectors
-            for(uint det = i_next+1; det > 0; det--)
+            for(uint det = start; det < i_next; det++)
+            {
                 tracer[det]->addToDetector(pp, i_pix);
+                pp->setPosition(old_pos);
+                for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+                    pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
+            }
         }
         
     }
