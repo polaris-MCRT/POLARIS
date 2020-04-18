@@ -1497,69 +1497,57 @@ bool CGridSpherical::goToNextCellBorder(photon_package * pp)
             double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
             double cos_th1 = cos(th1);
 
-            // For the inner theta border, d.Z must be larger than cos(th1)
-            // Otherwise photon will not hit the border
-            // If equal: path is parallel to theta cell border
-            if(cos_th1 < d.Z())
+            double cos_th1_sq = cos_th1 * cos_th1;
+            double A1 = cos_th1_sq - d.Z() * d.Z();
+            double B1 = cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th1_sq);
+            double C3 = cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th1_sq);
+
+            double dscr3 = B1 * B1 - A1 * C3;
+
+            // dscr < 0 should not happen, but might if d.Z = 1, p = p.Z, and th1 = 0 or PI
+            if(dscr3 >= 0)
             {
-                double cos_th1_sq = cos_th1 * cos_th1;
-                double A1 = cos_th1_sq - d.Z() * d.Z();
-                double B1 = cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th1_sq);
-                double C3 = cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th1_sq);
+                dscr3 = sqrt(dscr3);
 
-                double dscr3 = B1 * B1 - A1 * C3;
+                double length[2];
+                length[0] = (-B1 + dscr3) / A1;
+                length[1] = (-B1 - dscr3) / A1;
 
-                // dscr < 0 should not happen, but might if d.Z = 1, p = p.Z, and th1 = 0 or PI
-                if(dscr3 >= 0)
-                {
-                    dscr3 = sqrt(dscr3);
-
-                    double length[2];
-                    length[0] = (-B1 + dscr3) / A1;
-                    length[1] = (-B1 - dscr3) / A1;
-
-                    for(uint i=0; i<2; i++)
-                        if(length[i] > 0 && length[i] < path_length)
-                        {
-                            path_length = length[i];
-                            hit = true;
-                            dirID = 2;
-                        }
-                }
+                for(uint i=0; i<2; i++)
+                    if(length[i] > 0 && length[i] < path_length)
+                    {
+                        path_length = length[i];
+                        hit = true;
+                        dirID = 2;
+                    }
             }
 
             double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
             double cos_th2 = cos(th2);
 
-            // For the outer theta border, d.Z must be smaller than cos(th2)
-            // Otherwise photon will not hit the border
-            // If equal: path is parallel to theta cell border (should not happen)
-            if(cos_th2 > d.Z())
+            double cos_th2_sq = cos_th2 * cos_th2;
+            double A2 = cos_th2_sq - d.Z() * d.Z();
+            double B2 = cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th2_sq);
+            double C4 = cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th2_sq);
+
+            double dscr4 = B2 * B2 - A2 * C4;
+
+            // dscr < 0 should not happen, but might if d.Z = -1, p = p.Z, and th1 = 0 or PI
+            if(dscr4 >= 0)
             {
-                double cos_th2_sq = cos_th2 * cos_th2;
-                double A2 = cos_th2_sq - d.Z() * d.Z();
-                double B2 = cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th2_sq);
-                double C4 = cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th2_sq);
+                dscr4 = sqrt(dscr4);
 
-                double dscr4 = B2 * B2 - A2 * C4;
+                double length[2];
+                length[0] = (-B2 + dscr4) / A2;
+                length[1] = (-B2 - dscr4) / A2;
 
-                // dscr < 0 should not happen, but might if d.Z = -1, p = p.Z, and th1 = 0 or PI
-                if(dscr4 >= 0)
-                {
-                    dscr4 = sqrt(dscr4);
-
-                    double length[2];
-                    length[0] = (-B2 + dscr4) / A2;
-                    length[1] = (-B2 - dscr4) / A2;
-
-                    for(uint i=0; i<2; i++)
-                        if(length[i] > 0 && length[i] < path_length)
-                        {
-                            path_length = length[i];
-                            hit = true;
-                            dirID = 3;
-                        }
-                }
+                for(uint i=0; i<2; i++)
+                    if(length[i] > 0 && length[i] < path_length)
+                    {
+                        path_length = length[i];
+                        hit = true;
+                        dirID = 3;
+                    }
             }
         }
 

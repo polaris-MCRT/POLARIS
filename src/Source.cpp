@@ -1219,6 +1219,11 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
 
 void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
 {
+    // THIS IS PROBABLY STILL WRONG
+    // actually, this function should never be used
+    // because it puts all the energy of the isrf
+    // into a single photon
+
     double energy;
     StokesVector tmp_stokes_vector;
     uint wID;

@@ -634,7 +634,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             Qtrq[w * nr_of_dust_species + a].createSpline();
             HG_g_factor[w * nr_of_dust_species + a].createSpline();
 
-            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
             CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
             CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         }
