@@ -732,7 +732,7 @@ class FileIO:
         tbldata = np.zeros((self.n_quantities_sed, header['nr_wavelengths']))
         # Set the data array from fits input
         tbldata[0:4, :] = data[0:4, :]
-        tbldata[6, :] = data[4, :]
+        tbldata[6:, :] = data[4:6, :]
         tbldata[4, :] = np.sqrt(
             np.add(np.power(data[1, :], 2), np.power(data[2, :], 2)))
         # Ignore divide by zero

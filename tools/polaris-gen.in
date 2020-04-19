@@ -163,6 +163,7 @@ class GridRoutines:
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
+        os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
         tmp_file = open(
             self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         # Write header of the grid file
@@ -176,9 +177,11 @@ class GridRoutines:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
+                os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
                 tmp_file = open(
                     self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'rb')
                 #: Final grid file
+                os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
                 grid_file = open(
                     self.file_io.path['model'] + self.parse_args.grid_filename, 'wb')
                 # Normalize the density of the grid and save it in the final file
@@ -220,6 +223,7 @@ class GridRoutines:
                 #: Root node
                 root = grid.init_root()
                 #: Final grid file
+                os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
                 grid_file = open(
                     self.file_io.path['model'] + self.parse_args.grid_filename, 'wb')
                 # Write header of the grid file
@@ -263,9 +267,11 @@ class GridRoutines:
         from polaris_tools_modules.grid import Grid
         grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
         #: Temporary tree file
+        os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
         tmp_file = open(
             self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         #: Final grid file
+        os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
         grid_file = open(
             self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
         # Write header of the grid file

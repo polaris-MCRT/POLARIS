@@ -905,7 +905,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     // Init maximum counter value
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
-#pragma omp parallel for schedule(dynamic) collapse(2)
+    #pragma omp parallel for schedule(dynamic) collapse(2)
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         for(int w = 0; w < int(nr_of_wavelength); w++)
@@ -923,7 +923,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
                     printIDs();
                     cout << "- calculating optical properties: " << percentage

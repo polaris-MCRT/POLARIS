@@ -239,7 +239,7 @@ class Grid:
             grid_file.write(struct.pack('H', 15))
         if self.data.dust_size_param() is not None:
             # Size distribution parameter: 16
-            grid_file.write(struct.pack('H', 16))    
+            grid_file.write(struct.pack('H', 16))
         if grid_type == 'octree':
             if root is not None:
                 grid_file.write(struct.pack(
@@ -939,13 +939,13 @@ class Spherical(Grid):
         # Set width between node borders.
         root.parameter['extent'] = [self.model.spherical_parameter['inner_radius'],
                                     self.model.spherical_parameter['outer_radius'],
-                                    -np.pi, np.pi, 0., 2. * np.pi]
+                                    0, np.pi, 0., 2. * np.pi]
         # Set node volume
         root.parameter['volume'] = self.get_volume(node=root)
         return root
 
     def create_grid(self, grid_file, root):
-        """Create an spherical grid and calculate the total mass of the nodes.
+        """Create a spherical grid and calculate the total mass of the nodes.
 
         Args:
             grid_file: Input grid file (tmp_grid).
@@ -992,14 +992,11 @@ class Spherical(Grid):
             theta_list = sp_param['theta_list']
             sp_param['n_th'] = len(theta_list) - 1
         elif sp_param['sf_th'] == 1:
-            theta_list = self.math.sin_list(-np.pi /
-                                            2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.sin_list(0, np.pi, sp_param['n_th'])
         elif sp_param['sf_th'] > 1:
-            theta_list = self.math.exp_list_sym(-np.pi / 2.,
-                                                np.pi / 2., sp_param['n_th'], sp_param['sf_th'])
+            theta_list = self.math.exp_list_sym(0, np.pi, sp_param['n_th'], sp_param['sf_th'])
         else:
-            theta_list = self.math.lin_list(-np.pi /
-                                            2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.lin_list(0, np.pi, sp_param['n_th'])
 
         grid_file.write(struct.pack('d', sp_param['inner_radius']))
         grid_file.write(struct.pack('d', sp_param['outer_radius']))
@@ -1045,8 +1042,8 @@ class Spherical(Grid):
                         theta_list[i_t] + theta_list[i_t + 1]) / 2.
                     spherical_coord[2] = (
                         phi_list[i_p] + phi_list[i_p + 1]) / 2.
-                    # Convert the spherical coordinate into carthesian node position
-                    position = self.math.spherical_to_carthesian(
+                    # Convert the spherical coordinate into cartesian node position
+                    position = self.math.spherical_to_cartesian(
                         spherical_coord)
                     node = Node('spherical')
                     node.parameter['position'] = position
@@ -1062,7 +1059,7 @@ class Spherical(Grid):
         node = Node('spherical')
         node.parameter['position'] = [0., 0., 0.]
         node.parameter['extent'] = [0., radius_list[0],
-                                    -np.pi / 2., np.pi / 2.,
+                                    0, np.pi,
                                     0, 2. * np.pi]
         node.parameter['volume'] = self.get_volume(node=node)
         self.write_node_data(grid_file=grid_file, node=node, data_type='d',
@@ -1080,7 +1077,7 @@ class Spherical(Grid):
             Volume of the node
         """
         volume = (node.parameter['extent'][1] ** 3 - node.parameter['extent'][0] ** 3) * \
-                 (np.sin(node.parameter['extent'][3]) - np.sin(node.parameter['extent'][2])) * \
+                 (np.cos(node.parameter['extent'][2]) - np.cos(node.parameter['extent'][3])) * \
                  (node.parameter['extent'][5] -
                   node.parameter['extent'][4]) / 3.
         return volume
@@ -1139,10 +1136,10 @@ class Spherical(Grid):
             for i_r in range(struct.unpack('H', n_r)[0] - 1):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_ph)[0] == 0:
-            for i_ph in range(struct.unpack('H', n_ph)[0]):
+            for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_th)[0] == 0:
-            for i_th in range(struct.unpack('H', n_th)[0]):
+            for i_th in range(struct.unpack('H', n_th)[0] - 1):
                 grid_file.write(tmp_file.read(8))
 
     def write_other_grid(self, tmp_file, code_name):
@@ -1272,8 +1269,8 @@ class Cylindrical(Grid):
                         cy_param['phi_list'][-1] != 2. * np.pi:
                     raise ValueError('phi_list does not fullfil a full cicle!')
                 phi_list = np.array([cy_param['phi_list']
-                                     for i_r in range(cy_param['n_ph'][0])])
-                cy_param['n_ph'][0] = len(phi_list) - 1
+                                     for i_r in range(cy_param['n_r'])])
+                cy_param['n_ph'] = [len(phi_list[0])-1] * cy_param['n_r']
             else:
                 raise ValueError(
                     'Cell distriution in phi-direction not understood!')
@@ -1361,9 +1358,9 @@ class Cylindrical(Grid):
                         (phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.,
                         (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     ])
-                    # Convert the cylindrical coordinate into carthesian node position
+                    # Convert the cylindrical coordinate into cartesian node position
                     node = Node('cylindrical')
-                    node.parameter['position'] = self.math.cylindrical_to_carthesian(
+                    node.parameter['position'] = self.math.cylindrical_to_cartesian(
                         cylindrical_coord)
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
                                                 phi_list[i_r][i_p], phi_list[i_r][i_p + 1],

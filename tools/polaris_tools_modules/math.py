@@ -705,85 +705,84 @@ class Math:
                 'The chosen wavelength is not provided by the SCUBA-2 instrument!')
 
     @staticmethod
-    def spherical_to_carthesian(spherical_coord):
-        """Calculates carthesian coordinates from spherical ones.
+    def spherical_to_cartesian(spherical_coord):
+        """Calculates cartesian coordinates from spherical ones.
 
         Args:
             spherical_coord (List[float, float, float]): Spherical coordinates.
                 radius, theta, phi
 
         Returns:
-            List[float, float, float]: Carthesian coordinates
+            List[float, float, float]: Cartesian coordinates
         """
-        carthesian_coord = np.zeros(3)
-        carthesian_coord[0] = spherical_coord[0] * \
-            np.cos(spherical_coord[1]) * np.cos(spherical_coord[2])
-        carthesian_coord[1] = spherical_coord[0] * \
-            np.cos(spherical_coord[1]) * np.sin(spherical_coord[2])
-        carthesian_coord[2] = -1 * spherical_coord[0] * \
-            np.sin(spherical_coord[1])
-        return carthesian_coord
+        cartesian_coord = np.zeros(3)
+        cartesian_coord[0] = spherical_coord[0] * \
+            np.sin(spherical_coord[1]) * np.cos(spherical_coord[2])
+        cartesian_coord[1] = spherical_coord[0] * \
+            np.sin(spherical_coord[1]) * np.sin(spherical_coord[2])
+        cartesian_coord[2] = spherical_coord[0] * \
+            np.cos(spherical_coord[1])
+        return cartesian_coord
 
     @staticmethod
-    def carthesian_to_spherical(carthesian_coord):
-        """Calculates spherical coordinates from carthesian ones.
+    def cartesian_to_spherical(cartesian_coord):
+        """Calculates spherical coordinates from cartesian ones.
 
         Args:
-            carthesian_coord (List[float, float, float]): Carthesian coordinates.
+            cartesian_coord (List[float, float, float]): Cartesian coordinates.
                 x, y, z
 
         Returns:
             List[float, float, float]: Spherical coordinates
         """
         spherical_coord = np.zeros(3)
-        spherical_coord[0] = np.linalg.norm(carthesian_coord[:])
-        #: float: Cylindrical radius
-        rho = np.linalg.norm(carthesian_coord[0:2])
-        spherical_coord[1] = np.arctan2(carthesian_coord[2], rho)
-        spherical_coord[2] = np.arctan2(
-            carthesian_coord[1], carthesian_coord[0]) + np.pi
+        if np.linalg.norm(cartesian_coord[:]) != 0:
+            spherical_coord[0] = np.linalg.norm(cartesian_coord[:])
+            spherical_coord[1] = np.arccos(cartesian_coord[2] / spherical_coord[0])
+            spherical_coord[2] = np.arctan2(
+                                    cartesian_coord[1], cartesian_coord[0])
         return spherical_coord
 
     @staticmethod
-    def cylindrical_to_carthesian(cylindrical_coord):
-        """Calculates carthesian coordinates from cylindrical ones.
+    def cylindrical_to_cartesian(cylindrical_coord):
+        """Calculates cartesian coordinates from cylindrical ones.
 
         Args:
             cylindrical_coord (List[float, float, float]): Cylindrical coordinates.
                 radius, phi, z
 
         Returns:
-            List[float, float, float]: Carthesian coordinates
+            List[float, float, float]: Cartesian coordinates
         """
-        carthesian_coord = np.zeros(3)
-        carthesian_coord[0] = cylindrical_coord[0] * \
+        cartesian_coord = np.zeros(3)
+        cartesian_coord[0] = cylindrical_coord[0] * \
             np.cos(cylindrical_coord[1])
-        carthesian_coord[1] = cylindrical_coord[0] * \
+        cartesian_coord[1] = cylindrical_coord[0] * \
             np.sin(cylindrical_coord[1])
-        carthesian_coord[2] = cylindrical_coord[2]
-        return carthesian_coord
+        cartesian_coord[2] = cylindrical_coord[2]
+        return cartesian_coord
 
     @staticmethod
-    def carthesian_to_cylindrical(carthesian_coord):
-        """Calculates cylindrical coordinates from carthesian ones.
+    def cartesian_to_cylindrical(cartesian_coord):
+        """Calculates cylindrical coordinates from cartesian ones.
 
         Args:
-            carthesian_coord (List[float, float, float]): Carthesian coordinates.
+            cartesian_coord (List[float, float, float]): Cartesian coordinates.
                 x, y, z
 
         Returns:
             List[float, float, float]: Cylindrical coordinates
         """
         cylindrical_coord = np.zeros(3)
-        cylindrical_coord[0] = np.linalg.norm(carthesian_coord[0:2])
+        cylindrical_coord[0] = np.linalg.norm(cartesian_coord[0:2])
         cylindrical_coord[1] = np.arctan2(
-            carthesian_coord[1], carthesian_coord[0]) + np.pi
-        cylindrical_coord[2] = carthesian_coord[2]
+            cartesian_coord[1], cartesian_coord[0]) + np.pi
+        cylindrical_coord[2] = cartesian_coord[2]
         return cylindrical_coord
 
     @staticmethod
-    def spherical_to_carthesian_direction(spherical_coord, spherical_direction):
-        """Calculates carthesian coordinates from spherical ones.
+    def spherical_to_cartesian_direction(spherical_coord, spherical_direction):
+        """Calculates cartesian coordinates from spherical ones.
 
         Args:
             spherical_coord (List[float, float, float]): Spherical coordinates.
@@ -791,7 +790,7 @@ class Math:
             spherical_direction (List[float, float, float]): Direction in Spherical coordinates.
 
         Returns:
-            List[float, float, float]: Carthesian coordinates
+            List[float, float, float]: Cartesian coordinates
         """
         e_r = np.zeros(3)
         e_r[0] = np.sin(spherical_coord[1]) * np.cos(spherical_coord[2])
@@ -804,15 +803,15 @@ class Math:
         e_t[2] = -np.sin(spherical_coord[1])
 
         e_p = np.zeros(3)
-        e_p[0] = -np.sin(spherical_coord[1]) * np.sin(spherical_coord[2])
-        e_p[1] = np.sin(spherical_coord[1]) * np.cos(spherical_coord[2])
-        e_p[2] = np.cos(spherical_coord[1])
+        e_p[0] = -np.sin(spherical_coord[2])
+        e_p[1] = np.cos(spherical_coord[2])
+        e_p[2] = 0
 
-        carthesian_direction = np.zeros(3)
-        carthesian_direction[:] += spherical_direction[0] * e_r[:]
-        carthesian_direction[:] += spherical_direction[1] * e_t[:]
-        carthesian_direction[:] += spherical_direction[2] * e_p[:]
-        return carthesian_direction
+        cartesian_direction = np.zeros(3)
+        cartesian_direction[:] += spherical_direction[0] * e_r[:]
+        cartesian_direction[:] += spherical_direction[1] * e_t[:]
+        cartesian_direction[:] += spherical_direction[2] * e_p[:]
+        return cartesian_direction
 
     @staticmethod
     def rotate_coord_system(position, rotation_axis, rotation_angle, inv=False):
@@ -829,7 +828,7 @@ class Math:
             Source: https://en.wikipedia.org/wiki/Rotation_matrix
 
         Returns:
-            List[float, float, float]: Rotated carthesian coordinates
+            List[float, float, float]: Rotated cartesian coordinates
         """
         # Ignore if angle is zero
         if rotation_angle == 0:
@@ -948,7 +947,6 @@ class Math:
         tmp_mid = start + 0.5 * (stop - start)
         if total_number % 2 == 0:
             midN = int(total_number / 2)
-            tmpN = midN + 1
             tmp_list = self.exp_list(tmp_mid, stop, midN, base)
             for i_x in range(midN, total_number + 1):
                 number_list[i_x] = tmp_list[i_x - midN]
@@ -1576,7 +1574,7 @@ class Math:
             position.
         """
         #: List(float, float, float): Spherical coordinates
-        spherical_coord = self.carthesian_to_spherical(position)
+        spherical_coord = self.cartesian_to_spherical(position)
         # Only a field component in the xy-plane
         mag = [mag_field_strength, mag_field_strength, 0]
         # Multiplication with the phi direction unit vectors
@@ -1600,7 +1598,7 @@ class Math:
             position.
         """
         #: List(float, float, float): Spherical coordinates
-        spherical_coord = self.carthesian_to_spherical(position)
+        spherical_coord = self.cartesian_to_spherical(position)
         #: float: Cylindrical radius
         radius_cy = spherical_coord[0] * np.cos(spherical_coord[1])
         #: float: Theta angle related to the radial distance
@@ -1626,7 +1624,7 @@ class Math:
             position.
         """
         #: List(float, float, float): Spherical coordinates
-        spherical_coord = self.carthesian_to_spherical(position)
+        spherical_coord = self.cartesian_to_spherical(position)
         #: float: Weighting factor
         gamma = 5
         #: float: Radial component of the magnetic field
@@ -1635,7 +1633,7 @@ class Math:
         #: float: Z component of the magnetic field
         mag_z = mag_field_strength
         mag = np.zeros(3)
-        # Conversion to carthesian coordinates
+        # Conversion to cartesian coordinates
         mag[0] += mag_r * np.cos(spherical_coord[1]) * \
             np.cos(spherical_coord[2])
         mag[1] += mag_r * np.cos(spherical_coord[1]) * \
