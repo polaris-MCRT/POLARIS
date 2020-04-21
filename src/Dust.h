@@ -2334,7 +2334,7 @@ class CDustComponent
     double getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const;
 
   private:
-    spline ** avg_scattering_frac;
+    interp ** avg_scattering_frac;
     interp ** phase_pdf;
 
     spline *HG_g_factor, *Qtrq;

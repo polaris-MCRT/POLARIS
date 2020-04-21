@@ -2715,7 +2715,7 @@ void CDustComponent::preCalcAbsorptionRates()
 void CDustComponent::preCalcMieScatteringProb()
 {
     // Init arrays of splines/interp
-    avg_scattering_frac = new spline *[nr_of_dust_species];
+    avg_scattering_frac = new interp *[nr_of_dust_species];
     phase_pdf = new interp *[nr_of_dust_species];
 
     // Init counter for progress
@@ -2725,7 +2725,7 @@ void CDustComponent::preCalcMieScatteringProb()
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Init arrays of interp
-        avg_scattering_frac[a] = new spline[nr_of_wavelength];
+        avg_scattering_frac[a] = new interp[nr_of_wavelength];
         phase_pdf[a] = new interp[nr_of_wavelength];
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
@@ -2771,7 +2771,7 @@ void CDustComponent::preCalcMieScatteringProb()
             }
 
             // Activate spline for the cumulative distribution function
-            avg_scattering_frac[a][w].createSpline();
+            //avg_scattering_frac[a][w].createSpline();
 
             delete[] S11_tmp;
             delete[] S11_solid_angle;
