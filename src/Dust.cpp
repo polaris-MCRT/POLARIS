@@ -995,7 +995,11 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                     {
                         current_S11_rel_diff = abs( S11_tmp.back() - S11_final.back() ) / max( S11_tmp.back(), S11_final.back() );
 
-                        while(current_S11_rel_diff > MAX_MIE_SCA_REL_DIFF)
+                        // Subdivide scattering angles only if size parameter x is not too large.
+                        // Large x lead to extrem forward scattering and the subdivision criterion will
+                        // get almost impossible to achive for small scattering angles.
+                        // The limit of x=100 is somewhat arbitrary.
+                        while(x < 100.0 && current_S11_rel_diff > MAX_MIE_SCA_REL_DIFF)
                         {
                             double *pointer_s11_tmp, *pointer_s12_tmp, *pointer_s33_tmp, *pointer_s34_tmp;
                             pointer_s11_tmp = new double[1];
