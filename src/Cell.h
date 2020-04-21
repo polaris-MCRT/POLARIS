@@ -77,6 +77,11 @@ class cell_basic
         return id;
     }
 
+    virtual ulong getUniqueID() const
+    {
+        return ulong(id);
+    }
+
     void updateID(uint _id)
     {
         id += _id;
@@ -96,6 +101,7 @@ class cell_oc : public cell_basic
         children = 0;
         level = 0;
         id = 0;
+        unique_id = 0;
         x_min = 0;
         y_min = 0;
         z_min = 0;
@@ -146,6 +152,11 @@ class cell_oc : public cell_basic
         children = _children;
     }
 
+    void setUniqueID(ulong _unique_id)
+    {
+        unique_id = _unique_id;
+    }
+
     double getXmin() const
     {
         return x_min;
@@ -186,6 +197,11 @@ class cell_oc : public cell_basic
         return level;
     }
 
+    ulong getUniqueID() const
+    {
+        return unique_id;
+    }
+
     cell_oc * getParent()
     {
         return parent;
@@ -206,6 +222,7 @@ class cell_oc : public cell_basic
     cell_oc * children;
     cell_oc * parent;
     uchar level;
+    ulong unique_id;
 };
 
 class cell_vo : public cell_basic

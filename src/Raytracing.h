@@ -744,7 +744,7 @@ class CRaytracingCartesian : public CRaytracingBasic
                 while(grid->next(&pp))
                 {
                     // Push the index of each cell along the path into ID_1
-                    ID_1.push_back(pp.getPositionCell()->getID());
+                    ID_1.push_back(pp.getPositionCell()->getUniqueID());
                 }
             }
 
@@ -770,7 +770,7 @@ class CRaytracingCartesian : public CRaytracingBasic
                         while(grid->next(&pp))
                         {
                             // Push the index of each cell along the path into ID_2
-                            ID_2.push_back(pp.getPositionCell()->getID());
+                            ID_2.push_back(pp.getPositionCell()->getUniqueID());
                         }
                     }
 

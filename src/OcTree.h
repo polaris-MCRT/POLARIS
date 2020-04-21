@@ -241,6 +241,7 @@ class CGridOcTree : public CGridBasic
                 return true;*/
 
             cell_list[pos_counter] = (cell_basic *)cell_oc_pos;
+            cell_oc_pos->setUniqueID(pos_counter);
 
             pos_counter++;
             if(pos_counter % 15000 == 0)

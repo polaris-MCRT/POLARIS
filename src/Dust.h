@@ -2715,8 +2715,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCextMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
-                    sum = grid->getCextMeanTab(pp.getPositionCell()->getID());
+                if(grid->getCextMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
+                    sum = grid->getCextMeanTab(pp.getPositionCell()->getUniqueID());
                 else
                 {
                     double dens = 0;
@@ -2746,8 +2746,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCabsMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
-                    sum = grid->getCabsMeanTab(pp.getPositionCell()->getID());
+                if(grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
+                    sum = grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID());
                 else
                 {
                     double dens = 0;
@@ -2777,8 +2777,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCscaMeanTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
-                    sum = grid->getCscaMeanTab(pp.getPositionCell()->getID());
+                if(grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
+                    sum = grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID());
                 else
                 {
                     double dens = 0;
@@ -2999,8 +2999,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getNumberDensityTab(cell.getID()) != MAX_DOUBLE)
-                    sum = grid->getNumberDensityTab(cell.getID());
+                if(grid->getNumberDensityTab(cell.getUniqueID()) != MAX_DOUBLE)
+                    sum = grid->getNumberDensityTab(cell.getUniqueID());
                 else
                     for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                         sum += mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
@@ -3521,8 +3521,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getTotalCellEmissionTab(pp.getPositionCell()->getID()) != MAX_DOUBLE)
-                    sum = grid->getTotalCellEmissionTab(pp.getPositionCell()->getID());
+                if(grid->getTotalCellEmissionTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
+                    sum = grid->getTotalCellEmissionTab(pp.getPositionCell()->getUniqueID());
                 else
                     for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                         sum += mixed_component[i_mixture].getCellEmission(grid, pp, i_mixture);
