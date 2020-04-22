@@ -2515,6 +2515,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         WMap.setS(tmp_source->getStokesVector(pp), i_wave);
     };
     
+
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp))
     {
@@ -2523,10 +2524,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
         {
-            // Get necessary quantities from current cell
-            double dens_gas = grid->getGasNumberDensity(pp);
-            double dens_dust = dust->getNumberDensity(grid, pp);
-            
             // Get path length through current cell
             double len = pp->getTmpPathLength();
             
@@ -2537,6 +2534,10 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 pp->setPositionCell(old_cell);
                 len = len_diff;
             }
+            
+            // Get necessary quantities from current cell
+            double dens_gas = grid->getGasNumberDensity(pp);
+            double dens_dust = dust->getNumberDensity(grid, pp);
                 
             // Update total pathlength of photon if time-dependent
             if(RAY_DT > 0)
