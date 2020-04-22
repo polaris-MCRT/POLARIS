@@ -1415,183 +1415,156 @@ bool CGridSpherical::positionPhotonInGrid(photon_basic * pp)
     return true;
 }
 
-bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
+bool CGridSpherical::goToNextCellBorder(photon_package * pp)
 {
     cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
     Vector3D d = pp->getDirection();
 
     bool hit = false;
-    double min_length = 1e300;
-    double tmp_length[4];
+    double path_length = 1e300;
     uint dirID = MAX_UINT;
 
     uint rID = tmp_cell->getRID();
 
     if(rID == MAX_UINT)
     {
-        double B = 2 * p * d;
-        double C = p.sq_length() - Rmin * Rmin;
-        double dscr = B * B - 4 * C;
+        double r2 = Rmin * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
-        if(dscr >= 0)
-        {
-            dscr = sqrt(dscr);
-            tmp_length[0] = (-B + dscr) / 2;
-            tmp_length[1] = (-B - dscr) / 2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+        double B = p * d;
+        double C = p.sq_length() - r2 * r2;
+        // dscr is always >=0, we are inside the inner cell
+        double dscr = B * B - C;
 
-        for(uint i = 0; i < 2; i++)
+        dscr = sqrt(dscr);
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        double length = -B + dscr;
+
+        if(length > 0 && length < path_length)
         {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
-            {
-                min_length = tmp_length[i];
-                hit = true;
-                dirID = 1;
-            }
+            path_length = length;
+            hit = true;
+            dirID = 1;
         }
     }
     else
     {
         // --- Radial cell borders ---
 
-        double r1 = listR[rID];
-        double r2 = listR[rID + 1];
+        double r1 = listR[rID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+        double r2 = listR[rID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
 
         double p_sq = p.sq_length();
-        double B = 2 * p * d;
+        double B = p * d;
         double B_sq = pow(B, 2);
 
         double C1 = p_sq - r1 * r1;
         double C2 = p_sq - r2 * r2;
 
-        double dscr1 = B_sq - 4 * C1;
-        double dscr2 = B_sq - 4 * C2;
+        double dscr1 = B_sq - C1;
+        // dscr2 is always >= 0
+        double dscr2 = B_sq - C2;
 
-        if(dscr1 >= 0)
+        if(dscr1 > 0)
         {
             dscr1 = sqrt(dscr1);
-            tmp_length[0] = (-B + dscr1) / 2;
-            tmp_length[1] = (-B - dscr1) / 2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            double length = -B - dscr1;
 
-        if(dscr2 >= 0)
-        {
-            dscr2 = sqrt(dscr2);
-            tmp_length[2] = (-B + dscr2) / 2;
-            tmp_length[3] = (-B - dscr2) / 2;
-        }
-        else
-        {
-            tmp_length[2] = 1e200;
-            tmp_length[3] = 1e200;
-        }
-
-        for(uint i = 0; i < 4; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            if(length > 0 && length < path_length)
             {
-                min_length = tmp_length[i];
+                path_length = length;
                 hit = true;
-                dirID = uint(i / 2.0);
+                dirID = 0;
             }
+        }
+
+        dscr2 = sqrt(dscr2);
+        // "-"-solution is not needed for outer cells; only the "+"-solution can be correct
+        double length = -B + dscr2;
+
+        if(length != 0 && length < path_length)
+        {
+            path_length = length;
+            hit = true;
+            dirID = 1;
         }
 
         // --- Theta cell borders ---
-        uint thID = tmp_cell->getThID();
-
-        double th1 = listTh[thID];
-        double cos_th1 = cos(th1);
-        double cos_th1_sq = cos_th1 * cos_th1;
-
-        double A1 = d.Z() * d.Z() - cos_th1_sq;
-        double B1 = d.Z() * p.Z() * (1 - cos_th1_sq) - cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y());
-        double C3 = p.Z() * p.Z() * (1 - cos_th1_sq) - cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y());
-
-        double dscr3 = B1 * B1 - A1 * C3;
-
-        if(dscr3 >= 0)
+        if(N_th > 1)
         {
-            dscr3 = sqrt(dscr3);
-            tmp_length[0] = (-B1 + dscr3) / A1;
-            tmp_length[1] = (-B1 - dscr3) / A1;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
+            uint thID = tmp_cell->getThID();
 
-        for(uint i = 0; i < 2; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            double th1 = listTh[thID] * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+            double cos_th1 = cos(th1);
+
+            double cos_th1_sq = cos_th1 * cos_th1;
+            double A1 = cos_th1_sq - d.Z() * d.Z();
+            double B1 = cos_th1_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th1_sq);
+            double C3 = cos_th1_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th1_sq);
+
+            double dscr3 = B1 * B1 - A1 * C3;
+
+            // dscr < 0 should not happen, but might if d.Z = 1, p = p.Z, and th1 = 0 or PI
+            if(dscr3 >= 0)
             {
-                if((p.Z() + d.Z() * tmp_length[i]) * cos_th1 > 0)
-                {
-                    min_length = tmp_length[i];
-                    hit = true;
-                    dirID = 2;
-                }
+                dscr3 = sqrt(dscr3);
+
+                double length[2];
+                length[0] = (-B1 + dscr3) / A1;
+                length[1] = (-B1 - dscr3) / A1;
+
+                for(uint i=0; i<2; i++)
+                    if(length[i] > 0 && length[i] < path_length)
+                    {
+                        path_length = length[i];
+                        hit = true;
+                        dirID = 2;
+                    }
             }
-        }
 
-        double th2 = listTh[thID + 1];
-        double cos_th2 = cos(th2);
-        double cos_th2_sq = cos_th2 * cos_th2;
+            double th2 = listTh[thID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE);
+            double cos_th2 = cos(th2);
 
-        double A2 = d.Z() * d.Z() - cos_th2_sq;
-        double B2 = d.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y());
-        double C4 = p.Z() * p.Z() * (1 - cos_th2_sq) - cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y());
+            double cos_th2_sq = cos_th2 * cos_th2;
+            double A2 = cos_th2_sq - d.Z() * d.Z();
+            double B2 = cos_th2_sq * (d.X() * p.X() + d.Y() * p.Y()) - d.Z() * p.Z() * (1 - cos_th2_sq);
+            double C4 = cos_th2_sq * (p.X() * p.X() + p.Y() * p.Y()) - p.Z() * p.Z() * (1 - cos_th2_sq);
 
-        double dscr4 = B2 * B2 - A2 * C4;
+            double dscr4 = B2 * B2 - A2 * C4;
 
-        if(dscr4 >= 0)
-        {
-            dscr4 = sqrt(dscr4);
-            tmp_length[0] = (-B2 + dscr4) / A2;
-            tmp_length[1] = (-B2 - dscr4) / A2;
-        }
-        else
-        {
-            tmp_length[0] = 1e200;
-            tmp_length[1] = 1e200;
-        }
-
-        for(uint i = 0; i < 2; i++)
-        {
-            if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+            // dscr < 0 should not happen, but might if d.Z = -1, p = p.Z, and th1 = 0 or PI
+            if(dscr4 >= 0)
             {
-                if((p.Z() + d.Z() * tmp_length[i]) * cos_th2 > 0)
-                {
-                    min_length = tmp_length[i];
-                    hit = true;
-                    dirID = 3;
-                }
+                dscr4 = sqrt(dscr4);
+
+                double length[2];
+                length[0] = (-B2 + dscr4) / A2;
+                length[1] = (-B2 - dscr4) / A2;
+
+                for(uint i=0; i<2; i++)
+                    if(length[i] > 0 && length[i] < path_length)
+                    {
+                        path_length = length[i];
+                        hit = true;
+                        dirID = 3;
+                    }
             }
         }
 
         // --- Phi cell borders ---
         if(N_ph > 1)
         {
+            uint phID = tmp_cell->getPhID();
+
             double r = sqrt(p.sq_length());
             double rho = sqrt(p.X() * p.X() + p.Y() * p.Y());
 
             double sin_th = rho / r;
             double cos_th = p.Z() / r;
 
-            uint phID = tmp_cell->getPhID();
-            double ph1 = listPh[phID];
-            double ph2 = listPh[phID + 1];
+            double ph1 = listPh[phID] * (1 - MIN_LEN_STEP*EPS_DOUBLE) - MIN_LEN_STEP*EPS_DOUBLE;
+            double ph2 = listPh[phID + 1] * (1 + MIN_LEN_STEP*EPS_DOUBLE) + MIN_LEN_STEP*EPS_DOUBLE;
 
             double sin_ph1 = sin(ph1);
             double sin_ph2 = sin(ph2);
@@ -1608,9 +1581,9 @@ bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
                 double num = v_n1 * (p - v_a1);
                 double length = -num / den1;
 
-                if(length >= 0 && length < min_length)
+                if(length > 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 4;
                 }
@@ -1625,9 +1598,9 @@ bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
                 double num = v_n2 * (p - v_a2);
                 double length = -num / den2;
 
-                if(length >= 0 && length < min_length)
+                if(length > 0 && length < path_length)
                 {
-                    min_length = length;
+                    path_length = length;
                     hit = true;
                     dirID = 5;
                 }
@@ -1641,7 +1614,6 @@ bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
         return false;
     }
 
-    double path_length = min_length + 1e-3 * min_len;
     pp->setPosition(p + d * path_length);
     pp->setTmpPathLength(path_length);
     pp->setDirectionID(dirID);
@@ -1700,31 +1672,25 @@ bool CGridSpherical::findStartingPoint(photon_basic * pp)
     if(isInside(p))
         return positionPhotonInGrid(pp);
 
-    double tmp_length[2];
-    double min_length = 1e200;
+    double path_length = 1e300;
     bool hit = false;
 
-    double B = 2 * p * d;
-    double C = p.sq_length() - Rmax * Rmax;
-    double dscr = B * B - 4 * C;
+    double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
 
-    if(dscr >= 0)
+    double B = p * d;
+    // C is positive, we are outside of the cell
+    double C = p.sq_length() - r2 * r2;
+    double dscr = B * B - C;
+
+    if(dscr > 0)
     {
         dscr = sqrt(dscr);
-        tmp_length[0] = (-B + dscr) / 2;
-        tmp_length[1] = (-B - dscr) / 2;
-    }
-    else
-    {
-        tmp_length[0] = 1e200;
-        tmp_length[1] = 1e200;
-    }
+        // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+        double length = -B - dscr;
 
-    for(uint i = 0; i < 2; i++)
-    {
-        if(tmp_length[i] >= 0 && tmp_length[i] < min_length)
+        if(length > 0 && length < path_length)
         {
-            min_length = tmp_length[i];
+            path_length = length;
             hit = true;
         }
     }
@@ -1732,7 +1698,6 @@ bool CGridSpherical::findStartingPoint(photon_basic * pp)
     if(!hit)
         return false;
 
-    double path_length = min_length + 1e-3 * min_len;
     pp->setPosition(p + d * path_length);
     pp->setDirectionID(MAX_UINT);
     return positionPhotonInGrid(pp);
