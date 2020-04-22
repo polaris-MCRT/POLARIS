@@ -673,11 +673,11 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     double a_min = param.getSizeMin(dust_component_choice);
     double a_max = param.getSizeMax(dust_component_choice);
 
-    // Set number of grain sizes for Mie-theory (1 if only one grain size is used)
+    // Set number of grain sizes for Mie theory (1 if only one grain size is used)
     if(a_min_mixture == a_max_mixture)
         nr_of_dust_species = 1;
     else
-        nr_of_dust_species = MIE_SIZE_STEPS;
+        nr_of_dust_species = MIE_NR_DUST_SIZE;
     values_aeff.resize(nr_of_dust_species);
 
     // Init dust grain sizes

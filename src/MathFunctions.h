@@ -458,7 +458,7 @@ class spline
 
     uint getXIndex(double v)
     {
-        if(v < x[0] || v > x[N])
+        if(v < x[0] || v > x[N] || N==1)
             return 0;
 
         uint min = upper_bound(x, x+N-1, v) - x - 1;
@@ -468,7 +468,7 @@ class spline
 
     uint getYIndex(double v) const
     {
-        if(v < y[0] || v > y[N])
+        if(v < y[0] || v > y[N] || N==1)
             return 0;
 
         uint min = upper_bound(y, y+N-1, v) - y - 1;
@@ -665,7 +665,7 @@ class prob_list
     {
         uint min = 0;
 
-        if(v < x[0] || v > x[N])
+        if(v < x[0] || v > x[N] || N == 1)
             return 0;
 
         min = upper_bound(x, x+N-1, v) - x - 1;

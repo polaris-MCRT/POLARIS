@@ -21,8 +21,8 @@ using namespace std;
 
 // use pre-calculated values (per cell) for mean cross-sections,
 // number densities, cell emission. This saves a lot of time if
-// all these quantities are const throughout the simulation
-// but it eats some RAM (depend on n_wavel and n_cell)
+// all these quantities are constant throughout the simulation
+// but it eats some additional RAM (depend on n_wavel and n_cell)
 #define USE_PRECALC_TABLE true
 
 // if dust is a source, the cell from which the photons start are calculated
@@ -35,19 +35,19 @@ using namespace std;
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
 #define PIsq sqrt(PI)                                 // sqrt(PI)
-#define PI2 (PI / 2.0)                                  // PI / 2
-#define PI4 (PI / 4.0)                                  // PI / 4
-#define invPI2 (2.0 / PI)                               // 2 / PI
-#define PIx2 (PI * 2.0)                                 // 2 * PI
-#define PIx4 (PI * 4.0)                                 // 4 * PI
-#define PI4x3 (PI * 3.0 / 4.0)                          // 3 * PI / 4
+#define PI2 (PI / 2.0)                                // PI / 2
+#define PI4 (PI / 4.0)                                // PI / 4
+#define invPI2 (2.0 / PI)                             // 2 / PI
+#define PIx2 (PI * 2.0)                               // 2 * PI
+#define PIx4 (PI * 4.0)                               // 4 * PI
+#define PI4x3 (PI * 3.0 / 4.0)                        // 3 * PI / 4
 #define TWOTHIRD 0.6666666666666666666666666666666    // 2 / 3
 #define m_H 1.66053904e-27                            // Atomic mass unit [kg]
 #define con_h 6.62607004e-34                          // Planck constant [Js]
 #define con_hq 1.0545718e-34                          // Reduced Planck constant [Js]
 #define con_kB 1.38064852e-23                         // Boltzmann constant [J / K]
 #define con_c 299792458.0                             // Speed of light in vacuum [m / s]
-#define PIx4_c (PIx4 / con_c)                           // (4 * PI / c)
+#define PIx4_c (PIx4 / con_c)                         // 4 * PI / c
 #define con_e 1.6021766208e-19                        // Electron charge [C]
 #define con_Ryd 10973731.568508                       // Rydberg constant [1 / m]
 #define con_AU 149597870700.0                         // Astronomical Unit [m]
@@ -64,7 +64,7 @@ using namespace std;
 #define con_m_e 9.10938356e-31                        // Electron mass [kg]
 #define con_m_p 1.672621898e-27                       // Proton mass [kg]
 #define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
-#define con_eps (con_h * con_c / PIx4)                  // (h * c / (4 * PI))
+#define con_eps (con_h * con_c / PIx4)                // h * c / (4 * PI)
 
 #ifdef CAMPS_BENCHMARK
 // Part to perform Camps et. al (2015) benchmark (adjust definition below, if
@@ -293,12 +293,16 @@ using namespace std;
 #define HEALPIX_CENTER 2
 
 // Mie-scattering calculation
-#define MIE_SIZE_STEPS 100
-// Number of angles for scattering between 0° and 90°
+// Nr of grain sizes, Nr of size bins will be MIE_NR_DUST_SIZE - 1
+#define MIE_NR_DUST_SIZE 100
+// Minimum number of scattering angles between 0° and 90°
+// Actual number might be larger due to adaptive refinement
 #define NANG 91
 #define MAX_MIE_ITERATIONS 20000000
 #define MIN_MIE_SIZE_PARAM 1e-6
 #define MIE_ACCURACY 1e-15
+// limit for adaptive refinement of scat angles
+// if >= 1 -> no refinement
 #define MAX_MIE_SCA_REL_DIFF 1e-2
 
 // Projections for midplane files
