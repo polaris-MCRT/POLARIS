@@ -1966,12 +1966,12 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
     // signs are switched compared to goToNextCellBorder because we are outside the cell
     // so the cell needs to get smaller to get a larger path_length
     double loc_x_min = cell_oc_root->getXmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_min = cell_oc_root->getYmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_min = cell_oc_root->getZmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_min = cell_oc_root->getYmin() + (abs(cell_oc_root->getYmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_min = cell_oc_root->getZmin() + (abs(cell_oc_root->getZmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
-    double loc_x_max = cell_oc_root->getXmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_max = cell_oc_root->getYmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_max = cell_oc_root->getZmax() - (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_x_max = cell_oc_root->getXmax() - (abs(cell_oc_root->getXmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_y_max = cell_oc_root->getYmax() - (abs(cell_oc_root->getYmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_z_max = cell_oc_root->getZmax() - (abs(cell_oc_root->getZmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
 
     double loc_dx = loc_x_max - loc_x_min;
     double loc_dy = loc_y_max - loc_y_min;
