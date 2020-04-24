@@ -659,6 +659,12 @@ class CDetector
         matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
         matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
+        
+        if(RAY_DT > 0)
+        {
+            matrixT[i_spectral + spectral_offset].setValue(x, y, st.T());
+            matrixS[i_spectral + spectral_offset].setValue(x, y, st.Sp());
+        }
     }
 
     void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)

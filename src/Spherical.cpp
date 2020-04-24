@@ -1415,7 +1415,7 @@ bool CGridSpherical::positionPhotonInGrid(photon_basic * pp)
     return true;
 }
 
-bool CGridSpherical::goToNextCellBorder(photon_package * pp)
+bool CGridSpherical::goToNextCellBorder(photon_basic * pp)
 {
     cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
     Vector3D p = pp->getPosition();
