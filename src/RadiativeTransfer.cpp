@@ -1576,7 +1576,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             // If the photon intensity is too low, end
                                             // photon transfer (for better R and VOV statistics)
                                             if(pp_escape.getStokesVector()->I() < 1e-200)
-                                                break;
+                                                continue;
                                             // Add the photon package to the detector
                                             detector[d].addToMonteCarloDetector(
                                                 pp_escape, wID_det, SCATTERED_DUST);
