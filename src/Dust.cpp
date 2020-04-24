@@ -4719,7 +4719,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     }
     else
     {
-        double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
+        double phipar = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
                         (-mat_sca(0, 1) / mat_sca(0, 0));
 
         // Get cos(2 * phi)
@@ -4727,7 +4727,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
         double cos_2_phi = cos(2.0 * phi_photon_to_obs);
 
         // Calculate the fraction that is scattered into this phi direction
-        phi_fraction = (1.0 - PHIPAR * cos_2_phi);
+        phi_fraction = (1.0 - phipar * cos_2_phi);
     }
 
     // Calculate the fraction that is scattered into this theta direction
@@ -4874,7 +4874,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 {
     // Init variables
-    double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
+    double help, phi, phi1, phipar = 0, gamma = 1, hd1, hd2;
 
     // Get wavelength of photon package
     uint w = pp->getDustWavelengthID();
@@ -4902,22 +4902,22 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
         return;
     }
     else
-        PHIPAR =
+        phipar =
             (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
             (-mat_sca(0, 1) / mat_sca(0, 0));
 
     // Obtain phi angle
     bool hl1 = false;
     double rndx = pp->getRND();
-    if(abs(PHIPAR) < 0.1)
+    if(abs(phipar) < 0.1)
         phi = rndx * PIx2;
     else
     {
         uint run_counter = 0;
         do
         {
-            HELP = rndx * PIx4;
-            phi = HELP + PHIPAR * sin(HELP);
+            help = rndx * PIx4;
+            phi = help + phipar * sin(help);
             phi1 = 0.0;
 
             if(run_counter > 1000)
@@ -4930,7 +4930,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
             {
                 hd1 = abs(phi - phi1);
                 phi1 = phi;
-                phi = HELP + PHIPAR * sin(phi1);
+                phi = help + phipar * sin(phi1);
                 hd2 = abs(phi - phi1);
 
                 run_counter++;
@@ -4957,21 +4957,23 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
         phi = phi / 2.0;
 
-        if(tmp_stokes->Q() != 0.0)
-        {
-            GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
-            if(tmp_stokes->U() < 0.0)
-                GAMMA = PI + GAMMA;
-        }
-        else
-        {
-            if(tmp_stokes->U() < 0.0)
-                GAMMA = PI4x3;
-            else if(tmp_stokes->U() > 0.0)
-                GAMMA = PI4;
-        }
+        gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
 
-        phi = PI - GAMMA + phi;
+        // if(tmp_stokes->Q() != 0.0)
+        // {
+        //     GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
+        //     if(tmp_stokes->U() < 0.0)
+        //         GAMMA = PI + GAMMA;
+        // }
+        // else
+        // {
+        //     if(tmp_stokes->U() < 0.0)
+        //         GAMMA = PI4x3;
+        //     else if(tmp_stokes->U() > 0.0)
+        //         GAMMA = PI4;
+        // }
+
+        phi = PI - gamma + phi;
     }
 
     // Update the photon package with the new direction
