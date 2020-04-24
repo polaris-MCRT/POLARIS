@@ -2033,7 +2033,7 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
 
             if(length > 0 && length < path_length)
             {
-                if(isInside(p + d * path_length))
+                if(isInside(p + d * length))
                 {
                     path_length = length;
                     hit = true;

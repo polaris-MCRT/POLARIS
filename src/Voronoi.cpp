@@ -1233,10 +1233,8 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     Vector3D pos = pp->getPosition();
     Vector3D dir = pp->getDirection();
 
-    double d_ls = -1;
-
     Vector3D v_n, v_a;
-    double lamb, num, den;
+    double length, num, den;
 
     cell_vo * center_cell = (cell_vo *)pp->getPositionCell();
 
@@ -1273,11 +1271,11 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 
             if(den != 0)
             {
-                lamb = -num / den;
+                length = -num / den;
 
-                if(lamb > 0 && lamb < path_length)
+                if(length > 0 && length < path_length)
                 {
-                    path_length = lamb;
+                    path_length = length;
                     hit = true;
                 }
             }
@@ -1325,11 +1323,11 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 
         if(den != 0)
         {
-            lamb = -num / den;
+            length = -num / den;
 
-            if(lamb > 0 && d_ls < path_length)
+            if(length > 0 && length < path_length)
             {
-                path_length = lamb;
+                path_length = length;
                 hit = true;
             }
         }
@@ -1401,7 +1399,7 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
         return true;
 
     Vector3D v_n, v_a;
-    double lamb, num, den;
+    double length, num, den;
 
     for(int i_side = 1; i_side <= 6; i_side++)
     {
@@ -1444,15 +1442,14 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
 
         if(den != 0)
         {
-            lamb = -num / den;
+            length = -num / den;
 
-            if(lamb > 0)
-                if(isInside(pos + dir * path_length))
-                {
-                    hit = true;
-                    path_length = lamb;
-                    break;
-                }
+            if(length > 0 && isInside(pos + dir * length))
+            {
+                hit = true;
+                path_length = length;
+                break;
+            }
         }
     }
 

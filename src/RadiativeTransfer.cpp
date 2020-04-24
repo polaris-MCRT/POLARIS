@@ -1352,7 +1352,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             last_percentage = 0;
 
             // Perform radiative transfer through the model for each photon
-#pragma omp parallel for schedule(dynamic)
+            #pragma omp parallel for schedule(dynamic)
             for(llong i_phot = 0; i_phot < llong(nr_of_photons); i_phot++)
             {
                 // Init cross sections
@@ -1375,7 +1375,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 }
 
                 // Increase counter used to show progress
-#pragma omp atomic update
+                #pragma omp atomic update
                 per_counter++;
 
                 // Calculate percentage of total progress per source
@@ -1384,7 +1384,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) >= PERCENTAGE_STEP)
                 {
-#pragma omp critical
+                    #pragma omp critical
                     {
                         cout << "-> MC pol. maps (source ID: " << s + 1
                              << ", wavelength: " << dust->getWavelength(wID)
@@ -1419,7 +1419,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         if(!grid->positionPhotonInGrid(pp))
                             if(!grid->findStartingPoint(pp))
                             {
-#pragma omp atomic update
+                                #pragma omp atomic update
                                 kill_counter++;
                                 break;
                             }
@@ -1477,7 +1477,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         {
                             if(ph_i == 0)
                             {
-#pragma omp atomic update
+                                #pragma omp atomic update
                                 kill_counter++;
                             }
                             break;
@@ -1586,11 +1586,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             }
                             else
                             {
-#pragma omp atomic update
+                                #pragma omp atomic update
                                 mrw_counter++;
                                 if(mrw_counter % 500000 == 0)
                                 {
-#pragma omp critical
+                                    #pragma omp critical
                                     {
                                         cout << " -> mrw  " << mrw_counter << "\r";
                                     }

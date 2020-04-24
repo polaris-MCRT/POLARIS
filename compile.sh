@@ -48,9 +48,7 @@ while getopts "duc:g:" opt; do
     g)
         if [[ ${OPTARG,,} = "ninja" ]]; then
             CMAKE_GENERATOR="Ninja"
-        elif [[ ${OPTARG,,} = "make" ]]; then
-            CMAKE_GENERATOR="Unix Makefiles"
-        elif [[ ${OPTARG,,} = "unix makefiles" ]]; then
+        elif [[ ${OPTARG,,} = "make" || ${OPTARG,,} = "unix makefiles" ]]; then
             CMAKE_GENERATOR="Unix Makefiles"
         fi
         ;;
