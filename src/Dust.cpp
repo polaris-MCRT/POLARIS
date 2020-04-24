@@ -4724,7 +4724,8 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
         // Get cos(2 * phi)
         // double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
-        double cos_2_phi = cos(2.0 * phi_photon_to_obs);
+        double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
+        double cos_2_phi = cos(2.0 * (phi_photon_to_obs + gamma - PI));
 
         // Calculate the fraction that is scattered into this phi direction
         phi_fraction = (1.0 - phipar * cos_2_phi);
