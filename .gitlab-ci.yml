@@ -1,0 +1,48 @@
+
+before_script:
+    - module load intel/icc/19.0.0
+
+
+stages:
+    - build
+
+
+build_gcc_ninja:
+    stage: build
+    script:
+        - ./compile.sh -g ninja
+    artifacts:
+        paths:
+            - ./src/build
+            - ./bin
+        expire_in: 1 week
+
+build_gcc_make:
+    stage: build
+    script:
+        - ./compile.sh -g make
+    artifacts:
+        paths:
+            - ./src/build
+            - ./bin
+        expire_in: 1 week
+
+build_icc_ninja:
+    stage: build
+    script:
+        - ./compile.sh -c icc -g ninja
+    artifacts:
+        paths:
+            - ./src/build
+            - ./bin
+        expire_in: 1 week
+
+build_clang_ninja:
+    stage: build
+    script:
+        - ./compile.sh -c clang++ -g ninja
+    artifacts:
+        paths:
+            - ./src/build
+            - ./bin
+        expire_in: 1 week
