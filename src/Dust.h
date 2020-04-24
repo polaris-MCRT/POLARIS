@@ -1201,11 +1201,11 @@ class CDustComponent
                 pp->calcRandomDirection();
                 pp->updateCoordSystem();
 
-                if(adjust_stokes > 0)
+                if(adjust_stokes)
                 {
                     StokesVector * S = pp->getStokesVector();
                     double albedo = getCscaMean(grid, *pp) / getCextMean(grid, *pp);
-                    *S *= albedo / PIx4;
+                    *S *= albedo;
                     pp->setStokesVector(*S);
                 }
                 return;
