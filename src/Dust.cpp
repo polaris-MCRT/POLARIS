@@ -4705,31 +4705,28 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Create the scattering matrix with the local parameters
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
-    // Default phi distribution is isotrope
+    // Default phi distribution is isotropic
     double phi_fraction = 1;
-    if(phID == PH_MIE)
+    // Get PHIPAR to take non equal distribution of phi angles into account
+    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
     {
-        // Get PHIPAR to take non equal distribution of phi angles into account
-        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
-        {
-            cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
 
-            // Set the Stokes vector of the photon package to 0
-            tmp_stokes.clear();
-            pp_escape->setStokesVector(tmp_stokes);
-            return;
-        }
-        else
-        {
-            double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                            (-mat_sca(0, 1) / mat_sca(0, 0));
+        // Set the Stokes vector of the photon package to 0
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
+    }
+    else
+    {
+        double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
+                        (-mat_sca(0, 1) / mat_sca(0, 0));
 
-            // Get cos(2 * phi)
-            double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
+        // Get cos(2 * phi)
+        double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
 
-            // Calculate the fraction that is scattered into this phi direction
-            phi_fraction = (1.0 - PHIPAR * cos_2_phi);
-        }
+        // Calculate the fraction that is scattered into this phi direction
+        phi_fraction = (1.0 - PHIPAR * cos_2_phi);
     }
 
     // Calculate the fraction that is scattered into this theta direction
