@@ -21,4 +21,7 @@ src/polaris
 bin/*
 
 **/*.bak
-examples* 
+examples*
+
+compile.sh
+.gitlab-ci.yml
