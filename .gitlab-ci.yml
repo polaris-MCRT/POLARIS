@@ -5,7 +5,7 @@ stages:
 build_gcc_ninja:
     stage: build
     script:
-        - ./compile.sh -g ninja
+        - ./compile.sh -t -g ninja
     artifacts:
         paths:
             - ./src/build
@@ -17,7 +17,7 @@ build_gcc_ninja:
 build_gcc_make:
     stage: build
     script:
-        - ./compile.sh -g make
+        - ./compile.sh -t -g make
     artifacts:
         paths:
             - ./src/build
@@ -43,7 +43,7 @@ build_icc_ninja:
 build_clang_ninja:
     stage: build
     script:
-        - ./compile.sh -c clang++ -g ninja
+        - ./compile.sh -t -c clang++ -g ninja
     artifacts:
         paths:
             - ./src/build
