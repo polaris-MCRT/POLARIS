@@ -4722,8 +4722,6 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
         double phipar = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
                         (-mat_sca(0, 1) / mat_sca(0, 0));
 
-        // Get cos(2 * phi)
-        // double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
         double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
         double cos_2_phi = cos(2.0 * (phi_photon_to_obs + gamma - PI));
 
@@ -4874,9 +4872,6 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
 void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 {
-    // Init variables
-    double help, phi, phi1, phipar = 0, gamma = 1, hd1, hd2;
-
     // Get wavelength of photon package
     uint w = pp->getDustWavelengthID();
 
@@ -4892,6 +4887,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
+    double phipar;
     // Get PHIPAR to take non equal distribution of phi angles into account
     if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
     {
@@ -4907,90 +4903,22 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
             (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
             (-mat_sca(0, 1) / mat_sca(0, 0));
 
-    // // Obtain phi angle
-    // bool hl1 = false;
-    // double rndx = pp->getRND();
-    // if(abs(phipar) < 0.1)
-    //     phi = rndx * PIx2;
-    // else
-    // {
-    //     uint run_counter = 0;
-    //     do
-    //     {
-    //         help = rndx * PIx4;
-    //         phi = help + phipar * sin(help);
-    //         phi1 = 0.0;
-    //
-    //         if(run_counter > 1000)
-    //         {
-    //             phi = pp->getRND() * PIx2;
-    //             break;
-    //         }
-    //
-    //         do
-    //         {
-    //             hd1 = abs(phi - phi1);
-    //             phi1 = phi;
-    //             phi = help + phipar * sin(phi1);
-    //             hd2 = abs(phi - phi1);
-    //
-    //             run_counter++;
-    //
-    //             if(run_counter > 1000)
-    //                 break;
-    //
-    //             if(abs(phi - phi1) <= 0.0175)
-    //             {
-    //                 break;
-    //             }
-    //             else
-    //             {
-    //                 if(abs(hd1 - hd2) < 1e-15)
-    //                 {
-    //                     hl1 = true;
-    //                     break;
-    //                 }
-    //             }
-    //
-    //         } while(true);
-    //
-    //     } while(hl1);
-    //
-    //     phi = phi / 2.0;
-    //
-    //     gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
-    //
-    //     // if(tmp_stokes->Q() != 0.0)
-    //     // {
-    //     //     GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
-    //     //     if(tmp_stokes->U() < 0.0)
-    //     //         GAMMA = PI + GAMMA;
-    //     // }
-    //     // else
-    //     // {
-    //     //     if(tmp_stokes->U() < 0.0)
-    //     //         GAMMA = PI4x3;
-    //     //     else if(tmp_stokes->U() > 0.0)
-    //     //         GAMMA = PI4;
-    //     // }
-    //
-    //     phi = PI - gamma + phi;
-    // }
+    double rndx = pp->getRND();
+    double phi = rndx * PIx2;
+    double gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
 
     // find phi with Newton's method (phi_error < 1e-10)
-    double rndx = pp->getRND();
-    phi = rndx * PIx2;
     double cdf = phipar * 0.5 * sin(2.0 * phi);
     double dv_cdf = phipar * cos(2.0 * phi);
     uint run_counter = 0;
-    while(abs(cdf) > 1e-10 && run_counter < 100)
+
+    while(abs(cdf) > 1e-10 && run_counter < 1000)
     {
         phi = phi - cdf/dv_cdf;
         cdf = phi - phipar * 0.5 * sin(2.0 * phi) - PIx2 * rndx;
         dv_cdf = 1.0 - phipar * cos(2.0 * phi);
         run_counter++;
     }
-    gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
     phi = PI - gamma + phi;
 
     // Update the photon package with the new direction

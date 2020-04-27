@@ -1,8 +1,3 @@
-
-before_script:
-    - module load intel/icc/19.0.0
-
-
 stages:
     - build
 
@@ -15,6 +10,8 @@ build_gcc_ninja:
         paths:
             - ./src/build
             - ./bin
+            - ./lib/cfitsio
+            - ./lib/CCfits
         expire_in: 1 week
 
 build_gcc_make:
@@ -25,16 +22,22 @@ build_gcc_make:
         paths:
             - ./src/build
             - ./bin
+            - ./lib/cfitsio
+            - ./lib/CCfits
         expire_in: 1 week
 
 build_icc_ninja:
     stage: build
     script:
-        - ./compile.sh -c icc -g ninja
+        - module load intel/icc/19.0.0
+        - ./compile.sh -t -c icc -g ninja
+        - module unload intel/icc/19.0.0
     artifacts:
         paths:
             - ./src/build
             - ./bin
+            - ./lib/cfitsio
+            - ./lib/CCfits
         expire_in: 1 week
 
 build_clang_ninja:
@@ -45,4 +48,6 @@ build_clang_ninja:
         paths:
             - ./src/build
             - ./bin
+            - ./lib/cfitsio
+            - ./lib/CCfits
         expire_in: 1 week
