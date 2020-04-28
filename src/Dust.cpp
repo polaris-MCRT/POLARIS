@@ -4909,7 +4909,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     // find phi with Newton's method (phi_error < 1e-10)
     double cdf = phipar * 0.5 * sin(2.0 * phi);
-    double dv_cdf = phipar * cos(2.0 * phi);
+    double dv_cdf = 1.0 - phipar * cos(2.0 * phi);
     uint run_counter = 0;
 
     while(abs(cdf) > 1e-10 && run_counter < 1000)
