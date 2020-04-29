@@ -89,8 +89,7 @@ void CDustComponent::initScatteringMatrixArray()
     // First init of the scattering matrix spline
     sca_mat = new Matrix2D ****[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Second init of the scattering matrix
         sca_mat[a] = new Matrix2D ***[nr_of_wavelength];
@@ -105,12 +104,9 @@ void CDustComponent::initScatteringMatrixArray()
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
-                {
-                    printIDs();
-                    cout << "- allocating memory: " << percentage << " [%]                      \r";
-                    last_percentage = percentage;
-                }
+                printIDs();
+                cout << "- allocating memory: " << percentage << " [%]                      \r";
+                last_percentage = percentage;
             }
 
             // Third init of the scattering matrix
@@ -149,13 +145,14 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
     // First init of the scattering matrix and scattering angle spline
     sca_mat = new Matrix2D ****[nr_of_dust_species];
     scat_theta = new double **[nr_of_dust_species];
+    nr_of_scat_theta = new uint *[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Second init of the scattering matrix and scattering angle
         sca_mat[a] = new Matrix2D ***[nr_of_wavelength];
         scat_theta[a] = new double *[nr_of_wavelength];
+        nr_of_scat_theta[a] = new uint [nr_of_wavelength];
 
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
@@ -168,16 +165,16 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
-                {
-                    printIDs();
-                    cout << "- allocating memory: " << percentage << " [%]                      \r";
-                    last_percentage = percentage;
-                }
+                printIDs();
+                cout << "- allocating memory: " << percentage << " [%]                      \r";
+                last_percentage = percentage;
             }
+
             // Third init of the scattering matrix
             sca_mat[a][w] = new Matrix2D **[nr_of_incident_angles];
             scat_theta[a][w] = new double[nr_of_scat_theta_tmp];
+            nr_of_scat_theta[a][w] = nr_of_scat_theta_tmp;
+
             for(uint inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 // Fourth init of the scattering matrix
@@ -200,8 +197,8 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
 void CDustComponent::initNrOfScatThetaArray()
 {
     nr_of_scat_theta = new uint *[nr_of_dust_species];
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+
+    for(uint a = 0; a < nr_of_dust_species; a++)
         nr_of_scat_theta[a] = new uint [nr_of_wavelength]();
 }
 
@@ -209,11 +206,10 @@ void CDustComponent::initScatThetaArray()
 {
     scat_theta = new double **[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         scat_theta[a] = new double *[nr_of_wavelength];
-        for(int w = 0; w < int(nr_of_wavelength); w++)
+        for(uint w = 0; w < nr_of_wavelength; w++)
             scat_theta[a][w] = new double [nr_of_scat_theta[a][w]]();
     }
 }
@@ -1311,7 +1307,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     // First init of the scattering matrix interp
     interp ***** sca_mat_wl = new interp ****[nr_of_dust_species];
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Second init of the scattering matrix interp
@@ -1331,7 +1327,7 @@ bool CDustComponent::readScatteringMatrices(string path,
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
                 {
-#pragma omp critical
+                    #pragma omp critical
                     {
                         printIDs();
                         cout << "- allocating memory: " << percentage << " [%]                      \r";
@@ -1364,7 +1360,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     // Set maximum counter value
     max_counter = nr_of_wavelength_dustcat * nr_of_dust_species;
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int w = 0; w < int(nr_of_wavelength_dustcat); w++)
     {
         if(error)
@@ -1376,13 +1372,13 @@ bool CDustComponent::readScatteringMatrices(string path,
         float tmp_val = 0;
 
         // Set the characters with the current indizes
-#ifdef WINDOWS
-        strcpy_s(str_ID_tmp, "wID%03d.sca");
-        sprintf_s(str_ID_end, str_ID_tmp, w + 1);
-#else
-        strcpy(str_ID_tmp, "wID%03d.sca");
-        sprintf(str_ID_end, str_ID_tmp, w + 1);
-#endif
+        #ifdef WINDOWS
+            strcpy_s(str_ID_tmp, "wID%03d.sca");
+            sprintf_s(str_ID_end, str_ID_tmp, w + 1);
+        #else
+            strcpy(str_ID_tmp, "wID%03d.sca");
+            sprintf(str_ID_end, str_ID_tmp, w + 1);
+        #endif
 
         // Create the filename
         string bin_filename = path;
@@ -1412,7 +1408,7 @@ bool CDustComponent::readScatteringMatrices(string path,
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
                     printIDs();
                     cout << "- loading matrices: " << percentage << " [%]                      \r";
@@ -1450,7 +1446,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     initScatteringMatrixArray(nr_of_scat_theta_tmp);
 
     // Fill values of the scattering matrix via interpolation
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         if(sizeIndexUsed(a))
@@ -1472,7 +1468,6 @@ bool CDustComponent::readScatteringMatrices(string path,
                                     sca_mat[a][w][inc][sph][sth](e) =
                                         sign *
                                         sca_mat_wl[a][inc][sph][sth][pos - 1].getValue(wavelength_list[w]);
-                                    nr_of_scat_theta[a][w] = nr_of_scat_theta_tmp;
                                     scat_theta[a][w][sth] = PI * double(sth) / double(nr_of_scat_theta_tmp - 1);
                                 }
                             }
