@@ -82,10 +82,11 @@ class CmdPolaris:
         cmd_file.write('<common>\n')
         cmd_file.write(self.dust.get_command())
         cmd_file.write('\n')
-        cmd_file.write('\t<write_inp_midplanes>\t' +
-                       str(midplane_points) + '\n')
-        cmd_file.write('\t<write_out_midplanes>\t' +
-                       str(midplane_points) + '\n')
+        if midplane_points is not None:
+            cmd_file.write('\t<write_inp_midplanes>\t' +
+                        str(midplane_points) + '\n')
+            cmd_file.write('\t<write_out_midplanes>\t' +
+                        str(midplane_points) + '\n')
         if self.parse_args.midplane_3d_param is not None:
             if 0 <= len(self.parse_args.midplane_3d_param) <= 4 and \
                     1 <= int(self.parse_args.midplane_3d_param[0]) <= 3:
@@ -98,7 +99,8 @@ class CmdPolaris:
                         cmd_file.write(
                             '\t' + str(self.parse_args.midplane_3d_param[i]))
                 cmd_file.write('\n')
-        cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
+        if midplane_zoom is not None:
+            cmd_file.write('\t<midplane_zoom>\t\t' + str(midplane_zoom) + '\n')
         if self.parse_args.midplane_rad_field:
             cmd_file.write('\t<write_radiation_field>\t1\n')
         cmd_file.write('\n')

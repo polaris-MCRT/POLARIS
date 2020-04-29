@@ -89,8 +89,7 @@ void CDustComponent::initScatteringMatrixArray()
     // First init of the scattering matrix spline
     sca_mat = new Matrix2D ****[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Second init of the scattering matrix
         sca_mat[a] = new Matrix2D ***[nr_of_wavelength];
@@ -105,12 +104,9 @@ void CDustComponent::initScatteringMatrixArray()
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
-                {
-                    printIDs();
-                    cout << "- allocating memory: " << percentage << " [%]                      \r";
-                    last_percentage = percentage;
-                }
+                printIDs();
+                cout << "- allocating memory: " << percentage << " [%]                      \r";
+                last_percentage = percentage;
             }
 
             // Third init of the scattering matrix
@@ -149,13 +145,14 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
     // First init of the scattering matrix and scattering angle spline
     sca_mat = new Matrix2D ****[nr_of_dust_species];
     scat_theta = new double **[nr_of_dust_species];
+    nr_of_scat_theta = new uint *[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Second init of the scattering matrix and scattering angle
         sca_mat[a] = new Matrix2D ***[nr_of_wavelength];
         scat_theta[a] = new double *[nr_of_wavelength];
+        nr_of_scat_theta[a] = new uint [nr_of_wavelength];
 
         for(uint w = 0; w < nr_of_wavelength; w++)
         {
@@ -168,16 +165,16 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
-                {
-                    printIDs();
-                    cout << "- allocating memory: " << percentage << " [%]                      \r";
-                    last_percentage = percentage;
-                }
+                printIDs();
+                cout << "- allocating memory: " << percentage << " [%]                      \r";
+                last_percentage = percentage;
             }
+
             // Third init of the scattering matrix
             sca_mat[a][w] = new Matrix2D **[nr_of_incident_angles];
             scat_theta[a][w] = new double[nr_of_scat_theta_tmp];
+            nr_of_scat_theta[a][w] = nr_of_scat_theta_tmp;
+
             for(uint inc = 0; inc < nr_of_incident_angles; inc++)
             {
                 // Fourth init of the scattering matrix
@@ -200,8 +197,8 @@ void CDustComponent::initScatteringMatrixArray(uint nr_of_scat_theta_tmp)
 void CDustComponent::initNrOfScatThetaArray()
 {
     nr_of_scat_theta = new uint *[nr_of_dust_species];
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+
+    for(uint a = 0; a < nr_of_dust_species; a++)
         nr_of_scat_theta[a] = new uint [nr_of_wavelength]();
 }
 
@@ -209,11 +206,10 @@ void CDustComponent::initScatThetaArray()
 {
     scat_theta = new double **[nr_of_dust_species];
 
-#pragma omp parallel for
-    for(int a = 0; a < int(nr_of_dust_species); a++)
+    for(uint a = 0; a < nr_of_dust_species; a++)
     {
         scat_theta[a] = new double *[nr_of_wavelength];
-        for(int w = 0; w < int(nr_of_wavelength); w++)
+        for(uint w = 0; w < nr_of_wavelength; w++)
             scat_theta[a][w] = new double [nr_of_scat_theta[a][w]]();
     }
 }
@@ -1311,7 +1307,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     // First init of the scattering matrix interp
     interp ***** sca_mat_wl = new interp ****[nr_of_dust_species];
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         // Second init of the scattering matrix interp
@@ -1331,7 +1327,7 @@ bool CDustComponent::readScatteringMatrices(string path,
                 // Show only new percentage number if it changed
                 if((percentage - last_percentage) > PERCENTAGE_STEP)
                 {
-#pragma omp critical
+                    #pragma omp critical
                     {
                         printIDs();
                         cout << "- allocating memory: " << percentage << " [%]                      \r";
@@ -1364,7 +1360,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     // Set maximum counter value
     max_counter = nr_of_wavelength_dustcat * nr_of_dust_species;
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int w = 0; w < int(nr_of_wavelength_dustcat); w++)
     {
         if(error)
@@ -1376,13 +1372,13 @@ bool CDustComponent::readScatteringMatrices(string path,
         float tmp_val = 0;
 
         // Set the characters with the current indizes
-#ifdef WINDOWS
-        strcpy_s(str_ID_tmp, "wID%03d.sca");
-        sprintf_s(str_ID_end, str_ID_tmp, w + 1);
-#else
-        strcpy(str_ID_tmp, "wID%03d.sca");
-        sprintf(str_ID_end, str_ID_tmp, w + 1);
-#endif
+        #ifdef WINDOWS
+            strcpy_s(str_ID_tmp, "wID%03d.sca");
+            sprintf_s(str_ID_end, str_ID_tmp, w + 1);
+        #else
+            strcpy(str_ID_tmp, "wID%03d.sca");
+            sprintf(str_ID_end, str_ID_tmp, w + 1);
+        #endif
 
         // Create the filename
         string bin_filename = path;
@@ -1412,7 +1408,7 @@ bool CDustComponent::readScatteringMatrices(string path,
             // Show only new percentage number if it changed
             if((percentage - last_percentage) > PERCENTAGE_STEP)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
                     printIDs();
                     cout << "- loading matrices: " << percentage << " [%]                      \r";
@@ -1450,7 +1446,7 @@ bool CDustComponent::readScatteringMatrices(string path,
     initScatteringMatrixArray(nr_of_scat_theta_tmp);
 
     // Fill values of the scattering matrix via interpolation
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
         if(sizeIndexUsed(a))
@@ -1472,7 +1468,6 @@ bool CDustComponent::readScatteringMatrices(string path,
                                     sca_mat[a][w][inc][sph][sth](e) =
                                         sign *
                                         sca_mat_wl[a][inc][sph][sth][pos - 1].getValue(wavelength_list[w]);
-                                    nr_of_scat_theta[a][w] = nr_of_scat_theta_tmp;
                                     scat_theta[a][w][sth] = PI * double(sth) / double(nr_of_scat_theta_tmp - 1);
                                 }
                             }
@@ -4705,31 +4700,28 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Create the scattering matrix with the local parameters
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
-    // Default phi distribution is isotrope
+    // Default phi distribution is isotropic
     double phi_fraction = 1;
-    if(phID == PH_MIE)
+    // Get PHIPAR to take non equal distribution of phi angles into account
+    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
     {
-        // Get PHIPAR to take non equal distribution of phi angles into account
-        if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
-        {
-            cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
+        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
 
-            // Set the Stokes vector of the photon package to 0
-            tmp_stokes.clear();
-            pp_escape->setStokesVector(tmp_stokes);
-            return;
-        }
-        else
-        {
-            double PHIPAR = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                            (-mat_sca(0, 1) / mat_sca(0, 0));
+        // Set the Stokes vector of the photon package to 0
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
+    }
+    else
+    {
+        double phipar = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
+                        (-mat_sca(0, 1) / mat_sca(0, 0));
 
-            // Get cos(2 * phi)
-            double cos_2_phi = 1.0 - 2.0 * pow(sin(phi_photon_to_obs), 2);
+        double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
+        double cos_2_phi = cos(2.0 * (phi_photon_to_obs + gamma - PI));
 
-            // Calculate the fraction that is scattered into this phi direction
-            phi_fraction = (1.0 - PHIPAR * cos_2_phi);
-        }
+        // Calculate the fraction that is scattered into this phi direction
+        phi_fraction = (1.0 - phipar * cos_2_phi);
     }
 
     // Calculate the fraction that is scattered into this theta direction
@@ -4875,9 +4867,6 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
 void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 {
-    // Init variables
-    double HELP, phi, phi1, PHIPAR = 0, GAMMA = 1, hd1, hd2;
-
     // Get wavelength of photon package
     uint w = pp->getDustWavelengthID();
 
@@ -4893,6 +4882,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
+    double phipar;
     // Get PHIPAR to take non equal distribution of phi angles into account
     if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
     {
@@ -4904,77 +4894,27 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
         return;
     }
     else
-        PHIPAR =
+        phipar =
             (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
             (-mat_sca(0, 1) / mat_sca(0, 0));
 
-    // Obtain phi angle
-    bool hl1 = false;
     double rndx = pp->getRND();
-    if(abs(PHIPAR) < 0.1)
-        phi = rndx * PIx2;
-    else
+    double phi = rndx * PIx2;
+    double gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
+
+    // find phi with Newton's method (phi_error < 1e-10)
+    double cdf = phipar * 0.5 * sin(2.0 * phi);
+    double dv_cdf = 1.0 - phipar * cos(2.0 * phi);
+    uint run_counter = 0;
+
+    while(abs(cdf) > 1e-10 && run_counter < 1000)
     {
-        uint run_counter = 0;
-        do
-        {
-            HELP = rndx * PIx4;
-            phi = HELP + PHIPAR * sin(HELP);
-            phi1 = 0.0;
-
-            if(run_counter > 1000)
-            {
-                phi = pp->getRND() * PIx2;
-                break;
-            }
-
-            do
-            {
-                hd1 = abs(phi - phi1);
-                phi1 = phi;
-                phi = HELP + PHIPAR * sin(phi1);
-                hd2 = abs(phi - phi1);
-
-                run_counter++;
-
-                if(run_counter > 1000)
-                    break;
-
-                if(abs(phi - phi1) <= 0.0175)
-                {
-                    break;
-                }
-                else
-                {
-                    if(abs(hd1 - hd2) < 1e-15)
-                    {
-                        hl1 = true;
-                        break;
-                    }
-                }
-
-            } while(true);
-
-        } while(hl1);
-
-        phi = phi / 2.0;
-
-        if(tmp_stokes->Q() != 0.0)
-        {
-            GAMMA = 0.5 * atan2(tmp_stokes->U(), tmp_stokes->Q());
-            if(tmp_stokes->U() < 0.0)
-                GAMMA = PI + GAMMA;
-        }
-        else
-        {
-            if(tmp_stokes->U() < 0.0)
-                GAMMA = PI4x3;
-            else if(tmp_stokes->U() > 0.0)
-                GAMMA = PI4;
-        }
-
-        phi = PI - GAMMA + phi;
+        phi = phi - cdf/dv_cdf;
+        cdf = phi - phipar * 0.5 * sin(2.0 * phi) - PIx2 * rndx;
+        dv_cdf = 1.0 - phipar * cos(2.0 * phi);
+        run_counter++;
     }
+    phi = PI - gamma + phi;
 
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
