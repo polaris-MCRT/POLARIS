@@ -4744,8 +4744,12 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Rotate photon package into the coordinate space of the detector
     double rot_angle_phot_obs =
-        CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), pp_escape->getEY());
+        CMathFunctions::getRotationAngleObserver(obs_ex, -1*pp_escape->getEX(), pp_escape->getEY());
     tmp_stokes.rot(rot_angle_phot_obs);
+
+    // The scattering part is based on O. Fischer (1993)
+    // But on our detectors, U is defined the other way round
+    tmp_stokes.multU(-1);
 
     // Set the new Stokes vector to the photon package
     pp_escape->setStokesVector(tmp_stokes);

@@ -1646,10 +1646,14 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Get the angle to rotate the photon space into the
                                     // detector space
                                     double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                                        detector[d].getEX(), pp->getEX(), pp->getEY());
+                                        detector[d].getEX(), -1*pp->getEX(), pp->getEY());
 
                                     // Rotate the Stokes vector
                                     pp->getStokesVector()->rot(rot_angle_phot_obs);
+
+                                    // The scattering part is based on O. Fischer (1993)
+                                    // But on our detectors, U is defined the other way round
+                                    pp->getStokesVector()->multU(-1);
 
                                     // Consider the greater solid angle due
                                     // to the acceptance angle

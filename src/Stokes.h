@@ -441,6 +441,11 @@ class StokesVector
     {
         double tQ = sQ, tU = sU;
         double s = sin(2.0 * phi), c = cos(2.0 * phi);
+        // Scattering part based on O. Fischer (1993)
+        // But on our detectors, U is defined the other way round
+        // -> phi is defined in the opposite direction
+        // Q_new = Q*cos - U*sin
+        // U_new = Q*sin - U*cos
         sQ = tQ * c - tU * s;
         sU = tQ * s + tU * c;
     }
