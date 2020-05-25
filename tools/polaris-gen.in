@@ -10,6 +10,7 @@ Examples:
 """
 
 import os
+import shutil
 import numpy as np
 from argparse import RawTextHelpFormatter, ArgumentParser
 
@@ -189,8 +190,12 @@ class GridRoutines:
                 # Close the temporary grid file
                 tmp_file.close()
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] +
-                          'tmp_' + self.parse_args.grid_filename)
+                if "/" in self.parse_args.grid_filename:
+                    shutil.rmtree(self.file_io.path['model'] +
+                            'tmp_' + self.parse_args.grid_filename.split('/')[0])
+                else:
+                    os.remove(self.file_io.path['model'] +
+                            'tmp_' + self.parse_args.grid_filename)
                 # Close the final grid file
                 grid_file.close()
             elif np.shape(self.model.parameter['gas_mass']) == np.shape(grid.total_gas_mass):
@@ -232,8 +237,12 @@ class GridRoutines:
                 # Create the grid
                 grid.create_grid(grid_file, root)
                 # Remove the temporary grid file
-                os.remove(self.file_io.path['model'] +
-                          'tmp_' + self.parse_args.grid_filename)
+                if "/" in self.parse_args.grid_filename:
+                    shutil.rmtree(self.file_io.path['model'] +
+                            'tmp_' + self.parse_args.grid_filename.split('/')[0])
+                else:
+                    os.remove(self.file_io.path['model'] +
+                            'tmp_' + self.parse_args.grid_filename)
                 # Close the temporary grid file
                 grid_file.close()
             else:

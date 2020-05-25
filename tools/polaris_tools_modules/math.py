@@ -431,7 +431,7 @@ class Math:
             float: Magnitude in the chosen filter system.
         """
         if filter_system in self.conversion_factor.keys():
-            if float(flux) is not 0:
+            if float(flux) != 0:
                 magnitude = 2.5 * \
                     np.log10(
                         self.conversion_factor[filter_system] / float(flux))
@@ -1434,11 +1434,11 @@ class Math:
         if random_variations:
             mag_field_strength = rnd_b_min + \
                 np.random.random() * (mag_field_strength - rnd_b_min)
-        if axis is 'x':
+        if axis == 'x':
             mag[0] += mag_field_strength
-        elif axis is 'y':
+        elif axis == 'y':
             mag[1] += mag_field_strength
-        elif axis is 'z':
+        elif axis == 'z':
             mag[2] += mag_field_strength
         else:
             raise ValueError(
@@ -1483,15 +1483,15 @@ class Math:
             rel_strength * (2. * np.random.random() - 1.)
         sec_mag_strength_2 = mag_field_strength * \
             rel_strength * (2. * np.random.random() - 1.)
-        if main_axis is 'x':
+        if main_axis == 'x':
             mag[0] += mag_field_strength
             mag[1] += sec_mag_strength_1
             mag[2] += sec_mag_strength_2
-        elif main_axis is 'y':
+        elif main_axis == 'y':
             mag[0] += sec_mag_strength_1
             mag[1] += mag_field_strength
             mag[2] += sec_mag_strength_2
-        elif main_axis is 'z':
+        elif main_axis == 'z':
             mag[0] += sec_mag_strength_1
             mag[1] += sec_mag_strength_2
             mag[2] += mag_field_strength
@@ -1523,15 +1523,15 @@ class Math:
         mag_strength_perp_2 = mag_field_strength * \
             np.sin(disturbed_phi_angle) * np.sin(disturbed_theta_angle)
         mag_strength_main = mag_field_strength * np.cos(disturbed_theta_angle)
-        if main_axis is 'x':
+        if main_axis == 'x':
             mag[0] += mag_strength_main
             mag[1] += mag_strength_perp_1
             mag[2] += mag_strength_perp_2
-        elif main_axis is 'y':
+        elif main_axis == 'y':
             mag[0] += mag_strength_perp_1
             mag[1] += mag_strength_main
             mag[2] += mag_strength_perp_2
-        elif main_axis is 'z':
+        elif main_axis == 'z':
             mag[0] += mag_strength_perp_1
             mag[1] += mag_strength_perp_2
             mag[2] += mag_strength_main
@@ -1709,11 +1709,11 @@ class Math:
         #: List: Magnetic field strength
         mag = [0., 0., 0.]
 
-        if axis is 'x':
+        if axis == 'x':
             mag[0] += mag_field_strength
-        elif axis is 'y':
+        elif axis == 'y':
             mag[1] += mag_field_strength
-        elif axis is 'z':
+        elif axis == 'z':
             mag[2] += mag_field_strength
         else:
             raise ValueError(

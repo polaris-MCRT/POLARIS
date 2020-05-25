@@ -44,7 +44,7 @@ class FileIO:
         self.math = Math()
 
         # Set variables used for plotting and file read
-        if tool_type is 'plot':
+        if tool_type == 'plot':
             if parse_args.show_plot:
                 #: bool: show plot or save it to file
                 self.plot_output = 'show'
