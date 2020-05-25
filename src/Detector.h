@@ -662,6 +662,10 @@ class CDetector
         
         if(RAY_DT > 0)
         {
+            matrixI[i_spectral + spectral_offset].setValue(x, y, st.I());
+            matrixQ[i_spectral + spectral_offset].setValue(x, y, st.Q());
+            matrixU[i_spectral + spectral_offset].setValue(x, y, st.U());
+            matrixV[i_spectral + spectral_offset].setValue(x, y, st.V());
             matrixT[i_spectral + spectral_offset].setValue(x, y, st.T());
             matrixS[i_spectral + spectral_offset].setValue(x, y, st.Sp());
         }
