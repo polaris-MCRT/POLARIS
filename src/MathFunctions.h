@@ -2617,7 +2617,7 @@ class CMathFunctions
         }
 
         // logarithmic derivative to Bessel function (complex argument)
-        dcomplex ru[num + 1];
+        dcomplex *ru = new dcomplex[num + 1];
         dcomplex s_tmp = ax / refractive_index;
         ru[num] = dcomplex(num + 1, 0) * s_tmp;
         for(uint n = 1; n <= num - 1; n++)
@@ -2791,6 +2791,8 @@ class CMathFunctions
             if(iterm == MAX_MIE_ITERATIONS)
                 return false;
         }
+
+        delete ru;
 
         // efficiency factors (final calculations)
         qext = b * qext;

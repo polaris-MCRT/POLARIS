@@ -87,7 +87,7 @@ using namespace std;
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
-#define PERCENTAGE_STEP 0.01
+#define PERCENTAGE_STEP 0.1
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6

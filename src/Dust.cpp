@@ -3809,7 +3809,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
 {
-    // Calculate the aligned radii only for cells with a density not zero
+    // Calculate the aligned radii only for cells with a non-zero density
     if(getNumberDensity(grid, *cell, i_density) == 0)
     {
         grid->setAlignedRadius(cell, i_density, a_eff[nr_of_dust_species - 1]);
@@ -4683,7 +4683,7 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Determination of the scattering angle (phi, theta) towards the observing map in the
     // photon frame. Get the rotation matrix of the photon (photon space to lab space)
-    Matrix2D D_photon = pp->getD();
+    Matrix2D D_photon = pp_escape->getD();
     D_photon.transpose();
     Vector3D dir_rlp = D_photon * dir_obs;
 
