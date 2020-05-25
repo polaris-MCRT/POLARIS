@@ -2225,12 +2225,23 @@ class CDustComponent
 
     uint getScatThetaID(double theta, uint a, uint w) const
     {
-        if(theta == scat_theta[a][w][0])
-            return 0;
+        // Returns the index of the value in scat_theta[a][w] closest to theta
+        uint sth;
 
-        uint sth = CMathFunctions::biListIndexSearch(theta,scat_theta[a][w],nr_of_scat_theta[a][w]);
-        if(sth != MAX_UINT)
-            sth++;
+        // If no refinement was done, don't use binary
+        // search to save (lots of) time
+        if( (2*NANG-1) == nr_of_scat_theta[a][w])
+            sth = uint(theta/PI * 2*(NANG-1) + 0.5);
+        else
+        {
+            if(theta == scat_theta[a][w][0])
+                return 0;
+
+            sth = CMathFunctions::biListIndexSearch(theta,scat_theta[a][w],nr_of_scat_theta[a][w]);
+            if(sth != MAX_UINT && (scat_theta[a][w][sth+1] + scat_theta[a][w][sth]) / 2. <= theta )
+                sth++;
+        }
+
         return sth;
     }
 
