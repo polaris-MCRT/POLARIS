@@ -576,7 +576,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                 if(pp.getStokesVector()->I() < 1e-200)
                 {
-#pragma omp atomic update
+                    #pragma omp atomic update
                     kill_counter++;
                     continue;
                 }
@@ -584,7 +584,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 if(!grid->positionPhotonInGrid(&pp))
                     if(!grid->findStartingPoint(&pp))
                     {
-#pragma omp atomic update
+                        #pragma omp atomic update
                         kill_counter++;
                         continue;
                     }
@@ -607,7 +607,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     // If max interactions is reached, end photon transfer
                     if(interactions >= MAX_INTERACTION_RADFIELD)
                     {
-#pragma omp atomic update
+                        #pragma omp atomic update
                         kill_counter++;
                         break;
                     }
@@ -1737,8 +1737,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Rotate photon package into the coordinate space of the detector
                         double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                            detector[d].getEX(), pp_direct.getEX(), pp_direct.getEY());
+                            detector[d].getEX(), -1*pp_direct.getEX(), pp_direct.getEY());
                         pp_direct.getStokesVector()->rot(rot_angle_phot_obs);
+
+                        // The scattering part is based on O. Fischer (1993)
+                        // But on our detectors, U is defined the other way round
+                        pp_direct.getStokesVector()->multU(-1);
 
                         // Calculate the source emission and reduce it by the optical
                         // depth
