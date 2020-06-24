@@ -5,7 +5,7 @@ POLARIS (POLArized RadIation Simulator) is a 3D Monte-Carlo continuum radiative 
 
 Installation:
 
-The easiest way to install POLARIS is to download either the self-extracting package from our webpage ("www1.astrophysik.uni-kiel.de/~polaris/") or to clone the git release repository from our GitHub webpage ("github.com/robertbrauer1988/Polaris"). 
+The easiest way to install POLARIS is to download either the self-extracting package from our webpage ("www1.astrophysik.uni-kiel.de/~polaris/") or to clone the git release repository from our GitHub webpage ("github.com/polaris-MCRT/POLARIS"). 
 
 - In the first case, the self-extracting package will launch the installation script and can be executed with the following command:
     ./polaris.run
