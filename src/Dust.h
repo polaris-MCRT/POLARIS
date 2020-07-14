@@ -797,7 +797,7 @@ class CDustComponent
         for(uint a = 0; a < nr_of_dust_species; a++)
             HGg[a] = a_eff_3_5[a] * getHGg(a, w);
         double res =
-            PI / getWeight() *
+            1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min_global, a_max_global);
         delete[] HGg;
         return res;
