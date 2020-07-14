@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
 ------------- POLARIS (POLArized RadIation Simulator) -------------
 -------------------------------------------------------------------
+contact: polaris@astrophysik.uni-kiel.de
+
 POLARIS (POLArized RadIation Simulator) is a 3D Monte-Carlo continuum radiative transfer code. The code is written in C++ in a strict object oriented design. The aim of POLARIS is to provide a tool that allows to simulate intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids. Hence, POLARIS is capable of performing dust heating, dust grain alignment, line radiative transfer, and synchrotron simulations in order to calculate synthetic intensity and polarization maps. The code makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input. 
 
 Installation:
