@@ -8,6 +8,14 @@
 #ifndef CMOLECULE
 #define CMOLECULE
 
+// Additional Structure
+struct VelFieldInterp
+{
+    spline vel_field;
+    bool zero_vel_field;
+    Vector3D start_pos;
+};
+
 class CGasSpecies
 {
   public:

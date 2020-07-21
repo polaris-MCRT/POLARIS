@@ -22,7 +22,6 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
     bool no_error = true;
 
     cout << CLR_LINE;
-    cout << "-> Calculating LTE level population  : 0.0 [%]               \r";
 
 #pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)

@@ -170,12 +170,12 @@ class StokesVector
         return *this;
     }
 
-    StokesVector operator+(const StokesVector & ex)
+    StokesVector operator+(const StokesVector & ex) const
     {
         return StokesVector(sI + ex.I(), sQ + ex.Q(), sU + ex.U(), sV + ex.V(), sT + ex.T(), sSp + ex.Sp());
     }
 
-    StokesVector operator-(const StokesVector & ex)
+    StokesVector operator-(const StokesVector & ex) const
     {
         return StokesVector(sI - ex.I(), sQ - ex.Q(), sU - ex.U(), sV - ex.V(), sT - ex.T(), sSp - ex.Sp());
     }
@@ -208,6 +208,19 @@ class StokesVector
         sQ *= val;
         sU *= val;
         sV *= val;
+        return *this;
+    }
+
+    StokesVector & operator*=(const Matrix2D & dM)
+    {
+        double tmp_sI = sI * dM(0, 0) + sQ * dM(0, 1) + sU * dM(0, 2) + sV * dM(0, 3);
+        double tmp_sQ = sI * dM(1, 0) + sQ * dM(1, 1) + sU * dM(1, 2) + sV * dM(1, 3);
+        double tmp_sU = sI * dM(2, 0) + sQ * dM(2, 1) + sU * dM(2, 2) + sV * dM(2, 3);
+        double tmp_sV = sI * dM(3, 0) + sQ * dM(3, 1) + sU * dM(3, 2) + sV * dM(3, 3);
+        sI = tmp_sI;
+        sQ = tmp_sQ;
+        sU = tmp_sU;
+        sV = tmp_sV;
         return *this;
     }
 
@@ -474,7 +487,7 @@ class StokesVector
         sSp = 0;
     }
 
-    void clearIntensity()
+    void resetIntensity()
     {
         sI = 0;
         sQ = 0;
@@ -484,38 +497,6 @@ class StokesVector
 
   private:
     double sI, sQ, sU, sV, sT, sSp;
-};
-
-class MultiStokesVector
-{
-  public:
-    MultiStokesVector()
-    {
-        s = 0;
-    }
-
-    MultiStokesVector(uint nr_stokes_vector)
-    {
-        s = new StokesVector[nr_stokes_vector];
-    }
-
-    ~MultiStokesVector(void)
-    {
-        if(s != 0)
-            delete[] s;
-    }
-
-    void setS(StokesVector _S, uint _i)
-    {
-        s[_i] = _S;
-    }
-    StokesVector & S(uint _i)
-    {
-        return s[_i];
-    }
-
-  private:
-    StokesVector * s;
 };
 
 namespace

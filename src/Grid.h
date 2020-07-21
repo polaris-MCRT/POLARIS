@@ -6,6 +6,14 @@
 #ifndef CGRIDBASIC
 #define CGRIDBASIC
 
+// Additional Structure
+struct VelFieldInterp
+{
+    spline vel_field;
+    bool zero_vel_field;
+    Vector3D start_pos;
+};
+
 // Additional Structures
 class MagFieldInfo
 {
@@ -1524,7 +1532,19 @@ class CGridBasic
         uint pos = pos_OpiateIDS[0];
         return uint(cell->getData(pos));
     }
+    
+    uint getOpiateID(const photon_package * pp)
+    {
+        uint pos = pos_OpiateIDS[0];
+        return uint(pp->getPositionCell()->getData(pos));
+    }
 
+    uint getOpiateID(photon_package pp)
+    {
+        uint pos = pos_OpiateIDS[0];
+        return uint(pp.getPositionCell()->getData(pos));
+    }
+    
     void setOpiateID(cell_basic * cell, uint id)
     {
         uint pos = pos_OpiateIDS[0];

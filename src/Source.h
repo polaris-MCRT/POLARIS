@@ -512,6 +512,8 @@ class CSourceDust : public CSourceBasic
     {
         if(cell_prob != 0)
             delete[] cell_prob;
+        if(total_energy != 0)
+            delete[] total_energy;
     }
 
     bool initSource(uint w);

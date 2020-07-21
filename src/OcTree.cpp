@@ -287,8 +287,14 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
     param.setCommand(CMD_TEMP);
     param.setPathGrid(in_filename);
 
+    cout << "A" << endl;
     if(!loadGridFromBinrayFile(param))
+    {
+cout << "B" << endl;
         return false;
+   }
+
+cout << "C" << endl;
     
     createCellList();
     
@@ -303,7 +309,6 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
 
 
 #pragma omp parallel for schedule(dynamic)
-    
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = getCellFromIndex(c_i);
@@ -312,7 +317,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         
         
         if(c_i%5000==0)
-            cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
+            cout << "HERE -> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
         
         double dens = dens0+dens1;
         
@@ -375,18 +380,19 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         
         if(dens*254098.7886>1e13)
         {
-            setGasDensity(cell, 0, 0.005*dens);
-            setGasDensity(cell, 1, 0.995*dens);
+            setGasDensity(cell, 0, 0.0*dens);
+            setGasDensity(cell, 1, 1.0*dens);
         }
         else
         {
-            setGasDensity(cell, 0, 0.995*dens);
-            setGasDensity(cell, 1, 0.005*dens);
+            setGasDensity(cell, 0, 1.0*dens);
+            setGasDensity(cell, 1, 0.0*dens);
         }
     }
 
     //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
     
+    cout << "HERE -> A";
     if(!saveBinaryGridFile(out_filename))
         return false;
 

@@ -42,6 +42,8 @@ using namespace CCfits;
 #ifndef OPIATE_H
 #define OPIATE_H
 
+   
+
 class COpiateDataBase
 {
   public:
@@ -61,6 +63,9 @@ class COpiateDataBase
         
         path_emi="";
         path_abs="";
+        
+        has_emi_data=false;
+        has_abs_data=false;
     }
 
     ~COpiateDataBase()
@@ -90,6 +95,19 @@ class COpiateDataBase
         {
             delete[] velocity_channel;
             velocity_channel = 0;
+        }
+        
+        if(entries.size()>0)
+        {
+            for(uint i =0;i<entries.size();i++)
+            {
+                COpiateEntry * tmp=entries[i];
+                delete tmp;
+                tmp=0;
+                entries[i]=0;
+            }
+            
+            entries.clear();
         }
 
         cout << CLR_LINE;
@@ -125,6 +143,107 @@ class COpiateDataBase
         cout << CLR_LINE;
     }
     
+    double getProjCellVelocityInterp(const Vector3D & tmp_pos,
+                                     const Vector3D & dir_map_xyz,
+                                     const VelFieldInterp & vel_field_interp)
+    {
+        double cell_velocity = 0;
+
+        // Get the velocity in the photon direction of the current position
+        if(vel_field_interp.vel_field.size() > 0 && !vel_field_interp.zero_vel_field)
+        {
+            // Get velocity from grid cell with interpolation
+            Vector3D rel_pos = tmp_pos - vel_field_interp.start_pos;
+            cell_velocity = vel_field_interp.vel_field.getValue(rel_pos.length());
+        }
+        return cell_velocity;
+    }
+    
+    uint getIndex(uint op_id) const
+    {
+        uint N = max_ids;
+        uint min = 0, max = N - 1;
+
+        if(op_id < list_IDs[0] || op_id > list_IDs[max])
+            return MAX_UINT;
+
+        while(max - min > 1)
+        {
+            uint i = min + (max - min) / 2;
+            if(list_IDs[i] >= op_id)
+                max = i;
+            else
+                min = i;
+        }
+
+        if(list_IDs[min] == op_id)
+            return min;
+
+        uint lower = min - 1;
+        uint upper = min + 1;
+
+        if(lower == MAX_UINT)
+            lower = 0;
+
+        if(upper >= max_ids)
+            upper = max_ids - 1;
+
+        if(list_IDs[lower] == op_id)
+            return lower;
+
+        if(list_IDs[upper] == op_id)
+            return upper;
+
+        return min;
+    }
+    
+    
+    void getMatrices(CGridBasic * grid,
+                                 const photon_package * pp,
+                                 uint i_spec,
+                                 uint i_trans,
+                                 double velocity,
+                                 const LineBroadening & line_broadening,
+                                 const MagFieldInfo & mag_field_info,
+                                 StokesVector * line_emissivity,
+                                 Matrix2D * line_absorption_matrix) const
+    {
+        double emission = 0.0;
+        double absorption = 0.0;
+        
+        uint op_id=grid->getOpiateID(pp);
+        uint index = getIndex(op_id);
+        
+        // Reset absorption matrix and emissivity
+        line_absorption_matrix->resize(4, 4);
+        *line_emissivity = 0;
+              
+        if(index!=MAX_UINT)
+        {
+            if(has_abs_data==true)
+                absorption = mat_absorption(index,current_index)*line_broadening.gauss_a;
+
+            if(has_emi_data==true)
+                emission = mat_emissivity(index,current_index)*line_broadening.gauss_a;
+        }
+
+        // Calculate the line matrix from rotation polarization matrix and line shape
+        // getGaussLineMatrix(grid, pp, velocity, line_absorption_matrix);
+        double line_amplitude = exp(-(pow(velocity, 2) * pow(line_broadening.gauss_a, 2))) / PIsq;
+        
+        // Only diagonal without polarization rotation matrix elements
+        for(uint i = 0; i < 4; i++)
+        {
+            line_absorption_matrix->setValue(i, i, line_amplitude);
+        }
+
+        // Calculate the Emissivity of the gas particles in the current cell
+        *line_emissivity = *line_absorption_matrix * StokesVector(emission, 0, 0, 0);
+
+        // Calculate the line matrix from rotation polarization matrix and line shape
+        *line_absorption_matrix *= absorption;
+    }
+    
     uint getMaxSpecies()
     {
         return max_species;
@@ -135,6 +254,8 @@ class COpiateDataBase
         return list_freq[pos];
     }
     
+    
+    bool readDataBase(string filename);
     
     bool readOpiateDataBase(parameters & param);
     
@@ -156,6 +277,11 @@ class COpiateDataBase
              << "\" is not listed in the loaded OPIATE databases!              \n";
         return false;
     }
+    
+    string getCurrentName()
+    {
+        return list_names[current_index];
+    }
 
     bool readEmissivityData(string filename)
     {
@@ -171,7 +297,7 @@ class COpiateDataBase
 
     bool readFitsData(string filename, Matrix2D & mat);
 
-    double getFrequency()
+    double getCurrentFrequency()
     {
         return list_freq[current_index];
     }
@@ -231,78 +357,65 @@ class COpiateDataBase
         return max_velocity;
     }
 
-    uint biListIndexDataSearch(uint id)
-    {
-        uint N = max_ids;
-        uint min = 0, max = N - 1;
-
-        // cout << list_IDs[0] << "\n";
-        // cout << list_IDs[N-1] << "\n";
-
-        if(N == 0)
-            return MAX_UINT;
-
-        if(id < list_IDs[0] || id > list_IDs[N - 1])
-            return MAX_UINT;
-
-        while(max - min > 1)
-        {
-            uint i = min + (max - min) / 2;
-            if(list_IDs[i] >= id)
-                max = i;
-            else
-                min = i;
-        }
-
-        if(list_IDs[min] == id)
-            return min;
-
-        uint lower = min - 1;
-        uint upper = min + 1;
-
-        if(lower = MAX_UINT)
-            lower = 0;
-
-        if(upper >= N)
-            upper = N - 1;
-
-        // check neighboring indices just to be sure
-        if(list_IDs[lower] == id)
-            return lower;
-
-        if(list_IDs[upper] == id)
-            return upper;
-
-        return MAX_UINT;
-    } /**/
-
   private:
-    // void formatLine(string &line);
-
-    /*dlist parseValues(string & str)
+    class COpiateEntry
     {
-        uint pos;
-        dlist values;
-        string v;
+        public:
+            COpiateEntry()
+            {
+                freq=0;
+                weight=0;
+                size=0;
+                name="Empty";
+                em=0;
+                ex=0;
+            }
+            
+            COpiateEntry(uint _size)
+            {
+                freq=0;
+                weight=0;
+                size=_size;
+                name="Empty";
+                em=new double[size];
+                ex=new double[size];
+                
+                for(uint i=0;i<size;i++)
+                {
+                    em[i]=0;
+                    ex[i]=0;
+                }               
+            }
 
-        if(str.size() == 0)
-            return values;
+            ~COpiateEntry()
+            {
+                if(em != 0)
+                {
+                    delete[] em;
+                    em = 0;
+                }
 
-        formatLine(str);
+                if(ex != 0)
+                {
+                    delete[] ex;
+                    ex = 0;
+                }
+            }
+            
+            void setData(uint pos, double _em, double _ex)
+            {
+                em[pos]=_em;
+                ex[pos]=_ex;
+            }
 
-        while(str.find(" ") != string::npos)
-        {
-            pos = uint(str.find(" "));
-            v = str.substr(0, pos);
-            str.erase(0, pos + 1);
-            values.push_back(atof(v.c_str()));
-        }
-
-        values.push_back(atof(str.c_str()));
-
-        return values;
-    }/**/
-
+            double freq;
+            double weight;
+            uint size;
+            string name;
+            double * em;
+            double * ex;
+    };    
+      
     Matrix2D mat_emissivity;
     Matrix2D mat_absorption;
 
@@ -323,6 +436,11 @@ class COpiateDataBase
     double max_velocity;
 
     uint database_counter;
+    
+    bool has_emi_data;
+    bool has_abs_data;
+    
+    vector < COpiateEntry * > entries;
 };
 
 #endif

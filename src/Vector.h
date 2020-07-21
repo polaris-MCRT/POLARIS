@@ -24,7 +24,7 @@ class Vector3D
     ~Vector3D(void)
     {}
 
-    void printValues()
+    void printValues() const
     {
         cout << "(" << float(x) << ":" << float(y) << ":" << float(z) << ")";
     }
@@ -109,7 +109,7 @@ class Vector3D
         return tmp;
     }
 
-    void rot(Vector3D & n, double cos_a, double sin_a)
+    void rot(const Vector3D & n, double cos_a, double sin_a)
     {
         Vector3D cx(x, y, z);
         Vector3D cr = cross(n, cx);
@@ -188,22 +188,13 @@ class Vector3D
 
     Vector3D getSphericalCoord() const
     {
-        if(x * x + y * y + z * z == 0)
-            return Vector3D(0, 0, 0);
-
         double r = sqrt(x * x + y * y + z * z);
 
         double arg;
         if(r != 0)
             arg = z / r;
         else
-            arg = 1;
-
-        if(arg > 1)
-            arg = 1;
-
-        if(arg < -1)
-            arg = -1;
+            return Vector3D(0, 0, 0);
 
         double ph = atan2(y, x), th = acos(arg);
 
@@ -579,7 +570,7 @@ double atan3(double x, double y)
 // inline Vector3D operator-(const Vector3D & lhs,const Vector3D & rhs) { return
 // Vector3D(lhs.X()-rhs.X(),lhs.X()-rhs.Y(),lhs.X()-rhs.Z());};
 
-inline Vector3D operator*(double val, const Vector3D & rhs)
+inline const Vector3D operator*(double val, const Vector3D & rhs)
 {
     return Vector3D(rhs.X() * val, rhs.Y() * val, rhs.Z() * val);
 }

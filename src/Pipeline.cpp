@@ -47,7 +47,7 @@ bool CPipeline::Init(int argc, char ** argv)
     }
     cout << SEP_LINE;
 
-    /*if(argc != 2)
+    if(argc != 2)
     {
         cout << "\nERROR: Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -57,12 +57,14 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]); /**/
 
-    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/first/cmd_file_4");
-    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/opiate/cmd_file");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/maya/cmd_line");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/warpfield/cmd_test");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/opiate/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/daniel/cmd_file");
     //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/En/cmd_file");
-    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/Ann/cmd_file_syn");
-    CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/line_test/cmd_file_new");
+    //CCommandParser parser("/home/ilion/1/reisslst/polaris projects/art/sed_test/cmd_file");
+    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/Melanie/cmd_file");
+    //CCommandParser parser("/mnt/c/Users/Stefan/Documents/work/line_test/cmd_file_new");
 
     if(!parser.parse())
     {
@@ -556,7 +558,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     // Print helpfull information
     dust->printParameters(param, grid);
     //gas->printParameters(param, grid);
-    op->printParameters(param,grid);
+    //op->printParameters(param,grid);
     grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
@@ -813,7 +815,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
     if(param.isRaytracingSimulation())
     {
-        // Raytracing simulations are only using background sources!
+        // Ray tracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
         {
             cout << "\nWARNING: Diffuse sources cannot be considered in "
@@ -1463,6 +1465,14 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
         }
         
         case CMD_OPIATE:     
+            
+            if(op==0)
+            {
+                cout << "\nERROR: No OPIATE database loaded!" << endl;
+                return false;
+            }
+            
+            
             // Get detector parameters list
             values = param.getOPIATERayDetectors();
 
@@ -1478,7 +1488,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 string spec_name=param.getOpiateSpec(i);
                 if(op->findIndexByName(spec_name))
                 {
-                    double wavelength = con_c / op->getFrequency();
+                    double wavelength = con_c / op->getCurrentFrequency();
                     dust->addToWavelengthGrid(wavelength);
                 }
                 else

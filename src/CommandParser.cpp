@@ -3559,7 +3559,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         }
         else
         {
-            cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+            cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                     "recognized!"
                  << endl;
             return false;
@@ -3568,7 +3568,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         {
             if(nr_of_pixel[i] <= 0)
             {
-                cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+                cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                         "recognized!"
                      << endl;
                 return false;
@@ -3584,7 +3584,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     {
         if(nr_of_channels[0] <= 0)
         {
-            cout << "\nERROR: Number of velocity channels in Raytracing detector could "
+            cout << "\nERROR: Number of velocity channels for ray tracing detector could "
                     "not be recognized!"
                  << endl;
             return false;
@@ -3593,7 +3593,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     }
     else
     {
-        cout << "\nERROR: Number of velocity channels in Raytracing detector could not "
+        cout << "\nERROR: Number of velocity channels for ray tracing detector could not "
                 "be recognized!"
              << endl;
         return false;
