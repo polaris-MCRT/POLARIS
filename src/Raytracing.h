@@ -88,6 +88,15 @@ class CRaytracingBasic
     {
         return false;
     }
+    
+    virtual bool setOPIATEDetector(uint pos,
+                                 const parameters & param,
+                                 dlist op_ray_detectors,
+                                 string path,
+                                 double _max_length)
+    {
+        return false;
+    }
 
     double getWavelength(uint i_wave)
     {
@@ -309,6 +318,21 @@ class CRaytracingBasic
 
         return true;
     }
+    
+    virtual bool writeOpiateResults(COpiateDataBase * op)
+    {
+        if(vel_maps)
+            if(!detector->writeOPIATEVelChannelMaps(op,dID))
+                return false;
+
+        if(!detector->writeOPIATEIntChannelMaps(op,dID))
+            return false;
+
+        if(!detector->writeOPIATESpectrum(op,dID))
+            return false;
+
+        return true;
+    }
 
     virtual bool writeSyncResults()
     {
@@ -330,7 +354,7 @@ class CRaytracingBasic
 
     double getDistanceFactor(Vector3D pos)
     {
-        return 1 / (getDistance(pos) * (getDistance(pos)));
+        return 1.0 / (getDistance(pos) * (getDistance(pos)));
     }
 
     virtual void getDetectorData(dlist & C, dlist & T)
@@ -625,6 +649,78 @@ class CRaytracingCartesian : public CRaytracingBasic
                                  nr_spectral_bins,
                                  max_velocity);
         detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
+
+        return true;
+    }
+    
+    
+    bool setOPIATEDetector(uint pos,
+                         const parameters & param,
+                         dlist op_ray_detectors,
+                         string path,
+                         double _max_length)
+    {
+        rt_detector_shape = DET_PLANE;
+        vel_maps = param.getVelMaps();
+
+        if(detector != 0)
+        {
+            delete detector;
+            detector = 0;
+        };
+
+        dID = pos / NR_OF_OPIATE_DET;
+
+        uint i_trans = -1;
+        sID = uint(op_ray_detectors[pos]);
+        double max_velocity = op_ray_detectors[pos + 1];
+
+        double tmp_angle1 = op_ray_detectors[pos + 2];
+        double tmp_angle2 = op_ray_detectors[pos + 3];
+        
+        rot_angle1 = PI / 180.0 * tmp_angle1;
+        rot_angle2 = PI / 180.0 * tmp_angle2;
+
+        distance = op_ray_detectors[pos + 4];
+
+        sidelength_x = op_ray_detectors[pos + 5];
+        sidelength_y = op_ray_detectors[pos + 6];
+
+        max_length = _max_length;
+
+        if(op_ray_detectors[pos + 7] != -1)
+            map_shift_x = op_ray_detectors[pos + 7];
+        if(op_ray_detectors[pos + 8] != -1)
+            map_shift_y = op_ray_detectors[pos + 8];
+
+        map_pixel_x = uint(op_ray_detectors[pos + NR_OF_OPIATE_DET - 3]);
+        map_pixel_y = uint(op_ray_detectors[pos + NR_OF_OPIATE_DET - 2]);
+        nr_spectral_bins = uint(op_ray_detectors[pos + NR_OF_OPIATE_DET - 1]);
+        nr_extra = 1;
+
+        max_subpixel_lvl = param.getMaxSubpixelLvl();
+
+        calcMapParameter();
+
+        Vector3D n1 = param.getAxis1();
+        Vector3D n2 = param.getAxis2();
+
+        setDetCoordSystem(n1, n2);
+
+        detector = new CDetector(rt_detector_shape,
+                                 path,
+                                 map_pixel_x,
+                                 map_pixel_y,
+                                 dID,
+                                 sidelength_x,
+                                 sidelength_y,
+                                 map_shift_x,
+                                 map_shift_y,
+                                 distance,
+                                 i_trans,
+                                 nr_spectral_bins,
+                                 max_velocity);
+        detector->setOrientation(n1, n2, tmp_angle1, tmp_angle2);
 
         return true;
     }

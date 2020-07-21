@@ -66,9 +66,9 @@ class CGridSpherical : public CGridBasic
         conv_Bfield_in_SI = 1;
         conv_Vfield_in_SI = 1;
 
-        nrOfGnuPoints = 1000;
-        nrOfGnuVectors = 1000;
-        maxGridLines = 3;
+        nrOfPlotPoints = 1000;
+        nrOfPlotVectors = 1000;
+        maxPlotLines = 3;
 
         cell_list = 0;
 
@@ -221,7 +221,7 @@ class CGridSpherical : public CGridBasic
         cout << CLR_LINE << flush;
     }
 
-    bool writeGNUPlotFiles(string path, parameters & param);
+    bool writePlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);

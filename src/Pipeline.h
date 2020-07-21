@@ -5,6 +5,8 @@
 #include "GasSpecies.h"
 #include "Source.h"
 #include "Typedefs.h"
+#include "Parameters.h"
+#include "OPIATE.h"
 
 #ifndef CPIPELINE
 #define CPIPELINE
@@ -51,7 +53,7 @@ class CPipeline
     // bool preparePressureData(CGridBasic * grid, CDustMixture * dust, parameters &
     // param, bool plot, uint itID);
 
-    bool createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas = 0);
+    bool createWavelengthList(parameters & param, CDustMixture * dust, CGasMixture * gas, COpiateDataBase * op);
 
     void printParameters(parameters & param, uint max_id);
 
@@ -172,16 +174,16 @@ class CPipeline
 
     void printPlotParameters(parameters & param, bool input_output = false)
     {
-        if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() + param.getInpMidDataPoints() +
+        if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() + param.getInpMidDataPoints() +
                param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() >
            0)
             cout << "Plot parameters" << endl;
 
-        if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() != 0)
+        if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() != 0)
         {
-            cout << "- Gnuplot                      : " << param.getNrOfGnuPoints() << " points, ";
-            cout << param.getNrOfGnuVectors() << " vectors, ";
-            cout << param.getmaxGridLines() << " max. level" << endl;
+            cout << "- Raw data                     : " << param.getNrOfPlotPoints() << " points, ";
+            cout << param.getNrOfPlotVectors() << " vectors, ";
+            cout << param.getMaxPlotLines() << " lines" << endl;
         }
 
         if(param.getInpMidDataPoints() != 0 && param.getOutMidDataPoints() != 0)
@@ -235,26 +237,26 @@ class CPipeline
 
     void printSourceParameters(parameters & param, bool show_dust = false)
     {
-        if(param.getNrOfSources() > 0 || param.isRaytracing())
+        if(param.getNrOfSources() > 0 || param.isRaytracingSimulation())
         {
             cout << "Defined radiation source(s)" << endl;
 
-            if(param.getNrOfPointSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
+            if(param.getNrOfPointSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
                 cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
-            if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
+            if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
                 cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
 
-            if(param.getNrOfLaserSources() > 0 && (!param.isRaytracing() || param.getScatteringToRay()))
+            if(param.getNrOfLaserSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
                 cout << "- Laser(s)  : " << param.getNrOfLaserSources() << endl;
 
-            if(param.getNrOfBackgroundSources() > 0 || param.isRaytracing())
+            if(param.getNrOfBackgroundSources() > 0 || param.isRaytracingSimulation())
                 cout << "- Background(s)  : " << max(uint(1), param.getNrOfBackgroundSources()) << endl;
 
             if(param.getDustSource() && show_dust)
                 cout << "- Dust as sources: yes" << endl;
 
-            if(param.getISRFSource() && (!param.isRaytracing() || param.getScatteringToRay()))
+            if(param.getISRFSource() && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
                 cout << "- ISRF as sources: yes" << endl;
         }
     }

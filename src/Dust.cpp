@@ -1442,7 +1442,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // Init strings for various filenames/titles
     string path_cross, path_eff, path_kappa, path_diff, path_g;
-    string path_scat, path_size_dist, str_title, gnu_title;
+    string path_scat, path_size_dist, str_title, plot_title;
     string plot_sign = "points";
 
     // Check if enough points to draw lines
@@ -1474,17 +1474,17 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     {
         // For the dust mixture, set the different strings
         str_title = "#Dust mixture\n " + stringID;
-        gnu_title = "#Dust mixture ";
-        gnu_title += str_mix_ID_end;
-        gnu_title += "\n";
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.plt";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
+        plot_title = "#Dust mixture ";
+        plot_title += str_mix_ID_end;
+        plot_title += "\n";
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.py";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.py";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.py";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.py";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
-        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.plt";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.py";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.py";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.py";
 
         // Format the strings
         uint pos = 0;
@@ -1502,17 +1502,17 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         }
 
         pos = 0;
-        while(gnu_title.find("\n") != string::npos)
+        while(plot_title.find("\n") != string::npos)
         {
-            pos = uint(gnu_title.find("\n"));
-            gnu_title.replace(pos, 1, "; ");
+            pos = uint(plot_title.find("\n"));
+            plot_title.replace(pos, 1, "; ");
         }
 
         pos = 0;
-        while(gnu_title.find("#") != string::npos)
+        while(plot_title.find("#") != string::npos)
         {
-            pos = uint(gnu_title.find("#"));
-            gnu_title.replace(pos, 1, " ");
+            pos = uint(plot_title.find("#"));
+            plot_title.replace(pos, 1, " ");
         }
     }
     else
@@ -1525,15 +1525,15 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         str_title += " mat.: " + stringID;
         str_title += " frac.: ";
         str_title += str_frac_end;
-        gnu_title = str_title;
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.plt";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.plt";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
+        plot_title = str_title;
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.py";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.py";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.py";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.py";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.py";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.py";
         path_size_dist =
-            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.plt";
+            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.py";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
@@ -1584,7 +1584,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     cross_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         cross_writer << "set log x" << endl;
@@ -1598,7 +1598,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     cross_writer << "set format y \"%.1te%02T\"" << endl;
     cross_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     cross_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    cross_writer << "set title \"" << gnu_title << "\"" << endl;
+    cross_writer << "set title \"" << plot_title << "\"" << endl;
     cross_writer << "plot \'-\' with " << plot_sign << " title \'C_{ext,x}\' lc rgb \"#0000F0\","
                  << "\'-\' with " << plot_sign << " title \'C_{ext,y}\' lc rgb \"#000090\","
                  << "\'-\' with " << plot_sign << " title \'C_{abs,x}\' lc rgb \"#FF0000\","
@@ -1694,7 +1694,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Qmin *= 0.9;
     Qmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     eff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         eff_writer << "set log x" << endl;
@@ -1708,7 +1708,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     eff_writer << "set format y \"%.1te%02T\"" << endl;
     eff_writer << "set ylabel \'Q_{avg}\'" << endl;
     eff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    eff_writer << "set title \"" << gnu_title << "\"" << endl;
+    eff_writer << "set title \"" << plot_title << "\"" << endl;
     eff_writer << "plot \'-\' with " << plot_sign << " title \'Q_{ext,x}\' lc rgb \"#0000F0\","
                << "\'-\' with " << plot_sign << " title \'Q_{ext,y}\' lc rgb \"#000090\","
                << "\'-\' with " << plot_sign << " title \'Q_{abs,x}\' lc rgb \"#FF0000\","
@@ -1805,7 +1805,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Kappa_min *= 0.9;
     Kappa_max *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     kappa_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         kappa_writer << "set log x" << endl;
@@ -1819,7 +1819,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     kappa_writer << "set format y \"%.1te%02T\"" << endl;
     kappa_writer << "set ylabel \'{/Symbol k}_{avg}  [m^2/kg]\'" << endl;
     kappa_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    kappa_writer << "set title \"" << gnu_title << "\"" << endl;
+    kappa_writer << "set title \"" << plot_title << "\"" << endl;
     kappa_writer << "plot \'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,x}\' lc rgb \"#0000F0\","
                  << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{ext,y}\' lc rgb \"#000090\","
                  << "\'-\' with " << plot_sign << " title \'{/Symbol k}_{abs,x}\' lc rgb \"#FF0000\","
@@ -1904,7 +1904,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     diff_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         diff_writer << "set log x" << endl;
@@ -1918,7 +1918,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     diff_writer << "set format y \"%.1te%02T\"" << endl;
     diff_writer << "set ylabel \'C_{avg} [m^{2}]\'" << endl;
     diff_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    diff_writer << "set title \"" << gnu_title << "\"" << endl;
+    diff_writer << "set title \"" << plot_title << "\"" << endl;
     diff_writer << "plot \'-\' with " << plot_sign << " title \'|dC_{ext}| (Cpol)\' lc rgb \"#0000FF\","
                 << "\'-\' with " << plot_sign << " title \'|dC_{abd}|\'  lc rgb \"#FF0000\","
                 << "\'-\' with " << plot_sign << " title \'|dC_{phas}| (C_{circ})\' lc rgb \"#800080\""
@@ -1957,7 +1957,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         return false;
     }
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     data_writer << "#material" << endl;
     data_writer << str_title << endl;
     data_writer << "#weight" << endl;
@@ -2035,7 +2035,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     Cmin *= 0.9;
     Cmax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     g_writer << "reset" << endl;
     if(nr_of_wavelength > 1)
         g_writer << "set log x" << endl;
@@ -2050,7 +2050,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     g_writer << "set format y \"%.1te%02T\"" << endl;
     g_writer << "set ylabel \'|g_{avg}|'" << endl;
     g_writer << "set xlabel \'{/Symbol l} [m]\'" << endl;
-    g_writer << "set title \"" << gnu_title << "\"" << endl;
+    g_writer << "set title \"" << plot_title << "\"" << endl;
     g_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 
     // Add HG g factor to file (if larger than 0)
@@ -2141,7 +2141,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
             }
         }
 
-        // Add Gnuplot commands to file
+        // Add plot commands to file
         scat_writer << "reset" << endl;
         scat_writer << "set grid" << endl;
         scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
@@ -2153,7 +2153,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         scat_writer << "set format y \"%.1te%02T\"" << endl;
         scat_writer << "set ylabel \'S11\'" << endl;
         scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
-        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "set title \"" << plot_title << "\"" << endl;
         scat_writer << "plot ";
         for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
         {
@@ -2180,7 +2180,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         scat_writer << "set format y \"%.1te%02T\"" << endl;
         scat_writer << "set ylabel \'S12\'" << endl;
         scat_writer << "set xlabel \'{\u03B8} [°]\'" << endl;
-        scat_writer << "set title \"" << gnu_title << "\"" << endl;
+        scat_writer << "set title \"" << plot_title << "\"" << endl;
         scat_writer << "plot ";
         for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
         {
@@ -2247,7 +2247,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     SizeDistMin *= 0.9;
     SizeDistMax *= 1.10;
 
-    // Add Gnuplot commands to file
+    // Add plot commands to file
     size_dist_writer << "reset" << endl;
     if(nr_of_dust_species > 1)
         size_dist_writer << "set log x" << endl;
@@ -2261,7 +2261,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     size_dist_writer << "set format y \"%.1te%02T\"" << endl;
     size_dist_writer << "set ylabel \'{/Symbol d}N(a)'" << endl;
     size_dist_writer << "set xlabel \'a [m]\'" << endl;
-    size_dist_writer << "set title \"" << gnu_title << "\"" << endl;
+    size_dist_writer << "set title \"" << plot_title << "\"" << endl;
     size_dist_writer << "plot \'-\' with " << plot_sign << " lc rgb \"#0000F0\"" << endl;
 
     // Add HG g factor to file (if larger than 0)
@@ -4934,7 +4934,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
     return true;
 }
 
-void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
+void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 {
     // If no mixture was defined, show basic information
     if(getNrOfMixtures() == 0)
@@ -5029,7 +5029,7 @@ void CDustMixture::printParameter(parameters & param, CGridBasic * grid)
         }
 
         cout << "- Include scattered light : ";
-        if(grid->getRadiationFieldAvailable())
+        if(grid->isRadiationFieldAvailable())
         {
             if(scattering_to_raytracing)
                 cout << "yes, based on the radiation field" << endl;

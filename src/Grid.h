@@ -6,6 +6,14 @@
 #ifndef CGRIDBASIC
 #define CGRIDBASIC
 
+// Additional Structure
+struct VelFieldInterp
+{
+    spline vel_field;
+    bool zero_vel_field;
+    Vector3D start_pos;
+};
+
 // Additional Structures
 class MagFieldInfo
 {
@@ -116,9 +124,9 @@ class CGridBasic
         velocity_field_needed = false;
         spec_length_as_vector = false;
 
-        nrOfGnuPoints = 1000;
-        nrOfGnuVectors = 1000;
-        maxGridLines = 3;
+        nrOfPlotPoints = 1000;
+        nrOfPlotVectors = 1000;
+        maxPlotLines = 3;
 
         cell_list = 0;
 
@@ -627,7 +635,7 @@ class CGridBasic
         conv_Vfield_in_SI = param.getSIConvVField();
     }
 
-    virtual bool writeGNUPlotFiles(string path, parameters & param) = 0;
+    virtual bool writePlotFiles(string path, parameters & param) = 0;
 
     void setDataSize(uint sz)
     {
@@ -1524,7 +1532,19 @@ class CGridBasic
         uint pos = pos_OpiateIDS[0];
         return uint(cell->getData(pos));
     }
+    
+    uint getOpiateID(const photon_package * pp)
+    {
+        uint pos = pos_OpiateIDS[0];
+        return uint(pp->getPositionCell()->getData(pos));
+    }
 
+    uint getOpiateID(photon_package pp)
+    {
+        uint pos = pos_OpiateIDS[0];
+        return uint(pp.getPositionCell()->getData(pos));
+    }
+    
     void setOpiateID(cell_basic * cell, uint id)
     {
         uint pos = pos_OpiateIDS[0];
@@ -2293,9 +2313,17 @@ class CGridBasic
         return false;
     };
 
-    bool getVelocityFieldAvailable()
+    bool isVelocityFieldAvailable()
     {
         if(data_pos_vx == MAX_UINT || data_pos_vy == MAX_UINT || data_pos_vz == MAX_UINT)
+            return false;
+        return true;
+    }
+    
+    
+    bool isTurbulentVelocityAvailable()
+    {
+        if(data_pos_vt == MAX_UINT)
             return false;
         return true;
     }
@@ -2399,7 +2427,7 @@ class CGridBasic
         return gas_is_mass_density;
     }
 
-    bool getRadiationFieldAvailable() const
+    bool isRadiationFieldAvailable() const
     {
         if(data_pos_rx_list.empty() || data_pos_ry_list.empty() || data_pos_rz_list.empty() ||
            data_pos_rf_list.empty())
@@ -3692,8 +3720,8 @@ class CGridBasic
     uint char_counter;
     unsigned char ru[4];
 
-    uint nrOfGnuPoints, nrOfGnuVectors;
-    uint maxGridLines;
+    uint nrOfPlotPoints, nrOfPlotVectors;
+    uint maxPlotLines;
 
     Vector3D ex, ey, ez;
 

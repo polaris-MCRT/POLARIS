@@ -214,7 +214,7 @@ class Matrix2D
 
     void setValue(uint i, uint j, double val)
     {
-#pragma omp atomic write
+        #pragma omp atomic write
         m_data[i * m_n + j] = val;
     }
 

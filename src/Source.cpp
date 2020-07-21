@@ -29,11 +29,13 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
             double sp_energy;
 
             if(is_ext)
-                sp_energy = sp_ext.getValue(wavelength_list[w],LINEAR);
+                //sp_energy = sp_ext.getValue(wavelength_list[w],LINEAR);
+                sp_energy = sp_ext.getLinearValue(wavelength_list[w]);
             else
                 sp_energy =
                     4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
 
+            //cout << w << "\t" << wavelength_list[w] << "\t"  << sp_energy << endl << flush;
             star_emi.push_back(sp_energy);
         }
 
@@ -213,7 +215,8 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
         wID = pp->getDustWavelengthID();
         if(is_ext)
         {
-            energy = sp_ext.getValue(wavelength_list[wID]) / PIx4;
+            energy = sp_ext.getLinearValue(wavelength_list[wID]);
+            energy=energy/ PIx4;
             double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
             double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
             tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
@@ -1269,6 +1272,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     float last_percentage = 0;
 
     // Show Initial message
+    cout << CLR_LINE;
     cout << "-> Initiating dust grain emission          \r" << flush;
 
     for(uint w = 0; w < nr_of_wavelengths; w++)
@@ -1298,7 +1302,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
             {
 //#pragma omp critical
                 {
-                    cout << "-> Calculate prob. distribution for dust source: " << percentage << " [%]    \r"
+                    cout << "-> Calculating prob. distribution for dust source: " << percentage << " [%]    \r"
                          << flush;
                     last_percentage = percentage;
                 }
@@ -1319,6 +1323,8 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     }
 
     // Show information
+    cout << CLR_LINE;
+
     cout << "- Source (" << id + 1 << " of " << max
          << ") DUST: photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
 

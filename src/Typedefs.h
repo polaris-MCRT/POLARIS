@@ -21,20 +21,20 @@ using namespace std;
 
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
-#define PIsq sqrt(PI)                                 // sqrt(PI)
-#define PI2 PI / 2.0                                  // PI / 2
-#define PI4 PI / 4.0                                  // PI / 4
-#define invPI2 2.0 / PI                               // 2 / PI
-#define PIx2 PI * 2.0                                 // 2 * PI
-#define PIx4 PI * 4.0                                 // 4 * PI
-#define PI4x3 PI * 3.0 / 4.0                          // 3 * PI / 4
+#define PIsq (sqrt(PI))                                 // sqrt(PI)
+#define PI2 (PI / 2.0)                                  // PI / 2
+#define PI4 (PI / 4.0)                                  // PI / 4
+#define invPI2 (2.0 / PI)                               // 2 / PI
+#define PIx2 (PI * 2.0)                                 // 2 * PI
+#define PIx4 (PI * 4.0)                                 // 4 * PI
+#define PI4x3 (PI * 3.0 / 4.0)                          // 3 * PI / 4
 #define TWOTHIRD 0.6666666666666666666666666666666    // 2 / 3
 #define m_H 1.66053904e-27                            // Atomic mass unit [kg]
 #define con_h 6.62607004e-34                          // Planck constant [Js]
 #define con_hq 1.0545718e-34                          // Reduced Planck constant [Js]
 #define con_kB 1.38064852e-23                         // Boltzmann constant [J / K]
 #define con_c 299792458.0                             // Speed of light in vacuum [m / s]
-#define PIx4_c PIx4 / con_c                           // (4 * PI / c)
+#define PIx4_c (PIx4 / con_c)                           // (4 * PI / c)
 #define con_e 1.6021766208e-19                        // Electron charge [C]
 #define con_Ryd 10973731.568508                       // Rydberg constant [1 / m]
 #define con_AU 149597870700.0                         // Astronomical Unit [m]
@@ -51,7 +51,7 @@ using namespace std;
 #define con_m_e 9.10938356e-31                        // Electron mass [kg]
 #define con_m_p 1.672621898e-27                       // Proton mass [kg]
 #define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
-#define con_eps con_h * con_c / (4.0 * PI)            // (h * c / (4 * PI))
+#define con_eps (con_h * con_c / (4.0 * PI))            // (h * c / (4 * PI))
 
 #ifdef CAMPS_BENCHMARK
 // Part to perform Camps et. al (2015) benchmark (adjust definition below, if
@@ -61,14 +61,14 @@ using namespace std;
 #define WL_STEPS 1201
 #else
 // Default parameters of the global wavelength grid
-#define WL_MIN 0.1e-6
+#define WL_MIN 9.122E-08
 #define WL_MAX 2000e-6
 #define WL_STEPS 100
 #endif
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION 1500000
+#define MAX_INTERACTION 1500000000
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e2
 #define ACC_SELECT_LEVEL 1e-6
@@ -78,7 +78,7 @@ using namespace std;
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
 #define ABS_ERROR 1e-30
-#define MAX_SOLVER_STEPS 1500000
+#define MAX_SOLVER_STEPS 15000000
 
 // Limits for the Monte-Carlo level population calculation
 #define MC_LVL_POP_DIFF_LIMIT 1e-6
@@ -98,7 +98,7 @@ using namespace std;
 #define NR_OF_SIZE_DIST_PARAM 14
 
 // Number of entries for different detectors
-#define NR_OF_MC_DET 10
+#define NR_OF_MC_DET 12
 #define NR_OF_RAY_DET 15
 #define NR_OF_LINE_DET 17
 #define NR_OF_OPIATE_DET 17

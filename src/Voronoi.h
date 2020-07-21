@@ -65,9 +65,9 @@ class CGridVoronoi : public CGridBasic
         conv_Bfield_in_SI = 1;
         conv_Vfield_in_SI = 1;
 
-        nrOfGnuPoints = 1000;
-        nrOfGnuVectors = 1000;
-        maxGridLines = 3;
+        nrOfPlotPoints = 1000;
+        nrOfPlotVectors = 1000;
+        maxPlotLines = 3;
 
         cell_list = 0;
 
@@ -194,7 +194,7 @@ class CGridVoronoi : public CGridBasic
         return true;
     }
 
-    bool writeGNUPlotFiles(string path, parameters & param);
+    bool writePlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);
@@ -1205,7 +1205,7 @@ class CGridVoronoi : public CGridBasic
         return false;
     }
 
-    void addGNULines(uint cID, stringstream & str)
+    void addPlotLines(uint cID, stringstream & str)
     {
         cell_vo * tmp_cell = (cell_vo *)cell_list[cID];
         uint nr_neighbors = tmp_cell->getNrOfNeighbors();

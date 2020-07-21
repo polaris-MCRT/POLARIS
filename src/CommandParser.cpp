@@ -564,6 +564,48 @@ bool CCommandParser::parse()
                     stop = 0;
                 }
                 break;
+                
+                
+            case CMD_OPIATE:
+                if(i == 0)
+                    break;
+
+                map_max = param->getNrOfOPIATESpecies();
+
+                if(start == MAX_UINT)
+                    start = 0;
+                else
+                    start--;
+
+                if(stop == MAX_UINT)
+                    stop = map_max - 1;
+                else
+                    stop--;
+
+                if(stop > map_max - 1)
+                {
+                    stop = map_max - 1;
+                    cout << "\nWARNING: <stop> value larger than number of raytracing "
+                            "detectors!"
+                         << endl;
+                    cout << " Value set to " << stop + 1 << "." << endl;
+                }
+
+                if(start > map_max - 1)
+                {
+                    start = 0;
+                    cout << "\nWARNING: <start> value larger than number of raytracing "
+                            "detectors!"
+                         << endl;
+                    cout << " Value set to 1." << endl;
+                }
+
+                if(map_max == 0)
+                {
+                    start = 0;
+                    stop = 0;
+                }
+                break;    
 
             case CMD_SYNCHROTRON:
                 if(i == 0)
@@ -876,12 +918,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         formatLine(data);
         dlist values = parseValues(data);
 
+        while(values[2] < 0)
+            values[2] += 360;
         while(values[3] < 0)
             values[3] += 360;
-        while(values[4] < 0)
-            values[4] += 360;
-
-        if(values.size() == NR_OF_OPIATE_DET - 12) //no distance
+    
+        if(values.size() == NR_OF_OPIATE_DET - 13) //no distance
         {
             //Set distance to 1
             values.push_back(1.0);
@@ -896,12 +938,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             // Set dy to center
             values.push_back(0.0);
             
-            // 3x empty 
+            // 4x empty 
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
             values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_OPIATE_DET - 11) // no side lengths
+        else if(values.size() == NR_OF_OPIATE_DET - 12) // no side lengths
         {
             // Set sidelength in x-direction to cube sidelength
             values.push_back(-1);
@@ -914,12 +958,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             // Set dy to center
             values.push_back(0.0);
             
-            // 3x empty 
+            // 4x empty 
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
             values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_OPIATE_DET - 10)
+        else if(values.size() == NR_OF_OPIATE_DET - 11)
         {
             // Set sidelength in y-direction to cube sidelength
             values.push_back(values[values.size()-1]);
@@ -930,12 +976,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             // Set dy to center
             values.push_back(0.0);
             
-            // 3x empty 
+            // 4x empty 
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
             values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_OPIATE_DET - 9)
+        else if(values.size() == NR_OF_OPIATE_DET - 10)
         {
             // Set dx to center
             values.push_back(0.0);
@@ -943,17 +991,22 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             // Set dy to center
             values.push_back(0.0);
             
-            // 3x empty 
+            // 4x empty 
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
             values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_OPIATE_DET - 7)
+        else if(values.size() == NR_OF_OPIATE_DET - 8)
         {
             // As above, but with x- and y-shift of the detector map
             // Do not use the other values
+            // 4x empty 
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
             values.push_back(0.0);
         }
 
@@ -974,10 +1027,10 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->addOpiateRayDetector(values);
         param->addOpiateSpec(str_id);
         
-        param->updateDetectorAngles(values[3], values[4]);
-        param->updateObserverDistance(values[5]);
-        param->updateMapSidelength(values[6], values[7]);
-        param->updateRayGridShift(values[8], values[9]);
+        param->updateDetectorAngles(values[2], values[3]);
+        param->updateObserverDistance(values[4]);
+        param->updateMapSidelength(values[5], values[6]);
+        param->updateRayGridShift(values[7], values[8]);
         param->updateDetectorPixel(uint(values[NR_OF_OPIATE_DET - 3]), uint(values[NR_OF_OPIATE_DET - 2]));
 
         return true;
@@ -1001,7 +1054,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         formatLine(data);
         dlist values = parseValues(data);
 
-        if(values.size() == NR_OF_OPIATE_DET - 11) //no ang. range
+        //cout << values.size() << "   " <<  NR_OF_OPIATE_DET << endl;
+        if(values.size() == NR_OF_OPIATE_DET - 12) //no ang. range
         {
             // l_min
             values.push_back(-180);
@@ -1017,12 +1071,23 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
+            
+            // set bubble radius to zero
+            values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_OPIATE_DET - 7) // no velocity
+        else if(values.size() == NR_OF_OPIATE_DET - 8) // no velocity
         {
             // Set velocity to zero
             values.push_back(0.0);
             values.push_back(0.0);
+            values.push_back(0.0);
+            
+            // set bubble radius to zero
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_OPIATE_DET - 5) // no bubble
+        {          
+            // set bubble radius to zero
             values.push_back(0.0);
         }
 
@@ -1045,7 +1110,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                 
         param->updateDetectorPixel(uint(nr_of_sides[0]), 0);
 
-        double distance = sqrt(values[4] * values[4] + values[5] * values[5] + values[6] * values[6]);
+        double distance = sqrt(values[2] * values[2] + values[3] * values[3] + values[4] * values[4]);
         param->updateObserverDistance(distance);
 
         // Showing full sphere coverage
@@ -1815,19 +1880,29 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         while(values[4] < 0)
             values[4] += 360;
 
-        if(values.size() == NR_OF_MC_DET - 4)
+        if(values.size() == NR_OF_MC_DET - 6)//
         {
             // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            
             // Set sidelength in x-direction of cube sidelength
             values.push_back(-1);
             // Set sidelength in y-direction of cube sidelength
             values.push_back(-1);
+
+            // Set shift in x-direction of cube sidelength
+            values.push_back(0);
+            // Set shift in y-direction of cube sidelength
+            values.push_back(0);
+
         }
-        else if(values.size() == NR_OF_MC_DET - 3)
+        else if(values.size() == NR_OF_MC_DET - 4)//
         {
-            // As above, but with one sidelength for both directions of cube sidelength
-            // Set given sidelength also for y-direction of cube sidelength
-            values.push_back(values[NR_OF_MC_DET - 4]);
+            //only sidelength but no shift
+            
+            // Set shift in x-direction of cube sidelength
+            values.push_back(0);
+            // Set shift in y-direction of cube sidelength
+            values.push_back(0);
         }
 
         if(!checkPixel(values, nr_of_pixel))
@@ -2927,15 +3002,15 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }*/
 
-    if(cmd.compare("<nr_gnu_points>") == 0)
+    if(cmd.compare("<nr_plot_points>") == 0)
     {
-        param->setNrOfGnuPoints(uint(atof(data.c_str())));
+        param->setNrOfPlotPoints(uint(atof(data.c_str())));
         return true;
     }
 
-    if(cmd.compare("<nr_gnu_vectors>") == 0)
+    if(cmd.compare("<nr_plot_vectors>") == 0)
     {
-        param->setNrOfGnuVectors(uint(atof(data.c_str())));
+        param->setnrOfPlotVectors(uint(atof(data.c_str())));
         return true;
     }
 
@@ -2969,9 +3044,9 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
-    if(cmd.compare("<max_lines>") == 0)
+    if(cmd.compare("<max_plot_lines>") == 0)
     {
-        param->setmaxGridLines(uint(atof(data.c_str())));
+        param->setMaxPlotLines(uint(atof(data.c_str())));
         return true;
     }
 
@@ -3484,7 +3559,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         }
         else
         {
-            cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+            cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                     "recognized!"
                  << endl;
             return false;
@@ -3493,7 +3568,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         {
             if(nr_of_pixel[i] <= 0)
             {
-                cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+                cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                         "recognized!"
                      << endl;
                 return false;
@@ -3509,7 +3584,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     {
         if(nr_of_channels[0] <= 0)
         {
-            cout << "\nERROR: Number of velocity channels in Raytracing detector could "
+            cout << "\nERROR: Number of velocity channels for ray tracing detector could "
                     "not be recognized!"
                  << endl;
             return false;
@@ -3518,7 +3593,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     }
     else
     {
-        cout << "\nERROR: Number of velocity channels in Raytracing detector could not "
+        cout << "\nERROR: Number of velocity channels for ray tracing detector could not "
                 "be recognized!"
              << endl;
         return false;
