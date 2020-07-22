@@ -1477,7 +1477,7 @@ class CGridBasic
 
     uint getCellID(cell_basic * cell)
     {
-        return cell->getID();
+        return cell->getUniqueID();
     }
 
     uint validateDataPositions(parameters & param);

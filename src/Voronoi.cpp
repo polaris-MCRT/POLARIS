@@ -901,7 +901,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
         }
 
         int nr_neighbors = (int)tmp_cell->getNrOfNeighbors();
-        uint id = tmp_cell->getID();
+        uint id = tmp_cell->getUniqueID();
         int tmp_n = 0;
 
         if(isHullPoint(id))

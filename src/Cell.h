@@ -72,11 +72,6 @@ class cell_basic
         id = _id;
     }
 
-    uint getID() const
-    {
-        return id;
-    }
-
     virtual ulong getUniqueID() const
     {
         return ulong(id);
@@ -197,6 +192,13 @@ class cell_oc : public cell_basic
         return level;
     }
 
+    // get the position ID within the parent cube (0-7)
+    uint getID() const
+    {
+        return id;
+    }
+
+    // get the actual ID of the cell (globally unique)
     ulong getUniqueID() const
     {
         return unique_id;
