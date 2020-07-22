@@ -1,12 +1,10 @@
 #pragma once
-#include <math.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <limits>
-#include <string>
-
+#include "Detector.h"
 #include "Dust.h"
+#include "GasSpecies.h"
 #include "Grid.h"
+#include "MathFunctions.h"
+#include "OcTree.h"
 #include "Photon.h"
 #include "Source.h"
 #include "Typedefs.h"
@@ -16,11 +14,6 @@
 #include "Parameters.h"
 #include "Stokes.h"
 #include "Vector.h"
-
-class CDetector;
-class CGasMixture;
-class COpiateDataBase;
-struct VelFieldInterp;
 
 class CRadiativeTransfer
 {
@@ -208,9 +201,9 @@ class CRadiativeTransfer
                           uint subpixel_lvl);
     void rayThroughCellSync(photon_package * pp1, uint i_det, uint nr_used_wavelengths);
 
-
+    
     //OPIATE database RT
-
+    
     bool calcOPIATEMapsViaRaytracing(parameters & param);
     void getOPIATEPixelIntensity(CSourceBasic * tmp_source,
                                double cx,
@@ -220,7 +213,7 @@ class CRadiativeTransfer
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
-
+    
     void getOPIATEIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -229,18 +222,18 @@ class CRadiativeTransfer
                           uint i_trans,
                           uint i_det,
                           uint subpixel_lvl);
-
+    
     void rayThroughCellOPIATE(photon_package * pp,
                             uint i_species,
                             uint i_trans,
                             uint i_det,
                             uint nr_velocity_channels,
                             const VelFieldInterp & vel_field_interp);
-
+    
 
     // Line emission
     bool calcChMapsViaRaytracing(parameters & param);
-
+    
     void getLinePixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
@@ -249,9 +242,7 @@ class CRadiativeTransfer
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
-
-
-
+    
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -330,7 +321,7 @@ class CRadiativeTransfer
     {
         gas = _gas;
     }
-
+    
     void setOpiateDataBase(COpiateDataBase * _op)
     {
         op=_op;

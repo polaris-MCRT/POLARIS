@@ -1,14 +1,9 @@
-#include <ext/alloc_traits.h>
-#include <math.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <memory>
-#include <vector>
-
 #include "OcTree.h"
+#include "CommandParser.h"
 #include "MathFunctions.h"
-#include "Typedefs.h"
 #include "Parameters.h"
+#include "Typedefs.h"
+#include <limits>
 
 void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, uint level)
 {
@@ -22,7 +17,7 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing Gnuplot vectors: " << ru[(unsigned int)char_counter % 4] << "           \r";
+            cout << "-> Creating plot vectors: " << ru[(unsigned int)char_counter % 4] << "           \r";
         }
 
         if(cell->getLevel() > level)
@@ -30,7 +25,7 @@ void CGridOcTree::plotNextDataVector(ofstream * file_streams, cell_oc * cell, ui
 
             rec_counter++;
 
-            if(rec_counter % nrOfGnuVectors == 0)
+            if(rec_counter % nrOfPlotVectors == 0)
             {
                 if(plt_mag)
                 {
@@ -121,7 +116,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << "-> Writing Gnuplot point files: " << ru[(unsigned int)char_counter % 4]
+            cout << "-> Creating plot points: " << ru[(unsigned int)char_counter % 4]
                  << "           \r";
         }
 
@@ -129,7 +124,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
         {
             rec_counter++;
 
-            if(rec_counter % nrOfGnuPoints == 0)
+            if(rec_counter % nrOfPlotPoints == 0)
             {
                 if(plt_gas_dens)
                     file_streams[1] << x << " " << y << " " << z << " "
@@ -208,7 +203,7 @@ void CGridOcTree::plotNextDataPoint(ofstream * file_streams, cell_oc * cell, uin
 
 void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint level)
 {
-    if(cell->getLevel() <= maxGridLines)
+    if(cell->getLevel() <= maxPlotLines)
     {
         float len_max = float(cell->getLength());
         float len_min = float(0.5 * cell->getLength());
@@ -221,7 +216,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
         if(line_counter % 15000 == 0)
         {
             char_counter++;
-            cout << " -> Writing Gnuplot grid file: " << ru[(unsigned int)char_counter % 4]
+            cout << " -> Plotting octree grid file: " << ru[(unsigned int)char_counter % 4]
                  << "           \r";
         }
 
@@ -295,104 +290,103 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
 
     if(!loadGridFromBinrayFile(param))
         return false;
-
+        
     createCellList();
 
     printParameters();
 
     cell_oc_root=&cell_oc_root->getChildren()[6];
 
-
+    
     ulong max_cells = getMaxDataCells();
 
     cout << CLR_LINE;
 
 
 #pragma omp parallel for schedule(dynamic)
-
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = getCellFromIndex(c_i);
         double dens0 = getGasDensity(*cell, 0);
         double dens1 = getGasDensity(*cell, 1);
-
-
+        
+        
         if(c_i%5000==0)
             cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
-
+        
         double dens = dens0+dens1;
-
-
+        
+        
         double length = ((cell_oc *)cell)->getLength();
-
+        
         double cx = ((cell_oc *)cell)->getXmin()+0.5*length;
         double cy = ((cell_oc *)cell)->getYmin()+0.5*length;
         double cz = ((cell_oc *)cell)->getZmin()+0.5*length;
-
+        
         vector<Vector3D> vlist;
-
+        
         length=0.51*length;
-
+        
         Vector3D center=Vector3D(cx,cy,cz);
-
+        
         vlist.push_back(Vector3D(cx+length,cy,cz));
         vlist.push_back(Vector3D(cx-length,cy,cz));
-
+        
         vlist.push_back(Vector3D(cx,cy+length,cz));
         vlist.push_back(Vector3D(cx,cy-length,cz));
-
+        
         vlist.push_back(Vector3D(cx,cy,cz+length));
         vlist.push_back(Vector3D(cx,cy,cz-length));
-
+        
         length=1.732*length;
-
+        
         vlist.push_back(Vector3D(cx+length,cy+length,cz+length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz+length));
-
+        
         vlist.push_back(Vector3D(cx+length,cy+length,cz-length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz-length));
-
+        
         photon_package pp;
-
+        
         pp.setPosition(center);
-
+        
         if(positionPhotonInGrid(&pp))
         {
             //cell_basic * cell = pp.getPositionCell()
             double tg= 0.8*getGasTemperature(pp);
-
+                        
             for(uint g=0;g<vlist.size();g++)
             {
                 pp.setPosition(vlist[g]);
-
+        
                 if(positionPhotonInGrid(&pp))
                 {
                     tg+=0.8/14.0*getGasTemperature(pp);
-                }
+                }   
             }
-
+            
             setGasTemperature(cell, tg);
         }
-
-
+             
+        
         if(dens*254098.7886>1e13)
         {
-            setGasDensity(cell, 0, 0.005*dens);
-            setGasDensity(cell, 1, 0.995*dens);
+            setGasDensity(cell, 0, 0.0*dens);
+            setGasDensity(cell, 1, 1.0*dens);
         }
         else
         {
-            setGasDensity(cell, 0, 0.995*dens);
-            setGasDensity(cell, 1, 0.005*dens);
+            setGasDensity(cell, 0, 1.0*dens);
+            setGasDensity(cell, 1, 0.0*dens);
         }
     }
 
     //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
-
+    
     if(!saveBinaryGridFile(out_filename))
         return false;
 
@@ -429,7 +423,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 tmp_data[j]=0;
             }
-
+                        
             for(int i = 0; i < 8; i++)
             {
                 for(uint j =0;j<data_len;j++)
@@ -446,7 +440,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 cell->setData(j, tmp_data[j]); ;
             }
-
+            
             if(cell->getLevel() > tr_level)
                 return true;
 
@@ -704,13 +698,13 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     return true;
 }
 
-bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
+bool CGridOcTree::writePlotFiles(string path, parameters & param)
 {
-    nrOfGnuPoints = param.getNrOfGnuPoints();
-    nrOfGnuVectors = param.getNrOfGnuVectors();
-    maxGridLines = param.getmaxGridLines();
+    nrOfPlotPoints = param.getNrOfPlotPoints();
+    nrOfPlotVectors = param.getNrOfPlotVectors();
+    maxPlotLines = param.getMaxPlotLines();
 
-    if(nrOfGnuPoints + nrOfGnuVectors == 0)
+    if(nrOfPlotPoints + nrOfPlotVectors == 0)
         return true;
 
     if(cell_oc_root == 0)
@@ -721,10 +715,10 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         return false;
     }
 
-    if(max_level < maxGridLines)
+    if(max_level < maxPlotLines)
     {
         cout << "\nWARNING: Number of max. grid level is higher than max. tree level!" << endl;
-        maxGridLines = uint(max_level);
+        maxPlotLines = uint(max_level);
         return false;
     }
 
@@ -745,7 +739,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (size_gd_list > 0);  // 1
-    plt_mol_dens = (nrOfDensRatios>0);
+    plt_mol_dens = (nrOfDensRatios>0); 
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
@@ -757,9 +751,9 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
 
-    if(nrOfGnuPoints <= 1)
+    if(nrOfPlotPoints <= 1)
     {
-        nrOfGnuPoints = max_cells / 10;
+        nrOfPlotPoints = max_cells / 10;
 
         plt_gas_dens = false;
         plt_dust_dens = false;
@@ -771,36 +765,36 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         plt_mach = false;
     }
     else
-        nrOfGnuPoints = max_cells / nrOfGnuPoints;
+        nrOfPlotPoints = max_cells / nrOfPlotPoints;
 
-    if(nrOfGnuVectors <= 1)
+    if(nrOfPlotVectors <= 1)
     {
-        nrOfGnuVectors = max_cells / 10;
+        nrOfPlotVectors = max_cells / 10;
         plt_mag = false;
         plt_vel = false;
     }
     else
-        nrOfGnuVectors = max_cells / nrOfGnuVectors;
+        nrOfPlotVectors = max_cells / nrOfPlotVectors;
 
-    if(nrOfGnuPoints == 0)
-        nrOfGnuPoints = 1;
+    if(nrOfPlotPoints == 0)
+        nrOfPlotPoints = 1;
 
-    if(nrOfGnuVectors == 0)
-        nrOfGnuVectors = 1;
+    if(nrOfPlotVectors == 0)
+        nrOfPlotVectors = 1;
 
     stringstream point_header, vec_header, basic_grid_l0, basic_grid_l1;
 
-    string grid_filename = path + "grid_geometry.plt";
-    string dens_gas_filename = path + "grid_gas_density.plt";
-    string dens_dust_filename = path + "grid_dust_density.plt";
-    string temp_gas_filename = path + "grid_gas_temp.plt";
-    string temp_dust_filename = path + "grid_dust_temp.plt";
-    string rat_filename = path + "grid_RAT.plt";
+    string grid_filename = path + "grid_geometry.py";
+    string dens_gas_filename = path + "grid_gas_density.py";
+    string dens_dust_filename = path + "grid_dust_density.py";
+    string temp_gas_filename = path + "grid_gas_temp.py";
+    string temp_dust_filename = path + "grid_dust_temp.py";
+    string rat_filename = path + "grid_RAT.py";
     string delta_filename = path + "grid_data.dat";
-    string larm_filename = path + "grid_mag.plt";
-    string mach_filename = path + "grid_vel.plt";
-    string mag_filename = path + "grid_mag.plt";
-    string vel_filename = path + "grid_vel.plt";
+    string larm_filename = path + "grid_mag.py";
+    string mach_filename = path + "grid_vel.py";
+    string mag_filename = path + "grid_mag.py";
+    string vel_filename = path + "grid_vel.py";
 
     ofstream point_fields[9];
     ofstream vec_fields[2];
@@ -1253,7 +1247,7 @@ bool CGridOcTree::writeGNUPlotFiles(string path, parameters & param)
         vec_fields[pos].close();
 
     cout << CLR_LINE;
-    cout << "- Writing of Gnuplot files             : done" << endl;
+    cout << "- Writing of plot files                : done" << endl;
     return true;
 }
 

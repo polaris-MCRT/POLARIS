@@ -1,15 +1,10 @@
-#include <iostream>
-#include <map>
-#include <utility>
-
 #include "RadiativeTransfer.h"
+#include "CommandParser.h"
 #include "Detector.h"
 #include "Stokes.h"
 #include "GasSpecies.h"
 #include "MathFunctions.h"
 #include "OPIATE.h"
-
-class cell_basic;
 
 #define XAxis 10
 #define YAxis 20
@@ -354,7 +349,7 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
     // Init array of tracer base class pointer
     nr_ray_detectors = param.getNrOfOPIATESpecies();
     tracer = new CRaytracingBasic *[nr_ray_detectors];
-
+    
     dlist op_ray_detectors = param.getOPIATERayDetectors();
 
     for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
@@ -386,10 +381,16 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
                 break;
 
             case DET_SLICE:
-                tracer[i_det] = new CRaytracingSlice(grid);
+                //tracer[i_det] = new CRaytracingSlice(grid);
+                cout << "ERROR: Slice detector not yet fully implemented!" << endl;
                 break;
+                
+            default:
+                //tracer[i_det] = new CRaytracingSlice(grid);
+                cout << "ERROR: Detector not yet fully implemented!" << endl;
+                break;    
         }
-
+        
         if(!tracer[i_det]->setOPIATEDetector(pos, param, op_ray_detectors, pathOutput, max_length))
             return false;
     }
@@ -1344,7 +1345,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             #endif
 
             // Init progress visualization
-            cout << "-> MC pol. maps (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
+            cout << "-> MC pol. map(s) (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
                  << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
 
             // Init counter and percentage to show progress
@@ -1386,7 +1387,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 {
                     #pragma omp critical
                     {
-                        cout << "-> MC pol. maps (source ID: " << s + 1
+                        cout << "-> MC pol. map(s) (source ID: " << s + 1
                              << ", wavelength: " << dust->getWavelength(wID)
                              << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r"
                              << flush;
@@ -2021,7 +2022,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
             // Show information about the current detector
             cout << CLR_LINE;
-            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+            cout << "-> Ray tracing synchrotron map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
                  << ") 0.0 [%]   \r" << flush;
 
             // Calculate pixel intensity for each pixel
@@ -2046,7 +2047,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1
+                        cout << "-> Ray tracing synchrotron map(s) (Seq. " << i_det + 1
                              << ", source: " << sID + 1 << ")  "
                              << float(100.0 * float(per_counter) / float(per_max)) << " [%]         \r"
                              << flush;
@@ -2056,7 +2057,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
             }
 
             // Show final progress
-            cout << "-> Raytracing synchrotron maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+            cout << "-> Ray tracing synchrotron map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
@@ -2071,7 +2072,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing synchrotron map    : done" << endl;
+    cout << "- Ray tracing synchrotron map    : done" << endl;
 
     return true;
 }
@@ -2492,7 +2493,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Show information about the current detector
             cout << CLR_LINE;
-            cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1 << ") 0 [%]   \r"
+            cout << "-> Ray tracing dust map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1 << ") 0 [%]   \r"
                  << flush;
 
             // Calculate pixel intensity for each pixel
@@ -2517,7 +2518,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+                        cout << "-> Ray tracing dust map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
                              << ") " << percentage << " [%]       \r" << flush;
                         last_percentage = percentage;
                     }
@@ -2529,7 +2530,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 calcStellarEmission(i_det);
 
             // Show final progress
-            cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1
+            cout << "-> Ray tracing dust map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
@@ -2549,7 +2550,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
     // Show that raytracing is finished
     cout << CLR_LINE;
-    cout << "- Raytracing dust map           : done" << endl;
+    cout << "- Ray tracing dust map          : done" << endl;
 
     return true;
 }
@@ -2937,12 +2938,12 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
         // Get total number of pixel
         uint per_max = tracer[i_det]->getNpix();
         string spec_name=param.getOpiateSpec(i_det);
-
+        
         if(!op->findIndexByName(spec_name))
             return false;
-
+    
         // Get BG source
-        uint sID = tracer[i_det]->getSourceIndex();
+        uint sID = tracer[i_det]->getSourceIndex()-1;
         CSourceBasic * tmp_source;
         tmp_source = sources_ray[sID];
 
@@ -2951,7 +2952,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 
         // Show progress of the current sequence and gas species
         cout << CLR_LINE;
-        cout << "-> OPIATE maps: species " << i_det + 1 << " of " << stop + 1
+        cout << "-> Ray tracing OPIATE map(s): species " << i_det + 1 << " of " << stop + 1
              << " : 0.0 [%]       \r" << flush;
 
         // Init counter and percentage to show progress
@@ -2978,7 +2979,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
             {
 #pragma omp critical
                 {
-                    cout << "-> OPIATE maps: species " << i_det + 1 << " of " << stop + 1
+                    cout << "-> Ray tracing OPIATE map(s): species " << i_det + 1 << " of " << stop + 1
                          << " : " << percentage << " [%]       \r" << flush;
                     last_percentage = percentage;
                 }
@@ -2993,13 +2994,13 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
         //if(!tracer[i_det]->postProcessing())
         //    return false;
 
-        //if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))
-        //    return false;
-
+        if(!tracer[i_det]->writeOpiateResults(op))
+            return false;
+        
     }
 
     cout << CLR_LINE;
-    cout << "- Raytracing channel maps       : done" << endl;
+    cout << "- Ray tracing channel map(s)    : done" << endl;
 
     return true;
 }
@@ -3076,7 +3077,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
             // Show progress of the current sequence and gas species
             cout << CLR_LINE;
-            cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1 << ", line "
+            cout << "-> Channel map(s): gas species " << i_species + 1 << " of " << stop + 1 << ", line "
                  << i_line + 1 << " of " << nr_of_spectral_lines << ": 0.0[%]  \r" << flush;
 
             // Init counter and percentage to show progress
@@ -3103,7 +3104,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
                 {
 #pragma omp critical
                     {
-                        cout << "-> Channel maps: gas species " << i_species + 1 << " of " << stop + 1
+                        cout << "-> Channel map(s): gas species " << i_species + 1 << " of " << stop + 1
                              << ", line " << i_line + 1 << " of " << nr_of_spectral_lines << ": "
                              << percentage << " [%]      \r" << flush;
                         last_percentage = percentage;
@@ -3127,7 +3128,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
     }
 
     cout << CLR_LINE;
-    cout << "- Raytracing channel maps       : done" << endl;
+    cout << "- Ray tracing channel map(s)    : done" << endl;
 
     return true;
 }
@@ -3150,7 +3151,7 @@ void CRadiativeTransfer::getOPIATEPixelIntensity(CSourceBasic * tmp_source,
     if(subpixel == false)
     {
         // Get rest frequency of current transition
-        double trans_frequency = gas->getTransitionFrequency(i_species, i_trans);
+        double trans_frequency = op->getCurrentFrequency();
 
         // Create new photon package
         photon_package pp = photon_package(trans_frequency,
@@ -3209,7 +3210,11 @@ void CRadiativeTransfer::getOPIATEIntensity(photon_package * pp,
         pp->setVelocity(tracer[i_det]->getVelocityChannel(vch));
 
         // Set background emission
-        pp->setStokesVector(tmp_source->getStokesVector(pp) * pp->getWavelength() / pp->getFrequency());
+        StokesVector st=tmp_source->getStokesVector(pp);
+        double lam=pp->getWavelength();
+        double freq=pp->getFrequency();
+        
+        pp->setStokesVector(st * lam / freq);
     }
 
     tracer[i_det]->preparePhoton(pp, cx, cy);
@@ -3380,11 +3385,10 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                                             const VelFieldInterp & vel_field_interp)
 {
     // Get gas species density from grid
-    double dens_species = gas->getNumberDensity(grid, *pp, i_species);
+    double dens_gas = grid->getGasDensity(*pp);
 
-    // Perform radiative transfer only if the temperature of the current species
-    // are not negligible
-    if(dens_species > 1e-200)
+    // Perform radiative transfer only if the density of the current species are not negligible
+    if(dens_gas > 1e-200)
     {
         // Init matrix for absorption and dust emissivity
         Matrix2D total_absorption_matrix(4, 4);
@@ -3393,18 +3397,10 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
-        uint i_zeeman = gas->getZeemanSplitIndex(i_species, i_trans);
-        if(i_zeeman != MAX_UINT)
-        {
-            grid->getMagFieldInfo(*pp, &mag_field_info);
-            grid->getLineBroadening(*pp, i_zeeman, &line_broadening);
-        }
-        else
-        {
-            // Set only gauss_a if not zeeman split
-            line_broadening.gauss_a = grid->getGaussA(*pp);
-        }
-
+ 
+        // Set only gauss_a if not zeeman split
+        line_broadening.gauss_a = grid->getGaussA(*pp);
+ 
         // Get the path length through the current cell
         double len = pp->getTmpPathLength();
 
@@ -3452,7 +3448,7 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                 {
                     double rel_velocity =
                         pp->getVelocity() -
-                        gas->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
+                        op->getProjCellVelocityInterp(pos_xyz_cell + cell_d_l * pp->getDirection() * RK_c[k],
                                                        pp->getDirection(),
                                                        vel_field_interp);
 
@@ -3464,21 +3460,16 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                     StokesVector total_emission;
 
                     // Get line emissivity (also combined Zeeman lines)
-                    gas->calcEmissivity(grid,
-                                        *pp,
-                                        i_species,
-                                        i_trans,
-                                        rel_velocity,
-                                        line_broadening,
-                                        mag_field_info,
-                                        &total_emission,
-                                        &total_absorption_matrix);
+                    op->getMatrices(grid, pp, i_species, i_trans, rel_velocity, line_broadening, mag_field_info, &total_emission, &total_absorption_matrix);
 
                     // Combine the Stokes vectors from gas and dust for emission
-                    total_emission *= dens_species;
+                    //total_emission *= dens_species;
+                    
                     total_emission += dust_emi_and_ext;
+                    
                     // and extinction
-                    total_absorption_matrix *= dens_species;
+                    //total_absorption_matrix *= dens_species;
+                    
                     if(dust_emi_and_ext.T() != 0)
                         for(uint i = 0; i < 4; i++)
                             total_absorption_matrix(i, i) += dust_emi_and_ext.T();
@@ -3532,59 +3523,9 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
 
                     // Columns density
                     //double column_density = dens_gas * cell_d_l;
-                    double column_density = dens_species * cell_d_l;
+                    double column_density = dens_gas * cell_d_l;
 
-                    if(gas->isTransZeemanSplit(i_species, i_trans))
-                    {
-                        // Total increase of the intensity along the line-of-sight
-                        double column_flux = (stokes_new.I() - old_stokes);
-
-                        // Total magnetic field strength of the current cell
-                        double mag_strength = mag_field_info.mag_field.length();
-
-                        // LOS magnetic field strength of the current cell
-                        double los_mag_strength = (pp->getDirection() * mag_field_info.mag_field);
-
-                        // Magnetic field strength in the line-of-sight direction
-                        // weighted with the intensity increase of the current
-                        // cell
-                        double column_int_mag_field_los = los_mag_strength * column_flux;
-
-                        // Total magnetic field strength weighted with the
-                        // intensity increase of the current cell
-                        double column_int_mag_field = mag_strength * column_flux;
-
-                        // Intensity weighted LOS magnetic field
-                        pp->getStokesVector(0)->addSp(column_int_mag_field_los);
-
-                        // Intensity weighted total magnetic field
-                        pp->getStokesVector(1)->addSp(column_int_mag_field);
-
-                        // Flux component for weighting
-                        pp->getStokesVector(2)->addSp(column_flux);
-
-                        if(vch == 0)
-                        {
-                            // Magnetic field strength in the line-of-sight
-                            // direction weighted with the gas density of the
-                            // current cell
-                            double column_dens_mag_field_los = los_mag_strength * column_density;
-
-                            // Total magnetic field strength weighted with the
-                            // gas density of the current cell
-                            double column_dens_mag_field = mag_strength * column_density;
-
-                            // Density weighted LOS magnetic field
-                            pp->getStokesVector(3)->addSp(column_dens_mag_field_los);
-
-                            // Density weighted magnetic field
-                            pp->getStokesVector(4)->addSp(column_dens_mag_field);
-
-                            // Column density of the total gas
-                            pp->getStokesVector(5)->addSp(column_density);
-                        }
-                    }
-                    else if(vch == 0)
+                    if(vch == 0)
                     {
                         // Column density of the total gas
                         pp->getStokesVector()->addSp(column_density);
@@ -3654,7 +3595,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
         double len = pp->getTmpPathLength();
 
         // Get necessary quantities from the current cell
-        // double dens_gas = grid->getGasNumberDensity(*pp);
+        double dens_gas = grid->getGasNumberDensity(*pp);
 
         // Calculate the emission of the dust grains
         dust->calcEmissivityHz(grid, *pp, &dust_emi_and_ext);
@@ -3776,8 +3717,8 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                     pp->setStokesVector(stokes_new);
 
                     // Columns density
-                    //double column_density = dens_gas * cell_d_l;
-                    double column_density = dens_species * cell_d_l;
+                    double species_column_density = dens_species * cell_d_l;
+                    double gas_column_density = dens_gas * cell_d_l;
 
                     if(gas->isTransZeemanSplit(i_species, i_trans))
                     {
@@ -3813,11 +3754,11 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                             // Magnetic field strength in the line-of-sight
                             // direction weighted with the gas density of the
                             // current cell
-                            double column_dens_mag_field_los = los_mag_strength * column_density;
+                            double column_dens_mag_field_los = los_mag_strength * gas_column_density;
 
                             // Total magnetic field strength weighted with the
                             // gas density of the current cell
-                            double column_dens_mag_field = mag_strength * column_density;
+                            double column_dens_mag_field = mag_strength * gas_column_density;
 
                             // Density weighted LOS magnetic field
                             pp->getStokesVector(3)->addSp(column_dens_mag_field_los);
@@ -3826,13 +3767,20 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                             pp->getStokesVector(4)->addSp(column_dens_mag_field);
 
                             // Column density of the total gas
-                            pp->getStokesVector(5)->addSp(column_density);
+                            pp->getStokesVector(5)->addSp(gas_column_density);
+                            
+                            // Column density of the species
+                            pp->getStokesVector(6)->addSp(species_column_density);
                         }
                     }
                     else if(vch == 0)
                     {
                         // Column density of the total gas
-                        pp->getStokesVector()->addSp(column_density);
+
+                        pp->getStokesVector(0)->addSp(gas_column_density);
+                        
+                        // Column density of the species
+                        pp->getStokesVector(1)->addSp(species_column_density);
                     }
 
                     // Save the optical depth of each velocity channel, if
@@ -3869,7 +3817,7 @@ void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
     vel_field_interp->zero_vel_field = true;
     vel_field_interp->start_pos = pp.getPosition();
 
-    if(grid->hasVelocityField() && gas->getKeplerStarMass() == 0)
+    if(grid->hasVelocityField() == true)
     {
         photon_package pp_interp = photon_package();
         pp_interp.setPosition(pp.getPosition());
@@ -3904,5 +3852,8 @@ void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
                 }
             }
         }
+
+        vel_field_interp->vel_field.createDynSpline();
     }
 }
+

@@ -1,21 +1,13 @@
 #pragma once
-#include <sys/stat.h>
-#include <unistd.h>
-#include <algorithm>
-#include <iostream>
-#include <string>
-
 #include "CommandParser.h"
+#include "Detector.h"
 #include "Dust.h"
+#include "GasSpecies.h"
 #include "Source.h"
 #include "Typedefs.h"
 #include "Parameters.h"
 #include "Grid.h"
 #include "Vector.h"
-
-class CDetector;
-class CGasMixture;
-class COpiateDataBase;
 
 #ifndef CPIPELINE
 #define CPIPELINE
@@ -183,16 +175,16 @@ class CPipeline
 
     void printPlotParameters(parameters & param, bool input_output = false)
     {
-        if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() + param.getInpMidDataPoints() +
+        if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() + param.getInpMidDataPoints() +
                param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() >
            0)
             cout << "Plot parameters" << endl;
 
-        if(param.getNrOfGnuPoints() + param.getNrOfGnuVectors() != 0)
+        if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() != 0)
         {
-            cout << "- Gnuplot                      : " << param.getNrOfGnuPoints() << " points, ";
-            cout << param.getNrOfGnuVectors() << " vectors, ";
-            cout << param.getmaxGridLines() << " max. level" << endl;
+            cout << "- Raw data                     : " << param.getNrOfPlotPoints() << " points, ";
+            cout << param.getNrOfPlotVectors() << " vectors, ";
+            cout << param.getMaxPlotLines() << " lines" << endl;
         }
 
         if(param.getInpMidDataPoints() != 0 && param.getOutMidDataPoints() != 0)
@@ -440,3 +432,4 @@ class CPipeline
 };
 
 #endif
+

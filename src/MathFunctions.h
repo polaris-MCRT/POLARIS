@@ -327,6 +327,44 @@ class spline
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
+    
+    double getLinearValue(double v)
+    {
+        uint min = 0, max = N;
+        
+//        for(int i=0;i<=max;i++)
+//            cout << x[i] << "\t" << y[i]<< endl;
+
+        if(x == 0)
+            return 0;
+        
+        if(v <= x[0])
+           return getLinear(0, v);
+        
+        if(v >= x[N])
+            return getLinear(N - 1, v);
+        
+        while(max - min > 1)
+        {
+            uint i = min + (max - min) / 2;
+            if(x[i] >= v)
+                max = i;
+            else
+                min = i;
+        }
+        
+        double x1=log10(x[min]);
+        double x2=log10(x[min+1]);
+        
+        double y1=log10(y[min]);
+        double y2=log10(y[min+1]);
+        
+        v=log10(v); 
+        
+        double res=((y2-y1)/(x2-x1))*(v-x1)+y1;
+        res=pow(10.0,res);
+            return res;
+    }
 
     double getValue(double v, uint extrapolation = SPLINE) const
     {

@@ -1,9 +1,3 @@
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <map>
-#include <utility>
-
 #include "Pipeline.h"
 #include "CommandParser.h"
 #include "Cylindrical.h"
@@ -237,7 +231,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -280,7 +274,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "output_", param))
+    if(!grid->writePlotFiles(path_plot + "output_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "output_", param, param.getOutAMIRAPoints()))
@@ -332,7 +326,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -400,7 +394,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -484,7 +478,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -524,7 +518,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     CDustMixture * dust = new CDustMixture();
     //CGasMixture * gas = new CGasMixture();
     COpiateDataBase * op = new COpiateDataBase();
-
+    
     if(!createOutputPaths(param.getPathOutput()))
         return false;
 
@@ -550,13 +544,13 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     // Print helpfull information
     dust->printParameters(param, grid);
     //gas->printParameters(param, grid);
-    op->printParameters(param,grid);
+    //op->printParameters(param,grid);
     grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -622,7 +616,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
@@ -744,7 +738,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
         double sideLength_x = dust_mc_detectors[i + 6];
         double sideLength_y = dust_mc_detectors[i + 7];
-
+        
         double map_shift_x = dust_mc_detectors[i + 8];
         double map_shift_y = dust_mc_detectors[i + 9];
 
@@ -804,7 +798,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
 
     if(param.isRaytracingSimulation())
     {
-        // Raytracing simulations are only using background sources!
+        // Ray tracing simulations are only using background sources!
         if(param.getNrOfDiffuseSources() > 0)
         {
             cout << "\nWARNING: Diffuse sources cannot be considered in "
@@ -1194,7 +1188,7 @@ bool CPipeline::writeSources(parameters & param, CGridBasic * grid)
     }
 
     // path_plot = "E:\\gnutests\\";
-    string plot_out = path_plot + "sources.plt";
+    string plot_out = path_plot + "sources.py";
     ofstream outStream(plot_out.c_str());
 
     if(outStream.fail())
@@ -1229,7 +1223,7 @@ bool CPipeline::assignDustMixture(parameters & param, CDustMixture * dust, CGrid
     if(!dust->createDustMixtures(param, path_data, path_plot))
         return false;
 
-    // Write Gnuplot files to show dust properties
+    // Write plot files to show dust properties
     if(!dust->writeComponent(path_data, path_plot))
         return false;
 
@@ -1452,8 +1446,15 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             }
             break;
         }
+        
+        case CMD_OPIATE:     
+            
+            if(op==0)
+            {
+                cout << "\nERROR: No OPIATE database loaded!" << endl;
+                return false;
+            }
 
-        case CMD_OPIATE:
             // Get detector parameters list
             values = param.getOPIATERayDetectors();
 
@@ -1463,23 +1464,23 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 cout << "\nERROR: No OPIATE detector defined (see <detector_opiate>)!" << endl;
                 return false;
             }
-
+            
             for(uint i=0;i<param.getNrOfOPIATESpecies();i++)
             {
                 string spec_name=param.getOpiateSpec(i);
                 if(op->findIndexByName(spec_name))
                 {
-                    double wavelength = con_c / op->getFrequency();
+                    double wavelength = con_c / op->getCurrentFrequency();
                     dust->addToWavelengthGrid(wavelength);
                 }
                 else
                 {
-                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl;
+                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl; 
                     cout << "         Check the command \"<detector_opiate>\" in command file!" << endl;
                     return false;
                 }
             }
-
+            
             break;
 
         case CMD_SYNCHROTRON:
@@ -1536,7 +1537,7 @@ bool CPipeline::calcRadPressure(parameter & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(),
 true)) return false;
 
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
+    if(!grid->writePlotFiles(path_plot + "input_", param))
         return false;
 
     if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))

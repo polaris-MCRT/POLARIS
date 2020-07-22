@@ -1,17 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <iostream>
-#include <limits>
-
 #include "GasSpecies.h"
 #include "CommandParser.h"
 #include "Grid.h"
 #include "MathFunctions.h"
 #include "Typedefs.h"
 #include "Stokes.h"
-
-class cell_basic;
 
 #define TRANS_SIGMA_P +1
 #define TRANS_PI 0
@@ -30,6 +22,7 @@ bool CGasSpecies::calcLTE(CGridBasic * grid, bool full)
     bool no_error = true;
 
     cout << CLR_LINE;
+    cout << "-> Calculating LTE level population  : 0.0 [%]               \r";
 
 #pragma omp parallel for schedule(dynamic)
     for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
@@ -1068,7 +1061,7 @@ void CGasSpecies::calcEmissivityZeeman(CGridBasic * grid,
 
     // Init the current value of the line function as a complex value
     complex<double> line_function;
-
+    
     //uint tmp_counter=0;
 
     // Init temporary matrix
@@ -1528,7 +1521,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     {
         lande_factor[i_lvl] = 0;
     }
-
+    
     //cout << "Landee:" << lande_factor[0] << "   " << lande_factor[1] << endl;
 
     if(reader.fail())
@@ -1734,28 +1727,28 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
             double tmp_einst_A = getEinsteinA(i_trans_zeeman);
             delete[] trans_einstA[i_trans_zeeman];
             trans_einstA[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-
+            
 
             double tmp_einst_Bul = getEinsteinBul(i_trans_zeeman);
             delete[] trans_einstB_ul[i_trans_zeeman];
             trans_einstB_ul[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-
+            
 
             double tmp_einst_Blu = getEinsteinBlu(i_trans_zeeman);
             delete[] trans_einstB_lu[i_trans_zeeman];
             trans_einstB_lu[i_trans_zeeman] = new double[nr_sublevel_trans + 1];
-
+            
             for(uint ie=0;ie<nr_sublevel_trans + 1;ie++)
             {
                 trans_einstA[i_trans_zeeman][ie] = 0;
                 trans_einstB_ul[i_trans_zeeman][ie] = 0;
                 trans_einstB_lu[i_trans_zeeman][ie] = 0;
             }
-
+            
             trans_einstA[i_trans_zeeman][0] = tmp_einst_A;
             trans_einstB_ul[i_trans_zeeman][0] = tmp_einst_Bul;
             trans_einstB_lu[i_trans_zeeman][0] = tmp_einst_Blu;
-
+            
             //cout << CLR_LINE;
             //cout << "Here A\n" << trans_einstB_lu[i_trans_zeeman][0] << "  " << i_trans_zeeman <<  "  " << nr_sublevel_trans + 1 << endl;
 
@@ -1818,7 +1811,7 @@ bool CGasSpecies::readZeemanParamaterFile(string _filename)
     for(uint i_line = 0; i_line < nr_of_spectral_lines; i_line++)
     {
         uint i_trans = getTransitionFromSpectralLine(i_line);
-
+        
         if(getLandeUpper(i_trans) == 0) // || getLandeLower(i_trans) == 0
         {
             cout << SEP_LINE;

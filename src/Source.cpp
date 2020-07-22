@@ -1,8 +1,3 @@
-#include <ext/alloc_traits.h>
-#include <stdlib.h>
-#include <iostream>
-#include <string>
-
 #include "Source.h"
 #include "CommandParser.h"
 #include "Grid.h"
@@ -764,7 +759,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     off_xy = step_xy / 2.0;
 
     cout << CLR_LINE;
-
+    
     if(constant)
     {
         cout << "Initiating constant background source             \r";
@@ -773,7 +768,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         {
             double pl = 0.0;
             double sp_energy = 0.0;
-
+            
             if(c_f>=0)
             {
                 pl=CMathFunctions::planck(wavelength_list[w], c_temp); //[W m^-2 m^-1]
@@ -814,7 +809,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
                      << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
             else
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell" << endl;
+                     << "with " << nr_of_photons << " photons per cell" << endl;        
         }
 
     }
@@ -1004,7 +999,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         Q = q(x, y);
         U = u(x, y);
         V = v(x, y);
-
+        
         pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
         I = F * pl;                                           //[W m^-1] energy per second and wavelength
         Q *= I;
@@ -1636,3 +1631,4 @@ void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
         pp->initCoordSystem();
     }
 }
+

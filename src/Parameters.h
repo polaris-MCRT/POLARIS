@@ -80,9 +80,9 @@ class parameters
         nr_ofISRFPhotons = 0;
         nr_ofDustPhotons = 0;
 
-        nrOfGnuPoints = 0;
-        nrOfGnuVectors = 0;
-        maxGridLines = 0;
+        nrOfPlotPoints = 0;
+        nrOfPlotVectors = 0;
+        maxPlotLines = 0;
         cmd = -1;
 
         healpix_orientation = HEALPIX_YAXIS;
@@ -139,17 +139,17 @@ class parameters
 
     ~parameters()
     {}
-
+    
     string getOpiatePathEmission()
     {
         return opiata_path_emi;
     }
-
+    
     string getOpiatePathAbsorption()
     {
         return opiata_path_abs;
     }
-
+    
     string getOpiateSpec(uint pos)
     {
         return opiate_spec_ids[pos];
@@ -159,7 +159,7 @@ class parameters
     {
         return uint(opiate_spec_ids.size());
     }
-
+    
     const Vector3D & getAxis1() const
     {
         return axis1;
@@ -765,19 +765,19 @@ class parameters
         return res;
     }
 
-    uint getNrOfGnuPoints() const
+    uint getNrOfPlotPoints() const
     {
-        return nrOfGnuPoints;
+        return nrOfPlotPoints;
     }
 
-    uint getNrOfGnuVectors() const
+    uint getNrOfPlotVectors() const
     {
-        return nrOfGnuVectors;
+        return nrOfPlotVectors;
     }
 
-    uint getmaxGridLines() const
+    uint getMaxPlotLines() const
     {
-        return maxGridLines;
+        return maxPlotLines;
     }
 
     uint getStart() const
@@ -789,18 +789,18 @@ class parameters
     {
         return stop;
     }
-
-
+    
+    
     void setOpiatePathEmission(string str)
     {
         opiata_path_emi=str;
     }
-
+    
     void setOpiatePathAbsorption(string str)
     {
         opiata_path_abs=str;
     }
-
+       
 
     void setXYMin(double val)
     {
@@ -859,19 +859,19 @@ class parameters
         mu = val;
     }
 
-    void setNrOfGnuPoints(uint val)
+    void setNrOfPlotPoints(uint val)
     {
-        nrOfGnuPoints = val;
+        nrOfPlotPoints = val;
     }
 
-    void setNrOfGnuVectors(uint val)
+    void setnrOfPlotVectors(uint val)
     {
-        nrOfGnuVectors = val;
+        nrOfPlotVectors = val;
     }
 
-    void setmaxGridLines(uint val)
+    void setMaxPlotLines(uint val)
     {
-        maxGridLines = val;
+        maxPlotLines = val;
     }
 
     void setNrOfThreads(uint val)
@@ -895,7 +895,7 @@ class parameters
     {
         nr_ofISRFPhotons = val;
     }
-
+    
     void addOpiateSpec(string str)
     {
         opiate_spec_ids.push_back(str);
@@ -1345,7 +1345,7 @@ class parameters
     {
         return sync_ray_detectors;
     }
-
+    
     dlist & getOPIATERayDetectors()
     {
         return opiate_ray_detectors;
@@ -1474,57 +1474,57 @@ class parameters
                 break;
         }
     }
-
+        
     void addOpiateRayDetector(dlist & val)
     {
         // BG surce ID
         opiate_ray_detectors.push_back(val[0]);
-
+        
         // Maximum velocity (SI)
         opiate_ray_detectors.push_back(val[1]);
-
+        
         // ang1 or pos_x
         opiate_ray_detectors.push_back(val[2]);
-
+        
         // ang2 or pos_y
         opiate_ray_detectors.push_back(val[3]);
-
+        
         // dist or pos_z
         opiate_ray_detectors.push_back(val[4]);
-
+        
         // sidelength_x or l_min
         opiate_ray_detectors.push_back(val[5]);
-
+        
         // sidelength_y or l_max
         opiate_ray_detectors.push_back(val[6]);
-
+        
         // off_x or b_min
         opiate_ray_detectors.push_back(val[7]);
-
+        
         // off_y or b_max
         opiate_ray_detectors.push_back(val[8]);
-
+        
         // empty or d_vx
         opiate_ray_detectors.push_back(val[9]);
-
+        
         // empty or d_vy
         opiate_ray_detectors.push_back(val[10]);
-
+        
         // empty or d_vz
         opiate_ray_detectors.push_back(val[11]);
-
+        
         // empty or bubble radius
         opiate_ray_detectors.push_back(val[12]);
-
+        
         // det. type
         opiate_ray_detectors.push_back(val[13]);
-
+        
         // N_x or n_side
         opiate_ray_detectors.push_back(val[14]);
-
+        
         // N_y or n_side
         opiate_ray_detectors.push_back(val[15]);
-
+        
         // N_vel
         opiate_ray_detectors.push_back(val[16]);
 
@@ -1781,7 +1781,7 @@ class parameters
         // Shift length of dust detector in x-dir
         dust_mc_detectors.push_back(val[8]);
         // Shift length of dust detector in y-dir
-        dust_mc_detectors.push_back(val[9]);
+        dust_mc_detectors.push_back(val[9]);       
         // number of pixel in x-direction
         dust_mc_detectors.push_back(val[10]);
         // number of pixel in y-direction
@@ -2273,9 +2273,9 @@ class parameters
     double extinction_magnitude_wavelength;
     uint extinction_i_mixture;
 
-    uint nrOfGnuPoints;
-    uint nrOfGnuVectors;
-    uint maxGridLines;
+    uint nrOfPlotPoints;
+    uint nrOfPlotVectors;
+    uint maxPlotLines;
 
     uint nr_of_mc_lvl_pop_photons;
     uint mc_lvl_pop_seed;
@@ -2346,4 +2346,6 @@ class parameters
     string opiata_path_emi;
     string opiata_path_abs;
 };
+
 #endif
+

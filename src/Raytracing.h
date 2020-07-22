@@ -319,6 +319,21 @@ class CRaytracingBasic
         return true;
     }
 
+    virtual bool writeOpiateResults(COpiateDataBase * op)
+    {
+        if(vel_maps)
+            if(!detector->writeOPIATEVelChannelMaps(op,dID))
+                return false;
+
+        if(!detector->writeOPIATEIntChannelMaps(op,dID))
+            return false;
+
+        if(!detector->writeOPIATESpectrum(op,dID))
+            return false;
+
+        return true;
+    }
+
     virtual bool writeSyncResults()
     {
         if(!detector->writeSyncMap(dID))
@@ -339,7 +354,7 @@ class CRaytracingBasic
 
     double getDistanceFactor(Vector3D pos)
     {
-        return 1 / (getDistance(pos) * (getDistance(pos)));
+        return 1.0 / (getDistance(pos) * (getDistance(pos)));
     }
 
     virtual void getDetectorData(dlist & C, dlist & T)
@@ -637,7 +652,6 @@ class CRaytracingCartesian : public CRaytracingBasic
 
         return true;
     }
-
 
     bool setOPIATEDetector(uint pos,
                          const parameters & param,

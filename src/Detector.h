@@ -3,6 +3,7 @@
 #include "Stokes.h"
 #include "Typedefs.h"
 #include "Vector.h"
+#include "OPIATE.h"
 #include <CCfits/CCfits>
 #include <cmath>
 
@@ -2074,15 +2075,112 @@ class CDetector
         return true;
     }
 
-    bool writeVelChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
+    bool writeOPIATESpectrum(COpiateDataBase *op, uint det_id)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel maps: 0%     \r" << flush;
+        cout << " -> Writing line spectrum ...  \r" << flush;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "line_spectrum_species_%04d_line_%04d");
+            sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1);
+#else
+            strcpy(str_tmp, "opiate_spectrum_%04d");
+            sprintf(str_end, str_tmp, det_id+1);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+
+            long naxis = 3;
+            long naxes[3] = { nr_spectral_bins, 1, 5 };
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(nr_spectral_bins);
+
+        vector<long> fpixel(3);
+        fpixel[0] = 1;
+        fpixel[1] = 1;
+
+        std::valarray<double> array_I(nelements);
+        std::valarray<double> array_Q(nelements);
+        std::valarray<double> array_U(nelements);
+        std::valarray<double> array_V(nelements);
+        std::valarray<double> array_T(nelements);
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            array_I[i_spectral] = sedI[i_spectral];
+            array_Q[i_spectral] = sedQ[i_spectral];
+            array_U[i_spectral] = sedU[i_spectral];
+            array_V[i_spectral] = sedV[i_spectral];
+            array_T[i_spectral] = sedT[i_spectral];
+
+            fpixel[2] = 1;
+            pFits->pHDU().write(fpixel, nelements, array_I);
+            fpixel[2] = 2;
+            pFits->pHDU().write(fpixel, nelements, array_Q);
+            fpixel[2] = 3;
+            pFits->pHDU().write(fpixel, nelements, array_U);
+            fpixel[2] = 4;
+            pFits->pHDU().write(fpixel, nelements, array_V);
+            fpixel[2] = 5;
+            pFits->pHDU().write(fpixel, nelements, array_T);
+        }
+
+        // Frequency
+        pFits->pHDU().addKey("CTYPE1", "VELO", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1", -max_velocity, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1", channel_width, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1", "m/s", "unit of axis 1");
+
+        // Simulated quantities
+        pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2", 1, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2", 1, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2", "I, Q, U, V [Jy/px], optical depth", "unit of axis 2");
+
+        pFits->pHDU().addKey("GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+        pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+        pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+        pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+        pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+        pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+        pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+        pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+        pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+        pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+        pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+
+        cout << CLR_LINE << flush;
+        return true;
+    }
+
+
+    bool writeOPIATEVelChannelMaps(COpiateDataBase * op, uint det_id)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             long naxis = 3;
-            long naxes[3] = { bins_x, bins_y, 5 };
+            long naxes[3] = { uint(bins_x), uint(bins_y), 5 };
 
             // auto_ptr<CCfits::FITS> pFits(0);
             unique_ptr<CCfits::FITS> pFits;
@@ -2093,11 +2191,11 @@ class CDetector
                 char str_end[1024];
 
 #ifdef WINDOWS
-                strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
+                strcpy(str_tmp, "opiate_channel_map_%04d");
+                sprintf(str_end, str_tmp, det_id);
 #else
-                strcpy(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
-                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
+                strcpy(str_tmp, "opiate_channel_map_%04d_vel_%04d");
+                sprintf(str_end, str_tmp, det_id+1, i_spectral+1);
 #endif
 
                 string path_out = path + str_end + FITS_COMPRESS_EXT;
@@ -2109,7 +2207,7 @@ class CDetector
                 return false;
             }
 
-            long nelements = bins_x * bins_y;
+            long nelements = uint(bins_x) * uint(bins_y);
             if(max_cells != nelements)
             {
                 cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
@@ -2121,7 +2219,7 @@ class CDetector
             fpixel[1] = 1;
             fpixel[2] = 1;
 
-            cout << " -> Writing velocity channel maps: " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
                  << "%     \r" << flush;
 
             std::valarray<double> array_I(nelements);
@@ -2236,6 +2334,580 @@ class CDetector
                 "CUNIT3", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 3");
 
             pFits->pHDU().addKey(
+                "GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+            pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+            pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(),
+                                 "frequency of the simulated transition");
+            pFits->pHDU().addKey("VCH", i_spectral, "current velocity channel");
+            pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+            pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+            pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+            pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+            pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+            pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+            pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+            pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+            pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+            pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+            pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+        }
+
+        // Writing extra fits file for Zeeman data or column density
+        uint nr_of_quantities = 1;
+
+        long naxis = 3;
+        long naxes[3] = { uint(bins_x), uint(bins_y), nr_of_quantities };
+
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_extra");
+            sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1);
+#else
+            strcpy(str_tmp, "opiate_channel_map_%04d_extra");
+            sprintf(str_end, str_tmp, det_id+1);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(bins_x) * uint(bins_y);
+        if(max_cells != nelements)
+        {
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+            return false;
+        }
+
+        vector<long> fpixel(3);
+        fpixel[0] = 1;
+        fpixel[1] = 1;
+        fpixel[2] = 1;
+
+        std::valarray<double> array_S(nelements);
+
+        for(uint i_extra = 0; i_extra < nr_of_quantities; i_extra++)
+        {
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    if(i_extra == 0)
+                    {
+                        // column density of the total gas
+                        array_S[i] = matrixS[0](i_x, i_y);
+                    }
+                    else if(i_extra == 1)
+                    {
+                        // intensity weighted LOS magnetic field
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                            array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 2)
+                    {
+                        // intensity weighted total magnetic field
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                            array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 3)
+                    {
+                        // density weighted LOS magnetic field
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                            array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 4)
+                    {
+                        // density weighted magnetic field
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                            array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    i++;
+                }
+            fpixel[2] = i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_S);
+        }
+
+        double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+        calcCoordinateParameters(sidelength_x,
+                                 bins_x,
+                                 map_shift_x,
+                                 distance,
+                                 bin_width_x,
+                                 first_pix_val_x,
+                                 deg_per_pix_x,
+                                 first_pix_val_deg_x);
+        double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+        calcCoordinateParameters(sidelength_y,
+                                 bins_y,
+                                 map_shift_y,
+                                 distance,
+                                 bin_width_y,
+                                 first_pix_val_y,
+                                 deg_per_pix_y,
+                                 first_pix_val_deg_y);
+
+        // Grid
+        pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+        // Alternatively as arc seconds grid
+        pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+        pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+        // Grid
+        pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+        // Alternatively as arc seconds grid
+        pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+        pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+        // Simulated quantities
+        pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+        pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+        pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+        pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+        if(nr_of_quantities == 5)
+            pFits->pHDU().addKey("CUNIT3",
+                                 "Column density [m^-2], intensity weighted B_LOS, B, "
+                                 "dens. weighted B_LOS, B",
+                                 "unit of axis 3");
+        else
+            pFits->pHDU().addKey("CUNIT3", "Column density [m^-2]", "unit of axis 3");
+
+        pFits->pHDU().addKey(
+            "GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+        pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+        pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+        pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+        pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+        pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+        pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+        pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+        pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+        pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+        pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+
+        return true;
+    }
+
+    bool writeOPIATEIntChannelMaps(COpiateDataBase * op, uint det_id)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing integrated velocity channel map(s): 0%  \r" << flush;
+
+        long naxis = 3;
+        long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
+
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "int_channel_map_species_%04d_line_%04d");
+            sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1);
+#else
+            strcpy(str_tmp, "opiate_int_map__%04d");
+            sprintf(str_end, str_tmp, det_id+1);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(bins_x) * uint(bins_y);
+        if(max_cells != nelements)
+        {
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+            return false;
+        }
+
+        vector<long> fpixel(3);
+        fpixel[0] = 1;
+        fpixel[1] = 1;
+        fpixel[2] = 1;
+
+        std::valarray<double> array_I(nelements);
+        std::valarray<double> array_Q(nelements);
+        std::valarray<double> array_U(nelements);
+        std::valarray<double> array_V(nelements);
+        std::valarray<double> array_T(nelements);
+        std::valarray<double> array_S(nelements);
+
+        uint i = 0;
+        for(uint i_y = 0; i_y < bins_y; i_y++)
+            for(uint i_x = 0; i_x < bins_x; i_x++)
+            {
+                for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+                {
+                    array_I[i] +=
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_Q[i] +=
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_U[i] +=
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_V[i] +=
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                }
+                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
+
+                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                {
+                    // LOS magnetic field strength
+                    array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                }
+                else
+                    array_S[i] = 0;
+                i++;
+            }
+
+        fpixel[2] = 1;
+        pFits->pHDU().write(fpixel, nelements, array_I);
+        fpixel[2] = 2;
+        pFits->pHDU().write(fpixel, nelements, array_Q);
+        fpixel[2] = 3;
+        pFits->pHDU().write(fpixel, nelements, array_U);
+        fpixel[2] = 4;
+        pFits->pHDU().write(fpixel, nelements, array_V);
+        fpixel[2] = 5;
+        pFits->pHDU().write(fpixel, nelements, array_T);
+        fpixel[2] = 6;
+        pFits->pHDU().write(fpixel, nelements, array_S);
+
+        double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+        calcCoordinateParameters(sidelength_x,
+                                 bins_x,
+                                 map_shift_x,
+                                 distance,
+                                 bin_width_x,
+                                 first_pix_val_x,
+                                 deg_per_pix_x,
+                                 first_pix_val_deg_x);
+        double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+        calcCoordinateParameters(sidelength_y,
+                                 bins_y,
+                                 map_shift_y,
+                                 distance,
+                                 bin_width_y,
+                                 first_pix_val_y,
+                                 deg_per_pix_y,
+                                 first_pix_val_deg_y);
+
+        // Grid
+        pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+        // Alternatively as arc seconds grid
+        pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+        pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+        // Grid
+        pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+        // Alternatively as arc seconds grid
+        pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+        pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+        // Simulated quantities
+        pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+        pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+        pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+        pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+        pFits->pHDU().addKey(
+            "CUNIT3", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 3");
+
+        pFits->pHDU().addKey("GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+        pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+        pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
+        pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+        pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+        pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+        pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+        pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+        pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+        pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+        pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+        pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+        pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+
+        return true;
+    }
+
+    bool writeVelChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            long naxis = 3;
+            long naxes[3] = { bins_x, bins_y, 5 };
+
+            // auto_ptr<CCfits::FITS> pFits(0);
+            unique_ptr<CCfits::FITS> pFits;
+
+            try
+            {
+                char str_tmp[1024];
+                char str_end[1024];
+
+#ifdef WINDOWS
+                strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
+                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
+#else
+                strcpy(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
+                sprintf(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
+#endif
+
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
+                remove(path_out.c_str());
+                pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+            }
+            catch(CCfits::FITS::CantCreate)
+            {
+                return false;
+            }
+
+            long nelements = bins_x * bins_y;
+            if(max_cells != nelements)
+            {
+                cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+                return false;
+            }
+
+            vector<long> fpixel(3);
+            fpixel[0] = 1;
+            fpixel[1] = 1;
+            fpixel[2] = 1;
+
+            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+                 << "%     \r" << flush;
+
+            std::valarray<double> array_I(nelements);
+            std::valarray<double> array_Q(nelements);
+            std::valarray<double> array_U(nelements);
+            std::valarray<double> array_V(nelements);
+            std::valarray<double> array_T(nelements);
+
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    array_I[i] = matrixI[i_spectral](i_x, i_y);
+                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral](i_x, i_y);
+                    i++;
+                }
+            fpixel[2] = 1;
+            pFits->pHDU().write(fpixel, nelements, array_I);
+            fpixel[2] = 2;
+            pFits->pHDU().write(fpixel, nelements, array_Q);
+            fpixel[2] = 3;
+            pFits->pHDU().write(fpixel, nelements, array_U);
+            fpixel[2] = 4;
+            pFits->pHDU().write(fpixel, nelements, array_V);
+            fpixel[2] = 5;
+            pFits->pHDU().write(fpixel, nelements, array_T);
+
+            double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+            calcCoordinateParameters(sidelength_x,
+                                     bins_x,
+                                     map_shift_x,
+                                     distance,
+                                     bin_width_x,
+                                     first_pix_val_x,
+                                     deg_per_pix_x,
+                                     first_pix_val_deg_x);
+            double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+            calcCoordinateParameters(sidelength_y,
+                                     bins_y,
+                                     map_shift_y,
+                                     distance,
+                                     bin_width_y,
+                                     first_pix_val_y,
+                                     deg_per_pix_y,
+                                     first_pix_val_deg_y);
+
+            // Grid
+            pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+            pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+            // Grid
+            pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+            pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+            // Simulated quantities
+            pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+            pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+            pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+            pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+            pFits->pHDU().addKey(
+                "CUNIT3", "I, Q, U, V [Jy/px], optical depth", "unit of axis 3");
+
+            pFits->pHDU().addKey(
                 "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
             pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
             pFits->pHDU().addKey("LEVEL_UPPER",
@@ -2266,9 +2938,11 @@ class CDetector
         }
 
         // Writing extra fits file for Zeeman data or column density
-        uint nr_of_quantities = 1;
-        if(gas->isTransZeemanSplit(i_species, i_trans))
-            nr_of_quantities += 4;
+        uint nr_of_quantities = 2;
+        bool isZeeman=gas->isTransZeemanSplit(i_species, i_trans);
+
+        if(isZeeman==true)
+            nr_of_quantities = 6;
 
         long naxis = 3;
         long naxes[3] = { bins_x, bins_y, nr_of_quantities };
@@ -2444,13 +3118,13 @@ class CDetector
         pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
         pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
         pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
-        if(nr_of_quantities == 5)
+        if(gas->isTransZeemanSplit(i_species, i_trans))
             pFits->pHDU().addKey("CUNIT3",
-                                 "Column density [m^-2], intensity weighted B_LOS, B, "
+                                 "Column density [m^-2], Column density [m^-2], intensity weighted B_LOS, B, "
                                  "dens. weighted B_LOS, B",
                                  "unit of axis 3");
         else
-            pFits->pHDU().addKey("CUNIT3", "Column density [m^-2]", "unit of axis 3");
+            pFits->pHDU().addKey("CUNIT3", "Column density [m^-2], Column density [m^-2]", "unit of axis 3");
 
         pFits->pHDU().addKey(
             "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
@@ -2484,10 +3158,17 @@ class CDetector
     bool writeIntChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel maps: 0%  \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s): 0%  \r" << flush;
 
         long naxis = 3;
-        long naxes[3] = { bins_x, bins_y, 6 };
+
+        uint nr_of_quantities = 6;
+        bool isZeeman=gas->isTransZeemanSplit(i_species, i_trans);
+
+        if(isZeeman==true)
+            nr_of_quantities = 10;
+
+        long naxes[3] = { bins_x, bins_y, nr_of_quantities};
 
         // auto_ptr<CCfits::FITS> pFits(0);
         unique_ptr<CCfits::FITS> pFits;
@@ -2530,8 +3211,25 @@ class CDetector
         std::valarray<double> array_Q(nelements);
         std::valarray<double> array_U(nelements);
         std::valarray<double> array_V(nelements);
-        std::valarray<double> array_T(nelements);
-        std::valarray<double> array_S(nelements);
+        //std::valarray<double> array_T(nelements);
+
+        // column density of the gas species
+        std::valarray<double> array_Nx(nelements);
+
+        // column density of the total gas
+        std::valarray<double> array_NH(nelements);
+
+        // intensity weighted LOS magnetic field
+        std::valarray<double> array_Bpar_I(nelements);
+
+        // intensity weighted total magnetic field
+        std::valarray<double> array_Btot_I(nelements);
+
+        // intensity weighted LOS magnetic field
+        std::valarray<double> array_Bpar_dens(nelements);
+
+        // intensity weighted total magnetic field
+        std::valarray<double> array_Btot_dens(nelements);
 
         uint i = 0;
         for(uint i_y = 0; i_y < bins_y; i_y++)
@@ -2540,23 +3238,58 @@ class CDetector
                 for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
                 {
                     array_I[i] +=
-                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_Q[i] +=
-                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_U[i] +=
-                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_V[i] +=
-                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                 }
-                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
-                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                if(isZeeman==true)
                 {
-                    // LOS magnetic field strength
-                    array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                    // column density of the total gas
+                    array_NH[i] = matrixS[5](i_x, i_y);
+
+                    // column density of the gas species
+                    array_Nx[i] = matrixS[6](i_x, i_y);
+
+                    // intensity weighted LOS magnetic field
+                    if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        array_Bpar_I[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+
+                    // intensity weighted total magnetic field
+                    if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                        array_Btot_I[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
+
+                    // density weighted LOS magnetic field
+                    if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        array_Bpar_dens[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
+
+                    // density weighted magnetic field
+                    if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                        array_Btot_dens[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
                 }
                 else
-                    array_S[i] = 0;
+                {
+                    // column density of the total gas
+                    array_NH[i] = matrixS[0](i_x, i_y);
+
+                    // column density of the gas species
+                    array_Nx[i] = matrixS[1](i_x, i_y);
+                }
+
+//                array_S[i] = matrixS[0](i_x, i_y);
+//                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
+//
+//                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+//                {
+//                    // LOS magnetic field strength
+//                    array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+//                }
+//                else
+//                    array_S[i] = matrixS[0](i_x, i_y);
                 i++;
             }
 
@@ -2568,10 +3301,43 @@ class CDetector
         pFits->pHDU().write(fpixel, nelements, array_U);
         fpixel[2] = 4;
         pFits->pHDU().write(fpixel, nelements, array_V);
-        fpixel[2] = 5;
-        pFits->pHDU().write(fpixel, nelements, array_T);
-        fpixel[2] = 6;
-        pFits->pHDU().write(fpixel, nelements, array_S);
+
+        if(isZeeman)
+        {
+            fpixel[2] = 5;
+            pFits->pHDU().write(fpixel, nelements, array_Nx);
+
+            fpixel[2] = 6;
+            pFits->pHDU().write(fpixel, nelements, array_NH);
+
+            fpixel[2] = 7;
+            pFits->pHDU().write(fpixel, nelements, array_Bpar_I);
+
+            fpixel[2] = 8;
+            pFits->pHDU().write(fpixel, nelements, array_Btot_I);
+
+            fpixel[2] = 9;
+            pFits->pHDU().write(fpixel, nelements, array_Bpar_dens);
+
+            fpixel[2] = 10;
+            pFits->pHDU().write(fpixel, nelements, array_Btot_dens);
+        }
+        else
+        {
+            fpixel[2] = 5;
+            pFits->pHDU().write(fpixel, nelements, array_Nx);
+
+            fpixel[2] = 6;
+            pFits->pHDU().write(fpixel, nelements, array_NH);
+        }
+
+
+
+
+//        fpixel[2] = 5;
+//        pFits->pHDU().write(fpixel, nelements, array_S);
+//        fpixel[2] = 6;
+//        pFits->pHDU().write(fpixel, nelements, array_S);
 
         double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
         calcCoordinateParameters(sidelength_x,
@@ -2653,11 +3419,18 @@ class CDetector
         pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
         pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
         pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
-        pFits->pHDU().addKey(
-            "CUNIT3", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 3");
 
-        pFits->pHDU().addKey(
-            "GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
+
+        if(isZeeman)
+        {
+            pFits->pHDU().addKey("CUNIT3", "I Q U V [Jy/px], Nx NH [m^-3], Bp_I, Bt_I, Bp_d, Bt_d [T]", "unit of axis 3");
+        }
+        else
+        {
+            pFits->pHDU().addKey("CUNIT3", "I Q U V [Jy/px], Nx NH [m^-3] ", "unit of axis 3");
+        }
+
+        pFits->pHDU().addKey("GAS_SPECIES", gas->getGasSpeciesName(i_species), "name of the observed gas species");
         pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
         pFits->pHDU().addKey("LEVEL_UPPER",
                              gas->getUpperEnergyLevel(i_species, i_trans),
@@ -2665,12 +3438,10 @@ class CDetector
         pFits->pHDU().addKey("LEVEL_LOWER",
                              gas->getLowerEnergyLevel(i_species, i_trans),
                              "lower energy level index number (see leiden database)");
-        pFits->pHDU().addKey(
-            "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
+        pFits->pHDU().addKey("FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
         pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
         pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
-        pFits->pHDU().addKey("ZEEMAN",
-                             gas->isTransZeemanSplit(i_species, i_trans),
+        pFits->pHDU().addKey("ZEEMAN",isZeeman,
                              "is zeeman splitting in the simulations considered (1=yes/0=no)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
@@ -2685,10 +3456,265 @@ class CDetector
         return true;
     }
 
+    bool writeOPIATEVelChannelHealMaps(COpiateDataBase * op, uint det_id)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            long naxis = 1;
+            long naxes[1] = { 0 };
+
+            // auto_ptr<CCfits::FITS> pFits(0);
+            unique_ptr<CCfits::FITS> pFits;
+
+            try
+            {
+                char str_tmp[1024];
+                char str_end[1024];
+
+#ifdef WINDOWS
+                strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_vel_%04d");
+                sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1, i_spectral + 1);
+#else
+                strcpy(str_tmp, "opiate_channel_map_%04d_vel_%04d");
+                sprintf(str_end, str_tmp, det_id+1, i_spectral+1);
+#endif
+
+                string path_out = path + str_end + FITS_COMPRESS_EXT;
+                remove(path_out.c_str());
+                pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+            }
+            catch(CCfits::FITS::CantCreate)
+            {
+                return false;
+            }
+
+            long nelements = uint(bins_x) * uint(bins_y);
+            if(max_cells != nelements)
+            {
+                cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+                return false;
+            }
+
+            // Init columns
+            string newName("HEALPIX_EXTENSION");
+            uint nr_of_quantities = 5;
+            vector<string> colName(nr_of_quantities, "");
+            vector<string> colForm(nr_of_quantities, "");
+            vector<string> colUnit(nr_of_quantities, "");
+
+            colName[0] = "I_STOKES";
+            colName[1] = "Q_STOKES";
+            colName[2] = "U_STOKES";
+            colName[3] = "V_STOKES";
+            colName[4] = "TAU";
+
+            colForm[0] = "D";
+            colForm[1] = "D";
+            colForm[2] = "D";
+            colForm[3] = "D";
+            colForm[4] = "D";
+
+            colUnit[0] = "Jy/px";
+            colUnit[1] = "Jy/px";
+            colUnit[2] = "Jy/px";
+            colUnit[3] = "Jy/px";
+            colUnit[4] = "";
+
+            CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
+
+            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+                 << "%     \r" << flush;
+
+            valarray<double> array_I(nelements);
+            valarray<double> array_Q(nelements);
+            valarray<double> array_U(nelements);
+            valarray<double> array_V(nelements);
+            valarray<double> array_T(nelements);
+
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    array_I[i] = matrixI[i_spectral](i_x, i_y);
+                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral](i_x, i_y);
+                    i++;
+                }
+
+            newTable->column(colName[0]).write(array_I, 1);
+            newTable->column(colName[1]).write(array_Q, 1);
+            newTable->column(colName[2]).write(array_U, 1);
+            newTable->column(colName[3]).write(array_V, 1);
+            newTable->column(colName[4]).write(array_T, 1);
+
+            // Healpix parameter
+            newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
+            newTable->addKey("ORDERING", "RING", "Ordering scheme");
+            newTable->addKey("INDXSCHM", "IMPLICIT", "Indexing scheme");
+            newTable->addKey("NSIDE", uint(sqrt(bins_x / 12.0)), "Resolution Parameter");
+            newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
+            newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
+            newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
+
+            newTable->addKey("GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+            newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+            newTable->addKey("FREQ", op->getCurrentFrequency(),"frequency of the simulated transition");
+            newTable->addKey("VCH", i_spectral, "current velocity channel");
+            newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+            newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+            newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
+            newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
+            newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
+            newTable->addKey("OBS_VELOCITY_X", obs_vel.X(), "velocity of observer in x direction");
+            newTable->addKey("OBS_VELOCITY_Y", obs_vel.Y(), "velocity of observer in y direction");
+            newTable->addKey("OBS_VELOCITY_Z", obs_vel.Z(), "velocity of observer in z direction");
+            newTable->addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
+            newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
+            newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
+            newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+        }
+
+        long naxis = 1;
+        long naxes[1] = { 0 };
+
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "vel_channel_maps_species_%04d_line_%04d_extra");
+            sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1);
+#else
+            strcpy(str_tmp, "opiate_map_%04d_extra");
+            sprintf(str_end, str_tmp, det_id);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(bins_x) * uint(bins_y);
+        if(max_cells != nelements)
+        {
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+            return false;
+        }
+
+        // Init columns
+        string newName("HEALPIX_EXTENSION");
+        uint nr_of_quantities = 1;
+
+        //if(gas->isTransZeemanSplit(i_species, i_trans))
+        //    nr_of_quantities += 4;
+
+        vector<string> colName(nr_of_quantities, "");
+        vector<string> colForm(nr_of_quantities, "");
+        vector<string> colUnit(nr_of_quantities, "");
+
+        colName[0] = "COLUMN_DENSITY";
+        colForm[0] = "D";
+        colUnit[0] = "m^-2";
+
+        CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
+
+        // Column density / extra data
+        for(int i_extra = 0; i_extra < nr_of_quantities; i_extra++)
+        {
+            valarray<double> array_S(nelements);
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    if(i_extra == 0)
+                    {
+                        // column density of the total gas
+                        array_S[i] = matrixS[0](i_x, i_y);
+                    }
+                    else if(i_extra == 1)
+                    {
+                        // intensity weighted LOS magnetic field
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                            array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 2)
+                    {
+                        // intensity weighted total magnetic field
+                        if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) > 0)
+                            array_S[i] = matrixS[1](i_x, i_y) / matrixS[2](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 3)
+                    {
+                        // density weighted LOS magnetic field
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                            array_S[i] = matrixS[3](i_x, i_y) / matrixS[5](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    else if(i_extra == 4)
+                    {
+                        // density weighted magnetic field
+                        if(nr_spectral_bins >= 5 && matrixS[5](i_x, i_y) > 0)
+                            array_S[i] = matrixS[4](i_x, i_y) / matrixS[5](i_x, i_y);
+                        else
+                            array_S[i] = 0;
+                    }
+                    i++;
+                }
+            newTable->column(colName[i_extra]).write(array_S, 1);
+        }
+
+        // Healpix parameter
+        newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
+        newTable->addKey("ORDERING", "RING", "Ordering scheme");
+        newTable->addKey("INDXSCHM", "IMPLICIT", "Indexing scheme");
+        newTable->addKey("NSIDE", uint(sqrt(bins_x / 12.0)), "Resolution Parameter");
+        newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
+        newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
+        newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
+
+        newTable->addKey("GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+        newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+        newTable->addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
+        newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+        newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
+        newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
+        newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
+        newTable->addKey("OBS_VELOCITY_X", obs_vel.X(), "velocity of observer in x direction");
+        newTable->addKey("OBS_VELOCITY_Y", obs_vel.Y(), "velocity of observer in y direction");
+        newTable->addKey("OBS_VELOCITY_Z", obs_vel.Z(), "velocity of observer in z direction");
+        newTable->addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
+        newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
+        newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
+        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+
+        return true;
+    }
+
+
     bool writeVelChannelHealMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel maps: 0%     \r" << flush;
+        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -2754,7 +3780,7 @@ class CDetector
 
             CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-            cout << " -> Writing velocity channel maps: " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
                  << "%     \r" << flush;
 
             valarray<double> array_I(nelements);
@@ -2859,8 +3885,10 @@ class CDetector
         // Init columns
         string newName("HEALPIX_EXTENSION");
         uint nr_of_quantities = 1;
+
         if(gas->isTransZeemanSplit(i_species, i_trans))
             nr_of_quantities += 4;
+
         vector<string> colName(nr_of_quantities, "");
         vector<string> colForm(nr_of_quantities, "");
         vector<string> colUnit(nr_of_quantities, "");
@@ -2981,10 +4009,148 @@ class CDetector
         return true;
     }
 
+
+    bool writeOPIATEIntVelChannelHealMaps(COpiateDataBase * op, uint det_id)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing integrated velocity channel map(s): 0%     \r" << flush;
+
+        long naxis = 1;
+        long naxes[1] = { 0 };
+
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "int_channel_map_species_%04d_line_%04d");
+            sprintf_s(str_end, str_tmp, i_species + 1, i_line + 1);
+#else
+            strcpy(str_tmp, "opiate_int_map__%04d");
+            sprintf(str_end, str_tmp, det_id+1);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(bins_x) * uint(bins_y);
+        if(max_cells != nelements)
+        {
+            cout << "\nWARNING: Max cells are not equal to bins x bins!" << endl;
+            return false;
+        }
+
+        string newName("HEALPIX_EXTENSION");
+        vector<string> colName(6, "");
+        vector<string> colForm(6, "");
+        vector<string> colUnit(6, "");
+
+        colName[0] = "I_STOKES";
+        colName[1] = "Q_STOKES";
+        colName[2] = "U_STOKES";
+        colName[3] = "V_STOKES";
+        colName[4] = "TAU";
+        colName[5] = "COLUMN_DENSITY";
+
+        colForm[0] = "D";
+        colForm[1] = "D";
+        colForm[2] = "D";
+        colForm[3] = "D";
+        colForm[4] = "D";
+        colForm[5] = "D";
+
+        colUnit[0] = "Jy/px";
+        colUnit[1] = "Jy/px";
+        colUnit[2] = "Jy/px";
+        colUnit[3] = "Jy/px";
+        colUnit[4] = "";
+        colUnit[5] = "m^-2";
+
+        CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
+
+        valarray<double> array_I(nelements);
+        valarray<double> array_Q(nelements);
+        valarray<double> array_U(nelements);
+        valarray<double> array_V(nelements);
+        valarray<double> array_T(nelements);
+        valarray<double> array_S(nelements);
+
+        uint i = 0;
+        for(uint i_y = 0; i_y < bins_y; i_y++)
+            for(uint i_x = 0; i_x < bins_x; i_x++)
+            {
+                for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+                {
+                    array_I[i] +=
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_Q[i] +=
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_U[i] +=
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    array_V[i] +=
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                }
+                array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
+
+                if(nr_spectral_bins >= 2 && matrixS[2](i_x, i_y) == 0)
+                {
+                    // LOS magnetic field strength
+                    array_S[i] = 0.0;
+                }
+                else
+                    array_S[i] = matrixS[0](i_x, i_y) / matrixS[2](i_x, i_y);
+                i++;
+            }
+
+        newTable->column(colName[0]).write(array_I, 1);
+        newTable->column(colName[1]).write(array_Q, 1);
+        newTable->column(colName[2]).write(array_U, 1);
+        newTable->column(colName[3]).write(array_V, 1);
+        newTable->column(colName[4]).write(array_T, 1);
+        newTable->column(colName[5]).write(array_S, 1);
+
+        // Healpix parameter
+        newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
+        newTable->addKey("ORDERING", "RING", "Ordering scheme");
+        newTable->addKey("INDXSCHM", "IMPLICIT", "Indexing scheme");
+        newTable->addKey("NSIDE", uint(sqrt(bins_x / 12.0)), "Resolution Parameter");
+        newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
+        newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
+        newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
+
+        newTable->addKey("GAS_SPECIES", op->getCurrentName(), "name of the observed gas species");
+        newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
+        newTable->addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
+        newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
+        newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
+        newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
+        newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
+        newTable->addKey("OBS_VELOCITY_X", obs_vel.X(), "velocity of observer in x direction");
+        newTable->addKey("OBS_VELOCITY_Y", obs_vel.Y(), "velocity of observer in y direction");
+        newTable->addKey("OBS_VELOCITY_Z", obs_vel.Z(), "velocity of observer in z direction");
+        newTable->addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
+        newTable->addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
+        newTable->addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
+        newTable->addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+
+        return true;
+    }
+
     bool writeIntVelChannelHealMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel maps: 0%     \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s): 0%     \r" << flush;
 
         long naxis = 1;
         long naxes[1] = { 0 };
@@ -3063,13 +4229,13 @@ class CDetector
                 for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
                 {
                     array_I[i] +=
-                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_Q[i] +=
-                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_U[i] +=
-                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                     array_V[i] +=
-                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins) * 1e-3;
+                        matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
                 }
                 array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 

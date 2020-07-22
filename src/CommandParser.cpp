@@ -1,8 +1,4 @@
 #include <omp.h>
-#include <ext/alloc_traits.h>
-#include <math.h>
-#include <stdlib.h>
-#include <iostream>
 
 #include "CommandParser.h"
 #include "MathFunctions.h"
@@ -570,7 +566,7 @@ bool CCommandParser::parse()
                     stop = 0;
                 }
                 break;
-                
+
                 
             case CMD_OPIATE:
                 if(i == 0)
@@ -2640,7 +2636,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                     else                        
                     {
                         //the case of a constant background
-                        if(values.size() == NR_OF_BG_SOURCES - 3)
+                        if(values.size() == NR_OF_BG_SOURCES - 3) 
                         {
                             dlist::iterator it=values.begin();
                             
@@ -2654,7 +2650,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                         else
                         {
                             //the case of a constant background
-                            if(values.size() == NR_OF_BG_SOURCES - 1)
+                            if(values.size() == NR_OF_BG_SOURCES - 1) 
                             {
                                 dlist::iterator it=values.begin();
 
@@ -3002,15 +2998,15 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }*/
 
-    if(cmd.compare("<nr_gnu_points>") == 0)
+    if(cmd.compare("<nr_plot_points>") == 0)
     {
-        param->setNrOfGnuPoints(uint(atof(data.c_str())));
+        param->setNrOfPlotPoints(uint(atof(data.c_str())));
         return true;
     }
 
-    if(cmd.compare("<nr_gnu_vectors>") == 0)
+    if(cmd.compare("<nr_plot_vectors>") == 0)
     {
-        param->setNrOfGnuVectors(uint(atof(data.c_str())));
+        param->setnrOfPlotVectors(uint(atof(data.c_str())));
         return true;
     }
 
@@ -3044,9 +3040,9 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
-    if(cmd.compare("<max_lines>") == 0)
+    if(cmd.compare("<max_plot_lines>") == 0)
     {
-        param->setmaxGridLines(uint(atof(data.c_str())));
+        param->setMaxPlotLines(uint(atof(data.c_str())));
         return true;
     }
 
@@ -3559,7 +3555,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         }
         else
         {
-            cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+            cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                     "recognized!"
                  << endl;
             return false;
@@ -3568,7 +3564,7 @@ bool CCommandParser::checkPixel(dlist & values, dlist nr_of_pixel, bool nsides_a
         {
             if(nr_of_pixel[i] <= 0)
             {
-                cout << "\nERROR: Number of pixel in Raytracing detector could not be "
+                cout << "\nERROR: Number of pixel for ray tracing detector could not be "
                         "recognized!"
                      << endl;
                 return false;
@@ -3584,7 +3580,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     {
         if(nr_of_channels[0] <= 0)
         {
-            cout << "\nERROR: Number of velocity channels in Raytracing detector could "
+            cout << "\nERROR: Number of velocity channels for ray tracing detector could "
                     "not be recognized!"
                  << endl;
             return false;
@@ -3593,7 +3589,7 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
     }
     else
     {
-        cout << "\nERROR: Number of velocity channels in Raytracing detector could not "
+        cout << "\nERROR: Number of velocity channels for ray tracing detector could not "
                 "be recognized!"
              << endl;
         return false;

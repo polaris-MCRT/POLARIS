@@ -2316,7 +2316,6 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_mol_dens)
     {
-        counter++;
         updateMidplaneString(str_1, str_2, counter);
 
         for(uint i_density = 1; i_density <= nrOfDensRatios; i_density++)

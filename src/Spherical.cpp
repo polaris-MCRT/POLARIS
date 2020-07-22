@@ -1,6 +1,5 @@
-#include <stdlib.h>
-
 #include "Spherical.h"
+#include "CommandParser.h"
 #include "MathFunctions.h"
 #include "Typedefs.h"
 #include "Parameters.h"
@@ -399,18 +398,18 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     return true;
 }
 
-bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
+bool CGridSpherical::writePlotFiles(string path, parameters & param)
 {
-    nrOfGnuPoints = param.getNrOfGnuPoints();
-    nrOfGnuVectors = param.getNrOfGnuVectors();
-    maxGridLines = param.getmaxGridLines();
+    nrOfPlotPoints = param.getNrOfPlotPoints();
+    nrOfPlotVectors = param.getNrOfPlotVectors();
+    maxPlotLines = param.getMaxPlotLines();
 
-    if(nrOfGnuPoints + nrOfGnuVectors == 0)
+    if(nrOfPlotPoints + nrOfPlotVectors == 0)
         return true;
 
     if(max_cells == 0)
     {
-        cout << "\nERROR: Cannot plot spherical grid to Gnuplot file to:" << endl;
+        cout << "\nERROR: Cannot plot spherical plot file to:" << endl;
         cout << path;
         cout << "Not enough tree cells available! " << endl;
         return false;
@@ -432,9 +431,9 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
 
-    if(nrOfGnuPoints <= 1)
+    if(nrOfPlotPoints <= 1)
     {
-        nrOfGnuPoints = max_cells / 10;
+        nrOfPlotPoints = max_cells / 10;
 
         plt_gas_dens = false;
         plt_dust_dens = false;
@@ -446,36 +445,36 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
         plt_mach = false;
     }
     else
-        nrOfGnuPoints = max_cells / nrOfGnuPoints;
+        nrOfPlotPoints = max_cells / nrOfPlotPoints;
 
-    if(nrOfGnuVectors <= 1)
+    if(nrOfPlotVectors <= 1)
     {
-        nrOfGnuVectors = max_cells / 10;
+        nrOfPlotVectors = max_cells / 10;
         plt_mag = false;
         plt_vel = false;
     }
     else
-        nrOfGnuVectors = max_cells / nrOfGnuVectors;
+        nrOfPlotVectors = max_cells / nrOfPlotVectors;
 
-    if(nrOfGnuPoints == 0)
-        nrOfGnuPoints = 1;
+    if(nrOfPlotPoints == 0)
+        nrOfPlotPoints = 1;
 
-    if(nrOfGnuVectors == 0)
-        nrOfGnuVectors = 1;
+    if(nrOfPlotVectors == 0)
+        nrOfPlotVectors = 1;
 
     stringstream point_header, vec_header, basic_grid_l0, basic_grid_l1;
 
-    string grid_filename = path + "grid_geometry.plt";
-    string dens_gas_filename = path + "grid_gas_density.plt";
-    string dens_dust_filename = path + "grid_dust_density.plt";
-    string temp_gas_filename = path + "grid_gas_temp.plt";
-    string temp_dust_filename = path + "grid_dust_temp.plt";
-    string rat_filename = path + "grid_RAT.plt";
+    string grid_filename = path + "grid_geometry.py";
+    string dens_gas_filename = path + "grid_gas_density.py";
+    string dens_dust_filename = path + "grid_dust_density.py";
+    string temp_gas_filename = path + "grid_gas_temp.py";
+    string temp_dust_filename = path + "grid_dust_temp.py";
+    string rat_filename = path + "grid_RAT.py";
     string delta_filename = path + "grid_data.dat";
-    string larm_filename = path + "grid_mag.plt";
-    string mach_filename = path + "grid_vel.plt";
-    string mag_filename = path + "grid_mag.plt";
-    string vel_filename = path + "grid_vel.plt";
+    string larm_filename = path + "grid_mag.py";
+    string mach_filename = path + "grid_vel.py";
+    string mag_filename = path + "grid_mag.py";
+    string vel_filename = path + "grid_vel.py";
 
     ofstream point_fields[9];
     ofstream vec_fields[2];
@@ -902,7 +901,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
 
                 line_counter++;
 
-                if(line_counter % nrOfGnuPoints == 0)
+                if(line_counter % nrOfPlotPoints == 0)
                 {
                     if(plt_gas_dens)
                     {
@@ -935,7 +934,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
                     }
                 }
 
-                if(line_counter % nrOfGnuVectors == 0)
+                if(line_counter % nrOfPlotVectors == 0)
                 {
                     if(plt_mag)
                     {
@@ -1083,7 +1082,7 @@ bool CGridSpherical::writeGNUPlotFiles(string path, parameters & param)
     for(uint pos = 0; pos < 2; pos++)
         vec_fields[pos].close();
 
-    cout << "- Writing of Gnuplot files             : done" << endl;
+    cout << "- Writing of plot files             : done" << endl;
     return true;
 }
 
