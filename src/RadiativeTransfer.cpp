@@ -468,7 +468,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
             for(uint wID = 0; wID < nr_used_wavelengths; wID++)
             {
                 grid->setWaveID(wID);
-                for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+#pragma omp parallel for schedule(dynamic)
+                for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
                 {
                     photon_package pp = photon_package();
 
@@ -1319,7 +1320,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 grid->setWaveID(wID);
                 ulong nr_of_cells = grid->getMaxDataCells();
 
-                for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+#pragma omp parallel for schedule(dynamic)
+                for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
                 {
                     photon_package pp = photon_package();
 
@@ -2458,7 +2460,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 for(uint wID = 0; wID < nr_used_wavelengths; wID++)
                 {
                     grid->setWaveID(wID);
-                    for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+#pragma omp parallel for schedule(dynamic)
+                    for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
                     {
                         photon_package pp = photon_package();
 
