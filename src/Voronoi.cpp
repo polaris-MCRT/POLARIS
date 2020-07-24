@@ -1233,8 +1233,10 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     Vector3D pos = pp->getPosition();
     Vector3D dir = pp->getDirection();
 
-    Vector3D v_n, v_a;
-    double length, num, den;
+    // We need to make sure that path length is large enough
+    // to change at least one component of pos parallel to v_n
+    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
+    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
 
     cell_vo * center_cell = (cell_vo *)pp->getPositionCell();
 
@@ -1251,6 +1253,9 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         hit = true;
     }
 
+    Vector3D v_n, v_a;
+    double length, num, den, cell_distance;
+
     for(uint i = 0; i < n_size; i++)
     {
         if(isNeigboringVoroCell(center_cell, i))
@@ -1260,17 +1265,32 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
             cell_vo * n_cell = ((cell_vo *)cell_list[id]);
             Vector3D n_pos = n_cell->getCenter();
 
+            // v_n is normal vector on the cell border pointing
+            // towards next cell
             v_n = n_pos - c_pos;
-            // distance to center of adjacent cell (here: v_n) is enlarged to ensure
-            // a large enough step length
-            v_n *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
-            v_a = c_pos + 0.5 * v_n;
+            cell_distance = v_n.length();
+            // v_n should be unit vector
+            v_n.normalize();
 
-            num = v_n * (pos - v_a);
-            den = v_n * (dir);
+            // den = cos of angle between cell border normal and photon direction
+            den = v_n * dir;
 
-            if(den != 0)
+            // den must be positive as long as v_n points outwards
+            if(den > 0)
             {
+                // v_a is a point on the cell border and
+                // on the line between the two center points
+                v_a = c_pos + 0.5 * cell_distance * v_n;
+
+                // geometrically, abs(num) is the shortest distance from current
+                // position to the cell border (perp to border, ie. parallel to v_n)
+                // if num is 0 -> photon is on the border
+                num = v_n * (pos - v_a);
+                // distance num to border is enlarged to ensure that at least one
+                // component of the photon position changes after step
+                // sign(num) is necessary to ensure that abs(num) gets larger
+                num += sign(num) * l_n_eps;
+
                 length = -num / den;
 
                 if(length > 0 && length < path_length)
@@ -1282,47 +1302,54 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
         }
     }
 
-    for(int i_side = 1; i_side <= 6; i_side++)
+    for(int i_side = 0; i_side < 6; i_side++)
     {
+        // v_n points outside of current cell
         v_n = 0;
+        // v_a is a point on the cell border
         v_a = 0;
-
         switch(i_side)
         {
-            case 1:
+            case 0:
                 v_n.setZ(-1);
                 v_a.setZ(min_l);
                 break;
-            case 2:
+            case 1:
                 v_n.setZ(1);
                 v_a.setZ(max_l);
                 break;
-            case 3:
+            case 2:
                 v_n.setY(-1);
                 v_a.setY(min_l);
                 break;
-            case 4:
+            case 3:
                 v_n.setY(1);
                 v_a.setY(max_l);
                 break;
-            case 5:
+            case 4:
                 v_n.setX(-1);
                 v_a.setX(min_l);
                 break;
-            case 6:
+            case 5:
                 v_n.setX(1);
                 v_a.setX(max_l);
                 break;
         }
-        // distance to cell border (here: v_a) is enlarged to ensure
-        // a large enough step length
-        v_a *= 1 + MIN_LEN_STEP*EPS_DOUBLE;
+        // den = cos of angle between cell border normal and photon direction
+        den = v_n * dir;
 
-        num = v_n * (pos - v_a);
-        den = v_n * (dir);
-
-        if(den != 0)
+        // den must be positive as long as v_n points outwards
+        if(den > 0)
         {
+            // geometrically, abs(num) is the shortest distance from current
+            // position to the cell border (perp to border, ie. parallel to v_n)
+            // if num is 0 -> photon is on the border
+            num = v_n * (pos - v_a);
+            // distance num to border is enlarged to ensure that at least one
+            // component of the photon position changes after step
+            // sign(num) is necessary to ensure that abs(num) gets larger
+            num += sign(num) * l_n_eps;
+
             length = -num / den;
 
             if(length > 0 && length < path_length)
@@ -1395,53 +1422,67 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
     Vector3D dir = pp->getDirection();
     Vector3D pos = pp->getPosition();
 
+    // We need to make sure that path length is large enough
+    // to change at least one component of pos parallel to v_n
+    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
+    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
+
     if(isInside(pos))
         return true;
 
     Vector3D v_n, v_a;
     double length, num, den;
 
-    for(int i_side = 1; i_side <= 6; i_side++)
+    for(int i_side = 0; i_side < 6; i_side++)
     {
+        // v_n points inside the neighboring cells
+        // photon is outside of the grid
+        // -> v_n has different sign compared to goToNextCellBorder
         v_n = 0;
+        // v_a is a point on the cell border
         v_a = 0;
-
         switch(i_side)
         {
-            case 1:
-                v_n.setZ(-1);
+            case 0:
+                v_n.setZ(1);
                 v_a.setZ(min_l);
                 break;
-            case 2:
-                v_n.setZ(1);
+            case 1:
+                v_n.setZ(-1);
                 v_a.setZ(max_l);
+                break;
+            case 2:
+                v_n.setY(1);
+                v_a.setY(min_l);
                 break;
             case 3:
                 v_n.setY(-1);
-                v_a.setY(min_l);
+                v_a.setY(max_l);
                 break;
             case 4:
-                v_n.setY(1);
-                v_a.setY(max_l);
+                v_n.setX(1);
+                v_a.setX(min_l);
                 break;
             case 5:
                 v_n.setX(-1);
-                v_a.setX(min_l);
-                break;
-            case 6:
-                v_n.setX(1);
                 v_a.setX(max_l);
                 break;
         }
-        // v_a must be smaller (because we are outside of the grid)
-        // to ensure a large enough step length -> grid is a bit squeezed
-        v_a *= 1 - MIN_LEN_STEP*EPS_DOUBLE;
+        // den = cos of angle between cell border normal and photon direction
+        den = v_n * dir;
 
-        num = v_n * (pos - v_a);
-        den = v_n * (dir);
-
-        if(den != 0)
+        // maybe den must be positive as long as v_n points inwards
+        if(den > 0)
         {
+            // geometrically, abs(num) is the shortest distance from current
+            // position to the cell border (perp to border, ie. parallel to v_n)
+            // if num is 0 -> photon is on the border
+            num = v_n * (pos - v_a);
+            // distance num to border is enlarged to ensure that at least one
+            // component of the photon position changes after step
+            // sign(num) is necessary to ensure that abs(num) gets larger
+            num += sign(num) * l_n_eps;
+
             length = -num / den;
 
             if(length > 0 && isInside(pos + dir * length))

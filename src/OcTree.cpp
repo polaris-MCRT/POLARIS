@@ -290,14 +290,14 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
 
     if(!loadGridFromBinrayFile(param))
         return false;
-        
+
     createCellList();
 
     printParameters();
 
     cell_oc_root=&cell_oc_root->getChildren()[6];
 
-    
+
     ulong max_cells = getMaxDataCells();
 
     cout << CLR_LINE;
@@ -309,70 +309,70 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         cell_basic * cell = getCellFromIndex(c_i);
         double dens0 = getGasDensity(*cell, 0);
         double dens1 = getGasDensity(*cell, 1);
-        
-        
+
+
         if(c_i%5000==0)
             cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
-        
+
         double dens = dens0+dens1;
-        
-        
+
+
         double length = ((cell_oc *)cell)->getLength();
-        
+
         double cx = ((cell_oc *)cell)->getXmin()+0.5*length;
         double cy = ((cell_oc *)cell)->getYmin()+0.5*length;
         double cz = ((cell_oc *)cell)->getZmin()+0.5*length;
-        
+
         vector<Vector3D> vlist;
-        
+
         length=0.51*length;
-        
+
         Vector3D center=Vector3D(cx,cy,cz);
-        
+
         vlist.push_back(Vector3D(cx+length,cy,cz));
         vlist.push_back(Vector3D(cx-length,cy,cz));
-        
+
         vlist.push_back(Vector3D(cx,cy+length,cz));
         vlist.push_back(Vector3D(cx,cy-length,cz));
-        
+
         vlist.push_back(Vector3D(cx,cy,cz+length));
         vlist.push_back(Vector3D(cx,cy,cz-length));
-        
+
         length=1.732*length;
-        
+
         vlist.push_back(Vector3D(cx+length,cy+length,cz+length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz+length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz+length));
-        
+
         vlist.push_back(Vector3D(cx+length,cy+length,cz-length));
         vlist.push_back(Vector3D(cx+length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy-length,cz-length));
         vlist.push_back(Vector3D(cx-length,cy+length,cz-length));
-        
+
         photon_package pp;
-        
+
         pp.setPosition(center);
-        
+
         if(positionPhotonInGrid(&pp))
         {
             //cell_basic * cell = pp.getPositionCell()
             double tg= 0.8*getGasTemperature(pp);
-                        
+
             for(uint g=0;g<vlist.size();g++)
             {
                 pp.setPosition(vlist[g]);
-        
+
                 if(positionPhotonInGrid(&pp))
                 {
                     tg+=0.8/14.0*getGasTemperature(pp);
-                }   
+                }
             }
-            
+
             setGasTemperature(cell, tg);
         }
-             
-        
+
+
         if(dens*254098.7886>1e13)
         {
             setGasDensity(cell, 0, 0.0*dens);
@@ -386,7 +386,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
     }
 
     //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
-    
+
     if(!saveBinaryGridFile(out_filename))
         return false;
 
@@ -423,7 +423,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 tmp_data[j]=0;
             }
-                        
+
             for(int i = 0; i < 8; i++)
             {
                 for(uint j =0;j<data_len;j++)
@@ -440,7 +440,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
             {
                 cell->setData(j, tmp_data[j]); ;
             }
-            
+
             if(cell->getLevel() > tr_level)
                 return true;
 
@@ -739,7 +739,7 @@ bool CGridOcTree::writePlotFiles(string path, parameters & param)
     }
 
     plt_gas_dens = (size_gd_list > 0);  // 1
-    plt_mol_dens = (nrOfDensRatios>0); 
+    plt_mol_dens = (nrOfDensRatios>0);
     plt_dust_dens = false;                       // param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); // 2
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
@@ -1624,74 +1624,75 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
     bool hit = false;
     double path_length = 1e300;
 
-    Vector3D p = pp->getPosition();
-    Vector3D d = pp->getDirection();
+    Vector3D pos = pp->getPosition();
+    Vector3D dir = pp->getDirection();
 
-    double loc_x_min = tmp_cell->getXmin() - (abs(tmp_cell->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_min = tmp_cell->getYmin() - (abs(tmp_cell->getYmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_min = tmp_cell->getZmin() - (abs(tmp_cell->getZmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    // We need to make sure that path length is large enough
+    // to change at least one component of pos parallel to v_n
+    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
+    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
 
-    double loc_x_max = tmp_cell->getXmax() + (abs(tmp_cell->getXmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_max = tmp_cell->getYmax() + (abs(tmp_cell->getYmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_max = tmp_cell->getZmax() + (abs(tmp_cell->getZmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    double loc_x_min = tmp_cell->getXmin();
+    double loc_y_min = tmp_cell->getYmin();
+    double loc_z_min = tmp_cell->getZmin();
 
-    double loc_dx = loc_x_max - loc_x_min;
-    double loc_dy = loc_y_max - loc_y_min;
-    double loc_dz = loc_z_max - loc_z_min;
+    double loc_x_max = tmp_cell->getXmax();
+    double loc_y_max = tmp_cell->getYmax();
+    double loc_z_max = tmp_cell->getZmax();
+
+    Vector3D v_n, v_a;
+    double num, den, length;
 
     for(uint i_side = 0; i_side < 6; i_side++)
     {
-        Vector3D v_n;
+        // v_n is normal vector on the cell border pointing
+        // towards next cell
+        v_n = 0;
+        // v_a is a point on the cell border
+        v_a = 0;
         switch(i_side)
         {
             case 0:
-                v_n.setZ(-loc_dx * loc_dy);
+                v_n.setZ(-1);
+                v_a.setZ(loc_z_min);
                 break;
             case 1:
-                v_n.setZ(loc_dx * loc_dy);
+                v_n.setZ(1);
+                v_a.setZ(loc_z_max);
                 break;
             case 2:
-                v_n.setY(-loc_dx * loc_dz);
+                v_n.setY(-1);
+                v_a.setY(loc_y_min);
                 break;
             case 3:
-                v_n.setY(loc_dx * loc_dz);
+                v_n.setY(1);
+                v_a.setY(loc_y_max);
                 break;
             case 4:
-                v_n.setX(-loc_dy * loc_dz);
+                v_n.setX(-1);
+                v_a.setX(loc_x_min);
                 break;
             case 5:
-                v_n.setX(loc_dy * loc_dz);
+                v_n.setX(1);
+                v_a.setX(loc_x_max);
                 break;
         }
+        // den = cos of angle between cell border normal and photon direction
+        den = v_n * dir;
 
-        double den = v_n * d;
-        if(den != 0)
+        // den must be positive as long as v_n points outwards
+        if(den > 0)
         {
-            Vector3D v_a;
-            switch(i_side)
-            {
-                case 0:
-                    v_a.setZ(loc_z_min);
-                    break;
-                case 1:
-                    v_a.setZ(loc_z_max);
-                    break;
-                case 2:
-                    v_a.setY(loc_y_min);
-                    break;
-                case 3:
-                    v_a.setY(loc_y_max);
-                    break;
-                case 4:
-                    v_a.setX(loc_x_min);
-                    break;
-                case 5:
-                    v_a.setX(loc_x_max);
-                    break;
-            }
+            // geometrically, abs(num) is the shortest distance from current
+            // position to the cell border (perp to border, ie. parallel to v_n)
+            // if num is 0 -> photon is on the border
+            num = v_n * (pos - v_a);
+            // distance num to border is enlarged to ensure that at least one
+            // component of the photon position changes after step
+            // sign(num) is necessary to ensure that abs(num) gets larger
+            num += sign(num) * l_n_eps;
 
-            double num = v_n * (p - v_a);
-            double length = -num / den;
+            length = -num / den;
 
             if(length > 0 && length < path_length)
             {
@@ -1707,7 +1708,7 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    pp->setPosition(p + d * path_length);
+    pp->setPosition(pos + dir * path_length);
     pp->setTmpPathLength(path_length);
     return true;
 }
@@ -1948,86 +1949,87 @@ bool CGridOcTree::nextLowLevelCell(cell_basic * cell)
 
 bool CGridOcTree::findStartingPoint(photon_package * pp)
 {
-    Vector3D p = pp->getPosition();
+    Vector3D pos = pp->getPosition();
 
-    if(isInside(p))
+    if(isInside(pos))
         return positionPhotonInGrid(pp);
 
     bool hit = false;
     double path_length = 1e300;
-    Vector3D d = pp->getDirection();
 
-    // signs are switched compared to goToNextCellBorder because we are outside the cell
-    // so the cell needs to get smaller to get a larger path_length
-    double loc_x_min = cell_oc_root->getXmin() + (abs(cell_oc_root->getXmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_min = cell_oc_root->getYmin() + (abs(cell_oc_root->getYmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_min = cell_oc_root->getZmin() + (abs(cell_oc_root->getZmin()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    Vector3D dir = pp->getDirection();
 
-    double loc_x_max = cell_oc_root->getXmax() - (abs(cell_oc_root->getXmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_y_max = cell_oc_root->getYmax() - (abs(cell_oc_root->getYmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
-    double loc_z_max = cell_oc_root->getZmax() - (abs(cell_oc_root->getZmax()) + 1) * MIN_LEN_STEP*EPS_DOUBLE;
+    // We need to make sure that path length is large enough
+    // to change at least one component of pos parallel to v_n
+    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
+    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
 
-    double loc_dx = loc_x_max - loc_x_min;
-    double loc_dy = loc_y_max - loc_y_min;
-    double loc_dz = loc_z_max - loc_z_min;
+    double loc_x_min = cell_oc_root->getXmin();
+    double loc_y_min = cell_oc_root->getYmin();
+    double loc_z_min = cell_oc_root->getZmin();
+
+    double loc_x_max = cell_oc_root->getXmax();
+    double loc_y_max = cell_oc_root->getYmax();
+    double loc_z_max = cell_oc_root->getZmax();
+
+    Vector3D v_n, v_a;
+    double num, den, length;
 
     for(uint i_side = 0; i_side < 6; i_side++)
     {
-        Vector3D v_n;
+        // v_n is normal vector on the cell border pointing inside that cell
+        // signs are switched compared to goToNextCellBorder
+        // because we are outside the cell
+        v_n = 0;
+        // v_a is a point on the cell border
+        v_a = 0;
         switch(i_side)
         {
             case 0:
-                v_n.setZ(-loc_dx * loc_dy);
+                v_n.setZ(1);
+                v_a.setZ(loc_z_min);
                 break;
             case 1:
-                v_n.setZ(loc_dx * loc_dy);
+                v_n.setZ(-1);
+                v_a.setZ(loc_z_max);
                 break;
             case 2:
-                v_n.setY(-loc_dx * loc_dz);
+                v_n.setY(1);
+                v_a.setY(loc_y_min);
                 break;
             case 3:
-                v_n.setY(loc_dx * loc_dz);
+                v_n.setY(-1);
+                v_a.setY(loc_y_max);
                 break;
             case 4:
-                v_n.setX(-loc_dy * loc_dz);
+                v_n.setX(1);
+                v_a.setX(loc_x_min);
                 break;
             case 5:
-                v_n.setX(loc_dy * loc_dz);
+                v_n.setX(-1);
+                v_a.setX(loc_x_max);
                 break;
         }
+        // den = cos of angle between cell border normal and photon direction
+        den = v_n * dir;
 
-        double den = v_n * d;
-        if(den != 0)
+        // den must be positive as long as v_n points outwards
+        if(den > 0)
         {
-            Vector3D v_a;
-            switch(i_side)
-            {
-                case 0:
-                    v_a.setZ(loc_z_min);
-                    break;
-                case 1:
-                    v_a.setZ(loc_z_max);
-                    break;
-                case 2:
-                    v_a.setY(loc_y_min);
-                    break;
-                case 3:
-                    v_a.setY(loc_y_max);
-                    break;
-                case 4:
-                    v_a.setX(loc_x_min);
-                    break;
-                case 5:
-                    v_a.setX(loc_x_max);
-                    break;
-            }
+            // geometrically, abs(num) is the shortest distance from current
+            // position to the cell border (perp to border, ie. parallel to v_n)
+            // if num is 0 -> photon is on the border
+            num = v_n * (pos - v_a);
+            // distance num to border is enlarged to ensure that at least one
+            // component of the photon position changes after step
+            // sign(num) is necessary to ensure that abs(num) gets larger
+            num += sign(num) * l_n_eps;
 
-            double num = v_n * (p - v_a);
-            double length = -num / den;
+            length = -num / den;
 
             if(length > 0 && length < path_length)
             {
-                if(isInside(p + d * length))
+                if(isInside(pos + dir * length))
                 {
                     path_length = length;
                     hit = true;
@@ -2039,7 +2041,7 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
     if(!hit)
         return false;
 
-    pp->setPosition(p + d * path_length);
+    pp->setPosition(pos + dir * path_length);
     return positionPhotonInGrid(pp);
 }
 

@@ -349,7 +349,7 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
     // Init array of tracer base class pointer
     nr_ray_detectors = param.getNrOfOPIATESpecies();
     tracer = new CRaytracingBasic *[nr_ray_detectors];
-    
+
     dlist op_ray_detectors = param.getOPIATERayDetectors();
 
     for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
@@ -384,13 +384,13 @@ bool CRadiativeTransfer::initiateOPIATERaytrace(parameters & param)
                 //tracer[i_det] = new CRaytracingSlice(grid);
                 cout << "ERROR: Slice detector not yet fully implemented!" << endl;
                 break;
-                
+
             default:
                 //tracer[i_det] = new CRaytracingSlice(grid);
                 cout << "ERROR: Detector not yet fully implemented!" << endl;
-                break;    
+                break;
         }
-        
+
         if(!tracer[i_det]->setOPIATEDetector(pos, param, op_ray_detectors, pathOutput, max_length))
             return false;
     }
@@ -2938,10 +2938,10 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
         // Get total number of pixel
         uint per_max = tracer[i_det]->getNpix();
         string spec_name=param.getOpiateSpec(i_det);
-        
+
         if(!op->findIndexByName(spec_name))
             return false;
-    
+
         // Get BG source
         uint sID = tracer[i_det]->getSourceIndex()-1;
         CSourceBasic * tmp_source;
@@ -2996,7 +2996,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 
         if(!tracer[i_det]->writeOpiateResults(op))
             return false;
-        
+
     }
 
     cout << CLR_LINE;
@@ -3213,7 +3213,7 @@ void CRadiativeTransfer::getOPIATEIntensity(photon_package * pp,
         StokesVector st=tmp_source->getStokesVector(pp);
         double lam=pp->getWavelength();
         double freq=pp->getFrequency();
-        
+
         pp->setStokesVector(st * lam / freq);
     }
 
@@ -3397,10 +3397,10 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
         // Get extra information about the magnetic field and ine broadening
         MagFieldInfo mag_field_info;
         LineBroadening line_broadening;
- 
+
         // Set only gauss_a if not zeeman split
         line_broadening.gauss_a = grid->getGaussA(*pp);
- 
+
         // Get the path length through the current cell
         double len = pp->getTmpPathLength();
 
@@ -3464,12 +3464,12 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
 
                     // Combine the Stokes vectors from gas and dust for emission
                     //total_emission *= dens_species;
-                    
+
                     total_emission += dust_emi_and_ext;
-                    
+
                     // and extinction
                     //total_absorption_matrix *= dens_species;
-                    
+
                     if(dust_emi_and_ext.T() != 0)
                         for(uint i = 0; i < 4; i++)
                             total_absorption_matrix(i, i) += dust_emi_and_ext.T();
@@ -3768,7 +3768,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
 
                             // Column density of the total gas
                             pp->getStokesVector(5)->addSp(gas_column_density);
-                            
+
                             // Column density of the species
                             pp->getStokesVector(6)->addSp(species_column_density);
                         }
@@ -3778,7 +3778,7 @@ void CRadiativeTransfer::rayThroughCellLine(photon_package * pp,
                         // Column density of the total gas
 
                         pp->getStokesVector(0)->addSp(gas_column_density);
-                        
+
                         // Column density of the species
                         pp->getStokesVector(1)->addSp(species_column_density);
                     }
@@ -3856,4 +3856,3 @@ void CRadiativeTransfer::preCalcVelocityInterp(CGridBasic * grid,
         vel_field_interp->vel_field.createDynSpline();
     }
 }
-

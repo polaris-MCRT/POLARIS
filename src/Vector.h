@@ -391,7 +391,6 @@ class Vector3D
     }
 
     // random direction according to http://mathworld.wolfram.com/SpherePointPicking.html
-
     void rndDir(double r1, double r2)
     {
         double u = 1.0 - 2.0 * r1;
