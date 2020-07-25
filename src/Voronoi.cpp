@@ -1235,8 +1235,13 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
 
     // We need to make sure that path length is large enough
     // to change at least one component of pos parallel to v_n
-    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
-    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
+    // add 1 in case one of the components is zero
+    double step_eps_pos = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())}) + 1;
+    step_eps_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+
+    // We need to make sure that the new position of the photon
+    // is not exactly on the border but a bit inside the cell
+    double step_eps_new_pos;
 
     cell_vo * center_cell = (cell_vo *)pp->getPositionCell();
 
@@ -1289,14 +1294,17 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
                 // distance num to border is enlarged to ensure that at least one
                 // component of the photon position changes after step
                 // sign(num) is necessary to ensure that abs(num) gets larger
-                num += sign(num) * l_n_eps;
+                num += sign(num) * step_eps_pos;
 
                 length = -num / den;
 
                 if(length > 0 && length < path_length)
                 {
-                    path_length = length;
                     hit = true;
+                    path_length = length;
+
+                    step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
+                    step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
                 }
             }
         }
@@ -1348,20 +1356,26 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
             // distance num to border is enlarged to ensure that at least one
             // component of the photon position changes after step
             // sign(num) is necessary to ensure that abs(num) gets larger
-            num += sign(num) * l_n_eps;
+            num += sign(num) * step_eps_pos;
 
             length = -num / den;
 
             if(length > 0 && length < path_length)
             {
-                path_length = length;
                 hit = true;
+                path_length = length;
+
+                step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
+                step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
             }
         }
     }
 
-    pp->setPosition(pos + dir * path_length);
-    pp->setTmpPathLength(path_length);
+    // do not use dir * (path_length + step_eps_new_pos)
+    // path_length might be much much larger and then it is
+    // numerically possible that (path_length + step_eps_new_pos) = path_length
+    pp->setPosition(pos + dir * path_length + dir * step_eps_new_pos);
+    pp->setTmpPathLength(path_length + step_eps_new_pos);
 
     return hit;
 }
@@ -1424,8 +1438,12 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
 
     // We need to make sure that path length is large enough
     // to change at least one component of pos parallel to v_n
-    double l_n_eps = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())});
-    l_n_eps *= MIN_LEN_STEP*EPS_DOUBLE;
+    double step_eps_pos = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())}) + 1;
+    step_eps_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+
+    // We need to make sure that the new position of the photon
+    // is not exactly on the border but a bit inside the cell
+    double step_eps_new_pos;
 
     if(isInside(pos))
         return true;
@@ -1471,8 +1489,8 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
         // den = cos of angle between cell border normal and photon direction
         den = v_n * dir;
 
-        // maybe den must be positive as long as v_n points inwards
-        if(den > 0)
+        // den is positive (negative) if v_n points away from (towards) photon
+        if(den != 0)
         {
             // geometrically, abs(num) is the shortest distance from current
             // position to the cell border (perp to border, ie. parallel to v_n)
@@ -1481,21 +1499,33 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
             // distance num to border is enlarged to ensure that at least one
             // component of the photon position changes after step
             // sign(num) is necessary to ensure that abs(num) gets larger
-            num += sign(num) * l_n_eps;
+            num += sign(num) * step_eps_pos;
 
             length = -num / den;
 
-            if(length > 0 && isInside(pos + dir * length))
+            if(length > 0 && length < path_length)
             {
-                hit = true;
-                path_length = length;
-                break;
+                if(isInside(pos + dir * length))
+                {
+                    hit = true;
+                    path_length = length;
+
+                    step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
+                    step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+                }
             }
         }
     }
 
-    pp->setPosition(pos + dir * path_length);
+    if(!hit)
+        return false;
+
+    // do not use dir * (path_length + step_eps_new_pos)
+    // path_length might be much much larger and then it is
+    // numerically possible that (path_length + step_eps_new_pos) = path_length
+    pp->setPosition(pos + dir * path_length + dir * step_eps_new_pos);
     pp->setTmpPathLength(0);
 
     return positionPhotonInGrid(pp);
 }
+
