@@ -1503,24 +1503,19 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
 
             length = -num / den;
 
-            if(length > 0 && length < path_length)
+            if(length > 0 && isInside(pos + dir * length))
             {
-                if(isInside(pos + dir * length))
-                {
-                    hit = true;
-                    path_length = length;
+                hit = true;
+                path_length = length;
 
-                    step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
-                    step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
-                }
+                step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
+                step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+                break;
             }
         }
     }
 
-    if(!hit)
-        return false;
-
-    // do not use dir * (path_length + step_eps_new_pos)
+    // do not use "dir * (path_length + step_eps_new_pos)"
     // path_length might be much much larger and then it is
     // numerically possible that (path_length + step_eps_new_pos) = path_length
     pp->setPosition(pos + dir * path_length + dir * step_eps_new_pos);
@@ -1528,4 +1523,3 @@ bool CGridVoronoi::findStartingPoint(photon_package * pp)
 
     return positionPhotonInGrid(pp);
 }
-
