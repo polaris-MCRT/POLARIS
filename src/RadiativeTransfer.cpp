@@ -458,42 +458,44 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
         // Number of wavelength or no loop over wavelength (pick from planck distribution)
         if(use_energy_density)
+        {
             nr_used_wavelengths = dust->getNrOfWavelength();
 
-        #if (USE_PRECALC_TABLE)
-            grid->initPreCalcTables(nr_used_wavelengths);
+            #if (USE_PRECALC_TABLE)
+                grid->initPreCalcTables(nr_used_wavelengths);
 
-            ulong nr_of_cells = grid->getMaxDataCells();
+                ulong nr_of_cells = grid->getMaxDataCells();
 
-            for(uint wID = 0; wID < nr_used_wavelengths; wID++)
-            {
-                grid->setWaveID(wID);
-#pragma omp parallel for schedule(dynamic)
-                for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
+                for(uint wID = 0; wID < nr_used_wavelengths; wID++)
                 {
-                    photon_package pp = photon_package();
-
-                    pp.setWavelength(dust->getWavelength(wID), wID);
-                    // Put photon package into current cell
-                    pp.setPositionCell(grid->getCellFromIndex(i_cell));
-
-                    double i_cext = dust->getCextMean(grid, pp);
-                    double i_cabs = dust->getCabsMean(grid, pp);
-                    double i_csca = dust->getCscaMean(grid, pp);
-                    grid->setCextMeanTab(i_cext, i_cell);
-                    grid->setCabsMeanTab(i_cabs, i_cell);
-                    grid->setCscaMeanTab(i_csca, i_cell);
-
-                    if(wID == 0)
+                    grid->setWaveID(wID);
+    #pragma omp parallel for schedule(dynamic)
+                    for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
                     {
-                        double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
-                        grid->setNumberDensityTab(number_density, i_cell);
-                        double cell_emission = dust->getTotalCellEmission(grid, pp);
-                        grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                        photon_package pp = photon_package();
+
+                        pp.setWavelength(dust->getWavelength(wID), wID);
+                        // Put photon package into current cell
+                        pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+                        double i_cext = dust->getCextMean(grid, pp);
+                        double i_cabs = dust->getCabsMean(grid, pp);
+                        double i_csca = dust->getCscaMean(grid, pp);
+                        grid->setCextMeanTab(i_cext, i_cell);
+                        grid->setCabsMeanTab(i_cabs, i_cell);
+                        grid->setCscaMeanTab(i_csca, i_cell);
+
+                        if(wID == 0)
+                        {
+                            double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
+                            grid->setNumberDensityTab(number_density, i_cell);
+                            double cell_emission = dust->getTotalCellEmission(grid, pp);
+                            grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                        }
                     }
                 }
-            }
-        #endif
+            #endif
+        }
 
         // Init progress visualization
         per_counter = 0;
