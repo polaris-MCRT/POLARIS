@@ -269,7 +269,6 @@ class CGridBasic
         CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
-        chosen_wID = 0;
         max_wavelengths = 0;
     }
 
@@ -522,23 +521,21 @@ class CGridBasic
         CscaMeanTab = 0;
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
-        chosen_wID = 0;
         max_wavelengths = 0;
     }
 
-    double getCextMeanTab(uint cellID) const;
-    double getCabsMeanTab(uint cellID) const;
-    double getCscaMeanTab(uint cellID) const;
+    double getCextMeanTab(uint cellID, uint wID) const;
+    double getCabsMeanTab(uint cellID, uint wID) const;
+    double getCscaMeanTab(uint cellID, uint wID) const;
     double getNumberDensityTab(uint cellID) const;
     double getTotalCellEmissionTab(uint cellID) const;
 
-    void setCextMeanTab(double Cext, uint cellID);
-    void setCabsMeanTab(double Cext, uint cellID);
-    void setCscaMeanTab(double Cext, uint cellID);
+    void setCextMeanTab(double Cext, uint cellID, uint wID);
+    void setCabsMeanTab(double Cext, uint cellID, uint wID);
+    void setCscaMeanTab(double Cext, uint cellID, uint wID);
     void setNumberDensityTab(double density, uint cellID);
     void setTotalCellEmissionTab(double cell_emission, uint cellID);
 
-    void setWaveID(uint wID);
     void initPreCalcTables(uint nr_used_wavelengths);
 
     double getTurbulentVelocity(cell_basic * cell)
@@ -3955,7 +3952,6 @@ class CGridBasic
     double ** CscaMeanTab;
     double * numberDensityTab;
     double * totalCellEmissionTab;
-    uint chosen_wID;
     uint max_wavelengths;
 };
 

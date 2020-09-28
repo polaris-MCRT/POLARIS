@@ -14,24 +14,24 @@
 #include "Grid.h"
 
 
-double CGridBasic::getCextMeanTab(uint cellID) const
+double CGridBasic::getCextMeanTab(uint cellID, uint wID) const
 {
     if(CextMeanTab != 0)
-        return CextMeanTab[chosen_wID][cellID];
+        return CextMeanTab[wID][cellID];
     return MAX_DOUBLE;
 }
 
-double CGridBasic::getCabsMeanTab(uint cellID) const
+double CGridBasic::getCabsMeanTab(uint cellID, uint wID) const
 {
     if(CabsMeanTab != 0)
-        return CabsMeanTab[chosen_wID][cellID];
+        return CabsMeanTab[wID][cellID];
     return MAX_DOUBLE;
 }
 
-double CGridBasic::getCscaMeanTab(uint cellID) const
+double CGridBasic::getCscaMeanTab(uint cellID, uint wID) const
 {
     if(CscaMeanTab != 0)
-        return CscaMeanTab[chosen_wID][cellID];
+        return CscaMeanTab[wID][cellID];
     return MAX_DOUBLE;
 }
 
@@ -49,19 +49,19 @@ double CGridBasic::getTotalCellEmissionTab(uint cellID) const
     return MAX_DOUBLE;
 }
 
-void CGridBasic::setCextMeanTab(double Cext, uint cellID)
+void CGridBasic::setCextMeanTab(double Cext, uint cellID, uint wID)
 {
-    CextMeanTab[chosen_wID][cellID] = Cext;
+    CextMeanTab[wID][cellID] = Cext;
 }
 
-void CGridBasic::setCabsMeanTab(double Cabs, uint cellID)
+void CGridBasic::setCabsMeanTab(double Cabs, uint cellID, uint wID)
 {
-    CabsMeanTab[chosen_wID][cellID] = Cabs;
+    CabsMeanTab[wID][cellID] = Cabs;
 }
 
-void CGridBasic::setCscaMeanTab(double Csca, uint cellID)
+void CGridBasic::setCscaMeanTab(double Csca, uint cellID, uint wID)
 {
-    CscaMeanTab[chosen_wID][cellID] = Csca;
+    CscaMeanTab[wID][cellID] = Csca;
 }
 
 void CGridBasic::setNumberDensityTab(double number_density, uint cellID)
@@ -72,11 +72,6 @@ void CGridBasic::setNumberDensityTab(double number_density, uint cellID)
 void CGridBasic::setTotalCellEmissionTab(double cell_emission, uint cellID)
 {
     totalCellEmissionTab[cellID] = cell_emission;
-}
-
-void CGridBasic::setWaveID(uint wID)
-{
-    chosen_wID = wID;
 }
 
 void CGridBasic::initPreCalcTables(uint nr_used_wavelengths)

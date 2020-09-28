@@ -2717,8 +2717,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCextMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
-                    sum = grid->getCextMeanTab(pp.getPositionCell()->getUniqueID());
+                if(grid->getCextMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID()) != MAX_DOUBLE)
+                    sum = grid->getCextMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID());
                 else
                 {
                     double dens = 0;
@@ -2748,8 +2748,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
-                    sum = grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID());
+                if(grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID()) != MAX_DOUBLE)
+                    sum = grid->getCabsMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID());
                 else
                 {
                     double dens = 0;
@@ -2779,8 +2779,8 @@ class CDustMixture
             }
             else
             {
-                if(grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID()) != MAX_DOUBLE)
-                    sum = grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID());
+                if(grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID()) != MAX_DOUBLE)
+                    sum = grid->getCscaMeanTab(pp.getPositionCell()->getUniqueID(),pp.getDustWavelengthID());
                 else
                 {
                     double dens = 0;
