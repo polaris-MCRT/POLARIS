@@ -408,7 +408,8 @@ class Math:
             return 'black'
         # Get color that fits well with the colorplot
         import matplotlib.cm as cm
-        colormap = cm.get_cmap(cmap)
+        import copy
+        colormap = copy.copy(cm.get_cmap(cmap))
         if cmap_scaling == 'log':
             mean_value = 10 ** ((np.log10(np.max(tbldata)) +
                                  np.log10(np.min(tbldata[np.where(tbldata > 0.)]))) / 2.)
@@ -631,7 +632,7 @@ class Math:
         # Create array to save the number of pixel per bin
         number_of_pixel_per_bin = np.zeros(bins)
         # Calculate the maximum intensity for normalization
-        max_intensity = np.asscalar(np.max(tbldata[0, :, :]))
+        max_intensity = np.max(tbldata[0, :, :]).item()
         # For each Pixel get information about radial position and array value
         for i_x in range(n):
             for i_y in range(n):

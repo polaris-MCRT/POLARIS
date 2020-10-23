@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import locale
+import copy
 
 import matplotlib as mpl
 import matplotlib.patches as patches
@@ -192,7 +193,7 @@ class Plot:
         self.cmap = parse_args.cmap
 
         # Add a title to the plot
-        if title is not '':
+        if title != '':
             for ax in self.ax_list:
                 ax.set_title(title)
 
@@ -239,14 +240,19 @@ class Plot:
         # Use Latex, specify the  Latex font and load siunitx
         preamble = [
             r'\usepackage[retain-zero-exponent=true, load=accepted, alsoload=astro]{siunitx}']
+        preamble.append('\n')
         if font == 'fira':
             preamble.append(r'\usepackage[sfdefault,scaled=.85]{FiraSans}')
+            preamble.append('\n')
             preamble.append(r'\usepackage{newtxsf}')
         elif font == 'bitstream':
             preamble.append(r'\usepackage[bitstream-charter]{mathdesign}')
+            preamble.append('\n')
             preamble.append(r'\usepackage[T1]{fontenc}')
         else:
             preamble.append(r'\usepackage{lmodern}')
+        preamble.append('\n')
+        preamble = ''.join(preamble)
         mpl.rc('text', usetex=True)
         mpl.rc('text.latex', preamble=preamble)
         mpl.rcParams['pgf.preamble'] = preamble
@@ -262,19 +268,24 @@ class Plot:
         # Make preamble a list if it is not
         if isinstance(preamble, str):
             preamble = [preamble]
+        preamble.append('\n')
         if language == 'english':
             locale.setlocale(locale.LC_NUMERIC, "en_US.UTF-8")
             preamble.append(r'\sisetup{locale=US}')
+            preamble.append('\n')
         elif language == 'german':
             locale.setlocale(locale.LC_NUMERIC, "de_DE.UTF-8")
             preamble.append(r'\usepackage{icomma}')
+            preamble.append('\n')
             preamble.append(r'\sisetup{locale=DE}')
+            preamble.append('\n')
         else:
             raise ValueError('Do not know the chosen locale language!')
         plt.rcParams['axes.formatter.use_locale'] = True
         if not self.scale_axis_log:
             for i_ax in range(len(self.ax_list)):
                 self.ax_list[i_ax].ticklabel_format(useLocale=True)
+        preamble = ''.join(preamble)
         mpl.rc('text.latex', preamble=preamble)
 
     def update_label(self, extent=None, label_plane=None, nr_x_images=1, nr_y_images=1,
@@ -816,13 +827,13 @@ class Plot:
 
         # Set the norm related to chosen norm
         from matplotlib.colors import Normalize, LogNorm, PowerNorm, SymLogNorm
-        if norm is 'Normalize':
+        if norm == 'Normalize':
             norm = Normalize(vmin=vmin, vmax=vmax)
-        elif norm is 'LogNorm':
+        elif norm == 'LogNorm':
             norm = LogNorm(vmin=vmin, vmax=vmax)
-        elif norm is 'PowerNorm' and gamma is not None:
+        elif norm == 'PowerNorm' and gamma is not None:
             norm = PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax, clip=True)
-        elif norm is 'SymLogNorm' and linthresh is not None:
+        elif norm == 'SymLogNorm' and linthresh is not None:
             norm = SymLogNorm(linthresh=linthresh, vmin=vmin, vmax=vmax)
         else:
             raise AttributeError(
@@ -843,7 +854,7 @@ class Plot:
                 extend = 'neither'
 
         # Change colormap bad values to lowest values
-        colormap = plt.get_cmap(self.cmap)
+        colormap = copy.copy(mpl.cm.get_cmap(self.cmap))
         if set_bad_to_min or self.bad_to_min:
             colormap.set_bad(colormap(0))
 
@@ -922,13 +933,13 @@ class Plot:
 
         # Set the norm related to chosen norm
         from matplotlib.colors import Normalize, LogNorm, PowerNorm, SymLogNorm
-        if norm is 'Normalize':
+        if norm == 'Normalize':
             norm = Normalize(vmin=vmin, vmax=vmax)
-        elif norm is 'LogNorm':
+        elif norm == 'LogNorm':
             norm = LogNorm(vmin=vmin, vmax=vmax)
-        elif norm is 'PowerNorm' and gamma is not None:
+        elif norm == 'PowerNorm' and gamma is not None:
             norm = PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax, clip=True)
-        elif norm is 'SymLogNorm' and linthresh is not None:
+        elif norm == 'SymLogNorm' and linthresh is not None:
             norm = SymLogNorm(linthresh=linthresh, vmin=vmin, vmax=vmax)
         else:
             raise AttributeError(
@@ -951,9 +962,9 @@ class Plot:
         # Change colormap bad values to lowest values
         if '_half' in self.cmap:
             colormap = self.truncate_colormap(
-                plt.get_cmap(self.cmap.replace('_half', '')), 0.0, 0.5)
+                copy.copy(mpl.cm.get_cmap(self.cmap.replace('_half', '')), 0.0, 0.5))
         else:
-            colormap = plt.get_cmap(self.cmap)
+            colormap = copy.copy(mpl.cm.get_cmap(self.cmap))
         if set_bad_to_min or self.bad_to_min:
             colormap.set_bad(colormap(0))
 
@@ -1018,7 +1029,7 @@ class Plot:
                 norm = 'hist'
 
         # Adjust colomap for plot
-        colormap = plt.get_cmap(self.cmap)
+        colormap = copy.copy(mpl.cm.get_cmap(self.cmap))
         # Healpy adjustments
         colormap.set_under('w')
         colormap.set_over(colormap(1.0))
@@ -1178,9 +1189,9 @@ class Plot:
             scale /= min(self.zoom_x_factor, self.zoom_y_factor)
         # Create colormap depending on chosen colormap (2 discrete colors)
         if '_r' in self.cmap:
-            colormap = plt.get_cmap(self.cmap.replace('_r', ''), 2)
+            colormap = copy.copy(mpl.cm.get_cmap(self.cmap.replace('_r', ''), 2))
         else:
-            colormap = plt.get_cmap(self.cmap + '_r', 2)
+            colormap = copy.copy(mpl.cm.get_cmap(self.cmap + '_r', 2))
 
         # Plot the vector field with a constant color or with a colormap
         if color is not None:

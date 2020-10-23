@@ -496,7 +496,7 @@ class Gas:
             '"\t' + str(self.parameter['level_pop_type']) + \
             '\t' + str(self.parameter['abundance'])
         if self.parse_args.simulation_type == 'zeeman':
-            if self.parameter['zeeman_usable'] is True:
+            if self.parameter['zeeman_usable']:
                 gas_species_string += '\t"' + self.file_io.path['gas'] + \
                     self.parameter['filename'].replace(
                         '.dat', '_zeeman.dat') + '"'
@@ -821,7 +821,7 @@ class Model:
         return False
 
     def update_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters and update 
+        """Use this function to set model parameter with the extra parameters and update
         model parameter that depend on other parameter.
         """
         # Use extra_parameter to adjust the model without changing the model.py file

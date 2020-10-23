@@ -263,9 +263,9 @@ class Grid:
             rewrite (bool): Remove the the last cell data to overwrite it.
         """
         # Set data type length in bytes depending on the data type
-        if data_type is 'f':
+        if data_type == 'f':
             data_type_length = 4
-        elif data_type is 'd':
+        elif data_type == 'd':
             data_type_length = 8
         else:
             raise ValueError(
@@ -341,9 +341,9 @@ class Grid:
             data_type (str): Type of the node data ('f': float or 'd': double).
         """
         # Set data type length in bytes depending on the data type
-        if data_type is 'f':
+        if data_type == 'f':
             data_type_length = 4
-        elif data_type is 'd':
+        elif data_type == 'd':
             data_type_length = 8
         else:
             raise ValueError(
@@ -544,9 +544,9 @@ class Grid:
             raise ValueError(
                 'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
 
-        if data_type is 'f':
+        if data_type == 'f':
             data_type_length = 4
-        elif data_type is 'd':
+        elif data_type == 'd':
             data_type_length = 8
 
         is_leaf = grid_file.read(2)
@@ -630,10 +630,10 @@ class OcTree(Grid):
         while tmp_node.parameter['level'] > 2:
             tmp_node = tmp_node.parent
         percentage_count = 0
-        if tmp_node.parameter['level'] is 2:
+        if tmp_node.parameter['level'] == 2:
             percentage_count = tmp_node.parameter['index'] + \
                 tmp_node.parent.parameter['index'] * 8
-        elif tmp_node.parameter['level'] is 1:
+        elif tmp_node.parameter['level'] == 1:
             percentage_count = tmp_node.parameter['index'] * 8
         stdout.write('--- Generate cartesian grid: ' +
                      str(int(100 * percentage_count / (8 * 8 - 1))) + ' %      \r')
@@ -1489,7 +1489,7 @@ class Node:
         #: Parent node
         self.parent = None
 
-        if grid_type is 'octree':
+        if grid_type == 'octree':
             #: Children nodes
             self.children = [None, None, None, None, None, None, None, None]
             # Index for the level depth of the node

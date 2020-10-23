@@ -272,8 +272,7 @@ class PlotRoutines:
                     elif i_quantity in [1, 2, 3]:
                         # Plot polarization fluxes symmetrically around zero
                         if np.nanmax(np.abs(tbldata)) > 0.:
-                            maximum_flux = np.asscalar(
-                                np.nanmax(np.abs(tbldata)))
+                            maximum_flux = np.nanmax(np.abs(tbldata)).item()
                         else:
                             maximum_flux = 1.0
                         plot.plot_imshow(tbldata, cmap='coolwarm', vmin=-maximum_flux,
@@ -327,8 +326,7 @@ class PlotRoutines:
                     elif i_quantity in [1, 2, 3]:
                         # Plot polarization fluxes symmetrically around zero
                         if np.nanmax(np.abs(wmap_map)) > 0.:
-                            maximum_flux = np.asscalar(
-                                np.nanmax(np.abs(wmap_map)))
+                            maximum_flux = np.nanmax(np.abs(wmap_map)).item()
                         else:
                             maximum_flux = 1.0
                         plot.plot_healpix(wmap_map, cmap='coolwarm', vmin=-maximum_flux,
@@ -863,14 +861,14 @@ class PlotRoutines:
                 plot = Plot(self.model, self.parse_args)
                 # Take data for current quantity
                 tbldata = plot_data[i_quantity, :, :]
-                if i_quantity is 0:
+                if i_quantity == 0:
                     # Plot chosen quantity to velocity map
                     plot.plot_imshow(tbldata, cbar_label=self.file_io.get_quantity_labels(
                         i_quantity, int_map=True))
                 elif i_quantity in [1, 2, 3]:
                     # Plot polarization fluxes symmetrically around zero
                     if np.nanmax(np.abs(plot_data)) > 0.:
-                        maximum_flux = np.asscalar(np.nanmax(np.abs(tbldata)))
+                        maximum_flux = np.nanmax(np.abs(tbldata)).item()
                     else:
                         maximum_flux = 1.0
                     plot.plot_imshow(tbldata, cmap='coolwarm', vmin=-maximum_flux,
@@ -893,7 +891,7 @@ class PlotRoutines:
                 if i_quantity in [1, 2, 3]:
                     # Plot polarization fluxes symmetrically around zero
                     if np.nanmax(np.abs(wmap_map)) > 0.:
-                        maximum_flux = np.asscalar(np.nanmax(np.abs(wmap_map)))
+                        maximum_flux = np.nanmax(np.abs(wmap_map)).item()
                     else:
                         maximum_flux = 1.0
                     plot.plot_healpix(wmap_map, cmap='coolwarm', vmin=-maximum_flux,
@@ -959,10 +957,10 @@ class PlotRoutines:
             mag_field_list, labels = self.plot_zeeman_mag_field_base(plot_data[0, :, ...], plot_data[3, :, ...],
                                                                      plot_data[mag_field_index, 1, ...], header)
             # List for the differen plot quantities/parameters
-            limits = [np.asscalar(np.nanmax(np.abs(mag_field_list[0]))),
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[1]))),
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[2]))), None,
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[4]))), None]
+            limits = [np.nanmax(np.abs(mag_field_list[0])).item(),
+                      np.nanmax(np.abs(mag_field_list[1])).item(),
+                      np.nanmax(np.abs(mag_field_list[2])).item(), None,
+                      np.nanmax(np.abs(mag_field_list[4])).item(), None]
             for i_quantity in range(self.quantity_index_start - 1, self.quantity_index_stop):
                 # Create Matplotlib figure
                 plot = Plot(self.model, self.parse_args)
@@ -992,10 +990,10 @@ class PlotRoutines:
             mag_field_list, labels = self.plot_zeeman_mag_field_base(plot_data[0, :, ...], plot_data[3, :, ...],
                                                                      plot_data[mag_field_index, 1, ...], header)
             # List for the differen plot quantities/parameters
-            limits = [np.asscalar(np.nanmax(np.abs(mag_field_list[0]))),
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[1]))),
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[2]))), None,
-                      np.asscalar(np.nanmax(np.abs(mag_field_list[4]))), None]
+            limits = [np.nanmax(np.abs(mag_field_list[0])).item(),
+                      np.nanmax(np.abs(mag_field_list[1])).item(),
+                      np.nanmax(np.abs(mag_field_list[2])).item(), None,
+                      np.nanmax(np.abs(mag_field_list[4])).item(), None]
             for i_quantity in range(self.quantity_index_start - 1, self.quantity_index_stop):
                 # Create Matplotlib figure
                 plot = Plot(self.model, self.parse_args, image_type='healpix')
@@ -1120,8 +1118,8 @@ class PlotRoutines:
             plot = Plot(self.model, self.parse_args)
             # Plot quantity to velocity map
             plot.plot_imshow(velocity, cbar_label=r'$v\ [\si{\kilo\metre\per\second}]$', cmap='coolwarm',
-                             vmin=-np.asscalar(np.nanmax(np.abs(velocity))),
-                             vmax=np.asscalar(np.nanmax(np.abs(velocity))), extend='neither')
+                             vmin=-np.nanmax(np.abs(velocity)).item(),
+                             vmax=np.nanmax(np.abs(velocity)).item(), extend='neither')
         elif plot_data_type in ['cut', 'radial']:
             # Extract 1D information from data
             [position, data] = plot_data
@@ -1196,10 +1194,25 @@ class PlotRoutines:
         """Combining (adding) the resulting fits of Monte-Carlo and raytracing simulations together.
         """
         from astropy.io import fits
+        import os
+
         emission_types = ['dust_mc', 'dust']
         for i in range(len(emission_types)):
+            if os.path.isfile(self.file_io.path['simulation'] + emission_types[i] +
+                             '/data/polaris_detector_nr' + str(self.detector_index).zfill(4) +
+                             '.fits'):
+                extension =  '.fits'
+            elif os.path.isfile(self.file_io.path['simulation'] + emission_types[i] +
+                             '/data/polaris_detector_nr' + str(self.detector_index).zfill(4) +
+                             '.fits.gz'):
+                extension =  '.fits.gz'
+            else:
+                raise FileExistsError('--- No emission map fits file exists (' +
+                                      self.file_io.path['simulation'] + emission_types[i] +
+                                      '/data/polaris_detector_nr' + str(self.detector_index).zfill(4) + ' [.fits/.fits.gz])')
             hdul = fits.open(self.file_io.path['simulation'] + emission_types[i] +
-                             '/data/polaris_detector_nr' + str(self.detector_index).zfill(4))
+                             '/data/polaris_detector_nr' + str(self.detector_index).zfill(4) +
+                             extension)
             if i == 0:
                 final_hdul = hdul
                 shape = np.shape(hdul[0].data[0:6, :, :, :])
@@ -1225,7 +1238,7 @@ class PlotRoutines:
         final_hdul.close()
 
     def plot_optical_depth(self, kappa_mass):
-        """Create optical depth map from a certain point to the observer based on the 
+        """Create optical depth map from a certain point to the observer based on the
         analytical density distribution that is defined in the model.
 
         Args:
