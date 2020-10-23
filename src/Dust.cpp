@@ -4743,6 +4743,9 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     tmp_stokes *= stokes_1_bak / tmp_stokes.I();
 
     // Rotate photon package into the coordinate space of the detector
+    // (r / x)-axis of photon is y-axis of detector
+    // (l / y)-axis of photon is negative x-axis of detector
+    // see Figure 12 in O. Fischer (1993)
     double rot_angle_phot_obs =
         CMathFunctions::getRotationAngleObserver(obs_ex, -1*pp_escape->getEX(), pp_escape->getEY());
     tmp_stokes.rot(rot_angle_phot_obs);
@@ -4907,7 +4910,12 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     double gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
 
     // find phi with Newton's method (phi_error < 1e-10)
-    double cdf = phipar * 0.5 * sin(2.0 * phi);
+    // x_{n+1} = x_{n} - f(x_{n}) / f'(x_{n})
+
+    // find phi that solves 0 = phi - phipar * 0.5 * sin(2.0 * phi) - rndx * PIx2
+    // see O. Fischer (1993) Equation (3.45) on page 49
+    // set phi_{0} = rndx * PIx2
+    double cdf = -phipar * 0.5 * sin(2.0 * phi);
     double dv_cdf = 1.0 - phipar * cos(2.0 * phi);
     uint run_counter = 0;
 

@@ -461,12 +461,13 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
             nr_used_wavelengths = dust->getNrOfWavelength();
 
         #if (USE_PRECALC_TABLE)
-            grid->initPreCalcTables(dust->getNrOfWavelength());
-
+            int nr_of_dust_wavelengths = dust->getNrOfWavelength();
             ulong nr_of_cells = grid->getMaxDataCells();
 
+            grid->initPreCalcTables(nr_of_dust_wavelengths);
+
 #pragma omp parallel for schedule(dynamic) collapse(2)
-            for(int wID = 0; wID < int(dust->getNrOfWavelength()); wID++)
+            for(int wID = 0; wID < nr_of_dust_wavelengths; wID++)
             {
                 for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
                 {

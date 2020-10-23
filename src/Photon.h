@@ -396,16 +396,19 @@ class photon_package
 
     const Vector3D & getEX() const
     {
+        // get r-axis, based on O. Fischer (1993)
         return ex;
     }
 
     const Vector3D & getEY() const
     {
+        // get l-axis
         return ey;
     }
 
     const Vector3D & getEZ() const
     {
+        // get p-axis
         return ez;
     }
 
@@ -462,9 +465,9 @@ class photon_package
     CRandomGenerator rand_gen;
     Vector3D pos;
     Vector3D backup_pos;
-    Vector3D ex;
-    Vector3D ey;
-    Vector3D ez;
+    Vector3D ex; // r-axis, based on O. Fischer (1993)
+    Vector3D ey; // l-axis
+    Vector3D ez; // p-axis
     Matrix2D mD;
     StokesVector * multi_stokes;
 

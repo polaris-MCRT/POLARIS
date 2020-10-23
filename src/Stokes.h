@@ -500,6 +500,13 @@ class StokesVector
         sV = 0;
     }
 
+    void depolarize()
+    {
+        sQ = 0;
+        sU = 0;
+        sV = 0;
+    }
+
   private:
     double sI, sQ, sU, sV, sT, sSp;
 };
