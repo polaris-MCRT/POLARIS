@@ -291,6 +291,15 @@ class Sphere(Model):
             magnetic_field = [0, 0, 0]
         return magnetic_field
 
+    def gas_temperature(self):
+        """Calculates the gas temperature at a given position.
+
+        Returns:
+            float: Gas temperature at a given position.
+        """
+        gas_temp = 10.
+        return gas_temp
+
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.
 

@@ -8,10 +8,10 @@
 #History:   2018-10-27
 
 #string ID
-astronomical silicate
+astronomical silicate (Laor & Draine, 1993, ApJ, 402, 441; slightly modified)
 
 #nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
-100	1	1	3500	1200	0	0
+100	1	1	3300	1200	0	0
 
 #wavelength              real refractive index    imaginary refractive index
 4.999999999999999774e-08 8.271977641350000132e-01 2.685931626490000168e-01

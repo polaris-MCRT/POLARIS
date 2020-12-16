@@ -518,7 +518,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     CDustMixture * dust = new CDustMixture();
     //CGasMixture * gas = new CGasMixture();
     COpiateDataBase * op = new COpiateDataBase();
-    
+
     if(!createOutputPaths(param.getPathOutput()))
         return false;
 
@@ -738,7 +738,7 @@ CDetector * CPipeline::createDetectorList(parameters & param, CDustMixture * dus
 
         double sideLength_x = dust_mc_detectors[i + 6];
         double sideLength_y = dust_mc_detectors[i + 7];
-        
+
         double map_shift_x = dust_mc_detectors[i + 8];
         double map_shift_y = dust_mc_detectors[i + 9];
 
@@ -1446,9 +1446,9 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             }
             break;
         }
-        
-        case CMD_OPIATE:     
-            
+
+        case CMD_OPIATE:
+
             if(op==0)
             {
                 cout << "\nERROR: No OPIATE database loaded!" << endl;
@@ -1464,7 +1464,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 cout << "\nERROR: No OPIATE detector defined (see <detector_opiate>)!" << endl;
                 return false;
             }
-            
+
             for(uint i=0;i<param.getNrOfOPIATESpecies();i++)
             {
                 string spec_name=param.getOpiateSpec(i);
@@ -1475,12 +1475,12 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
                 }
                 else
                 {
-                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl; 
+                    cout << "\nERROR: Label \"" << spec_name << "\" is not listed in OPIATE database! " << endl;
                     cout << "         Check the command \"<detector_opiate>\" in command file!" << endl;
                     return false;
                 }
             }
-            
+
             break;
 
         case CMD_SYNCHROTRON:

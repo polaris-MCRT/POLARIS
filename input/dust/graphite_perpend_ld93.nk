@@ -8,10 +8,10 @@
 #History:   2018-10-27
 
 #string ID
-graphite (perpend)
+graphite perpend (Laor & Draine 1993, ApJ, 402, 441; slightly modified)
 
 #nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
-100	1	1	2250	2100	0	0
+100	1	1	2260	2100	0	0
 
 #wavelength              real refractive index    imaginary refractive index
 4.999999999999999774e-08 5.551894736842100109e-01 3.615631578947369751e-01
