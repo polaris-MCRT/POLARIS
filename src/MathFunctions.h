@@ -327,23 +327,23 @@ class spline
         double t = v - x[i];
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
-    
+
     double getLinearValue(double v)
     {
         uint min = 0, max = N;
-        
+
 //        for(int i=0;i<=max;i++)
 //            cout << x[i] << "\t" << y[i]<< endl;
 
         if(x == 0)
             return 0;
-        
+
         if(v <= x[0])
            return getLinear(0, v);
-        
+
         if(v >= x[N])
             return getLinear(N - 1, v);
-        
+
         while(max - min > 1)
         {
             uint i = min + (max - min) / 2;
@@ -352,15 +352,15 @@ class spline
             else
                 min = i;
         }
-        
+
         double x1=log10(x[min]);
         double x2=log10(x[min+1]);
-        
+
         double y1=log10(y[min]);
         double y2=log10(y[min+1]);
-        
-        v=log10(v); 
-        
+
+        v=log10(v);
+
         double res=((y2-y1)/(x2-x1))*(v-x1)+y1;
         res=pow(10.0,res);
             return res;
@@ -410,7 +410,7 @@ class spline
         else if(v == x[0])
             min = 0;
         else
-            min = lower_bound(x, x+N, v) - x - 1;
+            min = lower_bound(x, x+N+1, v) - x - 1;
 
         double t = (v - x[min]) / (u[min]);
 
@@ -499,7 +499,7 @@ class spline
         if(v < x[0] || v > x[N] || N==1)
             return 0;
 
-        uint min = upper_bound(x, x+N-1, v) - x - 1;
+        uint min = upper_bound(x, x+N+1, v) - x - 1;
 
         return min;
     }
@@ -509,7 +509,7 @@ class spline
         if(v < y[0] || v > y[N] || N==1)
             return 0;
 
-        uint min = upper_bound(y, y+N-1, v) - y - 1;
+        uint min = upper_bound(y, y+N+1, v) - y - 1;
 
         return min;
     }
@@ -706,7 +706,7 @@ class prob_list
         if(v < x[0] || v > x[N] || N == 1)
             return 0;
 
-        min = upper_bound(x, x+N-1, v) - x - 1;
+        min = upper_bound(x, x+N+1, v) - x - 1;
 
         return min;
     }
