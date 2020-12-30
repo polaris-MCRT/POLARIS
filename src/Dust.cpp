@@ -4855,13 +4855,6 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
 
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
-
-    if(adjust_stokes)
-    {
-        StokesVector * tmp_stokes = pp->getStokesVector();
-        double theta_fraction = getScatteredFraction(w, a, theta);
-        *tmp_stokes *= theta_fraction;
-    }
 }
 
 void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
