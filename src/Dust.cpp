@@ -4642,8 +4642,8 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Get the Stokes vector of the current photon package
             StokesVector tmp_stokes = *pp->getStokesVector();
 
-            // Reduce the photon package Stokes vector by albedo and scattering fraction
-            tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            // Reduce the photon package Stokes vector by scattering fraction
+            tmp_stokes *= scattered_fraction;
 
             // Init temporary photon package
             pp_escape->setPosition(pp->getPosition());
@@ -4727,8 +4727,8 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Calculate the fraction that is scattered into this theta direction
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
 
-    // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
+    // Reduce Stokes vector by scattering propability into theta and phi
+    tmp_stokes *= theta_fraction * phi_fraction;
 
     // Backup Stokes vector
     double stokes_1_bak = tmp_stokes.I();
@@ -4859,16 +4859,8 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     if(adjust_stokes)
     {
         StokesVector * tmp_stokes = pp->getStokesVector();
-        if(getCextMean(a, w) > 0)
-        {
-            double theta_fraction = getScatteredFraction(w, a, theta);
-            *tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
-        }
-        else
-        {
-            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes->clear();
-        }
+        double theta_fraction = getScatteredFraction(w, a, theta);
+        *tmp_stokes *= theta_fraction;
     }
 }
 
@@ -4884,30 +4876,30 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
     uint thID = getScatThetaID(theta,a,w);
 
     // Get Stokes vector from photon package
-    StokesVector * tmp_stokes = pp->getStokesVector();
+    StokesVector tmp_stokes = *pp->getStokesVector();
 
     // Get scattering matrix
     const Matrix2D & mat_sca = getScatteringMatrix(a, w, 0, 0, thID);
 
     double phipar;
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes->I() == 0 || mat_sca(0, 0) == 0)
+    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
     {
         cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
 
-        tmp_stokes->clear();
-        pp->setStokesVector(*tmp_stokes);
+        tmp_stokes.clear();
+        pp->setStokesVector(tmp_stokes);
 
         return;
     }
     else
         phipar =
-            (sqrt(tmp_stokes->Q() * tmp_stokes->Q() + tmp_stokes->U() * tmp_stokes->U()) / tmp_stokes->I()) *
+            (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
             (-mat_sca(0, 1) / mat_sca(0, 0));
 
     double rndx = pp->getRND();
     double phi = rndx * PIx2;
-    double gamma = 0.5 * atan3(tmp_stokes->Q(), tmp_stokes->U());
+    double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
 
     // find phi with Newton's method (phi_error < 1e-10)
     // x_{n+1} = x_{n} - f(x_{n}) / f'(x_{n})
@@ -4933,22 +4925,12 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
 
     if(adjust_stokes)
     {
-        if(getCextMean(a, w) > 0)
-        {
-            *tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
+        double i_1 = tmp_stokes.I();
+        tmp_stokes.rot(phi);
+        tmp_stokes *= mat_sca;
+        tmp_stokes *= i_1 / tmp_stokes.I();
 
-            double i_1 = tmp_stokes->I();
-            tmp_stokes->rot(phi);
-            *tmp_stokes *= mat_sca;
-            *tmp_stokes *= i_1 / tmp_stokes->I();
-        }
-        else
-        {
-            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes->clear();
-        }
-
-        pp->setStokesVector(*tmp_stokes);
+        pp->setStokesVector(tmp_stokes);
     }
 }
 

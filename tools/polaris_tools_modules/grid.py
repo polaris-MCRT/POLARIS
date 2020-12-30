@@ -1290,7 +1290,7 @@ class Cylindrical(Grid):
                         'z_list does not agree with the inner and outer grid borders!')
                 z_list = np.array([cy_param['z_list']
                                    for i_r in range(cy_param['n_r'])])
-                cy_param['n_z'] = len(z_list) - 1
+                cy_param['n_z'] = len(z_list[0]) - 1
             else:
                 raise ValueError(
                     'Cell distribution in z-direction not understood!')

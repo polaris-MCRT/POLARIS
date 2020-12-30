@@ -1191,15 +1191,15 @@ class CDustComponent
             default:
                 pp->calcRandomDirection();
                 pp->updateCoordSystem();
+                break;
+        }
 
-                if(adjust_stokes)
-                {
-                    StokesVector * S = pp->getStokesVector();
-                    double albedo = getCscaMean(grid, *pp) / getCextMean(grid, *pp);
-                    *S *= albedo;
-                    pp->setStokesVector(*S);
-                }
-                return;
+        // Reduce Stokes vector by albedo
+        if(adjust_stokes)
+        {
+            StokesVector * S = pp->getStokesVector();
+            *S *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
+            pp->setStokesVector(*S);
         }
     }
 
@@ -3476,6 +3476,9 @@ class CDustMixture
 
             // Init variables for optical depth calculation
             double len, dens, Cext, tau_obs = 0;
+
+            // Reduce the Stokes vector by albedo
+            *pp_escape->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
 
             // Transport the photon package through the grid
             while(grid->next(pp_escape))
