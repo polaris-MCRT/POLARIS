@@ -1118,16 +1118,18 @@ class CDustComponent
             default:
                 pp->calcRandomDirection();
                 pp->updateCoordSystem();
-
-                if(adjust_stokes > 0)
-                {
-                    StokesVector S = pp->getStokesVector();
-                    double albedo = getCscaMean(grid, pp) / getCextMean(grid, pp);
-                    S *= albedo / PIx4;
-                    pp->setStokesVector(S);
-                }
-                return;
+                break;
         }
+        
+        // Reduce Stokes vector by albedo
+        if(adjust_stokes > 0)
+        {
+            StokesVector S = pp->getStokesVector();
+            double albedo = getCscaMean(grid, pp) / getCextMean(grid, pp);
+            S *= albedo;
+            pp->setStokesVector(S);
+        }
+        
     }
 
     double getStochasticHeatingMaxSize()
@@ -3405,6 +3407,9 @@ class CDustMixture
 
             // Init variables for optical depth calculation
             double len, dens, Cext, tau_obs = 0;
+            
+            // Reduce the Stokes vector by albedo
+            pp_res.getStokesVector() *= getCscaMean(grid, pp) / getCextMean(grid, pp);
         
             // Transport the photon package through the grid
             while(grid->next(&pp_res))

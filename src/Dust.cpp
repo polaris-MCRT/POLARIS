@@ -4444,8 +4444,8 @@ photon_package CDustComponent::getEscapePhoton(CGridBasic * grid,
             // Get the Stokes vector of the current photon package
             StokesVector tmp_stokes = pp->getStokesVector();
 
-            // Reduce the photon package Stokes vector by albedo and scattering fraction
-            tmp_stokes *= scattered_fraction * getCscaMean(a, w) / getCextMean(a, w);
+            // Reduce the photon package Stokes vector by scattering fraction
+            tmp_stokes *= scattered_fraction;
 
             // Init temporary photon package
             photon_package pp_res;
@@ -4527,7 +4527,7 @@ photon_package CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
 
     // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    tmp_stokes *= theta_fraction * phi_fraction * getCscaMean(a, w) / getCextMean(a, w);
+    tmp_stokes *= theta_fraction * phi_fraction;
 
     // Backup Stokes vector
     double stokes_1_bak = tmp_stokes.I();
@@ -4689,7 +4689,7 @@ void CDustComponent::henyeygreen(photon_basic * pp, uint a, bool adjust_stokes)
     {
         StokesVector tmp_stokes = pp->getStokesVector();
         double theta_fraction = getScatteredFraction(w, a, theta);
-        tmp_stokes *= theta_fraction * getCscaMean(a, w) / getCextMean(a, w);
+        tmp_stokes *= theta_fraction;
         pp->setStokesVector(tmp_stokes);
     }
 }
@@ -4793,21 +4793,11 @@ void CDustComponent::miesca(photon_basic * pp, uint a, bool adjust_stokes, bool 
     pp->updateCoordSystem(phi, theta);
 
     if(adjust_stokes)
-    {
-        if(getCextMean(a, w) > 0)
-        {
-            tmp_stokes *= getCscaMean(a, w) / getCextMean(a, w);
-
-            double i_1 = tmp_stokes.I();
-            tmp_stokes.rot(phi);
-            tmp_stokes = mat_sca * tmp_stokes;
-            tmp_stokes *= i_1 / tmp_stokes.I();
-        }
-        else
-        {
-            cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
-            tmp_stokes.clear();
-        }
+    {        
+        double i_1 = tmp_stokes.I();
+        tmp_stokes.rot(phi);
+        tmp_stokes = mat_sca * tmp_stokes;
+        tmp_stokes *= i_1 / tmp_stokes.I();
 
         pp->setStokesVector(tmp_stokes);
     }
