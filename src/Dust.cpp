@@ -3680,7 +3680,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
     // Init temporary pointer arrays for absorption rate and temperature
     double * abs_rate = new double[nr_of_dust_species];
-    double * temp = new double[nr_of_dust_species];
+    double temp;
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -3736,12 +3736,12 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             }
 
             // Calculate temperature from absorption rate
-            temp[a] = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
+            temp = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
 
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
-                if(temp[a] >= sub_temp)
-                    temp[a] = 0;
+                if(temp >= sub_temp)
+                    temp = 0;
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
@@ -3755,22 +3755,18 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
                      a_eff[a] <= getStochasticHeatingMaxSize()))
             {
                 // Set dust temperature in grid
-                grid->setDustTemperature(cell, i_density, a, temp[a]);
+                grid->setDustTemperature(cell, i_density, a, temp);
 
                 // Update min and max temperatures for visualization
-                max_temp = max(max_temp,temp[a]);
-                // if(temp[a] < min_temp)
-                //     min_temp = temp[a];
+                max_temp = max(max_temp,temp);
+                // if(temp < min_temp)
+                //     min_temp = temp;
             }
-
-            // Multiply with the amount of dust grains in the current bin for integration
-            temp[a] *= rel_weight[a];
         }
         else
         {
             // Set absorption rate to zero
             abs_rate[a] = 0;
-            temp[a] = 0;
         }
     }
 
@@ -3784,13 +3780,12 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     // Delete pointer array
     delete[] rel_weight;
     delete[] abs_rate;
-    delete[] temp;
 
     if(sublimate)
         if(avg_temp >= sub_temp)
         {
             // Set temperature to zero
-            avg_temp = 0;
+            avg_temp = TEMP_MIN;
 
             // Remove sublimated dust from grid
             // Not if rad field can be used for stochastic heating later
