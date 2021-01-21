@@ -1627,16 +1627,6 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
     Vector3D pos = pp->getPosition();
     Vector3D dir = pp->getDirection();
 
-    // We need to make sure that path length is large enough
-    // to change at least one component of pos parallel to v_n
-    // add 1 in case one of the components is zero
-    double step_eps_pos = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())}) + 1;
-    step_eps_pos *= MIN_LEN_STEP*EPS_DOUBLE;
-
-    // We need to make sure that the new position of the photon
-    // is not exactly on the border but a bit inside the cell
-    double step_eps_new_pos;
-
     double loc_x_min = tmp_cell->getXmin();
     double loc_y_min = tmp_cell->getYmin();
     double loc_z_min = tmp_cell->getZmin();
@@ -1647,6 +1637,9 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
 
     Vector3D v_n, v_a;
     double num, den, length;
+    // length_eps is the minimum step width to ensure that
+    // the photon 1) moves and 2) enters the cell !numerically!
+    double length_eps_1, length_eps_2;
 
     for(uint i_side = 0; i_side < 6; i_side++)
     {
@@ -1691,21 +1684,22 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
             // geometrically, abs(num) is the shortest distance from current
             // position to the cell border (perp to border, ie. parallel to v_n)
             // if num is 0 -> photon is on the border
+            // if num > 0 -> border is behind the photon
             num = v_n * (pos - v_a);
+
             // distance num to border is enlarged to ensure that at least one
-            // component of the photon position changes after step
+            // component of the photon position changes parallel to v_n after step
             // sign(num) is necessary to ensure that abs(num) gets larger
-            num += sign(num) * step_eps_pos;
+            length_eps_1 = abs(pos * v_n) * MIN_LEN_STEP * EPS_DOUBLE;
+            num += sign(num) * length_eps_1;
 
             length = -num / den;
 
             if(length > 0 && length < path_length)
             {
                 hit = true;
-                path_length = length;
-
-                step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
-                step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+                length_eps_2 = abs( (pos + dir * length) * v_n ) / den * MIN_LEN_STEP*EPS_DOUBLE;
+                path_length = length + length_eps_2;
             }
         }
     }
@@ -1716,11 +1710,8 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
         return false;
     }
 
-    // do not use dir * (path_length + step_eps_new_pos)
-    // path_length might be much much larger and then it is
-    // numerically possible that (path_length + step_eps_new_pos) = path_length
-    pp->setPosition(pos + dir * path_length + dir * step_eps_new_pos);
-    pp->setTmpPathLength(path_length + step_eps_new_pos);
+    pp->setPosition(pos + dir * path_length);
+    pp->setTmpPathLength(path_length);
 
     return true;
 }
@@ -1968,18 +1959,8 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
 
     bool hit = false;
     double path_length = 1e300;
-    uint dirID = MAX_UINT;
 
     Vector3D dir = pp->getDirection();
-
-    // We need to make sure that path length is large enough
-    // to change at least one component of pos parallel to v_n
-    double step_eps_pos = min({abs(pos.X()), abs(pos.Y()), abs(pos.Z())}) + 1;
-    step_eps_pos *= MIN_LEN_STEP*EPS_DOUBLE;
-
-    // We need to make sure that the new position of the photon
-    // is not exactly on the border but a bit inside the cell
-    double step_eps_new_pos;
 
     double loc_x_min = cell_oc_root->getXmin();
     double loc_y_min = cell_oc_root->getYmin();
@@ -1991,6 +1972,9 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
 
     Vector3D v_n, v_a;
     double num, den, length;
+    // length_eps is the minimum step width to ensure that
+    // the photon 1) moves and 2) enters the cell !numerically!
+    double length_eps_1, length_eps_2;
 
     for(uint i_side = 0; i_side < 6; i_side++)
     {
@@ -2037,10 +2021,12 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
             // position to the cell border (perp to border, ie. parallel to v_n)
             // if num is 0 -> photon is on the border
             num = v_n * (pos - v_a);
+
             // distance num to border is enlarged to ensure that at least one
-            // component of the photon position changes after step
+            // component of the photon position changes parallel to v_n after step
             // sign(num) is necessary to ensure that abs(num) gets larger
-            num += sign(num) * step_eps_pos;
+            length_eps_1 = abs(pos * v_n) * MIN_LEN_STEP * EPS_DOUBLE;
+            num += sign(num) * length_eps_1;
 
             length = -num / den;
 
@@ -2049,22 +2035,20 @@ bool CGridOcTree::findStartingPoint(photon_package * pp)
                 if(isInside(pos + dir * length))
                 {
                     hit = true;
-                    path_length = length;
-
-                    step_eps_new_pos = abs( ((pos + dir * path_length) * v_n) / den ) + 1;
-                    step_eps_new_pos *= MIN_LEN_STEP*EPS_DOUBLE;
+                    length_eps_2 = abs( (pos + dir * length) * v_n ) / den * MIN_LEN_STEP*EPS_DOUBLE;
+                    path_length = length + length_eps_2;
                 }
             }
         }
     }
 
     if(!hit)
+    {
+        cout << "\nERROR: Wrong cell border!                                   " << endl;
         return false;
+    }
 
-    // do not use dir * (path_length + step_eps_new_pos)
-    // path_length might be much much larger and then it is
-    // numerically possible that (path_length + step_eps_new_pos) = path_length
-    pp->setPosition(pos + dir * path_length + dir * step_eps_new_pos);
+    pp->setPosition(pos + dir * path_length);
 
     return positionPhotonInGrid(pp);
 }
