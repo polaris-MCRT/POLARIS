@@ -1440,6 +1440,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             {
                                 ph_max = 0;
                                 end_tau = -log(1.0 - pp->getRND());
+                                break;
                             }
                         }
                         else
