@@ -1440,7 +1440,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             {
                                 ph_max = 0;
                                 end_tau = -log(1.0 - pp->getRND());
-                                break;
                             }
                         }
                         else
@@ -1451,9 +1450,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
                     else
                     {
-                        // For single scattering only the forced photons should be considered
-                        if(MAX_INTERACTION_DUST_MC==1)
-                            break;
                         // Get tau for first interaction
                         end_tau = -log(1.0 - pp->getRND());
                     }
@@ -1537,7 +1533,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                 // Csca = dust->getCscaMean(grid, pp);
 
                                 // If peel-off is used, add flux to the detector
-                                if(peel_off)
+                                // except it is the first interaction of the non-forced photon
+                                if(peel_off && !(ph_i == 1 && interactions == 1))
                                 {
                                     // Transport a separate photon to each detector
                                     for(uint d = 0; d < nr_mc_detectors; d++)
