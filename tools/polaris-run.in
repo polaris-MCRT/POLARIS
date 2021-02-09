@@ -69,6 +69,8 @@ source_args.add_argument('--photons', dest='nr_photons', default=None, type=floa
 source_args.add_argument('--photons_dust', dest='nr_photons_dust', default=None, type=float,
                          help='define the number of photons of the dust per cell and activate it \n'
                               '    as an own radiation source for Monte-Carlo or rat simulations (Default: 0).\n')
+source_args.add_argument('--photons_bg', dest='nr_photons_bg', default=None, type=float,
+                         help='define the number of photons of the background source for dust simulations\n')
 
 detector_args = parser.add_argument_group('detector')
 detector_args.add_argument('--detector', dest='detector', default=None,

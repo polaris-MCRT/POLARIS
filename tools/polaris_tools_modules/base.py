@@ -1050,7 +1050,7 @@ class StellarSource:
             'radius': 0.,
             'luminosity': 0.,
             'mass': 0.,
-            'nr_photons': 0,
+            'nr_photons': 1e6,
             'kepler_usable': True,
         }
 
@@ -1133,7 +1133,7 @@ class LaserSource:
             'fwhm': 0.,
             'stokes_q': 0.,
             'stokes_u': 0.,
-            'nr_photons': 0,
+            'nr_photons': 1e6,
             'kepler_usable': False,
         }
 

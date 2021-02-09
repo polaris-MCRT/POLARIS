@@ -57,8 +57,8 @@ class BGSourceChooser:
         bg_source = self.bg_source_dict[bg_source_name](
             self.file_io, self.parse_args)
         # Overwrite default values with user input
-        if self.parse_args.nr_photons is not None:
-            bg_source.parameter['nr_photons'] = int(self.parse_args.nr_photons)
+        if self.parse_args.nr_photons_bg is not None:
+            bg_source.parameter['nr_photons'] = int(self.parse_args.nr_photons_bg)
         return bg_source
 
 
