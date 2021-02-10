@@ -3500,7 +3500,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 7500.0;
+    tend = 150000.0;
     dt = 10;
     
     // Init arrays for emission, absorption and inner energy
@@ -3548,7 +3548,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     }
     
     // Number of photons per timestep
-    llong nr_of_photons_step = 1e+4;
+    llong nr_of_photons_step = 1e+5;
     
     // Progress output
     cout << CLR_LINE;
@@ -3595,7 +3595,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Init star source and dust wave cdf
         if (t == 0)
-        {    
+        {
             if(!source->initSource(0, 2, false))
                 return false;
             if(!dust->initLamCdf())
@@ -3603,7 +3603,10 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         }
         
         // Calc emission probability of source and dust
-        double p_d = L_d/(source->getLuminosity() + L_d);
+	double L_s = source->getLuminosity();
+	if (t >= 50000 && t <= 60000)
+	    L_s *= 4;
+        double p_d = L_d/(L_s + L_d);
         
         // Calc cumulative probability dist for cell emission
         dlist p_i(max_cells);
@@ -3685,7 +3688,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             else
             {
                 // Correct Stokes vector of (stellar) source emission
-                double energy = (source->getLuminosity())*dt/N_s;
+                double energy = L_s*dt/N_s;
                 pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             }
             // Get tau for first interaction
@@ -3911,7 +3914,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/home/abensberg/Polaris/Polaris/projects/sphere/1D/dust_mc/data/temp/";
+            string temp_path = "/star/data/abensberg/polaris/time/ttauri/temp/";
             grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         }
