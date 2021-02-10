@@ -411,6 +411,17 @@ class Vector3D
         z = u;
         normalize();
     }
+    
+    void rndDirMidplaneBias(double r1, double r2, uint exponentThetaBias)
+    {
+        double u = pow( 2*(r1-0.5), exponentThetaBias );
+        double ph = PIx2 * r2;
+        double sqr = sqrt(1.0 - u * u);
+        x = sqr * cos(ph);
+        y = sqr * sin(ph);
+        z = u;
+        normalize();
+    }
 
     void normalize()
     {

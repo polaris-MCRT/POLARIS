@@ -2663,6 +2663,11 @@ class photon_basic
         ez.rndDir(getRND(), getRND());
     }
     
+    void calcRandomDirectionMidplaneBias(uint exponentThetaBias)
+    {
+        ez.rndDirMidplaneBias(getRND(), getRND(), exponentThetaBias);
+    }
+    
     void initCoordSystem()
     {
         double phi = atan3(ez.Y(), -ez.X());

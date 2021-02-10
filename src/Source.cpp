@@ -157,8 +157,19 @@ void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
     uint wID;
 
     pp->initRandomGenerator(i_pos);
-    pp->calcRandomDirection();
 
+    // send more photons close to z=0/theta=0, i.e. midplane        
+    // theta is drawn from cos(random)^exponent         
+    // exponent must be an odd int
+    // exponent = 1 is isotropic
+    
+    uint exponentThetaBias = 1;
+    
+    if(exponentThetaBias != 1)
+        pp->calcRandomDirectionMidplaneBias(exponentThetaBias);
+    else
+        pp->calcRandomDirection();
+    
     if(pp->getWavelengthID() != MAX_UINT)
     {
         wID = pp->getWavelengthID();
@@ -194,7 +205,13 @@ void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
         // used for the selection of the emitting wavelengths from source!
         pp->setWavelengthID(wID + 1);
     }
-
+    
+    if(exponentThetaBias != 1)
+    {
+        double theta = pp->getDirection().getSphericalCoord().Theta();
+        tmp_stokes_vector *= exponentThetaBias * pow(abs(cos(theta)),(double) 1.-1./exponentThetaBias);
+    }
+        
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
