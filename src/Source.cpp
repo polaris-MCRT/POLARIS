@@ -163,7 +163,7 @@ void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
     // exponent must be an odd int
     // exponent = 1 is isotropic
     
-    uint exponentThetaBias = 1;
+    uint exponentThetaBias = 3;
     
     if(exponentThetaBias != 1)
         pp->calcRandomDirectionMidplaneBias(exponentThetaBias);
