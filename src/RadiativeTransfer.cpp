@@ -3603,9 +3603,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         }
         
         // Calc emission probability of source and dust
-	double L_s = source->getLuminosity();
-	if (t >= 50000 && t <= 60000)
-	    L_s *= 4;
+        double L_s = source->getLuminosity();
+        if (t >= 50000 && t <= 60000)
+            L_s *= 4;
         double p_d = L_d/(L_s + L_d);
         
         // Calc cumulative probability dist for cell emission
@@ -3690,7 +3690,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 // Correct Stokes vector of (stellar) source emission
                 double energy = L_s*dt/N_s;
                 // Scale for theta bias
-                double theta = pp->getDirection().getSphericalCoord().Theta();
+                double theta = pp_stack[last+i]->getDirection().getSphericalCoord().Theta();
                 energy *= 3 * pow(abs(cos(theta)),(double) 1.-1./3);
                 // Assign Stokes vector
                 pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
