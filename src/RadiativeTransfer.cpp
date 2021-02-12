@@ -574,6 +574,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
 
                 // Init photon package
                 photon_package pp = photon_package();
+                pp.setPhotonID(i_phot);
 
                 if(use_energy_density)
                     pp.setWavelength(dust->getWavelength(wID), wID);
@@ -888,6 +889,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                         // Init photon package
                         photon_package pp =
                             photon_package(trans_frequency, dust->getWavelengthID(con_c / trans_frequency));
+                        pp.setPhotonID(i_phot);
 
                         // Init photon package outside the grid or at the border of final cell
                         tm_source->createNextRayToCell(&pp, rand_gen, i_cell, only_J_in);
@@ -1432,6 +1434,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 {
                     // Init the photon_package pp with the specific ray
                     photon_package * pp = &rays[ph_i];
+                    pp->setPhotonID(i_phot);
 
                     // Init variables
                     double end_tau;
