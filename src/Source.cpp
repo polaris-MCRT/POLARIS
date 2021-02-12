@@ -151,15 +151,23 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceStar::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+    double r1 = rand_gen->getRND();
+    double r2 = rand_gen->getRND();
+
+    #if BENCHMARK == TRUST
+        // cos(th) should be between -1 and -0.5, thus only a quarter of the sphere
+        pp->setRandomDirectionTRUST(r1, r2);
+    #else
+        pp->setRandomDirection(r1, r2);
+    #endif
+
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
@@ -181,7 +189,7 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
     else
     {
         energy = L / nr_of_photons;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         if(is_ext)
         {
@@ -197,12 +205,18 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
         pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
+    #if BENCHMARK == TRUST
+        // the photon direction was restricted to a quarter of the sphere
+        // thus the energy of each photon must be reduced by the same factor
+        tmp_stokes_vector /= 4.0;
+    #endif
+
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
 }
 
-void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceStar::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -229,7 +243,7 @@ void CSourceStar::createDirectRay(photon_package * pp, Vector3D dir_obs)
     else
     {
         energy = L / PIx4;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         if(is_ext)
         {
@@ -402,15 +416,14 @@ bool CSourceAGN::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceAGN::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceAGN::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
@@ -432,7 +445,7 @@ void CSourceAGN::createNextRay(photon_package * pp, ullong i_phot)
     else
     {
         energy = L / nr_of_photons;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         if(is_ext)
         {
@@ -453,7 +466,7 @@ void CSourceAGN::createNextRay(photon_package * pp, ullong i_phot)
     pp->initCoordSystem();
 }
 
-void CSourceAGN::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceAGN::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
@@ -480,7 +493,7 @@ void CSourceAGN::createDirectRay(photon_package * pp, Vector3D dir_obs)
     else
     {
         energy = L / PIx4;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         if(is_ext)
         {
@@ -652,16 +665,15 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceStarField::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
 
-    double len = pp->randn(0, var);
+    double len = rand_gen->getRNDnormal(0, var);
 
     pos = len * pp->getDirection();
     pos += pos;
@@ -686,7 +698,7 @@ void CSourceStarField::createNextRay(photon_package * pp, ullong i_phot)
     else
     {
         energy = L / nr_of_photons;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         tmp_stokes_vector = energy * StokesVector(1.0, 0, 0, 0);
         // Mol3D uses the upper value of the wavelength interval,
@@ -699,13 +711,13 @@ void CSourceStarField::createNextRay(photon_package * pp, ullong i_phot)
     pp->initCoordSystem();
 }
 
-void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceStarField::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    double len = pp->randn(0, var);
+    double len = rand_gen->getRNDnormal(0, var);
 
     pos = len * pp->getDirection();
     pos += pos;
@@ -730,7 +742,7 @@ void CSourceStarField::createDirectRay(photon_package * pp, Vector3D dir_obs)
     else
     {
         energy = L / PIx4;
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
 
         tmp_stokes_vector = energy * StokesVector(1.0, 0, 0, 0);
         // Mol3D uses the upper value of the wavelength interval,
@@ -759,7 +771,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     off_xy = step_xy / 2.0;
 
     cout << CLR_LINE;
-    
+
     if(constant)
     {
         cout << "Initiating constant background source             \r";
@@ -768,7 +780,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         {
             double pl = 0.0;
             double sp_energy = 0.0;
-            
+
             if(c_f>=0)
             {
                 pl=CMathFunctions::planck(wavelength_list[w], c_temp); //[W m^-2 m^-1]
@@ -809,7 +821,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
                      << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
             else
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell" << endl;        
+                     << "with " << nr_of_photons << " photons per cell" << endl;
         }
 
     }
@@ -999,7 +1011,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         Q = q(x, y);
         U = u(x, y);
         V = v(x, y);
-        
+
         pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
         I = F * pl;                                           //[W m^-1] energy per second and wavelength
         Q *= I;
@@ -1162,11 +1174,10 @@ bool CSourceISRF::setParameterFromFile(parameters & param, uint p)
     return true;
 }
 
-void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceISRF::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
     double energy;
     StokesVector tmp_stokes_vector;
-    pp->initRandomGenerator(i_phot);
     uint wID;
 
     if(pp->getDustWavelengthID() != MAX_UINT)
@@ -1179,7 +1190,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     }
     else
     {
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
         energy = L / nr_of_photons;
 
         // Mol3D uses the upper value of the wavelength interval,
@@ -1190,7 +1201,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
 
     // Get random direction for the postion (not the direction of travel) of the photon
-    pp->calcRandomDirection();
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
     pp->initCoordSystem();
 
     // pos is center position of the sphere where the ISRF is emitted from
@@ -1202,8 +1213,8 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     // the emission has to obey Lambert's cosine law
     // Thus, the square of cos(theta) of the direction of the photon
     // is given by a random number -> theta is only in (0,pi/2)
-    double theta_direction = acos( sqrt( pp->getRND() ) );
-    double phi_direction = PIx2 * pp->getRND();
+    double theta_direction = acos( sqrt( rand_gen->getRND() ) );
+    double phi_direction = PIx2 * rand_gen->getRND();
 
     // the direction was calculated in the coord system of the photon
     // now we have to update the coord system acoordingly
@@ -1212,7 +1223,7 @@ void CSourceISRF::createNextRay(photon_package * pp, ullong i_phot)
     pp->setStokesVector(tmp_stokes_vector);
 }
 
-void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceISRF::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // THIS IS PROBABLY STILL WRONG
     // actually, this function should never be used
@@ -1233,7 +1244,7 @@ void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
     }
     else
     {
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
         energy = L / PIx2;
 
         // Mol3D uses the upper value of the wavelength interval,
@@ -1243,7 +1254,7 @@ void CSourceISRF::createDirectRay(photon_package * pp, Vector3D dir_obs)
 
     tmp_stokes_vector = energy * StokesVector(1, c_q, c_u, c_v);
 
-    e.rndDir(pp->getRND(), pp->getRND());
+    e.rndDir(rand_gen->getRND(), rand_gen->getRND());
     l.setX(e.X() * sqrt(3) * radius * grid->getMaxLength() / 2);
     l.setY(e.Y() * sqrt(3) * radius * grid->getMaxLength() / 2);
     l.setZ(e.Z() * sqrt(3) * radius * grid->getMaxLength() / 2);
@@ -1408,11 +1419,9 @@ bool CSourceDust::initSource(uint w)
     return true;
 }
 
-void CSourceDust::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceDust::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
-    // Init photon package and random direction
-    pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
 
     // Set wavelength of photon package
     uint w = pp->getDustWavelengthID();
@@ -1421,18 +1430,18 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_phot)
     ulong i_cell = 0;
     #if (DUST_EMI_PROB)
         // Get random number
-        double rnd = pp->getRND();
+        double rnd = rand_gen->getRND();
 
         i_cell = cell_prob[w].getIndex(rnd);
     #else
-        i_cell = ulong(i_phot % grid->getMaxDataCells());
+        i_cell = ulong(pp->getPhotonID() % grid->getMaxDataCells());
     #endif
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
     // Set random position in cell
-    grid->setRndPositionInCell(pp);
+    grid->setRndPositionInCell(pp, rand_gen);
 
     // Set Stokes vector of photon package
     double energy = 0;
@@ -1449,13 +1458,13 @@ void CSourceDust::createNextRay(photon_package * pp, ullong i_phot)
     pp->initCoordSystem();
 }
 
-void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceDust::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // Set wavelength of photon package
     uint w = pp->getDustWavelengthID();
 
     // Get random number
-    double rnd = pp->getRND();
+    double rnd = rand_gen->getRND();
 
     // Get index of current cell
     ulong i_cell = cell_prob[w].getIndex(rnd);
@@ -1464,7 +1473,7 @@ void CSourceDust::createDirectRay(photon_package * pp, Vector3D dir_obs)
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
     // Set random position in cell
-    grid->setRndPositionInCell(pp);
+    grid->setRndPositionInCell(pp, rand_gen);
 
     // Set Stokes vector of photon package
     double energy = total_energy[w] / PIx4;
@@ -1492,17 +1501,15 @@ bool CSourceGas::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceGas::createNextRayToCell(photon_package * pp, ullong i_phot, ulong i_cell, bool cell_as_border)
+void CSourceGas::createNextRayToCell(photon_package * pp, CRandomGenerator * rand_gen, ulong i_cell, bool cell_as_border)
 {
-    // Init photon package and random direction
-    pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
 
     // Put photon package into current cell
     pp->setPositionCell(grid->getCellFromIndex(i_cell));
 
     // Set random position in cell
-    grid->setRndPositionInCell(pp);
+    grid->setRndPositionInCell(pp, rand_gen);
 
     // Save final position as position of last interaction
     pp->setBackupPosition(pp->getPosition());
@@ -1579,13 +1586,12 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
     return true;
 }
 
-void CSourceLaser::createNextRay(photon_package * pp, ullong i_phot)
+void CSourceLaser::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
     // Init variables
     StokesVector tmp_stokes_vector;
     uint wID = 0;
 
-    pp->initRandomGenerator(i_phot);
     pp->setDirection(dir);
     pp->setPosition(pos);
 
@@ -1593,7 +1599,7 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_phot)
         wID = pp->getDustWavelengthID();
     else
     {
-        wID = lam_pf.getXIndex(pp->getRND());
+        wID = lam_pf.getXIndex(rand_gen->getRND());
         // Mol3D uses the upper value of the wavelength interval,
         // used for the selection of the emitting wavelengths from source!
         pp->setWavelength(wavelength_list[wID + 1], wID + 1);
@@ -1607,7 +1613,7 @@ void CSourceLaser::createNextRay(photon_package * pp, ullong i_phot)
     pp->initCoordSystem();
 }
 
-void CSourceLaser::createDirectRay(photon_package * pp, Vector3D dir_obs)
+void CSourceLaser::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // Init variables
     StokesVector tmp_stokes_vector;

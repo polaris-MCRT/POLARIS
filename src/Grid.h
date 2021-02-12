@@ -805,7 +805,7 @@ class CGridBasic
 
     inline double getSpecLength(const cell_basic & cell, uint wID) const
     {
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
         // To perform Camps et. al (2015) benchmark.
         double res = 0, wavelength = wl_list[wID], mult = 1e6;
         res = mult * CMathFunctions::mathis_isrf(wavelength);
@@ -862,7 +862,7 @@ class CGridBasic
 
     double getRadiationField(const cell_basic & cell, uint wID) const
     {
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
         // To perform Camps et. al (2015) benchmark.
         double res = 0, wavelength = wl_list[wID], mult = 1e6;
         res = mult * CMathFunctions::mathis_isrf(wavelength);
@@ -1151,7 +1151,7 @@ class CGridBasic
         pp->setEZ(ez);
     }
 
-    virtual void setRndPositionInCell(photon_package * pp)
+    virtual void setRndPositionInCell(photon_package * pp, CRandomGenerator * rand_gen)
     {
         pp->setPosition(Vector3D(0, 0, 0));
     }

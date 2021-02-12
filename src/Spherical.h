@@ -257,15 +257,15 @@ class CGridSpherical : public CGridBasic
         return center;
     }
 
-    void setRndPositionInCell(photon_package * pp)
+    void setRndPositionInCell(photon_package * pp, CRandomGenerator * rand_gen)
     {
         Vector3D pos;
         cell_sp * tmp_cell = (cell_sp *)pp->getPositionCell();
         double r1, r2, ph1, ph2, th1, th2;
 
-        double rnd_r = pp->getRND();
-        double rnd_ph = pp->getRND();
-        double rnd_th = pp->getRND();
+        double rnd_r = rand_gen->getRND();
+        double rnd_ph = rand_gen->getRND();
+        double rnd_th = rand_gen->getRND();
 
         if(tmp_cell->getRID() == MAX_UINT)
         {

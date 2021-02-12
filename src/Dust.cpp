@@ -2874,7 +2874,7 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
     // Resize tabulated temperature spline
     tab_temp.resize(nr_of_temperatures);
 
-    // Set each entry of tab_temp with the corresponding temperature (exponential curve)
+    // Set each entry of tab_temp with the corresponding temperature (log distribution)
     for(uint t = 0; t < nr_of_temperatures; t++)
     {
         // Calculate the temperature of a certain index
@@ -3251,7 +3251,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
     return true;
 }
 
-uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section) const
+uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen, uint cross_section) const
 {
     // Get wavelength index from photon package
     uint w = pp->getDustWavelengthID();
@@ -3268,17 +3268,17 @@ uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, 
     {
         case CROSS_ABS:
             if(abs_prob != 0)
-                return findSizeID(pp, abs_prob[w], a_min, a_max);
+                return findSizeID(pp, abs_prob[w], a_min, a_max, rand_gen);
             break;
 
         case CROSS_SCA:
             if(sca_prob != 0)
-                return findSizeID(pp, sca_prob[w], a_min, a_max);
+                return findSizeID(pp, sca_prob[w], a_min, a_max, rand_gen);
             break;
 
         default:
             if(dust_prob != 0)
-                return findSizeID(pp, dust_prob[w], a_min, a_max);
+                return findSizeID(pp, dust_prob[w], a_min, a_max, rand_gen);
             break;
     }
 
@@ -3317,7 +3317,7 @@ uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, 
 
     delete[] amount;
 
-    uint a = findSizeID(pp, prob, a_min, a_max);
+    uint a = findSizeID(pp, prob, a_min, a_max, rand_gen);
 
     return a;
 }
@@ -3585,17 +3585,18 @@ void CDustComponent::convertTempInQB(CGridBasic * grid,
 bool CDustComponent::adjustTempAndWavelengthBW(CGridBasic * grid,
                                                photon_package * pp,
                                                uint i_density,
-                                               bool use_energy_density)
+                                               bool use_energy_density,
+                                               CRandomGenerator * rand_gen)
 {
     // Init variables
     double t_dust_new = 0;
     uint wIDnew = 0;
 
     // Get random number for wavelength of re-emitted photon
-    double rnd1 = pp->getRND();
+    double rnd1 = rand_gen->getRND();
 
     // Get the interacting dust grain size
-    uint a = getInteractingDust(grid, pp);
+    uint a = getInteractingDust(grid, pp, rand_gen);
 
     // Get dust temperature of the emitting grains in current cell
     t_dust_new = updateDustTemperature(grid, *pp, i_density, a, use_energy_density);
@@ -3741,7 +3742,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
                 if(temp >= sub_temp)
-                    temp = 0;
+                    temp = TEMP_MIN;
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
@@ -4456,7 +4457,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                         // Get relative Planck emission
                         pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                         // To perform Camps et. al (2015) benchmark.
                         tmp_stokes[a].addI(cs.Cabs * pl);
 #else
@@ -4480,7 +4481,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 
                 double pl = rel_weight[a] * tmp_planck;
 
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                 // To perform Camps et. al (2015) benchmark.
                 tmp_stokes[a].addQ(cs.Cabs * pl;
 #else
@@ -4521,7 +4522,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                 // Rotate Stokes Vector to be in agreement with the detector plane
                 scatter_stokes.rot(phi_map);
 
-#ifndef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                 // Add scattered light to the Stokes vector
                 tmp_stokes[a].addS(scatter_stokes);
 #endif
@@ -4807,15 +4808,15 @@ double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package &
     return total_energy;
 }
 
-void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes)
+void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes)
 {
     // Init variables
     double cos_theta, theta, phi;
     double g = 0;
 
     // Get two random numbers for the new direction
-    double z1 = pp->getRND();
-    double z2 = pp->getRND();
+    double z1 = rand_gen->getRND();
+    double z2 = rand_gen->getRND();
 
     // Get the current wavelength
     double w = pp->getDustWavelengthID();
@@ -4826,7 +4827,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     // If g is very close to zero, use random direction
     if(abs(g) < 0.5e-5)
     {
-        pp->calcRandomDirection();
+        pp->setRandomDirection(rand_gen->getRND(),rand_gen->getRND());
         pp->updateCoordSystem();
         return;
     }
@@ -4852,13 +4853,13 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, bool adjust_stokes
     pp->updateCoordSystem(phi, theta);
 }
 
-void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
+void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes)
 {
     // Get wavelength of photon package
     uint w = pp->getDustWavelengthID();
 
     // Get theta angle from distribution
-    double theta = findTheta(a, w, pp->getRND());
+    double theta = findTheta(a, w, rand_gen->getRND());
 
     // Get theta index from theta angle
     uint thID = getScatThetaID(theta,a,w);
@@ -4885,7 +4886,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, bool adjust_stokes)
             (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
             (-mat_sca(0, 1) / mat_sca(0, 0));
 
-    double rndx = pp->getRND();
+    double rndx = rand_gen->getRND();
     double phi = rndx * PIx2;
     double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
 

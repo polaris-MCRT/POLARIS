@@ -1170,26 +1170,26 @@ class CDustComponent
         return phase_pdf[a][w].getValue(sth);
     }
 
-    void scatter(CGridBasic * grid, photon_package * pp, bool adjust_stokes = false)
+    void scatter(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen, bool adjust_stokes = false)
     {
         switch(phID)
         {
             case PH_HG:
             {
-                uint a = getInteractingDust(grid, pp, CROSS_SCA);
-                henyeygreen(pp, a, adjust_stokes);
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                henyeygreen(pp, a, rand_gen, adjust_stokes);
                 break;
             }
 
             case PH_MIE:
             {
-                uint a = getInteractingDust(grid, pp, CROSS_SCA);
-                miesca(pp, a, adjust_stokes);
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                miesca(pp, a, rand_gen, adjust_stokes);
                 break;
             }
 
             default:
-                pp->calcRandomDirection();
+                pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
                 pp->updateCoordSystem();
                 break;
         }
@@ -1768,18 +1768,15 @@ class CDustComponent
         return avg_scattering_frac[a][w].getValue(rnd);
     }
 
-    uint findSizeID(photon_package * pp, prob_list & prob, double a_min, double a_max) const
+    uint findSizeID(photon_package * pp, prob_list & prob, double a_min, double a_max, CRandomGenerator * rand_gen) const
     {
         uint a;
 
         // Ensure that the grain size index is one of the used ones
         while(true)
         {
-            // Pick a random number
-            double rnd = pp->getRND();
-
             // Find the related grain size index
-            a = prob.getIndex(rnd);
+            a = prob.getIndex(rand_gen->getRND());
 
             // If in case the size index is outside of the used grain sizes, pick another
             // one
@@ -2238,8 +2235,8 @@ class CDustComponent
 
     void preCalcEffProperties(parameters & param);
 
-    void henyeygreen(photon_package * pp, uint a, bool adjust_stokes = false);
-    void miesca(photon_package * pp, uint a, bool adjust_stokes = false);
+    void henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes = false);
+    void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes = false);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
     void preCalcAbsorptionRates();
@@ -2255,7 +2252,8 @@ class CDustComponent
     bool adjustTempAndWavelengthBW(CGridBasic * grid,
                                    photon_package * pp,
                                    uint i_density,
-                                   bool use_energy_density);
+                                   bool use_energy_density,
+                                   CRandomGenerator * rand_gen);
     double updateDustTemperature(CGridBasic * grid,
                                  const photon_package & pp,
                                  uint i_density,
@@ -2288,7 +2286,7 @@ class CDustComponent
     bool calcSizeDistribution(dlist values, double * mass);
     bool add(double ** size_fraction, CDustComponent * comp, uint ** nr_of_scat_theta_tmp, double *** scat_theta_tmp);
 
-    uint getInteractingDust(CGridBasic * grid, photon_package * pp, uint cross_section = CROSS_ABS) const;
+    uint getInteractingDust(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen, uint cross_section = CROSS_ABS) const;
 
     void calcPACrossSections(uint a, uint w, cross_sections & cs, double theta) const;
     void calcExtCrossSections(CGridBasic * grid,
@@ -2798,13 +2796,13 @@ class CDustMixture
         return sum;
     }
 
-    bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density)
+    bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density, CRandomGenerator * rand_gen)
     {
         if(mixed_component != 0)
         {
-            uint i_mixture = getEmittingMixture(grid, pp);
+            uint i_mixture = getEmittingMixture(grid, pp, rand_gen);
             return mixed_component[i_mixture].adjustTempAndWavelengthBW(
-                grid, pp, i_mixture, use_energy_density);
+                grid, pp, i_mixture, use_energy_density, rand_gen);
         }
         return false;
     }
@@ -3295,7 +3293,7 @@ class CDustMixture
         }
     }
 
-    uint getScatteringMixture(CGridBasic * grid, photon_package * pp) const
+    uint getScatteringMixture(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen) const
     {
         if(mixed_component != 0)
         {
@@ -3306,7 +3304,7 @@ class CDustMixture
             }
             else
             {
-                double rnd = pp->getRND();
+                double rnd = rand_gen->getRND();
                 double dens = 0;
                 double pb[getNrOfMixtures()];
 
@@ -3335,7 +3333,7 @@ class CDustMixture
         return 0;
     }
 
-    uint getEmittingMixture(CGridBasic * grid, photon_package * pp) const
+    uint getEmittingMixture(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen) const
     {
         if(mixed_component != 0)
         {
@@ -3346,7 +3344,7 @@ class CDustMixture
             }
             else
             {
-                double rnd = pp->getRND();
+                double rnd = rand_gen->getRND();
                 double dens = 0;
                 double pb[getNrOfMixtures()];
 
@@ -3375,12 +3373,12 @@ class CDustMixture
         return 0;
     }
 
-    void scatter(CGridBasic * grid, photon_package * pp, bool adjust_stokes = false)
+    void scatter(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen, bool adjust_stokes = false)
     {
         if(mixed_component != 0)
         {
-            uint i_mixture = getScatteringMixture(grid, pp);
-            mixed_component[i_mixture].scatter(grid, pp, adjust_stokes);
+            uint i_mixture = getScatteringMixture(grid, pp, rand_gen);
+            mixed_component[i_mixture].scatter(grid, pp, rand_gen, adjust_stokes);
         }
     }
 
@@ -3466,12 +3464,13 @@ class CDustMixture
                          photon_package * pp,
                          Vector3D obs_ex,
                          Vector3D dir_obs,
-                         photon_package * pp_escape) const
+                         photon_package * pp_escape,
+                         CRandomGenerator * rand_gen) const
     {
         if(mixed_component != 0)
         {
-            uint i_mixture = getScatteringMixture(grid, pp);
-            uint a = mixed_component[i_mixture].getInteractingDust(grid, pp, CROSS_SCA);
+            uint i_mixture = getScatteringMixture(grid, pp, rand_gen);
+            uint a = mixed_component[i_mixture].getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
             mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs, pp_escape);
 
             // Init variables for optical depth calculation
@@ -3501,11 +3500,11 @@ class CDustMixture
         }
     }
 
-    double getCellEmission(CGridBasic * grid, photon_package * pp) const
+    double getCellEmission(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen) const
     {
         if(mixed_component != 0)
         {
-            uint i_mixture = getEmittingMixture(grid, pp);
+            uint i_mixture = getEmittingMixture(grid, pp, rand_gen);
             if(grid->useDustChoice())
                 return mixed_component[i_mixture].getCellEmission(grid, *pp, 0);
             else

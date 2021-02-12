@@ -568,15 +568,15 @@ class CGridCylindrical : public CGridBasic
         return true;
     }
 
-    void setRndPositionInCell(photon_package * pp)
+    void setRndPositionInCell(photon_package * pp, CRandomGenerator * rand_gen)
     {
         Vector3D pos;
         cell_cyl * tmp_cell = (cell_cyl *)pp->getPositionCell();
         double r1, r2, ph1, ph2, z1, z2;
 
-        double rnd_r = pp->getRND();
-        double rnd_ph = pp->getRND();
-        double rnd_z = pp->getRND();
+        double rnd_r = rand_gen->getRND();
+        double rnd_ph = rand_gen->getRND();
+        double rnd_z = rand_gen->getRND();
 
         if(tmp_cell->getZID() == MAX_UINT)
             return;

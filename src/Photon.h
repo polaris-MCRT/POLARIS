@@ -192,35 +192,6 @@ class photon_package
         return trans_frequency;
     }
 
-    double randn(double mu, double sigma)
-    {
-        double U1, U2, W, mult;
-        double X1, X2;
-
-        do
-        {
-            U1 = -1 + getRND() * 2;
-            U2 = -1 + getRND() * 2;
-            W = pow(U1, 2) + pow(U2, 2);
-        } while(W >= 1 || W == 0);
-
-        mult = sqrt((-2 * log(W)) / W);
-        X1 = U1 * mult;
-        X2 = U2 * mult;
-
-        double res = mu + sigma * X1;
-
-        if(res < 0)
-            return randn(mu, sigma);
-
-        return res;
-    }
-
-    void initRandomGenerator(ullong seed)
-    {
-        rand_gen.setSeed(seed);
-    }
-
     void setD(Matrix2D _mD)
     {
         mD = _mD;
@@ -241,11 +212,6 @@ class photon_package
         return ez;
     }
 
-    double getRND()
-    {
-        return rand_gen.getValue();
-    }
-
     double getTmpPathLength() const
     {
         return tmp_path;
@@ -261,9 +227,14 @@ class photon_package
         return cell_pos;
     }
 
-    void calcRandomDirection()
+    void setRandomDirection(double r1, double r2)
     {
-        ez.rndDir(getRND(), getRND());
+        ez.rndDir(r1, r2);
+    }
+
+    void setRandomDirectionTRUST(double r1, double r2)
+    {
+        ez.rndDirTRUST(r1, r2);
     }
 
     void initCoordSystem()
@@ -461,8 +432,17 @@ class photon_package
         return dirID;
     }
 
+    void setPhotonID(ullong _photonID)
+    {
+        photonID = _photonID;
+    }
+
+    ullong getPhotonID()
+    {
+        return photonID;
+    }
+
   private:
-    CRandomGenerator rand_gen;
     Vector3D pos;
     Vector3D backup_pos;
     Vector3D ex; // r-axis, based on O. Fischer (1993)
@@ -470,6 +450,8 @@ class photon_package
     Vector3D ez; // p-axis
     Matrix2D mD;
     StokesVector * multi_stokes;
+
+    ullong photonID;
 
     uint dirID;
     uint i_spectral;

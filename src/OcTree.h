@@ -523,7 +523,7 @@ class CGridOcTree : public CGridBasic
     //     return true;
     // }
 
-    void setRndPositionInCell(photon_package * pp)
+    void setRndPositionInCell(photon_package * pp, CRandomGenerator * rand_gen)
     {
         Vector3D pos;
         cell_oc * tmp_cell = (cell_oc *)pp->getPositionCell();
@@ -536,9 +536,9 @@ class CGridOcTree : public CGridBasic
         z = tmp_cell->getZmin();
         dz = tmp_cell->getZmax() - z;
 
-        double rnd_x = pp->getRND();
-        double rnd_y = pp->getRND();
-        double rnd_z = pp->getRND();
+        double rnd_x = rand_gen->getRND();
+        double rnd_y = rand_gen->getRND();
+        double rnd_z = rand_gen->getRND();
 
         pos = Vector3D(x + rnd_x * dx, y + rnd_y * dy, z + rnd_z * dz);
         pp->setPosition(pos);

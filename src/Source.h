@@ -137,16 +137,16 @@ class CSourceBasic
     virtual void setSideLength(double val)
     {}
 
-    virtual void createNextRay(photon_package * pp, ullong i_phot)
+    virtual void createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
     {}
 
     virtual void createNextRayToCell(photon_package * pp,
-                                     ullong i_phot,
+                                     CRandomGenerator * rand_gen,
                                      ulong i_cell,
                                      bool cell_as_border = false)
     {}
 
-    virtual void createDirectRay(photon_package * pp, Vector3D dir_obs = Vector3D())
+    virtual void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs = Vector3D())
     {}
 
     virtual ullong getNrOfPhotons()
@@ -211,8 +211,8 @@ class CSourceStar : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -247,8 +247,8 @@ class CSourceAGN : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -283,8 +283,8 @@ class CSourceStarField : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
     void setParameter(parameters & param, uint p)
@@ -494,8 +494,8 @@ class CSourceISRF : public CSourceBasic
         sp_ext.createSpline();
     }
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
   private:
     Vector3D e, l;
@@ -532,8 +532,8 @@ class CSourceDust : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
     {
@@ -560,7 +560,7 @@ class CSourceGas : public CSourceBasic
     }
 
     bool initSource(uint id, uint max, bool use_energy_density);
-    void createNextRayToCell(photon_package * pp, ullong i_phot, ulong i_cell, bool cell_as_border);
+    void createNextRayToCell(photon_package * pp, CRandomGenerator * rand_gen, ulong i_cell, bool cell_as_border);
 
     void setParameter(parameters & param, uint p)
     {
@@ -586,8 +586,8 @@ class CSourceLaser : public CSourceBasic
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
-    void createNextRay(photon_package * pp, ullong i_phot);
-    void createDirectRay(photon_package * pp, Vector3D dir_obs);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     void setParameter(parameters & param, uint p)
     {

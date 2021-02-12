@@ -402,6 +402,20 @@ class Vector3D
         normalize();
     }
 
+    // for TRUST benchmark restrict photon directions to increase SNR
+    void rndDirTRUST(double r1, double r2)
+    {
+        // cos(th) should be between -1 and -0.5
+        // the boundary is actually -0.49237 = -4pc / sqrt(4pc**2 + (sqrt(2)*5pc)**2)
+        double u = -1.0 + 0.5 * r1;
+        double ph = PIx2 * r2;
+        double sqr = sqrt(1.0 - u * u);
+        x = sqr * cos(ph);
+        y = sqr * sin(ph);
+        z = u;
+        normalize();
+    }
+
     void normalize()
     {
         double len = length();
