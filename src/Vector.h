@@ -391,9 +391,27 @@ class Vector3D
     }
 
     // random direction according to http://mathworld.wolfram.com/SpherePointPicking.html
-    void rndDir(double r1, double r2)
+    void rndDir(double r1, double r2, uint exponentThetaBias = 1)
     {
-        double u = 1.0 - 2.0 * r1;
+        // if exponentThetaBias != 1: bias towards midplane, i.e. u = cos(th) = 0
+        // this requires a rescaling of the Stokes vector!
+        // If exponentThetaBias = 1 (default): isotropic
+        double u = pow( 2.0 * (r1 - 0.5), exponentThetaBias );
+        double ph = PIx2 * r2;
+        double sqr = sqrt(1.0 - u * u);
+        x = sqr * cos(ph);
+        y = sqr * sin(ph);
+        z = u;
+        normalize();
+    }
+
+    // for TRUST benchmark restrict photon directions to increase SNR
+    void rndDirTRUST(double r1, double r2)
+    {
+        // cos(th) should be between -1 and -0.5
+        // the boundary is actually -0.49237 = -4pc / sqrt(4pc**2 + (sqrt(2)*5pc)**2)
+        // this requires a rescaling of the Stokes vector!
+        double u = -1.0 + 0.5 * r1;
         double ph = PIx2 * r2;
         double sqr = sqrt(1.0 - u * u);
         x = sqr * cos(ph);

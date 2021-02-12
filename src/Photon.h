@@ -227,9 +227,9 @@ class photon_package
         return cell_pos;
     }
 
-    void setRandomDirection(double r1, double r2)
+    void setRandomDirection(double r1, double r2, uint exponentThetaBias = 1)
     {
-        ez.rndDir(r1, r2);
+        ez.rndDir(r1, r2, exponentThetaBias);
     }
 
     void setRandomDirectionTRUST(double r1, double r2)
