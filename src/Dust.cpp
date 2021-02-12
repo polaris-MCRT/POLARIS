@@ -2874,7 +2874,7 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
     // Resize tabulated temperature spline
     tab_temp.resize(nr_of_temperatures);
 
-    // Set each entry of tab_temp with the corresponding temperature (exponential curve)
+    // Set each entry of tab_temp with the corresponding temperature (log distribution)
     for(uint t = 0; t < nr_of_temperatures; t++)
     {
         // Calculate the temperature of a certain index
@@ -3741,7 +3741,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             // Consider sublimation temperature
             if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
                 if(temp >= sub_temp)
-                    temp = 0;
+                    temp = TEMP_MIN;
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
@@ -4456,7 +4456,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                         // Get relative Planck emission
                         pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
 
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                         // To perform Camps et. al (2015) benchmark.
                         tmp_stokes[a].addI(cs.Cabs * pl);
 #else
@@ -4480,7 +4480,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 
                 double pl = rel_weight[a] * tmp_planck;
 
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                 // To perform Camps et. al (2015) benchmark.
                 tmp_stokes[a].addQ(cs.Cabs * pl;
 #else
@@ -4521,7 +4521,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                 // Rotate Stokes Vector to be in agreement with the detector plane
                 scatter_stokes.rot(phi_map);
 
-#ifndef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
                 // Add scattered light to the Stokes vector
                 tmp_stokes[a].addS(scatter_stokes);
 #endif

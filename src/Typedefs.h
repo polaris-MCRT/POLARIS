@@ -14,10 +14,14 @@ using namespace std;
 // Header and Version of POLARIS
 #define PROG_ID "POLARIS    V4.06.00        "
 
-// Flags to activate WINDOWS support, some DEBUG messages, and CAMPS BENCHMARK
+// Flags to activate WINDOWS support, some DEBUG messages, BENCHMARK settings
 //#define DEBUG
 //#define WINDOWS
-//#define CAMPS_BENCHMARK
+#define NONE 0
+#define CAMPS 1
+#define TRUST 2
+// should be NONE, CAMPS or TRUST
+#define BENCHMARK NONE
 
 // use pre-calculated values (per cell) for mean cross-sections,
 // number densities, cell emission. This saves a lot of time if
@@ -66,23 +70,28 @@ using namespace std;
 #define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
 #define con_eps (con_h * con_c / PIx4)                // h * c / (4 * PI)
 
-#ifdef CAMPS_BENCHMARK
-// Part to perform Camps et. al (2015) benchmark (adjust definition below, if
-// necessary!!!)
-#define WL_MIN 1e-9
-#define WL_MAX 1e-2
-#define WL_STEPS 1201
+#if BENCHMARK == CAMPS
+    // Part to perform Camps et. al (2015) benchmark (adjust definition below, if
+    // necessary!!!)
+    #define WL_MIN 1e-9
+    #define WL_MAX 1e-2
+    #define WL_STEPS 1201
+#elif BENCHMARK == TRUST
+    // TRUST benchmark with the BASIC wavelength grid; see Gordon et al. (2017)
+    #define WL_MIN 0.1e-6
+    #define WL_MAX 1000e-6
+    #define WL_STEPS 45
 #else
-// Default parameters of the global wavelength grid
-#define WL_MIN 0.1e-6
-#define WL_MAX 2000e-6
-#define WL_STEPS 100
+    // Default parameters of the global wavelength grid
+    #define WL_MIN 0.1e-6
+    #define WL_MAX 2000e-6
+    #define WL_STEPS 100
 #endif
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
 #define MAX_INTERACTION_RADFIELD 1e7
-#define MAX_INTERACTION_DUST_MC 15
+#define MAX_INTERACTION_DUST_MC 20
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6

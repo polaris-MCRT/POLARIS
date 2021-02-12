@@ -159,7 +159,21 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
     uint wID;
 
     pp->initRandomGenerator(i_phot);
-    pp->calcRandomDirection();
+
+    #if BENCHMARK == TRUST
+        // cos(th) should be between -1 and -0.5, thus only a quarter of the sphere
+        pp->calcRandomDirectionTRUST();
+    #else
+        // send more photons close to z=0/theta=0, i.e. midplane of a disk
+        // theta is drawn from cos(random)^exponent
+        // exponent = 1 is isotropic
+        // exponent = 3 is ususally sufficient for protoplanetary or debris disks
+        // exponent must be an odd int
+        uint exponentThetaBias = 1;
+
+        pp->calcRandomDirection(exponentThetaBias);
+    #endif
+
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
@@ -196,6 +210,20 @@ void CSourceStar::createNextRay(photon_package * pp, ullong i_phot)
         // used for the selection of the emitting wavelengths from source!
         pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
+
+    #if BENCHMARK == TRUST
+        // the photon direction was restricted to a quarter of the sphere
+        // thus the energy of each photon must be reduced by the same factor
+        tmp_stokes_vector /= 4.0;
+    #else
+        // if the exponent of cos(theta) is not 1, i.e. not isotropic
+        // the photon energy must be rescaled accordingly
+        if(exponentThetaBias != 1)
+        {
+            double theta = pp->getDirection().getSphericalCoord().Theta();
+            tmp_stokes_vector *= exponentThetaBias * pow(abs(cos(theta)),(double) 1.-1./exponentThetaBias);
+        }
+    #endif
 
     pp->setPosition(pos);
     pp->setStokesVector(tmp_stokes_vector);
@@ -759,7 +787,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
     off_xy = step_xy / 2.0;
 
     cout << CLR_LINE;
-    
+
     if(constant)
     {
         cout << "Initiating constant background source             \r";
@@ -768,7 +796,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         {
             double pl = 0.0;
             double sp_energy = 0.0;
-            
+
             if(c_f>=0)
             {
                 pl=CMathFunctions::planck(wavelength_list[w], c_temp); //[W m^-2 m^-1]
@@ -809,7 +837,7 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
                      << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
             else
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell" << endl;        
+                     << "with " << nr_of_photons << " photons per cell" << endl;
         }
 
     }
@@ -999,7 +1027,7 @@ StokesVector CSourceBackground::getStokesVector(photon_package * pp)
         Q = q(x, y);
         U = u(x, y);
         V = v(x, y);
-        
+
         pl = CMathFunctions::planck(wavelength_list[wID], T); //[W m^-2 m^-1]
         I = F * pl;                                           //[W m^-1] energy per second and wavelength
         Q *= I;

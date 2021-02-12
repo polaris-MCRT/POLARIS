@@ -2671,7 +2671,7 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
         // Init dust extinction matrix
         Matrix2D dust_extinction_matrix(4, 4);
 
-#ifdef CAMPS_BENCHMARK
+#if BENCHMARK == CAMPS
         // Part to perform Camps et. al (2015) benchmark.
         ofstream myfile;
         string filename = pathOutput + "/stochastic_heating_test.dat";

@@ -261,9 +261,14 @@ class photon_package
         return cell_pos;
     }
 
-    void calcRandomDirection()
+    void calcRandomDirection(uint exponentThetaBias = 1)
     {
-        ez.rndDir(getRND(), getRND());
+        ez.rndDir(getRND(), getRND(), exponentThetaBias);
+    }
+
+    void calcRandomDirectionTRUST()
+    {
+        ez.rndDirTRUST(getRND(), getRND());
     }
 
     void initCoordSystem()
