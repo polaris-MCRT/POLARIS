@@ -515,7 +515,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                 break;
         }
 
-        CRandomGenerator * rand_gen = new CRandomGenerator();
+        CRandomGenerator rand_gen = CRandomGenerator();
         // just an arbitrary, random number for the RNG seed
         // this is NOT the seed for KISS
         ullong seed = -1ULL;
@@ -526,7 +526,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         #ifdef _OPENMP
             seed *= -1 * (omp_get_thread_num() + 1);
         #endif
-        rand_gen->init(seed);
+        rand_gen.init(seed);
 
             // A loop for each wavelength
 #pragma omp for schedule(dynamic) collapse(2)
@@ -580,7 +580,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     pp.setWavelength(dust->getWavelength(wID), wID);
 
                 // Launch a new photon package from the source
-                tm_source->createNextRay(&pp, rand_gen);
+                tm_source->createNextRay(&pp, &rand_gen);
 
                 if(pp.getStokesVector()->I() < 1e-200)
                 {
@@ -598,7 +598,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     }
 
                 // Get tau for first interaction
-                end_tau = -log(1.0 - rand_gen->getRND());
+                end_tau = -log(1.0 - rand_gen.getRND());
 
                 // Save the old position to use it again
                 old_pos = pp.getPosition();
@@ -662,21 +662,21 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                             // scattering occurs
                             double albedo = Csca / Cext;
 
-                            if(rand_gen->getRND() < albedo)
+                            if(rand_gen.getRND() < albedo)
                             {
                                 // Perform simple photon scattering without
                                 // changing the Stokes vectors
-                                dust->scatter(grid, &pp, rand_gen);
+                                dust->scatter(grid, &pp, &rand_gen);
                             }
                             else
                             {
                                 // Calculate the temperature of the absorbing cell
                                 // and change the wavelength of the photon
                                 if(!disable_reemission &&
-                                   dust->adjustTempAndWavelengthBW(grid, &pp, use_energy_density, rand_gen))
+                                   dust->adjustTempAndWavelengthBW(grid, &pp, use_energy_density, &rand_gen))
                                 {
                                     // Send this photon into a new random direction
-                                    pp.setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
+                                    pp.setRandomDirection(rand_gen.getRND(), rand_gen.getRND());
                                 }
                                 else
                                     break;
@@ -691,7 +691,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                             }
                         }
                         // Calculate new optical depth for next interaction
-                        end_tau = -log(1.0 - rand_gen->getRND());
+                        end_tau = -log(1.0 - rand_gen.getRND());
                     }
                     else
                     {
@@ -808,7 +808,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
         // Increase counter
         global_iteration_counter++;
 
-        CRandomGenerator * rand_gen = new CRandomGenerator();
+        CRandomGenerator rand_gen = CRandomGenerator();
         // just an arbitrary, random number for the RNG seed
         // this is NOT the seed for KISS
         ullong seed = -1ULL;
@@ -819,7 +819,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
         #ifdef _OPENMP
             seed *= -1 * (omp_get_thread_num() + 1);
         #endif
-        rand_gen->init(seed);
+        rand_gen.init(seed);
 
         // A loop for each cell
 #pragma omp for schedule(dynamic)
@@ -892,7 +892,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                         pp.setPhotonID(i_phot);
 
                         // Init photon package outside the grid or at the border of final cell
-                        tm_source->createNextRayToCell(&pp, rand_gen, i_cell, only_J_in);
+                        tm_source->createNextRayToCell(&pp, &rand_gen, i_cell, only_J_in);
 
                         // Position photon at the grid border
                         if(!grid->positionPhotonInGrid(&pp))
@@ -906,7 +906,7 @@ bool CRadiativeTransfer::calcMonteCarloLvlPopulation(uint i_species, uint global
                         }
 
                         // Calculate random frequency
-                        double velocity = (rand_gen->getRND() * 2 - 1) * max_velocity +
+                        double velocity = (rand_gen.getRND() * 2 - 1) * max_velocity +
                                           gas->getProjCellVelocity(grid, pp, pp.getBackupPosition());
 
                         // Set frequency of the photon package
@@ -1372,7 +1372,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             per_counter = 0;
             last_percentage = 0;
 
-            CRandomGenerator * rand_gen = new CRandomGenerator();
+            CRandomGenerator rand_gen = CRandomGenerator();
             // just an arbitrary, random number for the RNG seed
             // this is NOT the seed for KISS
             ullong seed = -1ULL;
@@ -1383,7 +1383,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             #ifdef _OPENMP
                 seed *= -1 * (omp_get_thread_num() + 1);
             #endif
-            rand_gen->init(seed);
+            rand_gen.init(seed);
 
             // Perform radiative transfer through the model for each photon
             #pragma omp for schedule(dynamic)
@@ -1448,7 +1448,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         pp->setWavelength(dust->getWavelength(wID), wID);
 
                         // Launch a new photon package from the source
-                        tm_source->createNextRay(pp, rand_gen);
+                        tm_source->createNextRay(pp, &rand_gen);
 
                         // Position the photon inside the grid
                         if(!grid->positionPhotonInGrid(pp))
@@ -1470,26 +1470,26 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         if(b_forced)
                         {
                             // Get tau for first interaction, if the interaction is forced
-                            end_tau = getEscapeTauForced(rays, rand_gen);
+                            end_tau = getEscapeTauForced(rays, &rand_gen);
 
                             // If optical depth is exactly zero, send only one photon
                             // package as without enfsca
                             if(end_tau == 0)
                             {
                                 ph_max = 0;
-                                end_tau = -log(1.0 - rand_gen->getRND());
+                                end_tau = -log(1.0 - rand_gen.getRND());
                             }
                         }
                         else
                         {
                             // Get tau for first interaction
-                            end_tau = -log(1.0 - rand_gen->getRND());
+                            end_tau = -log(1.0 - rand_gen.getRND());
                         }
                     }
                     else
                     {
                         // Get tau for first interaction
-                        end_tau = -log(1.0 - rand_gen->getRND());
+                        end_tau = -log(1.0 - rand_gen.getRND());
                     }
 
                     // Init variables
@@ -1594,7 +1594,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                                   detector[d].getEX(),
                                                                   detector[d].getDirection(),
                                                                   &pp_escape,
-                                                                  rand_gen);
+                                                                  &rand_gen);
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
@@ -1631,10 +1631,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             }
 
                             // Perform scattering interaction into a new direction
-                            dust->scatter(grid, pp, rand_gen, true);
+                            dust->scatter(grid, pp, &rand_gen, true);
 
                             // Calculate new optical depth for next interaction
-                            end_tau = -log(1.0 - rand_gen->getRND());
+                            end_tau = -log(1.0 - rand_gen.getRND());
                         }
                         else
                         {
@@ -1748,7 +1748,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         Vector3D dir_obs = detector[d].getDirection();
 
                         // Launch a new photon package from the source
-                        tm_source->createDirectRay(&pp_direct, rand_gen, dir_obs);
+                        tm_source->createDirectRay(&pp_direct, &rand_gen, dir_obs);
 
                         // Position the photon inside the grid
                         grid->positionPhotonInGrid(&pp_direct);
@@ -2474,11 +2474,11 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist dust_ray_detectors = param.getDustRayDetectors();
 
-    CRandomGenerator * rand_gen = new CRandomGenerator();
+    CRandomGenerator rand_gen = CRandomGenerator();
     // just an arbitrary, random number for the RNG seed
     // this is NOT the seed for KISS
     ullong seed = -1ULL;
-    rand_gen->init(seed);
+    rand_gen.init(seed);
 
     if(!dust_ray_detectors.empty())
     {
@@ -2567,7 +2567,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Include stellar emission, if chosen
             if(tracer[i_det]->considerPointSources())
-                calcStellarEmission(i_det, rand_gen);
+                calcStellarEmission(i_det, &rand_gen);
 
             // Show final progress
             cout << "-> Ray tracing dust map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
