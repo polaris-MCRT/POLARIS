@@ -328,6 +328,22 @@ class spline
         return y[i] + t * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
     }
 
+    double getLogLinear(uint i, double v) const
+    {
+        double x1 = log10(x[i]);
+        double x2 = log10(x[i+1]);
+
+        double y1 = log10(y[i]);
+        double y2 = log10(y[i+1]);
+
+        v = log10(v);
+
+        double res = y1 + ((y2-y1)/(x2-x1)) * (v-x1);
+        res = pow(10.0, res);
+
+        return res;
+    }
+
     double getLinearValue(double v)
     {
         uint min = 0, max = N;
@@ -353,17 +369,17 @@ class spline
                 min = i;
         }
 
-        double x1=log10(x[min]);
-        double x2=log10(x[min+1]);
+        double x1 = log10(x[min]);
+        double x2 = log10(x[min+1]);
 
-        double y1=log10(y[min]);
-        double y2=log10(y[min+1]);
+        double y1 = log10(y[min]);
+        double y2 = log10(y[min+1]);
 
-        v=log10(v);
+        v = log10(v);
 
-        double res=((y2-y1)/(x2-x1))*(v-x1)+y1;
-        res=pow(10.0,res);
-            return res;
+        double res = y1 + ((y2-y1)/(x2-x1)) * (v-x1);
+        res = pow(10.0, res);
+        return res;
     }
 
     double getValue(double v, uint extrapolation = SPLINE) const
@@ -384,6 +400,10 @@ class spline
                     return y[0];
                     break;
 
+                case LOGLINEAR:
+                    return getLogLinear(0, v);
+                    break;
+
                 case LINEAR:
                     return getLinear(0, v);
                     break;
@@ -397,6 +417,10 @@ class spline
             {
                 case CONST:
                     return y[N];
+                    break;
+
+                case LOGLINEAR:
+                    return getLogLinear(N - 1, v);
                     break;
 
                 case LINEAR:

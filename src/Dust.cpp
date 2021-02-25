@@ -949,8 +949,13 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
                 // Set size index and refractive index as complex number
                 double x = 2.0 * PI * a_eff[a] / wavelength_list[w];
-                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w]),
-                                                     refractive_index_imag.getValue(wavelength_list[w]));
+#if BENCHMARK == PINTE
+                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], LOGLINEAR),
+                                                     refractive_index_imag.getValue(wavelength_list[w], LOGLINEAR));
+#else
+                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], SPLINE),
+                                                     refractive_index_imag.getValue(wavelength_list[w], SPLINE));
+#endif
 
                 // Calculate Mie-scattering
                 if(!CMathFunctions::calcWVMie(x,
@@ -1126,8 +1131,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
             CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
             CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
-        }
-    }
+        } // end of wavelength loop
+    } // end of grain size loop
 
     // Set that the scattering matrix was successfully read
     scat_loaded = true;
@@ -1720,6 +1725,29 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     if(is_mixture)
     {
+#if BENCHMARK == PINTE
+        string path_mueller = path_data + "dust_mixture_" + str_mix_ID_end + "_mueller.dat";
+
+        ofstream mueller_matrix_file(path_mueller.c_str());
+
+        // Error message if the write does not work
+        if(mueller_matrix_file.fail())
+        {
+            cout << "\nERROR: Cannot write to:\n" << path_cross << endl;
+            return false;
+        }
+
+        for(uint sth = 0; sth < nr_of_scat_theta[0][0]; sth++)
+        {
+            mueller_matrix_file << scat_theta[0][0][sth] << TAB;
+            mueller_matrix_file << sca_mat[0][0][0][0][sth](0, 0) << TAB;
+            mueller_matrix_file << sca_mat[0][0][0][0][sth](0, 1) << TAB;
+            mueller_matrix_file << sca_mat[0][0][0][0][sth](2, 2) << TAB;
+            mueller_matrix_file << sca_mat[0][0][0][0][sth](2, 3) << endl;
+        }
+        mueller_matrix_file.close();
+#endif
+
         // For the dust mixture, set the different strings
         str_title = "#Dust mixture\n " + stringID;
         plot_title = "#Dust mixture ";

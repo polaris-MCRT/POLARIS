@@ -364,30 +364,20 @@ class CRadiativeTransfer
                        double * epsi,
                        double * dz_new)
     {
-        *epsi = 2.0;
-        *dz_new = 0.9 * cell_d_l;
-        if(stokes_new2.I() >= 0 && stokes_new.I() >= 0)
-        {
-            double epsi_I =
-                abs(stokes_new2.I() - stokes_new.I()) / (REL_ERROR * abs(stokes_new.I()) + ABS_ERROR);
+        double epsi_I = abs(stokes_new2.I() - stokes_new.I()) /
+                        (REL_ERROR * abs(stokes_new.I()) + ABS_ERROR);
 
-            double epsi_Q = abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) /
-                            (REL_ERROR * abs(stokes_new.Q()) + ABS_ERROR);
+        double epsi_Q = abs(abs(stokes_new2.Q()) - abs(stokes_new.Q())) /
+                        (REL_ERROR * abs(stokes_new.Q()) + ABS_ERROR);
 
-            double epsi_U = abs(abs(stokes_new2.U()) - abs(stokes_new.U())) /
-                            (REL_ERROR * abs(stokes_new.U()) + ABS_ERROR);
+        double epsi_U = abs(abs(stokes_new2.U()) - abs(stokes_new.U())) /
+                        (REL_ERROR * abs(stokes_new.U()) + ABS_ERROR);
 
-            double epsi_V = abs(abs(stokes_new2.V()) - abs(stokes_new.V())) /
-                            (REL_ERROR * abs(stokes_new.V()) + ABS_ERROR);
+        double epsi_V = abs(abs(stokes_new2.V()) - abs(stokes_new.V())) /
+                        (REL_ERROR * abs(stokes_new.V()) + ABS_ERROR);
 
-            double dz_new_I = 0.9 * cell_d_l * pow(epsi_I, -0.2);
-            double dz_new_Q = 0.9 * cell_d_l * pow(epsi_Q, -0.2);
-            double dz_new_U = 0.9 * cell_d_l * pow(epsi_U, -0.2);
-            double dz_new_V = 0.9 * cell_d_l * pow(epsi_V, -0.2);
-
-            *epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
-            *dz_new = min(dz_new_I, min(dz_new_Q, min(dz_new_U, dz_new_V)));
-        }
+        *epsi = max(epsi_I, max(epsi_Q, max(epsi_U, epsi_V)));
+        *dz_new = 0.9 * cell_d_l * pow(*epsi, -0.2);
     }
 
     void convertTempInQB(double min_gas_density, bool use_gas_temp);

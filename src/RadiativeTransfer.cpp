@@ -2839,10 +2839,10 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     // Delete the Runge-Kutta pointer
                     delete[] RK_k;
 
-                    // Ignore very small values
-                    if(abs(stokes_new.I()) < 1e-200)
+                    // Ignore very small (and negative) values
+                    if(stokes_new.I() < 1e-200)
                         stokes_new.resetIntensity();
-                    if(abs(stokes_new2.I()) < 1e-200)
+                    if(stokes_new2.I() < 1e-200)
                         stokes_new2.resetIntensity();
 
                     // Calculate the difference between the results with two
@@ -2850,7 +2850,7 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     double epsi, dz_new;
                     calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
 
-                    // Is a smaller step width needed
+                    // If epsi > 1, a smaller step width is needed
                     if(epsi <= 1.0)
                     {
                         // Add the temporary Stokes vector to the total one

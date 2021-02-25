@@ -20,7 +20,8 @@ using namespace std;
 #define NONE 0
 #define CAMPS 1
 #define TRUST 2
-// should be NONE, CAMPS or TRUST
+#define PINTE 3
+// should be NONE, CAMPS, TRUST or PINTE
 #define BENCHMARK NONE
 
 // use pre-calculated values (per cell) for mean cross-sections,
@@ -81,6 +82,11 @@ using namespace std;
     #define WL_MIN 0.1e-6
     #define WL_MAX 1000e-6
     #define WL_STEPS 45
+#elif BENCHMARK == PINTE
+    // TRUST benchmark with the BASIC wavelength grid; see Gordon et al. (2017)
+    #define WL_MIN 0.1e-6
+    #define WL_MAX 3000e-6
+    #define WL_STEPS 100
 #else
     // Default parameters of the global wavelength grid
     #define WL_MIN 0.1e-6
@@ -274,8 +280,9 @@ using namespace std;
 
 // Extrapolation/Interpolation IDs
 #define CONST 0
-#define LINEAR 1
-#define SPLINE 2
+#define LOGLINEAR 1
+#define LINEAR 2
+#define SPLINE 3
 
 // Radiation types on detector
 // direct starlight
@@ -304,15 +311,25 @@ using namespace std;
 // Mie-scattering calculation
 // Nr of grain sizes, Nr of size bins will be MIE_NR_DUST_SIZE - 1
 #define MIE_NR_DUST_SIZE 100
-// Minimum number of scattering angles between 0° and 90°
-// Actual number might be larger due to adaptive refinement
-#define NANG 91
 #define MAX_MIE_ITERATIONS 20000000
 #define MIN_MIE_SIZE_PARAM 1e-6
 #define MIE_ACCURACY 1e-15
-// limit for adaptive refinement of scat angles
-// if >= 1 -> no refinement
-#define MAX_MIE_SCA_REL_DIFF 1e-2
+
+#if BENCHMARK == PINTE
+    // Minimum number of scattering angles between 0° and 90°
+    // Actual number might be larger due to adaptive refinement
+    #define NANG 181
+    // limit for adaptive refinement of scat angles
+    // if >= 1 -> no refinement
+    #define MAX_MIE_SCA_REL_DIFF 1
+#else
+    // Minimum number of scattering angles between 0° and 90°
+    // Actual number might be larger due to adaptive refinement
+    #define NANG 91
+    // limit for adaptive refinement of scat angles
+    // if >= 1 -> no refinement
+    #define MAX_MIE_SCA_REL_DIFF 1e-2
+#endif
 
 // Projections for midplane files
 #define PROJ_XY 1
