@@ -1813,6 +1813,8 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     {
         if(!detector[d].writeMap(d, RESULTS_MC))
             return false;
+        if(!detector[d].writeMapStats(d, RESULTS_MC))
+            return false;
         if(!detector[d].writeSed(d, RESULTS_MC))
             return false;
     }
