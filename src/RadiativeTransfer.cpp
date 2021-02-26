@@ -3604,8 +3604,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         
         // Calc emission probability of source and dust
         double L_s = source->getLuminosity();
-        if (t >= 50000 && t <= 60000)
-            L_s *= 4;
+        //if (t >= 50000 && t <= 60000)
+        //    L_s *= 4;
         double p_d = L_d/(L_s + L_d);
         
         // Calc cumulative probability dist for cell emission
@@ -3918,8 +3918,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            string temp_path = "/star/data/abensberg/polaris/time/ttauri/temp/";
-            grid->saveBinaryGridFile(temp_path + "grid_temp_"+s.str()+".dat");
+            grid->saveBinaryGridFile(param.getPathOutput() + "/grids/grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         }
         
