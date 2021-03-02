@@ -417,6 +417,9 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
  
     if(!createOutputPaths(param.getPathOutput()))
         return false;
+    
+    if(!createPath(param.getPathOutput()+"grids"+SEP))
+        return false;
 
     if(!assignGridType(grid, param))
         return false;

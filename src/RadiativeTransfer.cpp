@@ -3918,7 +3918,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         {
             ostringstream s;
             s << t;
-            grid->saveBinaryGridFile(param.getPathOutput() + "/grids/grid_temp_"+s.str()+".dat");
+            grid->saveBinaryGridFile(param.getPathOutput() + "grids/grid_temp_"+s.str()+".dat");
             t_nextres += t_results;
         }
         
