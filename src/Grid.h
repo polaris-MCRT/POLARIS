@@ -350,7 +350,8 @@ class CGridBasic
         max_data = 0;
 
         delta0 = 8.28e23 * 2.5e-12 * 1e8 * 1e-6 * 1e6;
-        larm_f = 4.1e-21;
+        // This would always reset the value to the value given below. I.e. the command "<larm_f> value" in the command file would effectively be ignored, hence it needs to be commented out
+        // larm_f = 4.1e-21;
 
         max_gas_dens = -1e300;
         min_gas_dens = 1e300;

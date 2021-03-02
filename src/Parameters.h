@@ -48,7 +48,7 @@ class parameters
         max_obs_distance = -1e300;
 
         delta0 = 8.28e23 * 2.5e-12 * 1e8 * 1e-6 * 1e6;
-        larm_f = 4.1e-21;
+        larm_f = 4.1e-19;
 
         nr_of_mc_lvl_pop_photons = 0;
         mc_lvl_pop_seed = 0;
