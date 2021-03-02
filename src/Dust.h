@@ -70,7 +70,7 @@ class CDustComponent
 
         stochastic_heating_max_size = 0;
         delta0 = 8.28e23 * 2.5e-12 * 1e8 * 1e-6 * 1e6;
-        larm_f = 4.1e-21;
+        larm_f = 4.1e-19;
         aspect_ratio = 0;
         sub_temp = 1e6;
         material_density = 0;
