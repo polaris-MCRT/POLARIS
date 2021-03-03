@@ -23,5 +23,4 @@ bin/*
 **/*.bak
 examples*
 
-compile.sh
 .gitlab-ci.yml
