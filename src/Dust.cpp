@@ -2608,7 +2608,7 @@ void CDustComponent::preCalcEffProperties(parameters & param)
                 double meanCabs = (2.0 * tCabs1[w] + tCabs2[w]) / 3.0;
 
                 // Set absroption/emission energy at current wavelength and temperature
-                tmpQB[w] = meanCabs * tab_planck[w].getValue(t);
+                tmpQB[w] = meanCabs * CMathFunctions::planck(wavelength_list[w], tmp_temp);
             }
 
             // Calculate QB integrated over all wavelengths
@@ -2703,7 +2703,7 @@ void CDustComponent::preCalcAbsorptionRates()
             // Calculate absorption cross-section times Planck function for each
             // wavelength
             for(uint w = 0; w < WL_STEPS; w++)
-                tmpQB[w] = getCabsMean(a, w) * tab_planck[w].getValue(t);
+                tmpQB[w] = getCabsMean(a, w) * CMathFunctions::planck(wavelength_list[w], tmp_temp);
 
             // Calculate QB integrated over all wavelengths
             double tt = CMathFunctions::integ(wavelength_list, tmpQB, 0, WL_STEPS - 1);
@@ -4281,7 +4281,7 @@ double CDustComponent::calcEmissivity(CGridBasic * grid, const photon_package & 
 
                     // Add relative emissivity from this temperature
                     pl_abs_tmp[a] +=
-                        getCabsMean(a, w) * rel_weight[a] * temp_probability * getTabPlanck(w, temp_dust);
+                        getCabsMean(a, w) * rel_weight[a] * temp_probability * getPlanck(w, temp_dust);
                 }
             }
             else
@@ -4294,7 +4294,7 @@ double CDustComponent::calcEmissivity(CGridBasic * grid, const photon_package & 
                     temp_dust = grid->getDustTemperature(pp, i_density);
 
                 // Calculate the emission of the dust grains
-                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight[a] * getTabPlanck(w, temp_dust);
+                pl_abs_tmp[a] = getCabsMean(a, w) * rel_weight[a] * getPlanck(w, temp_dust);
             }
         }
         else
@@ -4450,7 +4450,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     if(temp_info != TEMP_FULL)
     {
         temp_dust = grid->getDustTemperature(pp, i_density);
-        tmp_planck = getTabPlanck(w, temp_dust);
+        tmp_planck = getPlanck(w, temp_dust);
     }
 
     // Init temporary Stokes array for integration
@@ -4483,7 +4483,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                         double pl = grid->getDustTempProbability(pp, i_density, a, t);
 
                         // Get relative Planck emission
-                        pl *= rel_weight[a] * getTabPlanck(w, temp_dust);
+                        pl *= rel_weight[a] * getPlanck(w, temp_dust);
 
 #if BENCHMARK == CAMPS
                         // To perform Camps et. al (2015) benchmark.
@@ -4504,7 +4504,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                 if(temp_info == TEMP_FULL)
                 {
                     temp_dust = grid->getDustTemperature(pp, i_density, a);
-                    tmp_planck = getTabPlanck(w, temp_dust);
+                    tmp_planck = getPlanck(w, temp_dust);
                 }
 
                 double pl = rel_weight[a] * tmp_planck;
@@ -4811,14 +4811,14 @@ double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package &
             double temp = grid->getDustTemperature(pp, i_density, a);
 
             // Calculate energy of current grain size
-            rel_weight[a] *= getCabsMean(a, w) * getTabPlanck(w, temp);
+            rel_weight[a] *= getCabsMean(a, w) * getPlanck(w, temp);
         }
     }
     else
     {
         // Get dust temperature from grid
         double temp = grid->getDustTemperature(pp, i_density);
-        double planck_tmp = getTabPlanck(w, temp);
+        double planck_tmp = getPlanck(w, temp);
 
         // Calculate energy of current grain size
         for(uint a = 0; a < nr_of_dust_species; a++)

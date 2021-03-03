@@ -1647,13 +1647,13 @@ class CDustComponent
 
         for(uint t = 0; t < nr_of_temperatures; t++)
         {
+            // Get temperature from tab_temp spline
+            double tmp_temp = tab_temp.getValue(t);
+
             // Calculate absorption cross-section times Planck function for each
             // wavelength
             for(uint w = 0; w < nr_of_wavelength; w++)
-                tmpQB[w] = tmpCabs[w] * tab_planck[w].getValue(t);
-
-            // Get temperature from tab_temp spline
-            double tmp_temp = tab_temp.getValue(t);
+                tmpQB[w] = tmpCabs[w] * CMathFunctions::planck(wavelength_list[w], tmp_temp);
 
             // Calculate QB integrated over all wavelengths
             tmp_tab_em.setValue(
@@ -1676,9 +1676,9 @@ class CDustComponent
         return tab_temp.getYIndex(t);
     }
 
-    double getTabPlanck(uint w, double temp) const
+    double getPlanck(uint w, double temp) const
     {
-        double pl = tab_planck[w].getValue(temp);
+        double pl = CMathFunctions::planck(wavelength_list[w], temp);
         return max(1e-200, pl);
     }
 
@@ -3535,9 +3535,9 @@ class CDustMixture
         return sum;
     }
 
-    double getTabPlanck(uint w, double temp)
+    double getPlanck(uint w, double temp)
     {
-        return mixed_component[0].getTabPlanck(w, temp);
+        return mixed_component[0].getPlanck(w, temp);
     }
 
     bool createDustMixtures(parameters & param, string path_data, string path_plot);
