@@ -340,6 +340,7 @@ while getopts "hrdufc:g:" opt; do
         debug=true
         ;;
     u)
+        update_installation
         ;;
     f)
         DO_FITS=true
