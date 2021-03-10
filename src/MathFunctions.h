@@ -2848,10 +2848,10 @@ class CMathFunctions
 
             // efficiency factors
             z = -z;
-            rr = z * (iterm + 0.5) * (ra1 - rb1);
+            rr = z * (r_iterm + 0.5) * (ra1 - rb1);
             r = r + rr;
-            ss = ss + (iterm - 1) * (iterm + 1) / iterm * real(ra0 * conj(ra1) + rb0 * conj(rb1)) +
-                 an2 / iterm / (iterm - 1) * (ra0 * conj(rb0));
+            ss = ss + (r_iterm - 1) * (r_iterm + 1) / r_iterm * (ra0 * conj(ra1) + rb0 * conj(rb1)) +
+                 an2 / r_iterm / (r_iterm - 1) * (ra0 * conj(rb0));
             qq = an * real(ra1 + rb1);
             qext = qext + qq;
             qsca = qsca + an * (norm(ra1) + norm(rb1));
@@ -2893,7 +2893,7 @@ class CMathFunctions
             iterm++;
             r_iterm = double(iterm);
 
-            if(iterm == MAX_MIE_ITERATIONS)
+            if(iterm > num)
                 return false;
         }
 
