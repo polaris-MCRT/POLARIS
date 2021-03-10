@@ -528,7 +528,7 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
         #endif
         rand_gen.init(seed);
 
-            // A loop for each wavelength
+        // A loop for each wavelength
 #pragma omp for schedule(dynamic) collapse(2)
         for(int wID = 0; wID < int(nr_used_wavelengths); wID++)
         {
@@ -677,6 +677,8 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                                 {
                                     // Send this photon into a new random direction
                                     pp.setRandomDirection(rand_gen.getRND(), rand_gen.getRND());
+                                    // And reset the coord system
+                                    pp.initCoordSystem();
                                 }
                                 else
                                     break;
@@ -704,10 +706,10 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                     // Save photon position to adjust it if necessary
                     old_pos = pp.getPosition();
                 }
-            }
-        }
-        }//end of parallel block
-    }
+            } // end of photon loop
+        } // end of wavelength loop
+        } //end of parallel block
+    } // end of source loop
 
     // Format prints
     cout << CLR_LINE;

@@ -2906,7 +2906,7 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
     for(uint t = 0; t < nr_of_temperatures; t++)
     {
         // Calculate the temperature of a certain index
-        tmp_temp = minTemp * pow(double(maxTemp) / minTemp, double(t) / (nr_of_temperatures - 1));
+        tmp_temp = minTemp * pow(maxTemp / minTemp, double(t) / double(nr_of_temperatures - 1));
 
         // Add the temperature to the spline
         tab_temp.setValue(t, double(t), tmp_temp);
@@ -3675,7 +3675,7 @@ double CDustComponent::updateDustTemperature(CGridBasic * grid,
     }
 
     // Get temperature depending on the absorption rate (Minimum temperature is TEMP_MIN)
-    temp = max(double(TEMP_MIN), findTemperature(a, abs_rate));
+    temp = findTemperature(a, abs_rate);
 
     if(sublimate)
         if(temp >= sub_temp)
@@ -4862,9 +4862,15 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator *
 
     // Set g factor to the boundaries if larger/smaller
     if(g < -1)
+    {
+        cout << endl << 'Serious problem with g factor: smaller than -1!' << endl;
         g = -0.99999;
+    }
     if(g > 1)
+    {
+        cout << endl << 'Serious problem with g factor: larger than 1!' << endl;
         g = 0.99999;
+    }
 
     // Get cosine theta from g factor
     cos_theta = (1.0 - g * g) / (1.0 - g + 2.0 * g * z1);
