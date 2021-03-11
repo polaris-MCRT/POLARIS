@@ -1177,14 +1177,14 @@ class CDustComponent
             case PH_HG:
             {
                 uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
-                henyeygreen(pp, a, rand_gen, adjust_stokes);
+                henyeygreen(pp, a, rand_gen);
                 break;
             }
 
             case PH_MIE:
             {
                 uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
-                miesca(pp, a, rand_gen, adjust_stokes);
+                miesca(pp, a, rand_gen);
                 break;
             }
 
@@ -2235,8 +2235,8 @@ class CDustComponent
 
     void preCalcEffProperties(parameters & param);
 
-    void henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes = false);
-    void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes = false);
+    void henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
     void preCalcAbsorptionRates();

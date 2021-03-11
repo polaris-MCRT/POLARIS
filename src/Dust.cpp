@@ -4836,7 +4836,7 @@ double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package &
     return total_energy;
 }
 
-void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes)
+void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen)
 {
     // Init variables
     double cos_theta, theta, phi;
@@ -4887,7 +4887,7 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator *
     pp->updateCoordSystem(phi, theta);
 }
 
-void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen, bool adjust_stokes)
+void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen)
 {
     // Get wavelength of photon package
     uint w = pp->getDustWavelengthID();
@@ -4946,15 +4946,12 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
 
-    if(adjust_stokes)
-    {
-        double i_1 = tmp_stokes.I();
-        tmp_stokes.rot(phi);
-        tmp_stokes *= mat_sca;
-        tmp_stokes *= i_1 / tmp_stokes.I();
+    double i_1 = tmp_stokes.I();
+    tmp_stokes.rot(phi);
+    tmp_stokes *= mat_sca;
+    tmp_stokes *= i_1 / tmp_stokes.I();
 
-        pp->setStokesVector(tmp_stokes);
-    }
+    pp->setStokesVector(tmp_stokes);
 }
 
 bool CDustMixture::createDustMixtures(parameters & param, string path_data, string path_plot)

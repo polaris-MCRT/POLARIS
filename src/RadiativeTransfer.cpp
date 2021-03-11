@@ -679,6 +679,12 @@ bool CRadiativeTransfer::calcMonteCarloRadiationField(uint command,
                                     pp.setRandomDirection(rand_gen.getRND(), rand_gen.getRND());
                                     // And reset the coord system
                                     pp.initCoordSystem();
+
+                                    // reemission is unpolarised
+                                    // reset Stokes Q, U and V
+                                    pp.getStokesVector()->setQ(0.0);
+                                    pp.getStokesVector()->setU(0.0);
+                                    pp.getStokesVector()->setV(0.0);
                                 }
                                 else
                                     break;
