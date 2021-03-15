@@ -91,7 +91,7 @@ using namespace std;
     // Default parameters of the global wavelength grid
     #define WL_MIN 0.1e-6
     #define WL_MAX 2000e-6
-    #define WL_STEPS 100
+    #define WL_STEPS 200
 #endif
 
 // Parameter for numerical limitations
