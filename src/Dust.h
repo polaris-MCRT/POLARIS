@@ -2477,12 +2477,12 @@ class CDustMixture
                 mixed_component[i_mixture].preCalcRelWeight();
     }
 
-    string getPhaseFunctionStr()
+    string getPhaseFunctionStr(uint i_mixture)
     {
         string str_res = "\nERROR: Phase function is undefined!\n";
         if(mixed_component != 0)
         {
-            switch(mixed_component[0].getPhaseFunctionID())
+            switch(mixed_component[i_mixture].getPhaseFunctionID())
             {
                 case PH_ISO:
                     str_res = "Isotropic scattering";

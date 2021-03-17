@@ -638,7 +638,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
 
     // Read the scattering matrix if MIE scattering should be used
     // With the same grid of wavelengths and grain sizes
-    if(param.getPhaseFunctionID() == PH_MIE)
+    if(param.getPhaseFunctionID(dust_component_choice) == PH_MIE)
         if(!readScatteringMatrices(path, nr_of_wavelength_dustcat, wavelength_list_dustcat))
             return false;
 
@@ -3255,8 +3255,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
     fraction += comp->getFraction();
 
     // Check for scattering phase function (use HG if one or more components use HG)
-    if(comp->getPhaseFunctionID() < phID)
-        phID = comp->getPhaseFunctionID();
+    // if(comp->getPhaseFunctionID() < phID)
+    //     phID = comp->getPhaseFunctionID();
 
     // Use the lowest sublimation temperature (use multiple mixtures for higher accuracy
     // of the sublimation)
@@ -5096,7 +5096,8 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());
-            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
+            // single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
+            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID(dust_component_choice));
 
             // Get global wavelength grid
             single_component[i_comp].setWavelengthList(wavelength_list, wavelength_offset);
@@ -5180,9 +5181,9 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
              << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-       scattering_to_raytracing)
-        cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
+    // if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
+    //    scattering_to_raytracing)
+    //     cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps
     if(param.getCommand() == CMD_DUST_SCATTERING)
@@ -5373,6 +5374,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         cout << "Dust mixture " << (i_mixture + 1) << "/" << getNrOfMixtures() << " (Choice ID "
              << param.getDustChoiceFromMixtureId(i_mixture) << ")" << endl;
 
+        cout << "- Phase function          : " << getPhaseFunctionStr(i_mixture) << endl;
         cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
 
         if(param.getCommand() == CMD_DUST_EMISSION && !param.getAligRANDOM())
