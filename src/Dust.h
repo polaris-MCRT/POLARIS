@@ -3488,25 +3488,6 @@ class CDustMixture
                 cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
                 pp_escape->getStokesVector()->clear();
             }
-
-            // Transport the photon package through the grid
-            while(grid->next(pp_escape))
-            {
-                // Get the traveled distance
-                len = pp_escape->getTmpPathLength();
-
-                // Get the current density
-                dens = getNumberDensity(grid, *pp_escape);
-
-                // Get the current mean extinction cross-section
-                Cext = getCextMean(grid, *pp_escape);
-
-                // Add the optical depth of the current path to the total optical depth
-                tau_obs += Cext * len * dens;
-            }
-
-            // Reduce the Stokes vector by the optical depth
-            *pp_escape->getStokesVector() *= exp(-tau_obs);
         }
     }
 

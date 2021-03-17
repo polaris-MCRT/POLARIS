@@ -338,7 +338,9 @@ class CRadiativeTransfer
         detector = d;
     }
 
-    double getEscapeTauForced(photon_package * pp, CRandomGenerator * rand_gen);
+    double getOpticalDepthAlongPath(photon_package * pp);
+
+    double getTauForced(photon_package * pp, CRandomGenerator * rand_gen);
 
     bool doMRWStepBW(photon_package * pp);
     bool doMRWStepBWWithoutHeating(photon_package * pp);
