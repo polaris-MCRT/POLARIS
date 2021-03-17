@@ -3372,7 +3372,7 @@ class CDustMixture
             uint i_mixture = getScatteringMixture(grid, pp, rand_gen);
             mixed_component[i_mixture].scatter(grid, pp, rand_gen);
 
-            // Reduce Stokes vector by albedo
+            // Reduce the Stokes vector by the mean albedo of the particles
             if(adjust_stokes)
             {
                 if(getCextMean(grid, *pp) > 0.0)
