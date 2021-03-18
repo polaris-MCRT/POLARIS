@@ -137,6 +137,8 @@ class DustChooser:
                     for i in range(min_len):
                         dust.parameter['size_parameter'].append(self.math.parse(
                             self.parse_args.dust_size_distribution[i + 1], 'length'))
+        if self.parse_args.scattering is not None:
+            dust.parameter['scattering'] = self.parse_args.scattering
 
 
 class GraphiteOblate(Dust):
