@@ -1170,7 +1170,7 @@ class CDustComponent
         return phase_pdf[a][w].getValue(sth);
     }
 
-    void scatter(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen, bool adjust_stokes = false)
+    void scatter(CGridBasic * grid, photon_package * pp, CRandomGenerator * rand_gen)
     {
         switch(phID)
         {
@@ -1192,14 +1192,6 @@ class CDustComponent
                 pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
                 pp->updateCoordSystem();
                 break;
-        }
-
-        // Reduce Stokes vector by albedo
-        if(adjust_stokes)
-        {
-            StokesVector * S = pp->getStokesVector();
-            *S *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
-            pp->setStokesVector(*S);
         }
     }
 
@@ -2485,12 +2477,12 @@ class CDustMixture
                 mixed_component[i_mixture].preCalcRelWeight();
     }
 
-    string getPhaseFunctionStr()
+    string getPhaseFunctionStr(uint i_mixture)
     {
         string str_res = "\nERROR: Phase function is undefined!\n";
         if(mixed_component != 0)
         {
-            switch(mixed_component[0].getPhaseFunctionID())
+            switch(mixed_component[i_mixture].getPhaseFunctionID())
             {
                 case PH_ISO:
                     str_res = "Isotropic scattering";
@@ -3378,7 +3370,19 @@ class CDustMixture
         if(mixed_component != 0)
         {
             uint i_mixture = getScatteringMixture(grid, pp, rand_gen);
-            mixed_component[i_mixture].scatter(grid, pp, rand_gen, adjust_stokes);
+            mixed_component[i_mixture].scatter(grid, pp, rand_gen);
+
+            // Reduce the Stokes vector by the mean albedo of the particles
+            if(adjust_stokes)
+            {
+                if(getCextMean(grid, *pp) > 0.0)
+                    *pp->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
+                else
+                {
+                    cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+                    pp->getStokesVector()->clear();
+                }
+            }
         }
     }
 
@@ -3476,27 +3480,14 @@ class CDustMixture
             // Init variables for optical depth calculation
             double len, dens, Cext, tau_obs = 0;
 
-            // Reduce the Stokes vector by albedo
-            *pp_escape->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
-
-            // Transport the photon package through the grid
-            while(grid->next(pp_escape))
+            // Reduce the Stokes vector by the mean albedo of the particles
+            if(getCextMean(grid, *pp) > 0.0)
+                *pp_escape->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
+            else
             {
-                // Get the traveled distance
-                len = pp_escape->getTmpPathLength();
-
-                // Get the current density
-                dens = getNumberDensity(grid, *pp_escape);
-
-                // Get the current mean extinction cross-section
-                Cext = getCextMean(grid, *pp_escape);
-
-                // Add the optical depth of the current path to the total optical depth
-                tau_obs += Cext * len * dens;
+                cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+                pp_escape->getStokesVector()->clear();
             }
-
-            // Reduce the Stokes vector by the optical depth
-            *pp_escape->getStokesVector() *= exp(-tau_obs);
         }
     }
 

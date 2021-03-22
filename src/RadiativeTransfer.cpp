@@ -1312,7 +1312,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 {
     // Init variables
     ullong nr_of_photons;
-    ullong per_counter, ph_max, nr_of_wavelength;
+    ullong per_counter, photon_forced_max, nr_of_wavelength;
     float last_percentage;
     uint mrw_counter = 0;
     ullong kill_counter = 0;
@@ -1408,12 +1408,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 if(b_forced)
                 {
                     rays = new photon_package[2];
-                    ph_max = 1;
+                    photon_forced_max = 1;
                 }
                 else
                 {
                     rays = new photon_package[1];
-                    ph_max = 0;
+                    photon_forced_max = 0;
                 }
 
                 // Increase counter used to show progress
@@ -1438,10 +1438,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                 // Execute the following once (standard mode) or
                 // twice (only if enforced scattering is enabled)
-                for(uint ph_i = 0; ph_i <= ph_max; ph_i++)
+                for(uint photon_forced_i = 0; photon_forced_i <= photon_forced_max; photon_forced_i++)
                 {
                     // Init the photon_package pp with the specific ray
-                    photon_package * pp = &rays[ph_i];
+                    photon_package * pp = &rays[photon_forced_i];
                     pp->setPhotonID(i_phot);
 
                     // Init variables
@@ -1450,7 +1450,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                     // If this photon is the first one (if enforced scattering
                     // is enabled, the first one has to scatter once)
-                    if(ph_i == 0)
+                    if(photon_forced_i == 0)
                     {
                         // Set current wavelength
                         pp->setWavelength(dust->getWavelength(wID), wID);
@@ -1478,13 +1478,13 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         if(b_forced)
                         {
                             // Get tau for first interaction, if the interaction is forced
-                            end_tau = getEscapeTauForced(rays, &rand_gen);
+                            end_tau = getTauForced(rays, &rand_gen);
 
                             // If optical depth is exactly zero, send only one photon
                             // package as without enfsca
                             if(end_tau == 0)
                             {
-                                ph_max = 0;
+                                photon_forced_max = 0;
                                 end_tau = -log(1.0 - rand_gen.getRND());
                             }
                         }
@@ -1501,7 +1501,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
 
                     // Init variables
-                    ullong interactions = 0;
+                    ullong interactions = photon_forced_i;
                     double tmp_tau;
                     double len, dens;
 
@@ -1515,7 +1515,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // is too low, end photon transfer
                         if(interactions >= MAX_INTERACTION_DUST_MC || pp->getStokesVector()->I() < 1e-200)
                         {
-                            if(ph_i == 0)
+                            if(photon_forced_i == 0)
                             {
                                 #pragma omp atomic update
                                 kill_counter++;
@@ -1555,7 +1555,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             pp->adjustPosition(old_pos, len);
 
                             // Modify second photon if enforced scattering is used
-                            if(b_forced && interactions == 1 && ph_i == 0)
+                            if(b_forced && interactions == 1 && photon_forced_i == 0)
                             {
                                 rays[1].setWavelength(pp->getWavelength(), pp->getDustWavelengthID());
                                 rays[1].setPosition(pp->getPosition());
@@ -1579,7 +1579,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                 // If peel-off is used, add flux to the detector
                                 // except it is the first interaction of the non-forced photon
-                                if(peel_off && !(ph_i == 1 && interactions == 1))
+                                if(peel_off)
                                 {
                                     // Transport a separate photon to each detector
                                     for(uint d = 0; d < nr_mc_detectors; d++)
@@ -1603,6 +1603,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                                                   detector[d].getDirection(),
                                                                   &pp_escape,
                                                                   &rand_gen);
+
+                                            // optical depth towards observer
+                                            double tau_obs = getOpticalDepthAlongPath(&pp_escape);
+
+                                            // Reduce the Stokes vector by the optical depth
+                                            *pp_escape.getStokesVector() *= exp(-tau_obs);
 
                                             // Convert the flux into Jy and consider
                                             // the distance to the observer
@@ -1687,7 +1693,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     // Get the angle to rotate the photon space into the
                                     // detector space
                                     double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                                        detector[d].getEX(), -1*pp->getEX(), pp->getEY());
+                                        detector[d].getEX(), pp->getEX(), -1*pp->getEY());
 
                                     // Rotate the Stokes vector
                                     pp->getStokesVector()->rot(rot_angle_phot_obs);
@@ -1726,7 +1732,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
                     // Do not launch the secondary photon if the first one has not
                     // scattered
-                    if(b_forced && interactions == 0 && ph_i == 0)
+                    if(b_forced && interactions == 0 && photon_forced_i == 0)
                         break;
                 }
                 // Delete the Rays pointer
@@ -1761,33 +1767,19 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Position the photon inside the grid
                         grid->positionPhotonInGrid(&pp_direct);
 
-                        // Init a variable to save the optical depth
-                        double tau_obs = 0;
-
-                        // Transport photon package through model to obtain the optical
-                        // depth
-                        while(grid->next(&pp_direct))
-                        {
-                            // Get necessary information about the current cell
-                            double len = pp_direct.getTmpPathLength();
-                            double dens = dust->getNumberDensity(grid, pp_direct);
-                            double Cext = dust->getCextMean(grid, pp_direct);
-
-                            // Increase the optical depth by the current cell
-                            tau_obs += Cext * len * dens;
-                        }
-
                         // Rotate photon package into the coordinate space of the detector
                         double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                            detector[d].getEX(), -1*pp_direct.getEX(), pp_direct.getEY());
+                            detector[d].getEX(), pp_direct.getEX(), -1*pp_direct.getEY());
                         pp_direct.getStokesVector()->rot(rot_angle_phot_obs);
 
                         // The scattering part is based on O. Fischer (1993)
                         // But on our detectors, U is defined the other way round
                         pp_direct.getStokesVector()->multU(-1);
 
-                        // Calculate the source emission and reduce it by the optical
-                        // depth
+                        // optical depth towards observer
+                        double tau_obs = getOpticalDepthAlongPath(&pp_direct);
+
+                        // Reduce the Stokes vector by the optical depth
                         *pp_direct.getStokesVector() *= exp(-tau_obs);
 
                         // Convert the flux into Jy and consider the distance to the
@@ -1999,40 +1991,41 @@ void CRadiativeTransfer::calcStochasticHeating()
     cout << "- Calculation of stochastic heating    : done" << endl;
 }
 
-double CRadiativeTransfer::getEscapeTauForced(photon_package * rays, CRandomGenerator * rand_gen)
+double CRadiativeTransfer::getOpticalDepthAlongPath(photon_package * pp)
 {
-    double len, dens, Cext, enf_tau = 0;
-    double rnd = rand_gen->getRND();
-    StokesVector stokes;
-    double factor;
+    photon_package pp_new = photon_package();
+    pp_new.setWavelength(pp->getWavelength(), pp->getDustWavelengthID());
+    pp_new.setPosition(pp->getPosition());
+    pp_new.setPositionCell(pp->getPositionCell());
+    pp_new.setDirection(pp->getDirection());
+    pp_new.setDirectionID(pp->getDirectionID());
 
-    // Save the old position to use it again
-    Vector3D old_pos = rays[0].getPosition();
-    cell_basic * tmp_cell = rays[0].getPositionCell();
-
-    while(grid->next(&rays[0]))
+    double len, dens, Cext, tau = 0.0;
+    while(grid->next(&pp_new))
     {
-        len = rays[0].getTmpPathLength();
-        dens = dust->getNumberDensity(grid, rays[0]);
-        Cext = dust->getCextMean(grid, rays[0]);
-        enf_tau += Cext * len * dens;
+        // Get the traveled distance
+        len = pp_new.getTmpPathLength();
+        // Get the current density
+        dens = dust->getNumberDensity(grid, pp_new);
+        // Get the current mean extinction cross-section
+        Cext = dust->getCextMean(grid, pp_new);
+        // Add the optical depth of the current path to the total optical depth
+        tau += Cext * len * dens;
     }
+    return tau;
+}
 
-    // Reset the photon position
-    rays[0].setPosition(old_pos);
-    rays[0].setPositionCell(tmp_cell);
+double CRadiativeTransfer::getTauForced(photon_package * rays, CRandomGenerator * rand_gen)
+{
+    double rnd = rand_gen->getRND();
+    StokesVector stokes = *rays[0].getStokesVector();
+    double enf_tau = getOpticalDepthAlongPath(&rays[0]);
+    double exp_factor = exp(-enf_tau);
 
-    // Unset the direction ID
-    rays[0].setDirectionID(MAX_UINT);
+    // rays[0].setStokesVector(stokes);
+    rays[1].setStokesVector(stokes * exp_factor);
 
-    stokes = *rays[0].getStokesVector();
-    factor = exp(-enf_tau);
-
-    rays[0].setStokesVector(stokes);
-    rays[1].setStokesVector(stokes * factor);
-
-    enf_tau *= 0.999;
-    return -log(1.0 - rnd * (1.0 - exp(-enf_tau)));
+    return -log(1.0 - rnd * (1.0 - exp_factor));
 }
 
 // -------------------------------------------------

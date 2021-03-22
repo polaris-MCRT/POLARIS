@@ -11,7 +11,7 @@ class parameters
     {
         path_grid = "";
         path_output = "";
-        phID = PH_HG;
+        // phID = PH_HG;
         conv_l_in_SI = 1;
         conv_dH_in_SI = 1;
         conv_B_in_SI = 1;
@@ -667,9 +667,16 @@ class parameters
         return dust_choices;
     }
 
+    /*
     uint getPhaseFunctionID() const
     {
         return phID;
+    }
+    */
+
+    uint getPhaseFunctionID(uint i) const
+    {
+        return phIDs[i];
     }
 
     double getFHighJ() const
@@ -1291,9 +1298,16 @@ class parameters
         zeeman_catalog_path.push_back(val);
     }
 
+    /*
     void setPhaseFunctionID(uint val)
     {
         phID = val;
+    }
+    */
+
+    void setPhaseFunctionID(uint val)
+    {
+        phIDs.push_back(val);
     }
 
     void setFhighJ(double val)
@@ -2259,7 +2273,8 @@ class parameters
 
     strlist zeeman_catalog_path;
 
-    uint phID;
+    // uint phID;
+    uilist phIDs;
 
     double min_obs_distance, max_obs_distance;
     double kepler_star_mass, turbulent_velocity;

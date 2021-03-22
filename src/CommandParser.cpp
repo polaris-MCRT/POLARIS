@@ -567,7 +567,7 @@ bool CCommandParser::parse()
                 }
                 break;
 
-                
+
             case CMD_OPIATE:
                 if(i == 0)
                     break;
@@ -607,7 +607,7 @@ bool CCommandParser::parse()
                     start = 0;
                     stop = 0;
                 }
-                break;    
+                break;
 
             case CMD_SYNCHROTRON:
                 if(i == 0)
@@ -866,8 +866,22 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
-    if(cmd.compare("<phase_function>") == 0)
+    if(cmd.compare("<phase_function>") == 0 || cmd.compare("<phase_function id = >") == 0)
     {
+        uint dust_component_choice;
+        if(cmd.compare("<phase_function id = >") == 0)
+        {
+            string str = seperateString(data);
+            dust_component_choice = uint(atof(str.c_str()));
+            if(dust_component_choice < 0)
+            {
+                cout << "Error ID " << dust_component_choice << " from <phase_function id = > is not valid!"
+                     << endl;
+                return false;
+            }
+        }
+
+        formatLine(data);
         if(data.compare("PH_HG") == 0)
         {
             param->setPhaseFunctionID(PH_HG);
@@ -900,7 +914,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         return true;
     }
-    
+
     //start OPIATE detectors
     if(cmd.compare("<detector_opiate nr_pixel = vel_channels = >") == 0)
     {
@@ -910,10 +924,10 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         formatLine(str1);
         string str_id = str1;
-        
+
         formatLine(str2);
         dlist nr_of_pixel = parseValues(str2);
-        
+
         formatLine(str3);
         dlist nr_of_channels = parseValues(str3);
 
@@ -924,7 +938,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values[2] += 360;
         while(values[3] < 0)
             values[3] += 360;
-    
+
         if(values.size() == NR_OF_OPIATE_DET - 13) //no distance
         {
             //Set distance to 1
@@ -933,18 +947,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(-1);
             // Set sidelength in y-direction to cube sidelength
             values.push_back(-1);
-            
+
             // Set dx to center
             values.push_back(0.0);
-            
+
             // Set dy to center
             values.push_back(0.0);
-            
-            // 4x empty 
+
+            // 4x empty
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             values.push_back(0.0);
         }
         else if(values.size() == NR_OF_OPIATE_DET - 12) // no side lengths
@@ -953,62 +967,62 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(-1);
             // Set sidelength in y-direction to cube sidelength
             values.push_back(-1);
-            
+
             // Set dx to center
             values.push_back(0.0);
-            
+
             // Set dy to center
             values.push_back(0.0);
-            
-            // 4x empty 
+
+            // 4x empty
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             values.push_back(0.0);
         }
         else if(values.size() == NR_OF_OPIATE_DET - 11)
         {
             // Set sidelength in y-direction to cube sidelength
             values.push_back(values[values.size()-1]);
-            
+
             // Set dx to center
             values.push_back(0.0);
-            
+
             // Set dy to center
             values.push_back(0.0);
-            
-            // 4x empty 
+
+            // 4x empty
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             values.push_back(0.0);
         }
         else if(values.size() == NR_OF_OPIATE_DET - 10)
         {
             // Set dx to center
             values.push_back(0.0);
-            
+
             // Set dy to center
             values.push_back(0.0);
-            
-            // 4x empty 
+
+            // 4x empty
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             values.push_back(0.0);
         }
         else if(values.size() == NR_OF_OPIATE_DET - 8)
         {
             // As above, but with x- and y-shift of the detector map
             // Do not use the other values
-            // 4x empty 
+            // 4x empty
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             values.push_back(0.0);
         }
 
@@ -1028,7 +1042,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         param->addOpiateRayDetector(values);
         param->addOpiateSpec(str_id);
-        
+
         param->updateDetectorAngles(values[2], values[3]);
         param->updateObserverDistance(values[4]);
         param->updateMapSidelength(values[5], values[6]);
@@ -1037,7 +1051,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
-        
+
     if(cmd.compare("<detector_opiate_healpix nr_sides = vel_channels = >") == 0)
     {
         string str1 = seperateString(data);
@@ -1046,10 +1060,10 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         formatLine(str1);
         string str_id = str1;
-        
+
         formatLine(str2);
         dlist nr_of_sides = parseValues(str2);
-        
+
         formatLine(str3);
         dlist nr_of_channels = parseValues(str3);
 
@@ -1063,17 +1077,17 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(-180);
             // l_max
             values.push_back(180);
-            
+
             // b_min
             values.push_back(-90);
             // b_max
             values.push_back(90);
-            
+
             // Set velocity to zero
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             // set bubble radius to zero
             values.push_back(0.0);
         }
@@ -1083,12 +1097,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(0.0);
             values.push_back(0.0);
             values.push_back(0.0);
-            
+
             // set bubble radius to zero
             values.push_back(0.0);
         }
         else if(values.size() == NR_OF_OPIATE_DET - 5) // no bubble
-        {          
+        {
             // set bubble radius to zero
             values.push_back(0.0);
         }
@@ -1109,7 +1123,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         param->addOpiateRayDetector(values);
         param->addOpiateSpec(str_id);
-                
+
         param->updateDetectorPixel(uint(nr_of_sides[0]), 0);
 
         double distance = sqrt(values[2] * values[2] + values[3] * values[3] + values[4] * values[4]);
@@ -1118,17 +1132,17 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         // Showing full sphere coverage
         param->updateDetectorAngles(-90, -180);
         param->updateDetectorAngles(90, 180);
-        
+
         return true;
     }
-    
+
     if(cmd.compare("<opiata_path_emi>") == 0)
     {
         string str = seperateString(data);
         param->setOpiatePathEmission(str);
         return true;
     }
-    
+
     if(cmd.compare("<opiata_path_abs>") == 0)
     {
         string str = seperateString(data);
@@ -1629,7 +1643,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             //bubble radius
             values.push_back(0);
         }
-        
+
         if(values.size() == NR_OF_RAY_DET - 4)
         {
             //bubble radius
@@ -1885,7 +1899,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(values.size() == NR_OF_MC_DET - 6)
         {
             // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
-            
+
             // Set sidelength in x-direction of cube sidelength
             values.push_back(-1);
             // Set sidelength in y-direction of cube sidelength
@@ -1900,7 +1914,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         else if(values.size() == NR_OF_MC_DET - 4)
         {
             //only sidelength but no shift
-            
+
             // Set shift in x-direction of cube sidelength
             values.push_back(0);
             // Set shift in y-direction of cube sidelength
@@ -2178,8 +2192,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             //bubble radius
             values.push_back(0.0);
         }
-        
-        
+
+
         if(values.size() == NR_OF_RAY_DET - 4)
         {
             //bubble radius
@@ -2598,7 +2612,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         data="\"0.0\""+data;
         cmd = "<source_background nr_photons = >";
     }
-        
+
     if(cmd.compare("<source_background nr_photons = >") == 0)
     {
         string str = seperateString(data);
@@ -2633,15 +2647,15 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
                         param->addBackgroundSource(values);
                     }
-                    else                        
+                    else
                     {
                         //the case of a constant background
-                        if(values.size() == NR_OF_BG_SOURCES - 3) 
+                        if(values.size() == NR_OF_BG_SOURCES - 3)
                         {
                             dlist::iterator it=values.begin();
-                            
+
                             values.insert(it+1,-1.0);
-                            
+
                             values.push_back(0);
                             values.push_back(0);
 
@@ -2650,7 +2664,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                         else
                         {
                             //the case of a constant background
-                            if(values.size() == NR_OF_BG_SOURCES - 1) 
+                            if(values.size() == NR_OF_BG_SOURCES - 1)
                             {
                                 dlist::iterator it=values.begin();
 

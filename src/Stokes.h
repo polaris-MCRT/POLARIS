@@ -441,11 +441,19 @@ class StokesVector
     {
         double tQ = sQ, tU = sU;
         double s = sin(2.0 * phi), c = cos(2.0 * phi);
-        // Scattering part based on O. Fischer (1993)
-        // But on our detectors, U is defined the other way round
-        // -> phi is defined in the opposite direction
-        // Q_new = Q*cos - U*sin
-        // U_new = Q*sin - U*cos
+        // The scattering part is based on O. Fischer (1993)
+        //
+        // The equations
+        // Q' = Q*cos(2*a) + U*sin(2*a)
+        // U' = -Q*sin(2*a) + U*cos(2*a)
+        // transform the stokes parameters if the rotation is a counterclockwise
+        // rotation by the angle a > 0 when locking in the direction of propagation.
+        //
+        // However, when rotating the r- and l-axis by the scattering angle phi > 0,
+        // the rotation is defined clockwise when locking in the direction of propagation.
+        // Therefore, it is
+        // Q' = Q*cos(2*phi) - U*sin(2*phi)
+        // U' = Q*sin(2*phi) + U*cos(2*phi)
         sQ = tQ * c - tU * s;
         sU = tQ * s + tU * c;
     }

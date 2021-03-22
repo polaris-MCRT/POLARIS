@@ -58,10 +58,10 @@ class CmdPolaris:
             mass_fraction = self.parse_args.mass_fraction
         else:
             mass_fraction = self.model.parameter['mass_fraction']
-        if self.parse_args.scattering is not None:
-            scattering = self.parse_args.scattering
-        else:
-            scattering = self.dust.parameter['scattering']
+        # if self.parse_args.scattering is not None:
+        #     scattering = self.parse_args.scattering
+        # else:
+        #     scattering = self.dust.parameter['scattering']
         if self.parse_args.midplane_points is not None:
             midplane_points = self.parse_args.midplane_points
         else:
@@ -107,8 +107,8 @@ class CmdPolaris:
         cmd_file.write('\t<mass_fraction>\t\t' + str(mass_fraction) + '\n')
         cmd_file.write('\t<mu>\t\t\t' + str(mu) + '\n')
         cmd_file.write('\n')
-        cmd_file.write('\t<phase_function>\tPH_' + str(scattering) + '\n')
-        cmd_file.write('\n')
+        # cmd_file.write('\t<phase_function>\tPH_' + str(scattering) + '\n')
+        # cmd_file.write('\n')
         if self.parse_args.healpix_orientation is not None:
             cmd_file.write('\t<healpix_orientation>\t' + str(self.parse_args.healpix_orientation) + '\n')
         cmd_file.write('\n')

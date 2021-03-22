@@ -412,8 +412,11 @@ class Dust:
         if self.parameter['choice_id'] is not None:
             dust_string = '\t<dust_component id = \"' + \
                 str(self.parameter['choice_id']) + '\">\t"'
+            ph_string = '\t<phase_function id = \"' + \
+                str(self.parameter['choice_id']) + '\">\tPH_' + str(self.parameter['scattering'])
         else:
             dust_string = '\t<dust_component>\t"'
+            ph_string = '\t<phase_function>\tPH_' + str(self.parameter['scattering'])
         if self.parameter['amin'] is not None and self.parameter['amax'] is not None:
             dust_string += self.file_io.path['dust'] + self.parameter['dust_cat_file'] +  \
                 '" "' + self.parameter['size_keyword'] + '" ' + str(self.parameter['fraction']) + ' ' + \
@@ -424,7 +427,7 @@ class Dust:
         else:
             raise ValueError(
                 'Minimum AND maximum dust grain size need to be defined!')
-        return dust_string + '\n'
+        return dust_string + '\n' + ph_string + '\n'
 
     def get_command(self):
         """Provides dust composition command line for POLARIS .cmd file.

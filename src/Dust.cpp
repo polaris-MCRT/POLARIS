@@ -638,7 +638,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
 
     // Read the scattering matrix if MIE scattering should be used
     // With the same grid of wavelengths and grain sizes
-    if(param.getPhaseFunctionID() == PH_MIE)
+    if(param.getPhaseFunctionID(dust_component_choice) == PH_MIE)
         if(!readScatteringMatrices(path, nr_of_wavelength_dustcat, wavelength_list_dustcat))
             return false;
 
@@ -3255,8 +3255,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
     fraction += comp->getFraction();
 
     // Check for scattering phase function (use HG if one or more components use HG)
-    if(comp->getPhaseFunctionID() < phID)
-        phID = comp->getPhaseFunctionID();
+    // if(comp->getPhaseFunctionID() < phID)
+    //     phID = comp->getPhaseFunctionID();
 
     // Use the lowest sublimation temperature (use multiple mixtures for higher accuracy
     // of the sublimation)
@@ -4727,25 +4727,24 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     // Default phi distribution is isotropic
     double phi_fraction = 1;
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0)
     {
-        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
-
-        // Set the Stokes vector of the photon package to 0
-        tmp_stokes.clear();
-        pp_escape->setStokesVector(tmp_stokes);
-        return;
-    }
-    else
-    {
-        double phipar = (sqrt(pow(tmp_stokes.Q(), 2) + pow(tmp_stokes.U(), 2)) / tmp_stokes.I()) *
-                        (-mat_sca(0, 1) / mat_sca(0, 0));
+        double q_i = tmp_stokes.Q() / tmp_stokes.I();
+        double u_i = tmp_stokes.U() / tmp_stokes.I();
+        double phipar = sqrt(q_i * q_i + u_i * u_i) * (-mat_sca(0, 1) / mat_sca(0, 0));
 
         double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
         double cos_2_phi = cos(2.0 * (phi_photon_to_obs + gamma - PI));
 
         // Calculate the fraction that is scattered into this phi direction
         phi_fraction = (1.0 - phipar * cos_2_phi);
+    }
+    else
+    {
+        cout << "\nHINT: Photon package intensity or first scattering matrix element is zero!\n" << endl;
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
     }
 
     // Calculate the fraction that is scattered into this theta direction
@@ -4756,22 +4755,28 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Backup Stokes vector
     double stokes_1_bak = tmp_stokes.I();
-
-    // Rotate Stokes vector to new photon direction
-    tmp_stokes.rot(phi_photon_to_obs);
-
-    // Multiply Stokes vector with scattering matrix
-    tmp_stokes *= mat_sca;
-
-    // Normalize Stokes vector to preserve total intensity
-    tmp_stokes *= stokes_1_bak / tmp_stokes.I();
+    if(stokes_1_bak > 1e-200)
+    {
+        // Rotate Stokes vector to new photon direction
+        tmp_stokes.rot(phi_photon_to_obs);
+        // Multiply Stokes vector with scattering matrix
+        tmp_stokes *= mat_sca;
+        // Normalize Stokes vector to preserve total intensity
+        tmp_stokes *= stokes_1_bak / tmp_stokes.I();
+    }
+    else
+    {
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
+    }
 
     // Rotate photon package into the coordinate space of the detector
-    // (r / x)-axis of photon is y-axis of detector
-    // (l / y)-axis of photon is negative x-axis of detector
+    // (x or r)-axis of photon is y-axis of detector
+    // (y or l)-axis of photon is negative x-axis of detector
     // see Figure 12 in O. Fischer (1993)
     double rot_angle_phot_obs =
-        CMathFunctions::getRotationAngleObserver(obs_ex, -1*pp_escape->getEX(), pp_escape->getEY());
+        CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), -1*pp_escape->getEY());
     tmp_stokes.rot(rot_angle_phot_obs);
 
     // The scattering part is based on O. Fischer (1993)
@@ -4863,12 +4868,12 @@ void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator *
     // Set g factor to the boundaries if larger/smaller
     if(g < -1)
     {
-        cout << endl << 'Serious problem with g factor: smaller than -1!' << endl;
+        cout << endl << "Serious problem with g factor: smaller than -1!" << endl;
         g = -0.99999;
     }
     if(g > 1)
     {
-        cout << endl << 'Serious problem with g factor: larger than 1!' << endl;
+        cout << endl << "Serious problem with g factor: larger than 1!" << endl;
         g = 0.99999;
     }
 
@@ -4906,50 +4911,62 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
 
     double phipar;
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() == 0 || mat_sca(0, 0) == 0)
+    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0)
     {
-        cout << "HINT: Photon package intensity or first scattering matrix element zero!" << endl;
-
-        tmp_stokes.clear();
-        pp->setStokesVector(tmp_stokes);
-
-        return;
+        double q_i = tmp_stokes.Q() / tmp_stokes.I();
+        double u_i = tmp_stokes.U() / tmp_stokes.I();
+        phipar = sqrt(q_i * q_i + u_i * u_i) * (-mat_sca(0, 1) / mat_sca(0, 0));
     }
     else
-        phipar =
-            (sqrt(tmp_stokes.Q() * tmp_stokes.Q() + tmp_stokes.U() * tmp_stokes.U()) / tmp_stokes.I()) *
-            (-mat_sca(0, 1) / mat_sca(0, 0));
+    {
+        cout << "\nHINT: Photon package intensity or first scattering matrix element is zero!\n" << endl;
+        tmp_stokes.clear();
+        pp->setStokesVector(tmp_stokes);
+        return;
+    }
 
-    double rndx = rand_gen->getRND();
-    double phi = rndx * PIx2;
     double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
 
-    // find phi with Newton's method (phi_error < 1e-10)
-    // x_{n+1} = x_{n} - f(x_{n}) / f'(x_{n})
-
-    // find phi that solves 0 = phi - phipar * 0.5 * sin(2.0 * phi) - rndx * PIx2
+    // find phi that solves 0 = phi - phipar * 0.5 * sin(2.0 * phi) - rndx * PIx2 = root_phi
+    // (Kepler's equation)
     // see O. Fischer (1993) Equation (3.45) on page 49
+    // find phi with Halley's method (phi_error < 1e-10)
+    // x_{n+1} = x_{n} - 2 * f(x_{n}) * f'(x_{n}) / (2 * [f'(x_{n})]^2 - f(x_{n}) * f''(x_{n}))
     // set phi_{0} = rndx * PIx2
-    double cdf = -phipar * 0.5 * sin(2.0 * phi);
-    double dv_cdf = 1.0 - phipar * cos(2.0 * phi);
+    double rndx = rand_gen->getRND();
+    double phi = rndx * PIx2;
+    double root_phi = -phipar * 0.5 * sin(2.0 * phi);
+    double d_root_phi = 1.0 - phipar * cos(2.0 * phi);
+    double d2_root_phi = 2.0 * phipar * sin(2.0 * phi);
+    double delta_phi;
     uint run_counter = 0;
 
-    while(abs(cdf) > 1e-10 && run_counter < 1000)
+    while(abs(root_phi) > 1e-10 && run_counter < 1000)
     {
-        phi = phi - cdf/dv_cdf;
-        cdf = phi - phipar * 0.5 * sin(2.0 * phi) - PIx2 * rndx;
-        dv_cdf = 1.0 - phipar * cos(2.0 * phi);
+        delta_phi = 2.0 * root_phi * d_root_phi / (2.0 * d_root_phi * d_root_phi - root_phi * d2_root_phi);
+        phi -= delta_phi;
+        root_phi = phi - phipar * 0.5 * sin(2.0 * phi) - PIx2 * rndx;
+        d_root_phi = 1.0 - phipar * cos(2.0 * phi);
+        d2_root_phi = 2.0 * phipar * sin(2.0 * phi);
         run_counter++;
     }
+    if(run_counter == 1000 || abs(root_phi) > 1e-10)
+        cout << "\nERROR: No phi found\n" << endl;
+
     phi = PI - gamma + phi;
 
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
 
     double i_1 = tmp_stokes.I();
-    tmp_stokes.rot(phi);
-    tmp_stokes *= mat_sca;
-    tmp_stokes *= i_1 / tmp_stokes.I();
+    if(i_1 > 1e-200)
+    {
+        tmp_stokes.rot(phi);
+        tmp_stokes *= mat_sca;
+        tmp_stokes *= i_1 / tmp_stokes.I();
+    }
+    else
+        tmp_stokes.clear();
 
     pp->setStokesVector(tmp_stokes);
 }
@@ -5079,7 +5096,8 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());
-            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
+            // single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
+            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID(dust_component_choice));
 
             // Get global wavelength grid
             single_component[i_comp].setWavelengthList(wavelength_list, wavelength_offset);
@@ -5163,9 +5181,9 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
              << " [m])" << endl;
 
     // Monte-Carlo scattering is only used for temp, rat and scatter maps
-    if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
-       scattering_to_raytracing)
-        cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
+    // if(param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_SCATTERING ||
+    //    scattering_to_raytracing)
+    //     cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps
     if(param.getCommand() == CMD_DUST_SCATTERING)
@@ -5356,6 +5374,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         cout << "Dust mixture " << (i_mixture + 1) << "/" << getNrOfMixtures() << " (Choice ID "
              << param.getDustChoiceFromMixtureId(i_mixture) << ")" << endl;
 
+        cout << "- Phase function          : " << getPhaseFunctionStr(i_mixture) << endl;
         cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
 
         if(param.getCommand() == CMD_DUST_EMISSION && !param.getAligRANDOM())
