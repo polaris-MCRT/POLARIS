@@ -3477,9 +3477,6 @@ class CDustMixture
             uint a = mixed_component[i_mixture].getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
             mixed_component[i_mixture].getEscapePhoton(grid, pp, a, obs_ex, dir_obs, pp_escape);
 
-            // Init variables for optical depth calculation
-            double len, dens, Cext, tau_obs = 0;
-
             // Reduce the Stokes vector by the mean albedo of the particles
             if(getCextMean(grid, *pp) > 0.0)
                 *pp_escape->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);

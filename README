@@ -3,16 +3,17 @@
 -------------------------------------------------------------------
 contact: polaris@astrophysik.uni-kiel.de
 
-POLARIS (POLArized RadIation Simulator) is a 3D Monte-Carlo continuum radiative transfer code. The code is written in C++ in a strict object oriented design. The aim of POLARIS is to provide a tool that allows to simulate intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids. Hence, POLARIS is capable of performing dust heating, dust grain alignment, line radiative transfer, and synchrotron simulations in order to calculate synthetic intensity and polarization maps. The code makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input. 
+POLARIS (POLArized RadIation Simulator) is a 3D Monte-Carlo continuum radiative transfer code. The code is written in C++ in a strict object oriented design. The aim of POLARIS is to provide a tool that allows to simulate intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids. Hence, POLARIS is capable of performing dust heating, dust grain alignment, line radiative transfer, and synchrotron simulations in order to calculate synthetic intensity and polarization maps. The code makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input.
 
 Installation:
 
-The easiest way to install POLARIS is to download either the self-extracting package from our webpage ("www1.astrophysik.uni-kiel.de/~polaris/") or to clone the git release repository from our GitHub webpage ("github.com/polaris-MCRT/POLARIS"). 
+The easiest way to install POLARIS is to clone (or download the zip version of) the git release repository from our GitHub webpage ("github.com/polaris-MCRT/POLARIS").
 
-- In the first case, the self-extracting package will launch the installation script and can be executed with the following command:
-    ./polaris.run
+The installation script can be found in the POLARIS directory. For the first installation type:
+    ./compile.sh -f
+The option "-f" is usually needed only for the first installation.
 
-- In the second case, the installation script can be found in the cloned POLARIS directory and executed with the following command:
-    ./install_polaris.sh
+This script has some options, like changing the compiler or switching to debug mode. For more information type:
+    ./compile.sh -h
 
 For information about POLARIS capabilities and possible installation problems, please take a look in our "manual.pdf".
