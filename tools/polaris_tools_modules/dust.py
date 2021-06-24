@@ -178,7 +178,7 @@ class GraphitePerpend(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'graphite_perpend.nk'
+        self.parameter['dust_cat_file'] = 'graphite_perpend_d03.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2250
         # Minimum dust grain size
@@ -201,7 +201,7 @@ class GraphiteParallel(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'graphite_parallel.nk'
+        self.parameter['dust_cat_file'] = 'graphite_parallel_d03.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2250
         # Minimum dust grain size
