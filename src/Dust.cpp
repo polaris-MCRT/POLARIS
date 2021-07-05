@@ -4965,7 +4965,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             }
 
             // Read the calorimetric file for each dust component
-            if(param.getStochasticHeatingMaxSize() > single_component[i_comp].getSizeMin())
+            if(param.getStochasticHeatingMaxSize() > single_component[i_comp].getSizeMin() || param.getCommand() == CMD_DUST_TIME)
                 if(!single_component[i_comp].readCalorimetryFile(param, dust_component_choice))
                 {
                     cout << "\nERROR: Cannot open calorimetry file, which is required "

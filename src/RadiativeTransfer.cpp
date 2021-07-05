@@ -3500,8 +3500,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 150000.0;
-    dt = 10;
+    tend = 500000.0;
+    dt = 0.1;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -3530,8 +3530,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             dust_u[c_i] = dust->getEnthalpyMean(grid,cell,dust->getDustTemperature(grid,cell))*grid->getVolume(cell);
         }
         
-        if (!startInitialDustPhotons(dt, dust_em, pp_stack))
-            return false;
+        //if (!startInitialDustPhotons(dt, dust_em, pp_stack))
+        //    return false;
     }
     else
     {
@@ -3547,8 +3547,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             return false;
     }
     
-    // Number of photons per timestep
-    llong nr_of_photons_step = 1e+5;
+    // Number of photons per timestep (nr of photons first source in cmd-file)
+    llong nr_of_photons_step = sources_mc[0]->getNrOfPhotons();
     
     // Progress output
     cout << CLR_LINE;
@@ -3564,7 +3564,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     pp_del.reserve(nr_of_photons_step);
     
     // Set points in time to print out results
-    double t_results = 1000;
+    double t_results = 10000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3775,8 +3775,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                     dust->getCabsMean(grid, pp_stack[i]); 
                                     
                     // Check if energy left
-                    if (energy*dens > pp_stack[i]->getStokesVector().I())
-                        energy = pp_stack[i]->getStokesVector().I()/dens;
+                    //if (energy*dens > pp_stack[i]->getStokesVector().I())
+                    //    energy = pp_stack[i]->getStokesVector().I()/dens;
                     
                     // Add to absorption estimate
                     uint c_id = (pp_stack[i]->getPositionCell())->getID();
@@ -3799,7 +3799,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                         dust->scatter(grid, pp_stack[i], true);
                         
                         // Subtract energy from photon package
-                        pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
+                        //pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
                     }
                     else
                     {
@@ -3827,11 +3827,11 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                                         dust->getCabsMean(grid, pp_stack[i]); 
                                                                 
                         // Check if energy left
-                        if (energy*dens > pp_stack[i]->getStokesVector().I())
-                            energy = pp_stack[i]->getStokesVector().I()/dens;
+                        //if (energy*dens > pp_stack[i]->getStokesVector().I())
+                        //    energy = pp_stack[i]->getStokesVector().I()/dens;
                             
                         // Subtract from photon package
-                        pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
+                        //pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
                         
                         // Add to absorption estimate
                         uint c_id = (pp_stack[i]->getPositionCell())->getID();
