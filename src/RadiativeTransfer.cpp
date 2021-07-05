@@ -3689,9 +3689,13 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             {
                 // Correct Stokes vector of (stellar) source emission
                 double energy = L_s*dt/N_s;
-                // Scale for theta bias
-                double theta = pp_stack[last+i]->getDirection().getSphericalCoord().Theta();
-                energy *= 3 * pow(abs(cos(theta)),(double) 1.-1./3);
+                // Scale for theta bias (see Source.cpp)
+                uint exponentThetaBias = 3;
+                if(exponentThetaBias != 1)
+                {
+                    double theta = pp_stack[last+i]->getDirection().getSphericalCoord().Theta();
+                    energy *= exponentThetaBias * pow(abs(cos(theta)),(double) 1.-1./exponentThetaBias);
+                }
                 // Assign Stokes vector
                 pp_stack[last+i]->setStokesVector(StokesVector(energy, 0, 0, 0));
             }
