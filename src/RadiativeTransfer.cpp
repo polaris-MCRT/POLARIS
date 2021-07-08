@@ -1580,6 +1580,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         tmp_pp.getStokesVector() *= dust->getForegroundExtinction(dust->getWavelength(wID));
 
                         if(SCA_DT > 0)
+                        {
                             // Add total pathlength to detector if time-dependent
                             Vector3D dir_obs = detector[d].getDirection();
                             tmp_pp.updateTotalPathLength((detector[d].getDistance()*detector[d].getDirection()-tm_source->getPosition())*dir_obs);
@@ -1589,6 +1590,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                 detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
                                 break;
                             }
+                        }
                         else
                             // Add the photon package to the detector
                             detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
@@ -3500,8 +3502,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 500000.0;
-    dt = 0.1;
+    tend = 100000.0;
+    dt = 1;
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
