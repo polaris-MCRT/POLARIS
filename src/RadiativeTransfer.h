@@ -266,6 +266,23 @@ class CRadiativeTransfer
         }
     }
     
+    void updateRadiationField(photon_basic * pp, double dt)
+    {
+        // For time-dependent transfer
+        double energy = pp->getTmpPathLength() * pp->getStokesVector().I() / dt;
+        
+        // Calc energy per wavelength dlambda
+        double i = pp->getWavelengthID();
+        double lambda_0 = dust->getWavelength(uint(0));
+        double f = dust->getWavelength(uint(1))/lambda_0;
+        double dlambda = (lambda_0*pow(f,i+0.5)) - (lambda_0*pow(f,i-0.5));
+        
+        energy /= dlambda;
+
+        grid->updateSpecLength(pp, energy);
+    }
+
+    
     void updateRadiationField(photon_polychrom * pp)
     {
         // Only update SpecLength in case of polychromatic packages

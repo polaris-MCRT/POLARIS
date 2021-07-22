@@ -3566,7 +3566,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     pp_del.reserve(nr_of_photons_step);
     
     // Set points in time to print out results
-    double t_results = 10000;
+    double t_results = 20000;
     
     // Set double for next output
     double t_nextres = t_results;
@@ -3776,6 +3776,9 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     
                     pp_stack[i]->adjustPosition(old_pos, len);
                     
+                    // Update data in grid like spectral length or radiation field
+                    updateRadiationField(pp_stack[i], tend);
+                    
                     // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
                     double energy = len * pp_stack[i]->getStokesVector().I() * 
                                     dust->getCabsMean(grid, pp_stack[i]); 
@@ -3824,7 +3827,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 else
                 {
                     // Update data in grid like spectral length or radiation field or energy array
-                    // updateRadiationField(pp_stack[i]);
+                    updateRadiationField(pp_stack[i], tend);
                     
                     if(dens > 1e-200)
                     {
