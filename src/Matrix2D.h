@@ -189,7 +189,7 @@ class Matrix2D
         double min = m_data[0];
 
         for(uint i = 0; i < m_size; i++)
-            if(min < m_data[i])
+            if(m_data[i] < min)
                 min = m_data[i];
 
         return min;
@@ -206,7 +206,7 @@ class Matrix2D
         double max = m_data[0];
 
         for(uint i = 0; i < m_size; i++)
-            if(max > m_data[i])
+            if(m_data[i] > max)
                 max = m_data[i];
 
         return max;
