@@ -178,7 +178,7 @@ class GraphitePerpend(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'graphite_perpend.nk'
+        self.parameter['dust_cat_file'] = 'graphite_perpend_d03.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2250
         # Minimum dust grain size
@@ -201,7 +201,7 @@ class GraphiteParallel(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         #: dict: Parameters which are different to the default values
-        self.parameter['dust_cat_file'] = 'graphite_parallel.nk'
+        self.parameter['dust_cat_file'] = 'graphite_parallel_d03.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 2250
         # Minimum dust grain size
@@ -245,7 +245,7 @@ class Silicate(Dust):
         Dust.__init__(self, file_io, parse_args)
 
         # For creation of a dust catalog
-        self.parameter['dust_cat_file'] = 'silicate.nk'
+        self.parameter['dust_cat_file'] = 'silicate_d03.nk'
         self.parameter['scattering'] = 'MIE'
         self.parameter['material_density'] = 3500.
         # Minimum dust grain size
@@ -310,7 +310,7 @@ class Mrn(Dust):
         #: dict: Parameters which are different to the default values
         self.parameter['scattering'] = 'MIE'
         # Set the name of one component to allow print of sizes and wavelengths
-        self.parameter['dust_cat_file'] = 'silicate.nk'
+        self.parameter['dust_cat_file'] = 'silicate_d03.nk'
         # Minimum dust grain size
         self.parameter['amin'] = 5e-9
         # Maximum dust grain size
