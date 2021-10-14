@@ -2616,6 +2616,50 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->setOpiateDataPath(path);
         return true;
     }
+    
+    // Parameter for time-dependent simulations
+    if(cmd.compare("<time_step>") == 0)
+    {
+        double dt = atof(data.c_str());
+        if (dt > 0)
+        {
+            param->setTimeStep(dt);
+            return true;
+        }
+        else
+        {
+            cout << "\nWARNING: Negative values or zero are not valid for time step!" << endl;
+            return false;
+        }
+    }
+    if(cmd.compare("<total_time>") == 0)
+    {
+        double tend = atof(data.c_str());
+        if (tend > 0)
+        {
+            param->setTotalTime(tend);
+            return true;
+        }
+        else
+        {
+            cout << "\nWARNING: Negative values or zero are not valid for total simulation time!" << endl;
+            return false;
+        }
+    }
+    if(cmd.compare("<time_out>") == 0)
+    {
+        double tout = atof(data.c_str());
+        if (tout >= 0)
+        {
+            param->setTimeOut(tout);
+            return true;
+        }
+        else
+        {
+            cout << "\nWARNING: Negative values are not valid for output time step!" << endl;
+            return false;
+        }
+    }
 
     if(cmd.compare("<nr_gnu_points>") == 0)
     {

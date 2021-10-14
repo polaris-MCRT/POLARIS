@@ -558,10 +558,30 @@ class parameters
         // opiate parmeter
         opiate_param_path = "";
         opiate_data_path = "";
+        
+        // parameter for time-dependent simulations (time step, total simulation time)
+        time_dt = 1;
+        time_tot = 1;
+        time_out = 1;
     }
 
     ~parameters()
     {}
+    
+    double getTimeStep()
+    {
+        return time_dt;
+    }
+    
+    double getTotalTime()
+    {
+        return time_tot;
+    }
+    
+    double getTimeOut()
+    {
+        return time_out;
+    }
 
     string getOpiateParamPath()
     {
@@ -1173,6 +1193,21 @@ class parameters
     uint getStop()
     {
         return stop;
+    }
+    
+    void setTimeStep(double val)
+    {
+        time_dt = val;
+    }
+    
+    void setTotalTime(double val)
+    {
+        time_tot = val;
+    }
+    
+    void setTimeOut(double val)
+    {
+        time_out = val;
     }
 
     void setXYMin(double val)
@@ -2589,6 +2624,11 @@ class parameters
     string opiate_param_path;
     string opiate_data_path;
     dlist line_opiate_detectors;
+    
+    // time step and total simulation time for time-dependent simulations
+    double time_dt;
+    double time_tot;
+    double time_out;
 };
 
 class photon_basic

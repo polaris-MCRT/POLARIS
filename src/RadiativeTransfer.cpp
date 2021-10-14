@@ -3502,8 +3502,8 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     double dt, tend;
-    tend = 100000.0;
-    dt = 1;
+    dt = param.getTimeStep();
+    tend = param.getTotalTime();
     
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
@@ -3552,11 +3552,15 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     // Number of photons per timestep (nr of photons first source in cmd-file)
     llong nr_of_photons_step = sources_mc[0]->getNrOfPhotons();
     
+    // Set points in time to print out results
+    double t_results = param.getTimeOut();
+    
     // Progress output
     cout << CLR_LINE;
-    cout << "Timestep in seconds: " << dt << endl;
-    cout << "Number of photons per timestep: " << nr_of_photons_step << endl;
+    cout << "Time step in seconds: " << dt << endl;
+    cout << "Number of photons per time step: " << nr_of_photons_step << endl;
     cout << "Length of simulation in seconds: " << tend << endl;
+    cout << "Output time step in seconds: " << t_results << endl;
     cout << "-> Calculation of time-dependent transfer : 0.0[%]                        \r";
     
     pp_stack.reserve(nr_of_photons_step*(tend/dt));
@@ -3564,9 +3568,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     // Init photon deletion marker stack
     uilist pp_del;
     pp_del.reserve(nr_of_photons_step);
-    
-    // Set points in time to print out results
-    double t_results = 20000;
     
     // Set double for next output
     double t_nextres = t_results;

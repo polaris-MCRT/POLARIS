@@ -73,7 +73,7 @@ using namespace std;
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1.0e-6
 #define DIFF_GAMMA 7.00
-#define PERCENTAGE_STEP 0.01
+#define PERCENTAGE_STEP 0.1
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define rel_err 1.0e-6
@@ -113,7 +113,7 @@ using namespace std;
 #define DET_SLICE 3
 
 // timestep and offset for time-dependent scattering and dust emission
-#define SCA_DT 10000
+#define SCA_DT 0
 #define RAY_DT 0
 
 // phase functions
