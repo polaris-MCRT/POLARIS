@@ -2741,7 +2741,19 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             {
                 // Calculate detector to add to
                 double dt = RAY_DT;
-                i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
+                
+                // Check if enough detectors are available
+                if(floor(pp->getTotalPathLength()/con_c/dt) > stop)
+                {
+                    cout << "CRITICAL ERROR: More detectors needed for time dependent emission!" << endl;
+                    cout << "Last index of detector " << floor(pp->getTotalPathLength()/con_c/dt) << endl;
+                    exit(0);
+                }
+                else
+                {
+                    // Calculate next detector
+                    i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
+                }
                 
                 // Init temporary multiple Stokes vectors
                 MultiStokesVector WTmp(nr_used_wavelengths);
