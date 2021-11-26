@@ -637,7 +637,7 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
     }
 
-    void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
+    void addToRaytracingDetector(photon_package * pp, uint spectral_offset, double ray_dt)
     {
         uint i_spectral = pp->getWavelengthID();
         StokesVector st = pp->getMultiStokesVector(i_spectral);
@@ -660,7 +660,7 @@ class CDetector
         matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
         
-        if(RAY_DT > 0)
+        if(ray_dt > 0)
         {
             matrixI[i_spectral + spectral_offset].setValue(x, y, st.I());
             matrixQ[i_spectral + spectral_offset].setValue(x, y, st.Q());

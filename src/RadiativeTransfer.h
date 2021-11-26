@@ -164,7 +164,7 @@ class CRadiativeTransfer
     bool setTemperatureFromU(dlist dust_u);
 
     // Dust scattered light
-    bool calcPolMapsViaMC();
+    bool calcPolMapsViaMC(parameters & param);
 
     // Dust emission
     bool calcPolMapsViaRaytracing(parameters & param);
@@ -173,14 +173,16 @@ class CRadiativeTransfer
                                double cy,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int pos_id,
+                               double ray_dt);
     void getDustIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
                           double cy,
                           uint i_det,
                           uint subpixel_lvl,
-                          int i_pix);
+                          int i_pix,
+                          double ray_dt);
     void calcStellarEmission(uint i_det);
 
     // Synchrontron emission

@@ -1122,7 +1122,7 @@ bool CRadiativeTransfer::setTemperatureDistribution()
     return true;
 }
 
-bool CRadiativeTransfer::calcPolMapsViaMC()
+bool CRadiativeTransfer::calcPolMapsViaMC(parameters & param)
 {
     // Init variables
     ullong nr_of_photons;
@@ -1131,6 +1131,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     uint mrw_counter = 0;
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
+    
+    // Check if simulation time-dependent
+    double sca_dt = 0;
+    if(param.getTimeStep() > 0)
+        sca_dt = param.getTimeStep();
 
     // Perform Monte-Carlo radiative transfer for each chosen source
     for(uint s = 0; s < max_source; s++)
@@ -1289,7 +1294,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         len = pp->getTmpPathLength();
                         
                         // Update total pathlength of photon if time-dependent
-                        if(SCA_DT > 0)
+                        if(sca_dt > 0)
                             pp->updateTotalPathLength(len);
 
                         // Get dust number density of the current cell
@@ -1319,7 +1324,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             // interaction position
                             
                             // Correct total pathlength if necessary
-                            if(SCA_DT > 0)
+                            if(sca_dt > 0)
                                 pp->updateTotalPathLength(-len*(1 - end_tau / tmp_tau));
 
                             len = len * end_tau / tmp_tau;
@@ -1378,12 +1383,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             tmp_pp.getStokesVector() *=
                                                 dust->getForegroundExtinction(dust->getWavelength(wID));
                                                 
-                                            if(SCA_DT > 0)
+                                            if(sca_dt > 0)
                                             {
                                                 // Add path length from grid to detector to photon
                                                 tmp_pp.updateTotalPathLength(((detector[d].getDistance()*detector[d].getDirection()-pp->getPosition())*detector[d].getDirection())+pp->getTotalPathLength());
                                                 // Add the photon package to the detector if in time
-                                                if(tmp_pp.getTotalPathLength()/con_c+s*SCA_DT < (SCA_DT*(d+1)+detector[d].getDistance()/con_c))
+                                                if(tmp_pp.getTotalPathLength()/con_c+s*sca_dt < (sca_dt*(d+1)+detector[d].getDistance()/con_c))
                                                 {
                                                     detector[d].addToMonteCarloDetector(
                                                         &tmp_pp, wID_det, SCATTERED_DUST);
@@ -1480,12 +1485,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                     if(interactions == 0)
                                     {
-                                        if(SCA_DT > 0)
+                                        if(sca_dt > 0)
                                         {
                                             // Add path length from grid to detector to photon
                                             pp->updateTotalPathLength((detector[d].getDistance()*detector[d].getDirection()-pp->getPosition())*detector[d].getDirection());
                                             // Add the photon package to the detector if in time
-                                            if(pp->getTotalPathLength()/con_c+s*SCA_DT < (SCA_DT*(d+1)+detector[d].getDistance()/con_c))
+                                            if(pp->getTotalPathLength()/con_c+s*sca_dt < (sca_dt*(d+1)+detector[d].getDistance()/con_c))
                                                 detector[d].addToMonteCarloDetector(pp, wID_det, DIRECT_STAR);
                                         }
                                         else
@@ -1494,12 +1499,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                     }
                                     else
                                     {
-                                        if(SCA_DT > 0)
+                                        if(sca_dt > 0)
                                         {
                                             // Add path length from grid to detector to photon
                                             pp->updateTotalPathLength((detector[d].getDistance()*detector[d].getDirection()-pp->getPosition())*detector[d].getDirection());
                                             // Add the photon package to the detector if in time
-                                            if(pp->getTotalPathLength()/con_c+s*SCA_DT < (SCA_DT*(d+1)+detector[d].getDistance()/con_c))
+                                            if(pp->getTotalPathLength()/con_c+s*sca_dt < (sca_dt*(d+1)+detector[d].getDistance()/con_c))
                                                 detector[d].addToMonteCarloDetector(pp, wID_det, SCATTERED_DUST);
                                         }
                                         else
@@ -1579,13 +1584,13 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Consider foreground extinction
                         tmp_pp.getStokesVector() *= dust->getForegroundExtinction(dust->getWavelength(wID));
 
-                        if(SCA_DT > 0)
+                        if(sca_dt > 0)
                         {
                             // Add total pathlength to detector if time-dependent
                             Vector3D dir_obs = detector[d].getDirection();
                             tmp_pp.updateTotalPathLength((detector[d].getDistance()*detector[d].getDirection()-tm_source->getPosition())*dir_obs);
                             // Add the photon package to the detector if in time
-                            if(tmp_pp.getTotalPathLength()/con_c+s*SCA_DT < (SCA_DT*(d+1)+detector[d].getDistance()/con_c))
+                            if(tmp_pp.getTotalPathLength()/con_c+s*sca_dt < (sca_dt*(d+1)+detector[d].getDistance()/con_c))
                             {
                                 detector[d].addToMonteCarloDetector(&tmp_pp, wID_det, DIRECT_STAR);
                                 break;
@@ -1889,7 +1894,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing())
+            if(!tracer[i_det]->postProcessing(0))
                 return false;
 
             // Write results either as text or fits file
@@ -2325,6 +2330,11 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 {
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist dust_ray_detectors = param.getDustRayDetectors();
+    
+    // Check if simulation time-dependent
+    double ray_dt = 0;
+    if(param.getTimeStep() > 0)
+        ray_dt = param.getTimeStep();
 
     // Get maximum length of the simulation model
     double max_length = grid->getMaxLength();
@@ -2358,7 +2368,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
-                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
+                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix, ray_dt);
 
                 // Increase counter used to show progress
                 per_counter++;
@@ -2387,7 +2397,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing())
+            if(!tracer[i_det]->postProcessing(ray_dt))
                 return false;
 
             // Does the raytracing simulation considered the scattered light?
@@ -2400,12 +2410,12 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 return false;
             
             // Break if time-dependent
-            if(RAY_DT > 0)
+            if(ray_dt > 0)
             {
                 for(uint i_det = start+1; i_det <= stop; i_det++)
                 {
                     // Do final steps for the rest of the detectors
-                    if(!tracer[i_det]->postProcessing())
+                    if(!tracer[i_det]->postProcessing(ray_dt))
                         return false;
                     uint ray_result_type = RESULTS_RAY;
                     if(dust->getScatteringToRay())
@@ -2430,7 +2440,8 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                double cy,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int i_pix,
+                                               double ray_dt)
 {
     bool subpixel = false;
     photon_package * pp;
@@ -2451,9 +2462,9 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
         tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix);
+        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix, ray_dt);
 
-        if(RAY_DT == 0)
+        if(ray_dt == 0)
             // Add the photon package to the detector
             tracer[i_det]->addToDetector(pp, i_pix);
 
@@ -2472,7 +2483,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                 tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix);
+                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix, ray_dt);
             }
         }
     }
@@ -2484,7 +2495,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                                           double cy,
                                           uint i_det,
                                           uint subpixel_lvl,
-                                          int i_pix)
+                                          int i_pix,
+                                          double ray_dt)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -2496,7 +2508,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     MultiStokesVector WMap(nr_used_wavelengths);
     
     // Reset next results counter for time-dependent raytracing
-    double t_nextres = RAY_DT;
+    double t_nextres = ray_dt;
     double tmp_len = 0.0;
     double len_diff = 0.0;
     uint i_next = 0;
@@ -2519,9 +2531,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     
 
     // Find starting point inside the model and travel through it
-    if(grid->findStartingPoint(pp))
+    if(grid->findStartingPoint(pp, ray_dt))
     {
-        if(RAY_DT > 0)
+        if(ray_dt > 0)
             pp->updateTotalPathLength(pp->getTmpPathLength());
         
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
@@ -2542,9 +2554,9 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             double dens_dust = dust->getNumberDensity(grid, pp);
                 
             // Update total pathlength of photon if time-dependent
-            if(RAY_DT > 0)
+            if(ray_dt > 0)
             {
-                tmp_len = len/con_c > RAY_DT ? RAY_DT*con_c : len;
+                tmp_len = len/con_c > ray_dt ? ray_dt*con_c : len;
                 pp->updateTotalPathLength(tmp_len);
                 len_diff = len - tmp_len;
                 old_pos_xyz = pp->getPosition();
@@ -2625,7 +2637,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     Vector3D pos_xyz_cell = pp->getPosition() - (len * dir_map_xyz);
 
                     // Set new length if time-dependent
-                    if(RAY_DT > 0)
+                    if(ray_dt > 0)
                     {
                         len = tmp_len;
                         cell_d_l = tmp_len;
@@ -2732,15 +2744,15 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 
             }
             
-            if(RAY_DT > 0)
+            if(ray_dt > 0)
                 // Set photon to adjusted position
                 pp->setPosition(new_pos_xyz);
 
             // Add photon_package to detector if in time
-            if(RAY_DT > 0 && (pp->getTotalPathLength()/con_c)/t_nextres >= 1)
+            if(ray_dt > 0 && (pp->getTotalPathLength()/con_c)/t_nextres >= 1)
             {
                 // Calculate detector to add to
-                double dt = RAY_DT;
+                double dt = ray_dt;
                 
                 // Check if enough detectors are available
                 if(floor(pp->getTotalPathLength()/con_c/dt) > stop)
@@ -2800,7 +2812,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         }
         
         // Add to rest of detectors if time-dependent
-        if(RAY_DT > 0 && i_next != start)
+        if(ray_dt > 0 && i_next != start)
         {
             // Init temporary multiple Stokes vectors
             MultiStokesVector WTmp(nr_used_wavelengths);
@@ -2848,7 +2860,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
     }
     
     // End function here if time-dependent
-    if(RAY_DT > 0)
+    if(ray_dt > 0)
         return;
         
     // Update the multi Stokes vectors for each wavelength
@@ -3057,7 +3069,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             }
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing())
+            if(!tracer[i_det]->postProcessing(0))
                 return false;
 
             if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))

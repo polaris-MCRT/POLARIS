@@ -312,6 +312,9 @@ class CGridCylindrical : public CGridBasic
     }*/
 
     bool findStartingPoint(photon_basic * pp);
+    
+    // findStartingPoint for time-dependent ray tracer
+    bool findStartingPoint(photon_basic * pp, double ray_dt);
 
     void getLengths(uint bins, double & step_xy, double & off_xy)
     {

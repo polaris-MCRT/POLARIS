@@ -560,7 +560,7 @@ class parameters
         opiate_data_path = "";
         
         // parameter for time-dependent simulations (time step, total simulation time)
-        time_dt = 1;
+        time_dt = 0;
         time_tot = 1;
         time_out = 1;
     }

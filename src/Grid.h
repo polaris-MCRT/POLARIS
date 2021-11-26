@@ -559,6 +559,12 @@ class CGridBasic
     {
         return false;
     }
+    
+    virtual bool findStartingPoint(photon_basic * pp, double ray_dt)
+    {
+        return false;
+    }
+
 
     virtual void getLengths(uint bins, double & step_xy, double & off_xy)
     {}

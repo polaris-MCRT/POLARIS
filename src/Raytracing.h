@@ -337,7 +337,7 @@ class CRaytracingBasic
     virtual void setObserverPosition(Vector3D pos)
     {}
 
-    virtual bool postProcessing()
+    virtual bool postProcessing(double ray_dt)
     {
         return true;
     }
@@ -766,7 +766,7 @@ class CRaytracingCartesian : public CRaytracingBasic
         return subpixel;
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0, double ray_dt = 0)
     {
         pp->setDetectorProjection();
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
@@ -779,7 +779,7 @@ class CRaytracingCartesian : public CRaytracingBasic
                 pp->getMultiStokesVector(i_spectral) *= getMinArea();
 
             // Add photon Stokes vector to detector
-            detector->addToRaytracingDetector(pp, spectral_offset);
+            detector->addToRaytracingDetector(pp, spectral_offset, ray_dt);
             detector->addToRaytracingSedDetector(pp, spectral_offset);
         }
     }
@@ -1635,7 +1635,7 @@ class CRaytracingPolar : public CRaytracingBasic
         return true;
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0, double ray_dt = 0)
     {
         if(direct)
         {
@@ -1646,7 +1646,7 @@ class CRaytracingPolar : public CRaytracingBasic
                 pp->setWavelengthID(i_spectral);
 
                 // Add photon Stokes vector to detector
-                detector->addToRaytracingDetector(pp, spectral_offset);
+                detector->addToRaytracingDetector(pp, spectral_offset, ray_dt);
                 detector->addToRaytracingSedDetector(pp, spectral_offset);
             }
         }
@@ -1668,7 +1668,7 @@ class CRaytracingPolar : public CRaytracingBasic
         }
     }
 
-    bool postProcessing()
+    bool postProcessing(double ray_dt)
     {
         // Init counter and percentage to show progress
         ullong per_counter = 0;
@@ -1727,7 +1727,7 @@ class CRaytracingPolar : public CRaytracingBasic
                     pp->setMultiStokesVector(tmpStokes[i_spectral][npix_r][0] * getMinArea(), i_spectral);
 
                     // Transport pixel value to detector
-                    detector->addToRaytracingDetector(pp, 0);
+                    detector->addToRaytracingDetector(pp, 0, ray_dt);
                 }
                 continue;
             }
@@ -1826,7 +1826,7 @@ class CRaytracingPolar : public CRaytracingBasic
                     StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
                 pp->setMultiStokesVector(res_stokes * getMinArea(), i_spectral);
                 // Transport pixel value to detector
-                detector->addToRaytracingDetector(pp, 0);
+                detector->addToRaytracingDetector(pp, 0, ray_dt);
             }
             delete pp;
         }
@@ -2107,7 +2107,7 @@ class CRaytracingSlice : public CRaytracingBasic
         pp->setPosition(Vector3D(cx, cy, 0));
     }
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
+    void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0, double ray_dt = 0)
     {
         resetPhotonPosition(pp, i_pix);
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral += nr_extra)
@@ -2120,7 +2120,7 @@ class CRaytracingSlice : public CRaytracingBasic
                 pp->getMultiStokesVector(i_spectral) *= getMinArea();
 
             // Add photon Stokes vector to detector
-            detector->addToRaytracingDetector(pp, spectral_offset);
+            detector->addToRaytracingDetector(pp, spectral_offset, ray_dt);
             detector->addToRaytracingSedDetector(pp, spectral_offset);
         }
     }

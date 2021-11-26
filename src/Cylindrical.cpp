@@ -1635,7 +1635,83 @@ bool CGridCylindrical::findStartingPoint(photon_basic * pp)
 
     pp->setPosition(p + d * path_length);
     pp->setDirectionID(MAX_UINT);
-    if(RAY_DT > 0)
+    return positionPhotonInGrid(pp);
+}
+
+bool CGridCylindrical::findStartingPoint(photon_basic * pp, double ray_dt)
+{
+    double path_length = 1e300;
+    bool hit = false;
+    Vector3D p = pp->getPosition();
+    Vector3D d = pp->getDirection();
+
+    if(isInside(p))
+        return positionPhotonInGrid(pp);
+
+    // --- Radial cell borders ---
+    double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+
+    double A = d.X() * d.X() + d.Y() * d.Y();
+    if(A > 0)
+    {
+        double B = p.X() * d.X() + p.Y() * d.Y();
+        double C = p.X() * p.X() + p.Y() * p.Y() - r2 * r2;
+        double dscr = B * B - A * C;
+
+        if(dscr > 0)
+        {
+            dscr = sqrt(dscr);
+            // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+            double length = (-B - dscr) / A;
+
+            if(length > 0 && length < path_length)
+                if(abs(p.Z() + d.Z() * length) < Zmax)
+                {
+                    path_length = length;
+                    hit = true;
+                }
+        }
+    }
+
+    // --- vertical cell borders ---
+    Vector3D v_n1(0, 0, -1);
+    double den1 = v_n1 * d;
+    if(den1 > 0)
+    {
+        Vector3D v_a1(0, 0, Zmax * (1 -  MIN_LEN_STEP*EPS_DOUBLE));
+        double num = v_n1 * (p - v_a1);
+        double length = -num / den1;
+
+        if(length != 0 && length < path_length)
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r2 * r2)
+            {
+                path_length = length;
+                hit = true;
+            }
+    }
+
+    Vector3D v_n2(0, 0, 1);
+    double den2 = v_n2 * d;
+    if(den2 > 0)
+    {
+        Vector3D v_a2(0, 0, -Zmax * (1 -  MIN_LEN_STEP*EPS_DOUBLE));
+        double num = v_n2 * (p - v_a2);
+        double length = -num / den2;
+
+        if(length != 0 && length < path_length)
+            if(pow(p.X() + d.X() * length, 2) + pow(p.Y() + d.Y() * length, 2) < r2 * r2)
+            {
+                path_length = length;
+                hit = true;
+            }
+    }
+
+    if(!hit)
+        return false;
+
+    pp->setPosition(p + d * path_length);
+    pp->setDirectionID(MAX_UINT);
+    if(ray_dt > 0)
         pp->setTmpPathLength(path_length);
     return positionPhotonInGrid(pp);
 }

@@ -590,7 +590,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     omp_set_num_threads(param.getNrOfThreads());
 
     rad.initiateDustMC(param);
-    rad.calcPolMapsViaMC();
+    rad.calcPolMapsViaMC(param);
 
     cout << CLR_LINE;
 
