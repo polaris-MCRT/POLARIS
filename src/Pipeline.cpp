@@ -519,15 +519,12 @@ bool CPipeline::calcMonteCarloTimeTransfer(parameters & param)
         grid->saveRadiationField();
     if(param.isTemperatureSimulation())
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
-    else if(param.getCommand() == CMD_RAT)
-        grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
 
     //Clean up
     delete grid;
     delete dust;
     delete[] detector;
     deleteSourceLists();
-    
     
     return true;
 }

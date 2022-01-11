@@ -2660,6 +2660,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return false;
         }
     }
+    if(cmd.compare("<lightcurve_path>") == 0)
+    {
+        string path = seperateString(data);
+        param->setPathLC(path);
+        return true; 
+    }
 
     if(cmd.compare("<nr_gnu_points>") == 0)
     {

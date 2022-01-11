@@ -582,6 +582,16 @@ class parameters
     {
         return time_out;
     }
+    
+    void setPathLC(string val)
+    {
+        path_lc = val;
+    }
+    
+    string getPathLC()
+    {
+        return path_lc;
+    }
 
     string getOpiateParamPath()
     {
@@ -2625,10 +2635,11 @@ class parameters
     string opiate_data_path;
     dlist line_opiate_detectors;
     
-    // time step and total simulation time for time-dependent simulations
+    // parameters for time-dependent simulations
     double time_dt;
     double time_tot;
     double time_out;
+    string path_lc;
 };
 
 class photon_basic

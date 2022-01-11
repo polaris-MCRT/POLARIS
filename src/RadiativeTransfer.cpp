@@ -3529,6 +3529,40 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
     dt = param.getTimeStep();
     tend = param.getTotalTime();
     
+    // Init source lightcurve
+    vector<dlist> lc;
+    
+    // Read in lightcurve
+    ifstream LcFile;
+    LcFile.open(param.getPathLC().c_str());
+    if (!LcFile) {
+        cout << "Unable to read in lightcurve!" << endl;;
+        return false;
+    }
+    double t_dat, l_dat = 0.0;
+    while (LcFile >> t_dat >> l_dat)
+    {
+        dlist data;
+        data.push_back(t_dat);
+        data.push_back(l_dat);
+        lc.push_back(data);
+    }
+    LcFile.close();
+    
+    // Check lenght of lightcurve
+    if (lc[lc.size()-1][0] < tend)
+    {
+        cout << endl;
+        cout << "Warning: Lightcurve does not cover entire simulation time and is assumed to be constant!" << endl;
+        dlist data;
+        data.push_back(tend+1);
+        data.push_back(0.0);
+        lc.push_back(data);
+    }
+    
+    //Init enum of lightcurve
+    uint lc_i = 0;
+    
     // Init arrays for emission, absorption and inner energy
     ulong max_cells = grid->getMaxDataCells();
     dlist dust_abs(max_cells, 0.0);
@@ -3629,10 +3663,19 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                 return false;
         }
         
+        // Set source luminosity according to lightcurve
+        double L_s = 0;
+        if (lc[lc_i][0] <= t && t < lc[lc_i+1][0])
+            L_s = lc[lc_i][1];
+        else if (t >= lc[lc_i+1][0])
+        {
+            lc_i++;
+            L_s = lc[lc_i][1];
+        }
+        else
+            L_s = source->getLuminosity();
+            
         // Calc emission probability of source and dust
-        double L_s = source->getLuminosity();
-        //if (t >= 50000 && t <= 60000)
-        //    L_s *= 4;
         double p_d = L_d/(L_s + L_d);
         
         // Calc cumulative probability dist for cell emission
