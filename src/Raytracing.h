@@ -319,7 +319,7 @@ class CRaytracingBasic
         return proj_length + getDistance();
     }
 
-    virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0)
+    virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false, uint spectral_offset = 0, double ray_dt = 0)
     {}
 
     virtual void addToDetector(photon_package * pp1, photon_package * pp2, int i_pix, bool direct = false)
