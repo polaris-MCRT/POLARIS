@@ -1702,3 +1702,44 @@ bool CGridSpherical::findStartingPoint(photon_basic * pp)
     pp->setDirectionID(MAX_UINT);
     return positionPhotonInGrid(pp);
 }
+
+bool CGridSpherical::findStartingPoint(photon_basic * pp, double ray_dt)
+{
+    Vector3D p = pp->getPosition();
+    Vector3D d = pp->getDirection();
+
+    if(isInside(p))
+        return positionPhotonInGrid(pp);
+
+    double path_length = 1e300;
+    bool hit = false;
+
+    double r2 = Rmax * (1 - MIN_LEN_STEP*EPS_DOUBLE);
+
+    double B = p * d;
+    // C is positive, we are outside of the cell
+    double C = p.sq_length() - r2 * r2;
+    double dscr = B * B - C;
+
+    if(dscr > 0)
+    {
+        dscr = sqrt(dscr);
+        // "+"-solution is not needed for inner cells; only the "-"-solution can be correct
+        double length = -B - dscr;
+
+        if(length > 0 && length < path_length)
+        {
+            path_length = length;
+            hit = true;
+        }
+    }
+
+    if(!hit)
+        return false;
+
+    pp->setPosition(p + d * path_length);
+    pp->setDirectionID(MAX_UINT);
+    if(ray_dt > 0)
+        pp->setTmpPathLength(path_length);
+    return positionPhotonInGrid(pp);
+}

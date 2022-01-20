@@ -2563,7 +2563,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 old_cell = pp->getPositionCell();
                 new_pos_xyz = old_pos_xyz - ((len - tmp_len)*pp->getDirection());
             }
-
+            
             // If the dust density is far too low, skip the current cell
             if(dens_dust >= 1e-200)
             {
