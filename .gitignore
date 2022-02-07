@@ -4,11 +4,14 @@
 .dep.inc
 .dirstamp
 
+build
 projects
 nbproject/
 testing/
 
 .tags
+.tags1
+null.d
 
 tools/scripts/*
 **/Makefile
