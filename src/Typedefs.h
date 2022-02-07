@@ -28,14 +28,14 @@ using namespace std;
 // number densities, cell emission. This saves a lot of time if
 // all these quantities are constant throughout the simulation
 // but it eats some additional RAM (depend on n_wavel and n_cell)
-#define USE_PRECALC_TABLE false
+#define USE_PRECALC_TABLE true
 
 // if dust is a source, the cell from which the photons start are calculated
 // via the cell energy CDF with constant photon energies (DUST_EMI_PROB true)
 // OR
 // all cells launch the same amount of photons with photon energies weighted
 // by the cell energy (DUST_EMI_PROB false)
-#define DUST_EMI_PROB false
+#define DUST_EMI_PROB true
 
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
@@ -91,7 +91,7 @@ using namespace std;
     // Default parameters of the global wavelength grid
     #define WL_MIN 0.1e-6
     #define WL_MAX 2000e-6
-    #define WL_STEPS 100
+    #define WL_STEPS 200
 #endif
 
 // Parameter for numerical limitations
@@ -102,7 +102,7 @@ using namespace std;
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
-#define PERCENTAGE_STEP 0.1
+#define PERCENTAGE_STEP 0.01
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
@@ -328,7 +328,7 @@ using namespace std;
     #define NANG 91
     // limit for adaptive refinement of scat angles
     // if >= 1 -> no refinement
-    #define MAX_MIE_SCA_REL_DIFF 1
+    #define MAX_MIE_SCA_REL_DIFF 1e-2
 #endif
 
 // Projections for midplane files
