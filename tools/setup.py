@@ -88,7 +88,7 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='github.com/robertbrauer1988/Polaris',  # Optional
+    # url='github.com/robertbrauer1988/Polaris',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
@@ -96,7 +96,7 @@ setup(
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='robert.brauer@cea.fr',  # Optional
+    # author_email='robert.brauer@cea.fr',  # Optional
 
     # Classifiers help users find your project by categorizing it.
     #
@@ -124,6 +124,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 
     # This field adds keywords for your project which will appear on the
