@@ -281,7 +281,7 @@ function update_installation()
     # PolarisTools is no longer maintained and is not shipped with POLARIS anymore
     if [[ -d "tools" ]]; then
         cd "tools/"
-        python setup.py install --user &>/dev/null \
+        python3 setup.py install --user &>/dev/null \
             && { echo -e "Compile and installing PolarisTools [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1; }
         cd ".."
@@ -298,16 +298,16 @@ function update_installation()
 
 function usage() {
     echo ""
-    echo "usage: compile.sh [-h] [-rdufp] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
+    echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
     echo ""
     echo "Install and compile POLARIS"
     echo ""
     echo "optional arguments:"
     echo "-h      show this help message and exit"
+    echo "-f      first installation (compile POLARIS and install the cfitsio and CCfits libraries)"
     echo "-r      clear and compile POLARIS (release mode) (default)"
     echo "-d      clear and compile POLARIS (debug mode)"
     echo "-u      re-compile POLARIS if necessary with last configuration (update)"
-    echo "-f      compile and install the cfitsio and CCfits libraries. This is usually done only once."
     echo "-c CXX_compiler"
     echo "        choose the c++ compiler you want to use:"
     echo "          - gcc (default)"
@@ -323,7 +323,7 @@ function usage() {
 release=false
 debug=false
 
-while getopts "hrdufc:g:" opt; do
+while getopts "hfrduc:g:" opt; do
     case $opt in
     h)
         usage
@@ -502,6 +502,14 @@ echo "Compiler flags:    $CXXFLAGS"
 echo ""
 echo ""
 
+if [ $CO = "release" ]; then
+    echo "###################################################"
+    echo "# NOTE: For first installation, use option \"-f\" ! #"
+    echo "###################################################"
+    echo ""
+    echo ""
+fi
+
 
 if [ ! -d "projects" ]; then
     mkdir "projects"
@@ -565,7 +573,7 @@ if [[ -d "tools" ]]; then
     cd tools/
 
     # compile and install PolarisTools
-    python setup.py install --user &>/dev/null \
+    python3 setup.py install --user &>/dev/null \
         && { echo -e "Compile and installing PolarisTools [${GREEN}done${NC}]"; echo ""; } \
         || { echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1; }
 
