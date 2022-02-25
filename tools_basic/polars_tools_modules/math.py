@@ -69,22 +69,22 @@ class Math:
             'S': 105e-12,
         }
 
-    @staticmethod
-    def latex_float(number):
-        """Convert number to a string that can be used by latex.
+    # @staticmethod
+    # def latex_float(number):
+    #     """Convert number to a string that can be used by latex.
 
-        Args:
-            number (float): Number which should be converted.
+    #     Args:
+    #         number (float): Number which should be converted.
 
-        Returns:
-            str: Number converted to a string that can be used by latex (label, ...).
-        """
-        float_str = "{:1.2f}".format(number)
-        if "e" in float_str:
-            base, exponent = float_str.split("e")
-            return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
-        else:
-            return float_str
+    #     Returns:
+    #         str: Number converted to a string that can be used by latex (label, ...).
+    #     """
+    #     float_str = "{:1.2f}".format(number)
+    #     if "e" in float_str:
+    #         base, exponent = float_str.split("e")
+    #         return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+    #     else:
+    #         return float_str
 
     def length_conv(self, length, unit, distance=None):
         """Converted the length to various units if given in meters.

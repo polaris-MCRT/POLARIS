@@ -11,13 +11,11 @@ class Grid:
     """This is the base class to create various grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, file_io, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
-                quantities such as the density distribution.
-            ext_input: Handles external data input including various
                 quantities such as the density distribution.
             file_io : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
@@ -32,11 +30,11 @@ class Grid:
         self.math = Math()
 
         # Define which class is responsible for the grid data
-        if ext_input is not None:
-            self.data = ext_input
-            self.data.init_data()
-        else:
-            self.data = model
+        # if ext_input is not None:
+        #     self.data = ext_input
+        #     self.data.init_data()
+        # else:
+        self.data = model
 
         # Set the position to an arbitrary value to check get_density functions
         self.data.position = [0, 0, 0]
@@ -569,19 +567,17 @@ class OcTree(Grid):
     """This class creates OcTree grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, file_io, parse_args):
         """Initialization of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
             file_io : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, file_io, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -912,19 +908,17 @@ class Spherical(Grid):
     """This class creates spherical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, file_io, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
             file_io : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, file_io, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -1187,19 +1181,17 @@ class Cylindrical(Grid):
     """This class creates cylindrical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, file_io, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
             file_io : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, file_io, parse_args)
 
     def init_root(self):
         """Initialise the root node.

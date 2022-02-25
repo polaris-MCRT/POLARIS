@@ -10,8 +10,8 @@ class CmdPolaris:
     """This class creates ".cmd" files which can be used to execute POLARIS.
     """
 
-    def __init__(self, file_io, model, gas, dust, source,
-                 bg_source, dust_source, detector, server, parse_args):
+    def __init__(self, file_io, model, dust, source,
+                 bg_source, dust_source, detector, parse_args):
         """Initialisation of the command options.
 
         Args:
@@ -19,7 +19,6 @@ class CmdPolaris:
                 necessary paths.
             model: Handles the model space including various
                 quantities such as the density distribution.
-            gas: Handles the gas species with its parameters.
             dust: Handles the dust composition with its parameters.
             source: Handles the radiation of a radiation source
                 such as stars or interstellar radiation fields.
@@ -33,13 +32,12 @@ class CmdPolaris:
 
         self.file_io = file_io
         self.model = model
-        self.gas = gas
+        # self.gas = gas
         self.dust = dust
         self.source = source
         self.bg_source = bg_source
         self.dust_source = dust_source
         self.detector = detector
-        self.server = server
         self.parse_args = parse_args
 
         # Get math module
@@ -171,48 +169,48 @@ class CmdPolaris:
         cmd_file.write('</task>\n')
         cmd_file.write('\n')
 
-    def write_rat_part(self, cmd_file):
-        """Writes commands for radiative torque calculation to the command file.
+    # def write_rat_part(self, cmd_file):
+    #     """Writes commands for radiative torque calculation to the command file.
 
-        Args:
-            cmd_file: Instance of the command file.
-        """
+    #     Args:
+    #         cmd_file: Instance of the command file.
+    #     """
 
-        # Overwrite default values with user input
-        conv_dens, conv_len, conv_mag, conv_vel = self.get_conv_factors()
+    #     # Overwrite default values with user input
+    #     conv_dens, conv_len, conv_mag, conv_vel = self.get_conv_factors()
 
-        cmd_file.write('<task> 1\n')
-        if self.source is not None and self.source.parameter['nr_photons'] > 0:
-            cmd_file.write(self.source.get_command())
-        cmd_file.write('\n')
-        cmd_file.write('\t<cmd>\t\t\tCMD_RAT\n')
-        cmd_file.write('\n')
-        if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + \
-                self.parse_args.grid_filename
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + \
-                self.parse_args.grid_cgs_filename
-            cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
-        elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + \
-                'temp_rat/grid_temp.dat'
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        else:
-            raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' +
-                       self.file_io.path['simulation_type'] + '"\n')
-        cmd_file.write('\n')
-        cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
-        cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
-        cmd_file.write('\t<conv_mag>\t\t' + str(conv_mag) + '\n')
-        cmd_file.write('\t<conv_vel>\t\t' + str(conv_vel) + '\n')
-        cmd_file.write('</task>\n')
-        cmd_file.write('\n')
+    #     cmd_file.write('<task> 1\n')
+    #     if self.source is not None and self.source.parameter['nr_photons'] > 0:
+    #         cmd_file.write(self.source.get_command())
+    #     cmd_file.write('\n')
+    #     cmd_file.write('\t<cmd>\t\t\tCMD_RAT\n')
+    #     cmd_file.write('\n')
+    #     if self.parse_args.grid_filename is not None:
+    #         grid_path = self.file_io.path['model'] + \
+    #             self.parse_args.grid_filename
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     elif self.parse_args.grid_cgs_filename is not None:
+    #         grid_path = self.file_io.path['model'] + \
+    #             self.parse_args.grid_cgs_filename
+    #         cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
+    #     elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
+    #         grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
+    #         grid_path = self.file_io.path['simulation'] + \
+    #             'temp_rat/grid_temp.dat'
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     else:
+    #         raise ValueError('No input grid defined/found!')
+    #     cmd_file.write('\t<path_out>\t\t"' +
+    #                    self.file_io.path['simulation_type'] + '"\n')
+    #     cmd_file.write('\n')
+    #     cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
+    #     cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
+    #     cmd_file.write('\t<conv_mag>\t\t' + str(conv_mag) + '\n')
+    #     cmd_file.write('\t<conv_vel>\t\t' + str(conv_vel) + '\n')
+    #     cmd_file.write('</task>\n')
+    #     cmd_file.write('\n')
 
     def write_dust_mc_part(self, cmd_file):
         """Writes commands for Monte-Carlo radiative transfer to the command file.
@@ -394,91 +392,91 @@ class CmdPolaris:
         cmd_file.write('</task>\n')
         cmd_file.write('\n')
 
-    def write_line_part(self, cmd_file):
-        """Writes commands for the radiative linetransfer to the command file.
+    # def write_line_part(self, cmd_file):
+    #     """Writes commands for the radiative linetransfer to the command file.
 
-        Args:
-            cmd_file: Instance of the command file.
-        """
+    #     Args:
+    #         cmd_file: Instance of the command file.
+    #     """
 
-        # Overwrite default values with user input
-        if self.parse_args.turbulent_velocity is not None:
-            turbulent_velocity = self.math.parse(
-                self.parse_args.turbulent_velocity, 'velocity')
-        else:
-            turbulent_velocity = self.model.parameter['turbulent_velocity']
-        if self.parse_args.max_subpixel_lvl is not None:
-            max_subpixel_lvl = self.parse_args.max_subpixel_lvl
-        else:
-            max_subpixel_lvl = self.detector.parameter['max_subpixel_lvl']
-        if self.parse_args.rot_axis_1 is not None:
-            rot_axis_1 = self.parse_args.rot_axis_1
-        else:
-            rot_axis_1 = self.detector.parameter['rot_axis_1']
-        if self.parse_args.rot_axis_2 is not None:
-            rot_axis_2 = self.parse_args.rot_axis_2
-        else:
-            rot_axis_2 = self.detector.parameter['rot_axis_2']
-        conv_dens, conv_len, conv_mag, conv_vel = self.get_conv_factors()
+    #     # Overwrite default values with user input
+    #     if self.parse_args.turbulent_velocity is not None:
+    #         turbulent_velocity = self.math.parse(
+    #             self.parse_args.turbulent_velocity, 'velocity')
+    #     else:
+    #         turbulent_velocity = self.model.parameter['turbulent_velocity']
+    #     if self.parse_args.max_subpixel_lvl is not None:
+    #         max_subpixel_lvl = self.parse_args.max_subpixel_lvl
+    #     else:
+    #         max_subpixel_lvl = self.detector.parameter['max_subpixel_lvl']
+    #     if self.parse_args.rot_axis_1 is not None:
+    #         rot_axis_1 = self.parse_args.rot_axis_1
+    #     else:
+    #         rot_axis_1 = self.detector.parameter['rot_axis_1']
+    #     if self.parse_args.rot_axis_2 is not None:
+    #         rot_axis_2 = self.parse_args.rot_axis_2
+    #     else:
+    #         rot_axis_2 = self.detector.parameter['rot_axis_2']
+    #     conv_dens, conv_len, conv_mag, conv_vel = self.get_conv_factors()
 
-        # Make rotation axis to unit length vectors
-        if np.linalg.norm(rot_axis_1) != 1:
-            rot_axis_1 /= np.linalg.norm(rot_axis_1)
-        if np.linalg.norm(rot_axis_2) != 1:
-            rot_axis_2 /= np.linalg.norm(rot_axis_2)
+    #     # Make rotation axis to unit length vectors
+    #     if np.linalg.norm(rot_axis_1) != 1:
+    #         rot_axis_1 /= np.linalg.norm(rot_axis_1)
+    #     if np.linalg.norm(rot_axis_2) != 1:
+    #         rot_axis_2 /= np.linalg.norm(rot_axis_2)
 
-        cmd_file.write('<task> 1\n')
-        cmd_file.write(self.gas.get_command())
-        cmd_file.write('\n')
-        cmd_file.write(self.bg_source.get_command())
-        cmd_file.write('\n')
-        cmd_file.write(self.detector.get_line_command())
-        cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
-                       + '\t' + str(rot_axis_1[2]) + '\n')
-        cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
-                       + '\t' + str(rot_axis_2[2]) + '\n')
-        cmd_file.write('\n')
-        cmd_file.write('\t<cmd>\t\tCMD_LINE_EMISSION\n')
-        cmd_file.write('\n')
-        if self.parse_args.grid_filename is not None:
-            grid_path = self.file_io.path['model'] + \
-                self.parse_args.grid_filename
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        elif self.parse_args.grid_cgs_filename is not None:
-            grid_path = self.file_io.path['model'] + \
-                self.parse_args.grid_cgs_filename
-            cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
-        elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
-            grid_path = self.file_io.path['simulation'] + \
-                'temp_rat/grid_temp.dat'
-            cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
-        else:
-            raise ValueError('No input grid defined/found!')
-        cmd_file.write('\t<path_out>\t\t"' +
-                       self.file_io.path['simulation_type'] + '"\n')
-        cmd_file.write('\n')
-        if self.parse_args.no_vel_maps:
-            cmd_file.write('\t<vel_maps>\t\t0\n')
-        else:
-            cmd_file.write('\t<vel_maps>\t\t1\n')
-        if self.parse_args.kepler and self.source.parameter['kepler_usable']:
-            cmd_file.write(
-                '\t<kepler_star_mass>\t' + str(self.source.parameter['mass'] / self.math.const['M_sun']) + '\n')
-        elif self.model.parameter['vel_is_speed_of_sound']:
-            cmd_file.write('\t<vel_is_speed_of_sound>\t1\n')
-        cmd_file.write('\t<max_subpixel_lvl>\t' + str(max_subpixel_lvl) + '\n')
-        cmd_file.write(
-            '\t<turbulent_velocity>\t' + str(turbulent_velocity) + '\n')
-        cmd_file.write('\n')
-        cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
-        cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
-        cmd_file.write('\t<conv_mag>\t\t' + str(conv_mag) + '\n')
-        cmd_file.write('\t<conv_vel>\t\t' + str(conv_vel) + '\n')
-        cmd_file.write('</task>\n')
-        cmd_file.write('\n')
+    #     cmd_file.write('<task> 1\n')
+    #     cmd_file.write(self.gas.get_command())
+    #     cmd_file.write('\n')
+    #     cmd_file.write(self.bg_source.get_command())
+    #     cmd_file.write('\n')
+    #     cmd_file.write(self.detector.get_line_command())
+    #     cmd_file.write('\t<axis1>\t' + str(rot_axis_1[0]) + '\t' + str(rot_axis_1[1])
+    #                    + '\t' + str(rot_axis_1[2]) + '\n')
+    #     cmd_file.write('\t<axis2>\t' + str(rot_axis_2[0]) + '\t' + str(rot_axis_2[1])
+    #                    + '\t' + str(rot_axis_2[2]) + '\n')
+    #     cmd_file.write('\n')
+    #     cmd_file.write('\t<cmd>\t\tCMD_LINE_EMISSION\n')
+    #     cmd_file.write('\n')
+    #     if self.parse_args.grid_filename is not None:
+    #         grid_path = self.file_io.path['model'] + \
+    #             self.parse_args.grid_filename
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     elif self.parse_args.grid_cgs_filename is not None:
+    #         grid_path = self.file_io.path['model'] + \
+    #             self.parse_args.grid_cgs_filename
+    #         cmd_file.write('\t<path_grid_cgs>\t\t"' + grid_path + '"\n')
+    #     elif os.path.isfile(self.file_io.path['simulation'] + 'temp/grid_temp.dat'):
+    #         grid_path = self.file_io.path['simulation'] + 'temp/grid_temp.dat'
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     elif os.path.isfile(self.file_io.path['simulation'] + 'temp_rat/grid_temp.dat'):
+    #         grid_path = self.file_io.path['simulation'] + \
+    #             'temp_rat/grid_temp.dat'
+    #         cmd_file.write('\t<path_grid>\t\t"' + grid_path + '"\n')
+    #     else:
+    #         raise ValueError('No input grid defined/found!')
+    #     cmd_file.write('\t<path_out>\t\t"' +
+    #                    self.file_io.path['simulation_type'] + '"\n')
+    #     cmd_file.write('\n')
+    #     if self.parse_args.no_vel_maps:
+    #         cmd_file.write('\t<vel_maps>\t\t0\n')
+    #     else:
+    #         cmd_file.write('\t<vel_maps>\t\t1\n')
+    #     if self.parse_args.kepler and self.source.parameter['kepler_usable']:
+    #         cmd_file.write(
+    #             '\t<kepler_star_mass>\t' + str(self.source.parameter['mass'] / self.math.const['M_sun']) + '\n')
+    #     elif self.model.parameter['vel_is_speed_of_sound']:
+    #         cmd_file.write('\t<vel_is_speed_of_sound>\t1\n')
+    #     cmd_file.write('\t<max_subpixel_lvl>\t' + str(max_subpixel_lvl) + '\n')
+    #     cmd_file.write(
+    #         '\t<turbulent_velocity>\t' + str(turbulent_velocity) + '\n')
+    #     cmd_file.write('\n')
+    #     cmd_file.write('\t<conv_dens>\t\t' + str(conv_dens) + '\n')
+    #     cmd_file.write('\t<conv_len>\t\t' + str(conv_len) + '\n')
+    #     cmd_file.write('\t<conv_mag>\t\t' + str(conv_mag) + '\n')
+    #     cmd_file.write('\t<conv_vel>\t\t' + str(conv_vel) + '\n')
+    #     cmd_file.write('</task>\n')
+    #     cmd_file.write('\n')
 
     def write_run_file(self, run_file):
         """Writes a run file to execute POLARIS directly or remotely on a server.
@@ -512,16 +510,16 @@ class CmdPolaris:
         os.system('chmod +x ' + self.file_io.path['simulation'] + 'run.sh')
         os.system('sh ' + self.file_io.path['simulation'] + 'run.sh')
 
-    def queue_run_file(self):
-        """Push POLARIS run file to a server queue.
-        """
-        os.system('chmod +x ' + self.file_io.path['simulation'] + 'run.sh')
-        if self.server.parameter['queue_system'] == 'SBATCH':
-            os.system('sbatch ' + self.file_io.path['simulation'] + 'run.sh')
-        elif self.server.parameter['queue_system'] == 'PBS':
-            os.system('qsub ' + self.file_io.path['simulation'] + 'run.sh')
-        else:
-            raise AttributeError('Queuing system not known!')
+    # def queue_run_file(self):
+    #     """Push POLARIS run file to a server queue.
+    #     """
+    #     os.system('chmod +x ' + self.file_io.path['simulation'] + 'run.sh')
+    #     if self.server.parameter['queue_system'] == 'SBATCH':
+    #         os.system('sbatch ' + self.file_io.path['simulation'] + 'run.sh')
+    #     elif self.server.parameter['queue_system'] == 'PBS':
+    #         os.system('qsub ' + self.file_io.path['simulation'] + 'run.sh')
+    #     else:
+    #         raise AttributeError('Queuing system not known!')
 
     def get_conv_factors(self):
         """Get the right conversion factors.

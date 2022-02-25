@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
+# import numpy as np
 
 from polaris_tools_modules.math import Math
 from polaris_tools_modules.base import Model

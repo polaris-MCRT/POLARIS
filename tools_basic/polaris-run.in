@@ -326,8 +326,8 @@ class RunRoutines:
         """Run POLARIS or put the simulation to a queue on a server.
         """
         # Set command module
-        cmd = self.command(self.file_io, self.model, self.gas, self.dust, self.source, self.bg_source,
-                           self.dust_source, self.detector, self.server, self.parse_args)
+        cmd = self.command(self.file_io, self.model, self.dust, self.source, self.bg_source,
+                           self.dust_source, self.detector, self.parse_args)
         #: Command file open in write mode
         cmd_file = open(
             self.file_io.path['simulation_type'] + 'POLARIS.cmd', 'w')

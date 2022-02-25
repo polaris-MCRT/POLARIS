@@ -126,8 +126,7 @@ class GridRoutines:
 
         # Get file input/output module
         from polaris_tools_modules.file import FileIO
-        self.file_io = FileIO(self.model, self.server,
-                              parse_args, '@POLARIS_PATH@', 'gen')
+        self.file_io = FileIO(self.model, parse_args, '@POLARIS_PATH@', 'gen')
 
         # Get grid extern module
         # from polaris_tools_modules.ext_input import ExtChooser
@@ -148,16 +147,13 @@ class GridRoutines:
         #: Init grid
         if self.model.parameter['grid_type'] == 'octree':
             from polaris_tools_modules.grid import OcTree
-            grid = OcTree(self.model, self.ext_input,
-                          self.file_io, self.parse_args)
+            grid = OcTree(self.model, self.file_io, self.parse_args)
         elif self.model.parameter['grid_type'] == 'spherical':
             from polaris_tools_modules.grid import Spherical
-            grid = Spherical(self.model, self.ext_input,
-                             self.file_io, self.parse_args)
+            grid = Spherical(self.model, self.file_io, self.parse_args)
         elif self.model.parameter['grid_type'] == 'cylindrical':
             from polaris_tools_modules.grid import Cylindrical
-            grid = Cylindrical(self.model, self.ext_input,
-                               self.file_io, self.parse_args)
+            grid = Cylindrical(self.model, self.file_io, self.parse_args)
         else:
             raise ValueError(
                 'Grid type ' + str(self.model.parameter['grid_type']) + ' not known!')
