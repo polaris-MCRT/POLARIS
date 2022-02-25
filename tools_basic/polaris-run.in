@@ -1,0 +1,372 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""polaris-run is part of the PolarisTools package to execute POLARIS simulations
+with predefined models and parameters.
+
+Examples:
+    For usage information please execute:
+        $ ./polaris-run --help
+"""
+
+from argparse import RawTextHelpFormatter, ArgumentParser
+
+__author__ = "Robert Brauer"
+__license__ = "GPL"
+__version__ = "3.0"
+__maintainer__ = "Robert Brauer"
+__email__ = "robert.brauer@cea.fr"
+__status__ = "Production"
+
+'''
+The ArgumentParser is used to obtain the non-optional and optional user input.
+
+Notes:
+    Default values of the ArgumentParser are set with None. Unless an option is set/chosen,
+    the PolarisTools classes use their default values.
+'''
+
+parser = ArgumentParser(description='PolarisTools_run, an user interface to run POLARIS:',
+                        formatter_class=RawTextHelpFormatter)
+
+req_args = parser.add_argument_group('required arguments')
+req_args.add_argument('model_name', metavar='model_name', type=str,
+                      help='name of the POLARIS model.')
+req_args.add_argument('simulation_name', metavar='simulation_name', type=str,
+                      help='name of the POLARIS simulation.\n'
+                           '    results will be stored in:\n'
+                           '        "/model_name/simulation_name/simulation_type"')
+req_args.add_argument('simulation_type', metavar='simulation_type', type=str,
+                      help='type of the POLARIS simulation.\n'
+                           '    temp     : temperature distribution\n'
+                        #    '    rat      : radiative torque alignment\n'
+                        #    '    temp_rat : temperature distribution + radiative torque alignment\n'
+                           '    dust_mc  : radiation scattered at dust grains\n'
+                           '    dust     : thermal emission of dust grains')
+                        #    '                 X can be any combination of:\n'
+                        #    '                 _pa   = perfect alignment\n'
+                        #    '                 _rat  = RAT alignment\n'
+                        #    '                 _idg  = IDG alignment\n'
+                        #    '                 _gold = mechanical alignment\n'
+                        #    '                 _internal = internal alignment\n'
+                        #    '    line     : radiative line transfer\n'
+                        #    '    zeeman   : radiative line transfer (zeeman splitting)')
+
+model_args = parser.add_argument_group('grid')
+model_args.add_argument('--grid', dest='grid_filename', default=None,
+                        help='define input grid filename (assumes grid in SI units).')
+# model_args.add_argument('--grid_cgs', dest='grid_cgs_filename', default=None,
+#                         help='define input grid filename (assumes grid in cgs units).')
+
+source_args = parser.add_argument_group('source')
+# source_args.add_argument('--source', dest='radiation_source', default=None,
+#                          help='define the blackbody radiation source for temp and dust_mc simulations.\n')
+# source_args.add_argument('--bg_source', dest='bg_source', default=None,
+#                          help='define background radiation source for dust and line raytracing simulations.\n')
+source_args.add_argument('--photons', dest='nr_photons', default=None, type=float,
+                         help='define the number of photons of the radiation source for temp\n'
+                              '    and dust_mc simulations.')
+# source_args.add_argument('--photons_dust', dest='nr_photons_dust', default=None, type=float,
+#                          help='define the number of photons of the dust per cell and activate it \n'
+#                               '    as an own radiation source for Monte-Carlo or rat simulations (Default: 0).\n')
+source_args.add_argument('--photons_bg', dest="nr_photons_bg", default=None, type=float,
+                         help="define the number of photons of the background source for dust simulations.")
+
+detector_args = parser.add_argument_group('detector')
+# detector_args.add_argument('--detector', dest='detector', default=None,
+#                            help='define radiation source for temp and rat simulations.\n')
+detector_args.add_argument('--wavelength', dest='wavelength', default=None, type=str, nargs='+',
+                           help='define the wavelengths for raytrace and Monte-Carlo simulations.\n'
+                                '        wavelength (only this one)\n'
+                                '        wavelength_min + wavelength_max (only these two)\n'
+                                '        wl_min + wl_max + nr_wl (log distribution)')
+detector_args.add_argument('--distance', dest='distance', default=None, type=str,
+                           help='define the distance to the object.')
+detector_args.add_argument('--pixel', dest='nr_pixel', default=None, type=int,
+                           help='define the number of detector pixel (in x- and y-direction)')
+# detector_args.add_argument('--pixel_x', dest='nr_pixel_x', default=None, type=int,
+#                            help='define the number of detector pixel (in x-direction)')
+# detector_args.add_argument('--pixel_y', dest='nr_pixel_y', default=None, type=int,
+#                            help='define the number of detector pixel (in y-direction)')
+# detector_args.add_argument('--sides', dest='nr_sides', default=None, type=int,
+#                            help='define the number of sides for healpix detector (all-sky-map)')
+# detector_args.add_argument('--subpixel', dest='max_subpixel_lvl', default=None, type=int,
+#                            help='define the maximum level of subpixel (Default: 1).')
+# detector_args.add_argument('--zoom', dest='sidelength_zoom', default=None, type=float,
+#                            help='define the zoom factor for the detector sidelengths\n'
+#                                 '    (model.py needs to have the correct model extent!).')
+# detector_args.add_argument('--zoom_x', dest='sidelength_zoom_x', default=None, type=float,
+#                            help='define the zoom factor for the detector sidelength in x-direction\n'
+#                                 '    (model.py needs to have the correct model extent!).')
+# detector_args.add_argument('--zoom_y', dest='sidelength_zoom_y', default=None, type=float,
+#                            help='define the zoom factor for the detector sidelength in x-direction\n'
+#                                 '    (model.py needs to have the correct model extent!).')
+# detector_args.add_argument('--shift_x', dest='map_shift_x', default=None, type=str,
+#                            help='define the shift in x-direction of the detector map')
+# detector_args.add_argument('--shift_y', dest='map_shift_y', default=None, type=str,
+#                            help='define the shift in y-direction of the detector map')
+# detector_args.add_argument('--peel_off', dest='peel_off', default=None, type=int,
+#                            help='enable/disable peel-off method for Monte-Carlo scattering simulations.\n'
+#                                 '(1: enable, 0: disable)')
+# detector_args.add_argument('--enfsca', dest='enfsca', default=None, type=int,
+#                            help='enable/disable enforced first scattering method (1: enable, 0: disable).')
+# detector_args.add_argument('--ac_angle', dest='acceptance_angle', default=None, type=float,
+#                            help='define the acceptance angle for scattering simulations.')
+# detector_args.add_argument('--rt_grid', dest='raytracing_shape', default=None, type=str,
+#                            choices=['cartesian', 'polar', 'slice', 'healpix'],
+#                            help='define the type of the background grid used for raytracing.')
+detector_args.add_argument('--rot_x', dest='rot_angle_1', default=None, type=str,
+                           help='define the first observation angle.')
+detector_args.add_argument('--rot_y', dest='rot_angle_2', default=None, type=str,
+                           help='define the second observation angle.')
+# detector_args.add_argument('--rot_axis_1', dest='rot_axis_1', default=None, type=float, nargs=3,
+#                            help='define first rotation angle (not for healpix rt_grid).')
+# detector_args.add_argument('--rot_axis_2', dest='rot_axis_2', default=None, type=float, nargs=3,
+#                            help='define second rotation angle (not for healpix rt_grid).')
+# detector_args.add_argument('--obs_pos', dest='obs_pos', default=None, type=str, nargs=3,
+#                            help='define observer position (only healpix rt_grid).')
+# detector_args.add_argument('--obs_vel', dest='obs_vel', default=None, type=str, nargs=3,
+#                            help='define observer velocity (only healpix rt_grid).')
+# detector_args.add_argument('--healpix_orientation', dest='healpix_orientation', default=None, type=str,
+#                            help='define orientation reference for healpix detector\n'
+#                            '(HEALPIX_CENTER, HEALPIX_YAXIS, HEALPIX_FIXED).')
+
+rad_source_args = parser.add_argument_group('radiation source')
+# rad_source_args.add_argument('--source_position', dest='rad_source_position', default=None, type=str, nargs=3,
+#                              help='define position of all used radiation sources')
+# rad_source_args.add_argument('--source_direction', dest='rad_source_direction', default=None, type=str, nargs=3,
+#                              help='define direction of all used radiation sources (only laser)')
+rad_source_args.add_argument('--source_temperature', dest='rad_source_temperature', default=None, type=float,
+                             help='define effective temperature of all used radiation sources (only stars)')
+rad_source_args.add_argument('--source_radius', dest='rad_source_radius', default=None, type=str,
+                             help='define radius of all used radiation sources (only stars)')
+rad_source_args.add_argument('--source_luminosity', dest='rad_source_luminosity', default=None, type=str,
+                             help='define lumimosity of all used radiation sources\n'
+                                  '(only stars, overwrites radius information)')
+# rad_source_args.add_argument('--source_power', dest='rad_source_power', default=None, type=str,
+#                              help='define emission power of all used radiation sources (only laser)')
+# rad_source_args.add_argument('--source_center_wl', dest='rad_source_center_wl', default=None, type=str,
+#                              help='define central wavelength of all used radiation sources (only laser)')
+# rad_source_args.add_argument('--source_fwhm', dest='rad_source_fwhm', default=None, type=str,
+#                              help='define FWHM of all used radiation sources (only laser)')
+# rad_source_args.add_argument('--source_mass', dest='rad_source_mass', default=None, type=str,
+#                              help='define mass for Keplerian rotation (only stars)')
+# rad_source_args.add_argument('--source_extra', dest='rad_source_extra_parameter', type=str, default=None, nargs='+',
+#                              help='additional parameter to vary radiation characteristics\n'
+#                              '(multiple values possible, no unit strings!).')
+
+dust_args = parser.add_argument_group('dust component')
+# dust_args.add_argument('--dust', dest='dust_composition', default=None,
+#                        help='define dust composition for POLARIS simulations.\n')
+dust_args.add_argument('--dust_size', dest='dust_size', default=None, type=str, nargs=2,
+                       help='define minimum and maximum dust grain size index for simulations.')
+dust_args.add_argument('--size_dist', dest='dust_size_distribution', default=None, type=str, nargs='+',
+                       help='define the dust grain size exponent.')
+# dust_args.add_argument('--scattering', dest='scattering', default=None, type=str,
+#                        choices=['MIE', 'HG', 'ISO'],
+#                        help='define method to calculate scattering.')
+# dust_args.add_argument('--sub_dust', dest='sub_dust', default=False, action='store_true',
+#                        help='Remove grains hotter that the sublimation temperature.')
+# dust_args.add_argument('--radiation_field', dest='radiation_field', default=False, action='store_true',
+#                        help='save the radiation field in the grid (required by --stochastic_heating)')
+# dust_args.add_argument('--full_dust_temp', dest='full_dust_temp', default=False, action='store_true',
+#                        help='calculate dust temperature for each dust grain size.')
+# dust_args.add_argument('--stochastic_heating', dest='temp_a_max', default=None, type=float,
+#                        help='calculate the stochastic heating (up to TEMP_A_MAX, requires \n'
+#                        '--full_dust_temp and --radiation_field options')
+# dust_args.add_argument('--no_rt_scattering', dest='no_rt_scattering', default=False, action='store_true',
+#                        help='disable the consideration of scattered light in raytraycing simulations.')
+# dust_args.add_argument('--dust_offset', dest='dust_offset', default=False, action='store_true',
+#                        help='consider preexisting dust temperature in temp calculation.')
+# dust_args.add_argument('--fhj', dest='f_highj', default=None, type=float,
+#                        help='define f_highJ parameter.\n')
+# dust_args.add_argument('--fc', dest='f_c', default=None, type=float,
+#                        help='define f_c parameter.\n')
+# dust_args.add_argument('--split_dust_emission', dest='split_dust_emission', default=False, action='store_true',
+#                        help='Add entries to fits output file to distinguish thermal emission from scattering.')
+
+# gas_args = parser.add_argument_group('gas component')
+# gas_args.add_argument('--gas', dest='gas_species', default=None,
+#                       help='define the atom/gas species used by line simulations.\n')
+# gas_args.add_argument('--transition', dest='transition_id', default=None, type=float,
+#                       help='define the transition id.')
+# gas_args.add_argument('--abundance', dest='abundance', default=None, type=float,
+#                       help='define the gas abundance.')
+# gas_args.add_argument('--lvl_pop', dest='level_pop_type', choices=['LTE', 'FEP', 'LVG'], default=None, type=str,
+#                       help='define the level population type.')
+# gas_args.add_argument('--channels', dest='nr_velocity_channels', default=None, type=int,
+#                       help='define the number of velocity channels.')
+# gas_args.add_argument('--max_vel', dest='max_velocity', default=None, type=str,
+#                       help='define the maximum velocity in + and - direction.')
+# gas_args.add_argument('--kepler', dest='kepler', default=False, action='store_true',
+#                       help='enables kepler rotation velocity field.')
+# gas_args.add_argument('--turbulence', dest='turbulent_velocity', default=None, type=str,
+#                       help='define the turbulent velocity of the gas on scales \n'
+#                            '    smaller than the (sub-)pixel size.')
+# gas_args.add_argument('--adj_tgas', dest='adj_tgas', default=None,
+#                       help='define if output gas temperature should be set\n'
+#                            '    with ADJ_TGAS * dust temperature.')
+
+# visualization_args = parser.add_argument_group('visualization')
+# visualization_args.add_argument('--no_vel_maps', dest='no_vel_maps', default=False, action='store_true',
+#                                 help='disables write out of velocity channel maps.')
+# visualization_args.add_argument('--midplane', dest='midplane_points', default=None, type=int,
+#                                 help='define the number of pixel for midplane cuts.')
+# visualization_args.add_argument('--midplane_zoom', dest='midplane_zoom', default=None, type=float,
+#                                 help='define the zoom factor for midplane cuts.')
+# visualization_args.add_argument('--midplane_3d', dest='midplane_3d_param', default=None, type=str, nargs='+',
+#                                 help='enable 3d midplane fits files.\n'
+#                                      '    (plane e.g. 1 -> xy, nr_slices, z_min, z_max)')
+# visualization_args.add_argument('--midplane_rad_field', dest='midplane_rad_field', default=False, action='store_true',
+#                                 help='add the radiation field to the midplane fits files.')
+
+# conversion_args = parser.add_argument_group('conversion factors')
+# conversion_args.add_argument('--conv_dens', dest='conv_dens', default=None, type=float,
+#                              help='define conversion factor for the density.')
+# conversion_args.add_argument('--conv_len', dest='conv_len', default=None, type=float,
+#                              help='define conversion factor for the model extent.')
+# conversion_args.add_argument('--conv_mag', dest='conv_mag', default=None, type=float,
+#                              help='define conversion factor for the magnetic field strength.')
+# conversion_args.add_argument('--conv_vel', dest='conv_vel', default=None, type=float,
+#                              help='define conversion factor for the velocity.')
+# conversion_args.add_argument('--mf', dest='mass_fraction', default=None, type=float,
+#                              help='define mass fraction of dust to gas.')
+# conversion_args.add_argument('--mu', dest='mu', default=None, type=float,
+#                              help='define relative molecular mass.')
+
+# process_args = parser.add_argument_group('processing')
+# process_args.add_argument('--queue', dest='queue', default=False, action='store_true',
+#                           help='queue simulation instead of direct execution.')
+# process_args.add_argument('--threads', dest='nr_threads', default=None, type=int,
+#                           help='define the number of parallel threads.')
+# process_args.add_argument('--ram', dest='ram_usage', default=None, type=str,
+#                           help='define the amount of RAM for server/cluster runs (e.g. 16gb)')
+# process_args.add_argument('--short', dest='queue_short', default=False, action='store_true',
+#                           help='pushes simulation on short time queue.\n'
+#                                '   (only in combination with --queue)')
+# process_args.add_argument('--long', dest='queue_long', default=False, action='store_true',
+#                           help='pushes simulation on long time queue.\n'
+#                                '   (only in combination with --queue)')
+# process_args.add_argument('--save_out', dest='save_output', default=False, action='store_true',
+#                           help='save POLARIS console output to file.\n'
+#                                '   ("/model_name/simulation_name/simulation_type/POLARIS.out")')
+
+parser_options = parser.parse_args()
+
+
+class RunRoutines:
+    """Manages how the command module creates .cmd files for POLARIS.
+    """
+
+    def __init__(self, parse_args):
+        """Initialise all necessary modules which are required by command.py.
+
+        Args:
+            parse_args: Provides all parameters chosen
+                by user when executing PolarisTools.
+        """
+        self.parse_args = parse_args
+
+        ''' #################################
+        ######  Get required modules!  ######
+        ################################# '''
+        # Get command module
+        from polaris_tools_modules.command import CmdPolaris
+        self.command = CmdPolaris
+
+        # Get model module
+        from polaris_tools_modules.model import ModelChooser
+        model_chooser = ModelChooser(parse_args)
+        self.model = model_chooser.get_module()
+
+        # Get server/cluster module
+        # from polaris_tools_modules.server import ServerChooser
+        # server_chooser = ServerChooser(parse_args, 'run')
+        # self.server = server_chooser.get_module()
+
+        # Get file input/output module
+        from polaris_tools_modules.file import FileIO
+        self.file_io = FileIO(self.model, self.server,
+                              parse_args, '@POLARIS_PATH@', 'run')
+
+        # Get dust module
+        from polaris_tools_modules.dust import DustChooser
+        dust_chooser = DustChooser(self.file_io, parse_args, self.model)
+        self.dust = dust_chooser.get_module()
+
+        # Get radiation source module
+        from polaris_tools_modules.source import SourceChooser
+        source_chooser = SourceChooser(self.model, self.file_io, parse_args)
+        self.source = source_chooser.get_module()
+
+        # Get background source module
+        from polaris_tools_modules.bg_source import BGSourceChooser
+        bg_source_chooser = BGSourceChooser(
+            self.model, self.file_io, parse_args)
+        self.bg_source = bg_source_chooser.get_module()
+
+        # Get dust source module
+        from polaris_tools_modules.dust_source import DustSource
+        self.dust_source = DustSource(self.file_io, parse_args)
+
+        # Get gas module
+        # from polaris_tools_modules.gas import GasChooser
+        # gas_chooser = GasChooser(self.file_io, parse_args, self.model)
+        # self.gas = gas_chooser.get_module()
+
+        # Get detector module
+        if 'dust' in self.parse_args.simulation_type:
+            from polaris_tools_modules.detector import DetectorChooser
+            detector_chooser = DetectorChooser(self.model, parse_args)
+            self.detector = detector_chooser.get_module()
+        else:
+            self.detector = None
+
+    def polaris_run(self):
+        """Run POLARIS or put the simulation to a queue on a server.
+        """
+        # Set command module
+        cmd = self.command(self.file_io, self.model, self.gas, self.dust, self.source, self.bg_source,
+                           self.dust_source, self.detector, self.server, self.parse_args)
+        #: Command file open in write mode
+        cmd_file = open(
+            self.file_io.path['simulation_type'] + 'POLARIS.cmd', 'w')
+        # Create POLARIS command file
+        cmd.write_common_part(cmd_file)
+        if self.parse_args.simulation_type == 'temp':
+            cmd.write_temp_part(cmd_file)
+        # elif self.parse_args.simulation_type == 'temp_rat':
+        #     cmd.write_temp_part(cmd_file, add_rat=True)
+        # elif self.parse_args.simulation_type == 'rat':
+        #     cmd.write_rat_part(cmd_file)
+        elif self.parse_args.simulation_type == 'dust_mc':
+            cmd.write_dust_mc_part(cmd_file)
+        elif 'dust' in self.parse_args.simulation_type:
+            cmd.write_dust_part(cmd_file)
+        # elif self.parse_args.simulation_type in ['line', 'zeeman']:
+        #     cmd.write_line_part(cmd_file)
+        cmd_file.close()
+        #: Run file open in write mode
+        run_file = open(self.file_io.path['simulation'] + 'run.sh', 'w')
+        # Create run bash script for execution or server queue
+        cmd.write_run_file(run_file)
+        run_file.close()
+        # if self.parse_args.queue:
+        #     # Put bash script to queue
+        #     cmd.queue_run_file()
+        # else:
+        # Execute POLARIS command file directly
+        cmd.execute_run_file()
+
+
+if __name__ == '__main__':
+    print('-------------------------- PolarisTools --------------------------')
+    print('--- Initialization ...                                            ')
+    #: Instance of RunRoutines which can manage POLARIS execution
+    run_routines = RunRoutines(parser_options)
+    print('--- Initialization finished!                                      ')
+
+    print('--- Execute POLARIS simulation ...                                ')
+    # Execute POLARIS simulation or put it on a queue
+    run_routines.polaris_run()
+    print('--- Run POLARIS finished!                                         ')
