@@ -1,0 +1,10 @@
+.idea/
+.vscode/
+scripts/
+dist/
+build/
+
+.tags*
+autom4te.cache
+
+polaristools.egg-info
