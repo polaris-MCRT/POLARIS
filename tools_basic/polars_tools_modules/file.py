@@ -312,26 +312,26 @@ class FileIO:
             unit += r'km/s'
         if self.parse_args.simulation_type == 'dust_mc':
             #: list: List with all available colorbar labels for monte_carlo plots
-            quantity_labels = [r'$' + quantity + r'_\mathsf{I}\ [\mathsf{' + unit + '}]$',
+            quantity_labels = [r'$' + quantity + r'_\mathit{I}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{Q}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{Q}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{U}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{U}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{V}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{V}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{PI}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{P}_\mathsf{l}\ [\%]$',
                                r'$\mathit{I}_\mathsf{direct}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{I}_\mathsf{scattered}\ [\mathsf{' + unit + '}]$']
         elif 'dust' in self.parse_args.simulation_type:
             #: list: List with all available colorbar labels for raytrace plots
-            quantity_labels = [r'$' + quantity + r'_\mathsf{I}\ [\mathsf{' + unit + '}]$',
+            quantity_labels = [r'$' + quantity + r'_\mathit{I}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{Q}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{Q}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{U}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{U}\ [\mathsf{' + unit + '}]$',
                                r'$' + quantity +
-                               r'_\mathsf{V}\ [\mathsf{' + unit + '}]$',
+                               r'_\mathit{V}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{PI}\ [\mathsf{' + unit + '}]$',
                                r'$\mathit{P}_\mathsf{l}\ [\%]$',
                                r'$\tau$',

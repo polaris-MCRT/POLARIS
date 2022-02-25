@@ -107,17 +107,17 @@ class Detector:
             'rot_axis_1': [1, 0, 0],
             'rot_axis_2': [0, 1, 0],
             # Parameter for healpix all-sky maps
-            'nr_sides': 32,
-            'obs_position_x': 0.,
-            'obs_position_y': 0.,
-            'obs_position_z': 0.,
-            'obs_velocity_x': None,
-            'obs_velocity_y': None,
-            'obs_velocity_z': None,
-            'all_sky_l_min': None,
-            'all_sky_l_max': None,
-            'all_sky_b_min': None,
-            'all_sky_b_max': None,
+            # 'nr_sides': 32,
+            # 'obs_position_x': 0.,
+            # 'obs_position_y': 0.,
+            # 'obs_position_z': 0.,
+            # 'obs_velocity_x': None,
+            # 'obs_velocity_y': None,
+            # 'obs_velocity_z': None,
+            # 'all_sky_l_min': None,
+            # 'all_sky_l_max': None,
+            # 'all_sky_b_min': None,
+            # 'all_sky_b_max': None,
         }
 
     def get_zoom_cmd(self):
@@ -252,66 +252,66 @@ class Detector:
             return new_command_line
         return self.get_dust_emission_command_line()
 
-    def get_line_command_line(self):
-        """Provides detector configuration command line for spectral line
-        simulations for POLARIS .cmd file.
+    # def get_line_command_line(self):
+    #     """Provides detector configuration command line for spectral line
+    #     simulations for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the detector configuration.
-        """
-        param_name_list = ['gas_species_id',
-                           'transition_id', 'source_id', 'max_velocity']
-        param_tail = ''
-        if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
-                self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
-            cmd_string = '\t<detector_line_healpix nr_sides = "' + str(int(self.parameter['nr_sides'])) + \
-                '" vel_channels = "' + \
-                str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(
-                ['obs_position_x', 'obs_position_y', 'obs_position_z'])
-            if self.parameter['all_sky_l_min'] is not None and self.parameter['all_sky_l_max'] is not None and \
-                    self.parameter['all_sky_b_min'] is not None and self.parameter['all_sky_b_max'] is not None:
-                param_name_list.extend(
-                    ['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
-                if self.parameter['obs_velocity_x'] is not None and self.parameter['obs_velocity_y'] is not None and \
-                        self.parameter['obs_velocity_z'] is not None:
-                    param_name_list.extend(
-                        ['obs_velocity_x', 'obs_velocity_y', 'obs_velocity_z'])
-        elif self.parameter['shape'] == 'polar':
-            cmd_string = '\t<detector_line_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + \
-                str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
-            param_tail += '\t' + str(self.model.parameter['distance'])
-        elif self.parameter['shape'] == 'slice':
-            cmd_string = '\t<detector_line_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + \
-                str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
-            param_tail += '\t' + str(self.model.parameter['distance'])
-        else:
-            cmd_string = '\t<detector_line nr_pixel = "' + self.get_nr_pixel_cmd() + \
-                '" vel_channels = "' + \
-                str(int(self.parameter['nr_velocity_channels'])) + '">'
-            param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
-            param_tail += '\t' + str(self.model.parameter['distance'])
-        # Create cmd string for detector
-        for param_name in param_name_list:
-            cmd_string += '\t' + str(self.parameter[param_name])
-        # Add extra params at the end
-        cmd_string += param_tail
-        # Add zoom and shift´
-        cmd_string += self.get_zoom_cmd() + self.get_shift_cmd() + '\n'
-        return cmd_string
+    #     Returns:
+    #         str: Command line to consider the detector configuration.
+    #     """
+    #     param_name_list = ['gas_species_id',
+    #                        'transition_id', 'source_id', 'max_velocity']
+    #     param_tail = ''
+    #     if self.parameter['shape'] == 'healpix' and self.parameter['obs_position_x'] is not None and \
+    #             self.parameter['obs_position_y'] is not None and self.parameter['obs_position_z'] is not None:
+    #         cmd_string = '\t<detector_line_healpix nr_sides = "' + str(int(self.parameter['nr_sides'])) + \
+    #             '" vel_channels = "' + \
+    #             str(int(self.parameter['nr_velocity_channels'])) + '">'
+    #         param_name_list.extend(
+    #             ['obs_position_x', 'obs_position_y', 'obs_position_z'])
+    #         if self.parameter['all_sky_l_min'] is not None and self.parameter['all_sky_l_max'] is not None and \
+    #                 self.parameter['all_sky_b_min'] is not None and self.parameter['all_sky_b_max'] is not None:
+    #             param_name_list.extend(
+    #                 ['all_sky_l_min', 'all_sky_l_max', 'all_sky_b_min', 'all_sky_b_max'])
+    #             if self.parameter['obs_velocity_x'] is not None and self.parameter['obs_velocity_y'] is not None and \
+    #                     self.parameter['obs_velocity_z'] is not None:
+    #                 param_name_list.extend(
+    #                     ['obs_velocity_x', 'obs_velocity_y', 'obs_velocity_z'])
+    #     elif self.parameter['shape'] == 'polar':
+    #         cmd_string = '\t<detector_line_polar nr_pixel = "' + self.get_nr_pixel_cmd() + \
+    #             '" vel_channels = "' + \
+    #             str(int(self.parameter['nr_velocity_channels'])) + '">'
+    #         param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+    #         param_tail += '\t' + str(self.model.parameter['distance'])
+    #     elif self.parameter['shape'] == 'slice':
+    #         cmd_string = '\t<detector_line_slice nr_pixel = "' + self.get_nr_pixel_cmd() + \
+    #             '" vel_channels = "' + \
+    #             str(int(self.parameter['nr_velocity_channels'])) + '">'
+    #         param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+    #         param_tail += '\t' + str(self.model.parameter['distance'])
+    #     else:
+    #         cmd_string = '\t<detector_line nr_pixel = "' + self.get_nr_pixel_cmd() + \
+    #             '" vel_channels = "' + \
+    #             str(int(self.parameter['nr_velocity_channels'])) + '">'
+    #         param_name_list.extend(['rot_angle_1', 'rot_angle_2'])
+    #         param_tail += '\t' + str(self.model.parameter['distance'])
+    #     # Create cmd string for detector
+    #     for param_name in param_name_list:
+    #         cmd_string += '\t' + str(self.parameter[param_name])
+    #     # Add extra params at the end
+    #     cmd_string += param_tail
+    #     # Add zoom and shift´
+    #     cmd_string += self.get_zoom_cmd() + self.get_shift_cmd() + '\n'
+    #     return cmd_string
 
-    def get_line_command(self):
-        """Provides detector configuration command line for spectral line
-        simulations for POLARIS .cmd file.
+    # def get_line_command(self):
+    #     """Provides detector configuration command line for spectral line
+    #     simulations for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the detector configuration.
-        """
-        return self.get_line_command_line()
+    #     Returns:
+    #         str: Command line to consider the detector configuration.
+    #     """
+    #     return self.get_line_command_line()
 
 
 # ----- Dust class -----
@@ -360,48 +360,48 @@ class Dust:
             'rat_delta': 0,
         }
 
-    def create_catalog(self):
-        """Create a dust catalog file for POLARIS.
-        """
-        # Get dust creator module
-        from polaris_tools_modules.create_dust import DustCreator
-        self.dust_creator = DustCreator(
-            self.file_io, self.parse_args, self.parameter)
+    # def create_catalog(self):
+    #     """Create a dust catalog file for POLARIS.
+    #     """
+    #     # Get dust creator module
+    #     from polaris_tools_modules.create_dust import DustCreator
+    #     self.dust_creator = DustCreator(
+    #         self.file_io, self.parse_args, self.parameter)
 
-        # Check if filename is defined
-        if self.parameter['input_file'] is None:
-            raise ValueError('No input file for dust catalog defined!')
+    #     # Check if filename is defined
+    #     if self.parameter['input_file'] is None:
+    #         raise ValueError('No input file for dust catalog defined!')
 
-        if self.parameter['input_type'] == 'dustem':
-            self.dust_creator.create_polaris_dust_from_dustem()
-        elif self.parameter['input_type'] == 'trust':
-            self.dust_creator.create_polaris_dust_from_trust()
+    #     if self.parameter['input_type'] == 'dustem':
+    #         self.dust_creator.create_polaris_dust_from_dustem()
+    #     elif self.parameter['input_type'] == 'trust':
+    #         self.dust_creator.create_polaris_dust_from_trust()
 
-    def print_info(self, microns=False):
-        # Define some colors to show error and ok more clearly
-        color_blue = '\033[0;34m'
-        color_red = '\033[0;31m'
-        color_std = '\033[0m'
-        color_bold = '\033[1m'
-        # If micron is True convert to wl and size to microns
-        if microns:
-            unit = 'microns'
-            mult = 1e6
-        else:
-            unit = 'm'
-            mult = 1
-        # Get dust data from catalog file
-        size_list, wavelength_list = self.file_io.read_dust_file(
-            self.parameter)
-        print(color_bold + 'index\t' +
-              'dust grain size [' + unit + ']' + color_std)
-        for i, size in enumerate(size_list):
-            print(color_bold + str(i + 1) + '\t' +
-                  color_blue + str(size * mult) + color_std)
-        print(color_bold + 'index\t' + 'wavelength [' + unit + ']' + color_std)
-        for i, wl in enumerate(wavelength_list):
-            print(color_bold + str(i + 1) + '\t' +
-                  color_red + str(wl * mult) + color_std)
+    # def print_info(self, microns=False):
+    #     # Define some colors to show error and ok more clearly
+    #     color_blue = '\033[0;34m'
+    #     color_red = '\033[0;31m'
+    #     color_std = '\033[0m'
+    #     color_bold = '\033[1m'
+    #     # If micron is True convert to wl and size to microns
+    #     if microns:
+    #         unit = 'microns'
+    #         mult = 1e6
+    #     else:
+    #         unit = 'm'
+    #         mult = 1
+    #     # Get dust data from catalog file
+    #     size_list, wavelength_list = self.file_io.read_dust_file(
+    #         self.parameter)
+    #     print(color_bold + 'index\t' +
+    #           'dust grain size [' + unit + ']' + color_std)
+    #     for i, size in enumerate(size_list):
+    #         print(color_bold + str(i + 1) + '\t' +
+    #               color_blue + str(size * mult) + color_std)
+    #     print(color_bold + 'index\t' + 'wavelength [' + unit + ']' + color_std)
+    #     for i, wl in enumerate(wavelength_list):
+    #         print(color_bold + str(i + 1) + '\t' +
+    #               color_red + str(wl * mult) + color_std)
 
     def get_command_line(self):
         """Provides dust composition command line for POLARIS .cmd file.
@@ -462,120 +462,120 @@ class NoDust(Dust):
 
 
 # ----- Gas class -----
-class Gas:
-    """The Gas class is the base version for each gas species.
-    """
+# class Gas:
+#     """The Gas class is the base version for each gas species.
+#     """
 
-    def __init__(self, file_io, parse_args):
-        """Initialisation of the gas parameters.
+#     def __init__(self, file_io, parse_args):
+#         """Initialisation of the gas parameters.
 
-        Args:
-            file_io : Handles file input/output and all
-                necessary paths.
-            parse_args : Provides all parameters chosen
-                by user when executing PolarisTools.
-        """
-        self.file_io = file_io
-        self.parse_args = parse_args
+#         Args:
+#             file_io : Handles file input/output and all
+#                 necessary paths.
+#             parse_args : Provides all parameters chosen
+#                 by user when executing PolarisTools.
+#         """
+#         self.file_io = file_io
+#         self.parse_args = parse_args
 
-        # Get math module
-        self.math = Math()
+#         # Get math module
+#         self.math = Math()
 
-        #: dict: Includes parameters related to a specific gas species
-        self.parameter = {
-            'filename': None,
-            'level_pop_type': 1,
-            'abundance': 1e-5,
-            'zeeman_usable': False,
-        }
+#         #: dict: Includes parameters related to a specific gas species
+#         self.parameter = {
+#             'filename': None,
+#             'level_pop_type': 1,
+#             'abundance': 1e-5,
+#             'zeeman_usable': False,
+#         }
 
-    def get_command_line(self):
-        """Provides gas species command line for POLARIS .cmd file.
+#     def get_command_line(self):
+#         """Provides gas species command line for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the gas species.
-        """
-        gas_species_string = '\t<gas_species>\t"' + str(self.file_io.path['gas']) + str(self.parameter['filename']) + \
-            '"\t' + str(self.parameter['level_pop_type']) + \
-            '\t' + str(self.parameter['abundance'])
-        if self.parse_args.simulation_type == 'zeeman':
-            if self.parameter['zeeman_usable']:
-                gas_species_string += '\t"' + self.file_io.path['gas'] + \
-                    self.parameter['filename'].replace(
-                        '.dat', '_zeeman.dat') + '"'
-            else:
-                raise ValueError(
-                    'Chosen gas species does not support Zeeman splitting!')
-        return gas_species_string + '\n'
+#         Returns:
+#             str: Command line to consider the gas species.
+#         """
+#         gas_species_string = '\t<gas_species>\t"' + str(self.file_io.path['gas']) + str(self.parameter['filename']) + \
+#             '"\t' + str(self.parameter['level_pop_type']) + \
+#             '\t' + str(self.parameter['abundance'])
+#         if self.parse_args.simulation_type == 'zeeman':
+#             if self.parameter['zeeman_usable']:
+#                 gas_species_string += '\t"' + self.file_io.path['gas'] + \
+#                     self.parameter['filename'].replace(
+#                         '.dat', '_zeeman.dat') + '"'
+#             else:
+#                 raise ValueError(
+#                     'Chosen gas species does not support Zeeman splitting!')
+#         return gas_species_string + '\n'
 
-    def get_command(self):
-        """Provides gas species command line for POLARIS .cmd file.
+#     def get_command(self):
+#         """Provides gas species command line for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the gas species.
-        """
-        return self.get_command_line()
+#         Returns:
+#             str: Command line to consider the gas species.
+#         """
+#         return self.get_command_line()
 
-    def shift_2_mag(self, velocity_shift, f_0, i_trans):
-        """Calculates the magnetic field strength related to a Zeeman shift of
-            a given spectral line transition.
+#     def shift_2_mag(self, velocity_shift, f_0, i_trans):
+#         """Calculates the magnetic field strength related to a Zeeman shift of
+#             a given spectral line transition.
 
-        Args:
-            velocity_shift (float) : Zeeman shift in [m/s]
-            f_0 (float) : Rest frequency of spectral line [Hz]
-            i_trans (int) : transition index of spectral line
+#         Args:
+#             velocity_shift (float) : Zeeman shift in [m/s]
+#             f_0 (float) : Rest frequency of spectral line [Hz]
+#             i_trans (int) : transition index of spectral line
 
-        Returns:
-            float: Magnetic field strength in [T]
-        """
-        if self.parameter['zeeman_usable']:
-            raise ValueError(
-                'Please define the \"shift_2_mag\" routine for the chosen species!')
-        else:
-            raise ValueError(
-                'The chosen species has no Zeeman splitting information available!')
+#         Returns:
+#             float: Magnetic field strength in [T]
+#         """
+#         if self.parameter['zeeman_usable']:
+#             raise ValueError(
+#                 'Please define the \"shift_2_mag\" routine for the chosen species!')
+#         else:
+#             raise ValueError(
+#                 'The chosen species has no Zeeman splitting information available!')
 
-    def mag_2_shift(self, magnetic_field, f_0, i_trans):
-        """Calculates the Zeeman frequency shift of a spectral line
-        transition related to a given magnetic field strength.
+#     def mag_2_shift(self, magnetic_field, f_0, i_trans):
+#         """Calculates the Zeeman frequency shift of a spectral line
+#         transition related to a given magnetic field strength.
 
-        Args:
-            magnetic_field (float) : Magnetic field strength [T]
-            f_0 (float) : Rest frequency of spectral line [Hz]
-            i_trans (int) : transition index of spectral line
+#         Args:
+#             magnetic_field (float) : Magnetic field strength [T]
+#             f_0 (float) : Rest frequency of spectral line [Hz]
+#             i_trans (int) : transition index of spectral line
 
-        Returns:
-            float: Zeeman shift in [m/s]
-        """
-        if self.parameter['zeeman_usable']:
-            raise ValueError(
-                'Please define the \"mag_2_shift\" routine for the chosen species!')
-        else:
-            raise ValueError(
-                'The chosen species has no Zeeman splitting information available!')
+#         Returns:
+#             float: Zeeman shift in [m/s]
+#         """
+#         if self.parameter['zeeman_usable']:
+#             raise ValueError(
+#                 'Please define the \"mag_2_shift\" routine for the chosen species!')
+#         else:
+#             raise ValueError(
+#                 'The chosen species has no Zeeman splitting information available!')
 
 
-# ----- No gas class -----
-class NoGas(Gas):
-    """Gas class if no gas species is used
-    """
+# # ----- No gas class -----
+# class NoGas(Gas):
+#     """Gas class if no gas species is used
+#     """
 
-    def __init__(self, file_io, parse_args):
-        """Initialisation of the gas parameters.
+#     def __init__(self, file_io, parse_args):
+#         """Initialisation of the gas parameters.
 
-        Args:
-            file_io : Handles file input/output and all
-                necessary paths.
-        """
-        Gas.__init__(self, file_io, parse_args)
+#         Args:
+#             file_io : Handles file input/output and all
+#                 necessary paths.
+#         """
+#         Gas.__init__(self, file_io, parse_args)
 
-    def get_command(self):
-        """Provides gas species command line for POLARIS .cmd file.
+#     def get_command(self):
+#         """Provides gas species command line for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the gas species.
-        """
-        return ""
+#         Returns:
+#             str: Command line to consider the gas species.
+#         """
+#         return ""
 
 
 # ----- Model class -----
@@ -1109,75 +1109,75 @@ class StellarSource:
 
 
 # ----- radiation source class (for laser) -----
-class LaserSource:
-    """The LaserSource class is the base version for each laser source.
-    """
+# class LaserSource:
+#     """The LaserSource class is the base version for each laser source.
+#     """
 
-    def __init__(self, file_io, parse_args):
-        """Initialisation of the radiation source parameters.
+#     def __init__(self, file_io, parse_args):
+#         """Initialisation of the radiation source parameters.
 
-        Args:
-            file_io : Handles file input/output and all
-                necessary paths.
-        """
-        self.file_io = file_io
-        self.parse_args = parse_args
+#         Args:
+#             file_io : Handles file input/output and all
+#                 necessary paths.
+#         """
+#         self.file_io = file_io
+#         self.parse_args = parse_args
 
-        # Get math module
-        from polaris_tools_modules.math import Math
-        self.math = Math()
+#         # Get math module
+#         from polaris_tools_modules.math import Math
+#         self.math = Math()
 
-        #: dict: Includes parameters of a specific stellar source
-        self.parameter = {
-            'position': [0., 0., 0.],
-            'direction': [1., 0., 0.],
-            'power': 0.,
-            'center_wl': 0.,
-            'fwhm': 0.,
-            'stokes_q': 0.,
-            'stokes_u': 0.,
-            'nr_photons': 0,
-            'kepler_usable': False,
-        }
+#         #: dict: Includes parameters of a specific stellar source
+#         self.parameter = {
+#             'position': [0., 0., 0.],
+#             'direction': [1., 0., 0.],
+#             'power': 0.,
+#             'center_wl': 0.,
+#             'fwhm': 0.,
+#             'stokes_q': 0.,
+#             'stokes_u': 0.,
+#             'nr_photons': 0,
+#             'kepler_usable': False,
+#         }
 
-    def update_parameter(self, extra_parameter):
-        """Use this function to set radiation source parameter with the extra parameters and update
-        radiation source parameter that depend on other parameter.
-        """
-        # Use extra_parameter to adjust the radiation source without changing the source.py file
+#     def update_parameter(self, extra_parameter):
+#         """Use this function to set radiation source parameter with the extra parameters and update
+#         radiation source parameter that depend on other parameter.
+#         """
+#         # Use extra_parameter to adjust the radiation source without changing the source.py file
 
-    def get_command_line(self):
-        """Provides radiation source command line for POLARIS .cmd file.
+#     def get_command_line(self):
+#         """Provides radiation source command line for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the stellar source.
-        """
-        return '\t<source_laser nr_photons = "' + str(int(self.parameter['nr_photons'])) + '">\t' \
-            + str(self.parameter['position'][0]) + '\t' \
-            + str(self.parameter['position'][1]) + '\t' \
-            + str(self.parameter['position'][2]) + '\t' \
-            + str(self.parameter['direction'][0]) + '\t' \
-            + str(self.parameter['direction'][1]) + '\t' \
-            + str(self.parameter['direction'][2]) + '\t' \
-            + str(self.parameter['power']) + '\t' \
-            + str(self.parameter['center_wl']) + '\t' \
-            + str(self.parameter['fwhm']) + '\t' \
-            + str(self.parameter['stokes_q']) + '\t' \
-            + str(self.parameter['stokes_u']) + '\n'
+#         Returns:
+#             str: Command line to consider the stellar source.
+#         """
+#         return '\t<source_laser nr_photons = "' + str(int(self.parameter['nr_photons'])) + '">\t' \
+#             + str(self.parameter['position'][0]) + '\t' \
+#             + str(self.parameter['position'][1]) + '\t' \
+#             + str(self.parameter['position'][2]) + '\t' \
+#             + str(self.parameter['direction'][0]) + '\t' \
+#             + str(self.parameter['direction'][1]) + '\t' \
+#             + str(self.parameter['direction'][2]) + '\t' \
+#             + str(self.parameter['power']) + '\t' \
+#             + str(self.parameter['center_wl']) + '\t' \
+#             + str(self.parameter['fwhm']) + '\t' \
+#             + str(self.parameter['stokes_q']) + '\t' \
+#             + str(self.parameter['stokes_u']) + '\n'
 
-    def get_command(self):
-        """Provides radiation source command line for POLARIS .cmd file.
+#     def get_command(self):
+#         """Provides radiation source command line for POLARIS .cmd file.
 
-        Returns:
-            str: Command line to consider the stellar source.
-        """
-        # Decrease the number of photons for the radiation field,
-        #  if no number of photons is set
-        if 'dust' in self.parse_args.simulation_type \
-                and self.parse_args.simulation_type != 'dust_mc' \
-                and self.parse_args.nr_photons is None:
-            self.parameter['nr_photons'] *= 1e-1
-        return self.get_command_line()
+#         Returns:
+#             str: Command line to consider the stellar source.
+#         """
+#         # Decrease the number of photons for the radiation field,
+#         #  if no number of photons is set
+#         if 'dust' in self.parse_args.simulation_type \
+#                 and self.parse_args.simulation_type != 'dust_mc' \
+#                 and self.parse_args.nr_photons is None:
+#             self.parameter['nr_photons'] *= 1e-1
+#         return self.get_command_line()
 
 
 # ----- External input class -----

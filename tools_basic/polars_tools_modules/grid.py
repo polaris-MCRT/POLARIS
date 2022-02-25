@@ -804,50 +804,50 @@ class OcTree(Grid):
         # difference = 99999.0
         # return difference
 
-    def grid_refinement_extra_mag(self, node):
-        """Calculates grid refinement from the magnetic field strength.
+    # def grid_refinement_extra_mag(self, node):
+    #     """Calculates grid refinement from the magnetic field strength.
 
-        Args:
-            node: Instance of octree node.
+    #     Args:
+    #         node: Instance of octree node.
 
-        Returns:
-            Float: Maximum difference of the magnetic field strength in the
-            center of the parent and in each of the 8 children.
-        """
-        difference = 0.
-        self.data.init_position(node)
-        parent_mag = self.model.get_magnetic_field()
-        for i_leaf in range(8):
-            self.data.init_position(node.children[i_leaf])
-            children_mag = self.model.get_magnetic_field()
-            for i in range(3):
-                if abs(parent_mag[i] + children_mag[i]) > 0:
-                    diff = abs(parent_mag[i] - children_mag[i]) / \
-                        abs(parent_mag[i] + children_mag[i])
-                    difference = max(difference, diff)
-        return difference
+    #     Returns:
+    #         Float: Maximum difference of the magnetic field strength in the
+    #         center of the parent and in each of the 8 children.
+    #     """
+    #     difference = 0.
+    #     self.data.init_position(node)
+    #     parent_mag = self.model.get_magnetic_field()
+    #     for i_leaf in range(8):
+    #         self.data.init_position(node.children[i_leaf])
+    #         children_mag = self.model.get_magnetic_field()
+    #         for i in range(3):
+    #             if abs(parent_mag[i] + children_mag[i]) > 0:
+    #                 diff = abs(parent_mag[i] - children_mag[i]) / \
+    #                     abs(parent_mag[i] + children_mag[i])
+    #                 difference = max(difference, diff)
+    #     return difference
 
-    def grid_refinement_extra_t_gas(self, node):
-        """Calculates grid refinement from the temperature.
+    # def grid_refinement_extra_t_gas(self, node):
+    #     """Calculates grid refinement from the temperature.
 
-        Args:
-            node: Instance of octree node.
+    #     Args:
+    #         node: Instance of octree node.
 
-        Returns:
-            Float: Maximum difference of the gas temperature in the
-            center of the parent and in each of the 8 children.
-        """
-        difference = 0.
-        self.data.init_position(node)
-        parent_t_gas = self.model.get_gas_temperature()
-        for i_leaf in range(8):
-            self.data.init_position(node.children[i_leaf])
-            children_t_gas = self.model.get_gas_temperature()
-            if abs(parent_t_gas + children_t_gas) > 0:
-                diff = 10 * abs(parent_t_gas - children_t_gas) / \
-                    abs(parent_t_gas + children_t_gas)
-                difference = max(difference, diff)
-        return difference
+    #     Returns:
+    #         Float: Maximum difference of the gas temperature in the
+    #         center of the parent and in each of the 8 children.
+    #     """
+    #     difference = 0.
+    #     self.data.init_position(node)
+    #     parent_t_gas = self.model.get_gas_temperature()
+    #     for i_leaf in range(8):
+    #         self.data.init_position(node.children[i_leaf])
+    #         children_t_gas = self.model.get_gas_temperature()
+    #         if abs(parent_t_gas + children_t_gas) > 0:
+    #             diff = 10 * abs(parent_t_gas - children_t_gas) / \
+    #                 abs(parent_t_gas + children_t_gas)
+    #             difference = max(difference, diff)
+    #     return difference
 
     def normalize_density(self, tmp_file, grid_file):
         """Read the temporary octree grid and normalize the
