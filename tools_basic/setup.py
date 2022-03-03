@@ -202,5 +202,5 @@ setup(
         'POLARIS': 'http://www1.astrophysik.uni-kiel.de/~polaris/',
     },
 
-    scripts=['scripts/polaris-run', 'scripts/polaris-plot', 'scripts/polaris-gen'],
+    scripts=['scripts/polaris-gen'],
 )
