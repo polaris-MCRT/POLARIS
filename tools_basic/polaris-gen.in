@@ -125,8 +125,11 @@ class GridRoutines:
         # self.server = server_chooser.get_module()
 
         # Get file input/output module
-        from polaris_tools_modules.file import FileIO
-        self.file_io = FileIO(self.model, parse_args, '@POLARIS_PATH@', 'gen')
+        # from polaris_tools_modules.file import FileIO
+        self.path = {}
+        self.polaris_dir = '@POLARIS_PATH@'
+        self.set_path_from_str(parse_args.model_name)
+        # self.file_io = FileIO(self.model, parse_args.model_name, '@POLARIS_PATH@', 'gen')
 
         # Get grid extern module
         # from polaris_tools_modules.ext_input import ExtChooser
@@ -147,22 +150,22 @@ class GridRoutines:
         #: Init grid
         if self.model.parameter['grid_type'] == 'octree':
             from polaris_tools_modules.grid import OcTree
-            grid = OcTree(self.model, self.file_io, self.parse_args)
+            grid = OcTree(self.model, self.path, self.parse_args)
         elif self.model.parameter['grid_type'] == 'spherical':
             from polaris_tools_modules.grid import Spherical
-            grid = Spherical(self.model, self.file_io, self.parse_args)
+            grid = Spherical(self.model, self.path, self.parse_args)
         elif self.model.parameter['grid_type'] == 'cylindrical':
             from polaris_tools_modules.grid import Cylindrical
-            grid = Cylindrical(self.model, self.file_io, self.parse_args)
+            grid = Cylindrical(self.model, self.path, self.parse_args)
         else:
             raise ValueError(
                 'Grid type ' + str(self.model.parameter['grid_type']) + ' not known!')
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
-        os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
+        os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
         tmp_file = open(
-            self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+            self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         # Write header of the grid file
         grid.write_header(
             grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
@@ -174,23 +177,23 @@ class GridRoutines:
         print('--- Normalizing model mass!                                ')
         if isinstance(self.model.parameter['gas_mass'], float):
             #: Temporary tree file
-            os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
+            os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
             tmp_file = open(
-                self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'rb')
+                self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'rb')
             #: Final grid file
-            os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
+            os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
             grid_file = open(
-                self.file_io.path['model'] + self.parse_args.grid_filename, 'wb')
+                self.path['model'] + self.parse_args.grid_filename, 'wb')
             # Normalize the density of the grid and save it in the final file
             grid.normalize_density(tmp_file=tmp_file, grid_file=grid_file)
             # Close the temporary grid file
             tmp_file.close()
             # Remove the temporary grid file
             if "/" in self.parse_args.grid_filename:
-                shutil.rmtree(self.file_io.path['model'] +
+                shutil.rmtree(self.path['model'] +
                         'tmp_' + self.parse_args.grid_filename.split('/')[0])
             else:
-                os.remove(self.file_io.path['model'] +
+                os.remove(self.path['model'] +
                         'tmp_' + self.parse_args.grid_filename)
             # Close the final grid file
             grid_file.close()
@@ -214,19 +217,19 @@ class GridRoutines:
             #: Init grid
             if self.model.parameter['grid_type'] == 'octree':
                 grid = OcTree(self.model, self.ext_input,
-                                self.file_io, self.parse_args)
+                                self.path, self.parse_args)
             elif self.model.parameter['grid_type'] == 'spherical':
                 grid = Spherical(self.model, self.ext_input,
-                                    self.file_io, self.parse_args)
+                                    self.path, self.parse_args)
             elif self.model.parameter['grid_type'] == 'cylindrical':
                 grid = Cylindrical(
-                    self.model, self.ext_input, self.file_io, self.parse_args)
+                    self.model, self.ext_input, self.path, self.parse_args)
             #: Root node
             root = grid.init_root()
             #: Final grid file
-            os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
+            os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
             grid_file = open(
-                self.file_io.path['model'] + self.parse_args.grid_filename, 'wb')
+                self.path['model'] + self.parse_args.grid_filename, 'wb')
             # Write header of the grid file
             grid.write_header(
                 grid_file=grid_file, grid_type=self.model.parameter['grid_type'], root=root)
@@ -234,10 +237,10 @@ class GridRoutines:
             grid.create_grid(grid_file, root)
             # Remove the temporary grid file
             if "/" in self.parse_args.grid_filename:
-                shutil.rmtree(self.file_io.path['model'] +
+                shutil.rmtree(self.path['model'] +
                         'tmp_' + self.parse_args.grid_filename.split('/')[0])
             else:
-                os.remove(self.file_io.path['model'] +
+                os.remove(self.path['model'] +
                         'tmp_' + self.parse_args.grid_filename)
             # Close the temporary grid file
             grid_file.close()
@@ -247,8 +250,8 @@ class GridRoutines:
                                 'get via density_distribution ' + str(np.shape(grid.total_gas_mass)))
         # else:
         #     # Rename the temporary grid file
-        #     os.rename(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename,
-        #               self.file_io.path['model'] + self.parse_args.grid_filename)
+        #     os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
+        #               self.path['model'] + self.parse_args.grid_filename)
         # Plot additional information if set
         if self.model.parameter['gas_mass'] is not None and not isinstance(self.model.parameter['gas_mass'], float):
             for i in range(len(self.model.parameter['gas_mass'])):
@@ -272,13 +275,13 @@ class GridRoutines:
     #     from polaris_tools_modules.grid import Grid
     #     grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
     #     #: Temporary tree file
-    #     os.makedirs(os.path.dirname(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
+    #     os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
     #     tmp_file = open(
-    #         self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+    #         self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
     #     #: Final grid file
-    #     os.makedirs(os.path.dirname(self.file_io.path['model'] + self.parse_args.grid_filename), exist_ok=True)
+    #     os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
     #     grid_file = open(
-    #         self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
+    #         self.path['model'] + self.parse_args.grid_filename, 'rb')
     #     # Write header of the grid file
     #     grid.update_grid(grid_file=grid_file,
     #                      tmp_file=tmp_file, reverse=reverse)
@@ -286,10 +289,10 @@ class GridRoutines:
     #     tmp_file.close()
     #     grid_file.close()
     #     # Rename the temporary grid file
-    #     os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
-    #               self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
-    #     os.rename(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename,
-    #               self.file_io.path['model'] + self.parse_args.grid_filename)
+    #     os.rename(self.path['model'] + self.parse_args.grid_filename,
+    #               self.path['model'] + self.parse_args.grid_filename + '.bak')
+    #     os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
+    #               self.path['model'] + self.parse_args.grid_filename)
 
     # def set_cell_quantity(self, quantity_id, quantity_value):
     #     """Set the value of the desired quantity to value in each cell of the grid.
@@ -302,10 +305,10 @@ class GridRoutines:
     #     grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
     #     #: Temporary tree file
     #     tmp_file = open(
-    #         self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
+    #         self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
     #     #: Final grid file
     #     grid_file = open(
-    #         self.file_io.path['model'] + self.parse_args.grid_filename, 'rb')
+    #         self.path['model'] + self.parse_args.grid_filename, 'rb')
     #     # Write header of the grid file
     #     grid.set_quantiy_in_grid(grid_file=grid_file, tmp_file=tmp_file,
     #                              quantity_id=quantity_id, quantity_value=quantity_value)
@@ -313,11 +316,35 @@ class GridRoutines:
     #     tmp_file.close()
     #     grid_file.close()
     #     # Rename the temporary grid file
-    #     os.rename(self.file_io.path['model'] + self.parse_args.grid_filename,
-    #               self.file_io.path['model'] + self.parse_args.grid_filename + '.bak')
-    #     os.rename(self.file_io.path['model'] + 'tmp_' + self.parse_args.grid_filename,
-    #               self.file_io.path['model'] + self.parse_args.grid_filename)
+    #     os.rename(self.path['model'] + self.parse_args.grid_filename,
+    #               self.path['model'] + self.parse_args.grid_filename + '.bak')
+    #     os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
+    #               self.path['model'] + self.parse_args.grid_filename)
 
+    def set_path_from_str(self, model_name):
+        """Sets all paths used by a given toolkit depending on input strings.
+
+        Args:
+            model_name (str): Name of the model (see model.py).
+        """
+        # Path to directory with the polaris package
+        self.path['polaris'] = self.polaris_dir
+        # Path to directory with the polaris and PolarisTools binaries
+        self.path['bin'] = self.path['polaris'] + 'bin/'
+        # Path to directory with input files besides the command file
+        self.path['input'] = self.path['polaris'] + 'input/'
+        # Path to directory with input files besides the command file
+        self.path['dust'] = self.path['input'] + 'dust/'
+        # Path to projects directory
+        self.path['projects'] = self.path['polaris'] + 'projects/'
+        # Path to directory with the PolarisTools source files and test cases
+        self.path['tools'] = self.path['polaris'] + 'tools/'
+        # Path to chosen model directory
+        self.path['model'] = self.path['projects'] + str(model_name) + '/'
+        # if tool_type in ['run', 'gen']:
+        # Create model directory, if it does not exist
+        if not os.path.lexists(self.path['model']):
+            os.mkdir(self.path['model'])
 
 if __name__ == '__main__':
     print('------------------------- PolarisTools -------------------------')

@@ -11,18 +11,18 @@ class Grid:
     """This is the base class to create various grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
         self.model = model
-        self.file_io = file_io
+        self.path = path
         self.parse_args = parse_args
 
         # Get math module
@@ -367,217 +367,217 @@ class Grid:
         for i in range(self.data_length - self.nr_gas_densities - self.nr_dust_densities):
             grid_file.write(tmp_file.read(data_type_length))
 
-    def update_grid(self, grid_file, tmp_file, reverse):
-        """Update grid to be in agreement with POLARIS newest version.
+    # def update_grid(self, grid_file, tmp_file, reverse):
+    #     """Update grid to be in agreement with POLARIS newest version.
 
-        Args:
-            grid_file: Input grid file (previous grid).
-            tmp_file: Output grid file (updated grid).
-            reverse (bool): Downgrading instead?
-        """
-        grid_id = grid_file.read(2)
-        tmp_file.write(grid_id)
+    #     Args:
+    #         grid_file: Input grid file (previous grid).
+    #         tmp_file: Output grid file (updated grid).
+    #         reverse (bool): Downgrading instead?
+    #     """
+    #     grid_id = grid_file.read(2)
+    #     tmp_file.write(grid_id)
 
-        data_length = grid_file.read(2)
-        tmp_file.write(data_length)
+    #     data_length = grid_file.read(2)
+    #     tmp_file.write(data_length)
 
-        for i in range(struct.unpack('H', data_length)[0]):
-            tmp_file.write(grid_file.read(2))
+    #     for i in range(struct.unpack('H', data_length)[0]):
+    #         tmp_file.write(grid_file.read(2))
 
-        if struct.unpack('H', grid_id)[0] == 20:
-            print('Nothing to do!')
-        elif struct.unpack('H', grid_id)[0] == 30:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            n_th = grid_file.read(2)
-            tmp_file.write(n_th)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            if not reverse:
-                # Add log_Phi value
-                tmp_file.write(struct.pack('d', 1.0))
-            else:
-                # Ignore log_Phi value
-                sf_ph = grid_file.read(8)
-            byte = grid_file.read(1)
-            while byte != b'':
-                tmp_file.write(byte)
-                byte = grid_file.read(1)
-        elif struct.unpack('H', grid_id)[0] == 40:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            n_z = grid_file.read(2)
-            tmp_file.write(n_z)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            if not reverse:
-                # Add log_Phi value
-                tmp_file.write(struct.pack('d', 1.0))
-            else:
-                # Ignore log_Phi value
-                sf_ph = grid_file.read(8)
-            byte = grid_file.read(1)
-            while byte != b'':
-                tmp_file.write(byte)
-                byte = grid_file.read(1)
-        else:
-            raise ValueError(
-                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
+    #     if struct.unpack('H', grid_id)[0] == 20:
+    #         print('Nothing to do!')
+    #     elif struct.unpack('H', grid_id)[0] == 30:
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         n_r = grid_file.read(2)
+    #         tmp_file.write(n_r)
+    #         n_ph = grid_file.read(2)
+    #         tmp_file.write(n_ph)
+    #         n_th = grid_file.read(2)
+    #         tmp_file.write(n_th)
+    #         sf_r = grid_file.read(8)
+    #         tmp_file.write(sf_r)
+    #         if not reverse:
+    #             # Add log_Phi value
+    #             tmp_file.write(struct.pack('d', 1.0))
+    #         else:
+    #             # Ignore log_Phi value
+    #             sf_ph = grid_file.read(8)
+    #         byte = grid_file.read(1)
+    #         while byte != b'':
+    #             tmp_file.write(byte)
+    #             byte = grid_file.read(1)
+    #     elif struct.unpack('H', grid_id)[0] == 40:
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         n_r = grid_file.read(2)
+    #         tmp_file.write(n_r)
+    #         n_ph = grid_file.read(2)
+    #         tmp_file.write(n_ph)
+    #         n_z = grid_file.read(2)
+    #         tmp_file.write(n_z)
+    #         sf_r = grid_file.read(8)
+    #         tmp_file.write(sf_r)
+    #         if not reverse:
+    #             # Add log_Phi value
+    #             tmp_file.write(struct.pack('d', 1.0))
+    #         else:
+    #             # Ignore log_Phi value
+    #             sf_ph = grid_file.read(8)
+    #         byte = grid_file.read(1)
+    #         while byte != b'':
+    #             tmp_file.write(byte)
+    #             byte = grid_file.read(1)
+    #     else:
+    #         raise ValueError(
+    #             'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
 
-    def set_quantiy_in_grid(self, grid_file, tmp_file, quantity_id, quantity_value):
-        """Set the value of the desired quantity to value in each cell of the grid.
+    # def set_quantiy_in_grid(self, grid_file, tmp_file, quantity_id, quantity_value):
+    #     """Set the value of the desired quantity to value in each cell of the grid.
 
-        Args:
-            grid_file: Input grid file (previous grid).
-            tmp_file: Output grid file (updated grid).
-            quantity_id (int): Index of the quantity in the POLARIS grid.
-            quantity_value (float): Value to which the quantity should be set.
-        """
-        grid_id = grid_file.read(2)
-        tmp_file.write(grid_id)
+    #     Args:
+    #         grid_file: Input grid file (previous grid).
+    #         tmp_file: Output grid file (updated grid).
+    #         quantity_id (int): Index of the quantity in the POLARIS grid.
+    #         quantity_value (float): Value to which the quantity should be set.
+    #     """
+    #     grid_id = grid_file.read(2)
+    #     tmp_file.write(grid_id)
 
-        data_length = struct.unpack('H', grid_file.read(2))[0]
-        pos = None
-        found = False
-        id_list = []
-        for i in range(data_length):
-            tmp_quantity_id = grid_file.read(2)
-            if struct.unpack('H', tmp_quantity_id)[0] == quantity_id:
-                if pos is not None:
-                    raise ValueError(
-                        'Desired quantity is set in grid multiple times!')
-                pos = i
-                found = True
-                print('HINT: Quantity found in grid!')
-            id_list.append(tmp_quantity_id)
-        if not found:
-            pos = data_length
-            data_length += 1
-            id_list.append(struct.pack('H', quantity_id))
+    #     data_length = struct.unpack('H', grid_file.read(2))[0]
+    #     pos = None
+    #     found = False
+    #     id_list = []
+    #     for i in range(data_length):
+    #         tmp_quantity_id = grid_file.read(2)
+    #         if struct.unpack('H', tmp_quantity_id)[0] == quantity_id:
+    #             if pos is not None:
+    #                 raise ValueError(
+    #                     'Desired quantity is set in grid multiple times!')
+    #             pos = i
+    #             found = True
+    #             print('HINT: Quantity found in grid!')
+    #         id_list.append(tmp_quantity_id)
+    #     if not found:
+    #         pos = data_length
+    #         data_length += 1
+    #         id_list.append(struct.pack('H', quantity_id))
 
-        tmp_file.write(struct.pack('H', data_length))
-        for i in range(data_length):
-            tmp_file.write(id_list[i])
-        if struct.unpack('H', grid_id)[0] == 20:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(2))
-            tmp_file.write(grid_file.read(2))
-            data_type = 'f'
-        elif struct.unpack('H', grid_id)[0] == 30:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            # Get number of radial cells
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            # Get number of phi cells
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            # Get number of theta cells
-            n_th = grid_file.read(2)
-            tmp_file.write(n_th)
-            # Get step width factors (zero for custom)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            sf_ph = grid_file.read(8)
-            tmp_file.write(sf_ph)
-            sf_th = grid_file.read(8)
-            tmp_file.write(sf_th)
-            # Write the custom cell distribution if chosen
-            if struct.unpack('d', sf_r)[0] == 0:
-                for i_r in range(struct.unpack('H', n_r)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_ph)[0] == 0:
-                for i_ph in range(struct.unpack('H', n_ph)[0]):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_th)[0] == 0:
-                for i_th in range(struct.unpack('H', n_th)[0]):
-                    tmp_file.write(grid_file.read(8))
-            data_type = 'd'
-        elif struct.unpack('H', grid_id)[0] == 40:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            # Get number of radial cells
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            # Get number of phi cells
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            # Get number of theta cells
-            n_z = grid_file.read(2)
-            tmp_file.write(n_z)
-            # Get step width factors (zero for custom)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            sf_ph = grid_file.read(8)
-            tmp_file.write(sf_ph)
-            sf_z = grid_file.read(8)
-            tmp_file.write(sf_z)
-            if struct.unpack('d', sf_r)[0] == 0:
-                for i_r in range(struct.unpack('H', n_r)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_ph)[0] == 0:
-                for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            elif struct.unpack('d', sf_ph)[0] == -1:
-                for i_r in range(struct.unpack('H', n_r)[0]):
-                    tmp_file.write(grid_file.read(2))
-            if struct.unpack('d', sf_z)[0] == 0:
-                for i_z in range(struct.unpack('H', n_z)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            elif struct.unpack('d', sf_z)[0] == -1:
-                for i_r in range(struct.unpack('H', n_r)[0]):
-                    tmp_file.write(grid_file.read(8))
-            data_type = 'd'
-        else:
-            raise ValueError(
-                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
+    #     tmp_file.write(struct.pack('H', data_length))
+    #     for i in range(data_length):
+    #         tmp_file.write(id_list[i])
+    #     if struct.unpack('H', grid_id)[0] == 20:
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(2))
+    #         tmp_file.write(grid_file.read(2))
+    #         data_type = 'f'
+    #     elif struct.unpack('H', grid_id)[0] == 30:
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         # Get number of radial cells
+    #         n_r = grid_file.read(2)
+    #         tmp_file.write(n_r)
+    #         # Get number of phi cells
+    #         n_ph = grid_file.read(2)
+    #         tmp_file.write(n_ph)
+    #         # Get number of theta cells
+    #         n_th = grid_file.read(2)
+    #         tmp_file.write(n_th)
+    #         # Get step width factors (zero for custom)
+    #         sf_r = grid_file.read(8)
+    #         tmp_file.write(sf_r)
+    #         sf_ph = grid_file.read(8)
+    #         tmp_file.write(sf_ph)
+    #         sf_th = grid_file.read(8)
+    #         tmp_file.write(sf_th)
+    #         # Write the custom cell distribution if chosen
+    #         if struct.unpack('d', sf_r)[0] == 0:
+    #             for i_r in range(struct.unpack('H', n_r)[0] - 1):
+    #                 tmp_file.write(grid_file.read(8))
+    #         if struct.unpack('d', sf_ph)[0] == 0:
+    #             for i_ph in range(struct.unpack('H', n_ph)[0]):
+    #                 tmp_file.write(grid_file.read(8))
+    #         if struct.unpack('d', sf_th)[0] == 0:
+    #             for i_th in range(struct.unpack('H', n_th)[0]):
+    #                 tmp_file.write(grid_file.read(8))
+    #         data_type = 'd'
+    #     elif struct.unpack('H', grid_id)[0] == 40:
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         tmp_file.write(grid_file.read(8))
+    #         # Get number of radial cells
+    #         n_r = grid_file.read(2)
+    #         tmp_file.write(n_r)
+    #         # Get number of phi cells
+    #         n_ph = grid_file.read(2)
+    #         tmp_file.write(n_ph)
+    #         # Get number of theta cells
+    #         n_z = grid_file.read(2)
+    #         tmp_file.write(n_z)
+    #         # Get step width factors (zero for custom)
+    #         sf_r = grid_file.read(8)
+    #         tmp_file.write(sf_r)
+    #         sf_ph = grid_file.read(8)
+    #         tmp_file.write(sf_ph)
+    #         sf_z = grid_file.read(8)
+    #         tmp_file.write(sf_z)
+    #         if struct.unpack('d', sf_r)[0] == 0:
+    #             for i_r in range(struct.unpack('H', n_r)[0] - 1):
+    #                 tmp_file.write(grid_file.read(8))
+    #         if struct.unpack('d', sf_ph)[0] == 0:
+    #             for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
+    #                 tmp_file.write(grid_file.read(8))
+    #         elif struct.unpack('d', sf_ph)[0] == -1:
+    #             for i_r in range(struct.unpack('H', n_r)[0]):
+    #                 tmp_file.write(grid_file.read(2))
+    #         if struct.unpack('d', sf_z)[0] == 0:
+    #             for i_z in range(struct.unpack('H', n_z)[0] - 1):
+    #                 tmp_file.write(grid_file.read(8))
+    #         elif struct.unpack('d', sf_z)[0] == -1:
+    #             for i_r in range(struct.unpack('H', n_r)[0]):
+    #                 tmp_file.write(grid_file.read(8))
+    #         data_type = 'd'
+    #     else:
+    #         raise ValueError(
+    #             'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
 
-        if data_type == 'f':
-            data_type_length = 4
-        elif data_type == 'd':
-            data_type_length = 8
+    #     if data_type == 'f':
+    #         data_type_length = 4
+    #     elif data_type == 'd':
+    #         data_type_length = 8
 
-        is_leaf = grid_file.read(2)
-        while is_leaf != b'':
-            tmp_file.write(is_leaf)
-            level = grid_file.read(2)
-            tmp_file.write(level)
-            if struct.unpack('H', is_leaf)[0]:
-                for i in range(data_length):
-                    if i == pos:
-                        tmp_file.write(struct.pack(data_type, quantity_value))
-                        if found:
-                            grid_file.read(data_type_length)
-                    else:
-                        tmp_file.write(grid_file.read(data_type_length))
-            is_leaf = grid_file.read(2)
+    #     is_leaf = grid_file.read(2)
+    #     while is_leaf != b'':
+    #         tmp_file.write(is_leaf)
+    #         level = grid_file.read(2)
+    #         tmp_file.write(level)
+    #         if struct.unpack('H', is_leaf)[0]:
+    #             for i in range(data_length):
+    #                 if i == pos:
+    #                     tmp_file.write(struct.pack(data_type, quantity_value))
+    #                     if found:
+    #                         grid_file.read(data_type_length)
+    #                 else:
+    #                     tmp_file.write(grid_file.read(data_type_length))
+    #         is_leaf = grid_file.read(2)
 
 
 class OcTree(Grid):
     """This class creates OcTree grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialization of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -908,17 +908,17 @@ class Spherical(Grid):
     """This class creates spherical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -1174,24 +1174,24 @@ class Spherical(Grid):
             hdu = fits.PrimaryHDU(tbldata)
             hdulist = fits.HDUList([hdu])
             hdulist.writeto(
-                self.file_io.path['model'] + code_name + '_grid.fits', overwrite=True)
+                self.path['model'] + code_name + '_grid.fits', overwrite=True)
 
 
 class Cylindrical(Grid):
     """This class creates cylindrical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
