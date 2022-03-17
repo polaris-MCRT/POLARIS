@@ -168,10 +168,10 @@ class Disk(Model):
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
         # Define the used sources, dust composition and gas species
-        self.parameter['radiation_source'] = 't_tauri'
-        self.parameter['dust_composition'] = 'mrn'
-        self.parameter['gas_species'] = 'co'
-        self.parameter['detector'] = 'cartesian'
+        # self.parameter['radiation_source'] = 't_tauri'
+        # self.parameter['dust_composition'] = 'mrn'
+        # self.parameter['gas_species'] = 'co'
+        # self.parameter['detector'] = 'cartesian'
         # In the case of a spherical grid
         self.spherical_parameter['n_r'] = 100
         self.spherical_parameter['n_th'] = 181
@@ -256,9 +256,9 @@ class Sphere(Model):
         self.spherical_parameter['n_ph'] = 1
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
-        self.parameter['radiation_source'] = 't_tauri'
-        self.parameter['dust_composition'] = 'mrn'
-        self.parameter['detector'] = 'cartesian'
+        # self.parameter['radiation_source'] = 't_tauri'
+        # self.parameter['dust_composition'] = 'mrn'
+        # self.parameter['detector'] = 'cartesian'
         self.tmp_parameter['mag_field_geometry'] = 'toroidal'
 
     def gas_density_distribution(self):
@@ -358,9 +358,9 @@ class BokGlobule(Model):
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
         self.parameter['truncation_radius'] = 1e3 * self.math.const['au']
         self.spherical_parameter['n_ph'] = 1
-        self.parameter['radiation_source'] = 't_tauri'
-        self.parameter['dust_composition'] = 'mrn'
-        self.parameter['detector'] = 'cartesian'
+        # self.parameter['radiation_source'] = 't_tauri'
+        # self.parameter['dust_composition'] = 'mrn'
+        # self.parameter['detector'] = 'cartesian'
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
