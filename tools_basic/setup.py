@@ -8,12 +8,12 @@ https://github.com/pypa/sampleproject
 from io import open
 from setuptools import setup, find_packages
 import os
-import shutil
+# import shutil
 
 if not os.path.exists('scripts'):
     os.makedirs('scripts')
 
-scripts = ['polaris-run.in', 'polaris-plot.in', 'polaris-gen.in']
+scripts = ['polaris-gen.in']
 for script in scripts:
     # Read in the file
     with open(script, 'r') as file:
@@ -157,8 +157,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'scipy', 'matplotlib',
-                      'astropy', 'argparse'],  # Optional
+    install_requires=['numpy'],  # Optional
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.

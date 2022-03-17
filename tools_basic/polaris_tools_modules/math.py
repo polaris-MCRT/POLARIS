@@ -3,7 +3,7 @@
 import numpy as np
 
 # Import curve_fit from scipy package
-from scipy.optimize import curve_fit
+# from scipy.optimize import curve_fit
 
 
 class Math:

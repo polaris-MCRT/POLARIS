@@ -341,7 +341,6 @@ class GridRoutines:
         self.path['tools'] = self.path['polaris'] + 'tools/'
         # Path to chosen model directory
         self.path['model'] = self.path['projects'] + str(model_name) + '/'
-        # if tool_type in ['run', 'gen']:
         # Create model directory, if it does not exist
         if not os.path.lexists(self.path['model']):
             os.mkdir(self.path['model'])
