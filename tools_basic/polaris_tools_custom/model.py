@@ -35,17 +35,17 @@ class CustomModel(Model):
         self.parameter['outer_radius'] = 100.0 * self.math.const['au']
         self.parameter['gas_mass'] = 1e-2 * self.math.const['M_sun']
         # Define which other choice are default for this model
-        self.parameter['background_source'] = 'bg_plane'
-        self.parameter['radiation_source'] = 't_tauri'
-        self.parameter['dust_composition'] = 'mrn'
-        self.parameter['gas_species'] = 'oh'
-        self.parameter['detector'] = 'cartesian'
+        # self.parameter['background_source'] = 'bg_plane'
+        # self.parameter['radiation_source'] = 't_tauri'
+        # self.parameter['dust_composition'] = 'mrn'
+        # self.parameter['gas_species'] = 'oh'
+        # self.parameter['detector'] = 'cartesian'
 
-    def update_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters and update
-        model parameter that depend on other parameter.
-        """
-        # Use extra_parameter to adjust the model without changing the model.py file
+    # def update_parameter(self, extra_parameter):
+    #     """Use this function to set model parameter with the extra parameters and update
+    #     model parameter that depend on other parameter.
+    #     """
+    #     # Use extra_parameter to adjust the model without changing the model.py file
 
     def gas_density_distribution(self):
         """Define here your routine to calculate the density at a given position
@@ -93,9 +93,9 @@ class Cube(Model):
             [[0.67 * 1e-6 * self.math.const['M_sun']], [0.33 * 1e-6 * self.math.const['M_sun']]])
         self.parameter['outer_radius'] = 100.0 * \
             self.math.const['au']  # 0.5 * self.math.const['au']
-        #self.parameter['radiation_source'] = 'isrf'
-        self.parameter['dust_composition'] = 'silicate_oblate'
-        self.parameter['detector'] = 'cartesian'
+        # self.parameter['radiation_source'] = 'isrf'
+        # self.parameter['dust_composition'] = 'silicate_oblate'
+        # self.parameter['detector'] = 'cartesian'
 
     def dust_temperature(self):
         """Calculates the dust temperature at a given position.

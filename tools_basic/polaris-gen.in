@@ -11,6 +11,7 @@ Examples:
 
 import os
 import shutil
+import struct
 import numpy as np
 from argparse import RawTextHelpFormatter, ArgumentParser
 
@@ -39,6 +40,10 @@ req_args.add_argument('model_name', metavar='model_name', type=str,
 req_args.add_argument('grid_filename', metavar='grid_filename', type=str,
                       help='filename of the POLARIS grid.\n'
                            '    grid will be stored in: "/model_name/grid_filename"')
+
+conv_args = parser.add_argument_group('grid binary ascii conversion')
+conv_args.add_argument('--convert', dest='convert', type=str, choices=['ascii2binary', 'binary2ascii'], default=None,
+                        help='convert existing ascii grid file to binary grid file or vice versa.')
 
 grid_args = parser.add_argument_group('grid')
 grid_args.add_argument('--grid_type', dest='grid_type', type=str, choices=['octree', 'spherical', 'cylindrical'],
@@ -266,6 +271,86 @@ class GridRoutines:
                           ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_dust_mass[i][j] /
                                                                                     self.math.const['M_sun']))
 
+    def convert_polaris_grid(self):
+        """convert existing ascii grid file to binary grid file or vice versa.
+        """
+        if self.parse_args.convert == 'binary2ascii':
+            with open(self.path['model'] + self.parse_args.grid_filename, 'rb') as binary_file,\
+                open(self.path['model'] + self.parse_args.grid_filename + '.txt', 'w') as ascii_file:
+                self.read_binary_write_ascii(binary_file, ascii_file)
+        else:
+            with open(self.path['model'] + self.parse_args.grid_filename, 'r') as ascii_file,\
+                open(self.path['model'] + self.parse_args.grid_filename + '.dat', 'wb') as binary_file:
+                self.read_ascii_write_binary(ascii_file, binary_file)
+
+    def read_ascii_write_binary(self, ascii_file, binary_file):
+        """convert existing ascii grid file to binary grid file.
+
+        Args:
+            ascii_file: Input ascii file.
+            binary_file: Output binary file.
+        """
+        grid_id = ascii_file.readline()
+        if grid_id != 30 and grid_id != 40:
+            raise ValueError('Wrong grid ID. Only spherical (30) or cylindrical (40) are supported so far.')
+
+    def read_binary_write_ascii(self, binary_file, ascii_file):
+        """convert existing binary grid file to ascii grid file.
+
+        Args:
+            binary_file: Input binary file.
+            ascii_file: Output ascii file.
+        """
+        grid_id = struct.unpack('H', binary_file.read(2))[0]
+        if grid_id != 30 and grid_id != 40:
+            raise ValueError('Wrong grid ID. Only spherical (30) or cylindrical (40) are supported so far.')
+
+        ascii_file.write(str(grid_id) + '\n')
+        data_length = struct.unpack('H', binary_file.read(2))[0]
+        ascii_file.write(str(data_length) + '\n')
+        for i in range(data_length):
+            ascii_file.write(str(struct.unpack('H', binary_file.read(2))[0]) + ' ')
+        ascii_file.write('\n')
+        ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+        if grid_id == 40:
+            ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+        ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + '\n')
+        # Get number of radial cells
+        n_r = struct.unpack('H', binary_file.read(2))[0]
+        ascii_file.write(str(n_r) + ' ')
+        # Get number of phi cells
+        n_ph = struct.unpack('H', binary_file.read(2))[0]
+        ascii_file.write(str(n_ph) + ' ')
+        # Get number of theta or z cells
+        n_th_z = struct.unpack('H', binary_file.read(2))[0]
+        ascii_file.write(str(n_th_z) + '\n')
+        # Get step width factors (zero for custom)
+        sf_r = struct.unpack('d', binary_file.read(8))[0]
+        ascii_file.write(str(sf_r) + ' ')
+        sf_ph = struct.unpack('d', binary_file.read(8))[0]
+        ascii_file.write(str(sf_ph) + ' ')
+        sf_th_z = struct.unpack('d', binary_file.read(8))[0]
+        ascii_file.write(str(sf_th_z) + '\n')
+        # Write the custom cell distribution if chosen
+        if sf_r == 0:
+            for i_r in range(n_r - 1):
+                ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+            ascii_file.write('\n')
+        if sf_ph == 0:
+            for i_ph in range(n_ph - 1):
+                ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+            ascii_file.write('\n')
+        if sf_th_z == 0:
+            for i_th in range(n_th_z - 1):
+                ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+            ascii_file.write('\n')
+
+        cell_numbers = n_r * n_ph * n_th_z + 1 if grid_id == 30 else (n_r * n_ph + 1) * n_th_z
+        for i in range(cell_numbers):
+            for j in range(data_length):
+                ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+            ascii_file.write("\n")
+
     # def update_polaris_grid(self, reverse=False):
     #     """Checks a grid and adds values if required.
 
@@ -338,7 +423,7 @@ class GridRoutines:
         # Path to projects directory
         self.path['projects'] = self.path['polaris'] + 'projects/'
         # Path to directory with the PolarisTools source files and test cases
-        self.path['tools'] = self.path['polaris'] + 'tools/'
+        self.path['tools'] = self.path['polaris'] + 'tools_basic/'
         # Path to chosen model directory
         self.path['model'] = self.path['projects'] + str(model_name) + '/'
         # Create model directory, if it does not exist
@@ -368,6 +453,11 @@ if __name__ == '__main__':
     #     print('--- Create a grid ...')
     #     grid_routines.create_polaris_grid()
     #     print('--- Creation of grid finished!                               ')
-    print('--- Create a grid ...')
-    grid_routines.create_polaris_grid()
-    print('--- Creation of grid finished!                               ')
+    if parser_options.convert:
+        print('--- Converting grid ...')
+        grid_routines.convert_polaris_grid()
+        print('--- Converting of grid finished!                               ')
+    else:    
+        print('--- Create a grid ...')
+        grid_routines.create_polaris_grid()
+        print('--- Creation of grid finished!                               ')

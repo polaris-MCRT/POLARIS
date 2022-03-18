@@ -6,7 +6,7 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from io import open
-from setuptools import setup, find_packages
+from setuptools import setup #, find_packages
 import os
 # import shutil
 
@@ -21,7 +21,7 @@ for script in scripts:
 
     # Replace the target string
     polaris_path = os.path.abspath(
-        os.getcwd().replace('tools', '')) + os.path.sep
+        os.getcwd().replace('tools_basic', '')) + os.path.sep
     filedata = filedata.replace('@POLARIS_PATH@', polaris_path)
 
     # Write the file out again
