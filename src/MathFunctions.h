@@ -2696,7 +2696,10 @@ class CMathFunctions
         double factor = 1e250;
 
         if(x <= MIN_MIE_SIZE_PARAM)
+        {
+            cout << "\nError: Mie scattering limit exceeded, current size parameter: " << x << "\n" << endl;
             return false;
+        }
 
         double ax = 1 / x;
         double b = 2 * pow(ax, 2);
@@ -2716,6 +2719,8 @@ class CMathFunctions
 
         if(num >= MAX_MIE_ITERATIONS - 1)
         {
+            cout << "\nError: Maximum number of terms  : " << MAX_MIE_ITERATIONS << endl;
+            cout << "Error: Nnumber of terms required: " << num << "\n" << endl;
             return false;
             // return calcGeometricOptics(x, refractive_index, qext, qabs,
             //    qabs, gsca, S11, S12, S33, S34);
@@ -2894,7 +2899,7 @@ class CMathFunctions
             r_iterm = double(iterm);
 
             if(iterm > num)
-                return false;
+                break;
         }
 
         delete ru;
