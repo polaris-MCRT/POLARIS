@@ -290,9 +290,72 @@ class GridRoutines:
             ascii_file: Input ascii file.
             binary_file: Output binary file.
         """
-        grid_id = ascii_file.readline()
+        grid_id = int(ascii_file.readline().strip())
         if grid_id != 30 and grid_id != 40:
             raise ValueError('Wrong grid ID. Only spherical (30) or cylindrical (40) are supported so far.')
+        binary_file.write(struct.pack('H', grid_id))
+        
+        data_length = int(ascii_file.readline().strip())
+        binary_file.write(struct.pack('H', data_length))
+
+        quantities = np.array(ascii_file.readline().strip().split(' '), dtype=int)
+        for quant in quantities:
+            binary_file.write(struct.pack('H', quant))
+        
+        boundaries = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+        for boundary in boundaries:
+            binary_file.write(struct.pack('d', boundary))
+
+        n_r, n_ph, n_th_z = np.array(ascii_file.readline().strip().split(' '), dtype=int)
+        binary_file.write(struct.pack('H', n_r))
+        binary_file.write(struct.pack('H', n_ph))
+        binary_file.write(struct.pack('H', n_th_z))
+
+        sf_r, sf_ph, sf_th_z = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+        binary_file.write(struct.pack('d', sf_r))
+        binary_file.write(struct.pack('d', sf_ph))
+        binary_file.write(struct.pack('d', sf_th_z))
+
+        if sf_r == 0:
+            r_borders = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+            if len(r_borders) != n_r - 1:
+                raise ValueError('Wrong number of radial cell boundaries!')
+            for i_r in r_borders:
+                binary_file.write(struct.pack('d', i_r))
+        if sf_ph == 0:
+            ph_borders = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+            if len(ph_borders) != n_ph - 1:
+                raise ValueError('Wrong number of phi cell boundaries!')
+            for i_ph in ph_borders:
+                binary_file.write(struct.pack('d', i_ph))
+        if sf_th_z == 0:
+            th_z_borders = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+            if len(th_z_borders) != n_th_z - 1:
+                raise ValueError('Wrong number of theta / z cell boundaries!')
+            for i_th_z in th_z_borders:
+                binary_file.write(struct.pack('d', i_th_z))
+
+        if grid_id == 40:
+            if sf_ph == 0:
+                ph_num_i = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+                if len(ph_num_i) != n_r:
+                    raise ValueError('Wrong number of values that define the number of phi cells in each radial ring!')
+                for i_r in ph_num_i:
+                    binary_file.write(struct.pack('d', i_r))
+            elif sf_th_z == -1:
+                z_width_i = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+                if len(z_width_i) != n_r:
+                    raise ValueError('Wrong number of values that define the vertical width of each cylindrical cell in each radial ring!')
+                for i_r in z_width_i:
+                    binary_file.write(struct.pack('d', i_r))
+
+        cell_numbers = n_r * n_ph * n_th_z + 1 if grid_id == 30 else (n_r * n_ph + 1) * n_th_z
+        for i_cell in range(cell_numbers):
+            data = np.array(ascii_file.readline().strip().split(' '), dtype=float)
+            if len(data) != data_length:
+                raise ValueError('Wrong number of physical quantities!')
+            for i_data in data:
+                binary_file.write(struct.pack('d', i_data))
 
     def read_binary_write_ascii(self, binary_file, ascii_file):
         """convert existing binary grid file to ascii grid file.
@@ -308,13 +371,16 @@ class GridRoutines:
         ascii_file.write(str(grid_id) + '\n')
         data_length = struct.unpack('H', binary_file.read(2))[0]
         ascii_file.write(str(data_length) + '\n')
-        for i in range(data_length):
+        
+        for i_data in range(data_length):
             ascii_file.write(str(struct.unpack('H', binary_file.read(2))[0]) + ' ')
         ascii_file.write('\n')
+        
         ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
         if grid_id == 40:
             ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
         ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + '\n')
+        
         # Get number of radial cells
         n_r = struct.unpack('H', binary_file.read(2))[0]
         ascii_file.write(str(n_r) + ' ')
@@ -341,13 +407,23 @@ class GridRoutines:
                 ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
             ascii_file.write('\n')
         if sf_th_z == 0:
-            for i_th in range(n_th_z - 1):
+            for i_th_z in range(n_th_z - 1):
                 ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
             ascii_file.write('\n')
 
+        if grid_id == 40:
+            if sf_ph == -1:
+                for i_r in range(n_r):
+                    ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+                ascii_file.write('\n')
+            if sf_th_z == -1:
+                for i_r in range(n_r):
+                    ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
+                ascii_file.write('\n')
+
         cell_numbers = n_r * n_ph * n_th_z + 1 if grid_id == 30 else (n_r * n_ph + 1) * n_th_z
-        for i in range(cell_numbers):
-            for j in range(data_length):
+        for i_cell in range(cell_numbers):
+            for i_data in range(data_length):
                 ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
             ascii_file.write("\n")
 
