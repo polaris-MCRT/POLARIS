@@ -162,7 +162,7 @@ class Disk(Model):
         Model.__init__(self)
 
         #: Set parameters of the disk model
-        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        # self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['gas_mass'] = 1e-3 * self.math.const['M_sun']
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
@@ -247,7 +247,7 @@ class Sphere(Model):
         Model.__init__(self)
 
         #: Set parameters of the sphere model
-        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        # self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
@@ -352,7 +352,7 @@ class BokGlobule(Model):
         Model.__init__(self)
 
         #: Set parameters of the Bok globule model
-        self.parameter['distance'] = 100.0 * self.math.const['pc']
+        # self.parameter['distance'] = 100.0 * self.math.const['pc']
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 1.0 * self.math.const['au']
         self.parameter['outer_radius'] = 1.5e4 * self.math.const['au']
