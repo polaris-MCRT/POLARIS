@@ -44,7 +44,8 @@ Before starting the simulation, the POLARIS path in these command files has to b
 Change `/YOUR/POLARIS/PATH/` at `<dust_component>`, `<path_grid>`, and `<path_out>` to your POLARIS path.
 
 To start a temperature simulation, type:\
-`polaris /YOUR/POLARIS/PATH/projects/disk/example/temp/temp.cmd`
+`polaris /YOUR/POLARIS/PATH/projects/disk/example/temp/temp.cmd`\
+The results are stored at `projects/disk/example/temp/data/` as `.fits` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
 Similar, the simulation for thermal emission and scattered stellar emission are performed.
 For available options in the command file, please read the manual.
