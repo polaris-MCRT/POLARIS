@@ -79,5 +79,6 @@ Similar, to create the grid file with a model named *custom*, type:\
 It is also possible, to write their own grid file.
 For the general structure and available options in the grid file, please read the manual.
 For this purpose, the command `polaris-gen` has an ascii to binary converter (and vice versa) for the grid files.
-To convert an ascii grid file of the `disk` model to a binary grid file, type:\
-`polaris-gen --convert ascii2binary disk grid.dat`
+To convert an existing ascii grid file of the `disk` model to a binary grid file, type:\
+`polaris-gen --convert ascii2binary disk grid.txt`\
+The ascii file has to be located in `projects/disk/` and the new binary grid file will be stored at `projects/disk/`.
