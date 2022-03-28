@@ -139,6 +139,8 @@ class CustomDisk(Model):
                       '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
                       '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
                       '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
+            else:
+                print('HINT: 4 parameter values are expected, got ' + str(len(extra_parameter)))
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

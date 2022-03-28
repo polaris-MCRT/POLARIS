@@ -209,6 +209,8 @@ class Disk(Model):
                       '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
                       '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
                       '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
+            else:
+                print('HINT: 4 parameter values are expected, got ' + str(len(extra_parameter)))
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -337,6 +339,8 @@ class Sphere(Model):
                 elif extra_parameter[0] == 'radial_mag_field':
                     self.tmp_parameter['mag_field_geometry'] = 'radial'
                     print('HINT: The radial magnetic field is used (change with --extra)!')
+            else:
+                print('HINT: 1 parameter value is expected, got ' + str(len(extra_parameter)))
 
 
 class BokGlobule(Model):
@@ -372,6 +376,8 @@ class BokGlobule(Model):
                 self.parameter['truncation_radius'] = self.math.parse(
                     extra_parameter[0], 'length')
                 print('HINT: New truncation radius: ' + str(self.parameter['truncation_radius']) + ' (change with --extra)!')
+            else:
+                print('HINT: 1 parameter value is expected, got ' + str(len(extra_parameter)))
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
