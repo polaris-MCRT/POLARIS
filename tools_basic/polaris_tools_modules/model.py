@@ -56,7 +56,7 @@ class ModelChooser:
             model = self.model_dict['default']()
         # Set user input variables
         if 'grid_type' in vars(self.parse_args).keys():
-            # model.update_parameter(self.parse_args.extra_parameter)
+            model.update_parameter(self.parse_args.extra_parameter)
             if self.parse_args.grid_type is not None:
                 model.parameter['grid_type'] = self.parse_args.grid_type
             if self.parse_args.gas_mass is not None:
@@ -190,21 +190,21 @@ class Disk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 2.625
-        self.parameter['beta'] = 1.125
+        self.parameter['alpha'] = 0.9 # Andrews et al. 2010, https://ui.adsabs.harvard.edu/abs/2010ApJ...723.1241A/abstract
+        self.parameter['beta'] = self.parameter['alpha'] / 3.0 + 0.5 # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S/abstract
 
-    # def update_parameter(self, extra_parameter):
-    #     """Use this function to set model parameter with the extra parameters.
-    #     """
-    #     # Use extra parameter to vary the disk structure
-    #     if extra_parameter is not None:
-    #         if len(extra_parameter) == 4:
-    #             self.parameter['ref_radius'] = self.math.parse(
-    #                 extra_parameter[0], 'length')
-    #             self.parameter['ref_scale_height'] = self.math.parse(
-    #                 extra_parameter[1], 'length')
-    #             self.parameter['alpha'] = float(extra_parameter[2])
-    #             self.parameter['beta'] = float(extra_parameter[3])
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 4:
+                self.parameter['ref_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
+                self.parameter['ref_scale_height'] = self.math.parse(
+                    extra_parameter[1], 'length')
+                self.parameter['alpha'] = float(extra_parameter[2])
+                self.parameter['beta'] = float(extra_parameter[3])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -318,24 +318,24 @@ class Sphere(Model):
     #     gas_temperature = 10
     #     return gas_temperature
 
-    # def update_parameter(self, extra_parameter):
-    #     """Use this function to set model parameter with the extra parameters and update 
-    #     model parameter that depend on other parameter.
-    #     """
-    #     if extra_parameter is not None:
-    #         if len(extra_parameter) == 1:
-    #             if extra_parameter[0] == 'toroidal_mag_field':
-    #                 self.tmp_parameter['mag_field_geometry'] = 'toroidal'
-    #                 print(
-    #                     'HINT: The toroidal magnetic field is used (change with --extra)!')
-    #             elif extra_parameter[0] == 'vertical_mag_field':
-    #                 self.tmp_parameter['mag_field_geometry'] = 'vertical'
-    #                 print(
-    #                     'HINT: The vertical magnetic field is used (change with --extra)!')
-    #             elif extra_parameter[0] == 'radial_mag_field':
-    #                 self.tmp_parameter['mag_field_geometry'] = 'radial'
-    #                 print(
-    #                     'HINT: The radial magnetic field is used (change with --extra)!')
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update 
+        model parameter that depend on other parameter.
+        """
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                if extra_parameter[0] == 'toroidal_mag_field':
+                    self.tmp_parameter['mag_field_geometry'] = 'toroidal'
+                    print(
+                        'HINT: The toroidal magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'vertical_mag_field':
+                    self.tmp_parameter['mag_field_geometry'] = 'vertical'
+                    print(
+                        'HINT: The vertical magnetic field is used (change with --extra)!')
+                elif extra_parameter[0] == 'radial_mag_field':
+                    self.tmp_parameter['mag_field_geometry'] = 'radial'
+                    print(
+                        'HINT: The radial magnetic field is used (change with --extra)!')
 
 
 class BokGlobule(Model):
@@ -362,14 +362,14 @@ class BokGlobule(Model):
         # self.parameter['dust_composition'] = 'mrn'
         # self.parameter['detector'] = 'cartesian'
 
-    # def update_parameter(self, extra_parameter):
-    #     """Use this function to set model parameter with the extra parameters.
-    #     """
-    #     # Use extra parameter to vary the disk structure
-    #     if extra_parameter is not None:
-    #         if len(extra_parameter) == 1:
-    #             self.parameter['truncation_radius'] = self.math.parse(
-    #                 extra_parameter[0], 'length')
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 1:
+                self.parameter['truncation_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

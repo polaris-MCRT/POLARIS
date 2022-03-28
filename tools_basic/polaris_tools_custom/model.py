@@ -42,11 +42,11 @@ class CustomModel(Model):
         # self.parameter['gas_species'] = 'oh'
         # self.parameter['detector'] = 'cartesian'
 
-    # def update_parameter(self, extra_parameter):
-    #     """Use this function to set model parameter with the extra parameters and update
-    #     model parameter that depend on other parameter.
-    #     """
-    #     # Use extra_parameter to adjust the model without changing the model.py file
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update
+        model parameter that depend on other parameter.
+        """
+        # Use extra_parameter to adjust the model without changing the model.py file
 
     def gas_density_distribution(self):
         """Define here your routine to calculate the density at a given position
@@ -120,21 +120,21 @@ class CustomDisk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 2.625
-        self.parameter['beta'] = 1.125
+        self.parameter['alpha'] = 0.9 # Andrews et al. 2010, https://ui.adsabs.harvard.edu/abs/2010ApJ...723.1241A/abstract
+        self.parameter['beta'] = self.parameter['alpha'] / 3.0 + 0.5 # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S/abstract
 
-    # def update_parameter(self, extra_parameter):
-    #     """Use this function to set model parameter with the extra parameters.
-    #     """
-    #     # Use extra parameter to vary the disk structure
-    #     if extra_parameter is not None:
-    #         if len(extra_parameter) == 4:
-    #             self.parameter['ref_radius'] = self.math.parse(
-    #                 extra_parameter[0], 'length')
-    #             self.parameter['ref_scale_height'] = self.math.parse(
-    #                 extra_parameter[1], 'length')
-    #             self.parameter['alpha'] = float(extra_parameter[2])
-    #             self.parameter['beta'] = float(extra_parameter[3])
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters.
+        """
+        # Use extra parameter to vary the disk structure
+        if extra_parameter is not None:
+            if len(extra_parameter) == 4:
+                self.parameter['ref_radius'] = self.math.parse(
+                    extra_parameter[0], 'length')
+                self.parameter['ref_scale_height'] = self.math.parse(
+                    extra_parameter[1], 'length')
+                self.parameter['alpha'] = float(extra_parameter[2])
+                self.parameter['beta'] = float(extra_parameter[3])
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

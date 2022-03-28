@@ -79,9 +79,12 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
                        help='step width factor in vertical direction of cylindrical grid (overwrites model value).')
 # grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
-# grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
-#                        help='additional parameter to vary model characteristics\n'
-#                             '(multiple values possible, no unit strings!).')
+grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
+                       help='normalize density distribution to total mass, which is defined in the model.\n'
+                            'default: 1 (1: enable / 0: disable).')
+grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
+                       help='additional parameter to vary model characteristics\n'
+                            '(multiple values possible, no unit strings!).')
 
 # source_args = parser.add_argument_group('source')
 # source_args.add_argument('--external', dest='external_input_name', default=None,
@@ -535,5 +538,5 @@ if __name__ == '__main__':
         print('--- Converting of grid finished!                               ')
     else:    
         print('--- Create a grid ...')
-        grid_routines.create_polaris_grid()
+        grid_routines.create_polaris_grid(parser_options.normalize)
         print('--- Creation of grid finished!                               ')
