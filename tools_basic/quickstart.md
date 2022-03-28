@@ -61,6 +61,9 @@ For available options in the command file, please read the manual.
 
 ## Create a grid
 
+
+### Predefined models
+
 The grid (binary) file will be created with the command `polaris-gen`.
 There are already three models available:
 
@@ -81,6 +84,9 @@ For more information, type:
 polaris-gen -h
 ```
 
+
+### Extra parameter
+
 To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
 These additional parameter values can be used in the function `update_parameter` in the file `model.py` to vary the model.
 For example, the user can parse 4 values for the `disk` model: reference radius, reference scale height, alpha, and beta.
@@ -88,6 +94,9 @@ For example, the user can parse 4 values for the `disk` model: reference radius,
 ```
 ./compile.sh -u
 ```
+
+
+### Custom model
 
 For a more complex model modification, it is recommended that the user defines their own models in `tools/polaris_tools_custom/model.py`.
 Therein, each model is defined as a class with a corresponding entry in the dictionary at the top of `model.py`.
@@ -99,6 +108,9 @@ Similar, to create the grid file with a model named *custom*, type:
 ```
 polaris-gen custom grid.dat
 ```
+
+
+### Write a grid file
 
 It is also possible, to write their own grid file.
 For the general structure and available options in the grid file, please read the manual.
