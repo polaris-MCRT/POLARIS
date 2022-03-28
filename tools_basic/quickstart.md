@@ -81,9 +81,17 @@ For more information, type:
 polaris-gen -h
 ```
 
-To modify further parameter values such as the density distribution, it is recommended that the user defines their own models in `tools/polaris_tools_custom/model.py`.
+To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values.
+These additional parameter values can be used in `update_parameter` in `model.py` to vary the model.
+For example, the user can parse 4 values for the `disk` model: reference radius, reference scale height, alpha, and beta.
+**Hint**: For any changes in the files, the user has to recompile with:
+```
+./compile.sh -u
+```
+
+For a more complex model modification, it is recommended that the user defines their own models in `tools/polaris_tools_custom/model.py`.
 Therein, each model is defined as a class with a corresponding entry in the dictionary at the top of `model.py`.
-For any changes, the user has to recompile with:
+**Hint**: For any changes in the files, the user has to recompile with:
 ```
 ./compile.sh -u
 ```
