@@ -205,6 +205,10 @@ class Disk(Model):
                     extra_parameter[1], 'length')
                 self.parameter['alpha'] = float(extra_parameter[2])
                 self.parameter['beta'] = float(extra_parameter[3])
+                print('HINT: New reference radius       : ' + str(self.parameter['ref_radius']) + ',' +\
+                      '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
+                      '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
+                      '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -326,16 +330,13 @@ class Sphere(Model):
             if len(extra_parameter) == 1:
                 if extra_parameter[0] == 'toroidal_mag_field':
                     self.tmp_parameter['mag_field_geometry'] = 'toroidal'
-                    print(
-                        'HINT: The toroidal magnetic field is used (change with --extra)!')
+                    print('HINT: The toroidal magnetic field is used (change with --extra)!')
                 elif extra_parameter[0] == 'vertical_mag_field':
                     self.tmp_parameter['mag_field_geometry'] = 'vertical'
-                    print(
-                        'HINT: The vertical magnetic field is used (change with --extra)!')
+                    print('HINT: The vertical magnetic field is used (change with --extra)!')
                 elif extra_parameter[0] == 'radial_mag_field':
                     self.tmp_parameter['mag_field_geometry'] = 'radial'
-                    print(
-                        'HINT: The radial magnetic field is used (change with --extra)!')
+                    print('HINT: The radial magnetic field is used (change with --extra)!')
 
 
 class BokGlobule(Model):
@@ -370,6 +371,7 @@ class BokGlobule(Model):
             if len(extra_parameter) == 1:
                 self.parameter['truncation_radius'] = self.math.parse(
                     extra_parameter[0], 'length')
+                print('HINT: New truncation radius: ' + str(self.parameter['truncation_radius']) + ' (change with --extra)!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

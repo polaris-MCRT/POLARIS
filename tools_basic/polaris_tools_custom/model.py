@@ -135,6 +135,10 @@ class CustomDisk(Model):
                     extra_parameter[1], 'length')
                 self.parameter['alpha'] = float(extra_parameter[2])
                 self.parameter['beta'] = float(extra_parameter[3])
+                print('HINT: New reference radius       : ' + str(self.parameter['ref_radius']) + ',' +\
+                      '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
+                      '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
+                      '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
