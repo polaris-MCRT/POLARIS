@@ -62,7 +62,7 @@ For available options in the command file, please read the manual.
 ## Create a grid
 
 The grid (binary) file will be created with the command `polaris-gen`.
-There are already three models avaiable in `tools/polaris_tools_modules/model.py`:
+There are already three models available:
 
 - disk: A circumstellar disk with a Shakura & Sunyaev density distribution
 
@@ -81,8 +81,8 @@ For more information, type:
 polaris-gen -h
 ```
 
-To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values.
-These additional parameter values can be used in `update_parameter` in `model.py` to vary the model.
+To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
+These additional parameter values can be used in the function `update_parameter` in the file `model.py` to vary the model.
 For example, the user can parse 4 values for the `disk` model: reference radius, reference scale height, alpha, and beta.
 **Hint**: For any changes in the files, the user has to recompile with:
 ```
