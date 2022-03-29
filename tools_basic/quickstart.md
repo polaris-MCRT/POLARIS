@@ -140,3 +140,13 @@ To convert an existing ascii grid file of the `disk` model to a binary grid file
 polaris-gen --convert ascii2binary disk grid.txt
 ```
 The ascii file has to be located in `projects/disk/` and the new binary grid file will be stored at `projects/disk/`.
+
+
+## References
+Bonnor, 1956, [MNRAS, 116, 351](https://ui.adsabs.harvard.edu/abs/1956MNRAS.116..351B)\
+Ebert, 1955, [Z. Astrophys., 37, 217](https://ui.adsabs.harvard.edu/abs/1955ZA.....37..217E)\
+Hartmann et al. 1998, [ApJ, 495, 385](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H)\
+Harvey et al. 2001, [ApJ, 563, 903](https://ui.adsabs.harvard.edu/abs/2001ApJ...563..903H)\
+Kaminski et al. 2014, [ApJ, 790, 70](https://ui.adsabs.harvard.edu/abs/2014ApJ...790...70K)\
+Lynden-Bell & Pringle, 1974, [MNRAS, 168, 603](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L)\
+Shakura & Sunyaev, 1973, [A&A, 24, 337](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S)
