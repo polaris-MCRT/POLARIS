@@ -1,3 +1,4 @@
+<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V colorlinks -V --highlight-style tango quickstart.md -o quickstart.pdf' -->
 # POLARIS Quickstart Guide
 
 
@@ -22,17 +23,17 @@ The following packages are required for the installation:
 - Extract the zip file
 
 - Open a terminal/console and move into the POLARIS directory:
-```
+```bash
 cd /YOUR/POLARIS/PATH/
 ```
 
 - Run the installation script:
-```
+```bash
 ./compile.sh -f
 ```
 For the first installation, the option `-f` is required.
 For more information, type:
-```
+```bash
 ./compile.sh -h
 ```
 
@@ -50,8 +51,8 @@ The command files `.cmd` of the temperature, thermal emission, and scattered ste
 Before starting the simulation, change `/YOUR/POLARIS/PATH/` in the command file at `<dust_component>`, `<path_grid>`, and `<path_out>` to your POLARIS path.
 
 To start a temperature simulation, type:
-```
-polaris /YOUR/POLARIS/PATH/projects/disk/example/temp/temp.cmd
+```bash
+polaris projects/disk/example/temp/temp.cmd
 ```
 The results are stored at `projects/disk/example/temp/data/` as `.fits` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
@@ -86,13 +87,13 @@ $$ \rho(r) = \rho_0 $$
 
 By default, the density distribution is normalized to the given total mass.
 To create a grid file with a globule model, type:
-```
+```bash
 polaris-gen globule grid.dat
 ```
 The grid file will be stored at `projects/globule/`.
 It is also possible to modify some grid parameters with the command `polaris-gen`.
 For more information, type:
-```
+```bash
 polaris-gen -h
 ```
 
@@ -110,7 +111,7 @@ For example, the user can parse
 - 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
 
 **Hint**: For any changes in the files, the user has to recompile with:
-```
+```bash
 ./compile.sh -u
 ```
 
@@ -120,11 +121,11 @@ For example, the user can parse
 For a more complex model modification, it is recommended that users define their own models in `tools/polaris_tools_custom/model.py`.
 Therein, each model is defined as a class with a corresponding entry in the dictionary at the top of `model.py`.
 **Hint**: For any changes in the files, the user has to recompile with:
-```
+```bash
 ./compile.sh -u
 ```
-Similar, to create the grid file with a model named *custom*, type:
-```
+Similar, to create the grid file `grid.dat` with the model named *custom*, type:
+```bash
 polaris-gen custom grid.dat
 ```
 
@@ -135,7 +136,7 @@ It is also possible, to write their own grid file.
 For the general structure and available options in the grid file, please read the manual.
 For this purpose, the command `polaris-gen` has an ascii to binary converter (and vice versa) for the grid files.
 To convert an existing ascii grid file of the `disk` model to a binary grid file, type:
-```
+```bash
 polaris-gen --convert ascii2binary disk grid.txt
 ```
 The ascii file has to be located in `projects/disk/` and the new binary grid file will be stored at `projects/disk/`.
