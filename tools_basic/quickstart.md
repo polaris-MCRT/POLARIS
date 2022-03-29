@@ -67,12 +67,24 @@ For available options in the command file, please read the manual.
 The grid (binary) file will be created with the command `polaris-gen`.
 There are already three models available:
 
-- disk: A circumstellar disk with a Shakura & Sunyaev density distribution
+- disk: A circumstellar disk with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
+([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
+$$ \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right] $$
+$$ h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta $$
+Here, the default values are $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 0.9$, and $\beta = \frac{2 \alpha + 3}{6} = 0.8$.
 
-- globule: A Bok globule with a Bonnor-Ebert sphere density distribution
+- globule: A Bok globule with a [Bonnor](https://ui.adsabs.harvard.edu/abs/1956MNRAS.116..351B)-[Ebert](https://ui.adsabs.harvard.edu/abs/1955ZA.....37..217E) sphere density distribution
+([Harvey et al. 2001](https://ui.adsabs.harvard.edu/abs/2001ApJ...563..903H); [Kaminski et al. 2014](https://ui.adsabs.harvard.edu/abs/2014ApJ...790...70K))
+$$ \rho(r) = \rho_0 \begin{cases}
+r_\mathrm{t}^{-2} & \text{if}\ r \leq r_\mathrm{t}\\
+r^{-2} & \text{if}\ r_\mathrm{t} < r
+\end{cases}$$
+Here, the default value is $r_\mathrm{t} = 10^3\,\mathrm{AU}$.
 
 - sphere: A sphere with a constant density distribution
+$$ \rho(r) = \rho_0 $$
 
+By default, the density distribution is normalized to the given total mass.
 To create a grid file with a globule model, type:
 ```
 polaris-gen globule grid.dat
@@ -89,7 +101,14 @@ polaris-gen -h
 
 To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
 These additional parameter values can be used in the function `update_parameter` in the file `model.py` to vary the model.
-For example, the user can parse 4 values for the `disk` model: reference radius, reference scale height, alpha, and beta.
+For example, the user can parse
+
+- 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
+
+- 1 value for the `globule` model: truncation radius $r_\mathrm{t}$, and
+
+- 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
+
 **Hint**: For any changes in the files, the user has to recompile with:
 ```
 ./compile.sh -u
@@ -98,7 +117,7 @@ For example, the user can parse 4 values for the `disk` model: reference radius,
 
 ### Custom model
 
-For a more complex model modification, it is recommended that the user defines their own models in `tools/polaris_tools_custom/model.py`.
+For a more complex model modification, it is recommended that users define their own models in `tools/polaris_tools_custom/model.py`.
 Therein, each model is defined as a class with a corresponding entry in the dictionary at the top of `model.py`.
 **Hint**: For any changes in the files, the user has to recompile with:
 ```

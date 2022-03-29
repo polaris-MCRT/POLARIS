@@ -54,6 +54,9 @@ class CustomModel(Model):
 
         Notes:
             Use 'self.position' to calculate the quantity depending on position.
+            self.position[0] = x coordinate
+            self.position[1] = y coordinate
+            self.position[2] = z coordinate
 
             Define also the following routines if necessary:
                 dust_density_distribution(self), gas_temperature(self),
