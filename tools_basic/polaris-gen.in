@@ -41,10 +41,6 @@ req_args.add_argument('grid_filename', metavar='grid_filename', type=str,
                       help='filename of the POLARIS grid.\n'
                            '    grid will be stored in: "/model_name/grid_filename"')
 
-conv_args = parser.add_argument_group('grid binary ascii conversion')
-conv_args.add_argument('--convert', dest='convert', type=str, choices=['ascii2binary', 'binary2ascii'], default=None,
-                        help='convert existing ascii grid file to binary grid file or vice versa.')
-
 grid_args = parser.add_argument_group('grid')
 grid_args.add_argument('--grid_type', dest='grid_type', type=str, choices=['octree', 'spherical', 'cylindrical'],
                        default=None, help='type of the POLARIS grid.')
@@ -80,11 +76,16 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 # grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
-                       help='normalize density distribution to total mass, which is defined in the model.\n'
-                            'default: 1 (1: enable / 0: disable).')
+                       help='normalize density distribution to total mass, which is defined in the model\n'
+                            '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
-                            '(multiple values possible, no unit strings!).')
+                            '    (multiple values possible, no unit strings!).')
+
+conv_args = parser.add_argument_group('grid binary ascii conversion')
+conv_args.add_argument('--convert', dest='convert', type=str, choices=['ascii2binary', 'binary2ascii'], default=None,
+                        help='convert existing ascii grid file to binary grid file or vice versa\n'
+                             '    (only for spherical and cylindrical grid type).')
 
 # source_args = parser.add_argument_group('source')
 # source_args.add_argument('--external', dest='external_input_name', default=None,

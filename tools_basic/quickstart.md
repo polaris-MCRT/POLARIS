@@ -86,11 +86,12 @@ Here, the default value is $r_\mathrm{t} = 10^3\,\mathrm{AU}$.
 $$ \rho(r) = \rho_0 $$
 
 By default, the density distribution is normalized to the given total mass.
-To create a grid file with a globule model, type:
+To create a grid file, use
 ```bash
-polaris-gen globule grid.dat
+polaris-gen model_name grid_filename.dat
 ```
-The grid file will be stored at `projects/globule/`.
+where `model_name` is either `disk`, `globule`, or `sphere`.
+The grid file will be stored at `projects/model_name/`.
 It is also possible to modify some grid parameters with the command `polaris-gen`.
 For more information, type:
 ```bash
@@ -124,10 +125,11 @@ Therein, each model is defined as a class with a corresponding entry in the dict
 ```bash
 ./compile.sh -u
 ```
-Similar, to create the grid file `grid.dat` with the model named *custom*, type:
+Similar, to create a grid file for a custom model, use
 ```bash
-polaris-gen custom grid.dat
+polaris-gen model_name grid_filename.dat
 ```
+where `model_name` is the name of the model in the dictionary of `model.py`.
 
 
 ### Write a grid file
@@ -135,11 +137,11 @@ polaris-gen custom grid.dat
 It is also possible, to write their own grid file.
 For the general structure and available options in the grid file, please read the manual.
 For this purpose, the command `polaris-gen` has an ascii to binary converter (and vice versa) for the grid files.
-To convert an existing ascii grid file of the `disk` model to a binary grid file, type:
+To convert an existing ascii grid file to a binary grid file, use
 ```bash
-polaris-gen --convert ascii2binary disk grid.txt
+polaris-gen --convert ascii2binary model_name grid_filename.txt
 ```
-The ascii file has to be located in `projects/disk/` and the new binary grid file will be stored at `projects/disk/`.
+The ascii file has to be located in `projects/model_name/` and the new binary grid file will be stored at `projects/model_name/`.
 
 
 ## References
