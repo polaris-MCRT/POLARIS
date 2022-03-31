@@ -321,6 +321,7 @@ function usage() {
     echo "        choose the generator for cmake:"
     echo "          - make (default)"
     echo "          - ninja"
+    echo "-D delete POLARIS from your computer"
     exit
 }
 
@@ -363,6 +364,26 @@ while getopts "hfrduc:g:" opt; do
             CMAKE_GENERATOR="Unix Makefiles"
         fi
         ;;
+    D)
+        printf "%s\n" "Do you really want to delete your POLARIS installation [y/N]?"
+        read really_delete
+        case ${really_delete:=n} in
+        [yY]*)
+            echo "------ delete POLARIS ------"
+            export_str="export PATH=\"${current_path}/bin:"'$PATH'"\""
+            if grep -q "${export_str}" ${HOME}/.bashrc; then
+                sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
+            fi
+            export_str="export LD_LIBRARY_PATH=\"${current_path}/lib/CCfits/build:${current_path}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
+
+            if grep -q "${export_str}" ${HOME}/.bashrc; then
+                sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
+            fi
+            cd ${current_path}/../
+            rm -rv ${current_path}
+            pip uninstall PolarisTools
+            exit
+            ;;
     esac
 done
 
