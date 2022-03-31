@@ -472,6 +472,7 @@ if type "python3" >/dev/null 2>&1; then
     done
 else
     echo -e "        -- ${RED}Error:${NC} Required package python3 not found!"
+    required_packages=false
 fi
 
 if ! $required_packages; then
