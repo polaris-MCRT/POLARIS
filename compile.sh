@@ -341,7 +341,7 @@ function delete_installation()
 
 function usage() {
     echo ""
-    echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
+    echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR] [-D]"
     echo ""
     echo "Install and compile POLARIS"
     echo -e "${YELLOW}NOTE:${NC} For first installation, use option -f"
@@ -362,6 +362,7 @@ function usage() {
     echo "          - make (default)"
     echo "          - ninja"
     echo "-D delete POLARIS from your computer"
+    echo ""
     exit
 }
 
