@@ -4,7 +4,10 @@
 
 ## Download
 
-Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~polaris/) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS).
+Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~polaris/) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
+```
+git clone https://github.com/polaris-MCRT/POLARIS.git
+```
 
 
 ## Requirements
