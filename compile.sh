@@ -344,7 +344,7 @@ function usage() {
     echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR] [-D]"
     echo ""
     echo "Install and compile POLARIS"
-    echo -e "${YELLOW}NOTE:${NC} For first installation, use option -f"
+    echo -e "${YELLOW}HINT:${NC} For first installation, use option -f"
     echo ""
     echo "optional arguments:"
     echo "-h      show this help message and exit"
@@ -420,7 +420,7 @@ if $release && $debug; then CO="fast-debug"; fi
 
 # Print hint for first installation
 echo ""
-echo -e "${YELLOW}NOTE:${NC} For first installation, use option -f"
+echo -e "${YELLOW}HINT:${NC} For first installation, use option -f"
 echo ""
 
 
