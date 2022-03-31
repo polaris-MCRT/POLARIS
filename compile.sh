@@ -455,13 +455,13 @@ if type "python3" >/dev/null 2>&1; then
         if python3 -c "import ${package_name}" &>/dev/null; then
             echo -e "        -- Required python package ${package_name} [${GREEN}found${NC}]"
         else
-            if type "pip" >/dev/null 2>&1; then
+            if type "pip3" >/dev/null 2>&1; then
                 echo "Pip installation detected. Install ${package_name}!"
-                pip install ${package_name}
+                pip3 install ${package_name}
                 if python3 -c "import ${package_name}" &>/dev/null; then
                     echo -e "        -- Installation succesfull. Required python package ${package_name} [${GREEN}found${NC}]"
                 else
-                    echo -e "        -- ${RED}Error:${NC} installation of ${package_name} not succesfull!"
+                    echo -e "        -- ${RED}Error:${NC} Installation of ${package_name} not succesfull!"
                     required_packages=false
                 fi
             else
