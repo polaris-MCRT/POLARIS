@@ -21,7 +21,7 @@ for script in scripts:
 
     # Replace the target string
     polaris_path = os.path.abspath(
-        os.getcwd().replace('polaristools', '')) + os.path.sep
+        os.getcwd().replace('tools', '')) + os.path.sep
     filedata = filedata.replace('@POLARIS_PATH@', polaris_path)
 
     # Write the file out again
@@ -136,7 +136,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=['polaristools_modules', 'polaristools_custom'],  # Required
+    packages=['polaris_tools_modules', 'polaris_tools_custom'],  # Required
 
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
