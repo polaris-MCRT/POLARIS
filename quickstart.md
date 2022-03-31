@@ -152,5 +152,5 @@ To convert an existing binary grid file to an ascii grid file, use
 ```bash
 polaris-gen --convert binary2ascii model_name grid_filename.dat
 ```
-The input grid fule has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
+The input grid file has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
 For the general structure and available options in the grid file, please read the manual.
