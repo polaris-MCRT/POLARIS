@@ -3,6 +3,7 @@
 # Define colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
 NC='\033[0m'
 
 # get current directory
@@ -301,6 +302,7 @@ function usage() {
     echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
     echo ""
     echo "Install and compile POLARIS"
+    echo -e "${YELLOW}NOTE:${NC} For first installation, use option -f"
     echo ""
     echo "optional arguments:"
     echo "-h      show this help message and exit"
@@ -365,18 +367,61 @@ done
 # release + debug -> fast debug (nice for profiling)
 if $release && $debug; then CO="fast-debug"; fi
 
+# Print hint for first installation
+echo ""
+echo -e "${YELLOW}NOTE:${NC} For first installation, use option -f"
+echo ""
 
-# is chosen compiler available?
-type $CXX >/dev/null 2>&1 || { echo >&2 "I cannot use $CXX as compiler: it's not installed. Aborting."; exit 1; }
 
+# Search for required packages
+required_packages=true
+echo -e "Search for required packages ..."
+if type $CXX >/dev/null 2>&1; then
+    echo -e "        -- Required package $CXX [${GREEN}found${NC}]"
+else
+    echo -e "        -- ${RED}Error:${NC} Required package $CXX not found!"
+    required_packages=false
+fi
 
-# is chosen cmake generator available?
 if [[ $CMAKE_GENERATOR = "Ninja" ]]; then
-    type "ninja" >/dev/null 2>&1 \
-        || { echo >&2 "I cannot use $CMAKE_GENERATOR as CMake generator: it's not installed. Aborting."; exit 1; }
+    if type "ninja" >/dev/null 2>&1; then
+        echo -e "        -- Required package $CMAKE_GENERATOR [${GREEN}found${NC}]"
+    else
+        echo -e "        -- ${RED}Error:${NC} Required package $CMAKE_GENERATOR not found!"
+        required_packages=false
+    fi
 elif [[ $CMAKE_GENERATOR = "Unix Makefiles" ]]; then
-    type "make" >/dev/null 2>&1 \
-        || { echo >&2 "I cannot use $CMAKE_GENERATOR as CMake generator: it's not installed. Aborting."; exit 1; }
+    if type "make" >/dev/null 2>&1; then
+        echo -e "        -- Required package $CMAKE_GENERATOR [${GREEN}found${NC}]"
+    else
+        echo -e "        -- ${RED}Error:${NC} Required package $CMAKE_GENERATOR not found!"
+        required_packages=false
+    fi
+fi
+
+for package_name in argparse io numpy os setuptools shutil struct sys; do
+    if python -c "import ${package_name}" &>/dev/null; then
+        echo -e "        -- Required python package ${package_name} [${GREEN}found${NC}]"
+    else
+        if type "pip" >/dev/null 2>&1; then
+            echo "Pip installation detected. Install ${package_name}!"
+            pip install ${package_name}
+            if python -c "import ${package_name}" &>/dev/null; then
+                echo -e "        -- Installation succesfull. Required python package ${package_name} [${GREEN}found${NC}]"
+            else
+                echo -e "        -- ${RED}Error:${NC} installation of ${package_name} not succesfull!"
+                required_packages=false
+            fi
+        else
+            echo -e "        -- ${RED}Error:${NC} Required python package ${package_name} not found!"
+            required_packages=false
+        fi
+    fi
+done
+
+if ! $required_packages; then
+    echo -e "${RED}Error:${NC} Installation aborted. Please contact your system admin to install the required packages."
+    exit 1
 fi
 
 
@@ -501,14 +546,6 @@ echo ""
 echo "Compiler flags:    $CXXFLAGS"
 echo ""
 echo ""
-
-if [ $CO = "release" ]; then
-    echo "###################################################"
-    echo "# NOTE: For first installation, use option \"-f\" ! #"
-    echo "###################################################"
-    echo ""
-    echo ""
-fi
 
 
 if [ ! -d "projects" ]; then
