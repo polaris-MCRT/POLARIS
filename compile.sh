@@ -399,25 +399,31 @@ elif [[ $CMAKE_GENERATOR = "Unix Makefiles" ]]; then
     fi
 fi
 
-for package_name in argparse io numpy os setuptools shutil struct sys; do
-    if python -c "import ${package_name}" &>/dev/null; then
-        echo -e "        -- Required python package ${package_name} [${GREEN}found${NC}]"
-    else
-        if type "pip" >/dev/null 2>&1; then
-            echo "Pip installation detected. Install ${package_name}!"
-            pip install ${package_name}
-            if python -c "import ${package_name}" &>/dev/null; then
-                echo -e "        -- Installation succesfull. Required python package ${package_name} [${GREEN}found${NC}]"
+
+if type "python3" >/dev/null 2>&1; then
+    echo -e "        -- Required package python3 [${GREEN}found${NC}]"
+    for package_name in argparse io numpy os setuptools shutil struct sys; do
+        if python3 -c "import ${package_name}" &>/dev/null; then
+            echo -e "        -- Required python package ${package_name} [${GREEN}found${NC}]"
+        else
+            if type "pip" >/dev/null 2>&1; then
+                echo "Pip installation detected. Install ${package_name}!"
+                pip install ${package_name}
+                if python3 -c "import ${package_name}" &>/dev/null; then
+                    echo -e "        -- Installation succesfull. Required python package ${package_name} [${GREEN}found${NC}]"
+                else
+                    echo -e "        -- ${RED}Error:${NC} installation of ${package_name} not succesfull!"
+                    required_packages=false
+                fi
             else
-                echo -e "        -- ${RED}Error:${NC} installation of ${package_name} not succesfull!"
+                echo -e "        -- ${RED}Error:${NC} Required python package ${package_name} not found!"
                 required_packages=false
             fi
-        else
-            echo -e "        -- ${RED}Error:${NC} Required python package ${package_name} not found!"
-            required_packages=false
         fi
-    fi
-done
+    done
+else
+    echo -e "        -- ${RED}Error:${NC} Required package python3 not found!"
+fi
 
 if ! $required_packages; then
     echo -e "${RED}Error:${NC} Installation aborted. Please contact your system admin to install the required packages."
