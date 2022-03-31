@@ -324,7 +324,7 @@ function delete_installation()
 
         cd ${current_path}/../
         rm -rfv ${current_path}
-        pip uninstall PolarisTools
+        pip3 uninstall PolarisTools
         exit
         ;;
     *)
@@ -415,6 +415,7 @@ done
 
 # release + debug -> fast debug (nice for profiling)
 if $release && $debug; then CO="fast-debug"; fi
+
 
 # Print hint for first installation
 echo ""
