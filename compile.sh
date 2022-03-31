@@ -328,7 +328,7 @@ function usage() {
 release=false
 debug=false
 
-while getopts "hfrduc:g:" opt; do
+while getopts "hfrduc:g:D" opt; do
     case $opt in
     h)
         usage
@@ -384,6 +384,7 @@ while getopts "hfrduc:g:" opt; do
             pip uninstall PolarisTools
             exit
             ;;
+        esac
     esac
 done
 
