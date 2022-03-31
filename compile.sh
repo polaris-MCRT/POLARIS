@@ -323,7 +323,7 @@ function delete_installation()
         fi
 
         cd ${current_path}/../
-        rm -rv ${current_path}
+        rm -rfv ${current_path}
         pip uninstall PolarisTools
         exit
         ;;
