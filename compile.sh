@@ -280,8 +280,8 @@ function update_installation()
 
     # compile and install PolarisTools if available
     # PolarisTools is no longer maintained and is not shipped with POLARIS anymore
-    if [[ -d "tools" ]]; then
-        cd "tools/"
+    if [[ -d "tools_basic" ]]; then
+        cd "tools_basic/"
         python3 setup.py install --user &>/dev/null \
             && { echo -e "Compile and installing PolarisTools [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1; }
@@ -605,9 +605,9 @@ install_polaris
 
 # compile and install PolarisTools if available
 # PolarisTools is no longer maintained and is not shipped with POLARIS anymore
-if [[ -d "tools" ]]; then
+if [[ -d "tools_basic" ]]; then
     # go to PolarisTools dir
-    cd tools/
+    cd tools_basic/
 
     # compile and install PolarisTools
     python3 setup.py install --user &>/dev/null \
