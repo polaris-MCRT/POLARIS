@@ -295,6 +295,46 @@ function update_installation()
 
 
 # ================================================================================ #
+# ================================ Delete POLARIS ================================ #
+# ================================================================================ #
+
+
+function delete_installation()
+{
+    printf "%s\n" "Do you really want to delete your POLARIS installation [y/N]?"
+    read really_delete
+    case ${really_delete:=n} in
+    [yY]*)
+        echo "------ delete POLARIS ------"
+
+        export_str="export POLARIS_PATH=\"${current_path}\""
+        if grep -q "${export_str}" ${HOME}/.bashrc; then
+            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
+        fi
+
+        export_str="export POLARIS_FITS_PATH=\""'${POLARIS_PATH}'"/lib/CCfits/build:"'${POLARIS_PATH}'"/lib/cfitsio/build\""
+        if grep -q "${export_str}" ${HOME}/.bashrc; then
+            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
+        fi
+
+        export_str="export POLARISTOOLS_PATH=\"$HOME/.local/bin\""
+        if grep -q "${export_str}" ${HOME}/.bashrc; then
+            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
+        fi
+
+        cd ${current_path}/../
+        rm -rv ${current_path}
+        pip uninstall PolarisTools
+        exit
+        ;;
+    *)
+        exit
+        ;;
+    esac
+}
+
+
+# ================================================================================ #
 # =========================== Get user input and verify ========================== #
 # ================================================================================ #
 
@@ -365,26 +405,11 @@ while getopts "hfrduc:g:D" opt; do
         fi
         ;;
     D)
-        printf "%s\n" "Do you really want to delete your POLARIS installation [y/N]?"
-        read really_delete
-        case ${really_delete:=n} in
-        [yY]*)
-            echo "------ delete POLARIS ------"
-            export_str="export PATH=\"${current_path}/bin:"'$PATH'"\""
-            if grep -q "${export_str}" ${HOME}/.bashrc; then
-                sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
-            fi
-            export_str="export LD_LIBRARY_PATH=\"${current_path}/lib/CCfits/build:${current_path}/lib/cfitsio/build:"'${LD_LIBRARY_PATH}'"\""
-
-            if grep -q "${export_str}" ${HOME}/.bashrc; then
-                sed -i.bak "/${export_str//\//\\/}/d" ${HOME}/.bashrc
-            fi
-            cd ${current_path}/../
-            rm -rv ${current_path}
-            pip uninstall PolarisTools
-            exit
-            ;;
-        esac
+        delete_installation
+        ;;
+    *)
+        usage
+        ;;
     esac
 done
 

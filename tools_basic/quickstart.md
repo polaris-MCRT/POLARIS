@@ -8,7 +8,7 @@ Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~po
 ```bash
 git clone https://github.com/polaris-MCRT/POLARIS.git
 ```
-HINT: It is recommended to clone the repository into the home directory.
+**HINT**: It is recommended to clone the git repository into the home directory.
 If downloaded from the homepage, extract the zip file into the home directory via:
 ```bash
 unzip -q POLARIS-master.zip -d ~/
