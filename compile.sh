@@ -288,6 +288,8 @@ function update_installation()
         cd ".."
     fi
 
+    source ${HOME}/.bashrc
+
     exit
 }
 
@@ -640,3 +642,5 @@ if [[ -d "tools_basic" ]]; then
         echo ""
     fi
 fi
+
+source ${HOME}/.bashrc

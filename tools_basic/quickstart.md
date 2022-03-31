@@ -5,8 +5,13 @@
 ## Download
 
 Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~polaris/) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
-```
+```bash
 git clone https://github.com/polaris-MCRT/POLARIS.git
+```
+HINT: It is recommended to clone the repository into the home directory.
+If downloaded from the homepage, extract the zip file into the home directory via:
+```bash
+unzip -q POLARIS-master.zip -d ~/
 ```
 
 
@@ -22,8 +27,6 @@ The following packages are required for the installation:
 
 
 ## Installation
-
-- Extract the zip file
 
 - Open a terminal/console and move into the POLARIS directory:
 ```bash
@@ -55,7 +58,7 @@ Before starting the simulation, change `/YOUR/POLARIS/PATH/` in the command file
 
 To start a temperature simulation, type:
 ```bash
-polaris projects/disk/example/temp/temp.cmd
+polaris projects/disk/example/temp/POLARIS.cmd
 ```
 The results are stored at `projects/disk/example/temp/data/` as `.fits` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
@@ -139,11 +142,15 @@ where `model_name` is the name of the model in the dictionary of `model.py`.
 
 ### Convert a grid file
 
-Users can also write their own grid file.
+Users can also write and edit their own grid file.
 For this purpose, the command `polaris-gen` has an ascii to binary converter (and vice versa) for converting grid files.
 To convert an existing ascii grid file to a binary grid file, use
 ```bash
 polaris-gen --convert ascii2binary model_name grid_filename.txt
 ```
-The ascii file has to be located in `projects/model_name/` and the new binary grid file will be stored at `projects/model_name/`.
+To convert an existing binary grid file to an ascii grid file, use
+```bash
+polaris-gen --convert binary2ascii model_name grid_filename.dat
+```
+The input has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
 For the general structure and available options in the grid file, please read the manual.
