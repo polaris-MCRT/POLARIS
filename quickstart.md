@@ -72,21 +72,13 @@ For available options in the command file, please read the manual.
 ### Predefined models
 
 The (binary) grid file will be created with the command `polaris-gen`.
-There are already three models available:
+There are already two models available:
 
 - disk: A circumstellar disk with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
 ([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
 $$ \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right] $$
 $$ h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta $$
 Here, the default values are $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 0.9$, and $\beta = 1.1$.
-
-- globule: A Bok globule with a [Bonnor](https://ui.adsabs.harvard.edu/abs/1956MNRAS.116..351B)-[Ebert](https://ui.adsabs.harvard.edu/abs/1955ZA.....37..217E) sphere density distribution
-([Harvey et al. 2001](https://ui.adsabs.harvard.edu/abs/2001ApJ...563..903H); [Kaminski et al. 2014](https://ui.adsabs.harvard.edu/abs/2014ApJ...790...70K))
-$$ \rho(r) = \rho_0 \begin{cases}
-r_\mathrm{t}^{-2} & \text{if}\ r \leq r_\mathrm{t}\\
-r^{-2} & \text{if}\ r_\mathrm{t} < r
-\end{cases}$$
-Here, the default value is $r_\mathrm{t} = 10^3\,\mathrm{AU}$.
 
 - sphere: A sphere with a constant density distribution
 $$ \rho(r) = \rho_0 $$
@@ -96,7 +88,7 @@ To create a grid file, use
 ```bash
 polaris-gen model_name grid_filename.dat
 ```
-where `model_name` is either `disk`, `globule`, or `sphere`.
+where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
 It is also possible to modify some grid parameters with the command `polaris-gen`.
 For more information, type:
@@ -111,8 +103,6 @@ To modify further parameter values, the user can parse a list of parameter value
 By default, the user can parse
 
 - 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
-
-- 1 value for the `globule` model: truncation radius $r_\mathrm{t}$, and
 
 - 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
 

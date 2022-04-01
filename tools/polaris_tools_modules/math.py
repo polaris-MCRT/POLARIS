@@ -1373,32 +1373,32 @@ class Math:
                 density = 1.
         return density
 
-    @staticmethod
-    def bonor_ebert_density(position, outer_radius, truncation_radius, exponent=-2.):
-        """Density profile with a Bonnor-Ebert sphere.
+    # @staticmethod
+    # def bonor_ebert_density(position, outer_radius, truncation_radius, exponent=-2.):
+    #     """Density profile with a Bonnor-Ebert sphere.
 
-        Notes:
-            Link: http://arxiv.org/abs/1401.5064
+    #     Notes:
+    #         Link: http://arxiv.org/abs/1401.5064
 
-        Args:
-            position (List[float, float, float]): Position in model space.
-            outer_radius (float): Radius of the sphere.
-            truncation_radius (float): Radius of inner regions of constant density.
-            exponent (float): Exponential decrease of he density.
+    #     Args:
+    #         position (List[float, float, float]): Position in model space.
+    #         outer_radius (float): Radius of the sphere.
+    #         truncation_radius (float): Radius of inner regions of constant density.
+    #         exponent (float): Exponential decrease of he density.
 
-        Returns:
-            Float: Density at the given position.
-        """
-        #: float: Radial distance
-        radius = np.sqrt(position[0] ** 2 + position[1]
-                         ** 2 + position[2] ** 2)
-        #: float: Bonnor-Ebert sphere density distribution
-        density = 0.0
-        if radius <= truncation_radius:
-            density = truncation_radius ** exponent
-        elif radius <= outer_radius:
-            density = radius ** exponent
-        return density
+    #     Returns:
+    #         Float: Density at the given position.
+    #     """
+    #     #: float: Radial distance
+    #     radius = np.sqrt(position[0] ** 2 + position[1]
+    #                      ** 2 + position[2] ** 2)
+    #     #: float: Bonnor-Ebert sphere density distribution
+    #     density = 0.0
+    #     if radius <= truncation_radius:
+    #         density = truncation_radius ** exponent
+    #     elif radius <= outer_radius:
+    #         density = radius ** exponent
+    #     return density
 
     # @staticmethod
     # def random_density_distribution(position, d_exp=3):
