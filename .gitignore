@@ -5,9 +5,11 @@
 .dirstamp
 
 build/
-projects/
 nbproject/
 testing/
+
+projects/*
+!projects/disk/
 
 .tags
 .tags1
