@@ -4,8 +4,8 @@
 .dep.inc
 .dirstamp
 
-build
-projects
+build/
+projects/
 nbproject/
 testing/
 
@@ -13,15 +13,11 @@ testing/
 .tags1
 null.d
 
-tools/scripts/*
 **/Makefile
-lib/CCfits
-lib/cfitsio
-lib/python*
 
 src/build/
 src/polaris
-bin/*
+bin/
 
 **/*.bak
 examples*
