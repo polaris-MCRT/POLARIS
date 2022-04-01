@@ -35,7 +35,7 @@
 	<axis1>	1	0	0
 	<axis2>	0	1	0
 
-	#  ray-tracing for thermal emission of dust grains
+	# ray-tracing for thermal emission of dust grains
 	<cmd>			CMD_DUST_EMISSION
 
 	# path of the input grid file
