@@ -15,10 +15,6 @@ null.d
 
 **/Makefile
 
-src/build/
-src/polaris
-bin/
-
 **/*.bak
 examples*
 
