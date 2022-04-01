@@ -10,7 +10,7 @@ is a 3D Monte Carlo continuum radiative transfer code.
 
 - Make use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
 
-For installation, please take a look in our *quickstart.pdf*.
+For installation and how to start first simulations, please take a look in our *quickstart.pdf*.
 
 For more information about POLARIS and its capabilities, please take a look in our *manual.pdf*.
 
