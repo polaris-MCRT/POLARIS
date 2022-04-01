@@ -19,5 +19,3 @@ null.d
 
 **/*.bak
 examples*
-
-.gitlab-ci.yml
