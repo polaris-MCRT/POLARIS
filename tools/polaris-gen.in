@@ -76,6 +76,8 @@ grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, 
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '(multiple values possible, no unit strings!).')
+grid_args.add_argument('--nonorm', dest='nonorm', default=None,
+                         help='turn off normalization.')
 
 source_args = parser.add_argument_group('source')
 source_args.add_argument('--external', dest='external_input_name', default=None,
@@ -141,7 +143,7 @@ class GridRoutines:
             normalize (bool): normalize density distribution to total mass,
                 which is defined in the model.
         """
-        if self.ext_input is not None:
+        if self.ext_input is not None or self.parse_args.nonorm is not None:
             normalize = False
 
         #: Init grid

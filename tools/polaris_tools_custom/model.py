@@ -15,6 +15,7 @@ def update_model_dict(dictionary):
     model_dict = {
         'custom': CustomModel,
         'pascucci': Pascucci,
+        'subdisk': SubDisk,
     }
     dictionary.update(model_dict)
 
@@ -137,3 +138,111 @@ class Pascucci(Model):
             gas_density = 0
         
         return gas_density
+
+class SubDisk(Model):
+    """
+    Model for disks with sublimated inner radii. No normalization needed.
+    Dust mass is decreasing with increasing sublimation radius.
+    """
+
+    def __init__(self):
+        """Initialisation of the model parameters.
+        """
+        Model.__init__(self)
+
+        # Set parameters of the custom model (see parent Model class for all available options)
+        self.parameter['distance'] = 140.0 * self.math.const['pc']
+        self.parameter['grid_type'] = 'cylindrical'
+        self.parameter['inner_radius'] = 0.06 * self.math.const['au']
+        self.parameter['outer_radius'] = 100.0 * self.math.const['au']
+        self.parameter['stable_radius'] = 0.1 * self.math.const['au']
+        self.parameter['gas_mass'] = 1e-3 * self.math.const['M_sun']
+        # Define which other choise are default for this model
+        self.parameter['radiation_source'] = 't_tauri'
+        self.parameter['dust_composition'] = 'mrn'
+        self.parameter['gas_species'] = 'oh'
+        self.parameter['detector'] = 'cartesian'
+        # In the case of a spherical grid
+        self.spherical_parameter['n_r'] = 200
+        self.spherical_parameter['n_th'] = 181
+        self.spherical_parameter['n_ph'] = 1
+        self.spherical_parameter['sf_r'] = 1.03
+        # sf_th = 1 is sinus; sf_th > 1 is exp with step width sf_th; rest is linear
+        self.spherical_parameter['sf_th'] = 1.0
+        # In the case of a cylindrical grid
+        self.cylindrical_parameter['n_r'] = 200
+        self.cylindrical_parameter['n_z'] = 181
+        self.cylindrical_parameter['n_ph'] = 1
+        self.cylindrical_parameter['sf_r'] = 1.03
+        # sf_z = -1 is using scale height; sf_z = 1 is sinus;
+        # sf_z > 1 is exp with step width sf_z and rest is linear
+        self.cylindrical_parameter['sf_z'] = -1
+        # Default disk parameter
+        self.parameter['ref_radius'] = 100. * self.math.const['au']
+        self.parameter['ref_scale_height'] = 10. * self.math.const['au']
+        self.parameter['alpha'] = 0.9 # Andrews 2010
+        # self.parameter['beta'] = self.parameter['alpha'] / 3 + 0.5
+        self.parameter['beta'] = 1.1 # Woitke 2019
+        self.parameter['f_dg'] = 0.01
+
+    def update_parameter(self, extra_parameter):
+        """Use this function to set model parameter with the extra parameters and update 
+        disk parameter that depend on other parameter.
+        """
+        # Set smallest stable radius (e.g. Akeson 2005 12.5Rsun)
+        if extra_parameter is not None:
+            self.parameter['stable_radius'] = self.math.parse(extra_parameter[0], 'length')
+
+    def gas_density_distribution(self):
+        """Define here your routine to calculate the density at a given position
+        in the model space.
+        Args:
+            position (List[float, float, float]): Position in model space.
+            inner_radius (float): Inner radius of the disk.
+            outer_radius (float): Outer radius of the disk.
+            sub_radius (float): Sublimation radius of the disk.
+            ref_scale_height (float): Reference scale height.
+            ref_radius (float): Reference radius.
+            gas_mass (float): Total gas mass.
+            alpha (float): Exponent for radial density decrease.
+            beta (float): Exponent for disk flaring.
+            f_dg (float): Dust to gas ratio.
+        Notes:
+            Use 'self.position' to calculate the quantity depending on position.
+        Returns:
+            float: Gas density at a given position.
+        """
+        #: float: Total dust mass
+        m_dust = self.parameter['gas_mass'] * self.parameter['f_dg']
+        #: float: Cylindrical radius
+        radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
+        if self.parameter['outer_radius'] >= radius_cy >= self.parameter['inner_radius']:
+            #: float: Vertical height
+            vert_height = abs(self.position[2])
+            #: float: Vertical scale height
+            scale_height = self.scale_height(radius_cy)
+            #: float gas surface density scaling factor
+            sig_0 = (m_dust * ( 2 - self.parameter['alpha'])) / (self.parameter['f_dg'] * 2 * np.pi * self.parameter['ref_radius'] ** self.parameter['alpha'] * \
+                    (self.parameter['outer_radius'] ** (2 - self.parameter['alpha']) - self.parameter['stable_radius'] ** (2 - self.parameter['alpha'])))
+            #: float gas surface density
+            sigma = sig_0 * (radius_cy / self.parameter['ref_radius']) ** (-self.parameter['alpha'])
+            #: float: Shakura and Sunyaev like density distribution
+            density =  sigma / (np.sqrt(2 * np.pi) * scale_height ) * \
+                np.exp(-0.5 * (vert_height / scale_height) ** 2)
+        else:
+            density = 0.
+
+        return density
+    
+    def scale_height(self, radius):
+        """Calculates the scale height at a certain position.
+
+        Args:
+            radius (float) : Cylindrical radius of current position
+
+        Returns:
+            float: Scale height.
+        """
+        scale_height = self.parameter['ref_scale_height'] * (radius / self.parameter['ref_radius']) ** self.parameter['beta']
+        
+        return scale_height
