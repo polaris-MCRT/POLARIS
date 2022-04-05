@@ -201,10 +201,16 @@ class Grid:
         grid_file.write(struct.pack('H', self.data_length))
         # Gas density index: 0 or gas mass density index: 28
         for i_gas_dens in range(self.nr_gas_densities):
-            grid_file.write(struct.pack('H', 28))
+            if self.model.parameter['gas_density'] == 'number':
+                grid_file.write(struct.pack('H', 0))
+            else:
+                grid_file.write(struct.pack('H', 28))
         # Dust density index: 1 or dust mass density index: 29
         for i_dust_dens in range(self.nr_dust_densities):
-            grid_file.write(struct.pack('H', 29))
+            if self.model.parameter['dust_density'] == 'number':
+                grid_file.write(struct.pack('H', 1))
+            else:
+                grid_file.write(struct.pack('H', 29))
         if self.data.get_dust_temperature() is not None:
             # Dust temperature index: 2
             grid_file.write(struct.pack('H', 2))

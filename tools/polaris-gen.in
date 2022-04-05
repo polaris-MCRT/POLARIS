@@ -76,7 +76,7 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 # grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
-                       help='normalize density distribution to total mass, which is defined in the model\n'
+                       help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model\n'
                             '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
@@ -182,7 +182,7 @@ class GridRoutines:
         grid.create_grid(tmp_file, root)
         # Close the temporary grid file
         tmp_file.close()
-        if normalize:
+        if normalize and self.model.parameter['gas_density'] != 'number' and self.model.parameter['dust_density'] != 'number':
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
@@ -294,15 +294,16 @@ class GridRoutines:
             ascii_file: Input ascii file.
             binary_file: Output binary file.
         """
-        grid_id = int(ascii_file.readline().strip())
+        line = np.array(ascii_file.readline().strip().split(' '), dtype=int)
+        grid_id = line[0]
         if grid_id != 30 and grid_id != 40:
             raise ValueError('Wrong grid ID. Only spherical (30) or cylindrical (40) are supported so far.')
         binary_file.write(struct.pack('H', grid_id))
         
-        data_length = int(ascii_file.readline().strip())
+        data_length = line[1]
         binary_file.write(struct.pack('H', data_length))
 
-        quantities = np.array(ascii_file.readline().strip().split(' '), dtype=int)
+        quantities = line[2:]
         for quant in quantities:
             binary_file.write(struct.pack('H', quant))
         
@@ -372,9 +373,9 @@ class GridRoutines:
         if grid_id != 30 and grid_id != 40:
             raise ValueError('Wrong grid ID. Only spherical (30) or cylindrical (40) are supported so far.')
 
-        ascii_file.write(str(grid_id) + '\n')
+        ascii_file.write(str(grid_id) + ' ')
         data_length = struct.unpack('H', binary_file.read(2))[0]
-        ascii_file.write(str(data_length) + '\n')
+        ascii_file.write(str(data_length) + ' ')
         
         for i_data in range(data_length):
             ascii_file.write(str(struct.unpack('H', binary_file.read(2))[0]) + ' ')
