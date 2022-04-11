@@ -8,3 +8,6 @@ build/
 autom4te.cache
 
 polaristools.egg-info/
+__pycache__
+polaris_tools_custom/__pycache__
+polaris_tools_modules/__pycache__
