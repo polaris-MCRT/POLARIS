@@ -27,6 +27,8 @@ class Model:
             'grid_type': 'octree',
             # Global parameters of gas phase
             'turbulent_velocity': 100.,
+            'gas_number_density': False,
+            'dust_number_density': False,
             # Define which other objects will be connected to this model
             # 'background_source': 'bg_plane',
             # 'detector': None,

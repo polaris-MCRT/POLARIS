@@ -118,10 +118,10 @@ class Grid:
             if self.nr_gas_densities == 1:
                 if self.data.get_gas_density_distribution() is not None and \
                         not isinstance(self.data.get_gas_density_distribution(), (float, int)):
-                    if len(self.data.get_gas_density_distribution()[0]) != \
-                            len(self.model.parameter['gas_mass'][0]):
-                        raise ValueError("gas_density_distribution does not provied the same array than "
-                                         "defined in self.parameter['gas_mass']")
+                    # if len(self.data.get_gas_density_distribution()[0]) != \
+                    #         len(self.model.parameter['gas_mass'][0]):
+                    raise ValueError("gas_density_distribution does not provied the same array than "
+                                        "defined in self.parameter['gas_mass']")
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
@@ -201,13 +201,13 @@ class Grid:
         grid_file.write(struct.pack('H', self.data_length))
         # Gas density index: 0 or gas mass density index: 28
         for i_gas_dens in range(self.nr_gas_densities):
-            if self.model.parameter['gas_density'] == 'number':
+            if self.model.parameter['gas_number_density']:
                 grid_file.write(struct.pack('H', 0))
             else:
                 grid_file.write(struct.pack('H', 28))
         # Dust density index: 1 or dust mass density index: 29
         for i_dust_dens in range(self.nr_dust_densities):
-            if self.model.parameter['dust_density'] == 'number':
+            if self.model.parameter['dust_number_density']:
                 grid_file.write(struct.pack('H', 1))
             else:
                 grid_file.write(struct.pack('H', 29))

@@ -182,7 +182,7 @@ class GridRoutines:
         grid.create_grid(tmp_file, root)
         # Close the temporary grid file
         tmp_file.close()
-        if normalize and self.model.parameter['gas_density'] != 'number' and self.model.parameter['dust_density'] != 'number':
+        if normalize and self.model.parameter['gas_number_density'] and self.model.parameter['dust_number_density']:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
