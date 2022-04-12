@@ -76,7 +76,8 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 # grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
-                       help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model\n'
+                       help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
+                            '    if disabled, the density distribution is interpreted as a number density.'
                             '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
@@ -177,12 +178,12 @@ class GridRoutines:
             self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
         # Write header of the grid file
         grid.write_header(
-            grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
+            grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
         # Create the grid
         grid.create_grid(tmp_file, root)
         # Close the temporary grid file
         tmp_file.close()
-        if normalize and self.model.parameter['gas_number_density'] and self.model.parameter['dust_number_density']:
+        if normalize:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
