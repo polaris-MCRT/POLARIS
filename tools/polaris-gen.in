@@ -168,45 +168,36 @@ class GridRoutines:
             from polaris_tools_modules.grid import Cylindrical
             grid = Cylindrical(self.model, self.path, self.parse_args)
         else:
-            raise ValueError(
-                'Grid type ' + str(self.model.parameter['grid_type']) + ' not known!')
+            raise ValueError('Grid type ' + str(self.model.parameter['grid_type']) + ' not known!')
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
         os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
-        tmp_file = open(
-            self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
-        # Write header of the grid file
-        grid.write_header(
-            grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
-        # Create the grid
-        grid.create_grid(tmp_file, root)
-        # Close the temporary grid file
-        tmp_file.close()
+
+        with open(self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb') as tmp_file:
+            # Write header of the grid file
+            grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
+            # Create the grid
+            grid.create_grid(tmp_file, root)
+
         if normalize:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
                 os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
-                tmp_file = open(
-                    self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'rb')
-                #: Final grid file
-                os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
-                grid_file = open(
-                    self.path['model'] + self.parse_args.grid_filename, 'wb')
-                # Normalize the density of the grid and save it in the final file
-                grid.normalize_density(tmp_file=tmp_file, grid_file=grid_file)
-                # Close the temporary grid file
-                tmp_file.close()
+                with open(self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'rb') as tmp_file,\
+                    open(self.path['model'] + self.parse_args.grid_filename, 'wb') as grid_file:
+                    #: Final grid file
+                    os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
+                    # Normalize the density of the grid and save it in the final file
+                    grid.normalize_density(tmp_file=tmp_file, grid_file=grid_file)
+
                 # Remove the temporary grid file
                 if "/" in self.parse_args.grid_filename:
-                    shutil.rmtree(self.path['model'] +
-                            'tmp_' + self.parse_args.grid_filename.split('/')[0])
+                    shutil.rmtree(self.path['model'] + 'tmp_' + self.parse_args.grid_filename.split('/')[0])
                 else:
-                    os.remove(self.path['model'] +
-                            'tmp_' + self.parse_args.grid_filename)
-                # Close the final grid file
-                grid_file.close()
+                    os.remove(self.path['model'] + 'tmp_' + self.parse_args.grid_filename)
+
             elif np.shape(self.model.parameter['gas_mass']) == np.shape(grid.total_gas_mass):
                 # Update the relation between the regions in the grid (gas)
                 if self.model.parameter['gas_mass'] is not None:
@@ -226,25 +217,20 @@ class GridRoutines:
                         where=tmp_dust_mass != 0)
                 #: Init grid
                 if self.model.parameter['grid_type'] == 'octree':
-                    grid = OcTree(self.model, self.ext_input,
-                                    self.path, self.parse_args)
+                    grid = OcTree(self.model, self.ext_input,self.path, self.parse_args)
                 elif self.model.parameter['grid_type'] == 'spherical':
-                    grid = Spherical(self.model, self.ext_input,
-                                        self.path, self.parse_args)
+                    grid = Spherical(self.model, self.ext_input,self.path, self.parse_args)
                 elif self.model.parameter['grid_type'] == 'cylindrical':
-                    grid = Cylindrical(
-                        self.model, self.ext_input, self.path, self.parse_args)
+                    grid = Cylindrical(self.model, self.ext_input, self.path, self.parse_args)
                 #: Root node
                 root = grid.init_root()
                 #: Final grid file
                 os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
-                grid_file = open(
-                    self.path['model'] + self.parse_args.grid_filename, 'wb')
-                # Write header of the grid file
-                grid.write_header(
-                    grid_file=grid_file, grid_type=self.model.parameter['grid_type'], root=root)
-                # Create the grid
-                grid.create_grid(grid_file, root)
+                with open(self.path['model'] + self.parse_args.grid_filename, 'wb') as grid_file:
+                    # Write header of the grid file
+                    grid.write_header(grid_file=grid_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
+                    # Create the grid
+                    grid.create_grid(grid_file, root)
                 # Remove the temporary grid file
                 if "/" in self.parse_args.grid_filename:
                     shutil.rmtree(self.path['model'] +
@@ -252,8 +238,7 @@ class GridRoutines:
                 else:
                     os.remove(self.path['model'] +
                             'tmp_' + self.parse_args.grid_filename)
-                # Close the temporary grid file
-                grid_file.close()
+
             else:
                 raise ValueError('The number of gas masses ' +
                                     str(len(self.model.parameter['gas_mass'])) + ' does not fit with the numbers of densities ' +
