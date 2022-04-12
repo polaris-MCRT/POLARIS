@@ -77,7 +77,7 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
                        help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
-                            '    if disabled, the density distribution is interpreted as a number density.'
+                            '    if disabled, the density distribution is interpreted as a number density.\n'
                             '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
