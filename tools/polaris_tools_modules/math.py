@@ -29,31 +29,31 @@ class Math:
         #     'Q': 10,
         # }
 
-        #: dict: Constants taken from astropy (reference: CODATA 2014, IAU 2012 Resolution B2)
+        #: dict: Constants taken from astropy (reference: CODATA 2018, IAU 2015 Resolution B3, IAU 2012 Resolution B2)
         self.const = {
-            'M_sun':        1.9884754153381438e+30,  # Solar mass [kg]
-            'M_jup':        1.8981871658715508e+27,  # Jupiter mass [kg]
+            'M_sun':        1.988409870698051e+30,   # Solar mass [kg]
+            'M_jup':        1.8981245973360505e+27,  # Jupiter mass [kg]
             'R_sun':        695700000.0,             # Nominal solar radius [m]
-            'R_jup':        71492000,                # Nominal Jupiter equatorial radius [m]
+            'R_jup':        71492000.0,              # Nominal Jupiter equatorial radius [m]
             'L_sun':        3.828e+26,               # Nominal solar luminosity [W]
             'au':           149597870700.0,          # Astronomical Unit [m]
-            'pc':           3.0856775814671916e+16,  # Parsec [m]
-            'u':            1.66053904e-27,          # Atomic mass unit [kg]
-            'G':            6.67408e-11,             # Gravitational constant [m^3 / (kg * s^2)]
-            'h':            6.62607004e-34,          # Planck constant [J * s]
-            'hbar':         1.0545718e-34,           # Reduced Planck constant [J * s]
-            'c':            299792458,               # Speed of light in vacuum [m / s]
-            'e':            1.6021766208e-19,        # Electron charge [C]
-            'b_wien':       0.00289777196,           # Wien wavelength displacement law constant [m * K]
-            'muB':          9.274009994e-24,         # Bohr magneton [J / T]
-            'k_B':          1.38064852e-23,          # Boltzmann constant [J / K]
+            'pc':           3.085677581491367e+16,   # Parsec [m]
+            'u':            1.6605390666e-27,        # Atomic mass unit [kg]
+            'G':            6.6743e-11,              # Gravitational constant [m^3 / (kg * s^2)]
+            'h':            6.62607015e-34,          # Planck constant [J * s]
+            'hbar':         1.0545718176461565e-34,  # Reduced Planck constant [J * s]
+            'c':            299792458.0,             # Speed of light in vacuum [m / s]
+            'e':            1.602176634e-19,         # Electron charge [C]
+            'b_wien':       0.0028977719551851727,   # Wien wavelength displacement law constant [m * K]
+            'muB':          9.2740100783e-24,        # Bohr magneton [J / T]
+            'k_B':          1.380649e-23,            # Boltzmann constant [J / K]
             'N_A':          6.02214076e+23,          # Avogadro’s number [1 / mol]
-            'R':            8.31446262,              # Gas constant [J / (K * mol)]
-            'Ryd':          10973731.568508,         # Rydberg constant [1 / m]
-            'sigma_sb':     5.670367e-08,            # Stefan-Boltzmann constant [W / (m^2 * K^4)]
-            'm_e':          9.10938356e-31,          # Electron mass [kg]
-            'm_p':          1.672621898e-27,         # Proton mass [kg]
-            'eps0':         8.854187817620389e-12,   # Vacuum permittivity [F / m]
+            'R':            8.31446261815324,        # Gas constant [J / (K * mol)]
+            'Ryd':          10973731.56816,          # Rydberg constant [1 / m]
+            'sigma_sb':     5.6703744191844314e-08,  # Stefan-Boltzmann constant [W / (m^2 * K^4)]
+            'm_e':          9.1093837015e-31,        # Electron mass [kg]
+            'm_p':          1.67262192369e-27,       # Proton mass [kg]
+            'eps0':         8.8541878128e-12,        # Vacuum permittivity [F / m]
             'avg_gas_mass': 2.,                      # Average atomic mass unit per gas particle
         }
 
