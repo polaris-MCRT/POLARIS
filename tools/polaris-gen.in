@@ -77,7 +77,6 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 #                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
                        help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
-                            '    if disabled, the density distribution is interpreted as a number density.\n'
                             '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
@@ -176,7 +175,7 @@ class GridRoutines:
 
         with open(self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb') as tmp_file:
             # Write header of the grid file
-            grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
+            grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
             # Create the grid
             grid.create_grid(tmp_file, root)
 
@@ -228,7 +227,7 @@ class GridRoutines:
                 os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
                 with open(self.path['model'] + self.parse_args.grid_filename, 'wb') as grid_file:
                     # Write header of the grid file
-                    grid.write_header(grid_file=grid_file, grid_type=self.model.parameter['grid_type'], normalize=normalize, root=root)
+                    grid.write_header(grid_file=grid_file, grid_type=self.model.parameter['grid_type'], root=root)
                     # Create the grid
                     grid.create_grid(grid_file, root)
                 # Remove the temporary grid file

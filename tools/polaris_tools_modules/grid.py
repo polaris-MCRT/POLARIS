@@ -147,15 +147,13 @@ class Grid:
             raise ValueError(
                 "the dust_density function and the defined dust_mass do not fit!")
 
-    def write_header(self, grid_file, grid_type='', normalize=True, root=None):
+    def write_header(self, grid_file, grid_type='', root=None):
         """Writes general header to binary file.
 
         Args:
             grid_file: Input grid file (tmp_grid).
             grid_type (str): Name of the grid type.
                 (octree, spherical, cylindrical)
-            normalize (bool): normalize density distribution to total mass,
-                which is defined in the model.
             root: Root node of the octree grid.
 
         Notes:
@@ -203,16 +201,10 @@ class Grid:
         grid_file.write(struct.pack('H', self.data_length))
         # Gas density index: 0 or gas mass density index: 28
         for i_gas_dens in range(self.nr_gas_densities):
-            if normalize:
-                grid_file.write(struct.pack('H', 28))
-            else:
-                grid_file.write(struct.pack('H', 0))
+            grid_file.write(struct.pack('H', 28))
         # Dust density index: 1 or dust mass density index: 29
         for i_dust_dens in range(self.nr_dust_densities):
-            if normalize:
-                grid_file.write(struct.pack('H', 29))
-            else:
-                grid_file.write(struct.pack('H', 1))
+            grid_file.write(struct.pack('H', 29))
         if self.data.get_dust_temperature() is not None:
             # Dust temperature index: 2
             grid_file.write(struct.pack('H', 2))
