@@ -489,7 +489,7 @@ class GridRoutines:
         # Path to projects directory
         self.path['projects'] = self.path['polaris'] + 'projects/'
         # Path to directory with the PolarisTools source files and test cases
-        self.path['tools'] = self.path['polaris'] + 'polaristools/'
+        self.path['tools'] = self.path['polaris'] + 'tools/'
         # Path to chosen model directory
         self.path['model'] = self.path['projects'] + str(model_name) + '/'
         # Create model directory, if it does not exist
