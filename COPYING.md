@@ -11,50 +11,50 @@ A second paper dealing with line radiative transfer and the Zeeman effect must b
 
 ## POLARIS - general
 
-- Stefan Reissl (reissl@uni-heidelberg.de)
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA),
+- Stefan Reissl (reissl@uni-heidelberg.de)\
+University of Heidelberg, Institute of Theoretical Astrophysics (ITA),\
 Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
 
-- Robert Brauer (robert.brauer@cea.fr)
-CEA Saclay - DRF / IRFU / Service d'Astrophysique
-Orme des Merisiers, Bât 709
+- Robert Brauer (robert.brauer@cea.fr)\
+CEA Saclay - DRF / IRFU / Service d'Astrophysique\
+Orme des Merisiers, Bât 709\
 91191 Gif sur Yvette
 
 ### Co-Authors
 
 - Florian Ober (fober@astrophysik.uni-kiel.de)
-- Sebastian Wolf (wolf@astrophysik.uni-kiel.de)
-Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),
-Workgroup "Star and Planet Formation"
+- Sebastian Wolf (wolf@astrophysik.uni-kiel.de)\
+Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),\
+Workgroup "Star and Planet Formation"\
 Leibnizstrasse 15, 24118 Kiel, Germany
 
 History:   14.02.2018
 
 ## POLARIS - line radiative transfer / zeeman splitting
 
-- Robert Brauer (robert.brauer@cea.fr)
-CEA Saclay - DRF / IRFU / Service d'Astrophysique
-Orme des Merisiers, Bât 709
+- Robert Brauer (robert.brauer@cea.fr)\
+CEA Saclay - DRF / IRFU / Service d'Astrophysique\
+Orme des Merisiers, Bât 709\
 91191 Gif sur Yvette
 
-- Stefan Reissl (reissl@uni-heidelberg.de)
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA),
+- Stefan Reissl (reissl@uni-heidelberg.de)\
+University of Heidelberg, Institute of Theoretical Astrophysics (ITA),\
 Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
 
 ### Co-Authors
 
-- Florian Ober (fober@astrophysik.uni-kiel.de)
-Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),
-Workgroup "Star and Planet Formation"
+- Florian Ober (fober@astrophysik.uni-kiel.de)\
+Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),\
+Workgroup "Star and Planet Formation"\
 Leibnizstrasse 15, 24118 Kiel, Germany
 
 History:   14.02.2018
 
 ## PolarisTools - Python script collection
 
-- Robert Brauer (robert.brauer@cea.fr)
-CEA Saclay - DRF / IRFU / Service d'Astrophysique
-Orme des Merisiers, Bât 709
+- Robert Brauer (robert.brauer@cea.fr)\
+CEA Saclay - DRF / IRFU / Service d'Astrophysique\
+Orme des Merisiers, Bât 709\
 91191 Gif sur Yvette
 
 History:   14.02.2018
