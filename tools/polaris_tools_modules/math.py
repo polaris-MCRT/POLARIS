@@ -251,6 +251,9 @@ class Math:
         elif 'pc' in length.lower():
             conv = self.const['pc']
             length = length.lower().replace('pc', '')
+        elif 'r_jup' in length.lower() or 'rjup' in length.lower():
+            conv = self.const['R_jup']
+            length = length.lower().replace('r_jup', '').replace('rjup', '')
         elif 'r_sun' in length.lower() or 'rsun' in length.lower():
             conv = self.const['R_sun']
             length = length.lower().replace('r_sun', '').replace('rsun', '')
