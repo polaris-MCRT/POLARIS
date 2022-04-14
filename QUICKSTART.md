@@ -1,4 +1,4 @@
-<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V fontfamily=cmbright -V colorlinks --highlight-style tango quickstart.md -o quickstart.pdf' -->
+<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V fontfamily=cmbright -V colorlinks --highlight-style tango QUICKSTART.md -o quickstart.pdf' -->
 # POLARIS Quickstart Guide
 
 
