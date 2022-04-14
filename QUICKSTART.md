@@ -87,15 +87,15 @@ Default values: $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha 
 ```math
 \rho(r) = \rho_0
 ```
-Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
+Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
-By default, the density distribution is normalized to the given total mass.
 To create a grid file, use
 ```bash
 polaris-gen model_name grid_filename.dat
 ```
 where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
+By default, the density distribution is normalized to the given total mass.
 It is also possible to modify some parameters of the model.
 For example, to create a grid with a total gas mass of $`10^{-5}\,\mathrm{M_\odot}`$ and an inner radius of $`1\,\mathrm{AU}`$, type:
 ```bash
