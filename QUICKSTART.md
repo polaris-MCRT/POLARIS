@@ -97,7 +97,7 @@ polaris-gen model_name grid_filename.dat
 ```
 where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
-It is also possible to modify some parameters with the command `polaris-gen`.
+It is also possible to modify some parameters of the model.
 For example, to create a grid with a total gas mass of $`10^{-5}\,\mathrm{M_\odot}`$ and an inner radius of $`1\,\mathrm{AU}`$, type:
 ```bash
 polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
