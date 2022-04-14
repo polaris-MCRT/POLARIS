@@ -73,9 +73,7 @@ For available options in the command file, please read the [manual](manual.pdf).
 The (binary) grid file will be created with the command `polaris-gen`.
 There are already two models available:
 
-#### Disk
-
-A circumstellar disk with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
+**Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
 ([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
 ```math
 \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
@@ -86,9 +84,7 @@ h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 Here, the default values are $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, and $`\beta = 1.1`$.
 The inner radius is $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, the outer radius is $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and the total gas mass is $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
-#### Sphere
-
-A sphere with a constant density distribution
+**Sphere** with a constant density distribution
 ```math
 \rho(r) = \rho_0
 ```
