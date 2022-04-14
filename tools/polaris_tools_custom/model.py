@@ -154,7 +154,7 @@ class SubDisk(Model):
         self.parameter['distance'] = 140.0 * self.math.const['pc']
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.06 * self.math.const['au']
-        self.parameter['outer_radius'] = 100.0 * self.math.const['au']
+        self.parameter['outer_radius'] = 20.0 * self.math.const['au']
         self.parameter['stable_radius'] = 0.1 * self.math.const['au']
         self.parameter['gas_mass'] = 1e-3 * self.math.const['M_sun']
         # Define which other choise are default for this model
@@ -184,6 +184,7 @@ class SubDisk(Model):
         # self.parameter['beta'] = self.parameter['alpha'] / 3 + 0.5
         self.parameter['beta'] = 1.1 # Woitke 2019
         self.parameter['f_dg'] = 0.01
+        self.parameter['zoom'] = 5
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
@@ -216,14 +217,14 @@ class SubDisk(Model):
         m_dust = self.parameter['gas_mass'] * self.parameter['f_dg']
         #: float: Cylindrical radius
         radius_cy = np.sqrt(self.position[0] ** 2 + self.position[1] ** 2)
-        if self.parameter['outer_radius'] >= radius_cy >= self.parameter['inner_radius']:
+        if self.parameter['outer_radius']*self.parameter['zoom'] >= radius_cy >= self.parameter['inner_radius']:
             #: float: Vertical height
             vert_height = abs(self.position[2])
             #: float: Vertical scale height
             scale_height = self.scale_height(radius_cy)
             #: float gas surface density scaling factor
             sig_0 = (m_dust * ( 2 - self.parameter['alpha'])) / (self.parameter['f_dg'] * 2 * np.pi * self.parameter['ref_radius'] ** self.parameter['alpha'] * \
-                    (self.parameter['outer_radius'] ** (2 - self.parameter['alpha']) - self.parameter['stable_radius'] ** (2 - self.parameter['alpha'])))
+                    ((self.parameter['outer_radius']*self.parameter['zoom']) ** (2 - self.parameter['alpha']) - self.parameter['stable_radius'] ** (2 - self.parameter['alpha'])))
             #: float gas surface density
             sigma = sig_0 * (radius_cy / self.parameter['ref_radius']) ** (-self.parameter['alpha'])
             #: float: Shakura and Sunyaev like density distribution
