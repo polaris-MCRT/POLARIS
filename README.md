@@ -1,5 +1,9 @@
 # POLARIS (POLArized RadIation Simulator)
 
+[![doi](https://img.shields.io/badge/doi-10.1051%2F0004--6361%2F201424930-yellow)](https://doi.org/10.1051/0004-6361/201424930)
+[![arXiv](https://img.shields.io/badge/arXiv-1604.05305-red)](https://arxiv.org/abs/1604.05305)
+[![Bibcode](https://img.shields.io/badge/Bibcode-2016A%26A...593A..87R-blue)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
+
 is a 3D Monte Carlo continuum radiative transfer code.
 
 - Simulate intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids
