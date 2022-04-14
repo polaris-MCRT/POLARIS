@@ -147,11 +147,11 @@ Users can also write and edit their own grid file.
 For this purpose, the command `polaris-gen` has an ascii to binary converter (and vice versa) for converting grid files.
 To convert an existing ascii grid file to a binary grid file, use
 ```bash
-polaris-gen --convert ascii2binary model_name grid_filename.txt
+polaris-gen model_name grid_filename.txt --convert ascii2binary
 ```
 To convert an existing binary grid file to an ascii grid file, use
 ```bash
-polaris-gen --convert binary2ascii model_name grid_filename.dat
+polaris-gen model_name grid_filename.dat --convert binary2ascii
 ```
 The input grid file has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
 For the general structure and available options in the grid file, please read the manual.
