@@ -28,16 +28,16 @@ The following packages are required for the installation:
 
 ## Installation
 
-- Open a terminal/console and move into the POLARIS directory:
+Open a terminal/console and move into the POLARIS directory:
 ```bash
 cd /YOUR/POLARIS/PATH/
 ```
 
-- Run the installation script:
+Run the installation script:
 ```bash
 ./compile.sh -f
 ```
-For the first installation, the option `-f` is required.
+For the first installation, the option `-f` is required to install the cfitsio and CCfits libraries.
 For more information, type:
 ```bash
 ./compile.sh -h
