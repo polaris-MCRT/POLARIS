@@ -76,12 +76,18 @@ There are already two models available:
 
 - disk: A circumstellar disk with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
 ([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
-$$ \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right] $$
-$$ h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta $$
-Here, the default values are $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 0.9$, and $\beta = 1.1$.
+```math
+\rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
+```
+```math
+h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
+```
+Here, the default values are $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, and $`\beta = 1.1`$.
 
 - sphere: A sphere with a constant density distribution
-$$ \rho(r) = \rho_0 $$
+```math
+\rho(r) = \rho_0
+```
 
 By default, the density distribution is normalized to the given total mass.
 To create a grid file, use
@@ -102,7 +108,7 @@ polaris-gen -h
 To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
 By default, the user can parse
 
-- 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
+- 4 values for the `disk` model: reference radius $`r_0`$, reference scale height $`h_0`$, $`\alpha`$, and $`\beta`$,
 
 - 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
 
