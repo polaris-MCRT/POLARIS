@@ -1,6 +1,5 @@
 # POLARIS Quickstart Guide
 
-
 ## Download
 
 Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~polaris/) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
@@ -66,7 +65,6 @@ For available options in the command file, please read the [manual](manual.pdf).
 
 
 ## Create a grid
-
 
 ### Predefined models
 

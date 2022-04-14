@@ -7,6 +7,7 @@ It is not allowed to distribute the code without consent of the lead authors (St
 Any publication that makes use of the software package (completely or in part) must mention the name of the POLARIS code and cite the paper ([Reissl et al. 2016](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R)) and the [website](http://www1.astrophysik.uni-kiel.de/~polaris).
 A second paper dealing with line radiative transfer and the Zeeman effect must be cited in addition ([Brauer et al. 2017](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B)) if line radiative transfer and/or Zeeman simulations are used.
 
+
 # Authors
 
 ## POLARIS - general
@@ -20,6 +21,7 @@ CEA Saclay - DRF / IRFU / Service d'Astrophysique\
 Orme des Merisiers, Bât 709\
 91191 Gif sur Yvette
 
+
 ### Co-Authors
 
 - Florian Ober (fober@astrophysik.uni-kiel.de)
@@ -29,6 +31,7 @@ Workgroup "Star and Planet Formation"\
 Leibnizstrasse 15, 24118 Kiel, Germany
 
 History:   14.02.2018
+
 
 ## POLARIS - line radiative transfer / zeeman splitting
 
@@ -41,6 +44,7 @@ Orme des Merisiers, Bât 709\
 University of Heidelberg, Institute of Theoretical Astrophysics (ITA),\
 Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
 
+
 ### Co-Authors
 
 - Florian Ober (fober@astrophysik.uni-kiel.de)\
@@ -49,6 +53,7 @@ Workgroup "Star and Planet Formation"\
 Leibnizstrasse 15, 24118 Kiel, Germany
 
 History:   14.02.2018
+
 
 ## PolarisTools - Python script collection
 

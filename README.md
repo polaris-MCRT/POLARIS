@@ -14,6 +14,7 @@ is a 3D Monte Carlo radiative transfer code:
 
 - Full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
 
+
 ## Requirements
 
 The following packages are required for the installation:
@@ -42,6 +43,7 @@ For more information, type:
 ./compile.sh -h
 ```
 
+
 ## Use POLARIS
 
 For a guide how to run first simulations, please take a look in our [quickstart](QUICKSTART.md).
@@ -50,6 +52,7 @@ For more information about POLARIS and its capabilities, please take a look in o
 
 If you use results from POLARIS in a publication, please cite [Reissl et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) and the [website](http://www1.astrophysik.uni-kiel.de/~polaris).
 If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B) as well.
+
 
 ## Copyright
 
