@@ -62,7 +62,7 @@ polaris projects/disk/example/temp/POLARIS.cmd
 The results are stored at `projects/disk/example/temp/data/` as `.fits` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
 Similar, the simulation for thermal emission and scattered stellar emission are performed.
-For available options in the command file, please read the manual.
+For available options in the command file, please read the [manual](manual.pdf).
 
 
 ## Create a grid
@@ -154,4 +154,4 @@ To convert an existing binary grid file to an ascii grid file, use
 polaris-gen model_name grid_filename.dat --convert binary2ascii
 ```
 The input grid file has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
-For the general structure and available options in the grid file, please read the manual.
+For the general structure and available options in the grid file, please read the [manual](manual.pdf).
