@@ -45,7 +45,7 @@ For a guide how to run first simulations, please take a look in our [quickstart]
 For more information about POLARIS and its capabilities, please take a look in our [manual](manual.pdf).
 
 If you use results from POLARIS in a publication, please cite [Reissl et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) and the [website](http://www1.astrophysik.uni-kiel.de/~polaris).
-If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) as well.
+If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B) as well.
 
 ## Copyright
 
