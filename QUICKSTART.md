@@ -82,11 +82,13 @@ There are already two models available:
 h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 ```
 Here, the default values are $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, and $`\beta = 1.1`$.
+The inner radius is $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, the outer radius is $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and the total gas mass is $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 - sphere: A sphere with a constant density distribution
 ```math
 \rho(r) = \rho_0
 ```
+The inner radius is $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, the outer radius is $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and the total gas mass is $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 By default, the density distribution is normalized to the given total mass.
 To create a grid file, use
@@ -95,7 +97,11 @@ polaris-gen model_name grid_filename.dat
 ```
 where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
-It is also possible to modify some grid parameters with the command `polaris-gen`.
+It is also possible to modify some parameters with the command `polaris-gen`.
+For example, to create a grid with a total gas mass of $`10^{-5}\,\mathrm{M_\odot}`$ and an inner radius of $`1\,\mathrm{AU}`$, type:
+```bash
+polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
+```
 For more information, type:
 ```bash
 polaris-gen -h
@@ -104,7 +110,7 @@ polaris-gen -h
 
 ### Extra parameter
 
-To modify further parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
+To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
 By default, the user can parse
 
 - 4 values for the `disk` model: reference radius $`r_0`$, reference scale height $`h_0`$, $`\alpha`$, and $`\beta`$,
