@@ -81,14 +81,13 @@ There are already two models available:
 ```math
 h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 ```
-Here, the default values are $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, and $`\beta = 1.1`$.
-The inner radius is $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, the outer radius is $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and the total gas mass is $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
+Default values: $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, $`\beta = 1.1`$, inner disk radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer disk radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 **Sphere** with a constant density distribution
 ```math
 \rho(r) = \rho_0
 ```
-The inner radius is $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, the outer radius is $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and the total gas mass is $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
+Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 By default, the density distribution is normalized to the given total mass.
 To create a grid file, use
