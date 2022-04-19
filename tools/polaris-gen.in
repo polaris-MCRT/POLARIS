@@ -78,6 +78,10 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
                        help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
                             '    default: 1 (1: enable / 0: disable).')
+grid_args.add_argument('--num_dens', dest='num_dens', type=int, default=1,
+                       help='interpret given gas and dust density distribution as number density, instead of mass density.\n'
+                            '    if enabled, normalization (--normalize) will be disabled.\n'
+                            '    default: 0 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '    (multiple values possible, no unit strings!).')
@@ -145,14 +149,14 @@ class GridRoutines:
         # ext_input_chooser = ExtChooser(self.model, self.file_io, parse_args)
         # self.ext_input = ext_input_chooser.get_module()
 
-    def create_polaris_grid(self, normalize=True):
+    def create_polaris_grid(self):
         """Create a grid based on a model (model.py) or external input (grid_extern.py)
         that can beused by POLARIS.
-
-        Args:
-            normalize (bool): normalize density distribution to total mass,
-                which is defined in the model.
         """
+        normalize = self.parse_args.normalize
+        if self.parse_args.num_dens:
+            normalize = 0
+
         # if self.ext_input is not None:
         #     normalize = False
 
@@ -175,7 +179,7 @@ class GridRoutines:
 
         with open(self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb') as tmp_file:
             # Write header of the grid file
-            grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], root=root)
+            grid.write_header(grid_file=tmp_file, grid_type=self.model.parameter['grid_type'], num_dens=self.parse_args.num_dens, root=root)
             # Create the grid
             grid.create_grid(tmp_file, root)
 
@@ -525,5 +529,5 @@ if __name__ == '__main__':
         print('--- Converting of grid finished!                               ')
     else:    
         print('--- Create a grid ...')
-        grid_routines.create_polaris_grid(parser_options.normalize)
+        grid_routines.create_polaris_grid()
         print('--- Creation of grid finished!                               ')
