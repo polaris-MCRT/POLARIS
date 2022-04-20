@@ -9,7 +9,7 @@ git clone https://github.com/polaris-MCRT/POLARIS.git
 **HINT**: It is recommended to clone the git repository into the home directory.
 If downloaded from the homepage, extract the zip file into the home directory via:
 ```bash
-unzip -q POLARIS-master.zip -d ~/
+unzip -q POLARIS-master-basic.zip -d ~/
 ```
 
 
