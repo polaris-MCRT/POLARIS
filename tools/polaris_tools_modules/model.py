@@ -192,6 +192,7 @@ class Disk(Model):
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['alpha'] = 0.9 # Andrews et al. 2010, https://ui.adsabs.harvard.edu/abs/2010ApJ...723.1241A/abstract
         self.parameter['beta'] = 1.1 # Woitke et al. 2019, http://adsabs.harvard.edu/abs/2019PASP..131f4301W
+
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
@@ -296,23 +297,23 @@ class Sphere(Model):
             magnetic_field = [0, 0, 0]
         return magnetic_field
 
-    def gas_temperature(self):
-        """Calculates the gas temperature at a given position.
+    # def gas_temperature(self):
+    #     """Calculates the gas temperature at a given position.
 
-        Returns:
-            float: Gas temperature at a given position.
-        """
-        gas_temp = 10.
-        return gas_temp
+    #     Returns:
+    #         float: Gas temperature at a given position.
+    #     """
+    #     gas_temp = 10.
+    #     return gas_temp
 
-    def dust_temperature(self):
-        """Calculates the dust temperature at a given position.
+    # def dust_temperature(self):
+    #     """Calculates the dust temperature at a given position.
 
-        Returns:
-            float: Dust temperature at a given position.
-        """
-        dust_temp = 20.
-        return dust_temp
+    #     Returns:
+    #         float: Dust temperature at a given position.
+    #     """
+    #     dust_temp = 20.
+    #     return dust_temp
 
     # def gas_temperature(self):
     #     """Calculates the gas temperature at a given position.
