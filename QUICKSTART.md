@@ -1,3 +1,5 @@
+<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V fontfamily=cmbright -V colorlinks --highlight-style tango QUICKSTART.md -o quickstart.pdf' -->
+
 # POLARIS Quickstart Guide
 
 ## Download
@@ -76,17 +78,23 @@ There are already two models available:
 **Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
 ([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
 
-![disk-eq1](https://latex.codecogs.com/svg.image?\rho(r,&space;z)&space;=&space;\rho_0&space;\left(&space;\frac{r}{r_0}&space;\right)^{-\alpha}&space;\times&space;\exp\left[&space;-\frac{1}{2}&space;\left(&space;\frac{z}{h(r)}&space;\right)^2&space;\right])
+$$
+\rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
+$$
 
-![disk-eq2](https://latex.codecogs.com/svg.image?h(r)&space;=&space;h_0&space;\left(&space;\frac{r}{r_0}&space;\right)^\beta)
+$$
+h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
+$$
 
-Default values: $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, $`\beta = 1.1`$, inner disk radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer disk radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
+Default values: $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 0.9$, $\beta = 1.1$, inner disk radius $r_\mathrm{in} = 0.1\,\mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\,\mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}$ with a dust to gas mass ratio of 0.01.
 
 **Sphere** with a constant density distribution
 
-![sphere-eq](https://latex.codecogs.com/svg.image?\bg{white}\rho(r)&space;=&space;\rho_0)
+$$
+\rho(r) = \rho_0
+$$
 
-Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
+Default values: inner radius $r_\mathrm{in} = 0.1\,\mathrm{AU}$, outer radius $r_\mathrm{out} = 100\,\mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}$ with a dust to gas mass ratio of 0.01.
 
 To create a grid file, use
 ```bash
@@ -96,7 +104,7 @@ where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
 By default, the density distribution is normalized to the given total mass.
 It is also possible to modify some parameters of the model.
-For example, to create a grid with a total gas mass of $`10^{-5}\,\mathrm{M_\odot}`$ and an inner radius of $`1\,\mathrm{AU}`$, type:
+For example, to create a grid with a total gas mass of $10^{-5}\,\mathrm{M_\odot}$ and an inner radius of $1\,\mathrm{AU}$, type:
 ```bash
 polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
 ```
@@ -111,7 +119,7 @@ polaris-gen -h
 To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
 By default, the user can parse
 
-- 4 values for the `disk` model: reference radius $`r_0`$, reference scale height $`h_0`$, $`\alpha`$, and $`\beta`$,
+- 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
 
 - 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
 
