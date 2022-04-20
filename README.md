@@ -4,15 +4,15 @@
 [![Bibcode](https://img.shields.io/badge/Bibcode-2016A%26A...593A..87R-blue)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
 [![doi](https://img.shields.io/badge/doi-10.1051%2F0004--6361%2F201424930-yellow)](https://doi.org/10.1051/0004-6361/201424930)
 
-is a 3D Monte Carlo radiative transfer code:
+is a 3D Monte Carlo radiative transfer code that
 
-- Intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids
+- allows to simulate intensity and polarization of light emerging from analytical astrophysical models as well as complex magneto-hydrodynamic simulations on various grids
 
-- Dust heating, -emission, -scattering, -grain alignment, line radiative transfer, and synchrotron simulations
+- is capable to perform dust heating, -emission, -scattering, -grain alignment, line radiative transfer, and synchrotron simulations
 
-- Synthetic intensity and polarization maps
+- calculates synthetic intensity and polarization maps
 
-- Full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
+- makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
 
 
 ## Requirements
