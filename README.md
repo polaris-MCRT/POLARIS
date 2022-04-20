@@ -46,7 +46,7 @@ For more information, type:
 
 ## Use POLARIS
 
-For a guide how to run first simulations, please take a look in our [quickstart](QUICKSTART.md).
+For a guide how to run first simulations, please take a look in our [quickstart](quickstart.pdf).
 
 For more information about POLARIS and its capabilities, please take a look in our [manual](manual.pdf).
 
