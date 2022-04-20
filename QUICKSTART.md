@@ -46,7 +46,7 @@ For more information, type:
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
 An exemplary (binary) grid file `grid.dat` of a circumstellar disk can be found in `projects/disk/`.
-Corresponding `.cmd` command files of the temperature, thermal emission, and scattered stellar emission can be found in
+Corresponding `.cmd` command files of the temperature, thermal emission, and scattered stellar emission simulations can be found in
 
 - `projects/disk/example/temp/`,
 - `projects/disk/example/dust/`, and
@@ -60,8 +60,8 @@ polaris projects/disk/example/temp/POLARIS.cmd
 ```
 The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
-Similar, the simulation for thermal emission (`dust`) and scattered stellar (`dust_mc`) emission are performed.
-For available options for the command file, please read the [command list](projects/CommandList.cmd) or the [manual](manual.pdf).
+Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
+Please refer to the [command list](projects/CommandList.cmd) or the [manual](manual.pdf) for available options of the command file.
 
 **HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
