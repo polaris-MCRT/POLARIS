@@ -12,54 +12,39 @@ A second paper dealing with line radiative transfer and the Zeeman effect must b
 
 ## POLARIS - general
 
-- Stefan Reissl (reissl@uni-heidelberg.de)\
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA),\
-Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
+- Stefan Reissl\
+University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
-- Robert Brauer (robert.brauer@cea.fr)\
-CEA Saclay - DRF / IRFU / Service d'Astrophysique\
-Orme des Merisiers, Bât 709\
-91191 Gif sur Yvette
+- Robert Brauer
 
 
 ### Co-Authors
 
-- Florian Ober (fober@astrophysik.uni-kiel.de)
-- Sebastian Wolf (wolf@astrophysik.uni-kiel.de)\
-Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),\
-Workgroup "Star and Planet Formation"\
-Leibnizstrasse 15, 24118 Kiel, Germany
+- Florian Ober
+
+- Sebastian Wolf\
+Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP)
 
 History:   14.02.2018
 
 
 ## POLARIS - line radiative transfer / zeeman splitting
 
-- Robert Brauer (robert.brauer@cea.fr)\
-CEA Saclay - DRF / IRFU / Service d'Astrophysique\
-Orme des Merisiers, Bât 709\
-91191 Gif sur Yvette
+- Robert Brauer
 
 - Stefan Reissl (reissl@uni-heidelberg.de)\
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA),\
-Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
+University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
 
 ### Co-Authors
 
-- Florian Ober (fober@astrophysik.uni-kiel.de)\
-Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP),\
-Workgroup "Star and Planet Formation"\
-Leibnizstrasse 15, 24118 Kiel, Germany
+- Florian Ober
 
 History:   14.02.2018
 
 
 ## PolarisTools - Python script collection
 
-- Robert Brauer (robert.brauer@cea.fr)\
-CEA Saclay - DRF / IRFU / Service d'Astrophysique\
-Orme des Merisiers, Bât 709\
-91191 Gif sur Yvette
+- Robert Brauer
 
 History:   14.02.2018
