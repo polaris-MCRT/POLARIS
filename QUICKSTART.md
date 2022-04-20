@@ -75,18 +75,17 @@ There are already two models available:
 
 **Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
 ([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
-```math
-\rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
-```
-```math
-h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
-```
+
+![disk-eq1](https://latex.codecogs.com/svg.image?\rho(r,&space;z)&space;=&space;\rho_0&space;\left(&space;\frac{r}{r_0}&space;\right)^{-\alpha}&space;\times&space;\exp\left[&space;-\frac{1}{2}&space;\left(&space;\frac{z}{h(r)}&space;\right)^2&space;\right])
+
+![disk-eq2](https://latex.codecogs.com/svg.image?h(r)&space;=&space;h_0&space;\left(&space;\frac{r}{r_0}&space;\right)^\beta)
+
 Default values: $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha = 0.9`$, $`\beta = 1.1`$, inner disk radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer disk radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 **Sphere** with a constant density distribution
-```math
-\rho(r) = \rho_0
-```
+
+![sphere-eq](https://latex.codecogs.com/svg.image?\rho(r)&space;=&space;\rho_0)
+
 Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
 To create a grid file, use
