@@ -10,6 +10,9 @@ A second paper dealing with line radiative transfer and the Zeeman effect must b
 
 # Authors
 
+**contact**: polaris@astrophysik.uni-kiel.de
+
+
 ## POLARIS - general
 
 - Stefan Reissl\
@@ -32,7 +35,7 @@ History:   14.02.2018
 
 - Robert Brauer
 
-- Stefan Reissl (reissl@uni-heidelberg.de)\
+- Stefan Reissl\
 University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
 
