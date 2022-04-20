@@ -54,21 +54,22 @@ The command files `.cmd` of the temperature, thermal emission, and scattered ste
 
 Before starting the simulation, change `/YOUR/POLARIS/PATH/` in the command file at `<dust_component>`, `<path_grid>`, and `<path_out>` to your POLARIS path.
 
-To start a temperature simulation, type:
+To start a temperature simulation (`temp`), type:
 ```bash
 polaris projects/disk/example/temp/POLARIS.cmd
 ```
-The results are stored at `projects/disk/example/temp/data/` as `.fits` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
+The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
-Similar, the simulation for thermal emission and scattered stellar emission are performed.
+Similar, the simulation for thermal emission (`dust`) and scattered stellar (`dust_mc`) emission are performed.
 For available options in the command file, please read the [manual](manual.pdf).
+**HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
 
 ## Create a grid
 
 ### Predefined models
 
-The (binary) grid file will be created with the command `polaris-gen`.
+The (binary) grid file can be created with the command `polaris-gen`.
 There are already two models available:
 
 **Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
