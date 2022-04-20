@@ -84,7 +84,7 @@ Default values: $`r_0 = 100\,\mathrm{AU}`$, $`h_0 = 10\,\mathrm{AU}`$, $`\alpha 
 
 **Sphere** with a constant density distribution
 
-![sphere-eq](https://latex.codecogs.com/svg.image?\rho(r)&space;=&space;\rho_0)
+![sphere-eq](https://latex.codecogs.com/svg.image?\bg{white}\rho(r)&space;=&space;\rho_0)
 
 Default values: inner radius $`r_\mathrm{in} = 0.1\,\mathrm{AU}`$, outer radius $`r_\mathrm{out} = 100\,\mathrm{AU}`$, and total gas mass $`M_\mathrm{gas} = 10^{-4}\,\mathrm{M_\odot}`$ with a dust to gas mass ratio of 0.01.
 
