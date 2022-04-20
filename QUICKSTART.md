@@ -61,7 +61,7 @@ polaris projects/disk/example/temp/POLARIS.cmd
 The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
 
 Similar, the simulation for thermal emission (`dust`) and scattered stellar (`dust_mc`) emission are performed.
-For available options in the command file, please read the [manual](manual.pdf).
+For available options in the command file, please read the [command list](projects/CommandList.cmd) or the [manual](manual.pdf).
 **HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
 
