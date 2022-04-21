@@ -2719,8 +2719,9 @@ class CMathFunctions
 
         if(num >= MAX_MIE_ITERATIONS - 1)
         {
-            cout << "\nError: Maximum number of terms  : " << MAX_MIE_ITERATIONS << endl;
-            cout << "Error: Nnumber of terms required: " << num << "\n" << endl;
+            cout << "\nError: Maximum number of terms : " << MAX_MIE_ITERATIONS << endl;
+            cout << "       Number of terms required: " << num << endl;
+            cout << "       Increase default value of the variable MAX_MIE_ITERATIONS in Typedefs.h\n" << endl;
             return false;
             // return calcGeometricOptics(x, refractive_index, qext, qabs,
             //    qabs, gsca, S11, S12, S33, S34);
