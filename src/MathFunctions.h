@@ -2717,7 +2717,7 @@ class CMathFunctions
         else if(y >= 50000)
             num = uint(1.005 * y + 50.5);
 
-        if(num >= MAX_MIE_ITERATIONS - 1)
+        if(num > MAX_MIE_ITERATIONS)
         {
             cout << "\nError: Maximum number of terms : " << MAX_MIE_ITERATIONS << endl;
             cout << "       Number of terms required: " << num << endl;
@@ -2806,7 +2806,7 @@ class CMathFunctions
         }
 
         iterm++;
-        r_iterm = double(iterm);
+        // r_iterm = double(iterm);
 
         double z = -1, besY2, besJ2, an2, qq;
         dcomplex ra1, rb1, rr;
@@ -2881,7 +2881,7 @@ class CMathFunctions
             rb0 = rb1;
 
             // terms iterm=2,...
-            r_iterm = double(iterm);
+            // r_iterm = double(iterm);
             FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
             for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
             {
@@ -2897,7 +2897,7 @@ class CMathFunctions
             }
 
             iterm++;
-            r_iterm = double(iterm);
+            // r_iterm = double(iterm);
 
             if(iterm > num)
                 break;
