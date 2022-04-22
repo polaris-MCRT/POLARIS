@@ -42,6 +42,11 @@ For more information, type:
 ```bash
 ./compile.sh -h
 ```
+POLARIS can now be executed from any newly opened terminal/console.
+However, to use it in already open terminals/consoles, execute the following command to update the environmental paths:
+```bash
+source ~/.bashrc
+```
 
 
 ## Start a simulation
