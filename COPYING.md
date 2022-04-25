@@ -12,6 +12,8 @@ A second paper dealing with line radiative transfer and the Zeeman effect must b
 
 **contact**: polaris@astrophysik.uni-kiel.de
 
+History: Feb. 14, 2018
+
 
 ## POLARIS - general
 
@@ -28,8 +30,6 @@ University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 - Sebastian Wolf\
 Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP)
 
-History:   14.02.2018
-
 
 ## POLARIS - line radiative transfer / zeeman splitting
 
@@ -43,11 +43,7 @@ University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
 - Florian Ober
 
-History:   14.02.2018
-
 
 ## PolarisTools - Python script collection
 
 - Robert Brauer
-
-History:   14.02.2018

@@ -1,7 +1,7 @@
 # POLARIS (POLArized RadIation Simulator)
 
 [![arXiv](https://img.shields.io/badge/arXiv-1604.05305-red)](https://arxiv.org/abs/1604.05305)
-[![Bibcode](https://img.shields.io/badge/Bibcode-2016A%26A...593A..87R-blue)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
+[![bibcode](https://img.shields.io/badge/Bibcode-2016A%26A...593A..87R-blue)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
 [![doi](https://img.shields.io/badge/doi-10.1051%2F0004--6361%2F201424930-yellow)](https://doi.org/10.1051/0004-6361/201424930)
 
 is a 3D Monte Carlo radiative transfer code that
@@ -41,6 +41,11 @@ For the first installation, the option `-f` is required to install the cfitsio a
 For more information, type:
 ```bash
 ./compile.sh -h
+```
+POLARIS can now be executed from any newly opened terminal/console.
+However, to use it in already open terminals/consoles, execute the following command to update the environmental paths:
+```bash
+source ~/.bashrc
 ```
 
 
