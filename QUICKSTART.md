@@ -1,4 +1,4 @@
-<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V fontfamily=cmbright -V colorlinks --highlight-style tango QUICKSTART.md -o quickstart.pdf' -->
+<!-- create PDF file with 'pandoc --pdf-engine=pdflatex -V "geometry=top=2.5cm, bottom=3cm, left=3cm, right=3cm" -V fontfamily=cmbright -V colorlinks --highlight-style tango QUICKSTART.md -o quickstart.pdf' -->
 
 # POLARIS Quickstart Guide
 
@@ -111,8 +111,7 @@ By default, the density distribution is normalized to the given total mass.
 It is also possible to modify some parameters of the model.
 For example, to create a grid with a total gas mass of $10^{-5}\,\mathrm{M_\odot}$ and an inner radius of $1\,\mathrm{AU}$, type:
 ```bash
-polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun
-    --inner_radius 1AU
+polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
 ```
 For more information, type:
 ```bash

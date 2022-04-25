@@ -6,9 +6,8 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from io import open
-from setuptools import setup #, find_packages
+from setuptools import setup
 import os
-# import shutil
 
 if not os.path.exists('scripts'):
     os.makedirs('scripts')
@@ -34,7 +33,7 @@ for script in scripts:
 # and accepts an argument to specify the text encoding
 # Python 3 only projects can skip this import
 
-here = os.path.abspath(os.path.dirname(__file__))
+# here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
 # with open(os.path.join(here, 'README'), encoding='utf-8') as f:

@@ -44,12 +44,8 @@ req_args.add_argument('grid_filename', metavar='grid_filename', type=str,
 grid_args = parser.add_argument_group('grid')
 grid_args.add_argument('--grid_type', dest='grid_type', type=str, choices=['octree', 'spherical', 'cylindrical'],
                        default=None, help='type of the POLARIS grid.')
-# grid_args.add_argument('--max_level', dest='max_tree_level', type=int, default=None,
-#                        help='maximum number of tree levels for octree generation.')
 grid_args.add_argument('--gas_mass', dest='gas_mass', type=str, default=None,
                        help='total gas mass of grid (overwrites model value).')
-# grid_args.add_argument('--sidelength', dest='sidelength', type=str, default=None,
-#                        help='sidelength of OcTree grid (overwrites model value).')
 grid_args.add_argument('--inner_radius', dest='inner_radius', type=str, default=None,
                        help='inner radius of spherical or cylindrical grid (overwrites model value).')
 grid_args.add_argument('--outer_radius', dest='outer_radius', type=str, default=None,
@@ -73,8 +69,6 @@ grid_args.add_argument('--sf_th', dest='sf_th', type=float, default=None,
                        help='step width factor in theta direction of spherical grid (overwrites model value).')
 grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
                        help='step width factor in vertical direction of cylindrical grid (overwrites model value).')
-# grid_args.add_argument('--split_first_cell', dest='split_first_cell', type=int, default=None,
-#                        help='Number of subcells for the first radial cell in a spherical or cylindrical grid.')
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
                        help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
                             '    default: 1 (1: enable / 0: disable).')
@@ -90,18 +84,6 @@ conv_args = parser.add_argument_group('grid binary ascii conversion')
 conv_args.add_argument('--convert', dest='convert', type=str, choices=['ascii2binary', 'binary2ascii'], default=None,
                         help='convert existing ascii grid file to binary grid file or vice versa\n'
                              '    (only for spherical and cylindrical grid type).')
-
-# source_args = parser.add_argument_group('source')
-# source_args.add_argument('--external', dest='external_input_name', default=None,
-#                          help='define an external grid input from e.g. MHD simulations.')
-
-# source_args = parser.add_argument_group('modify')
-# source_args.add_argument('--update', dest='update_grid', default=False, action='store_true',
-#                          help='updates POLARIS v4.00 grids to newest version.')
-# source_args.add_argument('--revert', dest='revert_grid', default=False, action='store_true',
-#                          help='revert POLARIS v4.XX grids to version 4.00.00.')
-# source_args.add_argument('--set_align', dest='align_radius', type=float, default=None,
-#                          help='Set the minimum alignment radius for the RAT theory in the grid.')
 
 
 parser_options = parser.parse_args()
@@ -132,22 +114,9 @@ class GridRoutines:
         model_chooser = ModelChooser(parse_args)
         self.model = model_chooser.get_module()
 
-        # Get server/cluster module
-        # from polaris_tools_modules.server import ServerChooser
-        # server_chooser = ServerChooser(parse_args, 'gen')
-        # self.server = server_chooser.get_module()
-
-        # Get file input/output module
-        # from polaris_tools_modules.file import FileIO
         self.path = {}
         self.polaris_dir = '@POLARIS_PATH@'
         self.set_path_from_str(parse_args.model_name)
-        # self.file_io = FileIO(self.model, parse_args.model_name, '@POLARIS_PATH@', 'gen')
-
-        # Get grid extern module
-        # from polaris_tools_modules.ext_input import ExtChooser
-        # ext_input_chooser = ExtChooser(self.model, self.file_io, parse_args)
-        # self.ext_input = ext_input_chooser.get_module()
 
     def create_polaris_grid(self):
         """Create a grid based on a model (model.py) or external input (grid_extern.py)
@@ -156,9 +125,6 @@ class GridRoutines:
         normalize = self.parse_args.normalize
         if self.parse_args.num_dens:
             normalize = 0
-
-        # if self.ext_input is not None:
-        #     normalize = False
 
         #: Init grid
         if self.model.parameter['grid_type'] == 'octree':
@@ -421,61 +387,6 @@ class GridRoutines:
                 ascii_file.write(str(struct.unpack('d', binary_file.read(8))[0]) + ' ')
             ascii_file.write("\n")
 
-    # def update_polaris_grid(self, reverse=False):
-    #     """Checks a grid and adds values if required.
-
-    #     Args:
-    #         reverse (bool): Instead downgrade from newest version to oldest one.
-    #     """
-    #     from polaris_tools_modules.grid import Grid
-    #     grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
-    #     #: Temporary tree file
-    #     os.makedirs(os.path.dirname(self.path['model'] + 'tmp_' + self.parse_args.grid_filename), exist_ok=True)
-    #     tmp_file = open(
-    #         self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
-    #     #: Final grid file
-    #     os.makedirs(os.path.dirname(self.path['model'] + self.parse_args.grid_filename), exist_ok=True)
-    #     grid_file = open(
-    #         self.path['model'] + self.parse_args.grid_filename, 'rb')
-    #     # Write header of the grid file
-    #     grid.update_grid(grid_file=grid_file,
-    #                      tmp_file=tmp_file, reverse=reverse)
-    #     # Close both binary files
-    #     tmp_file.close()
-    #     grid_file.close()
-    #     # Rename the temporary grid file
-    #     os.rename(self.path['model'] + self.parse_args.grid_filename,
-    #               self.path['model'] + self.parse_args.grid_filename + '.bak')
-    #     os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
-    #               self.path['model'] + self.parse_args.grid_filename)
-
-    # def set_cell_quantity(self, quantity_id, quantity_value):
-    #     """Set the value of the desired quantity to value in each cell of the grid.
-
-    #     Args:
-    #         quantity_id (int): Index of the quantity in the POLARIS grid.
-    #         quantity_value (float): Value to which the quantity should be set.
-    #     """
-    #     from polaris_tools_modules.grid import Grid
-    #     grid = Grid(self.model, self.ext_input, self.file_io, self.parse_args)
-    #     #: Temporary tree file
-    #     tmp_file = open(
-    #         self.path['model'] + 'tmp_' + self.parse_args.grid_filename, 'wb')
-    #     #: Final grid file
-    #     grid_file = open(
-    #         self.path['model'] + self.parse_args.grid_filename, 'rb')
-    #     # Write header of the grid file
-    #     grid.set_quantiy_in_grid(grid_file=grid_file, tmp_file=tmp_file,
-    #                              quantity_id=quantity_id, quantity_value=quantity_value)
-    #     # Close both binary files
-    #     tmp_file.close()
-    #     grid_file.close()
-    #     # Rename the temporary grid file
-    #     os.rename(self.path['model'] + self.parse_args.grid_filename,
-    #               self.path['model'] + self.parse_args.grid_filename + '.bak')
-    #     os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
-    #               self.path['model'] + self.parse_args.grid_filename)
-
     def set_path_from_str(self, model_name):
         """Sets all paths used by a given toolkit depending on input strings.
 
@@ -500,29 +411,13 @@ class GridRoutines:
         if not os.path.lexists(self.path['model']):
             os.mkdir(self.path['model'])
 
+
 if __name__ == '__main__':
     print('------------------------- PolarisTools -------------------------')
     print('--- Initialization ...')
     #: Instance of PlotRoutines which can manage POLARIS plot creation
     grid_routines = GridRoutines(parser_options)
     print('--- Initialization finished!                                    ')
-    # if parser_options.update_grid:
-    #     print('--- Update grid to v4.02 ...')
-    #     grid_routines.update_polaris_grid()
-    #     print('--- Update of grid finished!                                 ')
-    # elif parser_options.revert_grid:
-    #     print('--- Revert grid to v4.00 ...')
-    #     grid_routines.update_polaris_grid(reverse=True)
-    #     print('--- Revert of grid finished!                                 ')
-    # elif parser_options.align_radius is not None:
-    #     print('--- Set alignment radius in grid to',
-    #           parser_options.align_radius, '[m] ...')
-    #     grid_routines.set_cell_quantity(13, parser_options.align_radius)
-    #     print('--- Set alignment radius finished!                           ')
-    # else:
-    #     print('--- Create a grid ...')
-    #     grid_routines.create_polaris_grid()
-    #     print('--- Creation of grid finished!                               ')
     if parser_options.convert:
         print('--- Converting grid ...')
         grid_routines.convert_polaris_grid()
