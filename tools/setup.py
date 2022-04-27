@@ -191,7 +191,7 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        'POLARIS': 'http://www1.astrophysik.uni-kiel.de/~polaris/',
+        'POLARIS': 'https://portia.astrophysik.uni-kiel.de/polaris',
     },
 
     scripts=['scripts/polaris-gen'],

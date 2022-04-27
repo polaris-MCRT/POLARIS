@@ -4,7 +4,7 @@
 
 ## Download
 
-Download zip package from the [homepage](http://www1.astrophysik.uni-kiel.de/~polaris/) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
+Download zip package from the [homepage](https://portia.astrophysik.uni-kiel.de/polaris) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
 ```bash
 git clone https://github.com/polaris-MCRT/POLARIS.git
 ```
@@ -65,10 +65,10 @@ To start a temperature simulation (`temp`), type:
 ```bash
 polaris projects/disk/example/temp/POLARIS.cmd
 ```
-The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home).
+The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
 
 Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
-Please refer to the [command list](projects/CommandList.cmd) or the [manual](manual.pdf) for available options of the command file.
+Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) for available options of the command file.
 
 **HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
