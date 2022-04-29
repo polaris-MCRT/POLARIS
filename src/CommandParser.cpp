@@ -868,7 +868,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<phase_function>") == 0 || cmd.compare("<phase_function id = >") == 0)
     {
-        uint dust_component_choice;
+        uint dust_component_choice = 0;
         if(cmd.compare("<phase_function id = >") == 0)
         {
             string str = seperateString(data);
@@ -884,19 +884,19 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         formatLine(data);
         if(data.compare("PH_HG") == 0)
         {
-            param->setPhaseFunctionID(PH_HG);
+            param->setPhaseFunctionID(PH_HG, dust_component_choice);
             return true;
         }
 
         if(data.compare("PH_MIE") == 0)
         {
-            param->setPhaseFunctionID(PH_MIE);
+            param->setPhaseFunctionID(PH_MIE, dust_component_choice);
             return true;
         }
 
         if(data.compare("PH_ISO") == 0)
         {
-            param->setPhaseFunctionID(PH_ISO);
+            param->setPhaseFunctionID(PH_ISO, dust_component_choice);
             return true;
         }
 

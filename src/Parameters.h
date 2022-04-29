@@ -676,7 +676,10 @@ class parameters
 
     uint getPhaseFunctionID(uint i) const
     {
-        return phIDs[i];
+        if(i < phIDs.size())
+            return phIDs[i];
+        else
+            return phIDs[0];
     }
 
     double getFHighJ() const
@@ -1305,9 +1308,11 @@ class parameters
     }
     */
 
-    void setPhaseFunctionID(uint val)
+    void setPhaseFunctionID(uint val, uint pos)
     {
-        phIDs.push_back(val);
+        while(pos >= phIDs.size())
+            phIDs.push_back(0);
+        phIDs[pos] = val;
     }
 
     void setFhighJ(double val)
