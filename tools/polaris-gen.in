@@ -122,9 +122,8 @@ class GridRoutines:
         """Create a grid based on a model (model.py) or external input (grid_extern.py)
         that can beused by POLARIS.
         """
-        normalize = self.parse_args.normalize
         if self.parse_args.num_dens:
-            normalize = 0
+            self.parse_args.normalize = 0
 
         #: Init grid
         if self.model.parameter['grid_type'] == 'octree':
@@ -149,7 +148,7 @@ class GridRoutines:
             # Create the grid
             grid.create_grid(tmp_file, root)
 
-        if normalize:
+        if self.parse_args.normalize:
             print('--- Normalizing model mass!                                ')
             if isinstance(self.model.parameter['gas_mass'], float):
                 #: Temporary tree file
