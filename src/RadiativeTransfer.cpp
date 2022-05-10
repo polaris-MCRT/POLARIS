@@ -2806,56 +2806,64 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 // Set back to old position
                 pp->setPosition(old_pos);
                 
+                // Reset MultiStokesVector to get only contribution of single timesteps
+                for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+                {
+                    StokesVector STmp = WMap.S(i_wave);
+                    STmp *= 0;
+                    WMap.setS(STmp, i_wave);
+                }
+                
                 // Increase t_nextres
                 t_nextres += dt;
             }
         }
         
         // Add to rest of detectors if time-dependent
-        if(ray_dt > 0 && i_next != start)
-        {
-            // Init temporary multiple Stokes vectors
-            MultiStokesVector WTmp(nr_used_wavelengths);
-            
-            // Update the multi Stokes vectors for each wavelength
-            for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
-            {
-                // Copy MultiStokesVector
-                WTmp.setS(WMap.S(i_wave), i_wave);
-                WTmp.setT(WMap.T(i_wave), i_wave);
-                WTmp.setSp(WMap.Sp(i_wave), i_wave);
-                
-                // Get frequency at background grid position
-                double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
-                double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                            (frequency * frequency);
-
-                // Include foreground extinction if necessary
-                mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
-                
-                if(WTmp.S(i_wave).I() < 0)
-                    WTmp.S(i_wave).setI(0);
-
-                WTmp.S(i_wave) *= mult;
-                WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
-                WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
-                
-                // Update the photon package with the multi Stokes vectors
-                pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
-            }
-            
-            // Save old position
-            Vector3D old_pos = pp->getPosition();
-            
-            // Loop rest of detectors
-            for(uint det = start; det < i_next; det++)
-            {
-                tracer[det]->addToDetector(pp, i_pix);
-                pp->setPosition(old_pos);
-                for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
-                    pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
-            }
-        }
+//         if(ray_dt > 0 && i_next != start)
+//         {
+//             // Init temporary multiple Stokes vectors
+//             MultiStokesVector WTmp(nr_used_wavelengths);
+//             
+//             // Update the multi Stokes vectors for each wavelength
+//             for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+//             {
+//                 // Copy MultiStokesVector
+//                 WTmp.setS(WMap.S(i_wave), i_wave);
+//                 WTmp.setT(WMap.T(i_wave), i_wave);
+//                 WTmp.setSp(WMap.Sp(i_wave), i_wave);
+//                 
+//                 // Get frequency at background grid position
+//                 double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+//                 double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+//                             (frequency * frequency);
+// 
+//                 // Include foreground extinction if necessary
+//                 mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
+//                 
+//                 if(WTmp.S(i_wave).I() < 0)
+//                     WTmp.S(i_wave).setI(0);
+// 
+//                 WTmp.S(i_wave) *= mult;
+//                 WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
+//                 WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
+//                 
+//                 // Update the photon package with the multi Stokes vectors
+//                 pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
+//             }
+//             
+//             // Save old position
+//             Vector3D old_pos = pp->getPosition();
+//             
+//             // Loop rest of detectors
+//             for(uint det = start; det < i_next; det++)
+//             {
+//                 tracer[det]->addToDetector(pp, i_pix);
+//                 pp->setPosition(old_pos);
+//                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+//                     pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
+//             }
+//         }
         
     }
     
