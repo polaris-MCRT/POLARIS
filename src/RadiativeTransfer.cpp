@@ -2333,6 +2333,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     
     // Check if simulation time-dependent
     double ray_dt = 0;
+    double len_min = 0;
     if(param.getTimeStep() > 0)
         ray_dt = param.getTimeStep();
 
@@ -2359,6 +2360,59 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             cout << CLR_LINE;
             cout << "-> Raytracing dust maps (Seq. " << i_det + 1 << ", source: " << sID + 1 << ") 0 [%]   \r"
                  << flush;
+                 
+            // Find smallest distance to model if time-dependent
+            if(ray_dt > 0)
+            {   
+                // Init len_min,len_max
+                len_min = 1e300;
+                double len_max = 0;
+                
+#pragma omp parallel for schedule(dynamic)
+                for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+                {
+                    double cx = 0, cy = 0;
+                    if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
+                        continue;
+                    
+                    // Create new photon package
+                    photon_package pp = photon_package();
+                    
+                    // Init photon package
+                    tracer[i_det]->preparePhoton(&pp, cx, cy);
+                    
+                    // Get density limits
+                    double tmp_min = 0, tmp_max = 0;
+                    dust->findDensityLimits(grid,&pp,&tmp_min,&tmp_max);
+                    
+                    // Compare with min length
+#pragma omp critical
+                    if(tmp_min < len_min)
+                        len_min = tmp_min;
+                    
+                    // Compare with max length
+#pragma omp critical
+                    if(tmp_max > len_max)
+                        len_max = tmp_max;
+                }
+                
+                // Check for number of needed detectors
+                double dneed = floor((len_max-len_min)/con_c/ray_dt);
+                if(stop < dneed)
+                {
+                    cout << endl;
+                    cout << "CRITICAL ERROR: Number of detectors for time-dependent ray tracing too low." << endl;
+                    cout << "Increase number of detectors to " << dneed << endl;
+                    exit(0);
+                }
+                if(stop > dneed)
+                {
+                    cout << endl;
+                    cout << "HINT: Unnecessary high number of detectors." << endl;
+                    cout << "For better performance set detector number to " << dneed << endl;
+                    cout << endl;
+                }
+            }
 
             // Calculate pixel intensity for each pixel
 #pragma omp parallel for schedule(dynamic)
@@ -2368,7 +2422,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
-                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix, ray_dt);
+                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix, ray_dt, len_min);
 
                 // Increase counter used to show progress
                 per_counter++;
@@ -2441,7 +2495,8 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                uint i_det,
                                                uint subpixel_lvl,
                                                int i_pix,
-                                               double ray_dt)
+                                               double ray_dt,
+                                               double len_min)
 {
     bool subpixel = false;
     photon_package * pp;
@@ -2462,7 +2517,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
         tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix, ray_dt);
+        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix, ray_dt, len_min);
 
         if(ray_dt == 0)
             // Add the photon package to the detector
@@ -2483,7 +2538,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                 tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix, ray_dt);
+                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix, ray_dt, len_min);
             }
         }
     }
@@ -2496,7 +2551,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                                           uint i_det,
                                           uint subpixel_lvl,
                                           int i_pix,
-                                          double ray_dt)
+                                          double ray_dt,
+                                          double len_min)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -2528,14 +2584,22 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         // Get emission from background source
         WMap.setS(tmp_source->getStokesVector(pp), i_wave);
     };
-    
 
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp, ray_dt))
     {
         if(ray_dt > 0)
-            pp->updateTotalPathLength(pp->getTmpPathLength());
-        
+        {
+            // Check for smallest distance to model
+            pp->adjustPosition(pp->getPosition(), len_min);
+            if(!grid->positionPhotonInGrid(pp))
+            {
+                cout << "WARNING: Photon could not positioned in grid!" << endl;
+                return;
+            }
+            pp->updateTotalPathLength(len_min);
+        }
+            
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
         {
             // Get path length through current cell
@@ -2816,55 +2880,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 
                 // Increase t_nextres
                 t_nextres += dt;
+                
+                // Check if end of model is reached
+                if(!dust->densityRemaining(grid, pp))
+                    return;
             }
         }
-        
-        // Add to rest of detectors if time-dependent
-//         if(ray_dt > 0 && i_next != start)
-//         {
-//             // Init temporary multiple Stokes vectors
-//             MultiStokesVector WTmp(nr_used_wavelengths);
-//             
-//             // Update the multi Stokes vectors for each wavelength
-//             for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
-//             {
-//                 // Copy MultiStokesVector
-//                 WTmp.setS(WMap.S(i_wave), i_wave);
-//                 WTmp.setT(WMap.T(i_wave), i_wave);
-//                 WTmp.setSp(WMap.Sp(i_wave), i_wave);
-//                 
-//                 // Get frequency at background grid position
-//                 double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
-//                 double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-//                             (frequency * frequency);
-// 
-//                 // Include foreground extinction if necessary
-//                 mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
-//                 
-//                 if(WTmp.S(i_wave).I() < 0)
-//                     WTmp.S(i_wave).setI(0);
-// 
-//                 WTmp.S(i_wave) *= mult;
-//                 WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
-//                 WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
-//                 
-//                 // Update the photon package with the multi Stokes vectors
-//                 pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
-//             }
-//             
-//             // Save old position
-//             Vector3D old_pos = pp->getPosition();
-//             
-//             // Loop rest of detectors
-//             for(uint det = start; det < i_next; det++)
-//             {
-//                 tracer[det]->addToDetector(pp, i_pix);
-//                 pp->setPosition(old_pos);
-//                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
-//                     pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
-//             }
-//         }
-        
     }
     
     // End function here if time-dependent

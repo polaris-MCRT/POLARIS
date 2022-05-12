@@ -2406,6 +2406,96 @@ class CDustMixture
                 mixed_component[i_mixture].initMeanEnthalpy();
         return true;
     }
+    
+        
+    bool densityRemaining(CGridBasic * grid, photon_package * pp)
+    {
+        // Check limit of model space for time-dependent ray tracing
+        
+        // Create a copy with the same values as in the photon package
+        photon_package pp_test = photon_package();
+        pp_test.setWavelengthID(pp->getWavelengthID());
+        pp_test.setPosition(pp->getPosition());
+        pp_test.setPositionCell(pp->getPositionCell());
+        pp_test.setDirection(pp->getDirection());
+        pp_test.setDirectionID(pp->getDirectionID());
+        
+        // Init dens
+        double dens = 0;
+        
+        // Transport photon package further through the grid and check for remaining dust
+        while(grid->next(&pp_test))
+        {
+            // Get the current densityRemaining
+            dens = getNumberDensity(grid, &pp_test);
+            
+            // Return true if dens found
+            if(dens >= 1e-200)
+                return true;
+        }
+        return false;
+    }
+    
+    void findDensityLimits(CGridBasic * grid, photon_package * pp, double * len_min, double * len_max)
+    {
+        // Find first Cell with density to start time-dependent ray tracing
+        
+        // Create a copy with the same values as in the photon package
+        photon_package pp_test = photon_package();
+        pp_test.setPosition(pp->getPosition());
+        pp_test.setPositionCell(pp->getPositionCell());
+        pp_test.setDirection(pp->getDirection());
+        pp_test.setDirectionID(pp->getDirectionID());
+        
+        // Set photon in grid
+        if(!grid->findStartingPoint(&pp_test))
+        {
+            *len_min = 1e300;
+            return;
+        }
+        
+        // Init variables
+        double len, dens = 0.0;
+        
+        // Transport photon package further through the grid and check for first pos with density
+        while(grid->next(&pp_test))
+        {
+            // Get the travelled distance
+            len = pp_test.getTmpPathLength();
+            
+            // Get the current density
+            dens = getNumberDensity(grid, &pp_test);
+            
+            // Save length travelled so far
+            *len_min += len;
+            
+            // Return length of first cell with density
+            if(dens >= 1e-200)
+                break;
+        }
+        
+        double len_tmp = *len_min;
+        *len_max = *len_min;
+        
+        // Transport photon package further through the grid and check for last pos with dens
+        while(grid->next(&pp_test))
+        {
+            // Get the travelled distance
+            len = pp_test.getTmpPathLength();
+            
+            // Get the current density
+            dens = getNumberDensity(grid, &pp_test);
+            
+            // Update total length
+            len_tmp += len;
+            
+            // Update len_max if density found
+            if(dens >= 1e-200)
+                *len_max = len_tmp;
+        }
+        
+        return;
+    }
         
     string getPhaseFunctionStr()
     {

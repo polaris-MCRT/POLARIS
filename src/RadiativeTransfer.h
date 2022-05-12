@@ -174,7 +174,8 @@ class CRadiativeTransfer
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id,
-                               double ray_dt);
+                               double ray_dt,
+                               double len_min);
     void getDustIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -182,7 +183,8 @@ class CRadiativeTransfer
                           uint i_det,
                           uint subpixel_lvl,
                           int i_pix,
-                          double ray_dt);
+                          double ray_dt,
+                          double len_min);
     void calcStellarEmission(uint i_det);
 
     // Synchrontron emission
