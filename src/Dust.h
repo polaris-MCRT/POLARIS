@@ -2466,16 +2466,18 @@ class CDustMixture
             // Get the current density
             dens = getNumberDensity(grid, &pp_test);
             
-            // Save length travelled so far
-            *len_min += len;
-            
             // Return length of first cell with density
             if(dens >= 1e-200)
+            {
+                *len_max = *len_min;
                 break;
+            }
+                
+            // Save length travelled so far
+            *len_min += len;
         }
         
         double len_tmp = *len_min;
-        *len_max = *len_min;
         
         // Transport photon package further through the grid and check for last pos with dens
         while(grid->next(&pp_test))

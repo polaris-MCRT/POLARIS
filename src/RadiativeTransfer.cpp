@@ -2334,6 +2334,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
     // Check if simulation time-dependent
     double ray_dt = 0;
     double len_min = 0;
+    double len_max = 0;
     if(param.getTimeStep() > 0)
         ray_dt = param.getTimeStep();
 
@@ -2364,9 +2365,8 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             // Find smallest distance to model if time-dependent
             if(ray_dt > 0)
             {   
-                // Init len_min,len_max
+                // Init len_min
                 len_min = 1e300;
-                double len_max = 0;
                 
 #pragma omp parallel for schedule(dynamic)
                 for(int i_pix = 0; i_pix < int(per_max); i_pix++)
@@ -2397,19 +2397,19 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 }
                 
                 // Check for number of needed detectors
-                double dneed = floor((len_max-len_min)/con_c/ray_dt);
+                uint dneed = floor((len_max-len_min)/con_c/ray_dt);
                 if(stop < dneed)
                 {
                     cout << endl;
                     cout << "CRITICAL ERROR: Number of detectors for time-dependent ray tracing too low." << endl;
-                    cout << "Increase number of detectors to " << dneed << endl;
+                    cout << "Increase number of detectors to " << dneed+1 << endl;
                     exit(0);
                 }
                 if(stop > dneed)
                 {
                     cout << endl;
                     cout << "HINT: Unnecessary high number of detectors." << endl;
-                    cout << "For better performance set detector number to " << dneed << endl;
+                    cout << "For better performance set detector number to " << dneed+1 << endl;
                     cout << endl;
                 }
             }
@@ -2422,7 +2422,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
                     continue;
 
-                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix, ray_dt, len_min);
+                getDustPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix, ray_dt, len_min, len_max);
 
                 // Increase counter used to show progress
                 per_counter++;
@@ -2496,7 +2496,8 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                uint subpixel_lvl,
                                                int i_pix,
                                                double ray_dt,
-                                               double len_min)
+                                               double len_min,
+                                               double len_max)
 {
     bool subpixel = false;
     photon_package * pp;
@@ -2517,7 +2518,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
         tracer[i_det]->preparePhoton(pp, cx, cy);
 
         // Calculate continuum emission along one path
-        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix, ray_dt, len_min);
+        getDustIntensity(pp, tmp_source, cx, cy, i_det, subpixel_lvl, i_pix, ray_dt, len_min, len_max);
 
         if(ray_dt == 0)
             // Add the photon package to the detector
@@ -2538,7 +2539,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                 tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
                 // Calculate radiative transfer of the current pixel
                 // and add it to the detector at the corresponding position
-                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix, ray_dt, len_min);
+                getDustPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix, ray_dt, len_min, len_max);
             }
         }
     }
@@ -2552,7 +2553,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                                           uint subpixel_lvl,
                                           int i_pix,
                                           double ray_dt,
-                                          double len_min)
+                                          double len_min,
+                                          double len_max)
 {
     // Set amount of radiation coming from this pixel
     double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
@@ -2597,7 +2599,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 cout << "WARNING: Photon could not positioned in grid!" << endl;
                 return;
             }
-            pp->updateTotalPathLength(len_min);
+            //pp->updateTotalPathLength(len_min);
         }
             
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
@@ -2819,7 +2821,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 double dt = ray_dt;
                 
                 // Check if enough detectors are available
-                if(floor(pp->getTotalPathLength()/con_c/dt) > stop)
+                if((floor(pp->getTotalPathLength()/con_c/dt)-1) > stop)
                 {
                     cout << "CRITICAL ERROR: More detectors needed for time dependent emission!" << endl;
                     cout << "Last index of detector " << floor(pp->getTotalPathLength()/con_c/dt) << endl;
@@ -2828,7 +2830,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 else
                 {
                     // Calculate next detector
-                    i_next = stop - floor(pp->getTotalPathLength()/con_c/dt);
+                    i_next = stop - (floor(pp->getTotalPathLength()/con_c/dt)-1);
                 }
                 
                 // Init temporary multiple Stokes vectors
@@ -2876,13 +2878,14 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     StokesVector STmp = WMap.S(i_wave);
                     STmp *= 0;
                     WMap.setS(STmp, i_wave);
+                    WMap.setSp(WMap.Sp(i_wave)*0,i_wave);
                 }
                 
                 // Increase t_nextres
                 t_nextres += dt;
                 
                 // Check if end of model is reached
-                if(!dust->densityRemaining(grid, pp))
+                if(pp->getTotalPathLength() >= (len_max-len_min))
                     return;
             }
         }
