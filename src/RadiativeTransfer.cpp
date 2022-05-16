@@ -2622,7 +2622,8 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
             // Update total pathlength of photon if time-dependent
             if(ray_dt > 0)
             {
-                tmp_len = len/con_c > ray_dt ? ray_dt*con_c : len;
+                double len_tot = pp->getTotalPathLength();
+                tmp_len = len + len_tot > t_nextres*con_c ? t_nextres*con_c-len_tot : len;
                 pp->updateTotalPathLength(tmp_len);
                 len_diff = len - tmp_len;
                 old_pos_xyz = pp->getPosition();
@@ -2878,7 +2879,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     StokesVector STmp = WMap.S(i_wave);
                     STmp *= 0;
                     WMap.setS(STmp, i_wave);
-                    WMap.setSp(WMap.Sp(i_wave)*0,i_wave);
                 }
                 
                 // Increase t_nextres
