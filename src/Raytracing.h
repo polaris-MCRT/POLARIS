@@ -333,6 +333,12 @@ class CRaytracingBasic
         // Add second package of photons to detector
         addToDetector(pp2, i_pix, direct, 1);
     }
+    
+    virtual void correctDetectorTau(photon_package * pp, uint spectral_offset = 0)
+    {
+        // Correct tau to observer for time-dependent ray-tracing
+        detector->correctTau(pp, spectral_offset);
+    }
 
     virtual void setObserverPosition(Vector3D pos)
     {}
