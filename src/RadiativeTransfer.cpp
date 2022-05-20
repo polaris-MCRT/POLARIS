@@ -2877,7 +2877,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
                 {
                     StokesVector STmp = WMap.S(i_wave);
-                    STmp *= 0;
+                    STmp.clear();
                     WMap.setS(STmp, i_wave);
                 }
                 
