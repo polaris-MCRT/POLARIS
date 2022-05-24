@@ -2477,23 +2477,23 @@ class CDustMixture
             *len_min += len;
         }
         
-        double len_tmp = *len_min;
+        double len_tmp = *len_min + len;
         
         // Transport photon package further through the grid and check for last pos with dens
         while(grid->next(&pp_test))
-        {
+        {   
+            // Get the travelled distance
+            len = pp_test.getTmpPathLength();
+            
+            // Get the current density
+            dens = getNumberDensity(grid, &pp_test);
+
             // Update total length
             len_tmp += len;
             
             // Update len_max if density found
             if(dens >= 1e-200)
                 *len_max = len_tmp;
-            
-            // Get the travelled distance
-            len = pp_test.getTmpPathLength();
-            
-            // Get the current density
-            dens = getNumberDensity(grid, &pp_test);
         }
         
         return;
