@@ -688,7 +688,7 @@ class CDetector
         if(y < 0 || y >= int(bins_y))
             return;
         
-        double I_new = matrixI[i_spectral](x, y) * exp(-st.T());
+        double I_new = matrixI[i_spectral + spectral_offset](x, y) * exp(-st.T());
 
         matrixI[i_spectral + spectral_offset].setValue(x, y, I_new);
         matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());

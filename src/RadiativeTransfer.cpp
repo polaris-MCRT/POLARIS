@@ -2870,6 +2870,10 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 // Add to detector
                 tracer[i_next]->addToDetector(pp, i_pix);
                 
+                // Correct flux of previous detectors
+                for(uint det = stop; det > i_next; det--)
+                    tracer[det]->correctDetectorTau(pp);
+                
                 // Set back to old position
                 pp->setPosition(old_pos);
                 
@@ -2881,10 +2885,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     WMap.setS(STmp, i_wave);
                 }
                 
-                // Correct flux of previous detectors
-                for(uint det = start; det < i_next; det++)
-                    tracer[det]->correctDetectorTau(pp);
-
                 // Increase t_nextres
                 t_nextres += dt;
                 
