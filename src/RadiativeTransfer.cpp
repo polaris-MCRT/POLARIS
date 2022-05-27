@@ -1894,7 +1894,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing(0))
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
             // Write results either as text or fits file
@@ -2451,7 +2451,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                  << ") 100 [%]       \r" << flush;
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing(ray_dt))
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
             // Does the raytracing simulation considered the scattered light?
@@ -2469,7 +2469,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
                 for(uint i_det = start+1; i_det <= stop; i_det++)
                 {
                     // Do final steps for the rest of the detectors
-                    if(!tracer[i_det]->postProcessing(ray_dt))
+                    if(!tracer[i_det]->postProcessing())
                         return false;
                     uint ray_result_type = RESULTS_RAY;
                     if(dust->getScatteringToRay())
@@ -2784,7 +2784,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
 
                             // Add optical depth
                             WMap.addT(-alpha_dust(0, 0) * cell_d_l, i_wave);
-
+                            
                             // Add to column density
                             WMap.addSp(dens_gas * cell_d_l, i_wave);
 
@@ -2855,9 +2855,12 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     
                     if(WTmp.S(i_wave).I() < 0)
                         WTmp.S(i_wave).setI(0);
+                    
+                    pp->setWavelengthID(i_wave);
+                    double tau_correct = getOpticalDepthAlongPath(pp);
 
-                    WTmp.S(i_wave) *= mult;
-                    WTmp.setT(WTmp.T(i_wave) * subpixel_fraction, i_wave);
+                    WTmp.S(i_wave) *= (mult*exp(-tau_correct));
+                    WTmp.setT((WTmp.T(i_wave)+tau_correct) * subpixel_fraction, i_wave);
                     WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
                     
                     // Update the photon package with the multi Stokes vectors
@@ -2869,11 +2872,7 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 
                 // Add to detector
                 tracer[i_next]->addToDetector(pp, i_pix);
-                
-                // Correct flux of previous detectors
-                for(uint det = stop; det > i_next; det--)
-                    tracer[det]->correctDetectorTau(pp);
-                
+                   
                 // Set back to old position
                 pp->setPosition(old_pos);
                 
@@ -2920,6 +2919,33 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         // Update the photon package with the multi Stokes vectors
         pp->setMultiStokesVector(WMap.S(i_wave), i_wave);
     }
+}
+
+double CRadiativeTransfer::getOpticalDepthAlongPath(photon_package * pp)
+{
+    photon_package pp_new = photon_package();
+    pp_new.setWavelengthID(pp->getWavelengthID());
+    pp_new.setPosition(pp->getPosition());
+    pp_new.setPositionCell(pp->getPositionCell());
+    pp_new.setDirection(pp->getDirection());
+    pp_new.setDirectionID(pp->getDirectionID());
+
+    double len, dens, Cext, tau = 0.0;
+    
+    while(grid->next(&pp_new))
+    {
+        // Get the traveled distance
+        len = pp_new.getTmpPathLength();
+        
+        // Get the current density
+        dens = dust->getNumberDensity(grid, &pp_new);
+        // Get the current mean extinction cross-section
+        Cext = dust->getCextMean(grid, &pp_new);
+        // Add the optical depth of the current path to the total optical depth
+        tau += Cext * len * dens;
+    }
+    
+    return tau;
 }
 
 void CRadiativeTransfer::calcStellarEmission(uint i_det)
@@ -3105,7 +3131,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
             }
 
             // post-process raytracing simulation
-            if(!tracer[i_det]->postProcessing(0))
+            if(!tracer[i_det]->postProcessing())
                 return false;
 
             if(!tracer[i_det]->writeLineResults(gas, i_species, i_line))

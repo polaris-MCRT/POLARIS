@@ -323,6 +323,7 @@ class CRadiativeTransfer
     }
 
     double getEscapeTauForced(photon_package * pp);
+    double getOpticalDepthAlongPath(photon_package * pp);
 
     bool doMRWStepBW(photon_package * pp);
     bool doMRWStepBWWithoutHeating(photon_package * pp);

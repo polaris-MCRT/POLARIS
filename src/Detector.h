@@ -637,7 +637,7 @@ class CDetector
         matrixS[i_spectral + spectral_offset].addValue(pos_id, st.Sp());
     }
 
-    void addToRaytracingDetector(photon_package * pp, uint spectral_offset, double ray_dt)
+    void addToRaytracingDetector(photon_package * pp, uint spectral_offset)
     {
         uint i_spectral = pp->getWavelengthID();
         StokesVector st = pp->getMultiStokesVector(i_spectral);
@@ -659,39 +659,6 @@ class CDetector
         matrixV[i_spectral + spectral_offset].addValue(x, y, st.V());
         matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
         matrixS[i_spectral + spectral_offset].addValue(x, y, st.Sp());
-        
-        if(ray_dt > 0)
-        {
-            matrixI[i_spectral + spectral_offset].setValue(x, y, st.I());
-            matrixQ[i_spectral + spectral_offset].setValue(x, y, st.Q());
-            matrixU[i_spectral + spectral_offset].setValue(x, y, st.U());
-            matrixV[i_spectral + spectral_offset].setValue(x, y, st.V());
-            matrixT[i_spectral + spectral_offset].setValue(x, y, st.T());
-            matrixS[i_spectral + spectral_offset].setValue(x, y, st.Sp());
-        }
-    }
-    
-    void correctTau(photon_package * pp, uint spectral_offset)
-    {
-        // Correct optical depth to observer for time-depentend ray-tracing
-        uint i_spectral = pp->getWavelengthID();
-        StokesVector st = pp->getMultiStokesVector(i_spectral);
-        Vector3D pos = pp->getPosition();
-        
-        uint x = uint((pos.X() + 0.5 * sidelength_x - map_shift_x) / sidelength_x * double(bins_x));
-
-        if(x < 0 || x >= int(bins_x))
-            return;
-        
-        uint y = uint((pos.Y() + 0.5 * sidelength_y - map_shift_y) / sidelength_y * double(bins_y));
-
-        if(y < 0 || y >= int(bins_y))
-            return;
-        
-        double I_new = matrixI[i_spectral + spectral_offset](x, y) * exp(-st.T());
-
-        matrixI[i_spectral + spectral_offset].setValue(x, y, I_new);
-        matrixT[i_spectral + spectral_offset].addValue(x, y, st.T());
     }
 
     void addToMonteCarloDetector(photon_package * pp, uint i_spectral, uint radiation_type)
