@@ -2599,7 +2599,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                 cout << "WARNING: Photon could not positioned in grid!" << endl;
                 return;
             }
-            //pp->updateTotalPathLength(len_min);
         }
             
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)
@@ -2892,6 +2891,62 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     return;
             }
         }
+    }
+    
+    // Add photon_package to last detector if time left
+    if(ray_dt > 0 && i_next > 0)
+    {
+        // Calculate detector to add to
+        double dt = ray_dt;
+        
+        // Check if enough detectors are available
+        if((floor(pp->getTotalPathLength()/con_c/dt)-1) > stop)
+        {
+            cout << "CRITICAL ERROR: More detectors needed for time dependent emission!" << endl;
+            cout << "Last index of detector " << floor(pp->getTotalPathLength()/con_c/dt) << endl;
+            exit(0);
+        }
+        else
+        {
+            // Calculate next detector
+            i_next -= 1;
+        }
+        
+        // Init temporary multiple Stokes vectors
+        MultiStokesVector WTmp(nr_used_wavelengths);
+        
+        // Update the multi Stokes vectors for each wavelength
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Copy MultiStokesVector
+            WTmp.setS(WMap.S(i_wave), i_wave);
+            WTmp.setT(WMap.T(i_wave), i_wave);
+            WTmp.setSp(WMap.Sp(i_wave), i_wave);
+            
+            // Get frequency at background grid position
+            double frequency = con_c / tracer[i_det]->getWavelength(i_wave);
+            double mult = 1.0e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
+                        (frequency * frequency);
+
+            // Include foreground extinction if necessary
+            mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(i_wave));
+            
+            if(WTmp.S(i_wave).I() < 0)
+                WTmp.S(i_wave).setI(0);
+            
+            pp->setWavelengthID(i_wave);
+            double tau_correct = getOpticalDepthAlongPath(pp);
+
+            WTmp.S(i_wave) *= (mult*exp(-tau_correct));
+            WTmp.setT((WTmp.T(i_wave)+tau_correct) * subpixel_fraction, i_wave);
+            WTmp.setSp(WTmp.Sp(i_wave) * subpixel_fraction, i_wave);
+            
+            // Update the photon package with the multi Stokes vectors
+            pp->setMultiStokesVector(WTmp.S(i_wave), i_wave);
+        }
+        
+        // Add to detector
+        tracer[i_next]->addToDetector(pp, i_pix);
     }
     
     // End function here if time-dependent
