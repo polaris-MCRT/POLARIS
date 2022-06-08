@@ -2603,7 +2603,6 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
                     cout << "WARNING: Photon could not positioned in grid!" << endl;
                     return;
                 }
-                pp->updateTotalPathLength(tmp_len+(len_min-tmp_len));
             }
             if(len_min < tmp_len)
             {
