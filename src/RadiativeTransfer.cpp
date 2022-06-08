@@ -2586,19 +2586,37 @@ void CRadiativeTransfer::getDustIntensity(photon_package * pp,
         // Get emission from background source
         WMap.setS(tmp_source->getStokesVector(pp), i_wave);
     };
-
+    
     // Find starting point inside the model and travel through it
     if(grid->findStartingPoint(pp, ray_dt))
     {
         if(ray_dt > 0)
         {
+            tmp_len = pp->getTmpPathLength();
+            
             // Check for smallest distance to model
-            pp->adjustPosition(pp->getPosition(), len_min);
-            if(!grid->positionPhotonInGrid(pp))
+            if(len_min > tmp_len)
             {
-                cout << "WARNING: Photon could not positioned in grid!" << endl;
-                return;
+                pp->adjustPosition(pp->getPosition(), len_min-tmp_len);
+                if(!grid->positionPhotonInGrid(pp))
+                {
+                    cout << "WARNING: Photon could not positioned in grid!" << endl;
+                    return;
+                }
+                pp->updateTotalPathLength(tmp_len+(len_min-tmp_len));
             }
+            if(len_min < tmp_len)
+            {
+                tmp_len -= len_min;
+                pp->updateTotalPathLength(tmp_len);
+            }
+            
+            // Add offset such that first detector starts at first detection
+            double toff = (stop+1)-(len_max-len_min)/con_c/ray_dt;
+            pp->updateTotalPathLength(toff*con_c);
+            
+            // Find next detector based on path length
+            t_nextres = (floor(pp->getTotalPathLength()/con_c/ray_dt)+1)*ray_dt;
         }
             
         while((grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy)) || len_diff > 0)

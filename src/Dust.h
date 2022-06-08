@@ -2448,11 +2448,14 @@ class CDustMixture
         pp_test.setDirectionID(pp->getDirectionID());
         
         // Set photon in grid
-        if(!grid->findStartingPoint(&pp_test))
+        if(!grid->findStartingPoint(&pp_test, 1))
         {
             *len_min = 1e300;
             return;
         }
+        
+        // Save length travelled so far
+        *len_min = pp_test.getTmpPathLength();
         
         // Init variables
         double len, dens = 0.0;
