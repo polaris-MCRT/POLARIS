@@ -5097,7 +5097,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             single_component[i_comp].setLarmF(param.getLarmF());
             single_component[i_comp].setMu(param.getMu());
             // single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID());
-            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID(dust_component_choice));
+            single_component[i_comp].setPhaseFunctionID(param.getPhaseFunctionID(current_dust_choice));
 
             // Get global wavelength grid
             single_component[i_comp].setWavelengthList(wavelength_list, wavelength_offset);
