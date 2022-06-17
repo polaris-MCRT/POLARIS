@@ -185,11 +185,11 @@ class GridRoutines:
                         where=tmp_dust_mass != 0)
                 #: Init grid
                 if self.model.parameter['grid_type'] == 'octree':
-                    grid = OcTree(self.model, self.ext_input,self.path, self.parse_args)
+                    grid = OcTree(self.model, self.path, self.parse_args)
                 elif self.model.parameter['grid_type'] == 'spherical':
-                    grid = Spherical(self.model, self.ext_input,self.path, self.parse_args)
+                    grid = Spherical(self.model, self.path, self.parse_args)
                 elif self.model.parameter['grid_type'] == 'cylindrical':
-                    grid = Cylindrical(self.model, self.ext_input, self.path, self.parse_args)
+                    grid = Cylindrical(self.model, self.path, self.parse_args)
                 #: Root node
                 root = grid.init_root()
                 #: Final grid file

@@ -2252,7 +2252,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     }
     data_writer << "#can align" << endl;
     data_writer << is_align << endl;
-    data_writer << "#density [kg]" << endl;
+    data_writer << "#density [kg/m^3]" << endl;
     data_writer << getMaterialDensity() << endl;
     data_writer << "#gold g factor" << endl;
     data_writer << gold_g_factor << endl;
@@ -2260,9 +2260,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     data_writer << f_highJ << endl;
     data_writer << "#f_correlation" << endl;
     data_writer << f_cor << endl;
-    data_writer << "#min. grain size\tmax. grain size" << endl;
+    data_writer << "#min. grain size [m]\tmax. grain size [m]" << endl;
     data_writer << a_min_global << "\t" << a_max_global << endl;
-    data_writer << "#min. radius\tmax. radius [m]" << endl;
+    data_writer << "#min. radius [m]\tmax. radius [m]" << endl;
     data_writer << getSizeMin() << "\t" << getSizeMax() << endl;
 
     // Add data header to file
