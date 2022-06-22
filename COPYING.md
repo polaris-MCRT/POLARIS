@@ -11,7 +11,7 @@ A second paper dealing with line radiative transfer and the Zeeman effect must b
 
 **contact**: polaris@astrophysik.uni-kiel.de
 
-History: Feb. 14, 2018
+History: May. 5, 2022
 
 
 ## POLARIS - general
