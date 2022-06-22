@@ -11,7 +11,7 @@
 graphite parallel, a=0.1micron (Draine 2003b, ApJ, 598, 1026)
 
 #nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
-386	1	1	2200	1200	0	0
+386	1	1	2200	2100	0	0
 
 #wavelength              real refractive index    imaginary refractive index
 6.19920000e-11	1.00000000e+00	1.41610000e-17
