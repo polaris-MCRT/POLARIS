@@ -679,7 +679,7 @@ class parameters
         if(i < phIDs.size())
             return phIDs[i];
         else
-            return phIDs[0];
+            return PH_ISO;
     }
 
     double getFHighJ() const
