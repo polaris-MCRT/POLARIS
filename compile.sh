@@ -75,6 +75,7 @@ function install_fits_libraries()
         cmake .. \
                 -G "$CMAKE_GENERATOR" \
                 -DBUILD_SHARED_LIBS="ON" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}/lib" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_C_FLAGS="-w -O3" \
                 -DCMAKE_CXX_COMPILER="$CXX" \
@@ -87,6 +88,7 @@ function install_fits_libraries()
                 -S . -B build \
                 -G "$CMAKE_GENERATOR" \
                 -DBUILD_SHARED_LIBS="ON" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}/lib" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_C_FLAGS="-w -O3" \
                 -DCMAKE_CXX_COMPILER="$CXX" \
@@ -98,13 +100,13 @@ function install_fits_libraries()
 
     echo -e "Compile cfitsio ..."
     if [ "$old_cmake" -eq "1" ]; then
-        cmake --build . \
+        cmake --build . && cmake --build . --target install \
             | sed 's/^/        /' \
             && { echo -e "Compile cfitsio [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile cfitsio [${RED}Error${NC}]"; exit 1; }
         cd ..
     else
-        cmake --build build \
+        cmake --build build && cmake --build build --target install\
             | sed 's/^/        /' \
             && { echo -e "Compile cfitsio [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile cfitsio [${RED}Error${NC}]"; exit 1; }
@@ -125,6 +127,8 @@ function install_fits_libraries()
         cmake .. \
                 -DCMAKE_PREFIX_PATH="../cfitsio" \
                 -G "$CMAKE_GENERATOR" \
+                -DCMAKE_PREFIX_PATH="${current_path}/lib" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}/lib" \
                 -DBUILD_SHARED_LIBS="ON" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_C_FLAGS="-w -O3" \
@@ -138,6 +142,8 @@ function install_fits_libraries()
                 -S . -B build \
                 -DCMAKE_PREFIX_PATH="../cfitsio" \
                 -G "$CMAKE_GENERATOR" \
+                -DCMAKE_PREFIX_PATH="${current_path}/lib" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}/lib" \
                 -DBUILD_SHARED_LIBS="ON" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_C_FLAGS="-w -O3" \
@@ -150,13 +156,13 @@ function install_fits_libraries()
 
     echo -e "Compile CCfits ..."
     if [ "$old_cmake" -eq "1" ]; then
-        cmake --build . \
+        cmake --build . && cmake --build . --target install \
             | sed 's/^/        /' \
             && { echo -e "Compile CCfits [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile CCfits [${RED}Error${NC}]"; exit 1; }
         cd ".."
     else
-        cmake --build build \
+        cmake --build build && cmake --build build --target install \
             | sed 's/^/        /' \
             && { echo -e "Compile CCfits [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile CCfits [${RED}Error${NC}]"; exit 1; }
@@ -189,6 +195,8 @@ function install_polaris()
         cd "build"
         cmake .. \
                 -G "$CMAKE_GENERATOR" \
+                -DCMAKE_PREFIX_PATH="${current_path}/lib" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}" \
                 -DBUILD_SHARED_LIBS="ON" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_CXX_COMPILER="$CXX" \
@@ -200,6 +208,8 @@ function install_polaris()
         cmake \
                 -S . -B build \
                 -G "$CMAKE_GENERATOR" \
+                -DCMAKE_PREFIX_PATH="${current_path}/lib" \
+                -DCMAKE_INSTALL_PREFIX="${current_path}" \
                 -DBUILD_SHARED_LIBS="ON" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_CXX_COMPILER="$CXX" \
@@ -585,9 +595,6 @@ else
     exit 1
 fi
 
-# always add OpenMP support and C++11 standard
-CXXFLAGS="$CXXFLAGS -fopenmp -std=c++11"
-
 
 # ================================================================================ #
 # ============================= Show set-up and do it ============================ #
@@ -633,7 +640,7 @@ if ! grep -q "${set_envvar_POLARIS_str}" ${HOME}/.bashrc; then
 fi
 
 # set POLARIS_FITS_PATH as environment variable
-set_envvar_FITS_str="export POLARIS_FITS_PATH=\""'${POLARIS_PATH}'"/lib/CCfits/build:"'${POLARIS_PATH}'"/lib/cfitsio/build\""
+set_envvar_FITS_str="export POLARIS_FITS_PATH=\""'${POLARIS_PATH}'"/lib/lib\""
 # check if this variable is already in LD_LIBRARY_PATH to prevent multiple entries
 if_FITS_str="if [[ \":"'$LD_LIBRARY_PATH'":\" != *\":"'$POLARIS_FITS_PATH'":\"* ]]; then"
 # prepend this variable to LD_LIBRARY_PATH
