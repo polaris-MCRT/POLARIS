@@ -27,12 +27,20 @@ FIND_PACKAGE (OpenMP REQUIRED)
 SET (SRC_FILES CommandParser.cpp Cylindrical.cpp Dust.cpp
     Faddeeva.cc Grid.cpp GasSpecies.cpp OcTree.cpp OPIATE.cpp
     Pipeline.cpp RadiativeTransfer.cpp Source.cpp Spherical.cpp
-    Voronoi.cpp main.cpp Synchrotron.cpp
+    Voronoi.cpp Synchrotron.cpp
 )
 
-ADD_EXECUTABLE (polaris ${SRC_FILES})
-
+ADD_EXECUTABLE (polaris main.cpp ${SRC_FILES})
 TARGET_LINK_LIBRARIES (polaris PRIVATE OpenMP::OpenMP_CXX ${CCFITS_LIBRARY} ${CFITSIO_LIBRARY})
 TARGET_INCLUDE_DIRECTORIES (polaris PRIVATE ${CMAKE_CURRENT_LIST_DIR} ${CFITSIO_INCLUDE_DIR})
-
 INSTALL (TARGETS polaris)
+
+INCLUDE (CTest)
+if(BUILD_TESTING)
+    ADD_EXECUTABLE (tests tests.cpp MathFunctions_t.cpp ${SRC_FILES})
+    TARGET_LINK_LIBRARIES (tests PRIVATE OpenMP::OpenMP_CXX ${CCFITS_LIBRARY} ${CFITSIO_LIBRARY})
+    TARGET_INCLUDE_DIRECTORIES (tests PRIVATE ../ext ${CMAKE_CURRENT_LIST_DIR} ${CFITSIO_INCLUDE_DIR})
+    # allow user to run tests with `make test` or `ctest`
+    INCLUDE(Catch.cmake)
+    catch_discover_tests(tests)
+endif()

@@ -19,6 +19,7 @@ jobs:
       - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build
       - uses: actions/checkout@v3
       - run: ./compile.sh -f -c ${{ matrix.compiler }} -g ${{ matrix.generator }}
+      - run: ./src/build/tests -as
       - run: ./ci/test.sh polaris projects
   ubuntu-cmake:
     strategy:
@@ -38,6 +39,7 @@ jobs:
           cd build
           ${{ matrix.defines }} cmake ../src -DCMAKE_BUILD_TYPE=Release -GNinja
           ninja
+          ninja test
       - run: ./ci/test.sh ./build/polaris projects
   macos-cmake-llvm:
     name: MacOS CMake llvm + system ccfits cfitsio
@@ -50,4 +52,5 @@ jobs:
           cd build
           CC="$(brew --prefix llvm)/bin/clang" CXX="$(brew --prefix llvm)/bin/clang++" cmake ../src -DCMAKE_BUILD_TYPE=Release -GNinja
           ninja
+          ninja test
       - run: ./ci/test.sh ./build/polaris projects
