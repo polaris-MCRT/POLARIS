@@ -9,19 +9,12 @@
 #  CCFITS_LIBRARIES    - the CCFITS libraries
 #                         (identical to CCFITS_LIBRARY)
 
-if(NOT CCFITS_FOUND)
+include(FindPackageHandleStandardArgs)
 
-    find_path(CCFITS_INCLUDE_DIR 
-        NAMES CCfits.h)
+find_path(CCFITS_INCLUDE_DIR CCfits/CCfits.h)
+
+find_library(CCFITS_LIBRARY CCfits)
         
-    find_library(CCFITS_LIBRARY 
-        NAMES libCCfits.a libCCfits.so libCCfits.la libCCfits.dylib
-        LIB_TYPE
-        PATHS ${CMAKE_PREFIX_PATH}
-        PATH_SUFFIXES build
-        NO_DEFAULT_PATH)
-        
-    find_package(CFITSIO REQUIRED)
+find_package(CFITSIO REQUIRED)
 
-endif(NOT CCFITS_FOUND)
-
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(CCFITS DEFAULT_MSG CCFITS_LIBRARY CCFITS_INCLUDE_DIR)

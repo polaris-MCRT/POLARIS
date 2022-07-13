@@ -1,0 +1,53 @@
+name: CI
+
+on: push
+
+defaults:
+  run:
+    # use interactive shell, i.e. it should source .bashrc
+    shell: bash -ieo pipefail {0}
+
+jobs:
+  ubuntu-compile-script:
+    strategy:
+      matrix:
+        compiler: ["gcc", "clang++"]
+        generator: ["make", "ninja"]
+    name: Ubuntu compile.sh - ${{ matrix.compiler }} - ${{ matrix.generator }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build
+      - uses: actions/checkout@v3
+      - run: ./compile.sh -f -c ${{ matrix.compiler }} -g ${{ matrix.generator }}
+      - run: ./ci/test.sh polaris projects
+  ubuntu-cmake:
+    strategy:
+      matrix:
+        include:
+          - compiler: gcc
+            defines: "CC=gcc CXX=g++"
+          - compiler: clang
+            defines: "CC=clang CXX=clang++"
+    name: Ubuntu CMake - ${{ matrix.compiler }} - ninja - system ccfits cfitsio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build libccfits-dev libcfitsio-dev
+      - run: |
+          mkdir build
+          cd build
+          ${{ matrix.defines }} cmake ../src -DCMAKE_BUILD_TYPE=Release -GNinja
+          ninja
+      - run: ./ci/test.sh ./build/polaris projects
+  macos-cmake-llvm:
+    name: MacOS CMake llvm + system ccfits cfitsio
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: brew install llvm libomp ninja ccfits cfitsio
+      - run: |
+          mkdir build
+          cd build
+          CC="$(brew --prefix llvm)/bin/clang" CXX="$(brew --prefix llvm)/bin/clang++" cmake ../src -DCMAKE_BUILD_TYPE=Release -GNinja
+          ninja
+      - run: ./ci/test.sh ./build/polaris projects
