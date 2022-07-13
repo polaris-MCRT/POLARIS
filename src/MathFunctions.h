@@ -2903,7 +2903,7 @@ class CMathFunctions
                 break;
         }
 
-        delete ru;
+        delete[] ru;
 
         // efficiency factors (final calculations)
         qext = b * qext;
