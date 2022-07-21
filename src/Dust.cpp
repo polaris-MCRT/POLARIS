@@ -3381,7 +3381,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     cs.Cpol = dCext * sinsq_th;
     cs.Csca = sCsca + dCsca * cossq_th;
     cs.Cabs = sCabs + dCabs * cossq_th;
-    cs.Cpabs = dCext * sinsq_th;
+    cs.Cpabs = dCabs * sinsq_th;
     cs.Ccirc = sCcirc * sinsq_th;
 
     // Convert from efficiencies to cross-sections
