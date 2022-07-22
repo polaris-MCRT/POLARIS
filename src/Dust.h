@@ -2185,11 +2185,27 @@ class CDustComponent
 
     void SetNrOfScatTheta(uint ** nr_of_scat_theta_tmp)
     {
+        if(nr_of_scat_theta != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] nr_of_scat_theta[a];
+            delete[] nr_of_scat_theta;
+        }
         nr_of_scat_theta = nr_of_scat_theta_tmp;
     }
 
     void SetScatTheta(double *** scat_theta_tmp)
     {
+        if(scat_theta != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+            {
+                for(uint w = 0; w < nr_of_wavelength; w++)
+                    delete[] scat_theta[a][w];
+                delete[] scat_theta[a];
+            }
+            delete[] scat_theta;
+        }
         scat_theta = scat_theta_tmp;
     }
 

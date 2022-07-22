@@ -202,6 +202,7 @@ class CGridCylindrical : public CGridBasic
                 delete[] grid_cells[i_r];
                 grid_cells[i_r] = 0;
             }
+            delete[] grid_cells;
         }
 
         if(center_cells != 0)
@@ -211,6 +212,7 @@ class CGridCylindrical : public CGridBasic
                 delete center_cells[i_z];
                 center_cells[i_z] = 0;
             }
+            delete[] center_cells;
         }
 
         if(cell_list != 0)
