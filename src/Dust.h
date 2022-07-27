@@ -1099,7 +1099,7 @@ class CDustComponent
     {
         if(sca_mat == 0)
             return 0;
-
+            
         return sca_mat[a][w][incID][sphID][sthID](i_mat, j_mat);
     }
 
@@ -1114,17 +1114,20 @@ class CDustComponent
         {
             for(uint a = 0; a < nr_of_dust_species; a++)
             {
-                for(uint w = 0; w < nr_of_wavelength; w++)
+                if(sizeIndexUsed(a))
                 {
-                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
+                    for(uint w = 0; w < nr_of_wavelength; w++)
                     {
-                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                            delete[] sca_mat[a][w][inc][sph];
-                        delete[] sca_mat[a][w][inc];
+                        for(uint inc = 0; inc < nr_of_incident_angles; inc++)
+                        {
+                            for(uint sph = 0; sph < nr_of_scat_phi; sph++)
+                                delete[] sca_mat[a][w][inc][sph];
+                            delete[] sca_mat[a][w][inc];
+                        }
+                        delete[] sca_mat[a][w];
                     }
-                    delete[] sca_mat[a][w];
+                    delete[] sca_mat[a];
                 }
-                delete[] sca_mat[a];
             }
             delete[] sca_mat;
             sca_mat = 0;

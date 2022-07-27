@@ -1312,7 +1312,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 {
     // Init variables
     ullong nr_of_photons;
-    ullong per_counter, photon_forced_max, nr_of_wavelength;
+    ullong per_counter, nr_of_wavelength;
     float last_percentage;
     uint mrw_counter = 0;
     ullong kill_counter = 0;
@@ -1402,6 +1402,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                 // Init photon package
                 photon_package * rays;
+                uint photon_forced_max;
 
                 // If forced scattering is enabled, send out two photons and let
                 // at least one of them interact
@@ -1555,7 +1556,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             pp->adjustPosition(old_pos, len);
 
                             // Modify second photon if enforced scattering is used
-                            if(b_forced && interactions == 1 && photon_forced_i == 0)
+                            if(b_forced && interactions == 1 && photon_forced_i == 0 && photon_forced_max == 1)
                             {
                                 rays[1].setWavelength(pp->getWavelength(), pp->getDustWavelengthID());
                                 rays[1].setPosition(pp->getPosition());

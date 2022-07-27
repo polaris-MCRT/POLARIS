@@ -2753,74 +2753,77 @@ void CDustComponent::preCalcMieScatteringProb()
 #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
-        // Init arrays of interp
-        avg_scattering_frac[a] = new interp[nr_of_wavelength];
-        phase_pdf[a] = new interp[nr_of_wavelength];
-        for(uint w = 0; w < nr_of_wavelength; w++)
+        if(sizeIndexUsed(a))
         {
-            // Init pointer arrays
-            double * S11_tmp = new double[nr_of_scat_theta[a][w]];
-            double * S11_solid_angle = new double[nr_of_scat_theta[a][w]];
-            double * tmp_scat_frac = new double[nr_of_scat_theta[a][w]];
-
-            // Resize splines for scattering angles
-            avg_scattering_frac[a][w].resize(nr_of_scat_theta[a][w]);
-            phase_pdf[a][w].resize(nr_of_scat_theta[a][w]);
-
-            for(uint sth = 0; sth < nr_of_scat_theta[a][w]; sth++)
+            // Init arrays of interp
+            avg_scattering_frac[a] = new interp[nr_of_wavelength];
+            phase_pdf[a] = new interp[nr_of_wavelength];
+            for(uint w = 0; w < nr_of_wavelength; w++)
             {
-                // Calculate the scattering propability in a certain direction
-                S11_tmp[sth] = double(sca_mat[a][w][0][0][sth](0, 0));
+                // Init pointer arrays
+                double * S11_tmp = new double[nr_of_scat_theta[a][w]];
+                double * S11_solid_angle = new double[nr_of_scat_theta[a][w]];
+                double * tmp_scat_frac = new double[nr_of_scat_theta[a][w]];
 
-                // Calculate the modified angle for integration
-                S11_solid_angle[sth] = PIx2 * cos(scat_theta[a][w][sth]);
+                // Resize splines for scattering angles
+                avg_scattering_frac[a][w].resize(nr_of_scat_theta[a][w]);
+                phase_pdf[a][w].resize(nr_of_scat_theta[a][w]);
 
-                // Set the current value for the integration array tmp_scat_frac
-                if(sth == 0)
-                    tmp_scat_frac[sth] = 0;
-                else
-                    tmp_scat_frac[sth] = -CMathFunctions::integ(S11_solid_angle, S11_tmp, 0, sth);
+                for(uint sth = 0; sth < nr_of_scat_theta[a][w]; sth++)
+                {
+                    // Calculate the scattering propability in a certain direction
+                    S11_tmp[sth] = double(sca_mat[a][w][0][0][sth](0, 0));
+
+                    // Calculate the modified angle for integration
+                    S11_solid_angle[sth] = PIx2 * cos(scat_theta[a][w][sth]);
+
+                    // Set the current value for the integration array tmp_scat_frac
+                    if(sth == 0)
+                        tmp_scat_frac[sth] = 0;
+                    else
+                        tmp_scat_frac[sth] = -CMathFunctions::integ(S11_solid_angle, S11_tmp, 0, sth);
+                }
+
+                // Integral of the scattering S11 value over the full sphere
+                double int_scat_frac = tmp_scat_frac[nr_of_scat_theta[a][w] - 1];
+
+                for(uint sth = 0; sth < nr_of_scat_theta[a][w]; sth++)
+                {
+                    if(int_scat_frac > 0)
+                    {
+                        // Set the cumulative distribution function of being scattered at a
+                        // certain angle
+                        avg_scattering_frac[a][w].setValue(
+                            sth, tmp_scat_frac[sth] / int_scat_frac, scat_theta[a][w][sth]);
+
+                        // Set the phase function of how much is scattered at a certain angle
+                        phase_pdf[a][w].setValue(sth, scat_theta[a][w][sth], S11_tmp[sth] / int_scat_frac);
+                    }
+                }
+
+                // Activate spline for the cumulative distribution function
+                //avg_scattering_frac[a][w].createSpline();
+
+                delete[] S11_tmp;
+                delete[] S11_solid_angle;
+                delete[] tmp_scat_frac;
             }
 
-            // Integral of the scattering S11 value over the full sphere
-            double int_scat_frac = tmp_scat_frac[nr_of_scat_theta[a][w] - 1];
-
-            for(uint sth = 0; sth < nr_of_scat_theta[a][w]; sth++)
+#pragma omp critical
             {
-                if(int_scat_frac > 0)
+                // Show progress
+                if(per_counter % 2 == 0)
                 {
-                    // Set the cumulative distribution function of being scattered at a
-                    // certain angle
-                    avg_scattering_frac[a][w].setValue(
-                        sth, tmp_scat_frac[sth] / int_scat_frac, scat_theta[a][w][sth]);
-
-                    // Set the phase function of how much is scattered at a certain angle
-                    phase_pdf[a][w].setValue(sth, scat_theta[a][w][sth], S11_tmp[sth] / int_scat_frac);
+                    printIDs();
+                    cout << "- pre-calculation of Mie probabilities: "
+                        << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
+                        << " [%]                         \r";
                 }
             }
 
-            // Activate spline for the cumulative distribution function
-            //avg_scattering_frac[a][w].createSpline();
-
-            delete[] S11_tmp;
-            delete[] S11_solid_angle;
-            delete[] tmp_scat_frac;
+            // Increase progress counter
+            per_counter++;
         }
-
-#pragma omp critical
-        {
-            // Show progress
-            if(per_counter % 2 == 0)
-            {
-                printIDs();
-                cout << "- pre-calculation of Mie probabilities: "
-                     << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
-                     << " [%]                         \r";
-            }
-        }
-
-        // Increase progress counter
-        per_counter++;
     }
 }
 
@@ -3154,27 +3157,28 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
     {
         // Mix scattering matrix for mixture
         for(uint a = 0; a < nr_of_dust_species; a++)
-            for(uint w = 0; w < nr_of_wavelength; w++)
-                for(uint inc = 0; inc < nr_of_incident_angles; inc++)
-                    for(uint sph = 0; sph < nr_of_scat_phi; sph++)
-                        for(uint sth_mix = 0; sth_mix < nr_of_scat_theta[a][w]; sth_mix++)
-                        {
-                            uint sth_comp = lower_bound(comp->getScatTheta(a,w),
-                                                        comp->getScatTheta(a,w) + comp->getNrOfScatTheta(a,w),
-                                                        scat_theta[a][w][sth_mix]) - comp->getScatTheta(a,w);
+            if(comp->sizeIndexUsed(a))
+                for(uint w = 0; w < nr_of_wavelength; w++)
+                    for(uint inc = 0; inc < nr_of_incident_angles; inc++)
+                        for(uint sph = 0; sph < nr_of_scat_phi; sph++)
+                            for(uint sth_mix = 0; sth_mix < nr_of_scat_theta[a][w]; sth_mix++)
+                            {
+                                uint sth_comp = lower_bound(comp->getScatTheta(a,w),
+                                                            comp->getScatTheta(a,w) + comp->getNrOfScatTheta(a,w),
+                                                            scat_theta[a][w][sth_mix]) - comp->getScatTheta(a,w);
 
-                            if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
-                                for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
-                                    for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
-                                        sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) +=
-                                            size_fraction[a][1] *
-                                            comp->getScatteringMatrixElement(a, w, inc, sph, sth_comp, i_mat, j_mat);
-                            else
-                                for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
-                                    for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
-                                        sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) =
-                                            sca_mat[a][w][inc][sph][sth_mix-1](i_mat, j_mat);
-                        }
+                                if(scat_theta[a][w][sth_mix] == comp->getScatTheta(a,w,sth_comp))
+                                    for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
+                                        for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
+                                            sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) +=
+                                                size_fraction[a][1] *
+                                                comp->getScatteringMatrixElement(a, w, inc, sph, sth_comp, i_mat, j_mat);
+                                else
+                                    for(uint i_mat = 0; i_mat < nr_of_scat_mat_elements; i_mat++)
+                                        for(uint j_mat = 0; j_mat < nr_of_scat_mat_elements; j_mat++)
+                                            sca_mat[a][w][inc][sph][sth_mix](i_mat, j_mat) =
+                                                sca_mat[a][w][inc][sph][sth_mix-1](i_mat, j_mat);
+                            }
     }
 
     if(comp->getCalorimetryLoaded())
@@ -3379,7 +3383,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     cs.Cpol = dCext * sinsq_th;
     cs.Csca = sCsca + dCsca * cossq_th;
     cs.Cabs = sCabs + dCabs * cossq_th;
-    cs.Cpabs = dCext * sinsq_th;
+    cs.Cpabs = dCabs * sinsq_th;
     cs.Ccirc = sCcirc * sinsq_th;
 
     // Convert from efficiencies to cross-sections
@@ -5506,7 +5510,8 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
         for(uint a = 0; a < nr_of_dust_species; a++)
-            delete[] size_fraction[i_comp][a];
+            if(mixed_component[i_mixture].sizeIndexUsed(a))
+                delete[] size_fraction[i_comp][a];
         delete[] size_fraction[i_comp];
     }
     delete[] size_fraction;
