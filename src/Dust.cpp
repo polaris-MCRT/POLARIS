@@ -1075,6 +1075,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 Qsca2[a][w] = Qsca1[a][w];
                 Qcirc[a][w] = 0;
 
+                if(scat_theta[a][w] != 0){
+                    delete[] scat_theta[a][w];
+                }
                 scat_theta[a][w] = new double[nr_or_scat_theta_final];
 
                 for(uint inc = 0; inc < nr_of_incident_angles; inc++)

@@ -17,7 +17,7 @@ jobs:
       matrix:
         compiler: ["gcc", "clang++"]
         generator: ["make", "ninja"]
-    name: Ubuntu compile.sh - ${{ matrix.compiler }} - ${{ matrix.generator }}
+    name: "Ubuntu compile.sh :: ${{ matrix.compiler }} :: ${{ matrix.generator }}"
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build
@@ -31,9 +31,16 @@ jobs:
         include:
           - compiler: gcc
             defines: "CC=gcc CXX=g++"
+            build_type: "Release"
           - compiler: clang
             defines: "CC=clang CXX=clang++"
-    name: Ubuntu CMake - ${{ matrix.compiler }} - ninja - system ccfits cfitsio
+            build_type: "Release"
+          - compiler: clang
+            defines: "CC=clang CXX=clang++"
+            build_type: "Debug"
+            exe_linker_flags: "-fsanitize=address"
+            cxx_flags: "-fsanitize=address"
+    name: "Ubuntu :: ${{ matrix.compiler }} :: ${{ matrix.build_type }} :: ${{ matrix.cxx_flags }} :: system ccfits cfitsio"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -41,12 +48,12 @@ jobs:
       - run: |
           mkdir build
           cd build
-          ${{ matrix.defines }} cmake ../src -DCMAKE_BUILD_TYPE=Release -GNinja
+          ${{ matrix.defines }} cmake ../src -GNinja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_EXE_LINKER_FLAGS=${{ matrix.exe_linker_flags }} -DCMAKE_CXX_FLAGS=${{ matrix.cxx_flags }}
           ninja
           ninja test
       - run: ./ci/test.sh ./build/polaris projects
   macos-cmake-llvm:
-    name: MacOS CMake llvm + system ccfits cfitsio
+    name: "MacOS :: llvm :: system ccfits cfitsio"
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
