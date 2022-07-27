@@ -1310,8 +1310,8 @@ class parameters
 
     void setPhaseFunctionID(uint val, uint pos)
     {
-        while(pos >= phIDs.size())
-            phIDs.push_back(0);
+        if(pos >= phIDs.size())
+            phIDs.resize(pos+1);
         phIDs[pos] = val;
     }
 
