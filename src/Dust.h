@@ -280,6 +280,9 @@ class CDustComponent
         if(abs_prob != 0)
             delete[] abs_prob;
 
+        if(sca_mat != 0)
+            cleanScatteringData();
+
         if(a_eff != 0)
             delete[] a_eff;
         if(a_eff_1_5 != 0)
@@ -292,9 +295,6 @@ class CDustComponent
             delete[] mass;
         if(relWeightTab != 0)
             delete[] relWeightTab;
-
-        if(sca_mat != 0)
-            cleanScatteringData();
     }
 
     // ----------------------------------------------------------------------
