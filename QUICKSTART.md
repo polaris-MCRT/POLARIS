@@ -52,17 +52,17 @@ source ~/.bashrc
 ## Start a simulation
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
-An exemplary (binary) grid file `grid.dat` of a circumstellar disk can be found in `projects/disk/`.
-Corresponding `.cmd` command files of the temperature, thermal emission, and scattered stellar emission simulations can be found in
+Exemplary `.cmd` command files for temperature, thermal emission, and scattered stellar emission simulations can be found in
 
 - `projects/disk/example/temp/`,
 - `projects/disk/example/dust/`, and
 - `projects/disk/example/dust_mc/`, respectively.
 
-Before starting the simulation, change `/YOUR/POLARIS/PATH/` in the command file at `<dust_component>`, `<path_grid>`, and `<path_out>` to your POLARIS path.
+The simulations use an exemplary (binary) grid file `grid.dat` of a circumstellar disk which can be found in `projects/disk/`.
 
-To start a temperature simulation (`temp`), type:
+To start the temperature simulation (`temp`), move into the POLARIS directory and execute `polaris` followed by the command file:
 ```bash
+cd /YOUR/POLARIS/PATH/
 polaris projects/disk/example/temp/POLARIS.cmd
 ```
 The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
@@ -72,6 +72,9 @@ Please refer to the [command list](projects/CommandList.cmd) in the `projects` f
 
 **HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
+**HINT**: The previous results will be overwritten, if the same command file is used. Please change `<path_out>` in the command file to use a new directory for the new results.
+
+**HINT**: If users write their own command file, before starting the simulation, please check `<dust_component>`, `<path_grid>`, and `<path_out>` in the command file for the correct (absolute) paths.
 
 ## Create a grid
 
