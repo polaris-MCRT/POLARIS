@@ -29,6 +29,8 @@ class CRaytracingBasic
         max_subpixel_lvl = 0;
         nr_extra = 0;
 
+        subpixel_warning = false;
+
         sidelength_x = 0;
         sidelength_y = 0;
 
@@ -259,6 +261,16 @@ class CRaytracingBasic
         return nr_extra;
     }
 
+    uint getDetectorShape()
+    {
+        return rt_detector_shape;
+    }
+
+    bool getSubpixelWarning()
+    {
+        return subpixel_warning;
+    }
+
     virtual double getDistance()
     {
         return distance;
@@ -424,6 +436,8 @@ class CRaytracingBasic
     double distance, max_length;
     double rot_angle1, rot_angle2;
     double rad_bubble;
+
+    bool subpixel_warning;
 
     int off_len_x, off_len_y;
 
@@ -797,6 +811,9 @@ class CRaytracingCartesian : public CRaytracingBasic
                 }
             }
         }
+        else
+            subpixel_warning = true;
+
         return subpixel;
     }
 
