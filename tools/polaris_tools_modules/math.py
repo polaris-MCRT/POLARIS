@@ -385,8 +385,9 @@ class Math:
         """
         cylindrical_coord = np.zeros(3)
         cylindrical_coord[0] = np.linalg.norm(cartesian_coord[0:2])
-        cylindrical_coord[1] = np.arctan2(
-            cartesian_coord[1], cartesian_coord[0]) + np.pi
+        cylindrical_coord[1] = np.arctan2(cartesian_coord[1], cartesian_coord[0])
+        if cylindrical_coord[1] < 0.0:
+            cylindrical_coord[1] += 2.0 * np.pi
         cylindrical_coord[2] = cartesian_coord[2]
         return cylindrical_coord
 
