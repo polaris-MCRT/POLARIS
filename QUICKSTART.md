@@ -94,7 +94,7 @@ $$
 h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 $$
 
-Default values: $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 0.9$, $\beta = 1.1$, inner disk radius $r_\mathrm{in} = 0.1\,\mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\,\mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}$ with a dust to gas mass ratio of 0.01.
+Default values: $r_0 = 100\,\mathrm{AU}$, $h_0 = 10\,\mathrm{AU}$, $\alpha = 1.8$, $\beta = 1.1$, inner disk radius $r_\mathrm{in} = 0.1\,\mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\,\mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\,\mathrm{M_\odot}$ with a dust to gas mass ratio of 0.01.
 
 **Sphere** with a constant density distribution
 
