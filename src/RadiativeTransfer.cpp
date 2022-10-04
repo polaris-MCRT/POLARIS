@@ -3416,6 +3416,7 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             dust_u[c_i] = dust->getEnthalpyMean(grid,cell,dust->getDustTemperature(grid,cell))*grid->getVolume(cell);
         }
         
+        // deprecated function
         //if (!startInitialDustPhotons(dt, dust_em, pp_stack))
         //    return false;
     }
