@@ -180,7 +180,7 @@ class SubDisk(Model):
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 0.9 # Andrews 2010
+        self.parameter['alpha'] = 1.8 # Andrews 2010 with alpha-beta and formula below
         # self.parameter['beta'] = self.parameter['alpha'] / 3 + 0.5
         self.parameter['beta'] = 1.1 # Woitke 2019
         self.parameter['f_dg'] = 0.01
