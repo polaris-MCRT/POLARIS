@@ -125,10 +125,6 @@ void CPipeline::Run()
             case CMD_TEMP:
                 result = calcMonteCarloRadiationField(param);
                 break;
-                
-            case CMD_TEMP_POLY:
-                result = calcMonteCarloRadiationFieldPoly(param);
-                break;
 
             case CMD_TEMP_RAT:
                 result = calcMonteCarloRadiationField(param);
@@ -297,105 +293,6 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
     else if(param.getCommand() == CMD_RAT)
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
-
-    delete grid;
-    delete dust;
-    deleteSourceLists();
-
-    return true;
-}
-
-bool CPipeline::calcMonteCarloRadiationFieldPoly(parameters & param)
-{
-    // To be modified. Just copied from calcMonteCarloRadiationField
-    bool use_energy_density = false;
-    if(param.getSaveRadiationField() || param.isRatSimulation() || param.getStochasticHeatingMaxSize() > 0)
-        use_energy_density = true;
-
-    CGridBasic * grid = 0;
-    CDustMixture * dust = new CDustMixture();
-
-    if(!createOutputPaths(param.getPathOutput()))
-        return false;
-
-    if(!assignGridType(grid, param))
-        return false;
-
-    if(!createWavelengthList(param, dust))
-        return false;
-
-    if(!assignDustMixture(param, dust, grid))
-        return false;
-
-    grid->setSIConversionFactors(param);
-
-    grid->setSpecLengthAsVector(use_energy_density);
-    if(!grid->loadGridFromBinrayFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
-        return false;
-
-    // Print helpfull information
-    grid->createCellList();
-    dust->printParameter(param, grid);
-    grid->printParameters();
-
-    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
-        return false;
-
-    if(!grid->writeGNUPlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
-        return false;
-
-    createSourceLists(param, dust, grid);
-    if(sources_mc.size() == 0)
-    {
-        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
-        return false;
-    }
-
-    CRadiativeTransfer rad(param);
-
-    rad.setGrid(grid);
-    rad.setDust(dust);
-    rad.setSourcesLists(sources_mc, sources_ray);
-    rad.initiateRadFieldMC(param);
-
-    omp_set_num_threads(param.getNrOfThreads());
-
-    if(param.isTemperatureSimulation())
-    {
-        if(param.getDustOffset())
-            rad.convertTempInQB(param.getOffsetMinGasDensity(), false);
-        else if(param.getDustGasCoupling())
-            rad.convertTempInQB(param.getOffsetMinGasDensity(), true);
-    }
-
-    rad.calcMonteCarloRadiationFieldPoly(param.getCommand(),
-                                     use_energy_density,
-                                     false); //(param.getCommand() == CMD_RAT));
-
-    if(param.isTemperatureSimulation())
-        rad.calcFinalTemperature(use_energy_density);
-
-    if(param.isRatSimulation())
-        rad.calcAlignedRadii();
-
-    cout << SEP_LINE;
-
-    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
-        return false;
-
-    if(!grid->writeGNUPlotFiles(path_plot + "output_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "output_", param, param.getOutAMIRAPoints()))
-        return false;
-
-    grid->writeSpecialLines(path_data);
-
-    grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
-    grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
 
     delete grid;
     delete dust;
@@ -1412,14 +1309,6 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printConversionParameters(param);
             printPlotParameters(param);
             break;
-            
-        case CMD_TEMP_POLY:
-            cout << "- Command          : TEMPERATURE DISTRIBUTION POLYCHROMATIC" << endl;
-            printPathParameters(param);
-            printSourceParameters(param);
-            printConversionParameters(param);
-            printPlotParameters(param);
-            break;
 
         case CMD_FORCE:
             cout << "- Command          : RADIATION FORCE" << endl;
@@ -1507,7 +1396,6 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
     switch(param.getCommand())
     {
         case CMD_TEMP:
-        case CMD_TEMP_POLY:
         case CMD_TEMP_RAT:
         case CMD_DUST_TIME:
         case CMD_RAT:

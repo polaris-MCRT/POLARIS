@@ -33,7 +33,6 @@ class CPipeline
     {}
 
     bool calcMonteCarloRadiationField(parameters & param);
-    bool calcMonteCarloRadiationFieldPoly(parameters & param);
     bool calcPolarizationMapsViaRayTracing(parameters & param);
     bool calcPolarizationMapsViaSynchrotron(parameters & param);
     bool calcChMapsViaRayTracing(parameters & param);

@@ -217,16 +217,6 @@ void CSourceStar::createNextRay(photon_basic * pp, ullong i_pos)
     pp->initCoordSystem();
 }
 
-void CSourceStar::createSpectrum(photon_polychrom * pp)
-{
-    // Initiates spectrum for polychromatic photons
-    for(uint w = 0; w < getNrOfWavelength()-1; w++)
-    {
-        pp->addToSpectrum(lam_pf.getX(w+1) - lam_pf.getX(w));
-    }
-    pp->addToSpectrum(0.0);
-}
-
 void CSourceStar::createDirectRay(photon_basic * pp, Vector3D dir_obs)
 {
     // Init variables

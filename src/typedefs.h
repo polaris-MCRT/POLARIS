@@ -142,7 +142,6 @@ using namespace std;
 #define CMD_OPIATE 8
 #define CMD_SYNCHROTRON 9
 #define CMD_DUST_TIME 10
-#define CMD_TEMP_POLY 11
 
 // PDA IDs
 #define PDA_TEMP 0

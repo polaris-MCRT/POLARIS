@@ -715,12 +715,6 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->setCommand(CMD_TEMP);
             return true;
         }
-        
-        if(data.compare("CMD_TEMP_POLY") == 0)
-        {
-            param->setCommand(CMD_TEMP_POLY);
-            return true;
-        }
 
         if(data.compare("CMD_TEMP_RAT") == 0)
         {
