@@ -3522,8 +3522,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
         for (llong i = 0; i < nr_of_photons_step; i++)
         {
             pp_stack.push_back(new photon_basic());
-            // Generation marker could be set here
-            // pp_stack[i]->setTime(t); tbd
             
             // Decide wether photons are emitted from source or dust and emitt
             pp_stack[last+i]->initRandomGenerator(last+i);
@@ -3619,7 +3617,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             // Init variables for tau, path length, density
             double tmp_tau, len, dens;
             
-            // Set dl = 0 and t = current_time (tbd)
             // Init variable for overall light travel distance
             double dl = 0;
             
@@ -3676,10 +3673,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                     // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
                     double energy = len * pp_stack[i]->getStokesVector().I() * 
                                     dust->getCabsMean(grid, pp_stack[i]); 
-                                    
-                    // Check if energy left
-                    //if (energy*dens > pp_stack[i]->getStokesVector().I())
-                    //    energy = pp_stack[i]->getStokesVector().I()/dens;
                     
                     // Add to absorption estimate
                     uint c_id = (pp_stack[i]->getPositionCell())->getID();
@@ -3700,9 +3693,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                         // Perform simple photon scattering without
                         // changing the Stokes vectors
                         dust->scatter(grid, pp_stack[i], true);
-                        
-                        // Subtract energy from photon package
-                        //pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
                     }
                     else
                     {
@@ -3728,13 +3718,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
                         // Update photon Stokes vector (only I, therefore pol results wrong, tbd)
                         double energy = len * pp_stack[i]->getStokesVector().I() * 
                                         dust->getCabsMean(grid, pp_stack[i]); 
-                                                                
-                        // Check if energy left
-                        //if (energy*dens > pp_stack[i]->getStokesVector().I())
-                        //    energy = pp_stack[i]->getStokesVector().I()/dens;
-                            
-                        // Subtract from photon package
-                        //pp_stack[i]->addStokesVector(StokesVector(-(energy*dens), 0, 0, 0));
                         
                         // Add to absorption estimate
                         uint c_id = (pp_stack[i]->getPositionCell())->getID();
@@ -3763,15 +3746,6 @@ bool CRadiativeTransfer::calcMonteCarloTimeTransfer(uint command,
             }
         
         }
-        
-//         
-//         // Erase photons from stack that left the grid or are absorbed
-//         for (llong i = pp_del.size()-1; i>0; i--)
-//         {
-//                 kill_counter++;
-//                 delete pp_stack[pp_del[i]];
-//                 pp_stack.erase(pp_stack.begin()+pp_del[i]);
-//         }
 
         // Erase photons from stack (remove_if)
         uint del_size = pp_del.size();

@@ -6,15 +6,13 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from io import open
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
-import shutil
 
 if not os.path.exists('scripts'):
     os.makedirs('scripts')
 
-scripts = ['polaris-run.in', 'polaris-plot.in', 'polaris-gen.in',
-           'polaris-remote.in', 'polaris-extra.in', 'polaris-test.in']
+scripts = ['polaris-gen.in']
 for script in scripts:
     # Read in the file
     with open(script, 'r') as file:
@@ -35,11 +33,11 @@ for script in scripts:
 # and accepts an argument to specify the text encoding
 # Python 3 only projects can skip this import
 
-here = os.path.abspath(os.path.dirname(__file__))
+# here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(os.path.join(here, 'README'), encoding='utf-8') as f:
-    long_description = f.read()
+# with open(os.path.join(here, 'README'), encoding='utf-8') as f:
+#     long_description = f.read()
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -70,7 +68,7 @@ setup(
     #
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
-    long_description=long_description,  # Optional
+    # long_description=long_description,  # Optional
 
     # Denotes that our long_description is in Markdown; valid values are
     # text/plain, text/x-rst, and text/markdown
@@ -82,13 +80,13 @@ setup(
     #
     # This field corresponds to the "Description-Content-Type" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-content-type-optional
-    long_description_content_type='text/markdown',  # Optional (see note above)
+    # long_description_content_type='text/markdown',  # Optional (see note above)
 
     # This should be a valid link to your project's main homepage.
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='github.com/robertbrauer1988/Polaris',  # Optional
+    # url='github.com/robertbrauer1988/Polaris',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
@@ -96,7 +94,7 @@ setup(
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='robert.brauer@cea.fr',  # Optional
+    # author_email='robert.brauer@cea.fr',  # Optional
 
     # Classifiers help users find your project by categorizing it.
     #
@@ -120,10 +118,6 @@ setup(
         # These classifiers are *not* checked by 'pip install'. See instead
         # 'python_requires' below.
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
     ],
 
     # This field adds keywords for your project which will appear on the
@@ -156,8 +150,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'scipy', 'matplotlib',
-                      'astropy', 'argparse'],  # Optional
+    install_requires=['numpy'],  # Optional
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.
@@ -198,9 +191,8 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        'POLARIS': 'http://www1.astrophysik.uni-kiel.de/~polaris/',
+        'POLARIS': 'https://portia.astrophysik.uni-kiel.de/polaris',
     },
 
-    scripts=['scripts/polaris-run', 'scripts/polaris-plot', 'scripts/polaris-gen',
-             'scripts/polaris-remote', 'scripts/polaris-extra', 'scripts/polaris-test'],
+    scripts=['scripts/polaris-gen'],
 )

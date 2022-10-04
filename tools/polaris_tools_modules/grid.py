@@ -11,32 +11,25 @@ class Grid:
     """This is the base class to create various grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
         self.model = model
-        self.file_io = file_io
+        self.path = path
         self.parse_args = parse_args
 
         # Get math module
         from polaris_tools_modules.math import Math
         self.math = Math()
 
-        # Define which class is responsible for the grid data
-        if ext_input is not None:
-            self.data = ext_input
-            self.data.init_data()
-        else:
-            self.data = model
+        self.data = model
 
         # Set the position to an arbitrary value to check get_density functions
         self.data.position = [0, 0, 0]
@@ -120,10 +113,10 @@ class Grid:
             if self.nr_gas_densities == 1:
                 if self.data.get_gas_density_distribution() is not None and \
                         not isinstance(self.data.get_gas_density_distribution(), (float, int)):
-                    if len(self.data.get_gas_density_distribution()[0]) != \
-                            len(self.model.parameter['gas_mass'][0]):
-                        raise ValueError("gas_density_distribution does not provied the same array than "
-                                         "defined in self.parameter['gas_mass']")
+                    # if len(self.data.get_gas_density_distribution()[0]) != \
+                    #         len(self.model.parameter['gas_mass'][0]):
+                    raise ValueError("gas_density_distribution does not provied the same array than "
+                                        "defined in self.parameter['gas_mass']")
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
@@ -149,13 +142,13 @@ class Grid:
             raise ValueError(
                 "the dust_density function and the defined dust_mass do not fit!")
 
-    def write_header(self, grid_file, grid_type='', root=None):
+    def write_header(self, grid_file, grid_type='', num_dens=False, root=None):
         """Writes general header to binary file.
 
         Args:
             grid_file: Input grid file (tmp_grid).
-            grid_type (str): Name of the grid type.
-                (octree, spherical, cylindrical)
+            grid_type (str): Name of the grid type (octree, spherical, cylindrical)
+            num_dens (bool): Interpret given gas or dust distribution as number density.
             root: Root node of the octree grid.
 
         Notes:
@@ -203,10 +196,16 @@ class Grid:
         grid_file.write(struct.pack('H', self.data_length))
         # Gas density index: 0 or gas mass density index: 28
         for i_gas_dens in range(self.nr_gas_densities):
-            grid_file.write(struct.pack('H', 28))
+            if num_dens:
+                grid_file.write(struct.pack('H', 0))
+            else:
+                grid_file.write(struct.pack('H', 28))
         # Dust density index: 1 or dust mass density index: 29
         for i_dust_dens in range(self.nr_dust_densities):
-            grid_file.write(struct.pack('H', 29))
+            if num_dens:
+                grid_file.write(struct.pack('H', 1))
+            else:
+                grid_file.write(struct.pack('H', 29))
         if self.data.get_dust_temperature() is not None:
             # Dust temperature index: 2
             grid_file.write(struct.pack('H', 2))
@@ -239,7 +238,7 @@ class Grid:
             grid_file.write(struct.pack('H', 15))
         if self.data.dust_size_param() is not None:
             # Size distribution parameter: 16
-            grid_file.write(struct.pack('H', 16))    
+            grid_file.write(struct.pack('H', 16))
         if grid_type == 'octree':
             if root is not None:
                 grid_file.write(struct.pack(
@@ -263,9 +262,9 @@ class Grid:
             rewrite (bool): Remove the the last cell data to overwrite it.
         """
         # Set data type length in bytes depending on the data type
-        if data_type is 'f':
+        if data_type == 'f':
             data_type_length = 4
-        elif data_type is 'd':
+        elif data_type == 'd':
             data_type_length = 8
         else:
             raise ValueError(
@@ -341,9 +340,9 @@ class Grid:
             data_type (str): Type of the node data ('f': float or 'd': double).
         """
         # Set data type length in bytes depending on the data type
-        if data_type is 'f':
+        if data_type == 'f':
             data_type_length = 4
-        elif data_type is 'd':
+        elif data_type == 'd':
             data_type_length = 8
         else:
             raise ValueError(
@@ -369,219 +368,22 @@ class Grid:
         for i in range(self.data_length - self.nr_gas_densities - self.nr_dust_densities):
             grid_file.write(tmp_file.read(data_type_length))
 
-    def update_grid(self, grid_file, tmp_file, reverse):
-        """Update grid to be in agreement with POLARIS newest version.
-
-        Args:
-            grid_file: Input grid file (previous grid).
-            tmp_file: Output grid file (updated grid).
-            reverse (bool): Downgrading instead?
-        """
-        grid_id = grid_file.read(2)
-        tmp_file.write(grid_id)
-
-        data_length = grid_file.read(2)
-        tmp_file.write(data_length)
-
-        for i in range(struct.unpack('H', data_length)[0]):
-            tmp_file.write(grid_file.read(2))
-
-        if struct.unpack('H', grid_id)[0] == 20:
-            print('Nothing to do!')
-        elif struct.unpack('H', grid_id)[0] == 30:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            n_th = grid_file.read(2)
-            tmp_file.write(n_th)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            if not reverse:
-                # Add log_Phi value
-                tmp_file.write(struct.pack('d', 1.0))
-            else:
-                # Ignore log_Phi value
-                sf_ph = grid_file.read(8)
-            byte = grid_file.read(1)
-            while byte != b'':
-                tmp_file.write(byte)
-                byte = grid_file.read(1)
-        elif struct.unpack('H', grid_id)[0] == 40:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            n_z = grid_file.read(2)
-            tmp_file.write(n_z)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            if not reverse:
-                # Add log_Phi value
-                tmp_file.write(struct.pack('d', 1.0))
-            else:
-                # Ignore log_Phi value
-                sf_ph = grid_file.read(8)
-            byte = grid_file.read(1)
-            while byte != b'':
-                tmp_file.write(byte)
-                byte = grid_file.read(1)
-        else:
-            raise ValueError(
-                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
-
-    def set_quantiy_in_grid(self, grid_file, tmp_file, quantity_id, quantity_value):
-        """Set the value of the desired quantity to value in each cell of the grid.
-
-        Args:
-            grid_file: Input grid file (previous grid).
-            tmp_file: Output grid file (updated grid).
-            quantity_id (int): Index of the quantity in the POLARIS grid.
-            quantity_value (float): Value to which the quantity should be set.
-        """
-        grid_id = grid_file.read(2)
-        tmp_file.write(grid_id)
-
-        data_length = struct.unpack('H', grid_file.read(2))[0]
-        pos = None
-        found = False
-        id_list = []
-        for i in range(data_length):
-            tmp_quantity_id = grid_file.read(2)
-            if struct.unpack('H', tmp_quantity_id)[0] == quantity_id:
-                if pos is not None:
-                    raise ValueError(
-                        'Desired quantity is set in grid multiple times!')
-                pos = i
-                found = True
-                print('HINT: Quantity found in grid!')
-            id_list.append(tmp_quantity_id)
-        if not found:
-            pos = data_length
-            data_length += 1
-            id_list.append(struct.pack('H', quantity_id))
-
-        tmp_file.write(struct.pack('H', data_length))
-        for i in range(data_length):
-            tmp_file.write(id_list[i])
-        if struct.unpack('H', grid_id)[0] == 20:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(2))
-            tmp_file.write(grid_file.read(2))
-            data_type = 'f'
-        elif struct.unpack('H', grid_id)[0] == 30:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            # Get number of radial cells
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            # Get number of phi cells
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            # Get number of theta cells
-            n_th = grid_file.read(2)
-            tmp_file.write(n_th)
-            # Get step width factors (zero for custom)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            sf_ph = grid_file.read(8)
-            tmp_file.write(sf_ph)
-            sf_th = grid_file.read(8)
-            tmp_file.write(sf_th)
-            # Write the custom cell distribution if chosen
-            if struct.unpack('d', sf_r)[0] == 0:
-                for i_r in range(struct.unpack('H', n_r)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_ph)[0] == 0:
-                for i_ph in range(struct.unpack('H', n_ph)[0]):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_th)[0] == 0:
-                for i_th in range(struct.unpack('H', n_th)[0]):
-                    tmp_file.write(grid_file.read(8))
-            data_type = 'd'
-        elif struct.unpack('H', grid_id)[0] == 40:
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            tmp_file.write(grid_file.read(8))
-            # Get number of radial cells
-            n_r = grid_file.read(2)
-            tmp_file.write(n_r)
-            # Get number of phi cells
-            n_ph = grid_file.read(2)
-            tmp_file.write(n_ph)
-            # Get number of theta cells
-            n_z = grid_file.read(2)
-            tmp_file.write(n_z)
-            # Get step width factors (zero for custom)
-            sf_r = grid_file.read(8)
-            tmp_file.write(sf_r)
-            sf_ph = grid_file.read(8)
-            tmp_file.write(sf_ph)
-            sf_z = grid_file.read(8)
-            tmp_file.write(sf_z)
-            if struct.unpack('d', sf_r)[0] == 0:
-                for i_r in range(struct.unpack('H', n_r)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            if struct.unpack('d', sf_ph)[0] == 0:
-                for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            elif struct.unpack('d', sf_ph)[0] == -1:
-                for i_r in range(struct.unpack('H', n_r)[0]):
-                    tmp_file.write(grid_file.read(2))
-            if struct.unpack('d', sf_z)[0] == 0:
-                for i_z in range(struct.unpack('H', n_z)[0] - 1):
-                    tmp_file.write(grid_file.read(8))
-            elif struct.unpack('d', sf_z)[0] == -1:
-                for i_r in range(struct.unpack('H', n_r)[0]):
-                    tmp_file.write(grid_file.read(8))
-            data_type = 'd'
-        else:
-            raise ValueError(
-                'Grid index: ' + str(struct.unpack('H', grid_id)[0]) + 'is not known!')
-
-        if data_type is 'f':
-            data_type_length = 4
-        elif data_type is 'd':
-            data_type_length = 8
-
-        is_leaf = grid_file.read(2)
-        while is_leaf != b'':
-            tmp_file.write(is_leaf)
-            level = grid_file.read(2)
-            tmp_file.write(level)
-            if struct.unpack('H', is_leaf)[0]:
-                for i in range(data_length):
-                    if i == pos:
-                        tmp_file.write(struct.pack(data_type, quantity_value))
-                        if found:
-                            grid_file.read(data_type_length)
-                    else:
-                        tmp_file.write(grid_file.read(data_type_length))
-            is_leaf = grid_file.read(2)
-
 
 class OcTree(Grid):
     """This class creates OcTree grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialization of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -630,10 +432,10 @@ class OcTree(Grid):
         while tmp_node.parameter['level'] > 2:
             tmp_node = tmp_node.parent
         percentage_count = 0
-        if tmp_node.parameter['level'] is 2:
+        if tmp_node.parameter['level'] == 2:
             percentage_count = tmp_node.parameter['index'] + \
                 tmp_node.parent.parameter['index'] * 8
-        elif tmp_node.parameter['level'] is 1:
+        elif tmp_node.parameter['level'] == 1:
             percentage_count = tmp_node.parameter['index'] * 8
         stdout.write('--- Generate cartesian grid: ' +
                      str(int(100 * percentage_count / (8 * 8 - 1))) + ' %      \r')
@@ -795,63 +597,6 @@ class OcTree(Grid):
                 if np.sum(gas_dens) > 0:
                     return 9999
         return 0
-        # node_mass = node.parameter['gas_density'] * node.parameter['volume']
-        # node_leaf_mass = 0
-        # for i_leaf in range(8):
-        #    node_leaf_mass += node.children[i_leaf].parameter['gas_density'] * node.children[i_leaf].parameter['volume']
-        # if (node_mass + node_leaf_mass) > 0.:
-        #    difference = abs(node_mass - node_leaf_mass) / (node_mass + node_leaf_mass)
-        # else:
-        #    difference = 0.
-        # self.grid_refinement_extra_mag()
-        # self.grid_refinement_extra_t_gas()
-        # difference = 99999.0
-        # return difference
-
-    def grid_refinement_extra_mag(self, node):
-        """Calculates grid refinement from the magnetic field strength.
-
-        Args:
-            node: Instance of octree node.
-
-        Returns:
-            Float: Maximum difference of the magnetic field strength in the
-            center of the parent and in each of the 8 children.
-        """
-        difference = 0.
-        self.data.init_position(node)
-        parent_mag = self.model.get_magnetic_field()
-        for i_leaf in range(8):
-            self.data.init_position(node.children[i_leaf])
-            children_mag = self.model.get_magnetic_field()
-            for i in range(3):
-                if abs(parent_mag[i] + children_mag[i]) > 0:
-                    diff = abs(parent_mag[i] - children_mag[i]) / \
-                        abs(parent_mag[i] + children_mag[i])
-                    difference = max(difference, diff)
-        return difference
-
-    def grid_refinement_extra_t_gas(self, node):
-        """Calculates grid refinement from the temperature.
-
-        Args:
-            node: Instance of octree node.
-
-        Returns:
-            Float: Maximum difference of the gas temperature in the
-            center of the parent and in each of the 8 children.
-        """
-        difference = 0.
-        self.data.init_position(node)
-        parent_t_gas = self.model.get_gas_temperature()
-        for i_leaf in range(8):
-            self.data.init_position(node.children[i_leaf])
-            children_t_gas = self.model.get_gas_temperature()
-            if abs(parent_t_gas + children_t_gas) > 0:
-                diff = 10 * abs(parent_t_gas - children_t_gas) / \
-                    abs(parent_t_gas + children_t_gas)
-                difference = max(difference, diff)
-        return difference
 
     def normalize_density(self, tmp_file, grid_file):
         """Read the temporary octree grid and normalize the
@@ -868,7 +613,7 @@ class OcTree(Grid):
             if len(is_leaf) == 0:
                 break
             is_leaf = struct.unpack('H', is_leaf)[0]
-            if is_leaf:
+            if is_leaf == 1:
                 self.read_write_node_data(
                     tmp_file=tmp_file, grid_file=grid_file)
 
@@ -912,19 +657,17 @@ class Spherical(Grid):
     """This class creates spherical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -939,13 +682,13 @@ class Spherical(Grid):
         # Set width between node borders.
         root.parameter['extent'] = [self.model.spherical_parameter['inner_radius'],
                                     self.model.spherical_parameter['outer_radius'],
-                                    -np.pi, np.pi, 0., 2. * np.pi]
+                                    0, np.pi, 0., 2. * np.pi]
         # Set node volume
         root.parameter['volume'] = self.get_volume(node=root)
         return root
 
     def create_grid(self, grid_file, root):
-        """Create an spherical grid and calculate the total mass of the nodes.
+        """Create a spherical grid and calculate the total mass of the nodes.
 
         Args:
             grid_file: Input grid file (tmp_grid).
@@ -992,14 +735,11 @@ class Spherical(Grid):
             theta_list = sp_param['theta_list']
             sp_param['n_th'] = len(theta_list) - 1
         elif sp_param['sf_th'] == 1:
-            theta_list = self.math.sin_list(-np.pi /
-                                            2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.sin_list(0, np.pi, sp_param['n_th'])
         elif sp_param['sf_th'] > 1:
-            theta_list = self.math.exp_list_sym(-np.pi / 2.,
-                                                np.pi / 2., sp_param['n_th'], sp_param['sf_th'])
+            theta_list = self.math.exp_list_sym(0, np.pi, sp_param['n_th'], sp_param['sf_th'])
         else:
-            theta_list = self.math.lin_list(-np.pi /
-                                            2., np.pi / 2., sp_param['n_th'])
+            theta_list = self.math.lin_list(0, np.pi, sp_param['n_th'])
 
         grid_file.write(struct.pack('d', sp_param['inner_radius']))
         grid_file.write(struct.pack('d', sp_param['outer_radius']))
@@ -1045,8 +785,8 @@ class Spherical(Grid):
                         theta_list[i_t] + theta_list[i_t + 1]) / 2.
                     spherical_coord[2] = (
                         phi_list[i_p] + phi_list[i_p + 1]) / 2.
-                    # Convert the spherical coordinate into carthesian node position
-                    position = self.math.spherical_to_carthesian(
+                    # Convert the spherical coordinate into cartesian node position
+                    position = self.math.spherical_to_cartesian(
                         spherical_coord)
                     node = Node('spherical')
                     node.parameter['position'] = position
@@ -1062,7 +802,7 @@ class Spherical(Grid):
         node = Node('spherical')
         node.parameter['position'] = [0., 0., 0.]
         node.parameter['extent'] = [0., radius_list[0],
-                                    -np.pi / 2., np.pi / 2.,
+                                    0, np.pi,
                                     0, 2. * np.pi]
         node.parameter['volume'] = self.get_volume(node=node)
         self.write_node_data(grid_file=grid_file, node=node, data_type='d',
@@ -1080,7 +820,7 @@ class Spherical(Grid):
             Volume of the node
         """
         volume = (node.parameter['extent'][1] ** 3 - node.parameter['extent'][0] ** 3) * \
-                 (np.sin(node.parameter['extent'][3]) - np.sin(node.parameter['extent'][2])) * \
+                 (np.cos(node.parameter['extent'][2]) - np.cos(node.parameter['extent'][3])) * \
                  (node.parameter['extent'][5] -
                   node.parameter['extent'][4]) / 3.
         return volume
@@ -1139,10 +879,10 @@ class Spherical(Grid):
             for i_r in range(struct.unpack('H', n_r)[0] - 1):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_ph)[0] == 0:
-            for i_ph in range(struct.unpack('H', n_ph)[0]):
+            for i_ph in range(struct.unpack('H', n_ph)[0] - 1):
                 grid_file.write(tmp_file.read(8))
         if struct.unpack('d', sf_th)[0] == 0:
-            for i_th in range(struct.unpack('H', n_th)[0]):
+            for i_th in range(struct.unpack('H', n_th)[0] - 1):
                 grid_file.write(tmp_file.read(8))
 
     def write_other_grid(self, tmp_file, code_name):
@@ -1183,26 +923,24 @@ class Spherical(Grid):
             hdu = fits.PrimaryHDU(tbldata)
             hdulist = fits.HDUList([hdu])
             hdulist.writeto(
-                self.file_io.path['model'] + code_name + '_grid.fits', overwrite=True)
+                self.path['model'] + code_name + '_grid.fits', overwrite=True)
 
 
 class Cylindrical(Grid):
     """This class creates cylindrical grids based on the models defined in model.py.
     """
 
-    def __init__(self, model, ext_input, file_io, parse_args):
+    def __init__(self, model, path, parse_args):
         """Initialisation of grid parameters.
 
         Args:
             model: Handles the model space including various
                 quantities such as the density distribution.
-            ext_input: Handles external data input including various
-                quantities such as the density distribution.
-            file_io : Handles file input/output and all necessary paths.
+            path : Handles file input/output and all necessary paths.
             parse_args : Provides all parameters chosen
                 by user when executing PolarisTools.
         """
-        Grid.__init__(self, model, ext_input, file_io, parse_args)
+        Grid.__init__(self, model, path, parse_args)
 
     def init_root(self):
         """Initialise the root node.
@@ -1272,8 +1010,8 @@ class Cylindrical(Grid):
                         cy_param['phi_list'][-1] != 2. * np.pi:
                     raise ValueError('phi_list does not fullfil a full cicle!')
                 phi_list = np.array([cy_param['phi_list']
-                                     for i_r in range(cy_param['n_ph'][0])])
-                cy_param['n_ph'][0] = len(phi_list) - 1
+                                     for i_r in range(cy_param['n_r'])])
+                cy_param['n_ph'] = [len(phi_list[0])-1] * cy_param['n_r']
             else:
                 raise ValueError(
                     'Cell distriution in phi-direction not understood!')
@@ -1293,7 +1031,7 @@ class Cylindrical(Grid):
                         'z_list does not agree with the inner and outer grid borders!')
                 z_list = np.array([cy_param['z_list']
                                    for i_r in range(cy_param['n_r'])])
-                cy_param['n_z'] = len(z_list) - 1
+                cy_param['n_z'] = len(z_list[0]) - 1
             else:
                 raise ValueError(
                     'Cell distribution in z-direction not understood!')
@@ -1361,9 +1099,9 @@ class Cylindrical(Grid):
                         (phi_list[i_r][i_p] + phi_list[i_r][i_p + 1]) / 2.,
                         (z_list[i_r][i_z] + z_list[i_r][i_z + 1]) / 2.
                     ])
-                    # Convert the cylindrical coordinate into carthesian node position
+                    # Convert the cylindrical coordinate into cartesian node position
                     node = Node('cylindrical')
-                    node.parameter['position'] = self.math.cylindrical_to_carthesian(
+                    node.parameter['position'] = self.math.cylindrical_to_cartesian(
                         cylindrical_coord)
                     node.parameter['extent'] = [radius_list[i_r], radius_list[i_r + 1],
                                                 phi_list[i_r][i_p], phi_list[i_r][i_p + 1],
@@ -1492,7 +1230,7 @@ class Node:
         #: Parent node
         self.parent = None
 
-        if grid_type is 'octree':
+        if grid_type == 'octree':
             #: Children nodes
             self.children = [None, None, None, None, None, None, None, None]
             # Index for the level depth of the node
