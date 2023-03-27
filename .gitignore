@@ -4,6 +4,9 @@
 .dep.inc
 .dirstamp
 
+lib/
+polaris-test-suite/
+
 build/
 nbproject/
 testing/

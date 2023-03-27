@@ -1400,23 +1400,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 // Init cross sections
                 double Cext;
 
-                // Init photon package
-                photon_package * rays;
-                uint photon_forced_max;
-
-                // If forced scattering is enabled, send out two photons and let
-                // at least one of them interact
-                if(b_forced)
-                {
-                    rays = new photon_package[2];
-                    photon_forced_max = 1;
-                }
-                else
-                {
-                    rays = new photon_package[1];
-                    photon_forced_max = 0;
-                }
-
                 // Increase counter used to show progress
                 #pragma omp atomic update
                 per_counter++;
@@ -1437,307 +1420,254 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     }
                 }
 
-                // Execute the following once (standard mode) or
-                // twice (only if enforced scattering is enabled)
-                for(uint photon_forced_i = 0; photon_forced_i <= photon_forced_max; photon_forced_i++)
+                // Init the photon_package pp
+                photon_package pp = photon_package();
+                pp.setPhotonID(i_phot);
+
+                // Init variables
+                double end_tau, tau_tot;
+                Vector3D old_pos, start_pos;
+
+                // Set current wavelength
+                pp.setWavelength(dust->getWavelength(wID), wID);
+
+                // Launch a new photon package from the source
+                tm_source->createNextRay(&pp, &rand_gen);
+
+                // Position the photon inside the grid
+                if(!grid->positionPhotonInGrid(&pp))
+                    if(!grid->findStartingPoint(&pp))
+                    {
+                        #pragma omp atomic update
+                        kill_counter++;
+                        continue;
+                    }
+
+                // Set starting position for enforced scattering
+                start_pos = pp.getPosition();
+
+                // Save position of last interaction to know to which pixel
+                // the photon belongs, if it is not scattered on its further
+                // path through the model
+                pp.updateBackupPosition();
+
+                // if enforced first scattering
+                if(b_forced)
                 {
-                    // Init the photon_package pp with the specific ray
-                    photon_package * pp = &rays[photon_forced_i];
-                    pp->setPhotonID(i_phot);
+                    // Get tau for first interaction, if the interaction is forced
+                    tau_tot = getOpticalDepthAlongPath(&pp);
+                    end_tau = -log(1.0 - rand_gen.getRND() * (1.0 - exp(tau_tot)));
 
-                    // Init variables
-                    double end_tau;
-                    Vector3D old_pos, start_pos;
-
-                    // If this photon is the first one (if enforced scattering
-                    // is enabled, the first one has to scatter once)
-                    if(photon_forced_i == 0)
-                    {
-                        // Set current wavelength
-                        pp->setWavelength(dust->getWavelength(wID), wID);
-
-                        // Launch a new photon package from the source
-                        tm_source->createNextRay(pp, &rand_gen);
-
-                        // Position the photon inside the grid
-                        if(!grid->positionPhotonInGrid(pp))
-                            if(!grid->findStartingPoint(pp))
-                            {
-                                #pragma omp atomic update
-                                kill_counter++;
-                                break;
-                            }
-
-                        // Set starting position for enforced scattering
-                        start_pos = pp->getPosition();
-
-                        // Save position of last interaction to know to which pixel
-                        // the photon belongs, if it is not scattered on its further
-                        // path through the model
-                        pp->updateBackupPosition();
-
-                        if(b_forced)
-                        {
-                            // Get tau for first interaction, if the interaction is forced
-                            end_tau = getTauForced(rays, &rand_gen);
-
-                            // If optical depth is exactly zero, send only one photon
-                            // package as without enfsca
-                            if(end_tau == 0)
-                            {
-                                photon_forced_max = 0;
-                                end_tau = -log(1.0 - rand_gen.getRND());
-                            }
-                        }
-                        else
-                        {
-                            // Get tau for first interaction
-                            end_tau = -log(1.0 - rand_gen.getRND());
-                        }
-                    }
-                    else
-                    {
-                        // Get tau for first interaction
+                    // If optical depth is exactly zero, send photon package as without enfsca
+                    if(end_tau == 0)
                         end_tau = -log(1.0 - rand_gen.getRND());
+                }
+                else
+                {
+                    // Get tau for first interaction
+                    end_tau = -log(1.0 - rand_gen.getRND());
+                }
+
+                // Init variables
+                ullong interactions = 0;
+                double tmp_tau;
+                double len, dens;
+
+                // Save photon position to adjust it if necessary
+                old_pos = pp.getPosition();
+
+                // Transfer photon through grid
+                while(grid->next(&pp))
+                {
+                    // If max interactions is reached or the photon intensity
+                    // is too low, end photon transfer
+                    if(interactions >= MAX_INTERACTION_DUST_MC || pp.getStokesVector()->I() < 1e-200)
+                    {
+                        #pragma omp atomic update
+                        kill_counter++;
+                        break;
                     }
 
-                    // Init variables
-                    ullong interactions = photon_forced_i;
-                    double tmp_tau;
-                    double len, dens;
+                    // Get dust number density of the current cell
+                    dens = dust->getNumberDensity(grid, pp);
 
-                    // Save photon position to adjust it if necessary
-                    old_pos = pp->getPosition();
-
-                    // Transfer photon through grid
-                    while(grid->next(pp))
+                    // If the dust density is too low, skip this cell
+                    if(dens < 1e-200)
                     {
-                        // If max interactions is reached or the photon intensity
-                        // is too low, end photon transfer
-                        if(interactions >= MAX_INTERACTION_DUST_MC || pp->getStokesVector()->I() < 1e-200)
+                        old_pos = pp.getPosition();
+                        continue;
+                    }
+
+                    // Calculate the dust absorption cross section (for random
+                    // alignment)
+                    Cext = dust->getCextMean(grid, pp);
+
+                    // Get path length through current cell
+                    len = pp.getTmpPathLength();
+
+                    // Calculate optical depth that is obtained on the path_length
+                    tmp_tau = Cext * len * dens;
+
+                    // optical depth for interaction is reached or not
+                    if(tmp_tau > end_tau)
+                    {
+                        // Increase interaction counter
+                        interactions++;
+
+                        // Reduce the photon position to match the exact
+                        // interaction position
+                        len = len * end_tau / tmp_tau;
+                        pp.adjustPosition(old_pos, len);
+
+                        // Modify second photon if enforced scattering is used
+                        if(b_forced && interactions == 1)
                         {
-                            if(photon_forced_i == 0)
+                            if(!peel_off)
                             {
-                                #pragma omp atomic update
-                                kill_counter++;
-                            }
-                            break;
-                        }
-
-                        // Get dust number density of the current cell
-                        dens = dust->getNumberDensity(grid, *pp);
-
-                        // If the dust density is too low, skip this cell
-                        if(dens < 1e-200)
-                        {
-                            old_pos = pp->getPosition();
-                            continue;
-                        }
-
-                        // Calculate the dust absorption cross section (for random
-                        // alignment)
-                        Cext = dust->getCextMean(grid, *pp);
-
-                        // Get path length through current cell
-                        len = pp->getTmpPathLength();
-
-                        // Calculate optical depth that is obtained on the path_length
-                        tmp_tau = Cext * len * dens;
-
-                        // optical depth for interaction is reached or not
-                        if(tmp_tau > end_tau)
-                        {
-                            // Increase interaction counter
-                            interactions++;
-
-                            // Reduce the photon position to match the exact
-                            // interaction position
-                            len = len * end_tau / tmp_tau;
-                            pp->adjustPosition(old_pos, len);
-
-                            // Modify second photon if enforced scattering is used
-                            if(b_forced && interactions == 1 && photon_forced_i == 0 && photon_forced_max == 1)
-                            {
-                                rays[1].setWavelength(pp->getWavelength(), pp->getDustWavelengthID());
-                                rays[1].setPosition(pp->getPosition());
-                                rays[1].setPositionCell(pp->getPositionCell());
-                                rays[1].setBackupPosition(start_pos);
-                                rays[1].setDirection(pp->getDirection());
-                                rays[1].initCoordSystem();
-                                pp->setStokesVector(*pp->getStokesVector() - *rays[1].getStokesVector());
-                            }
-
-                            // Save position of last interaction to know to which pixel
-                            // the photon belongs, if it is not scattered on its further
-                            // path through the model
-                            pp->updateBackupPosition();
-
-                            if(!doMRWStepBWWithoutHeating(pp))
-                            {
-                                // Calculate the dust scattering cross section (for random
-                                // alignment)
-                                // Csca = dust->getCscaMean(grid, pp);
-
-                                // If peel-off is used, add flux to the detector
-                                // except it is the first interaction of the non-forced photon
-                                if(peel_off)
+                                for(uint d = 0; d < nr_mc_detectors; d++)
                                 {
-                                    // Transport a separate photon to each detector
-                                    for(uint d = 0; d < nr_mc_detectors; d++)
+                                    // Get index of wavelength in current detector
+                                    uint wID_det = detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                                    // Only calculate for detectors with the corresponding wavelengths
+                                    if(wID_det != MAX_UINT)
                                     {
-                                        // Get index of wavelength in current detector
-                                        uint wID_det =
-                                            detector[d].getDetectorWavelengthID(pp->getWavelength());
-
-                                        // Only calculate for detectors with the
-                                        // corresponding wavelengths
-                                        if(wID_det != MAX_UINT)
+                                        // Check photon direction to observer for each detector
+                                        if(photonInDetectorDir(&pp, &detector[d]))
                                         {
-                                            // Init photon package
-                                            photon_package pp_escape = photon_package();
-
-                                            // Create an escaping photon into the
-                                            // direction of the detector
-                                            dust->getEscapePhoton(grid,
-                                                                  pp,
-                                                                  detector[d].getEX(),
-                                                                  detector[d].getDirection(),
-                                                                  &pp_escape,
-                                                                  &rand_gen);
-
-                                            // optical depth towards observer
-                                            double tau_obs = getOpticalDepthAlongPath(&pp_escape);
-
-                                            // Reduce the Stokes vector by the optical depth
-                                            *pp_escape.getStokesVector() *= exp(-tau_obs);
-
-                                            // Convert the flux into Jy and consider
-                                            // the distance to the observer
-                                            CMathFunctions::lum2Jy(pp_escape.getStokesVector(),
-                                                                   pp->getWavelength(),
-                                                                   detector[d].getDistance());
-
-                                            // Consider foreground extinction
-                                            *pp_escape.getStokesVector() *=
-                                                dust->getForegroundExtinction(pp->getWavelength());
-
-                                            // If the photon intensity is too low, end
-                                            // photon transfer (for better R and VOV statistics)
-                                            if(pp_escape.getStokesVector()->I() < 1e-200)
-                                                continue;
-                                            // Add the photon package to the detector
-                                            detector[d].addToMonteCarloDetector(
-                                                pp_escape, wID_det, SCATTERED_DUST);
+                                            photon_package pp_enf = photon_package();
+                                            pp_enf.setWavelength(pp.getWavelength(), pp.getDustWavelengthID());
+                                            pp_enf.setPosition(pp.getPosition());
+                                            pp_enf.setPositionCell(pp.getPositionCell());
+                                            pp_enf.setBackupPosition(start_pos);
+                                            pp_enf.setDirection(pp.getDirection());
+                                            pp_enf.initCoordSystem();
+                                            pp_enf.setStokesVector(*pp.getStokesVector() * exp(-tau_tot));
+                                            scaleAddToDetector(&pp_enf, &detector[d], 0);
                                         }
                                     }
                                 }
                             }
-                            else
+                            *pp.getStokesVector() *= (1.0 - exp(-tau_tot));
+                        }
+
+                        // Save position of last interaction to know to which pixel
+                        // the photon belongs, if it is not scattered on its further
+                        // path through the model
+                        pp.updateBackupPosition();
+
+                        if(!doMRWStepBWWithoutHeating(&pp))
+                        {
+                            // Calculate the dust scattering cross section (for random
+                            // alignment)
+                            // Csca = dust->getCscaMean(grid, pp);
+
+                            // If peel-off is used, add flux to the detector
+                            // except it is the first interaction of the non-forced photon
+                            if(peel_off)
                             {
-                                #pragma omp atomic update
-                                mrw_counter++;
-                                if(mrw_counter % 500000 == 0)
+                                // Transport a separate photon to each detector
+                                for(uint d = 0; d < nr_mc_detectors; d++)
                                 {
-                                    #pragma omp critical
+                                    // Get index of wavelength in current detector
+                                    uint wID_det =
+                                        detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                                    // Only calculate for detectors with the
+                                    // corresponding wavelengths
+                                    if(wID_det != MAX_UINT)
                                     {
-                                        cout << " -> mrw  " << mrw_counter << "\r";
+                                        // Init photon package
+                                        photon_package pp_escape = photon_package();
+
+                                        // Create an escaping photon into the
+                                        // direction of the detector
+                                        dust->getEscapePhoton(
+                                            grid, &pp,
+                                            detector[d].getEX(),
+                                            detector[d].getDirection(),
+                                            &pp_escape,
+                                            &rand_gen);
+
+                                        // optical depth towards observer
+                                        double tau_obs = getOpticalDepthAlongPath(&pp_escape);
+
+                                        // Reduce the Stokes vector by the optical depth
+                                        *pp_escape.getStokesVector() *= exp(-tau_obs);
+
+                                        // Convert the flux into Jy and consider
+                                        // the distance to the observer
+                                        CMathFunctions::lum2Jy(
+                                            pp_escape.getStokesVector(),
+                                            pp.getWavelength(),
+                                            detector[d].getDistance());
+
+                                        // Consider foreground extinction
+                                        *pp_escape.getStokesVector() *=
+                                            dust->getForegroundExtinction(pp.getWavelength());
+
+                                        // If the photon intensity is too low, end
+                                        // photon transfer (for better R and VOV statistics)
+                                        if(pp_escape.getStokesVector()->I() < 1e-200)
+                                            continue;
+
+                                        // Add the photon package to the detector
+                                        detector[d].addToMonteCarloDetector(
+                                            pp_escape, wID_det, SCATTERED_DUST);
                                     }
                                 }
                             }
-
-                            // Perform scattering interaction into a new direction
-                            dust->scatter(grid, pp, &rand_gen, true);
-
-                            // Calculate new optical depth for next interaction
-                            end_tau = -log(1.0 - rand_gen.getRND());
                         }
                         else
                         {
-                            // Remove the traveled distance from optical depth
-                            end_tau -= tmp_tau;
-                        }
-                        // Save photon position to adjust it if necessary
-                        old_pos = pp->getPosition();
-                    }
-
-                    // If peel-off is not used, use classic Monte-Carlo method
-                    // Now, the photon has left the model space
-                    if(!peel_off && pp->getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION_DUST_MC)
-                    {
-                        // Move photon back to the point of last interaction
-                        pp->resetPositionToBackupPos();
-
-                        // Transport photon to observer for each detector
-                        for(uint d = 0; d < nr_mc_detectors; d++)
-                        {
-                            // Get index of wavelength in current detector
-                            uint wID_det = detector[d].getDetectorWavelengthID(pp->getWavelength());
-
-                            // Only calculate for detectors with the corresponding
-                            // wavelengths
-                            if(wID_det != MAX_UINT)
+                            #pragma omp atomic update
+                            mrw_counter++;
+                            if(mrw_counter % 500000 == 0)
                             {
-                                // Get direction to the current detector
-                                Vector3D dir_obs = detector[d].getDirection();
-
-                                // Calculate the angle between the photon travel direction
-                                // and the detector direction
-                                double cos_angle = pp->getDirection() * dir_obs;
-
-                                // Get acceptance angle from detector (minimum 1°)
-                                double cos_acceptance_angle = detector[d].getAcceptanceAngle();
-
-                                // If the angle angle between the photon direction and the
-                                // detector direction is smaller than the acceptance angle
-                                if(cos_angle >= cos_acceptance_angle)
+                                #pragma omp critical
                                 {
-                                    // Get the angle to rotate the photon space into the
-                                    // detector space
-                                    double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
-                                        detector[d].getEX(), pp->getEX(), -1*pp->getEY());
-
-                                    // Rotate the Stokes vector
-                                    pp->getStokesVector()->rot(rot_angle_phot_obs);
-
-                                    // The scattering part is based on O. Fischer (1993)
-                                    // But on our detectors, U is defined the other way round
-                                    pp->getStokesVector()->multU(-1);
-
-                                    // Consider the greater solid angle due
-                                    // to the acceptance angle
-                                    *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
-
-                                    // Convert the flux into Jy and consider
-                                    // the distance to the observer
-                                    CMathFunctions::lum2Jy(pp->getStokesVector(),
-                                                           pp->getWavelength(),
-                                                           detector[d].getDistance());
-
-                                    // Consider foreground extinction
-                                    *pp->getStokesVector() *=
-                                        dust->getForegroundExtinction(pp->getWavelength());
-
-                                    if(interactions == 0)
-                                    {
-                                        // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(*pp, wID_det, DIRECT_STAR);
-                                    }
-                                    else
-                                    {
-                                        // Add the photon package to the detector
-                                        detector[d].addToMonteCarloDetector(*pp, wID_det, SCATTERED_DUST);
-                                    }
+                                    cout << " -> mrw  " << mrw_counter << "\r";
                                 }
                             }
                         }
+
+                        // Perform scattering interaction into a new direction
+                        dust->scatter(grid, &pp, &rand_gen, true);
+
+                        // Calculate new optical depth for next interaction
+                        end_tau = -log(1.0 - rand_gen.getRND());
                     }
-                    // Do not launch the secondary photon if the first one has not
-                    // scattered
-                    if(b_forced && interactions == 0 && photon_forced_i == 0)
-                        break;
+                    else
+                    {
+                        // Remove the traveled distance from optical depth
+                        end_tau -= tmp_tau;
+                    }
+                    // Save photon position to adjust it if necessary
+                    old_pos = pp.getPosition();
                 }
-                // Delete the Rays pointer
-                delete[] rays;
+
+                // If peel-off is not used, use classic Monte-Carlo method
+                // Now, the photon has left the model space
+                if(!peel_off && interactions <= MAX_INTERACTION_DUST_MC)
+                {
+                    // Move photon back to the point of last interaction
+                    pp.resetPositionToBackupPos();
+
+                    // Transport photon to observer for each detector
+                    for(uint d = 0; d < nr_mc_detectors; d++)
+                    {
+                        // Get index of wavelength in current detector
+                        uint wID_det = detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                        // Only calculate for detectors with the corresponding wavelengths
+                        if(wID_det != MAX_UINT)
+                        {
+                            // Check photon direction to observer for each detector
+                            if(photonInDetectorDir(&pp, &detector[d]))
+                                scaleAddToDetector(&pp, &detector[d], interactions);
+                        }
+                    }
+                }
             }//end of photon loop
             }//end of parallel block
 
@@ -1785,9 +1715,10 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                         // Convert the flux into Jy and consider the distance to the
                         // observer
-                        CMathFunctions::lum2Jy(pp_direct.getStokesVector(),
-                                               pp_direct.getWavelength(),
-                                               detector[d].getDistance());
+                        CMathFunctions::lum2Jy(
+                            pp_direct.getStokesVector(),
+                            pp_direct.getWavelength(),
+                            detector[d].getDistance());
 
                         // Consider foreground extinction
                         *pp_direct.getStokesVector() *=
@@ -2016,17 +1947,65 @@ double CRadiativeTransfer::getOpticalDepthAlongPath(photon_package * pp)
     return tau;
 }
 
-double CRadiativeTransfer::getTauForced(photon_package * rays, CRandomGenerator * rand_gen)
+bool CRadiativeTransfer::photonInDetectorDir(photon_package * pp, CDetector * detector)
 {
-    double rnd = rand_gen->getRND();
-    StokesVector stokes = *rays[0].getStokesVector();
-    double enf_tau = getOpticalDepthAlongPath(&rays[0]);
-    double exp_factor = exp(-enf_tau);
+    // Get direction to the current detector
+    Vector3D dir_obs = detector->getDirection();
 
-    // rays[0].setStokesVector(stokes);
-    rays[1].setStokesVector(stokes * exp_factor);
+    // Calculate the angle between the photon travel direction
+    // and the detector direction
+    double cos_angle = pp->getDirection() * dir_obs;
 
-    return -log(1.0 - rnd * (1.0 - exp_factor));
+    // Get acceptance angle from detector (minimum 1°)
+    double cos_acceptance_angle = detector->getAcceptanceAngle();
+
+    // If the angle angle between the photon direction and the
+    // detector direction is smaller than the acceptance angle
+    if(cos_angle >= cos_acceptance_angle)
+        return true;
+
+    return false;
+}
+
+void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions)
+{
+    // Get the angle to rotate the photon space into the
+    // detector space
+    double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
+        detector->getEX(), pp->getEX(), -1*pp->getEY());
+
+    // Rotate the Stokes vector
+    pp->getStokesVector()->rot(rot_angle_phot_obs);
+
+    // The scattering part is based on O. Fischer (1993)
+    // But on our detectors, U is defined the other way round
+    pp->getStokesVector()->multU(-1);
+
+    // Consider the greater solid angle due
+    // to the acceptance angle
+    double cos_acceptance_angle = detector->getAcceptanceAngle();
+    *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
+
+    // Convert the flux into Jy and consider
+    // the distance to the observer
+    CMathFunctions::lum2Jy(pp->getStokesVector(), pp->getWavelength(), detector->getDistance());
+
+    // Consider foreground extinction
+    *pp->getStokesVector() *=
+        dust->getForegroundExtinction(pp->getWavelength());
+
+    uint wID_det = detector->getDetectorWavelengthID(pp->getWavelength());
+    
+    // If the photon intensity is too low, end
+    // photon transfer (for better R and VOV statistics)
+    if(pp->getStokesVector()->I() < 1e-200)
+        return;
+
+    // Add the photon package to the detector
+    if(interactions == 0)
+        detector->addToMonteCarloDetector(*pp, wID_det, DIRECT_STAR);
+    else
+        detector->addToMonteCarloDetector(*pp, wID_det, SCATTERED_DUST);
 }
 
 // -------------------------------------------------

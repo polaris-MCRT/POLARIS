@@ -340,7 +340,9 @@ class CRadiativeTransfer
 
     double getOpticalDepthAlongPath(photon_package * pp);
 
-    double getTauForced(photon_package * pp, CRandomGenerator * rand_gen);
+    bool photonInDetectorDir(photon_package * pp, CDetector * detector);
+
+    void scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions);
 
     bool doMRWStepBW(photon_package * pp);
     bool doMRWStepBWWithoutHeating(photon_package * pp);
