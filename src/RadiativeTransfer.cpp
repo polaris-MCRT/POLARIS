@@ -1456,7 +1456,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                 {
                     // Get tau for first interaction, if the interaction is forced
                     tau_tot = getOpticalDepthAlongPath(&pp);
-                    end_tau = -log(1.0 - rand_gen.getRND() * (1.0 - exp(tau_tot)));
+                    end_tau = -log(1.0 - rand_gen.getRND() * (1.0 - exp(-tau_tot)));
 
                     // If optical depth is exactly zero, send photon package as without enfsca
                     if(end_tau == 0)
