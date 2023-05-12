@@ -26,7 +26,7 @@ The following packages are required for the installation:
 - python3 (packages: *numpy*, *setuptools*)
 
 
-## Installation
+## Installation (Linux)
 
 Open a terminal/console and move into the POLARIS directory:
 ```bash
@@ -47,6 +47,8 @@ However, to use it in already open terminals/consoles, execute the following com
 ```bash
 source ~/.bashrc
 ```
+
+**HINT**: Please refer to the [manual](manual.pdf) for installation on **macOS**. An installer to use POLARIS with Windows is not available yet.
 
 
 ## Use POLARIS

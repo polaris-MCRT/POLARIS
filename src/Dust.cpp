@@ -1755,14 +1755,14 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         plot_title = "#Dust mixture ";
         plot_title += str_mix_ID_end;
         plot_title += "\n";
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.py";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.py";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.py";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.py";
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_cross.plt";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_eff.plt";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_kappa.plt";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_diff.plt";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + ".dat";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.py";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.py";
-        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.py";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_scat.plt";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_size_dist.plt";
 
         // Format the strings
         uint pos = 0;
@@ -1804,14 +1804,13 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         str_title += " frac.: ";
         str_title += str_frac_end;
         plot_title = str_title;
-        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.py";
-        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.py";
-        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.py";
-        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.py";
-        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.py";
-        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.py";
-        path_size_dist =
-            path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.py";
+        path_cross = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_cross.plt";
+        path_eff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_eff.plt";
+        path_kappa = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_kappa.plt";
+        path_diff = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_diff.plt";
+        path_g = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_g.plt";
+        path_scat = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_scat.plt";
+        path_size_dist = path_plot + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + "_size_dist.plt";
         path_data = path_data + "dust_mixture_" + str_mix_ID_end + "_comp_" + str_comp_ID_end + ".dat";
     }
 
@@ -2342,10 +2341,12 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
     // ------------------------------------------------------
 
-    /*if(phID == PH_MIE && is_mixture)
+    if(MAX_MIE_SCA_REL_DIFF >= 1 && phID == PH_MIE && is_mixture)
     {
         // Init text file writer for scattering matrix
         ofstream scat_writer(path_scat.c_str());
+
+        uint nr_of_scat_theta = 2 * NANG - 1;
 
         // Error message if the write does not work
         if(scat_writer.fail())
@@ -2489,7 +2490,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
 
         // Close text file writer
         scat_writer.close();
-    }*/
+    }
 
     // ------------------------------------------------------
 
