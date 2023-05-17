@@ -31,6 +31,11 @@
 	# star in the center as radiation source
 	# star = "N_photons"> pos_x pos_y pos_z radius temperature
 	<source_star nr_photons = "1e7">	0	0	0	0.9	4000
+	
+	# include dust as source to consider self-scattering (optionally)
+	# HINT: a temperature simulation has to be performed first
+	# and the grid file containing the dust temperature has to be used (see below)
+	# <source_dust nr_photons = "1e8">
 
 	# rotation axis for first and second rotation angle
 	<axis1>	1	0	0
@@ -40,7 +45,8 @@
 	<cmd>			CMD_DUST_SCATTERING
 
 	# path of the input grid file
-	<path_grid>		"projects/disk/grid.dat"
+	<path_grid>		"projects/disk/grid.dat"	
+	# <path_grid>		"projects/disk/example/temp/grid_temp.dat"
 
 	# path for all output data
 	<path_out>		"projects/disk/example/dust_mc/"
