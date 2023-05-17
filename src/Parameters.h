@@ -1868,7 +1868,7 @@ class parameters
 
     void addBackgroundSource(dlist & val)
     {
-        // RadiatDetector(ing effective black body surface [m^2]
+        // Radiating effective black body surface [m^2]
         background_sources.push_back(val[0]);
         // Effective temperature [K]
         background_sources.push_back(val[1]);

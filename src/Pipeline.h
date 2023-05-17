@@ -240,19 +240,97 @@ class CPipeline
     {
         if(param.getNrOfSources() > 0 || param.isRaytracingSimulation())
         {
-            cout << "Defined radiation source(s)" << endl;
+            cout << "Defined radiation source(s):" << endl;
 
             if(param.getNrOfPointSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
-                cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
+            {
+                dlist sources_list = param.getPointSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_POINT_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_POINT_SOURCES;
+                    cout << "- Star " << pos + 1 << " :\n"
+                         << "    Position    : "
+                         << sources_list[s + 0] << ", "
+                         << sources_list[s + 1] << ", "
+                         << sources_list[s + 2] << " (x,y,z) [m]\n"
+                         << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
+                         << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                         << "    Stokes      : "
+                         << sources_list[s + 5] << ", "
+                         << sources_list[s + 6] << " (q,u)" << endl;
+                }
+            }
+                // cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
             if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
-                cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
+            {
+                dlist sources_list = param.getDiffuseSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_DIFF_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_DIFF_SOURCES;
+                    cout << "- Starfield " << pos + 1 << " :\n"
+                         << "    Position    : "
+                         << sources_list[s + 0] << ", "
+                         << sources_list[s + 1] << ", "
+                         << sources_list[s + 2] << " (x,y,z) [m]\n"
+                         << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
+                         << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                         << "    Variance    : " << sources_list[s + 5] << " [m]\n"
+                         << "    Stokes      : "
+                         << sources_list[s + 6] << ", "
+                         << sources_list[s + 7] << " (q,u)" << endl;
+                }
+            }
+                // cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
 
             if(param.getNrOfLaserSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
-                cout << "- Laser(s)  : " << param.getNrOfLaserSources() << endl;
+            {
+                dlist sources_list = param.getLaserSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_LASER_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_LASER_SOURCES;
+                    cout << "- Laser " << pos + 1 << " :\n"
+                         << "    Position           : "
+                         << sources_list[s + 0] << ", "
+                         << sources_list[s + 1] << ", "
+                         << sources_list[s + 2] << " (x,y,z) [m]\n"
+                         << "    Direction          : "
+                         << sources_list[s + 3] << ", "
+                         << sources_list[s + 4] << ", "
+                         << sources_list[s + 5] << " (x,y,z) [m]\n"
+                         << "    Total power        : " << sources_list[s + 6] << " [W]\n"
+                         << "    Central wavelength : " << sources_list[s + 7] << " [m]\n"
+                         << "    FWHM               : " << sources_list[s + 8] << " [m]\n"
+                         << "    Stokes             : "
+                         << sources_list[s + 9] << ", "
+                         << sources_list[s + 10] << " (q,u)" << endl;
+                }
+            }
+                // cout << "- Laser(s)  : " << param.getNrOfLaserSources() << endl;
 
             if(param.getNrOfBackgroundSources() > 0 || param.isRaytracingSimulation())
-                cout << "- Background(s)  : " << max(uint(1), param.getNrOfBackgroundSources()) << endl;
+            {
+                dlist sources_list = param.getBackgroundSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_BG_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_BG_SOURCES;
+                    cout << "- Background " << pos + 1 << " :\n"
+                         << "    Scaling factor  : " << sources_list[s + 0] << "\n"
+                         << "    Temperature     : " << sources_list[s + 1] << " [K]\n"
+                         << "    Stokes          : "
+                         << sources_list[s + 2] << ", "
+                         << sources_list[s + 3] << ", "
+                         << sources_list[s + 4] << " (q,u,v)\n"
+                         << "    Rotation angles : "
+                         << sources_list[s + 5] << ", "
+                         << sources_list[s + 6] << " (1,2) [°]" << endl;
+                }
+            }
+                // cout << "- Background(s)  : " << max(uint(1), param.getNrOfBackgroundSources()) << endl;
 
             if(param.getDustSource() && show_dust)
                 cout << "- Dust as sources: yes" << endl;
