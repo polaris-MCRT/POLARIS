@@ -2754,11 +2754,12 @@ void CDustComponent::preCalcMieScatteringProb()
 #pragma omp parallel for
     for(int a = 0; a < int(nr_of_dust_species); a++)
     {
+        // Init arrays of interp
+        avg_scattering_frac[a] = new interp[nr_of_wavelength];
+        phase_pdf[a] = new interp[nr_of_wavelength];
+
         if(sizeIndexUsed(a))
         {
-            // Init arrays of interp
-            avg_scattering_frac[a] = new interp[nr_of_wavelength];
-            phase_pdf[a] = new interp[nr_of_wavelength];
             for(uint w = 0; w < nr_of_wavelength; w++)
             {
                 // Init pointer arrays
@@ -4748,7 +4749,11 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
     }
     else
     {
-        cout << "\nHINT: Photon package intensity or first scattering matrix element is zero!\n" << endl;
+        if(tmp_stokes.I() <= 0.0)
+            cout << "\nERROR: Photon package intensity is zero or negative!\n" << endl;
+        if(mat_sca(0, 0) <= 0.0)
+            cout << "\nERROR: First scattering matrix element is zero or negative!\n" << endl;
+        
         tmp_stokes.clear();
         pp_escape->setStokesVector(tmp_stokes);
         return;
@@ -4926,7 +4931,11 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
     }
     else
     {
-        cout << "\nHINT: Photon package intensity or first scattering matrix element is zero!\n" << endl;
+        if(tmp_stokes.I() <= 0.0)
+            cout << "\nERROR: Photon package intensity is zero or negative!\n" << endl;
+        if(mat_sca(0, 0) <= 0.0)
+            cout << "\nERROR: First scattering matrix element is zero or negative!\n" << endl;
+
         tmp_stokes.clear();
         pp->setStokesVector(tmp_stokes);
         return;
@@ -4958,7 +4967,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
         run_counter++;
     }
     if(run_counter == 1000 || abs(root_phi) > 1e-10)
-        cout << "\nERROR: No phi found\n" << endl;
+        cout << "\nERROR: No scattering angle phi found!\n" << endl;
 
     phi = PI - gamma + phi;
 

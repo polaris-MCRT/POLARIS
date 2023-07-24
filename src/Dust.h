@@ -124,7 +124,7 @@ class CDustComponent
         nr_of_mixtures = 0;
         calorimetry_type = 0;
         alignment = ALIG_PA;
-        phID = 1;
+        phID = 0;
         nr_of_dust_species = 0;
         nr_of_incident_angles = 0;
         nr_of_scat_theta = 0;

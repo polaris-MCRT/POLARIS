@@ -676,10 +676,11 @@ class parameters
 
     uint getPhaseFunctionID(uint i) const
     {
+        if(phIDs.size() == 1)
+            return phIDs[0];
         if(i < phIDs.size())
             return phIDs[i];
-        else
-            return PH_ISO;
+        return PH_ISO;
     }
 
     double getFHighJ() const
