@@ -17,6 +17,7 @@ jobs:
       matrix:
         compiler: ["gcc", "clang++"]
         generator: ["make", "ninja"]
+      fail-fast: false
     name: "Ubuntu compile.sh :: ${{ matrix.compiler }} :: ${{ matrix.generator }}"
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +41,7 @@ jobs:
             build_type: "Debug"
             exe_linker_flags: "-fsanitize=address"
             cxx_flags: "-fsanitize=address"
+      fail-fast: false
     name: "Ubuntu :: ${{ matrix.compiler }} :: ${{ matrix.build_type }} :: ${{ matrix.cxx_flags }} :: system ccfits cfitsio"
     runs-on: ubuntu-latest
     steps:
