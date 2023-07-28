@@ -104,7 +104,7 @@ syn_param CSynchrotron::get_Thermal_Parameter(double n_e, double T_e, double l, 
 
     n_e *= 1e-6; // n_e in 1/ccm
 
-    B *= 1e4; // B in mu Gauss
+    B *= 1e4; // B in Gauss
 
     double sin_theta = sin(theta);
     double cos_theta = cos(theta);
