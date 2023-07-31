@@ -2186,9 +2186,8 @@ void CRadiativeTransfer::getSyncIntensity(photon_package * pp,
             // Set current index in photon package
             pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
 
-            // Get wavelength/frequency of the photon package
-            double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor() * con_c /
-                          (pp->getFrequency() * pp->getFrequency());
+            // Convert W/m2/Hz/sr to Jy
+            double mult = 1e+26 * subpixel_fraction * tracer[i_det]->getDistanceFactor();
 
             // Include foreground extinction if necessary
             mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(pp->getWavelength()));

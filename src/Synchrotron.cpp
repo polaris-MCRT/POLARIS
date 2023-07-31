@@ -104,7 +104,7 @@ syn_param CSynchrotron::get_Thermal_Parameter(double n_e, double T_e, double l, 
 
     n_e *= 1e-6; // n_e in 1/ccm
 
-    B *= 1e4; // B in mu Gauss
+    B *= 1e4; // B in Gauss
 
     double sin_theta = sin(theta);
     double cos_theta = cos(theta);
@@ -239,9 +239,10 @@ syn_param CSynchrotron::get_Power_Law_Parameter(double n_e,
     res.j_V = res.j_I / sqrt(nu / (3. * nu_c * sin_theta)) * getI_V_p(p, tan_theta);
 
     // additional correction for g_min>1 (see Reissl et al. 2018)
-    res.j_I /= (g_min * g_min);
-    res.j_Q /= (g_min * g_min);
-    res.j_V /= (g_min * g_min);
+    double gmin_den = pow(g_min, 1 - p);
+    res.j_I *= gmin_den; 
+    res.j_Q *= gmin_den; 
+    res.j_V *= gmin_den; 
 
     double du = sqrt(res.j_I * res.j_I - res.j_Q * res.j_Q);
 
@@ -272,9 +273,9 @@ syn_param CSynchrotron::get_Power_Law_Parameter(double n_e,
                        // * log(g_min)/tan_theta;
 
     // additional correction for g_min>1 (see Reissl et al. 2018)
-    res.alpha_I /= (g_min * g_min);
-    res.alpha_Q /= (g_min * g_min);
-    res.alpha_V /= (g_min * g_min);
+    res.alpha_I *= gmin_den; 
+    res.alpha_Q *= gmin_den; 
+    res.alpha_V *= gmin_den; 
 
     // converting back into SI;
     res.scale();

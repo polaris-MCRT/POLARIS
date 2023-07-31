@@ -11,10 +11,12 @@
 #define syn_e 4.80320680e-10 // electron charge    [Statcoulomb]
 #define syn_h 6.6260693e-27  // Planck constant    [erg/s]
 #define syn_kB 1.380662e-16  // Boltzmann constant [erg/K]
-#define syn_c 2.99792458e10  // speed of light     [m/s]
+#define syn_c 2.99792458e10  // speed of light     [cm/s]
 
-// conversion factor 1/cm -> 1/m
-#define syn_SI 100.0
+// conversion factor 100.0 (1/cm -> 1/m) * 1e-3 (erg s^-1 cm^-2 Hz^-1 -> W m^-2 Hz^-1) 
+#define syn_SI 0.1
+// conversion factor 100.0 (1/cm -> 1/m) 
+#define syn_SI_abs 100.0
 
 // container class for the parameters of sync. RT
 class syn_param
@@ -74,9 +76,9 @@ class syn_param
         j_Q *= syn_SI;
         j_V *= syn_SI;
 
-        alpha_I *= syn_SI;
-        alpha_Q *= syn_SI;
-        alpha_V *= syn_SI;
+        alpha_I *= syn_SI_abs;
+        alpha_Q *= syn_SI_abs;
+        alpha_V *= syn_SI_abs;
 
         kappa_Q *= syn_SI;
         kappa_V *= syn_SI;
@@ -490,7 +492,7 @@ class CSynchrotron
 
     double Gamma_A_p(double g_min, double g_max, double p)
     {
-        return Gamma((3. * p + 2.) / 12.) * Gamma((3. * p + 22.) / 12.) /
+        return Gamma((3. * p + 12.) / 12.) * Gamma((3. * p + 22.) / 12.) /
                (4. * (pow(g_min, 1. - p) - pow(g_max, 1. - p)));
     }
 
