@@ -3079,7 +3079,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         nr_of_scat_phi = comp->getNrOfScatPhi();
         nr_of_scat_mat_elements = comp->getNrOfScatMatElements();
         nr_of_calorimetry_temperatures = comp->getNrOfCalorimetryTemperatures();
-        f_cor = comp->getCorrelationFactor();
+        f_cor = comp->getFcorr();
         f_highJ = comp->getFHighJ();
 
         // Init dust properties to be filled with grain properties
@@ -5106,6 +5106,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             // Get material density and similar user defined parameters
             single_component[i_comp].setMaterialDensity(param.getMaterialDensity(dust_component_choice));
             single_component[i_comp].setFHighJ(param.getFHighJ());
+            single_component[i_comp].setFcorr(param.getFcorr());
             single_component[i_comp].setQref(param.getQref());
             single_component[i_comp].setAlphaQ(param.getAlphaQ());
 

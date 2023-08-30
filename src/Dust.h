@@ -85,7 +85,7 @@ class CDustComponent
         min_a_alig = 1e200;
         max_a_alig = 0;
         f_highJ = 0.25;
-        f_cor = 0;
+        f_cor = 0.6;
         delta_rat = 2;
         mu = 0;
         avg_mass = 0;
@@ -1706,6 +1706,11 @@ class CDustComponent
         f_highJ = val;
     }
 
+    void setFcorr(double val)
+    {
+        f_cor = val;
+    }
+
     void setQref(double val)
     {
         Q_ref = val;
@@ -2098,7 +2103,7 @@ class CDustComponent
         return f_highJ;
     }
 
-    double getCorrelationFactor() const
+    double getFcorr() const
     {
         return f_cor;
     }
