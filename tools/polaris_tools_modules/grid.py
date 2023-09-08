@@ -113,15 +113,15 @@ class Grid:
             if self.nr_gas_densities == 1:
                 if self.data.get_gas_density_distribution() is not None and \
                         not isinstance(self.data.get_gas_density_distribution(), (float, int)):
-                    # if len(self.data.get_gas_density_distribution()[0]) != \
-                    #         len(self.model.parameter['gas_mass'][0]):
-                    raise ValueError("gas_density_distribution does not provied the same array than "
-                                        "defined in self.parameter['gas_mass']")
+                    if len(self.data.get_gas_density_distribution()[0]) != \
+                            len(self.model.parameter['gas_mass'][0]):
+                        raise ValueError("gas_density_distribution does not provide the same array than "
+                                         "defined in self.parameter['gas_mass']")
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
                             len(self.model.parameter['gas_mass'][i_gas_dens]):
-                        raise ValueError("gas_density_distribution does not provied the same array than "
+                        raise ValueError("gas_density_distribution does not provide the same array than "
                                          "defined in self.parameter['gas_mass']")
         except:
             raise ValueError(
@@ -130,13 +130,15 @@ class Grid:
             if self.nr_dust_densities == 1:
                 if self.data.get_dust_density_distribution() is not None and \
                         not isinstance(self.data.get_dust_density_distribution(), (float, int)):
-                    raise ValueError(
-                        "get_dust_density_distribution provides not float!")
+                    if len(self.data.get_dust_density_distribution()[0]) != \
+                            len(self.model.parameter['dust_mass'][0]):
+                        raise ValueError("dust_density_distribution does not provide the same array than "
+                                         "defined in self.parameter['dust_mass']")
             elif self.nr_dust_densities > 1:
                 for i_dust_dens in range(self.nr_dust_densities):
                     if len(self.data.get_dust_density_distribution()[i_dust_dens]) != \
                             len(self.model.parameter['dust_mass'][i_dust_dens]):
-                        raise ValueError("dust_density_distribution does not provied the same array than "
+                        raise ValueError("dust_density_distribution does not provide the same array than "
                                          "defined in self.parameter['dust_mass']")
         except:
             raise ValueError(
