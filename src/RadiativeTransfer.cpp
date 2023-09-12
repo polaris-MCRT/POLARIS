@@ -1788,14 +1788,14 @@ void CRadiativeTransfer::convertTempInQB(double min_gas_density, bool use_gas_te
 #pragma omp atomic update
         pos_counter++;
 
-        if(pos_counter % 10000 == 0)
-        {
-#pragma omp critical
-            {
-                cout << "-> Converting emissivities: " << 100.0 * float(pos_counter) / float(max_cells)
-                     << " [%]       \r";
-            }
-        }
+//         if(pos_counter % 10000 == 0)
+//         {
+// #pragma omp critical
+//             {
+//                 cout << "-> Converting emissivities: " << 100.0 * float(pos_counter) / float(max_cells)
+//                      << " [%]       \r";
+//             }
+//         }
     }
 
     cout << CLR_LINE;

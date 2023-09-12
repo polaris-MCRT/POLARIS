@@ -179,7 +179,7 @@ class CGridVoronoi : public CGridBasic
             stree = 0;
         }
 
-        cout << CLR_LINE << flush;
+        // cout << CLR_LINE << flush;
     }
 
     bool isInside(const Vector3D & pos)const
@@ -273,12 +273,12 @@ class CGridVoronoi : public CGridBasic
         return saveBinaryGridFile(filename, GRID_ID_VOR, data_offset);
     }
 
-    bool loadGridFromBinrayFile(parameters & param, uint _data_len);
+    bool loadGridFromBinaryFile(parameters & param, uint _data_len);
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameters & param)
+    bool loadGridFromBinaryFile(parameters & param)
     {
-        return loadGridFromBinrayFile(param, 0);
+        return loadGridFromBinaryFile(param, 0);
     };
 
     // final cleanup

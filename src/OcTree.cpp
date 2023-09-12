@@ -282,13 +282,13 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
     }
 }
 
-bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint tr_level)
+bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint tr_level)
 {
     parameters param;
     param.setCommand(CMD_TEMP);
     param.setPathGrid(in_filename);
 
-    if(!loadGridFromBinrayFile(param))
+    if(!loadGridFromBinaryFile(param))
         return false;
 
     createCellList();
@@ -311,8 +311,8 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         double dens1 = getGasDensity(*cell, 1);
 
 
-        if(c_i%5000==0)
-            cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
+        // if(c_i%5000==0)
+        //     cout << "-> " << float(100*c_i)/float(max_cells) << "                       \r" << flush;
 
         double dens = dens0+dens1;
 
@@ -385,7 +385,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
         }
     }
 
-    //reduceLevelOfBinrayFile(cell_oc_root, tr_level);
+    //reduceLevelOfBinaryFile(cell_oc_root, tr_level);
 
     if(!saveBinaryGridFile(out_filename))
         return false;
@@ -393,7 +393,7 @@ bool CGridOcTree::reduceBinrayFile(string in_filename, string out_filename, uint
     return true;
 }
 
-bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
+bool CGridOcTree::reduceLevelOfBinaryFile(cell_oc * cell, uint tr_level)
 {
     line_counter++;
     if(line_counter % 1000 == 0)
@@ -413,7 +413,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
     {
         bool comb = true;
         for(int i = 0; i < 8; i++)
-            comb &= reduceLevelOfBinrayFile(&cell->getChildren()[i], tr_level);
+            comb &= reduceLevelOfBinaryFile(&cell->getChildren()[i], tr_level);
 
         if(comb)
         {
@@ -451,7 +451,7 @@ bool CGridOcTree::reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level)
     return false;
 }
 
-bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
+bool CGridOcTree::loadGridFromBinaryFile(parameters & param, uint _data_len)
 {
     double cube_length;
     int cube_pos;
@@ -484,6 +484,7 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     line_counter = 1;
     char_counter = 0;
     cube_pos = -1;
+    float last_percentage = 0;
 
     bin_reader.read((char *)&tmpID, 2);
     bin_reader.read((char *)&tmpOffset, 2);
@@ -555,10 +556,21 @@ bool CGridOcTree::loadGridFromBinrayFile(parameters & param, uint _data_len)
     {
         line_counter++;
 
-        if(line_counter % 5000 == 0)
+        // if(line_counter % 5000 == 0)
+        // {
+        //     char_counter++;
+        //     cout << "-> Loading octree grid file: " << ru[(unsigned int)char_counter % 4] << "           \r";
+        // }
+
+        // Calculate percentage of total progress per source
+        float percentage = 100.0 * double(line_counter) / double(max_cells);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
         {
             char_counter++;
-            cout << "-> Loading octree grid file: " << ru[(unsigned int)char_counter % 4] << "           \r";
+            cout << "-> Loading octree grid file: " << percentage << " [%]      \r" << flush;
+            last_percentage = percentage;
         }
 
         bin_reader.read((char *)&isleaf, 2);
@@ -1331,12 +1343,12 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
     if(cell->getChildren() == 0)
     {
         line_counter++;
-        if(line_counter % 15000 == 0)
-        {
-            char_counter++;
-            cout << "-> Writing binary octree grid file: " << ru[(unsigned int)char_counter % 4]
-                 << "           \r" << flush;
-        }
+        // if(line_counter % 15000 == 0)
+        // {
+        //     char_counter++;
+        //     cout << "-> Writing binary octree grid file: " << ru[(unsigned int)char_counter % 4]
+        //          << "           \r" << flush;
+        // }
 
         isleaf = (ushort)1;
         level = (ushort)cell->getLevel();//-1;
@@ -2182,9 +2194,9 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx,
 
             per_counter++;
 
-            if(j % 10 == 0)
-                cout << " -> Reading input data: " << 100.0 * float(per_counter) / float(nx * nx)
-                     << " [%]                \r";
+            // if(j % 10 == 0)
+            //     cout << " -> Reading input data: " << 100.0 * float(per_counter) / float(nx * nx)
+            //          << " [%]                \r";
 
             for(uint k = 0; k < nx; k++)
             {

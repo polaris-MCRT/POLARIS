@@ -27,26 +27,26 @@ bool CPipeline::Init(int argc, char ** argv)
     uint str_len = uint(out_string2.size());
     string line_string = SEP_LINE;
 
-    for(uint i = 0; i < str_len; i++)
-    {
-        cout << line_string.substr(0, i) << "| \r" << flush;
-        mf.sleep(LINE_DELAY);
-    }
+    // for(uint i = 0; i < str_len; i++)
+    // {
+    //     cout << line_string.substr(0, i) << "| \r" << flush;
+    //     mf.sleep(LINE_DELAY);
+    // }
     cout << SEP_LINE;
 
-    for(uint i = 0; i <= str_len / 4; i++)
-    {
-        cout << out_string2.substr(0, i) << "| \r" << flush;
-        mf.sleep(LINE_DELAY);
-    }
+    // for(uint i = 0; i <= str_len / 4; i++)
+    // {
+    //     cout << out_string2.substr(0, i) << "| \r" << flush;
+    //     mf.sleep(LINE_DELAY);
+    // }
 
     cout << out_string2 << endl;
 
-    for(uint i = 0; i < str_len; i++)
-    {
-        cout << line_string.substr(0, i) << "| \r" << flush;
-        mf.sleep(LINE_DELAY);
-    }
+    // for(uint i = 0; i < str_len; i++)
+    // {
+    //     cout << line_string.substr(0, i) << "| \r" << flush;
+    //     mf.sleep(LINE_DELAY);
+    // }
     cout << SEP_LINE;
 
     if(argc != 2)
@@ -220,7 +220,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     grid->setSIConversionFactors(param);
 
     grid->setSpecLengthAsVector(use_energy_density);
-    if(!grid->loadGridFromBinrayFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
+    if(!grid->loadGridFromBinaryFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
         return false;
 
     // Print helpfull information
@@ -315,7 +315,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 0))
+    if(!grid->loadGridFromBinaryFile(param, 0))
         return false;
 
     // Print helpfull information
@@ -383,7 +383,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, getNrOffsetEntriesRay(param, dust, grid)))
+    if(!grid->loadGridFromBinaryFile(param, getNrOffsetEntriesRay(param, dust, grid)))
         return false;
 
     // Print helpfull information
@@ -466,7 +466,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, gas->getNrOffsetEntries(grid, param)))
+    if(!grid->loadGridFromBinaryFile(param, gas->getNrOffsetEntries(grid, param)))
         return false;
 
     // Print helpfull information
@@ -536,7 +536,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param,1))
+    if(!grid->loadGridFromBinaryFile(param,1))
         return false;
 
     grid->createCellList();
@@ -605,7 +605,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 0))
+    if(!grid->loadGridFromBinaryFile(param, 0))
         return false;
 
     // Print helpfull information
@@ -1526,7 +1526,7 @@ bool CPipeline::calcRadPressure(parameter & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinrayFile(param, 3 + 3 * WL_STEPS))
+    if(!grid->loadGridFromBinaryFile(param, 3 + 3 * WL_STEPS))
         return false;
 
     // Print helpfull information

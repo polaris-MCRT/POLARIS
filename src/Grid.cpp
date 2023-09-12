@@ -953,9 +953,9 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
             }
 
             per_counter++;
-            if(per_counter % 49 == 0)
-                cout << " -> Writing AMIRA files:     " << 100.0 * float(per_counter) / float(per_max)
-                     << " [%]                  \r";
+            // if(per_counter % 49 == 0)
+            //     cout << " -> Writing AMIRA files:     " << 100.0 * float(per_counter) / float(per_max)
+            //          << " [%]                  \r";
         }
     }
 
@@ -1014,7 +1014,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
     z_writer.precision(8);
     z_writer << scientific;
 
-    cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
+    // cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
 
     photon_package pp = photon_package();
 
@@ -1062,7 +1062,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                  << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
+    // cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
 
     pp.setPosition(Vector3D(0, 2.0 * max_len, 0));
     pp.setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
@@ -1107,7 +1107,7 @@ bool CGridBasic::writeSpecialLines(string data_path)
                  << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
     }
 
-    cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
+    // cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
 
     pp.setPosition(Vector3D(2.0 * max_len, 0, 0));
     pp.setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
@@ -1614,14 +1614,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
                 per_counter++;
-                if(per_counter % 220 == 0)
-                {
-#pragma omp critical
-                    {
-                        cout << " -> Writing 3D midplane file: "
-                             << 100.0 * float(per_counter) / float(per_max) << " [%]                 \r";
-                    }
-                }
+//                 if(per_counter % 220 == 0)
+//                 {
+// #pragma omp critical
+//                     {
+//                         cout << " -> Writing 3D midplane file: "
+//                              << 100.0 * float(per_counter) / float(per_max) << " [%]                 \r";
+//                     }
+//                 }
             }
 
             fpixel[3] = 0;
@@ -1921,14 +1921,14 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fillMidplaneBuffer(tx, ty, tz, i_cell);
 
                 per_counter++;
-                if(per_counter % 220 == 0)
-                {
-#pragma omp critical
-                    {
-                        cout << " -> Writing midplane files: " << 100.0 * float(per_counter) / float(per_max)
-                             << " [%]             \r";
-                    }
-                }
+//                 if(per_counter % 220 == 0)
+//                 {
+// #pragma omp critical
+//                     {
+//                         cout << " -> Writing midplane files: " << 100.0 * float(per_counter) / float(per_max)
+//                              << " [%]             \r";
+//                     }
+//                 }
             }
 
             fpixel[3] = 0;

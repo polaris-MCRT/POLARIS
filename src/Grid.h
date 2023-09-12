@@ -2184,9 +2184,9 @@ class CGridBasic
 
     virtual bool saveBinaryGridFile(string filename, ushort id, ushort data_size) = 0;
 
-    virtual bool loadGridFromBinrayFile(parameters & param) = 0;
+    virtual bool loadGridFromBinaryFile(parameters & param) = 0;
 
-    virtual bool loadGridFromBinrayFile(parameters & param, uint data_len) = 0;
+    virtual bool loadGridFromBinaryFile(parameters & param, uint data_len) = 0;
 
     virtual double getVolume(const cell_basic & cell) const = 0;
 

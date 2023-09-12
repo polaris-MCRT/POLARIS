@@ -2722,17 +2722,17 @@ void CDustComponent::preCalcAbsorptionRates()
         if(calorimetry_loaded)
             tab_em_inv[a].createSpline();
 
-#pragma omp critical
-        {
-            // Show progress
-            if(per_counter % 2 == 0)
-            {
-                printIDs();
-                cout << "- pre-calculation of absorption rates: "
-                     << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
-                     << " [%]                         \r";
-            }
-        }
+// #pragma omp critical
+//         {
+//             // Show progress
+//             if(per_counter % 2 == 0)
+//             {
+//                 printIDs();
+//                 cout << "- pre-calculation of absorption rates: "
+//                      << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
+//                      << " [%]                         \r";
+//             }
+//         }
 
         // Increase progress counter
         per_counter++;
@@ -2811,17 +2811,17 @@ void CDustComponent::preCalcMieScatteringProb()
                 delete[] tmp_scat_frac;
             }
 
-#pragma omp critical
-            {
-                // Show progress
-                if(per_counter % 2 == 0)
-                {
-                    printIDs();
-                    cout << "- pre-calculation of Mie probabilities: "
-                        << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
-                        << " [%]                         \r";
-                }
-            }
+// #pragma omp critical
+//             {
+//                 // Show progress
+//                 if(per_counter % 2 == 0)
+//                 {
+//                     printIDs();
+//                     cout << "- pre-calculation of Mie probabilities: "
+//                         << 100.0 * float(per_counter) / float(nr_of_dust_species - 1)
+//                         << " [%]                         \r";
+//                 }
+//             }
 
             // Increase progress counter
             per_counter++;
@@ -2882,16 +2882,16 @@ void CDustComponent::preCalcWaveProb()
             delete[] pl_mean[a];
         delete[] pl_mean;
 
-#pragma omp critical
-        {
-            // Show progress
-            if(per_counter % 10 == 0)
-            {
-                printIDs();
-                cout << "- precalculation of wavelength-probabilities: "
-                     << 100.0 * float(per_counter) / float(nr_of_temperatures - 1) << " [%]           \r";
-            }
-        }
+// #pragma omp critical
+//         {
+//             // Show progress
+//             if(per_counter % 10 == 0)
+//             {
+//                 printIDs();
+//                 cout << "- precalculation of wavelength-probabilities: "
+//                      << 100.0 * float(per_counter) / float(nr_of_temperatures - 1) << " [%]           \r";
+//             }
+//         }
 
         // Increase progress counter
         per_counter++;
@@ -2929,9 +2929,9 @@ void CDustComponent::preCalcTemperatureLists(double minTemp, double maxTemp, uin
         tab_planck[w].resize(nr_of_temperatures);
 
         // Show progress
-        printIDs();
-        cout << "- pre-calculation of Planck functions: " << 100.0 * float(w) / float(nr_of_wavelength)
-             << "                                \r";
+        // printIDs();
+        // cout << "- pre-calculation of Planck functions: " << 100.0 * float(w) / float(nr_of_wavelength)
+        //      << "                                \r";
 
         // Set each entry of tab_planck with the corresponding Planck function values
         // that depend on the temperature

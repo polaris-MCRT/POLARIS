@@ -6,7 +6,7 @@
 #include "Parameters.h"
 #include "Photon.h"
 
-bool CGridVoronoi::loadGridFromBinrayFile(parameters & param, uint _data_len)
+bool CGridVoronoi::loadGridFromBinaryFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -442,7 +442,7 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
         }
     }
 
-    cout << "-> Creating plot files  .....      \r" << flush;
+    cout << "-> Creating plot files  ...        \r" << flush;
 
     line_counter = 0;
     char_counter = 0;
@@ -708,12 +708,12 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
 
     for(uint i = 0; i < max_cells; i++)
     {
-        if(line_counter % 200 == 0)
-        {
-            char_counter++;
-            cout << "-> Creating plot files : " << float(100.0 * double(line_counter) / double(max_cells))
-                 << "      \r" << flush;
-        }
+        // if(line_counter % 200 == 0)
+        // {
+        //     char_counter++;
+        //     cout << "-> Creating plot files : " << float(100.0 * double(line_counter) / double(max_cells))
+        //          << "      \r" << flush;
+        // }
 
         // Delaunay lines
         if(line_counter % maxPlotLines == 0)
@@ -874,12 +874,12 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
     for(ulong c_i = 0; c_i < max_cells; c_i++)
     {
         line_counter++;
-        if(line_counter % 100 == 0)
-        {
-            char_counter++;
-            cout << "-> Writing binary Voronoi grid file: "
-                 << float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
-        }
+        // if(line_counter % 100 == 0)
+        // {
+        //     char_counter++;
+        //     cout << "-> Writing binary Voronoi grid file: "
+        //          << float(100.0 * double(line_counter) / double(max_cells)) << "      \r" << flush;
+        // }
 
         cell_vo * tmp_cell = (cell_vo *)cell_list[c_i];
 
@@ -1073,9 +1073,9 @@ bool CGridVoronoi::createArtificialGrid(string path)
 
     for(uint i = 0; i < max_cells; i++)
     {
-        if(i % 50 == 0)
-            cout << "-> Creating grid: " << 100.0 * float(i) / float(max_cells) << " [%]           \r"
-                 << flush;
+        // if(i % 50 == 0)
+        //     cout << "-> Creating grid: " << 100.0 * float(i) / float(max_cells) << " [%]           \r"
+        //          << flush;
 
         double tmpC;
 

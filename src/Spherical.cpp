@@ -4,7 +4,7 @@
 #include "Typedefs.h"
 #include "Parameters.h"
 
-bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
+bool CGridSpherical::loadGridFromBinaryFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -211,8 +211,8 @@ bool CGridSpherical::loadGridFromBinrayFile(parameters & param, uint _data_len)
     {
         grid_cells[i_r] = new cell_sp **[N_ph];
 
-        cout << "Allocating memory for spherical grid cells: " << float(100.0 * double(i_r) / double(N_r))
-             << "      \r" << flush;
+        // cout << "Allocating memory for spherical grid cells: " << float(100.0 * double(i_r) / double(N_r))
+        //      << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {
@@ -1144,8 +1144,8 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        cout << "-> Writing binary spherical grid file: " << float(100.0 * double(i_r) / double(N_r))
-             << "      \r" << flush;
+        // cout << "-> Writing binary spherical grid file: " << float(100.0 * double(i_r) / double(N_r))
+        //      << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {
@@ -1261,8 +1261,8 @@ bool CGridSpherical::createArtificialGrid(string path)
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        if(i_r % 50 == 0)
-            cout << "-> Creating tree: " << 100.0 * float(i_r) / float(N_r) << " [%]           \r" << flush;
+        // if(i_r % 50 == 0)
+        //     cout << "-> Creating tree: " << 100.0 * float(i_r) / float(N_r) << " [%]           \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph; i_ph++)
         {

@@ -5,7 +5,7 @@
 #include "Typedefs.h"
 #include "Parameters.h"
 
-bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len)
+bool CGridCylindrical::loadGridFromBinaryFile(parameters & param, uint _data_len)
 {
     ushort tmpID, tmpOffset;
     string filename = param.getPathGrid();
@@ -321,8 +321,8 @@ bool CGridCylindrical::loadGridFromBinrayFile(parameters & param, uint _data_len
     {
         grid_cells[i_r] = new cell_cyl **[N_ph[i_r]];
 
-        cout << "Allocating memory for cylindrical grid cells: " << float(100.0 * double(i_r) / double(N_r))
-             << "      \r" << flush;
+        // cout << "Allocating memory for cylindrical grid cells: " << float(100.0 * double(i_r) / double(N_r))
+        //      << "      \r" << flush;
 
         for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
         {
@@ -1121,8 +1121,8 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
 
     for(uint i_r = 0; i_r < N_r; i_r++)
     {
-        cout << "-> Writing cylindrical grid file: " << float(100.0 * double(i_r) / double(N_r)) << "      \r"
-             << flush;
+        // cout << "-> Writing cylindrical grid file: " << float(100.0 * double(i_r) / double(N_r)) << "      \r"
+        //      << flush;
 
         for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
         {

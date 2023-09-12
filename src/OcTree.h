@@ -187,8 +187,8 @@ class CGridOcTree : public CGridBasic
 
     // void deleteSubCells(slist & source);
 
-    bool reduceBinrayFile(string in_filename, string out_filename, uint tr_level);
-    bool reduceLevelOfBinrayFile(cell_oc * cell, uint tr_level);
+    bool reduceBinaryFile(string in_filename, string out_filename, uint tr_level);
+    bool reduceLevelOfBinaryFile(cell_oc * cell, uint tr_level);
 
     Vector3D getCenter(const cell_basic & cell) const
     {
@@ -244,9 +244,9 @@ class CGridOcTree : public CGridBasic
             cell_oc_pos->setUniqueID(pos_counter);
 
             pos_counter++;
-            if(pos_counter % 15000 == 0)
-                cout << "-> Creating cell list     : " << 100.0 * float(pos_counter) / float(max_cells)
-                     << " [%]        \r" << flush;
+            // if(pos_counter % 15000 == 0)
+            //     cout << "-> Creating cell list     : " << 100.0 * float(pos_counter) / float(max_cells)
+            //          << " [%]        \r" << flush;
         }
 
         // cout << CLR_LINE;
@@ -334,13 +334,13 @@ class CGridOcTree : public CGridBasic
         return saveBinaryGridFile(filename, GRID_ID_OCT, data_offset);
     };
 
-    bool loadGridFromBinrayFile(parameters & param, uint data_len);
+    bool loadGridFromBinaryFile(parameters & param, uint data_len);
 
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameters & param)
+    bool loadGridFromBinaryFile(parameters & param)
     {
-        return loadGridFromBinrayFile(param, 0);
+        return loadGridFromBinaryFile(param, 0);
     };
 
     void nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uint data_size);

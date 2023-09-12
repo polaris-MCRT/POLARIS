@@ -184,8 +184,8 @@ class CGridCylindrical : public CGridBasic
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for cylindrical grid file: "
-                     << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+                // cout << "Cleaning memory for cylindrical grid file: "
+                //      << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
                 {
@@ -249,7 +249,7 @@ class CGridCylindrical : public CGridBasic
             N_ph = 0;
         }
 
-        cout << CLR_LINE << flush;
+        // cout << CLR_LINE << flush;
     }
 
     bool writePlotFiles(string path, parameters & param);
@@ -337,13 +337,13 @@ class CGridCylindrical : public CGridBasic
         cell_list = new cell_basic *[max_cells];
         ulong pos_counter = 0;
 
-        cout << CLR_LINE;
-        cout << "-> Creating cell list    : 0 [%]           \r" << flush;
+        // cout << CLR_LINE;
+        // cout << "-> Creating cell list    : 0 [%]           \r" << flush;
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " [%]        \r"
-                 << flush;
+            // cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " [%]        \r"
+            //      << flush;
 
             for(uint i_ph = 0; i_ph < N_ph[i_r]; i_ph++)
             {
@@ -361,7 +361,7 @@ class CGridCylindrical : public CGridBasic
             pos_counter++;
         }
 
-        cout << CLR_LINE;
+        // cout << CLR_LINE;
         // cout << "- Creating of cell list         : done          \n" << flush;
         return true;
     }
@@ -421,12 +421,12 @@ class CGridCylindrical : public CGridBasic
         return saveBinaryGridFile(filename, GRID_ID_CYL, data_offset);
     }
 
-    bool loadGridFromBinrayFile(parameters & param, uint _data_len);
+    bool loadGridFromBinaryFile(parameters & param, uint _data_len);
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameters & param)
+    bool loadGridFromBinaryFile(parameters & param)
     {
-        return loadGridFromBinrayFile(param, 0);
+        return loadGridFromBinaryFile(param, 0);
     };
 
     void clear()

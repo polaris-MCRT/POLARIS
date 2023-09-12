@@ -1432,7 +1432,7 @@ class CDetector
     bool writeSed(uint nr, uint results_type)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing line spectrum ...  \r" << flush;
+        cout << " -> Writing SED ...  \r" << flush;
         // auto_ptr<CCfits::FITS> pFits(0);
         unique_ptr<CCfits::FITS> pFits;
 
@@ -2386,7 +2386,7 @@ class CDetector
     bool writeOPIATEVelChannelMaps(COpiateDataBase * op, uint det_id)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing velocity channel map(s) ...  \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -2430,8 +2430,8 @@ class CDetector
             fpixel[1] = 1;
             fpixel[2] = 1;
 
-            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
-                 << "%     \r" << flush;
+            // cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            //      << "%     \r" << flush;
 
             std::valarray<double> array_I(nelements);
             std::valarray<double> array_Q(nelements);
@@ -2767,7 +2767,7 @@ class CDetector
     bool writeOPIATEIntChannelMaps(COpiateDataBase * op, uint det_id)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel map(s): 0%  \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s) ...  \r" << flush;
 
         long naxis = 3;
         long naxes[3] = { uint(bins_x), uint(bins_y), 6 };
@@ -2960,7 +2960,7 @@ class CDetector
     bool writeVelChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing velocity channel map(s) ...  \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -3004,8 +3004,8 @@ class CDetector
             fpixel[1] = 1;
             fpixel[2] = 1;
 
-            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
-                 << "%     \r" << flush;
+            // cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            //      << "%     \r" << flush;
 
             std::valarray<double> array_I(nelements);
             std::valarray<double> array_Q(nelements);
@@ -3369,7 +3369,7 @@ class CDetector
     bool writeIntChannelMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel map(s): 0%  \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s) ...  \r" << flush;
 
         long naxis = 3;
 
@@ -3670,7 +3670,7 @@ class CDetector
     bool writeOPIATEVelChannelHealMaps(COpiateDataBase * op, uint det_id)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing velocity channel map(s) ...  \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -3736,8 +3736,8 @@ class CDetector
 
             CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
-                 << "%     \r" << flush;
+            // cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            //      << "%     \r" << flush;
 
             valarray<double> array_I(nelements);
             valarray<double> array_Q(nelements);
@@ -3925,7 +3925,7 @@ class CDetector
     bool writeVelChannelHealMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing velocity channel map(s) ...  \r" << flush;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -3991,8 +3991,8 @@ class CDetector
 
             CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
 
-            cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
-                 << "%     \r" << flush;
+            // cout << " -> Writing velocity channel map(s): " << int(100.0 * i_spectral / (nr_spectral_bins - 1))
+            //      << "%     \r" << flush;
 
             valarray<double> array_I(nelements);
             valarray<double> array_Q(nelements);
@@ -4224,7 +4224,7 @@ class CDetector
     bool writeOPIATEIntVelChannelHealMaps(COpiateDataBase * op, uint det_id)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s) ...  \r" << flush;
 
         long naxis = 1;
         long naxes[1] = { 0 };
@@ -4361,7 +4361,7 @@ class CDetector
     bool writeIntVelChannelHealMaps(CGasMixture * gas, uint i_species, uint i_line)
     {
         cout << CLR_LINE << flush;
-        cout << " -> Writing integrated velocity channel map(s): 0%     \r" << flush;
+        cout << " -> Writing integrated velocity channel map(s) ...  \r" << flush;
 
         long naxis = 1;
         long naxes[1] = { 0 };

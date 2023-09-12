@@ -202,8 +202,8 @@ class CGridSpherical : public CGridBasic
         {
             for(uint i_r = 0; i_r < N_r; i_r++)
             {
-                cout << "Cleaning memory for spherical grid file: "
-                     << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
+                // cout << "Cleaning memory for spherical grid file: "
+                //      << float(100.0 * double(i_r) / double(N_r)) << "      \r" << flush;
 
                 for(uint i_ph = 0; i_ph < N_ph; i_ph++)
                 {
@@ -224,7 +224,7 @@ class CGridSpherical : public CGridBasic
             grid_cells = 0;
         }
 
-        cout << CLR_LINE << flush;
+        // cout << CLR_LINE << flush;
     }
 
     bool writePlotFiles(string path, parameters & param);
@@ -349,13 +349,13 @@ class CGridSpherical : public CGridBasic
         cell_list = new cell_basic *[max_cells];
         ulong pos_counter = 0;
 
-        cout << CLR_LINE;
-        cout << "-> Creating cell list    : 0.0 [%]           \r" << flush;
+        // cout << CLR_LINE;
+        // cout << "-> Creating cell list    : 0.0 [%]           \r" << flush;
 
         for(uint i_r = 0; i_r < N_r; i_r++)
         {
-            cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " %        \r"
-                 << flush;
+            // cout << "-> Creating cell list     : " << 100.0 * float(i_r) / float(N_r) << " %        \r"
+            //      << flush;
 
             for(uint i_ph = 0; i_ph < N_ph; i_ph++)
             {
@@ -433,12 +433,12 @@ class CGridSpherical : public CGridBasic
         return saveBinaryGridFile(filename, GRID_ID_SPH, data_offset);
     }
 
-    bool loadGridFromBinrayFile(parameters & param, uint _data_len);
+    bool loadGridFromBinaryFile(parameters & param, uint _data_len);
     bool saveBinaryGridFile(string filename, ushort id, ushort data_size);
 
-    bool loadGridFromBinrayFile(parameters & param)
+    bool loadGridFromBinaryFile(parameters & param)
     {
-        return loadGridFromBinrayFile(param, 0);
+        return loadGridFromBinaryFile(param, 0);
     };
 
     void clear()

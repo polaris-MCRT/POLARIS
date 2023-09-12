@@ -12,7 +12,7 @@
 using namespace std;
 
 // Header and Version of POLARIS
-#define PROG_ID "POLARIS    V4.06.00        "
+#define PROG_ID "POLARIS    V4.10.00        "
 
 // Flags to activate WINDOWS support, some DEBUG messages, BENCHMARK settings
 //#define DEBUG
@@ -97,12 +97,12 @@ using namespace std;
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
 #define MAX_INTERACTION_RADFIELD 1e7
-#define MAX_INTERACTION_DUST_MC 20
+#define MAX_INTERACTION_DUST_MC 1e7
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e4
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
-#define PERCENTAGE_STEP 0.1
+#define PERCENTAGE_STEP 10
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
