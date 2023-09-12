@@ -21,7 +21,7 @@ jobs:
     name: "Ubuntu compile.sh :: ${{ matrix.compiler }} :: ${{ matrix.generator }}"
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build
+      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build libomp-dev
       - uses: actions/checkout@v3
       - run: ./compile.sh -f -c ${{ matrix.compiler }} -g ${{ matrix.generator }}
       - run: ./src/build/tests -as
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build libccfits-dev libcfitsio-dev
+      - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build libccfits-dev libcfitsio-dev libomp-dev
       - run: |
           mkdir build
           cd build
