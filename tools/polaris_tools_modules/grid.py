@@ -417,7 +417,7 @@ class OcTree(Grid):
         grid_file.write(struct.pack('H', node.parameter['is_leaf']))
         grid_file.write(struct.pack('H', node.parameter['level']))
 
-    def create_grid(self, grid_file, node, max_tree_level=None, refinement_limit=0.1):
+    def create_grid(self, grid_file, node, max_tree_level=None, refinement_limit=0.1, last_percentage=0.0):
         """Create an octree grid and calculate the total mass of the grid nodes.
 
         Args:
@@ -435,13 +435,16 @@ class OcTree(Grid):
             tmp_node = tmp_node.parent
         percentage_count = 0
         if tmp_node.parameter['level'] == 2:
-            percentage_count = tmp_node.parameter['index'] + \
-                tmp_node.parent.parameter['index'] * 8
+            percentage_count = tmp_node.parameter['index'] + tmp_node.parent.parameter['index'] * 8
         elif tmp_node.parameter['level'] == 1:
             percentage_count = tmp_node.parameter['index'] * 8
-        stdout.write('--- Generate cartesian grid: ' +
-                     str(int(100 * percentage_count / (8 * 8 - 1))) + ' %      \r')
-        stdout.flush()
+        
+        percentage = 100 * percentage_count / 64
+        if percentage - last_percentage > 10:
+            stdout.write(f'--- Generate cartesian grid: ' + str(int(percentage)) + ' %      \r')
+            stdout.flush()
+            last_percentage = percentage
+
         if node.parameter['level'] < max_tree_level and not self.model.ignore_cell(node):
             # Add 8 children to node
             self.add_level(node=node)
@@ -452,7 +455,7 @@ class OcTree(Grid):
                 self.write_node_header(grid_file=grid_file, node=node)
                 # Recursive execute this function to add another 8 children to node
                 self.create_grid(grid_file=grid_file, node=node, max_tree_level=max_tree_level,
-                                 refinement_limit=refinement_limit)
+                                 refinement_limit=refinement_limit, last_percentage=last_percentage)
                 # Go to parent node
                 node = node.parent
                 if i_leaf == 7:
@@ -772,13 +775,16 @@ class Spherical(Grid):
         for i_r in range(sp_param['n_r']):
             nr_cells += sp_param['n_ph'] * sp_param['n_th']
 
+        last_percentage = 0
         i_node = 0
         for i_r in range(sp_param['n_r']):
             for i_p in range(sp_param['n_ph']):
                 for i_t in range(sp_param['n_th']):
-                    stdout.write('--- Generate spherical grid: ' +
-                                 str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
-                    stdout.flush()
+                    percentage = 100 * i_node / nr_cells
+                    if percentage - last_percentage > 10:
+                        stdout.write(f'--- Generate spherical grid: ' + str(int(percentage)) + ' %      \r')
+                        stdout.flush()
+                        last_percentage = percentage
                     # Calculate the cell midpoint in spherical coordinates
                     spherical_coord = np.zeros(3)
                     spherical_coord[0] = (
@@ -1088,13 +1094,16 @@ class Cylindrical(Grid):
         for i_r in range(cy_param['n_r']):
             nr_cells += cy_param['n_ph'][i_r] * cy_param['n_z']
 
+        last_percentage = 0
         i_node = 0
         for i_r in range(cy_param['n_r']):
             for i_p in range(cy_param['n_ph'][i_r]):
                 for i_z in range(cy_param['n_z']):
-                    stdout.write('--- Generate cylindrical grid: ' +
-                                 str(round(100.0 * i_node / nr_cells, 3)) + ' %      \r')
-                    stdout.flush()
+                    percentage = 100 * i_node / nr_cells
+                    if percentage - last_percentage > 10:
+                        stdout.write('--- Generate cylindrical grid: ' + str(int(percentage)) + ' %      \r')
+                        stdout.flush()
+                        last_percentage = percentage
                     # Calculate the cell midpoint in cylindrical coordinates
                     cylindrical_coord = np.array([
                         (radius_list[i_r] + radius_list[i_r + 1]) / 2.,

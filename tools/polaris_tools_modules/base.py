@@ -61,7 +61,7 @@ class Model:
             'n_z': 5,
             'sf_r': 1.03,
             'sf_ph': 1.0,
-            'sf_z': -1.0,
+            'sf_z': -2.0,
             # This list is used as cell borders if sf_r or sf_z is zero
             'radius_list': [],
             'phi_list': [],
