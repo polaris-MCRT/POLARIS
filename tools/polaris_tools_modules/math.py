@@ -385,8 +385,9 @@ class Math:
         """
         cylindrical_coord = np.zeros(3)
         cylindrical_coord[0] = np.linalg.norm(cartesian_coord[0:2])
-        cylindrical_coord[1] = np.arctan2(
-            cartesian_coord[1], cartesian_coord[0]) + np.pi
+        cylindrical_coord[1] = np.arctan2(cartesian_coord[1], cartesian_coord[0])
+        if cylindrical_coord[1] < 0.0:
+            cylindrical_coord[1] += 2.0 * np.pi
         cylindrical_coord[2] = cartesian_coord[2]
         return cylindrical_coord
 
@@ -525,9 +526,10 @@ class Math:
 
     @staticmethod
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
-                             ref_radius=100. * 149597870700.0, alpha=0.9, beta=0.8, tapered_gamma=None,
+                             ref_radius=100. * 149597870700.0, alpha=1.8, beta=1.1, tapered_gamma=None,
                              column_dens_exp=None, real_zero=True):
         """Shakura and Sunyaev disk density profile.
+        Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%2526A....24..337S
 
         Args:
             position (List[float, float, float]): Position in model space.
@@ -568,7 +570,7 @@ class Math:
         return density
 
     @staticmethod
-    def default_disk_scale_height(radius, beta=0.8,
+    def default_disk_scale_height(radius, beta=1.1,
                                   ref_scale_height=10. * 149597870700.0, ref_radius=100. * 149597870700.0):
         """Shakura and Sunyaev disk density profile.
 

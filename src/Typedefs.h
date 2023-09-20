@@ -325,8 +325,8 @@ using namespace std;
 #else
     // Minimum number of scattering angles between 0° and 90°
     // Actual number might be larger due to adaptive refinement
-    #define NANG 91
-    // limit for adaptive refinement of scat angles
+    #define NANG 181
+    // limit for adaptive refinement of scat angles (for x < 100)
     // if >= 1 -> no refinement
     #define MAX_MIE_SCA_REL_DIFF 1
 #endif

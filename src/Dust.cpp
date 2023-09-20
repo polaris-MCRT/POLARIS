@@ -897,6 +897,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     // Init error check
     bool error = false;
 
+    double max_diff = 0.0;
+
     // Init maximum counter value
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
 
@@ -1067,7 +1069,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 delete[] S33_start;
                 delete[] S34_start;
 
-                uint nr_or_scat_theta_final = scat_angle_final.size();
+                uint nr_of_scat_theta_final = scat_angle_final.size();
 
                 // Set missing Efficiencies for other axis
                 Qext2[a][w] = Qext1[a][w];
@@ -1078,15 +1080,23 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 if(scat_theta[a][w] != 0){
                     delete[] scat_theta[a][w];
                 }
-                scat_theta[a][w] = new double[nr_or_scat_theta_final];
+
+                double diff_tmp;
+                for(uint sth = 1; sth < nr_of_scat_theta_final; sth++)
+                {
+                    diff_tmp = (S11_final[sth-1] - S11_final[sth]) / max(S11_final[sth-1], S11_final[sth]);
+                    max_diff = max(diff_tmp, max_diff);
+                }
+
+                scat_theta[a][w] = new double[nr_of_scat_theta_final];
 
                 for(uint inc = 0; inc < nr_of_incident_angles; inc++)
                 {
                     sca_mat[a][w][inc] = new Matrix2D*[nr_of_scat_phi];
                     for(uint sph = 0; sph < nr_of_scat_phi; sph++)
                     {
-                        sca_mat[a][w][inc][sph] = new Matrix2D[nr_or_scat_theta_final];
-                        for(uint sth = 0; sth < nr_or_scat_theta_final; sth++)
+                        sca_mat[a][w][inc][sph] = new Matrix2D[nr_of_scat_theta_final];
+                        for(uint sth = 0; sth < nr_of_scat_theta_final; sth++)
                         {
                             sca_mat[a][w][inc][sph][sth].resize(4, 4);
 
@@ -1112,7 +1122,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 S33_final.clear();
                 S34_final.clear();
 
-                nr_of_scat_theta[a][w] = nr_or_scat_theta_final;
+                nr_of_scat_theta[a][w] = nr_of_scat_theta_final;
             }
             else
             {
@@ -1144,6 +1154,16 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
         cout << "ERROR: Problem with optical properties calculation" << endl;
         return false;
     }
+
+    printIDs();
+    cout << "- calculating optical properties: done          " << endl;
+
+    if(max_diff > 0.5) // arbitrary limit
+    {
+        cout << "WARNING: number of scattering angles might be too low (max diff = " << max_diff << ")" << endl;
+        cout << "if required, increase 'NANG' or decrease 'MAX_MIE_SCA_REL_DIFF' (for x < 100) in src/Typedefs.h " << endl;
+    }
+
     return true;
 }
 
@@ -5187,6 +5207,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 
     // Show title
     cout << CLR_LINE;
+    cout << SEP_LINE;
     cout << "Dust parameters                                                             "
             "            "
          << endl;

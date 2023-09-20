@@ -111,7 +111,7 @@ class parameters
 
         isrf_path = "";
 
-        max_subpixel_lvl = 1;
+        max_subpixel_lvl = 3;
         midplane_zoom = 1;
         max_dust_component_choice = 0;
 
