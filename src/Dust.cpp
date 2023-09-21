@@ -2366,7 +2366,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         // Init text file writer for scattering matrix
         ofstream scat_writer(path_scat.c_str());
 
-        uint nr_of_scat_theta = 2 * NANG - 1;
+        uint nr_of_scat_theta_tmp = 2 * NANG - 1;
 
         // Error message if the write does not work
         if(scat_writer.fail())
@@ -2391,9 +2391,9 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         for(uint w = wavelength_offset; w < nr_of_wavelength; w++)
         {
             uint wID = w - wavelength_offset;
-            S11[wID] = new double[nr_of_scat_theta];
-            S12[wID] = new double[nr_of_scat_theta];
-            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+            S11[wID] = new double[nr_of_scat_theta_tmp];
+            S12[wID] = new double[nr_of_scat_theta_tmp];
+            for(uint sth = 0; sth < nr_of_scat_theta_tmp; sth++)
             {
                 // Init and reset variables
                 double sum = 0;
@@ -2402,7 +2402,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                 double * S12_tmp = new double[nr_of_dust_species];
                 for(uint a = 0; a < nr_of_dust_species; a++)
                 {
-                    if(sizeIndexUsed(a))
+                    if(sizeIndexUsed(a) && nr_of_scat_theta[a][w] != 0)
                     {
                         double Csca_tmp = getCscaMean(a, w);
                         sum += Csca_tmp;
@@ -2446,7 +2446,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         scat_writer << "set multiplot layout 2,1 rowsfirst" << endl;
 
         if(nr_of_wavelength > 1)
-            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta_tmp << "]" << endl;
         scat_writer << "set yrange[" << S11min << ":" << S11max << "]" << endl;
         scat_writer << "set format x \"%.1f\"" << endl;
         scat_writer << "set format y \"%.1te%02T\"" << endl;
@@ -2467,13 +2467,13 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         {
             uint wID = w - wavelength_offset;
 
-            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+            for(uint sth = 0; sth < nr_of_scat_theta_tmp; sth++)
                 scat_writer << sth << "\t" << S11[wID][sth] << endl;
             scat_writer << "e" << endl;
         }
 
         if(nr_of_wavelength > 1)
-            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta << "]" << endl;
+            scat_writer << "set xrange[" << 0 << ":" << nr_of_scat_theta_tmp << "]" << endl;
         scat_writer << "set yrange[" << S12min << ":" << S12max << "]" << endl;
         scat_writer << "set format x \"%.1f\"" << endl;
         scat_writer << "set format y \"%.1te%02T\"" << endl;
@@ -2494,7 +2494,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
         {
             uint wID = w - wavelength_offset;
 
-            for(uint sth = 0; sth < nr_of_scat_theta; sth++)
+            for(uint sth = 0; sth < nr_of_scat_theta_tmp; sth++)
                 scat_writer << sth << "\t" << S12[wID][sth] << endl;
             scat_writer << "e" << endl;
         }

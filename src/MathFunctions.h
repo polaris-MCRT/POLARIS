@@ -1753,7 +1753,13 @@ class CMathFunctions
             integ_spline.setValue(0, 0);
             for(uint i = 1; i < N; i++)
             {
-                res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                if(y[i - 1] > 0)
+                {
+                    if(y[i] == 0)
+                        res += 0.5 * (y[i + 1] - y[i - 1]) / (x[i + 1] - x[i - 1]) * (x[i] - x[i - 1]) * (x[i] - x[i - 1]);
+                    else
+                        res += (x[i] - x[i - 1]) * y[i - 1] + 0.5 * (x[i] - x[i - 1]) * (y[i] - y[i - 1]);
+                }
                 integ_spline.setValue(i, res);
             }
         }
