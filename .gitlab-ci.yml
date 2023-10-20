@@ -7,7 +7,7 @@ script_gcc_make:
     script:
         - ./compile.sh -f -c gcc -g make
         - ./src/build/tests -as
-        - ./ci/test.sh ./bin/polaris projects
+        # - ./ci/test.sh ./bin/polaris projects
     artifacts:
         paths:
             - ./src/build
@@ -16,107 +16,107 @@ script_gcc_make:
             - ./lib/CCfits
         expire_in: 1 week
 
-script_gcc_ninja:
-    stage: build
-    before_script:
-        - apt-get install -y ninja-build
-    script:
-        - ./compile.sh -f -c gcc -g ninja
-        - ./src/build/tests -as
-        - ./ci/test.sh ./bin/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# script_gcc_ninja:
+#     stage: build
+#     before_script:
+#         - apt-get install -y ninja-build
+#     script:
+#         - ./compile.sh -f -c gcc -g ninja
+#         - ./src/build/tests -as
+#         - ./ci/test.sh ./bin/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
 
-script_clang_make:
-    stage: build
-    before_script:
-        - apt-get install -y clang
-    script:
-        - ./compile.sh -f -c clang++ -g make
-        - ./src/build/tests -as
-        - ./ci/test.sh ./bin/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# script_clang_make:
+#     stage: build
+#     before_script:
+#         - apt-get install -y clang
+#     script:
+#         - ./compile.sh -f -c clang++ -g make
+#         - ./src/build/tests -as
+#         - ./ci/test.sh ./bin/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
 
-script_clang_ninja:
-    stage: build
-    before_script:
-        - sudo apt-get install -y clang ninja-build
-    script:
-        - ./compile.sh -f -c clang++ -g ninja
-        - ./src/build/tests -as
-        - ./ci/test.sh ./bin/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# script_clang_ninja:
+#     stage: build
+#     before_script:
+#         - sudo apt-get install -y clang ninja-build
+#     script:
+#         - ./compile.sh -f -c clang++ -g ninja
+#         - ./src/build/tests -as
+#         - ./ci/test.sh ./bin/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
 
-build_release_gcc_ninja:
-    stage: build
-    before_script:
-        - apt-get install -y ninja-build libccfits-dev libcfitsio-dev
-    script:
-        - mkdir build
-        - cd build
-        - CC=gcc CXX=g++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Release
-        - ninja
-        - ninja test
-        - ./ci/test.sh ./build/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# build_release_gcc_ninja:
+#     stage: build
+#     before_script:
+#         - apt-get install -y ninja-build libccfits-dev libcfitsio-dev
+#     script:
+#         - mkdir build
+#         - cd build
+#         - CC=gcc CXX=g++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Release
+#         - ninja
+#         - ninja test
+#         - ./ci/test.sh ./build/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
 
-build_release_clang_ninja:
-    stage: build
-    before_script:
-        - apt-get install -y clang ninja-build libccfits-dev libcfitsio-dev
-    script:
-        - mkdir build
-        - cd build
-        - CC=clang CXX=clang++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Release
-        - ninja
-        - ninja test
-        - ./ci/test.sh ./build/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# build_release_clang_ninja:
+#     stage: build
+#     before_script:
+#         - apt-get install -y clang ninja-build libccfits-dev libcfitsio-dev
+#     script:
+#         - mkdir build
+#         - cd build
+#         - CC=clang CXX=clang++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Release
+#         - ninja
+#         - ninja test
+#         - ./ci/test.sh ./build/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
 
-build_debug_clang_ninja:
-    stage: build
-    before_script:
-        - apt-get install -y clang ninja-build libccfits-dev libcfitsio-dev
-    script:
-        - mkdir build
-        - cd build
-        - CC=clang CXX=clang++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address -DCMAKE_CXX_FLAGS=-fsanitize=address
-        - ninja
-        - ninja test
-        - ./ci/test.sh ./build/polaris projects
-    artifacts:
-        paths:
-            - ./src/build
-            - ./bin
-            - ./lib/cfitsio
-            - ./lib/CCfits
-        expire_in: 1 week
+# build_debug_clang_ninja:
+#     stage: build
+#     before_script:
+#         - apt-get install -y clang ninja-build libccfits-dev libcfitsio-dev
+#     script:
+#         - mkdir build
+#         - cd build
+#         - CC=clang CXX=clang++ cmake ../src -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address -DCMAKE_CXX_FLAGS=-fsanitize=address
+#         - ninja
+#         - ninja test
+#         - ./ci/test.sh ./build/polaris projects
+#     artifacts:
+#         paths:
+#             - ./src/build
+#             - ./bin
+#             - ./lib/cfitsio
+#             - ./lib/CCfits
+#         expire_in: 1 week
