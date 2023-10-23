@@ -45,4 +45,4 @@ if __name__ == '__main__':
     if res:
         print('Test passed')
     else:
-        print('Test failed')
+        raise Exception('Test failed')
