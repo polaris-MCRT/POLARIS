@@ -11,12 +11,10 @@ POLARIS_BINARY=${1:-polaris}
 PROJECTS_PATH=${2:-projects}
 
 # set path to CCfits and cfitsio libraries
-export POLARIS_FITS_PATH="./lib/lib"
-if [[ ":$LD_LIBRARY_PATH:" != *":$POLARIS_FITS_PATH:"* ]]; then
-    export LD_LIBRARY_PATH="$POLARIS_FITS_PATH:$LD_LIBRARY_PATH"
+export POLARIS_FITS_PATH=./lib/lib
+if [[ :$LD_LIBRARY_PATH: != *:$POLARIS_FITS_PATH:* ]]; then
+    export LD_LIBRARY_PATH=$POLARIS_FITS_PATH:$LD_LIBRARY_PATH
 fi
-echo $POLARIS_FITS_PATH
-echo $LD_LIBRARY_PATH
 
 # run disk temp example
 ${POLARIS_BINARY} ${PROJECTS_PATH}/test/stellar_sed/POLARIS.cmd

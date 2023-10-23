@@ -7,7 +7,8 @@ import os
 
 def flux_planck_law(wavelength, temperature=4500*u.K, radius=2*u.R_sun, distance=4.32e+18*u.m):
     planck = (2.0 * c.h * c.c**2 / wavelength**5) / (np.exp(c.h * c.c / (wavelength * c.k_B * temperature)) - 1.0)
-    return (np.pi * planck * radius**2 / distance**2).to(u.Jy, equivalencies=u.spectral_density(wavelength))
+    flux = np.pi * planck * radius**2 / distance**2
+    return flux.to(u.Jy, equivalencies=u.spectral_density(wavelength))
 
 
 def read_data(sed_fits_file, stokes='I'):
