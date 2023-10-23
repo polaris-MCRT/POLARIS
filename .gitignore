@@ -14,9 +14,7 @@ testing/
 projects/*
 !projects/CommandList.cmd
 !projects/disk/
-projects/disk/*
-!projects/disk/grid.dat
-!projects/disk/example/
+!projects/test/
 
 .tags
 .tags1

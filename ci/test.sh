@@ -10,12 +10,16 @@ set -e -x
 POLARIS_BINARY=${1:-polaris}
 PROJECTS_PATH=${2:-projects}
 
-# set paths in cmd files
-sed -i.bak 's|/PATH/TO/POLARIS|'`pwd`'|' ${PROJECTS_PATH}/CommandList.cmd
-sed -i.bak 's|/YOUR/POLARIS/PATH|'`pwd`'|' ${PROJECTS_PATH}/disk/example/temp/POLARIS.cmd
+# set path to CCfits and cfitsio libraries
+export POLARIS_FITS_PATH="./lib/lib"
+if [[ ":$LD_LIBRARY_PATH:" != *":$POLARIS_FITS_PATH:"* ]]; then
+    export LD_LIBRARY_PATH="$POLARIS_FITS_PATH:$LD_LIBRARY_PATH"
+fi
+echo $POLARIS_FITS_PATH
+echo $LD_LIBRARY_PATH
 
 # run disk temp example
-${POLARIS_BINARY} ${PROJECTS_PATH}/disk/example/temp/POLARIS.cmd
+${POLARIS_BINARY} ${PROJECTS_PATH}/test/stellar_sed/POLARIS.cmd
 
-# todo: validate output, for now just display a list of generated files
-ls ${PROJECTS_PATH}/disk/example/temp/*/*
+# validate output
+python3 ${PROJECTS_PATH}/test/stellar_sed/compare.py
