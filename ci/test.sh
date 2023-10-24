@@ -16,8 +16,10 @@ if [[ :$LD_LIBRARY_PATH: != *:$POLARIS_FITS_PATH:* ]]; then
     export LD_LIBRARY_PATH=$POLARIS_FITS_PATH:$LD_LIBRARY_PATH
 fi
 
-# run disk temp example
+# run test cases
 ${POLARIS_BINARY} ${PROJECTS_PATH}/test/stellar_sed/POLARIS.cmd
+${POLARIS_BINARY} ${PROJECTS_PATH}/test/reemission_sphere/POLARIS.cmd
 
 # validate output
 python3 ${PROJECTS_PATH}/test/stellar_sed/compare.py
+python3 ${PROJECTS_PATH}/test/reemission_sphere/compare.py

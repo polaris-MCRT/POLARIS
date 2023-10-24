@@ -2,7 +2,6 @@ from astropy.io import fits
 from astropy import units as u
 from astropy import constants as c
 import numpy as np
-import os
 
 
 def flux_planck_law(wavelength, temperature=4500*u.K, radius=2*u.R_sun, distance=4.32e+18*u.m):
@@ -29,13 +28,12 @@ def read_data(sed_fits_file, stokes='I'):
 
 
 def compare():
-    sed_wavelengths, sed_data = read_data(
-        os.path.join('projects', 'test', 'stellar_sed', 'dust_mc', 'data', 'polaris_detector_nr0001_sed.fits.gz'))
+    sed_wavelengths, sed_data = read_data('projects/test/stellar_sed/dust_mc/data/polaris_detector_nr0001_sed.fits.gz')
     reference = flux_planck_law(sed_wavelengths)
 
     for sed, ref in zip(sed_data[0], reference):
         if abs(sed / ref - 1.0) > 1e-4:
-            return False
+            raise Exception(f'Test failed: POLARIS and reference do not match ({sed} != {ref})')
 
     return True
 
@@ -44,5 +42,3 @@ if __name__ == '__main__':
     res = compare()
     if res:
         print('Test passed')
-    else:
-        raise Exception('Test failed')

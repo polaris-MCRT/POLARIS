@@ -72,7 +72,7 @@ class parameters
         dust_gas_coupling = false;
         full_dust_temp = false;
         save_radiation_field = false;
-        scattering_to_raytracing = true;
+        scattering_to_raytracing = false;
         split_dust_emision = false;
         sublimate = false;
         individual_dust_fractions = false;
