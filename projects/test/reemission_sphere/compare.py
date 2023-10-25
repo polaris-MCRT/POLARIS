@@ -4,6 +4,23 @@ from astropy import constants as c
 import numpy as np
 
 
+"""
+----------------------------------------------
+Re-emission of a homogeneous sphere
+----------------------------------------------
+
+We test whether the re-emission radiation is
+a modified Blackbody described by Planck law
+with a wavelength-dependent emission coefficient.
+
+We test whether both detector geometries of the
+raytracer (cartesian and polar) yield the same results.
+
+In order to pass this test, the simulated radiation
+from POLARIS should match the analytical solution.
+"""
+
+
 def planck_law(wavelength, temperature):
     return (2.0 * c.h * c.c**2 / wavelength**5) / (np.exp(c.h * c.c / (wavelength * c.k_B * temperature)) - 1.0)
 
@@ -125,11 +142,13 @@ def compare():
     sed_data_car = read_data('projects/test/reemission_sphere/dust/data/polaris_detector_nr0002_sed.fits.gz')
     reference = calc_flux_ana()
 
-    for pol, car, ref in zip(sed_data_pol[0], sed_data_car[0], reference):
-        if abs(pol / ref - 1.0) > 1e-3:
-            raise Exception(f'Test failed: Polar detector and reference do not match ({pol} != {ref})')
-        if abs(car / pol - 1.0) > 1e-3:
-            raise Exception(f'Test failed: Cartesian and polar detector do not match ({car} != {pol})')
+    max_rel_diff = np.max(np.abs( sed_data_pol / reference - 1.0 ))
+    if max_rel_diff > 1e-3:
+        raise Exception(f'Test failed: Polar detector and reference do not match (max. relative difference = {max_rel_diff})')
+
+    max_rel_diff = np.max(np.abs( sed_data_car / sed_data_pol - 1.0))
+    if max_rel_diff > 1e-3:
+        raise Exception(f'Test failed: Cartesian and polar detector do not match (max. relative difference = {max_rel_diff})')
 
     return True
 

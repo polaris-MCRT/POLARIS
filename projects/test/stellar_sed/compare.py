@@ -4,6 +4,19 @@ from astropy import constants as c
 import numpy as np
 
 
+"""
+----------------------------------------------
+Blackbody stellar radiation
+----------------------------------------------
+
+We test whether the stellar radiation is a
+perfect Blackbody described by Planck law.
+
+In order to pass this test, the simulated SED from
+POLARIS should match the one computed analytically
+"""
+
+
 def flux_planck_law(wavelength, temperature=4500*u.K, radius=2*u.R_sun, distance=4.32e+18*u.m):
     planck = (2.0 * c.h * c.c**2 / wavelength**5) / (np.exp(c.h * c.c / (wavelength * c.k_B * temperature)) - 1.0)
     flux = np.pi * planck * radius**2 / distance**2
@@ -31,9 +44,9 @@ def compare():
     sed_wavelengths, sed_data = read_data('projects/test/stellar_sed/dust_mc/data/polaris_detector_nr0001_sed.fits.gz')
     reference = flux_planck_law(sed_wavelengths)
 
-    for sed, ref in zip(sed_data[0], reference):
-        if abs(sed / ref - 1.0) > 1e-4:
-            raise Exception(f'Test failed: POLARIS and reference do not match ({sed} != {ref})')
+    max_rel_diff = np.max( sed_data[0] / reference - 1.0 )
+    if max_rel_diff > 1e-4:
+        raise Exception(f'Test failed: POLARIS and reference do not match (max. relative difference = {max_rel_diff})')
 
     return True
 

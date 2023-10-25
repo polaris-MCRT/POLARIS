@@ -9,15 +9,15 @@
 
 </common>
 
-
 <task> 1
+
+	<cmd>			CMD_DUST_EMISSION
 
 	<detector_dust_polar nr_pixel = "255*255">	1e-6	1e-2	10	1	0.0	0.0	4.32e+18
 	<detector_dust nr_pixel = "255*255">		1e-6	1e-2	10	1	0.0	0.0	4.32e+18
 
 	<max_subpixel_lvl>	2
 
-	<cmd>			CMD_DUST_EMISSION
 	<path_grid>		"projects/test/reemission_sphere/grid_3D_sphere_const_T_m1e-5.dat"
 	<path_out>		"projects/test/reemission_sphere/dust/"
 
