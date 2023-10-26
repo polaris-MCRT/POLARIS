@@ -606,7 +606,7 @@ class CSourceLaser : public CSourceBasic
         nr_of_photons = (ullong)values[p + NR_OF_LASER_SOURCES - 1];
 
         // FWHM to sigma^2
-        sigma_sq = pow(fwhm / sqrt(8 * log(2)), 2);
+        sigma_sq = fwhm * fwhm / (8.0 * log(2.0));
     }
 
   protected:
