@@ -1374,7 +1374,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
             // Init progress visualization
             cout << "-> MC pol. map(s) (source ID: " << s + 1 << ", wavelength: " << dust->getWavelength(wID)
-                 << " [m], photons: " << nr_of_photons << ") 0 [%]   \r" << flush;
+                 << " [m], photons: " << float(nr_of_photons) << ") 0 [%]   \r" << flush;
 
             // Init counter and percentage to show progress
             per_counter = 0;
@@ -1414,7 +1414,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     {
                         cout << "-> MC pol. map(s) (source ID: " << s + 1
                              << ", wavelength: " << dust->getWavelength(wID)
-                             << " [m], photons: " << nr_of_photons << ") " << percentage << " [%]   \r"
+                             << " [m], photons: " << float(nr_of_photons) << ") " << percentage << " [%]   \r"
                              << flush;
                         last_percentage = percentage;
                     }
@@ -1761,7 +1761,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     // Show amount of killed photons
     if(kill_counter > 0)
         cout << "- Photons killed                   : " << kill_counter << endl;
-    cout << "- Calculation of MC polarization maps (photons: " << nr_of_photons << "): done" << endl;
+    cout << "- Calculation of MC polarization maps (photons: " << float(nr_of_photons) << "): done" << endl;
 
     return true;
 }

@@ -20,7 +20,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << float(nr_of_photons) << "      " << endl;
     }
     else
     {
@@ -42,7 +42,7 @@ bool CSourceStar::initSource(uint id, uint max, bool use_energy_density)
         L = tmp_luminosity;
 
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons: " << nr_of_photons << endl;
+             << " [L_sun], photons: " << float(nr_of_photons) << endl;
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
@@ -297,7 +297,7 @@ bool CSourceAGN::initSource(uint id, uint max, bool use_energy_density)
     {
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons per wavelength: " << float(nr_of_photons) << "      " << endl;
     }
     else
     {
@@ -319,7 +319,7 @@ bool CSourceAGN::initSource(uint id, uint max, bool use_energy_density)
         L = tmp_luminosity;
 
         cout << "- Source (" << id + 1 << " of " << max << ") STAR: " << float(L / L_sun)
-             << " [L_sun], photons: " << nr_of_photons << endl;
+             << " [L_sun], photons: " << float(nr_of_photons) << endl;
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
@@ -540,7 +540,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 
     if(use_energy_density && !is_ext)
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-             << " [L_sun], photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
+             << " [L_sun], photons FOR EACH wavelength: " << float(nr_of_photons) << "      " << endl;
     else
     {
         // Init variables
@@ -565,7 +565,7 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
         L = tmp_luminosity;
 
         cout << "- Source (" << id + 1 << " of " << max << ") STARFIELD: " << float(L / L_sun)
-             << " [L_sun], photons: " << nr_of_photons << endl;
+             << " [L_sun], photons: " << float(nr_of_photons) << endl;
 
         for(uint w = 0; w < getNrOfWavelength(); w++)
         {
@@ -830,10 +830,10 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
         {
             if(use_energy_density)
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+                     << "with " << float(nr_of_photons) << " photons per cell and wavelength" << endl;
             else
                 cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (const.) initiated \n"
-                     << "with " << nr_of_photons << " photons per cell" << endl;
+                     << "with " << float(nr_of_photons) << " photons per cell" << endl;
         }
 
     }
@@ -877,10 +877,10 @@ bool CSourceBackground::initSource(uint id, uint max, bool use_energy_density)
 
         if(use_energy_density)
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
-                 << "with " << nr_of_photons << " photons per cell and wavelength" << endl;
+                 << "with " << float(nr_of_photons) << " photons per cell and wavelength" << endl;
         else
             cout << "Source (" << id + 1 << " of " << max << ") BACKGROUND (var.) initiated \n"
-                 << "with " << nr_of_photons << " photons per cell" << endl;
+                 << "with " << float(nr_of_photons) << " photons per cell" << endl;
     }
 
     // temp.clear();
@@ -1357,7 +1357,7 @@ bool CSourceDust::initSource(uint id, uint max, bool use_energy_density)
     // Show information
     cout << CLR_LINE;
     cout << "- Source (" << id + 1 << " of " << max
-         << ") DUST: photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
+         << ") DUST: photons FOR EACH wavelength: " << float(nr_of_photons) << "      " << endl;
 
     return true;
 }
@@ -1508,7 +1508,7 @@ bool CSourceGas::initSource(uint id, uint max, bool use_energy_density)
 
     // Show information
     cout << "- Source GAS (lvl population):" << endl;
-    cout << "    photons per cell: " << nr_of_photons << " (" << nr_of_cells << " cells)" << endl;
+    cout << "    photons per cell: " << float(nr_of_photons) << " (" << nr_of_cells << " cells)" << endl;
 
     return true;
 }
@@ -1561,7 +1561,7 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
              << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
-        cout << "    photons FOR EACH wavelength: " << nr_of_photons << "      " << endl;
+        cout << "    photons FOR EACH wavelength: " << float(nr_of_photons) << "      " << endl;
         // cout << "\nERROR: Laser source cannot be used for dust temperature calculation!\n" << endl;
         // return false;
     }
@@ -1584,7 +1584,7 @@ bool CSourceLaser::initSource(uint id, uint max, bool use_energy_density)
         // For using energy density, only the photon number is required
         cout << "- Source (" << id + 1 << " of " << max << ") LASER: " << float(L)
              << " [W] (wavelength = " << float(wl) << " [m], FWHM = " << float(fwhm) << " [m])" << endl;
-        cout << "    photons: " << nr_of_photons << "      " << endl;
+        cout << "    photons: " << float(nr_of_photons) << "      " << endl;
 
         double fr;
         lam_pf.resize(getNrOfWavelength());
