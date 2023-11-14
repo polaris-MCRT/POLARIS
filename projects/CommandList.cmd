@@ -1,3 +1,7 @@
+# The command file consists of an arbitrary number of tasks.
+# Commands that are common to all tasks can be defined in an extra block in the beginning as the first block of the command file.
+# Lines marked with a # or a ! are ignored and can be used as comments.
+
 # common commands to all tasks
 <common>
 
@@ -12,11 +16,17 @@
     # enables/disables sublimation of dust grains, sublimation temperature is set in the dust catalog (TEMP, TEMP_RAT)
     <sub_dust> 1 (yes) or 0 (no) 
 
-    # fhigh,j value for the radiative torque mechanism (DUST_EMISSION)
+    # ratio of grains at high-J attractor point for the radiative torque alignment (DUST_EMISSION)
     <f_highJ> 0.25
 
-    # fcor value for the radiative torque mechanism (DUST_EMISSION)
+    # correlation factor for the radiative torque alignment (DUST_EMISSION)
     <f_c> 0.6
+
+    # reference value for the radiative torque efficiency (DUST_EMISSION)
+    <Q_ref> 0.4
+
+    # exponent for the radiative torque efficiency power law (DUST EMISSION)
+    <alpha_Q> 3.0
 
     # overwrite the gas temperature with the dust temperature times TEMP_FACTOR (TEMP, TEMP_RAT)
     <adj_tgas> 1.0
@@ -103,34 +113,35 @@
 
 </common>
 
-# task (on 1, off 0)
+# task block
+# The number 1 is optional. Task blocks with a 0 will be skipped completely.
 <task> 1
 
     # Detectors
 
-    # detector (polar, sliced) for dust emission (DUST_EMISSION) nr_pixel = "Npixel"> λmin λmax Nλ IDsource α1 [deg] α2 [deg] D [m] dx [m] dy [m] ∆x [m] ∆y [m]  
+    # detector (polar, sliced) for dust emission (DUST_EMISSION) nr_pixel = "Npixel"> λmin λmax Nλ IDsource α1 [°] α2 [°] D [m] dx [m] dy [m] ∆x [m] ∆y [m]  
     <detector_dust nr_pixel = "256*256">	0.00085	0.00085	1	1	0.0	0.0	4.319948614054068e+18
     <detector_dust_polar nr_pixel = "256"> 1e-6 2e-6 2 1 35.1 0 4.31998E+18
     <detector_dust_slice nr_pixel = "256"> 1e-6 2e-6 2 1 35.1 0 4.31998E+18
 
-    # healpix detector for dust emission (DUST_EMISSION) nr_sides = "Nsides"> λmin λmax Nλ IDsource rx [m] ry [m] rz [m] lmin [deg] lmax [deg] bmin [deg] bmax [deg] dx [m] dy [m] ∆x [m] ∆y [m]
+    # healpix detector for dust emission (DUST_EMISSION) nr_sides = "Nsides"> λmin λmax Nλ IDsource rx [m] ry [m] rz [m] lmin [°] lmax [°] bmin [°] bmax [°] dx [m] dy [m] ∆x [m] ∆y [m]
     <detector_dust_healpix nr_sides = "32"> 1e-6 1e-5 2 1 1.65e+20 0 0 -80 80 -45 45
 
-    # detector for dust scattering (DUST_SCATTERING) nr_pixel = "Npixel"> λmin λmax Nλ α1 [deg] α2 [deg] D [m] dx [m] dy [m]
+    # detector for dust scattering (DUST_SCATTERING) nr_pixel = "Npixel"> λmin λmax Nλ α1 [°] α2 [°] D [m] dx [m] dy [m]
     <detector_dust_mc nr_pixel = "256"> 1e-6 2e-6 2 15.1 0 4.31998E+18
 
-    # detector (polar, sliced) for spectral line emission (DUST_EMISSION) nr_pixel = "Npixel" vel_channels = "Nvel"> IDgas species IDtransition IDsource vmin,max [m/s] α1 [deg] α2 [deg] D [m]
+    # detector (polar, sliced) for spectral line emission (DUST_EMISSION) nr_pixel = "Npixel" vel_channels = "Nvel"> IDgas species IDtransition IDsource vmin,max [m/s] α1 [°] α2 [°] D [m]
     <detector_line nr_pixel = "256" vel_channels = "35"> 1 2 1 1e5 15.1 0 4.31998E+18
     <detector_line_polar nr_pixel = "256" vel_channels = "35"> 1 5 1 1e5 35.1 0 4.31998E+18
     <detector_line_slice nr_pixel = "256" vel_channels = "101"> 1 5 1 1e5 35.1 0 4.31998E+18
 
-    # healpix detector for spectral line emission (DUST_EMISSION) nr_sides = "Nsides" vel_channels = "Nvel"> IDgas species IDtransition IDsource vmin,max [m/s] rx [m] ry [m] rz [m] lmin [deg] lmax [deg] bmin [deg] bmax [ deg] vx [m/s] vy [m/s] vz [m/s]
+    # healpix detector for spectral line emission (DUST_EMISSION) nr_sides = "Nsides" vel_channels = "Nvel"> IDgas species IDtransition IDsource vmin,max [m/s] rx [m] ry [m] rz [m] lmin [°] lmax [°] bmin [°] bmax [°] vx [m/s] vy [m/s] vz [m/s]
     <detector_line_healpix nr_sides = "32" vel_channels = "35"> 1 2 1 1e5 1.96e+20 0 0 -180 180 -3.5 3.5 1.5e3 -1e3 0
 
-    # detector for synchrotron emission (SYNCHROTRON) nr_pixel = "Npixel"> λmin λmax Nλ IDsource α1 [deg] α2 [deg] D [m] dx [m] dy [m] ∆x [m] ∆y [m]
+    # detector for synchrotron emission (SYNCHROTRON) nr_pixel = "Npixel"> λmin λmax Nλ IDsource α1 [°] α2 [°] D [m] dx [m] dy [m] ∆x [m] ∆y [m]
     <detector_sync nr_pixel = "256"> 0.71 0.81 2 1 15.1 0 4.31998E+18
 
-    # healpix detector for synchrotron emission (SYNCHROTRON) nr_sides = "Nsides"> λmin λmax Nλ IDsource rx [m] ry [m] rz [m] lmin [deg] lmax [deg] bmin [deg] bmax [deg]
+    # healpix detector for synchrotron emission (SYNCHROTRON) nr_sides = "Nsides"> λmin λmax Nλ IDsource rx [m] ry [m] rz [m] lmin [°] lmax [°] bmin [°] bmax [°]
     <detector_sync_healpix nr_sides = "512"> 0.03 0.7 11 1.65e+20 0 0 -80 80 -45 45
 
     # maximum level of subpixeling (DUST_EMISSION, LINE_EMISSION)
@@ -143,11 +154,11 @@
 
     # Radiation sources
 
-    # stellar radiation source (TEMP, RAT, DUST_SCATTERING, DUST_EMISSION) nr_photons = "Nph"> x [m] y [m] z [m] R∗ [R ] T∗ [K] q u
+    # stellar radiation source (TEMP, RAT, DUST_SCATTERING, DUST_EMISSION) nr_photons = "Nph"> x [m] y [m] z [m] R [Rsun] T [K] q u
     # or nr_photons = "Nph"> x [m] y [m] z [m] "path"
     <source_star nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 17000
 
-    # starfield radiation source (TEMP, RAT, DUST_SCATTERING) nr_photons = "Nph"> x [m] y [m] z [m] R∗ [R ] T∗ [K] μf [m]
+    # starfield radiation source (TEMP, RAT, DUST_SCATTERING) nr_photons = "Nph"> x [m] y [m] z [m] R [Rsun] T [K] μf [m]
     # or nr_photons = "Nph"> x [m] y [m] z [m] μf [m] "path"
     <source_starfield nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 23e4 1e18
 
@@ -156,8 +167,8 @@
     # or nr_photons = "Nph"> G0 fradius
     <source_isrf nr_photons = "1e7"> "/PATH/TO/POLARIS/input/interstellar_radiation_field.dat"
 
-    # background radiation source (DUST_EMISSION, LINE_EMISSION, SYNCHROTRON) nr_photons = "Nph"> f [a.u.] Teff [K] q u v α1 [deg] α2 [deg]
-    # or nr_photons = "Nph"> "path" α1 [deg] α2 [deg]
+    # background radiation source (DUST_EMISSION, LINE_EMISSION, SYNCHROTRON) nr_photons = "Nph"> f [a.u.] Teff [K] q u v α1 [°] α2 [°]
+    # or nr_photons = "Nph"> "path" α1 [°] α2 [°]
     <source_background nr_photons = "1e5"> 1e18 30000 1 0 0 90 45
 
     # use dust grains as radiation source, activates self-scattering calculations (DUST_SCATTERING) nr_photons = "Nph">
