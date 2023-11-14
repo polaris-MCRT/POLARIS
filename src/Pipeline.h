@@ -233,6 +233,7 @@ class CPipeline
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())
                 cout << "- Internal alignment; f_c: " << param.getFcorr() << endl;
+            cout << "  Qref: " << param.getQref() << ", alphaQ: " << param.getAlphaQ() << endl;
         }
     }
 
