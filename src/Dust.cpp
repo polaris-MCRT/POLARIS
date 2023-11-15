@@ -3101,6 +3101,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         nr_of_calorimetry_temperatures = comp->getNrOfCalorimetryTemperatures();
         f_cor = comp->getFcorr();
         f_highJ = comp->getFHighJ();
+        Q_ref = comp->getQref();
+        alpha_Q = comp->getAlphaQ();
 
         // Init dust properties to be filled with grain properties
         initDustProperties();
