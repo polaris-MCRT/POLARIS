@@ -763,7 +763,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 sub_temp = values[4];
 
                 // The delta value fot the RAT alignment theory
-                delta_rat = 0; // For non-spherical: values[5];
+                delta_rat = 1; // a sphere has delta = 1; for non-spherical: values[5];
+                // see e.g. Draine & Weingartner, 1996 ApJ 470:551, 1997 ApJ 480:663
 
                 // The boolean value if the dust catalog is aligned or not
                 if(values[6] == 1)
@@ -3863,6 +3864,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
 {
+    // For details, see Reissl et al. 2020, A&A 640:A118, doi:10.1051/0004-6361/201937177
+
     // Calculate the aligned radii only for cells with a non-zero density
     if(getNumberDensity(grid, *cell, i_density) == 0)
     {
@@ -3913,7 +3916,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
             double J_th = sqrt(I_p * con_kB * T_gas);
 
             // Init. pointer arrays
-            double * arr_product = new double[nr_of_wavelength];
+            double * Gamma_rad = new double[nr_of_wavelength];
             double * du = new double[nr_of_wavelength];
             double * ddir = new double[nr_of_wavelength];
             double * dth = new double[nr_of_wavelength];
@@ -3933,7 +3936,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 // If the radiation field is zero -> set arrays to zero and move on
                 if(arr_en_dens == 0)
                 {
-                    arr_product[w] = 0;
+                    Gamma_rad[w] = 0;
                     du[w] = 0;
                     ddir[w] = 0;
                     dth[w] = 0;
@@ -3962,7 +3965,7 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 Qr *= cos_theta;
 
                 // Qr=getQrat(a, w, 0.0);
-                arr_product[w] =
+                Gamma_rad[w] =
                     arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
 
                 ddir[w] = wavelength_list[w] * arr_en_dens * gamma;
@@ -3982,13 +3985,13 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
             // double FIR = CMathFunctions::integ(wavelength_list, dFIR, 0,
             // nr_of_wavelength - 1);
-            double omega_frac = CMathFunctions::integ(wavelength_list, arr_product, 0, nr_of_wavelength - 1);
+            double omega_frac = CMathFunctions::integ(wavelength_list, Gamma_rad, 0, nr_of_wavelength - 1);
 
             double tau_drag = tau_gas / (1. + FIR);
             omega_frac *= tau_drag / J_th;
 
             // Delete pointer array
-            delete[] arr_product;
+            delete[] Gamma_rad;
             delete[] du;
             delete[] ddir;
             delete[] dth;
