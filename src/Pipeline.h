@@ -228,7 +228,12 @@ class CPipeline
             if(param.getAligIDG())
                 cout << "- IDG (paramagnetic alignment)" << endl;
             if(param.getAligRAT())
-                cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << endl;
+            {
+                if(param.getRATReductionFactor() == 1)
+                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << endl;
+                else
+                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << "; R_rat: " << param.getRATReductionFactor() << endl;
+            }
             if(param.getAligGOLD())
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())

@@ -3104,6 +3104,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         f_highJ = comp->getFHighJ();
         Q_ref = comp->getQref();
         alpha_Q = comp->getAlphaQ();
+        R_rat = comp->getRATReductionFactor();
+        larm_f = comp->getLarmF();
 
         // Init dust properties to be filled with grain properties
         initDustProperties();
@@ -3469,7 +3471,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
                 Rrat = f_highJ + (1 - f_highJ) * getInternalRAT();
             else
-                Rrat = 1;
+                Rrat = getRATReductionFactor();
         }
     }
 
@@ -5134,6 +5136,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             single_component[i_comp].setFcorr(param.getFcorr());
             single_component[i_comp].setQref(param.getQref());
             single_component[i_comp].setAlphaQ(param.getAlphaQ());
+            single_component[i_comp].setRATReductionFactor(param.getRATReductionFactor());
 
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());

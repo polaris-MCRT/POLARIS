@@ -3042,6 +3042,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<R_rat>") == 0)
+    {
+        param->setRATReductionFactor(atof(data.c_str()));
+        return true;
+    }
+
     if(cmd.compare("<f_c>") == 0)
     {
         param->setFcorr(atof(data.c_str()));

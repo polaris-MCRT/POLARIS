@@ -103,6 +103,7 @@ class parameters
         f_highJ = 0.25;
         Q_ref = 0.4;
         alpha_Q = 3.0;
+        R_rat = 1.0;
 
         f_cor = 0.6;
         adjTgas = 0;
@@ -696,6 +697,11 @@ class parameters
     double getAlphaQ() const
     {
         return alpha_Q;
+    }
+
+    double getRATReductionFactor() const
+    {
+        return R_rat;
     }
 
     double getFcorr() const
@@ -1329,6 +1335,11 @@ class parameters
     void setAlphaQ(double val)
     {
         alpha_Q = val;
+    }
+
+    void setRATReductionFactor(double val)
+    {
+        R_rat = val;
     }
 
     void setFcorr(double val)
@@ -2340,6 +2351,7 @@ class parameters
     double f_cor;
     double Q_ref;
     double alpha_Q;
+    double R_rat;
 
     double adjTgas;
     double isrf_g_zero;

@@ -76,6 +76,7 @@ class CDustComponent
         material_density = 0;
         gold_g_factor = 0;
         dust_mass_fraction = 0;
+        R_rat = 1.0;
 
         Q_ref = 0.4;
         alpha_Q = 3.0;
@@ -1034,6 +1035,11 @@ class CDustComponent
         return gold_g_factor;
     }
 
+    double getLarmF()
+    {
+        return larm_f;
+    }
+
     double getQref()
     {
         return Q_ref;
@@ -1042,6 +1048,11 @@ class CDustComponent
     double getAlphaQ()
     {
         return alpha_Q;
+    }
+
+    double getRATReductionFactor() const
+    {
+        return R_rat;
     }
 
     void setAlignmentMechanism(uint al)
@@ -1724,6 +1735,11 @@ class CDustComponent
         alpha_Q = val;
     }
 
+    void setRATReductionFactor(double val)
+    {
+        R_rat = val;
+    }
+
     double getQrat(uint a, uint w, double theta) const
     {
         if(theta < 0)
@@ -2396,6 +2412,7 @@ class CDustComponent
     double gold_g_factor;
     double Q_ref;
     double alpha_Q;
+    double R_rat;
 
     double delta_rat;
     double mu;
