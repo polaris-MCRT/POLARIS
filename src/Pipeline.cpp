@@ -1263,6 +1263,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printPlotParameters(param);
             break;
 
@@ -1271,6 +1272,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printPlotParameters(param);
             break;
 
@@ -1279,6 +1281,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printPlotParameters(param);
             break;
 
@@ -1287,6 +1290,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param, true);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printPlotParameters(param);
             break;
 
@@ -1295,6 +1299,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param, true);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printAlignmentParameters(param);
             printDetectorParameters(param);
             printPlotParameters(param);
@@ -1305,6 +1310,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printDetectorParameters(param);
             printPlotParameters(param);
             printSynchrotronParameters(param);
@@ -1315,6 +1321,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param, true);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printAlignmentParameters(param);
             printDetectorParameters(param, true);
             printPlotParameters(param);
@@ -1329,6 +1336,7 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPathParameters(param);
             printSourceParameters(param);
             printConversionParameters(param);
+            printAdditionalParameters(param);
             printDetectorParameters(param);
             printPlotParameters(param);
             break;

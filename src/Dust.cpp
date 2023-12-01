@@ -3471,7 +3471,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
                 Rrat = f_highJ + (1 - f_highJ) * getInternalRAT();
             else
-                Rrat = getRATReductionFactor();
+                Rrat = R_rat;
         }
     }
 

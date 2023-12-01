@@ -166,6 +166,18 @@ class CPipeline
         cout << "- Relative molecular mass (mu) : " << param.getMu() << endl;
     }
 
+    void printAdditionalParameters(parameters & param)
+    {
+        cout << "Additional parameters" << endl;
+        if(param.isRatSimulation())
+        {
+            cout << "- RAT efficiency ref. (Qref)   : " << param.getQref() << endl;
+            cout << "- RAT efficiency exp. (alphaQ) : " << param.getAlphaQ() << endl;
+        }
+        cout << "- Rayleigh reduction fact. (R) : " << param.getRATReductionFactor() << endl;
+        cout << "- Align limit prefact. (larmF) : " << param.getLarmF() << endl;
+    }
+
     void printPathParameters(parameters & param)
     {
         cout << "- Path grid file   : " << param.getPathGrid() << endl;
@@ -238,7 +250,6 @@ class CPipeline
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())
                 cout << "- Internal alignment; f_c: " << param.getFcorr() << endl;
-            cout << "  Qref: " << param.getQref() << ", alphaQ: " << param.getAlphaQ() << endl;
         }
     }
 

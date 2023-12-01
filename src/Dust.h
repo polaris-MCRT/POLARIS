@@ -1050,7 +1050,7 @@ class CDustComponent
         return alpha_Q;
     }
 
-    double getRATReductionFactor() const
+    double getRATReductionFactor()
     {
         return R_rat;
     }
