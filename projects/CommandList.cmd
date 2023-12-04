@@ -22,11 +22,14 @@
     # correlation factor for the radiative torque alignment (DUST_EMISSION)
     <f_c> 0.6
 
-    # reference value for the radiative torque efficiency (DUST_EMISSION)
+    # reference value for the radiative torque efficiency (RAT, TEMP_RAT)
     <Q_ref> 0.4
 
-    # exponent for the radiative torque efficiency power law (DUST EMISSION)
+    # exponent for the radiative torque efficiency power law (RAT, TEMP_RAT)
     <alpha_Q> 3.0
+
+    # Rayleigh reduction factor for RAT alignment if imperfect internal alignment is not used (TEMP, RAT, TEMP_RAT, DUST_EMISSION)
+    <R_rat> 1.0
 
     # overwrite the gas temperature with the dust temperature times TEMP_FACTOR (TEMP, TEMP_RAT)
     <adj_tgas> 1.0
@@ -48,6 +51,9 @@
 
     # consider the emission of stochastically heated dust grains with a size < SIZE_LIMIT (DUST_EMISSION)
     <stochastic_heating> 1e-8
+
+    # Set the prefactor for alignment limitation of the magnetic field
+    <larm_f> 4.1e-19
 
     # phase function used for the dust grains, Henyey-Greenstein, Mie or isotropic (TEMP, RAT, DUST_SCATTERING)
     <phase_function> PH_HG or PH_MIE or PH_ISO
