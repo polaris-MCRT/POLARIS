@@ -29,8 +29,7 @@ class ModelChooser:
         # dict: Dictionary with all usable models
         self.model_dict = {
             'default': Model,
-            'disk': Disk,
-            'sphere': Sphere,
+            'constantCylinder': ConstantCylinder,
         }
         update_model_dict(self.model_dict)
 
@@ -137,161 +136,50 @@ class ModelChooser:
         return model
 
 
-class Disk(Model):
-    """The disk model with the Shakura and Sunyaev disk density profile.
+class ConstantCylinder(Model):
+    """The model of the polarimetrix experiment with a cylindrical dust cloud.
     """
 
     def __init__(self):
         """Initialisation of the model parameters.
-
-        Notes:
-            Shakura and Sunyaev (1973)
-            Link: http://adsabs.harvard.edu/abs/1973A&A....24..337S
         """
         Model.__init__(self)
 
         #: Set parameters of the disk model
-        self.parameter['gas_mass'] = 1e-3 * self.math.const['M_sun']
+        self.parameter['distance'] = 0.4
+        self.parameter['gas_mass'] = 1e-10
+        self.parameter['dust_gas_ratio'] = 1./1.
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['inner_radius'] = 0.1 * self.math.const['au']
-        self.parameter['outer_radius'] = 100. * self.math.const['au']
-        # In the case of a spherical grid
-        self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 181
-        self.spherical_parameter['n_ph'] = 1
-        self.spherical_parameter['sf_r'] = 1.03
-        # sf_th = 1 is sinus; sf_th > 1 is exp with step width sf_th; rest is linear
-        self.spherical_parameter['sf_th'] = 1.0
+        self.parameter['inner_radius'] = 1e-10
+        self.parameter['outer_radius'] = 0.03
+        # Define the used sources, dust composition and gas species
         # In the case of a cylindrical grid
-        self.cylindrical_parameter['n_r'] = 100
-        self.cylindrical_parameter['n_z'] = 181
+        self.cylindrical_parameter['n_r'] = 3
+        self.cylindrical_parameter['n_z'] = 3
         self.cylindrical_parameter['n_ph'] = 1
-        self.cylindrical_parameter['sf_r'] = 1.03
+        self.cylindrical_parameter['sf_r'] = -1
         # sf_z = -1 is using scale height; sf_z = 1 is sinus;
         # sf_z > 1 is exp with step width sf_z and rest is linear
-        self.cylindrical_parameter['sf_z'] = -1
-        # Default disk parameter
-        self.parameter['ref_radius'] = 100. * self.math.const['au']
-        self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['beta'] = 1.1
-        # Woitke et al. 2019, http://adsabs.harvard.edu/abs/2019PASP..131f4301W
-        self.parameter['alpha'] = 3.0 * (self.parameter['beta'] - 0.5)
-        # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S
+        self.cylindrical_parameter['sf_z'] = 0.5
+        self.cylindrical_parameter['z_max'] = 0.015
+        self.parameter['density'] = 1
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use extra parameter to vary the disk structure
-        if extra_parameter is not None:
-            if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(
-                    extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(
-                    extra_parameter[1], 'length')
-                self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3])
-                print('HINT: New reference radius       : ' + str(self.parameter['ref_radius']) + ',' +\
-                      '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
-                      '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
-                      '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
-            else:
-                print('HINT: 4 parameter values are expected, got ' + str(len(extra_parameter)))
-
-    def gas_density_distribution(self):
-        """Calculates the gas density at a given position.
-
-
-        Returns:
-            float: Gas density at a given position.
-        """
-        gas_density = self.math.default_disk_density(self.position,
-                                                     inner_radius=self.parameter['inner_radius'],
-                                                     outer_radius=self.parameter['outer_radius'],
-                                                     ref_radius=self.parameter['ref_radius'],
-                                                     ref_scale_height=self.parameter['ref_scale_height'],
-                                                     alpha=self.parameter['alpha'], beta=self.parameter['beta'])
-        return gas_density
-
-    def get_scale_height(self, radius):
-        """Calculates the scale height at a certain position.
-
-        Args:
-            radius (float) : Cylindrical radius of current position
-
-        Returns:
-            float: Scale height.
-        """
-        scale_height = self.math.default_disk_scale_height(radius,
-                                                           ref_radius=self.parameter['ref_radius'],
-                                                           ref_scale_height=self.parameter['ref_scale_height'],
-                                                           beta=self.parameter['beta'])
-        return scale_height
-
-
-class Sphere(Model):
-    """A sphere model with constant density
-    """
-
-    def __init__(self):
-        """Initialisation of the model parameters.
-        """
-        Model.__init__(self)
-
-        #: Set parameters of the sphere model
-        self.parameter['grid_type'] = 'spherical'
-        self.parameter['inner_radius'] = 0.1 * self.math.const['au']
-        self.parameter['outer_radius'] = 100. * self.math.const['au']
-        self.spherical_parameter['n_r'] = 100
-        self.spherical_parameter['n_th'] = 91
-        self.spherical_parameter['n_ph'] = 1
-        self.spherical_parameter['sf_r'] = 1.03
-        self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
-        self.tmp_parameter['mag_field_geometry'] = 'toroidal'
-
-    def gas_density_distribution(self):
-        """Calculates the gas density at a given position.
-
-        Returns:
-            float: Gas density at a given position.
-        """
-        gas_density = self.math.const_sphere_density(self.position,
-                                                     outer_radius=self.parameter['outer_radius'],
-                                                     inner_radius=self.parameter['inner_radius'])
-        return gas_density
-
-    def magnetic_field(self):
-        """Calculates the magnetic field strength at a given position.
-
-        Returns:
-            List[float, float, float]: Magnetic field strength at a given position.
-        """
-        if self.tmp_parameter['mag_field_geometry'] == 'toroidal':
-            magnetic_field = self.math.toroidal_mag_field(
-                self.position, mag_field_strength=1e-10)
-        elif self.tmp_parameter['mag_field_geometry'] == 'vertical':
-            magnetic_field = self.math.simple_mag_field(
-                mag_field_strength=1e-10, axis='z')
-        elif self.tmp_parameter['mag_field_geometry'] == 'radial':
-            magnetic_field = self.math.radial_mag_field(
-                mag_field_strength=1e-10, position=self.position)
+        if extra_parameter is not None and len(extra_parameter) == 1:
+            self.parameter['density'] = float(extra_parameter[0])
         else:
-            magnetic_field = [0, 0, 0]
-        return magnetic_field
+            print('Only one extra parameter (constant mass density) expected.')
 
-    def update_parameter(self, extra_parameter):
-        """Use this function to set model parameter with the extra parameters and update 
-        model parameter that depend on other parameter.
+    def gas_density_distribution(self):
+        """Calculates the gas mass density at a given position.
+        The dust mass density is set with the same distribution but scaled
+        with self.parameter['dust_gas_ratio'].
+
+        Returns:
+            float: Gas density at a given position.
         """
-        if extra_parameter is not None:
-            if len(extra_parameter) == 1:
-                if extra_parameter[0] == 'toroidal_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'toroidal'
-                    print('HINT: The toroidal magnetic field is used (change with --extra)!')
-                elif extra_parameter[0] == 'vertical_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'vertical'
-                    print('HINT: The vertical magnetic field is used (change with --extra)!')
-                elif extra_parameter[0] == 'radial_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'radial'
-                    print('HINT: The radial magnetic field is used (change with --extra)!')
-            else:
-                print('HINT: 1 parameter value is expected, got ' + str(len(extra_parameter)))
+        gas_density = self.parameter['density']
+        return gas_density
