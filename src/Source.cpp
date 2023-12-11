@@ -1633,7 +1633,8 @@ void CSourceLaser::createDirectRay(photon_package * pp, CRandomGenerator * rand_
     pp->setDirection(dir);
     pp->setPosition(pos);
 
-    if(dir_obs == dir && pp->getDustWavelengthID() != MAX_UINT)
+    double dir_err = 1e-10;
+    if(dir_obs * dir > 1. - dir_err && pp->getDustWavelengthID() != MAX_UINT)
     {
         uint wID = pp->getDustWavelengthID();
         double line_shape =
