@@ -303,7 +303,7 @@ class CGridVoronoi : public CGridBasic
         cout << "Final cleanup                                : done     \n";
     }
 
-    void printParameters();
+    void printParameters(parameters & param);
 
   private:
     uint pos_counter;

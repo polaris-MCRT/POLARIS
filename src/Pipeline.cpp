@@ -226,7 +226,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameters(param, grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -321,7 +321,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameters(param, grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -389,7 +389,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameters(param, grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -473,7 +473,7 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
     grid->createCellList();
     dust->printParameters(param, grid);
     gas->printParameters(param, grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -545,7 +545,7 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     dust->printParameters(param, grid);
     //gas->printParameters(param, grid);
     //op->printParameters(param,grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -611,7 +611,7 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     // Print helpfull information
     grid->createCellList();
     dust->printParameters(param, grid);
-    grid->printParameters();
+    grid->printParameters(param);
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
@@ -1320,9 +1320,12 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             cout << "- Command          : DUST SCATTERING (Monte-Carlo)" << endl;
             printPathParameters(param);
             printSourceParameters(param, true);
-            printConversionParameters(param);
-            printAdditionalParameters(param);
-            printAlignmentParameters(param);
+            if(param.getNrOfLaserSources() == 0)
+            {
+                printConversionParameters(param);
+                printAdditionalParameters(param);
+                printAlignmentParameters(param);
+            }
             printDetectorParameters(param, true);
             printPlotParameters(param);
             break;

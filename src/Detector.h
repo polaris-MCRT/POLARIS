@@ -1012,7 +1012,7 @@ class CDetector
         return VOV;
     }
 
-    bool writeMap(uint nr, uint results_type)
+    bool writeMap(uint nr, uint results_type, uint nr_laser_sources)
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing map ...  \r" << flush;
@@ -1123,26 +1123,29 @@ class CDetector
         pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
         pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
 
-        // Alternatively as arc seconds grid
-        pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
-        pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+        if(nr_laser_sources == 0)
+        {
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+            pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
 
-        // Alternatively as AU grid
-        pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
-        pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
 
-        // Alternatively as pc grid
-        pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
-        pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+        }
 
         // Grid
         pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
@@ -1151,26 +1154,29 @@ class CDetector
         pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
         pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
 
-        // Alternatively as arc seconds grid
-        pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
-        pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+        if(nr_laser_sources == 0)
+        {
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+            pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
 
-        // Alternatively as AU grid
-        pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
-        pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
 
-        // Alternatively as pc grid
-        pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
-        pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+        }
 
         // Wavelength IDs
         pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
@@ -1198,8 +1204,16 @@ class CDetector
         }
         else if(results_type == RESULTS_MC)
         {
-            pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, I_direct, I_scat [Jy/px]", "unit of axis 4");
-            pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+            if(nr_laser_sources == 0)
+            {
+                pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, I_direct, I_scat [Jy/px]", "unit of axis 4");
+                pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+            }
+            else
+            {
+                pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, I_direct, I_scat [W/m^3/px]", "unit of axis 4");
+                pFits->pHDU().addKey("ETYPE", "scattered emission / direct emission", "type of emission");
+            }
         }
         else if(nr_extra > 1)
         {
@@ -1244,7 +1258,7 @@ class CDetector
         return true;
     }
 
-    bool writeMapStats(uint nr, uint results_type)
+    bool writeMapStats(uint nr, uint results_type, uint nr_laser_sources)
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing map with statistics ...  \r" << flush;
@@ -1375,26 +1389,29 @@ class CDetector
         pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
         pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
 
-        // Alternatively as arc seconds grid
-        pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
-        pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+        if(nr_laser_sources == 0)
+        {
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+            pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
 
-        // Alternatively as AU grid
-        pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
-        pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
 
-        // Alternatively as pc grid
-        pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
-        pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
-        pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
-        pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
-        pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+            pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+            pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+            pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+            pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+        }
 
         // Grid
         pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
@@ -1403,26 +1420,29 @@ class CDetector
         pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
         pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
 
-        // Alternatively as arc seconds grid
-        pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
-        pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+        if(nr_laser_sources == 0)
+        {
+            // Alternatively as arc seconds grid
+            pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+            pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
 
-        // Alternatively as AU grid
-        pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
-        pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
 
-        // Alternatively as pc grid
-        pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
-        pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
-        pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
-        pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
-        pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+            pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+            pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+            pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+            pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+        }
 
         // Wavelength IDs
         pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
@@ -1478,7 +1498,7 @@ class CDetector
         return true;
     }
 
-    bool writeSed(uint nr, uint results_type)
+    bool writeSed(uint nr, uint results_type, uint nr_laser_sources)
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing SED ...  \r" << flush;
@@ -1577,8 +1597,16 @@ class CDetector
         }
         else
         {
-            pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_direct, I_scat [Jy]", "unit of axis 3");
-            pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+            if(nr_laser_sources == 0)
+            {
+                pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_direct, I_scat [Jy]", "unit of axis 3");
+                pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+            }
+            else
+            {
+                pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_direct, I_scat [W/m^3]", "unit of axis 3");
+                pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+            }
         }
         pFits->pHDU().addKey("ID", nr, "detector ID");
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)

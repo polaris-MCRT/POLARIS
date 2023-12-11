@@ -342,7 +342,7 @@ class CRadiativeTransfer
 
     bool photonInDetectorDir(photon_package * pp, CDetector * detector);
 
-    void scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions);
+    void scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions, uint sourceID);
 
     bool doMRWStepBW(photon_package * pp);
     bool doMRWStepBWWithoutHeating(photon_package * pp);

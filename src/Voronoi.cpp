@@ -1114,7 +1114,7 @@ bool CGridVoronoi::createArtificialGrid(string path)
     return true;
 }
 
-void CGridVoronoi::printParameters()
+void CGridVoronoi::printParameters(parameters & param)
 {
     if(max_cells == 0)
     {
@@ -1140,7 +1140,7 @@ void CGridVoronoi::printParameters()
              << "]   \n";
         cout << SEP_LINE;
 
-        printPhysicalParameters();
+        printPhysicalParameters(param);
         cout << SEP_LINE;
     }
 }

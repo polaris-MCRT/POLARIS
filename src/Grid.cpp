@@ -539,12 +539,17 @@ uint CGridBasic::validateDataPositions(parameters & param)
     return tmp_data_offset;
 }
 
-void CGridBasic::printPhysicalParameters()
+void CGridBasic::printPhysicalParameters(parameters & param)
 {
     cout << "- Volume (total, cells, diff)   : " << total_volume << " [m^3], " << cell_volume << " [m^3], "
          << float(100.0 * abs(total_volume - cell_volume) / max(total_volume, cell_volume)) << " [%]" << endl;
-    cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun], " << total_gas_mass
-         << " [kg]" << endl;
+    if(param.getNrOfLaserSources() == 0)
+    {
+        cout << "- Total gas mass                : " << total_gas_mass / M_sun << " [M_sun], " << total_gas_mass
+            << " [kg]" << endl;
+    }
+    else
+        cout << "- Total gas mass                : " << total_gas_mass << " [kg]" << endl;
     cout << "- Grid length         (min,max) : [" << min_len << ", " << max_len << "] [m]" << endl;
     if(gas_is_mass_density)
         cout << "- Gas mass density    (min,max) : [" << min_gas_dens << ", " << max_gas_dens << "] [kg m^-3]"
@@ -2208,19 +2213,22 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     pFits->pHDU().addKey("CDELT1", bin_width, "delta of axis 1");
     pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
 
-    // Alternatively as AU grid
-    pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
-    pFits->pHDU().addKey("CRVAL1B", first_pix_val / con_AU, "value of axis 1");
-    pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
-    pFits->pHDU().addKey("CDELT1B", bin_width / con_AU, "delta of axis 1");
-    pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+    if(param.getNrOfLaserSources() == 0)
+    {
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1B", first_pix_val / con_AU, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1B", bin_width / con_AU, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
 
-    // Alternatively as pc grid
-    pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
-    pFits->pHDU().addKey("CRVAL1C", first_pix_val / con_pc, "value of axis 1");
-    pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
-    pFits->pHDU().addKey("CDELT1C", bin_width / con_pc, "delta of axis 1");
-    pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1C", first_pix_val / con_pc, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1C", bin_width / con_pc, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+    }
 
     // Grid
     pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
@@ -2229,19 +2237,22 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     pFits->pHDU().addKey("CDELT2", bin_width, "delta of axis 2");
     pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
 
-    // Alternatively as AU grid
-    pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
-    pFits->pHDU().addKey("CRVAL2B", first_pix_val / con_AU, "value of axis 2");
-    pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
-    pFits->pHDU().addKey("CDELT2B", bin_width / con_AU, "delta of axis 2");
-    pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+    if(param.getNrOfLaserSources() == 0)
+    {
+        // Alternatively as AU grid
+        pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2B", first_pix_val / con_AU, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2B", bin_width / con_AU, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
 
-    // Alternatively as pc grid
-    pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
-    pFits->pHDU().addKey("CRVAL2C", first_pix_val / con_pc, "value of axis 2");
-    pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
-    pFits->pHDU().addKey("CDELT2C", bin_width / con_pc, "delta of axis 2");
-    pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+        // Alternatively as pc grid
+        pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2C", first_pix_val / con_pc, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2C", bin_width / con_pc, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+    }
     if(midplane_3d_param.size() == 4)
     {
         double bin_width_z = z_step;
@@ -2254,19 +2265,22 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         pFits->pHDU().addKey("CDELT3", bin_width_z, "delta of axis 3");
         pFits->pHDU().addKey("CUNIT3", "m", "unit of axis 3");
 
-        // Alternatively as AU grid
-        pFits->pHDU().addKey("CTYPE3B", "PARAM", "type of unit 3");
-        pFits->pHDU().addKey("CRVAL3B", first_pix_val_z / con_AU, "value of axis 3");
-        pFits->pHDU().addKey("CRPIX3B", 1, "pixel where CRVAL3 is defined ");
-        pFits->pHDU().addKey("CDELT3B", bin_width_z / con_AU, "delta of axis 3");
-        pFits->pHDU().addKey("CUNIT3B", "AU", "unit of axis 3");
+        if(param.getNrOfLaserSources() == 0)
+        {
+            // Alternatively as AU grid
+            pFits->pHDU().addKey("CTYPE3B", "PARAM", "type of unit 3");
+            pFits->pHDU().addKey("CRVAL3B", first_pix_val_z / con_AU, "value of axis 3");
+            pFits->pHDU().addKey("CRPIX3B", 1, "pixel where CRVAL3 is defined ");
+            pFits->pHDU().addKey("CDELT3B", bin_width_z / con_AU, "delta of axis 3");
+            pFits->pHDU().addKey("CUNIT3B", "AU", "unit of axis 3");
 
-        // Alternatively as pc grid
-        pFits->pHDU().addKey("CTYPE3C", "PARAM", "type of unit 3");
-        pFits->pHDU().addKey("CRVAL3C", first_pix_val_z / con_pc, "value of axis 3");
-        pFits->pHDU().addKey("CRPIX3C", 1, "pixel where CRVAL3 is defined ");
-        pFits->pHDU().addKey("CDELT3C", bin_width_z / con_pc, "delta of axis 3");
-        pFits->pHDU().addKey("CUNIT3C", "pc", "unit of axis 3");
+            // Alternatively as pc grid
+            pFits->pHDU().addKey("CTYPE3C", "PARAM", "type of unit 3");
+            pFits->pHDU().addKey("CRVAL3C", first_pix_val_z / con_pc, "value of axis 3");
+            pFits->pHDU().addKey("CRPIX3C", 1, "pixel where CRVAL3 is defined ");
+            pFits->pHDU().addKey("CDELT3C", bin_width_z / con_pc, "delta of axis 3");
+            pFits->pHDU().addKey("CUNIT3C", "pc", "unit of axis 3");
+        }
 
         // Quantities
         pFits->pHDU().addKey("CTYPE4", "PARAM", "type of unit 4");

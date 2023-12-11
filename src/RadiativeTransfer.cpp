@@ -1317,6 +1317,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     uint mrw_counter = 0;
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
+    uint nr_laser_sources = 0;
 
     // Perform Monte-Carlo radiative transfer for each chosen source
     for(uint s = 0; s < max_source; s++)
@@ -1339,6 +1340,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
             // Init source parameters for scattering maps
             if(!tm_source->initSource(wID))
                 continue;
+
+            if(tm_source->getID() == SRC_LASER)
+                nr_laser_sources += 1;
 
             // Get number of photons that have to be emitted from the current source
             nr_of_photons = tm_source->getNrOfPhotons();
@@ -1543,7 +1547,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                             pp_enf.setDirection(pp.getDirection());
                                             pp_enf.initCoordSystem();
                                             pp_enf.setStokesVector(*pp.getStokesVector() * exp(-tau_tot));
-                                            scaleAddToDetector(&pp_enf, &detector[d], 0);
+                                            scaleAddToDetector(&pp_enf, &detector[d], 0, tm_source->getID());
                                         }
                                     }
                                 }
@@ -1595,12 +1599,16 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                                         // Reduce the Stokes vector by the optical depth
                                         *pp_escape.getStokesVector() *= exp(-tau_obs);
 
-                                        // Convert the flux into Jy and consider
+                                        // Convert the flux into Jy (not if laser is used) and consider
                                         // the distance to the observer
-                                        CMathFunctions::lum2Jy(
-                                            pp_escape.getStokesVector(),
-                                            pp.getWavelength(),
-                                            detector[d].getDistance());
+                                        double distance = detector[d].getDistance();
+                                        if(tm_source->getID() == SRC_LASER)
+                                            *pp_escape.getStokesVector() /= distance * distance;
+                                        else
+                                            CMathFunctions::lum2Jy(
+                                                pp_escape.getStokesVector(),
+                                                pp.getWavelength(),
+                                                distance);
 
                                         // Consider foreground extinction
                                         *pp_escape.getStokesVector() *=
@@ -1664,7 +1672,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         {
                             // Check photon direction to observer for each detector
                             if(photonInDetectorDir(&pp, &detector[d]))
-                                scaleAddToDetector(&pp, &detector[d], interactions);
+                                scaleAddToDetector(&pp, &detector[d], interactions, tm_source->getID());
                         }
                     }
                 }
@@ -1714,11 +1722,12 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         *pp_direct.getStokesVector() *= exp(-tau_obs);
 
                         // Convert the flux into Jy and consider the distance to the
-                        // observer
-                        CMathFunctions::lum2Jy(
-                            pp_direct.getStokesVector(),
-                            pp_direct.getWavelength(),
-                            detector[d].getDistance());
+                        // observer (not if laser is used)
+                        if(tm_source->getID() != SRC_LASER)
+                            CMathFunctions::lum2Jy(
+                                pp_direct.getStokesVector(),
+                                pp_direct.getWavelength(),
+                                detector[d].getDistance());
 
                         // Consider foreground extinction
                         *pp_direct.getStokesVector() *=
@@ -1743,11 +1752,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     // Write results either as text or fits file
     for(uint d = 0; d < nr_mc_detectors; d++)
     {
-        if(!detector[d].writeMap(d, RESULTS_MC))
+        if(!detector[d].writeMap(d, RESULTS_MC, nr_laser_sources))
             return false;
-        if(!detector[d].writeMapStats(d, RESULTS_MC))
+        if(!detector[d].writeMapStats(d, RESULTS_MC, nr_laser_sources))
             return false;
-        if(!detector[d].writeSed(d, RESULTS_MC))
+        if(!detector[d].writeSed(d, RESULTS_MC, nr_laser_sources))
             return false;
     }
 
@@ -1967,7 +1976,7 @@ bool CRadiativeTransfer::photonInDetectorDir(photon_package * pp, CDetector * de
     return false;
 }
 
-void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions)
+void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * detector, ullong interactions, uint sourceID)
 {
     // Get the angle to rotate the photon space into the
     // detector space
@@ -1987,8 +1996,13 @@ void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * det
     *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
 
     // Convert the flux into Jy and consider
-    // the distance to the observer
-    CMathFunctions::lum2Jy(pp->getStokesVector(), pp->getWavelength(), detector->getDistance());
+    // the distance to the observer (not if laser is used)
+    double distance = detector->getDistance();
+    if(sourceID == SRC_LASER)
+        if(interactions > 0)
+            *pp->getStokesVector() /= distance * distance;
+    else
+        CMathFunctions::lum2Jy(pp->getStokesVector(), pp->getWavelength(), distance);
 
     // Consider foreground extinction
     *pp->getStokesVector() *=

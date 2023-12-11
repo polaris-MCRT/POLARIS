@@ -282,7 +282,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
     }
 }
 
-bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint tr_level)
+bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint tr_level, parameters & param)
 {
     parameters param;
     param.setCommand(CMD_TEMP);
@@ -293,7 +293,7 @@ bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint
 
     createCellList();
 
-    printParameters();
+    printParameters(param);
 
     cell_oc_root=&cell_oc_root->getChildren()[6];
 
@@ -1375,7 +1375,7 @@ void CGridOcTree::nextBinaryDataCell(ofstream & file_stream, cell_oc * cell, uin
     }
 }
 
-void CGridOcTree::printParameters()
+void CGridOcTree::printParameters(parameters & param)
 {
     if(max_cells == 0)
         cout << "\nERROR: No octree grid parameters available! " << endl;
@@ -1389,7 +1389,7 @@ void CGridOcTree::printParameters()
         cout << "- Number of OcTree cells        : " << max_cells << "(data), " << tmp_cells << " (max)"
              << endl;
 
-        printPhysicalParameters();
+        printPhysicalParameters(param);
         cout << SEP_LINE;
     }
 }

@@ -341,7 +341,7 @@ class CGridBasic
         }
     }
 
-    void printPhysicalParameters();
+    void printPhysicalParameters(parameters & param);
 
     void resetGridValues()
     {
@@ -613,7 +613,7 @@ class CGridBasic
         return max_data;
     }
 
-    virtual void printParameters() = 0;
+    virtual void printParameters(parameters & param) = 0;
 
     virtual bool goToNextCellBorder(photon_package * pp) = 0;
 

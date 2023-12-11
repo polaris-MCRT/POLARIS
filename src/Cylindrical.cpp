@@ -1160,7 +1160,7 @@ bool CGridCylindrical::saveBinaryGridFile(string filename, ushort id, ushort dat
     return true;
 }
 
-void CGridCylindrical::printParameters()
+void CGridCylindrical::printParameters(parameters & param)
 {
     if(max_cells == 0)
         cout << "\nERROR: No cylindrical grid parameters available! " << endl;
@@ -1193,7 +1193,7 @@ void CGridCylindrical::printParameters()
 
         cout << "- Number of cylindrical cells   : " << max_cells << endl;
 
-        printPhysicalParameters();
+        printPhysicalParameters(param);
         cout << SEP_LINE;
     }
 }

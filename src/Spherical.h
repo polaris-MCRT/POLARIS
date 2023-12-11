@@ -448,7 +448,7 @@ class CGridSpherical : public CGridBasic
         cout << "Final cleanup                                : done" << endl;
     }
 
-    void printParameters();
+    void printParameters(parameters & param);
 
     bool getPolarRTGridParameter(double max_len,
                                  double pixel_width,

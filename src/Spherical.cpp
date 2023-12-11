@@ -1313,7 +1313,7 @@ bool CGridSpherical::createArtificialGrid(string path)
     return true;
 }
 
-void CGridSpherical::printParameters()
+void CGridSpherical::printParameters(parameters & param)
 {
     if(max_cells == 0)
         cout << "\nERROR: No tree parameters available! " << endl;
@@ -1325,7 +1325,7 @@ void CGridSpherical::printParameters()
         cout << SEP_LINE;
 
         cout << "- Number of spherical cells     : " << max_cells << endl;
-        printPhysicalParameters();
+        printPhysicalParameters(param);
         cout << SEP_LINE;
     }
 }

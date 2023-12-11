@@ -16,7 +16,7 @@ class parameters
         conv_dH_in_SI = 1;
         conv_B_in_SI = 1;
         conv_V_in_SI = 1;
-        conv_mass_fraction = 0.01;
+        conv_mass_fraction = 1;
         align = 0;
         nr_ofThreads = 1;
 
