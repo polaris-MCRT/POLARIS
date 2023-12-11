@@ -307,10 +307,10 @@ class CRaytracingBasic
 
     virtual bool writeDustResults(uint ray_result_type)
     {
-        if(!detector->writeMap(dID, ray_result_type))
+        if(!detector->writeMap(dID, ray_result_type, 0))
             return false;
 
-        if(!detector->writeSed(dID, ray_result_type))
+        if(!detector->writeSed(dID, ray_result_type, 0))
             return false;
 
         return true;
@@ -1240,7 +1240,7 @@ class CRaytracingHealPix : public CRaytracingBasic
         if(!detector->writeHealMaps(dID, ray_result_type))
             return false;
 
-        if(!detector->writeSed(dID, ray_result_type))
+        if(!detector->writeSed(dID, ray_result_type, 0))
             return false;
 
         return true;

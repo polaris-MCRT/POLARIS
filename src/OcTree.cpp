@@ -282,7 +282,7 @@ void CGridOcTree::plotNextGridCell(ofstream * grid_streams, cell_oc * cell, uint
     }
 }
 
-bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint tr_level, parameters & param)
+bool CGridOcTree::reduceBinaryFile(string in_filename, string out_filename, uint tr_level)
 {
     parameters param;
     param.setCommand(CMD_TEMP);

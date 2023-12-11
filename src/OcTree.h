@@ -187,7 +187,7 @@ class CGridOcTree : public CGridBasic
 
     // void deleteSubCells(slist & source);
 
-    bool reduceBinaryFile(string in_filename, string out_filename, uint tr_level, parameters & param);
+    bool reduceBinaryFile(string in_filename, string out_filename, uint tr_level);
     bool reduceLevelOfBinaryFile(cell_oc * cell, uint tr_level);
 
     Vector3D getCenter(const cell_basic & cell) const
