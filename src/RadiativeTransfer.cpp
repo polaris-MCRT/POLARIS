@@ -1696,7 +1696,9 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         tm_source->createDirectRay(&pp_direct, &rand_gen, dir_obs);
 
                         // Position the photon inside the grid
-                        grid->positionPhotonInGrid(&pp_direct);
+                        if(!grid->positionPhotonInGrid(&pp_direct))
+                            if(!grid->findStartingPoint(&pp_direct))
+                                continue;
 
                         // Rotate photon package into the coordinate space of the detector
                         double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
