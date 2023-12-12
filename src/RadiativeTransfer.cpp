@@ -1312,12 +1312,40 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 {
     // Init variables
     ullong nr_of_photons;
-    ullong per_counter, nr_of_wavelength;
+    ullong per_counter;
+    ullong nr_of_wavelength = dust->getNrOfWavelength();
     float last_percentage;
     uint mrw_counter = 0;
     ullong kill_counter = 0;
     uint max_source = uint(sources_mc.size());
     uint nr_laser_sources = 0;
+
+    // First, show optical depth from each source to each detector at each wavelength
+    for(uint s = 0; s < max_source; s++)
+    {
+        for(uint wID = 0; wID < nr_of_wavelength; wID++)
+        {
+            double wavelength = dust->getWavelength(wID);
+            for(uint d = 0; d < nr_mc_detectors; d++)
+            {
+                // Get index of wavelength in current detector
+                uint wID_det = detector[d].getDetectorWavelengthID(wavelength);
+                // Only calculate for detectors with the corresponding wavelengths
+                if(wID_det != MAX_UINT)
+                {
+                    photon_package pp_tau = photon_package();
+                    pp_tau.setWavelength(wavelength, wID);
+                    pp_tau.setPosition(sources_mc[s]->getPosition());
+                    pp_tau.setDirection(detector[d].getDirection());
+
+                    double tau = getOpticalDepthAlongPath(&pp_tau);
+                    cout << CLR_LINE;
+                    cout << "- Optical depth (wavelength = " << wavelength << " m) from source " << s+1
+                        << " to detector " << d+1 << ": " << tau << endl;
+                }
+            }
+        }
+    }
 
     // Perform Monte-Carlo radiative transfer for each chosen source
     for(uint s = 0; s < max_source; s++)
@@ -1325,9 +1353,6 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
         // Init source object
         CSourceBasic * tm_source = sources_mc[s];
         cout << CLR_LINE;
-
-        // Get number of wavelength
-        nr_of_wavelength = dust->getNrOfWavelength();
 
         #if (USE_PRECALC_TABLE)
             grid->initPreCalcTables(nr_of_wavelength);
