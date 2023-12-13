@@ -2297,7 +2297,7 @@ class CGridBasic
 
     bool useDustDensities()
     {
-        if(size_dd_list > 1)
+        if(size_dd_list > 0)
             return true;
         return false;
     }
