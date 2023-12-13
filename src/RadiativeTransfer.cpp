@@ -1338,6 +1338,11 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                     pp_tau.setPosition(sources_mc[s]->getPosition());
                     pp_tau.setDirection(detector[d].getDirection());
 
+                    // Position the photon inside the grid
+                    if(!grid->positionPhotonInGrid(&pp_tau))
+                        if(!grid->findStartingPoint(&pp_tau))
+                            continue;
+
                     double tau = getOpticalDepthAlongPath(&pp_tau);
                     cout << CLR_LINE;
                     cout << "- Optical depth (wavelength = " << wavelength << " m) from source " << s+1

@@ -18,8 +18,8 @@ class Model:
         #: dict: Includes parameters of a specific model
         self.parameter = {
             'distance': 1. * self.math.const['pc'],
-            'gas_mass': 1. * self.math.const['M_sun'],
-            'dust_mass': None,
+            'gas_mass': 0.,
+            'dust_mass': 0.,
             # Global extent variables to set all grid types at once
             'inner_radius': 1. * self.math.const['au'],
             'outer_radius': 100. * self.math.const['au'],
@@ -118,6 +118,7 @@ class Model:
         if self.tmp_parameter['relative_gas_densities'] is not None:
             return np.multiply(self.gas_density_distribution(), self.tmp_parameter['relative_gas_densities'])
         return self.gas_density_distribution()
+
 
     def get_dust_density_distribution(self):
         """Modifies the mass density defined by get_dust_density_distribution() to match the preset dust masses.
@@ -265,7 +266,7 @@ class Model:
         Returns:
             float: Gas density at a given position.
         """
-        return None
+        return 0.
 
     def dust_density_distribution(self):
         """Calculates the dust density at a given position.

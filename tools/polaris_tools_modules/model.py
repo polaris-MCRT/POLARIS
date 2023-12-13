@@ -145,24 +145,20 @@ class ConstantCylinder(Model):
         """
         Model.__init__(self)
 
-        #: Set parameters of the disk model
-        self.parameter['distance'] = 0.4
-        self.parameter['gas_mass'] = 1e-10
-        self.parameter['dust_gas_ratio'] = 1./1.
+        #: Set parameters of the disk model (SI units)
+        self.parameter['distance'] = 0.5
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['inner_radius'] = 1e-10
+        self.parameter['inner_radius'] = 1e-5
         self.parameter['outer_radius'] = 0.03
-        # Define the used sources, dust composition and gas species
-        # In the case of a cylindrical grid
+        self.parameter['density'] = 1e13  # [m-3]
+        self.parameter['num_dens'] = 1
+        # Define the grid geometry
         self.cylindrical_parameter['n_r'] = 3
         self.cylindrical_parameter['n_z'] = 3
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = -1
-        # sf_z = -1 is using scale height; sf_z = 1 is sinus;
-        # sf_z > 1 is exp with step width sf_z and rest is linear
         self.cylindrical_parameter['sf_z'] = 0.5
         self.cylindrical_parameter['z_max'] = 0.015
-        self.parameter['density'] = 1
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -173,7 +169,7 @@ class ConstantCylinder(Model):
         else:
             print('Only one extra parameter (constant mass density) expected.')
 
-    def gas_density_distribution(self):
+    def dust_density_distribution(self):
         """Calculates the gas mass density at a given position.
         The dust mass density is set with the same distribution but scaled
         with self.parameter['dust_gas_ratio'].
