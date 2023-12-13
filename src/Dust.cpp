@@ -5437,7 +5437,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
             cell_basic * cell = grid->getCellFromIndex(i_cell);
             total_dust_mass += getMassDensity(grid, *cell, i_mixture) * grid->getVolume(*cell);
         }
-        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass
+        cout << "- Total mass              : " << total_dust_mass
              << " [kg]" << endl;
         cout << mixed_component[i_mixture].getStringID();
     }
