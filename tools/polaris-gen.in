@@ -72,7 +72,7 @@ grid_args.add_argument('--sf_z', dest='sf_z', type=float, default=None,
 grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
                        help='normalize gas mass and dust mass density distribution to total mass, which is defined in the model.\n'
                             '    default: 1 (1: enable / 0: disable).')
-grid_args.add_argument('--num_dens', dest='num_dens', type=int, default=0,
+grid_args.add_argument('--num_dens', dest='num_dens', type=int, default=1,
                        help='interpret given gas and dust density distribution as number density, instead of mass density.\n'
                             '    if enabled, normalization (--normalize) will be disabled.\n'
                             '    default: 0 (1: enable / 0: disable).')
