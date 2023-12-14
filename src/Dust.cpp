@@ -325,7 +325,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 // The number of incident angles
                 nr_of_incident_angles = (uint)values[2];
 
-                // The aspect ratio between the longer and shorter axis
+                // The aspect ratio of minor to major dust grain axes
                 aspect_ratio = values[3];
 
                 // The material density (only used if no one was set in the command file)
@@ -752,7 +752,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 // The number of incident angles
                 nr_of_incident_angles = 1; // For non-spherical: (uint) values[1];
 
-                // The aspect ratio between the longer and shorter axis
+                // The aspect ratio of minor to major dust grain axes
                 aspect_ratio = 1; // For non-spherical: values[2];
 
                 // The material density (only used if no one was set in the command file)
