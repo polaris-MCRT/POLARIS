@@ -1764,7 +1764,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                         // Consider foreground extinction
                         *pp_direct.getStokesVector() *=
                             dust->getForegroundExtinction(pp_direct.getWavelength());
-
+                            
                         // Add the photon package to the detector
                         detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR);
                     }
@@ -2024,15 +2024,20 @@ void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * det
 
     // Consider the greater solid angle due
     // to the acceptance angle
-    double cos_acceptance_angle = detector->getAcceptanceAngle();
-    *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
+    if(sourceID != SRC_LASER || interactions > 0)
+    {
+        double cos_acceptance_angle = detector->getAcceptanceAngle();
+        *pp->getStokesVector() *= 1.0 / ((1.0 - cos_acceptance_angle) * PIx2);
+    }
 
     // Convert the flux into Jy and consider
     // the distance to the observer (not if laser is used)
     double distance = detector->getDistance();
     if(sourceID == SRC_LASER)
+    {
         if(interactions > 0)
             *pp->getStokesVector() /= distance * distance;
+    }
     else
         CMathFunctions::lum2Jy(pp->getStokesVector(), pp->getWavelength(), distance);
 
