@@ -834,6 +834,12 @@ class CDetector
             return;
 
         StokesVector st = pp.getStokesVector();
+        // normalize by pixel area for direct flux
+        if(radiation_type == DIRECT_STAR)
+        {
+            double pixel_size = sidelength_x / double(bins_x) * sidelength_y / double(bins_y);
+            st /= pixel_size;
+        }
 
         matrixI[i_det_spectral].addValue(x, y, st.I());
         matrixQ[i_det_spectral].addValue(x, y, st.Q());
