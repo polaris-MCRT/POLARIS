@@ -75,7 +75,7 @@ grid_args.add_argument('--normalize', dest='normalize', type=int, default=1,
 grid_args.add_argument('--num_dens', dest='num_dens', type=int, default=1,
                        help='interpret given gas and dust density distribution as number density, instead of mass density.\n'
                             '    if enabled, normalization (--normalize) will be disabled.\n'
-                            '    default: 0 (1: enable / 0: disable).')
+                            '    default: 1 (1: enable / 0: disable).')
 grid_args.add_argument('--extra', dest='extra_parameter', type=str, default=None, nargs='+',
                        help='additional parameter to vary model characteristics\n'
                             '    (multiple values possible, no unit strings!).')

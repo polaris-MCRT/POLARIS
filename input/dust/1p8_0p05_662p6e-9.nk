@@ -1,8 +1,0 @@
-#string ID
-plasmadust 1.8 + 0.05i
-
-#nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
-1  1   1   1.    1200    0   0
-
-#wavelength              real refractive index    imaginary refractive index
-662.6e-9	1.8	0.05

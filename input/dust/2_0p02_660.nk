@@ -1,0 +1,8 @@
+#string ID
+refractive index: 2 + 0.02i
+
+#nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
+1  1   1   1.    0    0   0
+
+#wavelength              real refractive index    imaginary refractive index
+660e-9	2.0	0.02

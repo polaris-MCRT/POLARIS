@@ -148,12 +148,11 @@ class ConstantCylinder(Model):
         #: Set parameters of the disk model (SI units)
         self.parameter['distance'] = 0.5
         self.parameter['grid_type'] = 'cylindrical'
-        self.parameter['inner_radius'] = 1e-5
+        self.parameter['inner_radius'] = 0.004
         self.parameter['outer_radius'] = 0.03
-        self.parameter['density'] = 1e13  # [m-3]
-        self.parameter['num_dens'] = 1
+        self.parameter['density'] = 1e13 
         # Define the grid geometry
-        self.cylindrical_parameter['n_r'] = 3
+        self.cylindrical_parameter['n_r'] = 7
         self.cylindrical_parameter['n_z'] = 3
         self.cylindrical_parameter['n_ph'] = 1
         self.cylindrical_parameter['sf_r'] = -1
