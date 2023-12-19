@@ -1651,7 +1651,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                         // Add the photon package to the detector
                                         detector[d].addToMonteCarloDetector(
-                                            pp_escape, wID_det, SCATTERED_DUST, sourceID);
+                                            pp_escape, wID_det, SCATTERED_DUST, tm_source->getID());
                                     }
                                 }
                             }
@@ -1766,7 +1766,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             dust->getForegroundExtinction(pp_direct.getWavelength());
                             
                         // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR, sourceID);
+                        detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR, tm_source->getID());
                     }
                 }
             }
