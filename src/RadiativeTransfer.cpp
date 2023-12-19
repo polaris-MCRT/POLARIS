@@ -1651,7 +1651,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
 
                                         // Add the photon package to the detector
                                         detector[d].addToMonteCarloDetector(
-                                            pp_escape, wID_det, SCATTERED_DUST);
+                                            pp_escape, wID_det, SCATTERED_DUST, sourceID);
                                     }
                                 }
                             }
@@ -1766,7 +1766,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
                             dust->getForegroundExtinction(pp_direct.getWavelength());
                             
                         // Add the photon package to the detector
-                        detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR);
+                        detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR, sourceID);
                     }
                 }
             }
@@ -2054,9 +2054,9 @@ void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * det
 
     // Add the photon package to the detector
     if(interactions == 0)
-        detector->addToMonteCarloDetector(*pp, wID_det, DIRECT_STAR);
+        detector->addToMonteCarloDetector(*pp, wID_det, DIRECT_STAR, sourceID);
     else
-        detector->addToMonteCarloDetector(*pp, wID_det, SCATTERED_DUST);
+        detector->addToMonteCarloDetector(*pp, wID_det, SCATTERED_DUST, sourceID);
 }
 
 // -------------------------------------------------
