@@ -1745,6 +1745,113 @@ class CRaytracingPolar : public CRaytracingBasic
 
     bool postProcessing()
     {
+        // during post processing, the polar detector is mapped onto a cartesian detector
+        //
+        // Interpolation:
+        //   - iterate over all cartesian pixels
+        //   - for each cartesian pixel, take Stokes vector of nearest polar pixel and its neighboring polar pixels
+        //   - interpolate to get resulting Stokes vector
+        //   - good if cartesian detector has more pixels than the polar detector
+        //   - if not, polar pixels (i.e. flux) will be ignored
+        //
+        // Nearest:
+        //   - iterate over all polar pixels
+        //   - for each polar pixel, take Stokes vector and add to corresponding cartesian pixel
+        //   - good if cartesian detector has less pixels than the polar detector
+        //   - if not, cartesian pixels potentially have zero flux
+        //   - however, flux is maintained
+        // 
+        // -> if the resulting cartesian detector has more pixels than there are polar pixels,
+        //    then use the interpolation method
+
+        uint processing_method;
+        if(map_pixel_x * map_pixel_y > npix_total)
+        {
+            processing_method = 1; // interpolation
+        }
+        else
+        {
+            processing_method = 0; // nearest
+        }
+
+        switch(processing_method)
+        {
+            case 0:
+                return postProcessingUsingNearest();
+                break;
+            case 1:
+                return postProcessingUsingInterpolation();
+                break;
+            default:
+                return false;
+        }
+    }
+
+    bool postProcessingUsingNearest()
+    {
+        // Init counter and percentage to show progress
+        ullong per_counter = 0;
+        float last_percentage = 0;
+
+#pragma omp parallel for schedule(dynamic)
+        for(int i_pix = 0; i_pix < npix_total; i_pix++)
+        {
+            photon_package pp = photon_package(nr_spectral_bins * nr_extra);
+
+            // Init variables
+            Vector3D pos;
+            uint rID, phID;
+            double cx = 0, cy = 0;
+
+            // Increase counter used to show progress
+#pragma omp atomic update
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage =
+                100.0 * float(per_counter) / float(npix_total * nr_spectral_bins);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {
+#pragma omp critical
+                {
+                    cout << "-> Interpolating from polar grid to detector map: " << percentage
+                         << " [%]            \r" << flush;
+                    last_percentage = percentage;
+                }
+            }
+
+            // Get coordinates of the current pixel
+            if(!getRelPosition(i_pix, cx, cy))
+                continue;
+
+            // Set photon package position and get R and Phi
+            pos = Vector3D(cx, cy, 0);
+            pp.setPosition(pos);
+            pos.cart2cyl();
+
+            getCoordinateIDs(uint(i_pix), rID, phID);
+
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins * nr_extra; i_spectral++)
+            {
+                // Set wavelength of photon package
+                pp.setSpectralID(i_spectral);
+
+                pp.setStokesVector(tmpStokes[i_spectral][rID][phID] * getRingElementArea(rID));
+
+                // Transport pixel value to detector
+                detector->addToRaytracingDetector(pp);
+            }
+        }
+
+        cout << "-> Interpolating from polar grid to detector map: 100 [%]         \r" << flush;
+
+        return true;
+    }
+
+    bool postProcessingUsingInterpolation()
+    {
         // Init counter and percentage to show progress
         ullong per_counter = 0;
         float last_percentage = 0;
