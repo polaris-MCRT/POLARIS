@@ -10,6 +10,10 @@ script_gcc_make:
         - ./compile.sh -f -c gcc -g make
         - ./src/build/tests -as
         - ./ci/test.sh ./bin/polaris projects
+    except:
+        changes:
+            - "*.md"
+            - "*.pdf"
     artifacts:
         paths:
             - ./src/build
