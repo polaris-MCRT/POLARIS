@@ -117,7 +117,7 @@ def calc_flux_ana():
     return flux_sphere_ana.to(u.Jy, equivalencies=u.spectral_density(wavelength))
 
 
-def read_data(sed_fits_file, stokes='I'):
+def read_data(sed_fits_file, map_fits_file, stokes='I'):
     sed_fits_header = fits.getheader(sed_fits_file)
     sed_fits_data = fits.getdata(sed_fits_file)
 
@@ -126,29 +126,54 @@ def read_data(sed_fits_file, stokes='I'):
     for i_wave in range(nr_wave):
         sed_wavelengths[i_wave] = float(sed_fits_header[f'HIERARCH WAVELENGTH{i_wave+1}']) * u.m
 
-    _stokes = ['I', 'Q', 'U', 'V']
+    _stokes = ['I', 'Q', 'U', 'V', 'TAU']
     sed_data = {}
     for i_s, i_stokes in enumerate(_stokes):
         if i_stokes == 'TAU':
-            sed_data[i_stokes] = sed_fits_data[i_s,:,:] * u.dimensionless_unscaled
+            sed_data[i_stokes] = sed_fits_data[i_s,0,:] * u.dimensionless_unscaled
         else:
-            sed_data[i_stokes] = sed_fits_data[i_s,:,:] * u.Jy
+            sed_data[i_stokes] = sed_fits_data[i_s,0,:] * u.Jy
 
-    return sed_data[stokes]
+    map_fits_header = fits.getheader(map_fits_file)
+    map_fits_data = fits.getdata(map_fits_file)
+
+    nr_wave = np.shape(sed_fits_data)[1]
+    map_wavelengths = np.zeros(nr_wave) * u.m
+    for i_wave in range(nr_wave):
+        map_wavelengths[i_wave] = float(map_fits_header[f'HIERARCH WAVELENGTH{i_wave+1}']) * u.m
+
+    _stokes = ['I', 'Q', 'U', 'V']
+    map_data = {}
+    for i_s, i_stokes in enumerate(_stokes):
+        map_data[i_stokes] = map_fits_data[i_s,:,:,:] * u.Jy / u.pix
+
+    return sed_data[stokes], map_data[stokes]
 
 
 def compare():
-    sed_data_pol = read_data('projects/test/reemission_sphere/dust/data/polaris_detector_nr0001_sed.fits.gz')
-    sed_data_car = read_data('projects/test/reemission_sphere/dust/data/polaris_detector_nr0002_sed.fits.gz')
+    sed_data_pol, map_data_pol = read_data(
+        'projects/test/reemission_sphere/dust/data/polaris_detector_nr0001_sed.fits.gz',
+        'projects/test/reemission_sphere/dust/data/polaris_detector_nr0001.fits.gz')
+    sed_data_car, map_data_car = read_data(
+        'projects/test/reemission_sphere/dust/data/polaris_detector_nr0002_sed.fits.gz',
+        'projects/test/reemission_sphere/dust/data/polaris_detector_nr0002.fits.gz')
     reference = calc_flux_ana()
 
     max_rel_diff = np.max(np.abs( sed_data_pol / reference - 1.0 ))
     if max_rel_diff > 1e-3:
         raise Exception(f'Test failed: Polar detector and reference do not match (max. relative difference = {max_rel_diff})')
 
-    max_rel_diff = np.max(np.abs( sed_data_car / sed_data_pol - 1.0))
+    max_rel_diff = np.max(np.abs( sed_data_car / sed_data_pol - 1.0 ))
     if max_rel_diff > 1e-3:
         raise Exception(f'Test failed: Cartesian and polar detector do not match (max. relative difference = {max_rel_diff})')
+    
+    max_rel_diff = np.max(np.abs( np.sum(map_data_pol, axis=(1,2)) * u.pix / reference - 1.0 ))
+    if max_rel_diff > 1e-3:
+        raise Exception(f'Test failed: Sum of polar map detector and reference do not match (max. relative difference = {max_rel_diff})')
+
+    max_rel_diff = np.max(np.abs( np.sum(map_data_car, axis=(1,2)) / np.sum(map_data_pol, axis=(1,2)) - 1.0 ))
+    if max_rel_diff > 1e-3:
+        raise Exception(f'Test failed: Sum of cartesian and polar map detector do not match (max. relative difference = {max_rel_diff})')
 
     return True
 
