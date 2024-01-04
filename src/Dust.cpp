@@ -898,7 +898,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     // Init error check
     bool error = false;
 
-    double max_diff = 0.0;
+    double max_rel_diff = 0.0;
 
     // Init maximum counter value
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
@@ -1085,8 +1085,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 double diff_tmp;
                 for(uint sth = 1; sth < nr_of_scat_theta_final; sth++)
                 {
-                    diff_tmp = (S11_final[sth-1] - S11_final[sth]) / max(S11_final[sth-1], S11_final[sth]);
-                    max_diff = max(diff_tmp, max_diff);
+                    diff_tmp = abs(S11_final[sth-1] - S11_final[sth]) / max(S11_final[sth-1], S11_final[sth]);
+                    max_rel_diff = max(diff_tmp, max_rel_diff);
                 }
 
                 scat_theta[a][w] = new double[nr_of_scat_theta_final];
@@ -1159,9 +1159,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     printIDs();
     cout << "- calculating optical properties: done          " << endl;
 
-    if(max_diff > 0.5) // arbitrary limit
+    if(max_rel_diff > 0.5) // arbitrary limit
     {
-        cout << "WARNING: number of scattering angles might be too low (max diff = " << max_diff << ")" << endl;
+        cout << "WARNING: number of scattering angles might be too low (max rel diff = " << max_rel_diff << ")" << endl;
         cout << "if required, increase 'NANG' or decrease 'MAX_MIE_SCA_REL_DIFF' (for x < 100) in src/Typedefs.h " << endl;
     }
 
