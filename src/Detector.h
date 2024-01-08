@@ -800,6 +800,7 @@ class CDetector
             matrixV[i_spectral].addValue(x, y, st.V());
             matrixT[i_spectral].addValue(x, y, st.T());
             matrixS[i_spectral].addValue(x, y, st.Sp());
+            N_photon[i_spectral].addValue(x, y, 1);
         }
         else
         {
@@ -1079,6 +1080,12 @@ class CDetector
                         array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_S[i] = matrixS[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        double N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        if((results_type == RESULTS_RAY || results_type == RESULTS_FULL) && N_ph > 0)
+                        {
+                            array_T[i] /= N_ph;
+                            array_S[i] /= N_ph;
+                        }
                         i++;
                     }
 
