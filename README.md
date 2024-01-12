@@ -38,7 +38,7 @@ To install POLARIS, run the installation script:
 ```bash
 ./compile.sh -f
 ```
-For the first installation, the option `-f` is required to install the cfitsio and CCfits libraries.
+For the first installation, the option `-f` is required to install the [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/) and [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/) libraries.
 For more information, type:
 ```bash
 ./compile.sh -h

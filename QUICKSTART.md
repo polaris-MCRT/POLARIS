@@ -37,7 +37,7 @@ Run the installation script:
 ```bash
 ./compile.sh -f
 ```
-For the first installation, the option `-f` is required to install the cfitsio and CCfits libraries.
+For the first installation, the option `-f` is required to install the [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/) and [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/) libraries.
 For more information, type:
 ```bash
 ./compile.sh -h
@@ -96,7 +96,7 @@ $$
 h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 $$
 
-Default values: $r_0 = 100\ \mathrm{AU}$, $h_0 = 10\ \mathrm{AU}$, $\alpha = 1.8$, $\beta = 1.1$, inner disk radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
+Default values: $r_0 = 100\ \mathrm{AU}$, $h_0 = 10\ \mathrm{AU}$, $\beta = 1.1$, $\alpha = 3 (\beta - 0.5)$, inner disk radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
 
 **Sphere** with a constant density distribution
 
@@ -105,6 +105,7 @@ $$
 $$
 
 Default values: inner radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-4}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
+In addition, the sphere model has a magnetic field with a toroidal geometry and a strength of $10^{-10}\ \mathrm{T}$.
 
 To create a grid file, use
 ```bash
@@ -126,12 +127,21 @@ polaris-gen -h
 
 ### Extra parameter
 
-To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
+To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by the keywords and the corresponding value (int, float, or str).
 By default, the user can parse
 
-- 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
+- 4 values for the `disk` model: reference radius `ref_radius` ($r_0$ in meter), reference scale height `ref_scale_height` ($h_0$ in meter), `alpha` ($\alpha$), and `beta` ($\beta$),
 
-- 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
+- 2 values for the `sphere` model: the geometry of the magnetic field `mag_field_geometry` (toroidal, vertical, or radial) and the magnetic field strength `mag_field_strength` (in Tesla).
+
+For example, the disk density profile can be modified to $r_0 = 50\ \mathrm{au}$ and $\beta = 1.25$ with
+```bash
+polaris-gen disk grid_filename.dat --extra ref_radius 50*149597870700 beta 1.25
+```
+or the magnetic field of the sphere to a radial geometry with
+```bash
+polaris-gen sphere grid_filename.dat --extra mag_field_geometry radial
+```
 
 Additional parameter values to modify the model can be defined in the function `update_parameter` in the file `tools/polaris_tools_modules/model.py`.
 
