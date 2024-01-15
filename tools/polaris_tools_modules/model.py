@@ -184,7 +184,8 @@ class Disk(Model):
             'ref_radius',
             'ref_scale_height',
             'beta',
-            'alpha']
+            'alpha'
+        ]
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
@@ -250,7 +251,7 @@ class Sphere(Model):
         
         self.spherical_parameter['n_r'] = 100
         self.spherical_parameter['n_th'] = 91
-        self.spherical_parameter['n_ph'] = 1
+        self.spherical_parameter['n_ph'] = 91
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
         
@@ -259,7 +260,8 @@ class Sphere(Model):
 
         self.custom_parameter_list = [
             'mag_field_geometry',
-            'mag_field_strength']
+            'mag_field_strength'
+        ]
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

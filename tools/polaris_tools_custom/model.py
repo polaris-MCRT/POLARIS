@@ -117,7 +117,8 @@ class CustomDisk(Model):
             'ref_radius',
             'ref_scale_height',
             'beta',
-            'alpha']
+            'alpha'
+        ]
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
