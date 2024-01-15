@@ -812,7 +812,7 @@ class CDetector
         }
     }
 
-    void addToMonteCarloDetector(const photon_package & pp, uint i_det_spectral, uint radiation_type)
+    void addToMonteCarloDetector(const photon_package & pp, uint i_det_spectral, uint radiation_type, uint sourceID)
     {
         Vector3D pos = pp.getPosition();
         Vector3D dir = pp.getDirection();
@@ -835,7 +835,7 @@ class CDetector
 
         StokesVector st = pp.getStokesVector();
         // normalize by pixel area for direct flux
-        if(radiation_type == DIRECT_STAR)
+        if(radiation_type == DIRECT_STAR && sourceID == SRC_LASER)
         {
             double pixel_size = sidelength_x / double(bins_x) * sidelength_y / double(bins_y);
             st /= pixel_size;
