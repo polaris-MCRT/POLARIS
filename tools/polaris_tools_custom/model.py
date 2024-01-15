@@ -123,6 +123,9 @@ class CustomDisk(Model):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use extra parameter to vary the disk structure
+        if extra_parameter is None:
+            return
+
         for i, param in enumerate(extra_parameter[::2]):
             if param not in self.custom_parameter_list:
                 print('  - Warning: invalid parameter: ' + str(param))
