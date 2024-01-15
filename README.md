@@ -1,4 +1,4 @@
-# POLARIS (POLArized RadIation Simulator)
+# POLARIS: POLArized RadIation Simulator
 
 [![arXiv](https://img.shields.io/badge/arXiv-1604.05305-b31b1b)](https://arxiv.org/abs/1604.05305)
 [![ascl](https://img.shields.io/badge/ascl-1807.001-262255)](https://ascl.net/1807.001)
@@ -58,16 +58,26 @@ For a guide how to run first simulations, please take a look in our [quickstart]
 
 For more information about POLARIS and its capabilities, please take a look in our [manual](manual.pdf).
 
-If you use results from POLARIS in a publication, please cite [Reissl et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) and the [website](https://portia.astrophysik.uni-kiel.de/polaris).
+If you use results from POLARIS in a publication, please cite [Reissl et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) or [Reissl et al. (2018)](https://ui.adsabs.harvard.edu/abs/2018ascl.soft07001R).
 If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B) as well.
 
 
 ## Copyright
 
-The code is free of charge for any scientific purpose. This software is provided in the hope that it will
-be useful but without any warranty of ability or fitness of a particular purpose. We also reject any
-responsibility for incorrect result that may be result from this code.
+POLARIS is licensed under [GPLv3](LICENSE.md).
 
-For a list of authors, please see [COPYING](COPYING.md).
+Copyright (C) 2018 Stefan Reissl
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+For a list of corresponding authors, please see [AUTHORS](AUTHORS.md).
 
 **contact**: polaris@astrophysik.uni-kiel.de
