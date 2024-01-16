@@ -4,6 +4,8 @@
 [![ascl](https://img.shields.io/badge/ascl-1807.001-262255)](https://ascl.net/1807.001)
 [![bibcode](https://img.shields.io/badge/bibcode-2016A%26A...593A..87R-1c459b)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
 [![doi](https://img.shields.io/badge/doi-10.1051%2F0004--6361%2F201424930-fab70c)](https://doi.org/10.1051/0004-6361/201424930)
+[![License](https://img.shields.io/badge/License-GPLv3-blue)](https://www.gnu.org/licenses/gpl-3.0)
+![Version](https://img.shields.io/badge/Version-4.11.01-bf0040)
 
 is a 3D Monte Carlo radiative transfer code that
 
