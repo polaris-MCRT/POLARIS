@@ -214,7 +214,7 @@ bool CGasSpecies::calcFEP(CGridBasic * grid, bool full)
                     sum_p += tmp_lvl_pop[i_lvl_tot];
                 else
                 {
-                    cout << "WARNING: Level population element not greater than zero! Level = " << i_lvl_tot
+                    cout << "\nWARNING: Level population element not greater than zero! Level = " << i_lvl_tot
                          << ", Level pop = " << tmp_lvl_pop[i_lvl_tot] << endl;
                     no_error = false;
                 }
@@ -398,7 +398,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
                     sum_p += tmp_lvl_pop[j_lvl];
                 else
                 {
-                    cout << "WARNING: Level population element not greater than zero! Level = " << j_lvl
+                    cout << "\nWARNING: Level population element not greater than zero! Level = " << j_lvl
                          << ", Level pop = " << tmp_lvl_pop[j_lvl] << endl;
                     no_error = false;
                 }
@@ -422,7 +422,7 @@ bool CGasSpecies::calcLVG(CGridBasic * grid, bool full)
             }
         }
         if(i_iter == MAX_LVG_ITERATIONS)
-            cout << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
+            cout << "\nWARNING: Maximum iteration needed in cell: " << i_cell << endl;
 
         if(full)
         {
@@ -630,7 +630,7 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
                     sum_p += tmp_lvl_pop[j_lvl];
                 else
                 {
-                    cout << "WARNING: Level population element not greater than zero! Level = " << j_lvl
+                    cout << "\nWARNING: Level population element not greater than zero! Level = " << j_lvl
                          << ", Level pop = " << tmp_lvl_pop[j_lvl] << endl;
                     no_error = false;
                 }
@@ -652,7 +652,7 @@ bool CGasSpecies::calcDeguchiWatsonLVG(CGridBasic * grid, bool full)
             }
         }
         if(i_iter == MAX_LVG_ITERATIONS)
-            cout << endl << "WARNING: Maximum iteration needed in cell: " << i_cell << endl;
+            cout << endl << "\nWARNING: Maximum iteration needed in cell: " << i_cell << endl;
 
         if(full)
         {
@@ -750,7 +750,7 @@ bool CGasSpecies::updateLevelPopulation(CGridBasic * grid, cell_basic * cell, do
                 sum_p += tmp_lvl_pop[i_lvl_tot];
             else
             {
-                cout << "WARNING: Level population element not greater than zero!" << endl;
+                cout << "\nWARNING: Level population element not greater than zero!" << endl;
                 return false;
             }
         }
@@ -2034,7 +2034,7 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
     cout << "- Velocity field                : ";
     if(getKeplerStarMass() > 0)
         cout << "kepler rotation, M_star: " << getKeplerStarMass() << " [M_sun]\n"
-             << "    HINT: only available with one central star" << endl;
+             << "\nHINT: only available with one central star" << endl;
     else if(grid->isVelocityFieldAvailable())
         cout << "taken from grid" << endl;
     else
