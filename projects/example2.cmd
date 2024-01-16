@@ -23,7 +23,7 @@
 	<axis2>	0	1	0
 
     # laser radiation source nr_photons = "Nph"> x [m] y [m] z [m] dx [m] dy [m] dz [m] P [W] λ0 [m] FWHM [m] q u
-	<source_laser nr_photons = "1e8">	-1   0	0	1	0	0	1.0	6.6e-07	 10e-09	0.0	1
+	<source_laser nr_photons = "1e7">	-1   0	0	1	0	0	1.0	6.6e-07	 10e-09	0.0	1
 
     # calculate Monte Carlo dust scattering
 	<cmd>			CMD_DUST_SCATTERING
