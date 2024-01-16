@@ -64,6 +64,12 @@ For a guide how to run first simulations, please take a look in our [quickstart]
 
 For more information about POLARIS and its capabilities, please take a look in our [manual](manual.pdf).
 
+Pre-calculated exemplary simulation results can be found in `projects/constantCylinder/example1/data/` and `projects/constantCylinder/example1/data/`. To re-run the corresponding exemplary `example1.cmd` command file in `projects`, move into the POLARIS directory and execute `polaris` followed by the command file:
+```bash
+cd /YOUR/POLARIS/PATH/
+polaris projects/example1.cmd
+```
+
 If you use results from POLARIS in a publication, please cite [Reissl et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016A%26A...593A..87R) or [Reissl et al. (2018)](https://ui.adsabs.harvard.edu/abs/2018ascl.soft07001R).
 If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B) as well.
 
