@@ -13,8 +13,10 @@ testing/
 
 projects/*
 !projects/CommandList.cmd
-!projects/disk/
-!projects/test/
+!projects/example1.cmd
+!projects/example2.cmd
+!projects/plot_examples.py
+!projects/constantCylinder/
 
 .tags
 .tags1
