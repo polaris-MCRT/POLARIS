@@ -87,7 +87,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-For a list of authors and a copy of the GNU General Public License, please see [COPYING](COPYING.md).
+For a list of authors, please see [AUTHORS](AUTHORS.md). For a copy of the GNU General Public License, please see [LICENSE](LICENSE.md).
 
 **contact**: polaris@astrophysik.uni-kiel.de
 
