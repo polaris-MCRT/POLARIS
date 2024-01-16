@@ -206,6 +206,4 @@ if __name__ == '__main__':
     fig3 = fig3()
     fig4 = fig4()
 
-    fig2.savefig("/home/jkobus/Documents/Paper/CPiP_Polaris/Img/fig2.pdf", bbox_inches="tight")
-    fig3.savefig("/home/jkobus/Documents/Paper/CPiP_Polaris/Img/fig3.pdf", bbox_inches="tight")
-    fig4.savefig("/home/jkobus/Documents/Paper/CPiP_Polaris/Img/fig4.pdf", bbox_inches="tight")
+    plt.show()
