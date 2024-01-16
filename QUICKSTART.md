@@ -4,14 +4,14 @@
 
 ## Download
 
-Download zip package from the [homepage](https://portia.astrophysik.uni-kiel.de/polaris) or clone the [github repository](https://github.com/polaris-MCRT/POLARIS) via:
+Download zip package from the CPC Library or clone the [github repository](https://github.com/polaris-MCRT/POLARIS/tree/DustyPlasma) via:
 ```bash
-git clone https://github.com/polaris-MCRT/POLARIS.git
+git clone -b DustyPlasma --single-branch https://github.com/polaris-MCRT/POLARIS.git
 ```
 **HINT**: It is recommended to clone the git repository into the home directory.
-If downloaded from the homepage, extract the zip file into the home directory via:
+If downloaded from the CPC Library, extract the zip file into the home directory via:
 ```bash
-unzip -q POLARIS-master-basic.zip -d ~/
+unzip -q POLARIS.zip -d ~/
 ```
 
 
@@ -54,25 +54,18 @@ source ~/.bashrc
 ## Start a simulation
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
-Exemplary `.cmd` command files for temperature, thermal emission, and scattered stellar emission simulations can be found in
+Exemplary `.cmd` command files for the simulation of the scattering of laser light in a dusty plasma can be found in `projects`.
 
-- `projects/disk/example/temp/`,
-- `projects/disk/example/dust/`, and
-- `projects/disk/example/dust_mc/`, respectively.
+The example simulations use exemplary (binary) grid files `example1.grid` and  `example2.grid` of a homogeneous cylindrical dust cloud which can be found in `projects/constantCylinder/`.
 
-The simulations use an exemplary (binary) grid file `grid.dat` of a circumstellar disk which can be found in `projects/disk/`.
-
-To start the temperature simulation (`temp`), move into the POLARIS directory and execute `polaris` followed by the command file:
+To run the scattering simulation of example 1, move into the POLARIS directory and execute `polaris` followed by the command file:
 ```bash
 cd /YOUR/POLARIS/PATH/
-polaris projects/disk/example/temp/POLARIS.cmd
+polaris projects/example1.cmd
 ```
-The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
+The results are stored at `projects/constantCylinder/example1/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
 
-Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
 Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) for available options of the command file.
-
-**HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
 **HINT**: The previous results will be overwritten, if the same command file is used. Please change `<path_out>` in the command file to use a new directory for the new results.
 
@@ -80,43 +73,19 @@ Please refer to the [command list](projects/CommandList.cmd) in the `projects` f
 
 ## Create a grid
 
-### Predefined models
-
 The (binary) grid file can be created with the command `polaris-gen`.
-There are already two models available:
-
-**Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
-([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
-
-$$
-\rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
-$$
-
-$$
-h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
-$$
-
-Default values: $r_0 = 100\ \mathrm{AU}$, $h_0 = 10\ \mathrm{AU}$, $\alpha = 1.8$, $\beta = 1.1$, inner disk radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
-
-**Sphere** with a constant density distribution
-
-$$
-\rho(r) = \rho_0
-$$
-
-Default values: inner radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-4}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
+There is already a model **constantCylinder** of a cylindrical dust cloud with a constant particle number density available. The default values are a number density  $\rho(r,z) = 10^{13}\ \mathrm{m}^{-3}$, a height $h = 3\ \mathrm{cm}$, and a radius $r = 3\ \mathrm{cm}$ of the cylinder.
 
 To create a grid file, use
 ```bash
 polaris-gen model_name grid_filename.dat
 ```
-where `model_name` is either `disk`, or `sphere`.
+where `model_name` is `constantCylinder`.
 The (binary) grid file will be stored at `projects/model_name/`.
-By default, the density distribution is normalized to the given total mass.
 It is also possible to modify some parameters of the model.
-For example, to create a grid with a total gas mass of $10^{-5}\ \mathrm{M_\odot}$ and an inner radius of $1\ \mathrm{AU}$, type:
+For example, to create a grid with an outer radius of $1\ \mathrm{cm}$, type:
 ```bash
-polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
+polaris-gen model_name grid_filename.dat --outer_radius 0.01m
 ```
 For more information, type:
 ```bash
@@ -127,11 +96,7 @@ polaris-gen -h
 ### Extra parameter
 
 To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by a list of values (int, float, or str).
-By default, the user can parse
-
-- 4 values for the `disk` model: reference radius $r_0$, reference scale height $h_0$, $\alpha$, and $\beta$,
-
-- 1 value for the `sphere` model: the geometry of the magnetic field (toroidal, vertical, or radial).
+By default, the user can parse one value for the `constantCylinder` model: the number density.
 
 Additional parameter values to modify the model can be defined in the function `update_parameter` in the file `tools/polaris_tools_modules/model.py`.
 
