@@ -1,0 +1,28 @@
+#material
+#Dust mixture
+#Dust components:
+#-refractive index: 1.8 + 0.05i
+#   mass ratio: 1, size distr. : "logn" (2e-07, 0.1), size: 2e-07 [m] #-2e-07 [m]
+
+#weight
+1
+#aspect ratio
+1
+#sublimation temp [K]
+0
+#can align
+0
+#density [kg/m^3]
+1
+#gold g factor
+0
+#f_highJ
+0.25
+#f_correlation
+0.6
+#min. grain size [m]	max. grain size [m]
+2e-07	2e-07
+#min. radius [m]	max. radius [m]
+2e-07	2e-07
+#wavelength	avgCext1	avgCext2	avgCabs1	avgCabs2	avgCsca1	avgCsca2	Ccirc	avgHGg	avgQext1	avgQext2	avgQabs1	avgQabs2	avgQsca1	avgQsca2	avgKext1	avgKext2	avgKabs1	avgKabs2	avgKsca1	avgKsca2
+6.6e-07	4.05875e-13	4.05875e-13	5.12429e-14	5.12429e-14	3.54632e-13	3.54632e-13	0	0.542462	3.22985	3.22985	0.407778	0.407778	2.82207	2.82207	1.21119e+07	1.21119e+07	1.52917e+06	1.52917e+06	1.05828e+07	1.05828e+07
