@@ -67,7 +67,8 @@ To start the temperature simulation (`temp`), move into the POLARIS directory an
 cd /YOUR/POLARIS/PATH/
 polaris projects/disk/example/temp/POLARIS.cmd
 ```
-The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files. These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
+The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files.
+These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
 
 Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
 Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) for available options of the command file.
@@ -78,11 +79,15 @@ Please refer to the [command list](projects/CommandList.cmd) in the `projects` f
 
 **HINT**: If users write their own command file, before starting the simulation, please check `<dust_component>`, `<path_grid>`, and `<path_out>` in the command file for the correct (absolute) paths.
 
+
 ## Create a grid
+
+POLARIS includes PolarisTools, a Python package to create custom grid files for POLARIS.
+The (binary) grid file can be created with the command `polaris-gen`.
+
 
 ### Predefined models
 
-The (binary) grid file can be created with the command `polaris-gen`.
 There are already two models available:
 
 **Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
@@ -96,7 +101,7 @@ $$
 h(r) = h_0 \left( \frac{r}{r_0} \right)^\beta
 $$
 
-Default values: $r_0 = 100\ \mathrm{AU}$, $h_0 = 10\ \mathrm{AU}$, $\beta = 1.1$, $\alpha = 3 (\beta - 0.5)$, inner disk radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer disk radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
+Default values: $r_0 = 100\ \mathrm{au}$, $h_0 = 10\ \mathrm{au}$, $\beta = 1.1$, $\alpha = 3 (\beta - 0.5)$, inner disk radius $r_\mathrm{in} = 0.1\ \mathrm{au}$, outer disk radius $r_\mathrm{out} = 100\ \mathrm{au}$, and total gas mass $M_\mathrm{gas} = 10^{-3}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
 
 **Sphere** with a constant density distribution
 
@@ -104,8 +109,10 @@ $$
 \rho(r) = \rho_0
 $$
 
-Default values: inner radius $r_\mathrm{in} = 0.1\ \mathrm{AU}$, outer radius $r_\mathrm{out} = 100\ \mathrm{AU}$, and total gas mass $M_\mathrm{gas} = 10^{-4}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
+Default values: inner radius $r_\mathrm{in} = 0.1\ \mathrm{au}$, outer radius $r_\mathrm{out} = 100\ \mathrm{au}$, and total gas mass $M_\mathrm{gas} = 10^{-4}\ \mathrm{M_\odot}$ with a dust to gas mass ratio of $0.01$.
 In addition, the sphere model has a magnetic field with a toroidal geometry and a strength of $10^{-10}\ \mathrm{T}$.
+
+By default, the density distribution is normalized to the given total mass, so the value of $\rho_0$ is calculated accordingly.
 
 To create a grid file, use
 ```bash
@@ -113,9 +120,7 @@ polaris-gen model_name grid_filename.dat
 ```
 where `model_name` is either `disk`, or `sphere`.
 The (binary) grid file will be stored at `projects/model_name/`.
-By default, the density distribution is normalized to the given total mass.
-It is also possible to modify some parameters of the model.
-For example, to create a grid with a total gas mass of $10^{-5}\ \mathrm{M_\odot}$ and an inner radius of $1\ \mathrm{AU}$, type:
+To modify specific parameters of the model, for instance a total gas mass of $10^{-5}\ \mathrm{M_\odot}$ and an inner radius of $1\ \mathrm{au}$, type:
 ```bash
 polaris-gen model_name grid_filename.dat --gas_mass 1e-5M_sun --inner_radius 1AU
 ```
@@ -132,7 +137,7 @@ By default, the user can parse
 
 - 4 values for the `disk` model: reference radius `ref_radius` ($r_0$ in meter), reference scale height `ref_scale_height` ($h_0$ in meter), `alpha` ($\alpha$), and `beta` ($\beta$),
 
-- 2 values for the `sphere` model: the geometry of the magnetic field `mag_field_geometry` (toroidal, vertical, or radial) and the magnetic field strength `mag_field_strength` (in Tesla).
+- 2 values for the `sphere` model: the geometry of the magnetic field `mag_field_geometry` (toroidal, vertical, or radial) and the magnetic field strength `mag_field_strength` (in tesla).
 
 For example, the disk density profile can be modified to $r_0 = 50\ \mathrm{au}$ and $\beta = 1.25$ with
 ```bash

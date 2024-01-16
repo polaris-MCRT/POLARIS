@@ -5,7 +5,7 @@
 [![bibcode](https://img.shields.io/badge/bibcode-2016A%26A...593A..87R-1c459b)](https://ui.adsabs.harvard.edu/abs/2016A&A...593A..87R)
 [![doi](https://img.shields.io/badge/doi-10.1051%2F0004--6361%2F201424930-fab70c)](https://doi.org/10.1051/0004-6361/201424930)
 [![License](https://img.shields.io/badge/License-GPLv3-blue)](https://www.gnu.org/licenses/gpl-3.0)
-![Version](https://img.shields.io/badge/Version-4.11.01-bf0040)
+[![Version](https://img.shields.io/badge/Version-4.11.01-bf0040)](https://img.shields.io/badge/Version-4.11.01-bf0040)
 
 is a 3D Monte Carlo radiative transfer code that
 
@@ -64,11 +64,42 @@ If you use results from POLARIS in a publication, please cite [Reissl et al. (20
 If line radiative transfer and/or Zeeman simulations are used, please cite [Brauer et al. (2017)](https://ui.adsabs.harvard.edu/abs/2017A%26A...601A..90B) as well.
 
 
+## Project structure
+
+    .
+    ├── bin                                      # Directory to store POLARIS executable
+    ├── ci                                       # CI test script (only for testing purposes)
+    ├── ext                                      # Catch2 test framework for unit-tests (only for testing purposes)
+    ├── input                                    # Input data used by POLARIS
+    │   ├── dust                                 # Dust database files in the default POLARIS format
+    │   ├── gas                                  # Gas database files in the LAMDA format (including Zeeman files)
+    │   └── interstellar_radiation_field.dat     # Spectral energy distribution of the ISRF
+    ├── lib                                      # CCfits and cfitsio libraries
+    ├── projects                                 # Output directory to store simulation results and examples
+    │   ├── disk                                 # Exemplary disk model
+    │   ├── test                                 # Models for testing purposes
+    │   └── CommandList.cmd                      # List of avaiable POLARIS commands
+    ├── src                                      # Source files of the POLARIS code
+    ├── tools                                    # PolarisTools directory
+    │   ├── polaris_tools_custom                 # User-definable modules for PolarisTools
+    │   ├── polaris_tools_modules                # Modules for PolarisTools
+    │   ├── polaris-gen.in                       # Source file for the polaris-gen tool
+    │   └── setup.py                             # Setup script for PolarisTools
+    ├── AUTHORS.md
+    ├── LICENSE.md
+    ├── QUICKSTART.md
+    ├── compile.sh                               # Compile script to install POLARIS (Linux)
+    ├── README.md
+    ├── manual.pdf
+    └── quickstart.pdf
+
+
+
 ## Copyright
 
 POLARIS is licensed under [GPLv3](LICENSE.md).
 
-Copyright (C) 2018 Stefan Reissl
+Copyright &copy; 2018 Stefan Reissl
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
