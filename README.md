@@ -43,8 +43,8 @@ To install POLARIS, run the installation script:
 For the first installation, the option `-f` is required to install the [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/) and [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/) libraries.
 Alternatively, these libraries can be installed with a package manager (root permissions are required):
 ```bash
-sudo apt-get update
-sudo apt-get install libccfits-dev libcfitsio-dev
+sudo apt update
+sudo apt install libccfits-dev libcfitsio-dev
 ```
 If these packages are installed on the system, simply install POLARIS via
 ```bash
