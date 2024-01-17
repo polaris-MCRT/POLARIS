@@ -956,7 +956,7 @@ class CGridBasic
                 *us /= getVolume(cell);
             }
             else
-                cout << "ERROR: This should not happen" << endl;
+                cout << "\nERROR: This should not happen" << endl;
         }
         else
         {

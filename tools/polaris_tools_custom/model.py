@@ -88,6 +88,7 @@ class CustomDisk(Model):
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
+        
         # In the case of a spherical grid
         self.spherical_parameter['n_r'] = 100
         self.spherical_parameter['n_th'] = 181
@@ -103,30 +104,38 @@ class CustomDisk(Model):
         # sf_z = -1 is using scale height; sf_z = 1 is sinus;
         # sf_z > 1 is exp with step width sf_z and rest is linear
         self.cylindrical_parameter['sf_z'] = -1
+        
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
-        self.parameter['alpha'] = 0.9 # Andrews et al. 2010, https://ui.adsabs.harvard.edu/abs/2010ApJ...723.1241A/abstract
-        self.parameter['beta'] = 1.1 # Woitke et al. 2019, http://adsabs.harvard.edu/abs/2019PASP..131f4301W
+        self.parameter['beta'] = 1.1
+        # Woitke et al. 2019, http://adsabs.harvard.edu/abs/2019PASP..131f4301W
+        self.parameter['alpha'] = 3.0 * (self.parameter['beta'] - 0.5)
+        # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S
+
+        self.custom_parameter_list = [
+            'ref_radius',
+            'ref_scale_height',
+            'beta',
+            'alpha'
+        ]
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use extra parameter to vary the disk structure
-        if extra_parameter is not None:
-            if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(
-                    extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(
-                    extra_parameter[1], 'length')
-                self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3])
-                print('HINT: New reference radius       : ' + str(self.parameter['ref_radius']) + ',' +\
-                      '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
-                      '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
-                      '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
-            else:
-                print('HINT: 4 parameter values are expected, got ' + str(len(extra_parameter)))
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.custom_parameter_list:
+                print('  - Warning: invalid parameter: ' + str(param))
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print('  - Info: ' + str(param) + ' updated to ' + str(self.parameter[param]))
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

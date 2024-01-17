@@ -20,33 +20,30 @@ bool CPipeline::Init(int argc, char ** argv)
     srand(0);
     CMathFunctions mf;
 
-    string out_string2 = "* ";
-    out_string2 += PROG_ID;
-    out_string2 += "                                                       *";
+    string out_string_prog = "*                      ";
+    out_string_prog += PROG_ID;
+    out_string_prog += "                       *";
 
-    uint str_len = uint(out_string2.size());
-    string line_string = SEP_LINE;
+    string out_string_vers = "*                      ";
+    out_string_vers += VERS_ID;
+    out_string_vers += "                       *";
 
-    // for(uint i = 0; i < str_len; i++)
-    // {
-    //     cout << line_string.substr(0, i) << "| \r" << flush;
-    //     mf.sleep(LINE_DELAY);
-    // }
+    string out_string_copy = "*                      ";
+    out_string_copy += COPY_ID;
+    out_string_copy += "                       *";
+
     cout << SEP_LINE;
 
-    // for(uint i = 0; i <= str_len / 4; i++)
-    // {
-    //     cout << out_string2.substr(0, i) << "| \r" << flush;
-    //     mf.sleep(LINE_DELAY);
-    // }
+    cout << out_string_prog << endl;
 
-    cout << out_string2 << endl;
+    cout << CLR_LINE;
 
-    // for(uint i = 0; i < str_len; i++)
-    // {
-    //     cout << line_string.substr(0, i) << "| \r" << flush;
-    //     mf.sleep(LINE_DELAY);
-    // }
+    cout << out_string_vers << endl;
+
+    cout << CLR_LINE;
+
+    cout << out_string_copy << endl;
+
     cout << SEP_LINE;
 
     if(argc != 2)

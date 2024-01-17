@@ -1305,7 +1305,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 plt_rad_field1 = true;
 
                 if(!spec_length_as_vector)
-                    cout << "HINT: The full radiation field can only be saved if it was used by the "
+                    cout << "\nHINT: The full radiation field can only be saved if it was used by the "
                             "simulation\n"
                             "      (when saving the radiation field in the grid or calculating RATs)!"
                          << endl;

@@ -1152,7 +1152,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
     if(error)
     {
-        cout << "ERROR: Problem with optical properties calculation" << endl;
+        cout << "\nERROR: Problem with optical properties calculation" << endl;
         return false;
     }
 
@@ -1161,7 +1161,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
     if(max_rel_diff > 0.5) // arbitrary limit
     {
-        cout << "WARNING: number of scattering angles might be too low (max rel diff = " << max_rel_diff << ")" << endl;
+        cout << "\nWARNING: number of scattering angles might be too low (max rel diff = " << max_rel_diff << ")" << endl;
         cout << "if required, increase 'NANG' or decrease 'MAX_MIE_SCA_REL_DIFF' (for x < 100) in src/Typedefs.h " << endl;
     }
 
@@ -5260,7 +5260,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
                     "temperatures"
                  << endl;
             if(param.getStochasticHeatingMaxSize() > 0)
-                cout << "    HINT: Stochastic heating was already calculated. This "
+                cout << "\nHINT: Stochastic heating was already calculated. This "
                         "should not happen!"
                      << endl;
         }
@@ -5292,7 +5292,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
             else if(!grid->useDustChoice() && grid->getNrAlignedRadii() == getNrOfMixtures())
                 cout << "found a separate radius for each density distribution" << endl;
             else
-                cout << "ERROR: This should not happen!" << endl;
+                cout << "\nERROR: This should not happen!" << endl;
         }
 
         cout << "- Include scattered light : ";

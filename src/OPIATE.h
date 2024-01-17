@@ -271,7 +271,7 @@ class COpiateDataBase
         }
 
         cout << CLR_LINE;
-        cout << "ERROR: A species by the name of \"" << name
+        cout << "\nERROR: A species by the name of \"" << name
              << "\" is not listed in the loaded OPIATE databases!              \n";
         return false;
     }
@@ -333,7 +333,7 @@ class COpiateDataBase
         else
         {
             cout << CLR_LINE;
-            cout << "ERROR: Number of velocity channels is not larger than zero!                 \n";
+            cout << "\nERROR: Number of velocity channels is not larger than zero!                 \n";
             return false;
         }
 

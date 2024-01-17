@@ -155,6 +155,7 @@ class Disk(Model):
         self.parameter['grid_type'] = 'cylindrical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
+        
         # In the case of a spherical grid
         self.spherical_parameter['n_r'] = 100
         self.spherical_parameter['n_th'] = 181
@@ -170,6 +171,7 @@ class Disk(Model):
         # sf_z = -1 is using scale height; sf_z = 1 is sinus;
         # sf_z > 1 is exp with step width sf_z and rest is linear
         self.cylindrical_parameter['sf_z'] = -1
+        
         # Default disk parameter
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
@@ -178,24 +180,29 @@ class Disk(Model):
         self.parameter['alpha'] = 3.0 * (self.parameter['beta'] - 0.5)
         # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S
 
+        self.custom_parameter_list = [
+            'ref_radius',
+            'ref_scale_height',
+            'beta',
+            'alpha'
+        ]
+
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters.
         """
         # Use extra parameter to vary the disk structure
-        if extra_parameter is not None:
-            if len(extra_parameter) == 4:
-                self.parameter['ref_radius'] = self.math.parse(
-                    extra_parameter[0], 'length')
-                self.parameter['ref_scale_height'] = self.math.parse(
-                    extra_parameter[1], 'length')
-                self.parameter['alpha'] = float(extra_parameter[2])
-                self.parameter['beta'] = float(extra_parameter[3])
-                print('HINT: New reference radius       : ' + str(self.parameter['ref_radius']) + ',' +\
-                      '      new reference scale height : ' + str(self.parameter['ref_scale_height']) + ',' +\
-                      '      new alpha                  : ' + str(self.parameter['alpha']) + ',' +\
-                      '      new beta                   : ' + str(self.parameter['beta']) + ' (change with --extra)!')
-            else:
-                print('HINT: 4 parameter values are expected, got ' + str(len(extra_parameter)))
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.custom_parameter_list:
+                print('  - Warning: invalid parameter: ' + str(param))
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print('  - Info: ' + str(param) + ' updated to ' + str(self.parameter[param]))
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -241,12 +248,20 @@ class Sphere(Model):
         self.parameter['grid_type'] = 'spherical'
         self.parameter['inner_radius'] = 0.1 * self.math.const['au']
         self.parameter['outer_radius'] = 100. * self.math.const['au']
+        
         self.spherical_parameter['n_r'] = 100
         self.spherical_parameter['n_th'] = 91
-        self.spherical_parameter['n_ph'] = 1
+        self.spherical_parameter['n_ph'] = 91
         self.spherical_parameter['sf_r'] = 1.03
         self.parameter['gas_mass'] = 1e-4 * self.math.const['M_sun']
-        self.tmp_parameter['mag_field_geometry'] = 'toroidal'
+        
+        self.parameter['mag_field_geometry'] = 'toroidal'
+        self.parameter['mag_field_strength'] = 1e-10
+
+        self.custom_parameter_list = [
+            'mag_field_geometry',
+            'mag_field_strength'
+        ]
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
@@ -265,33 +280,33 @@ class Sphere(Model):
         Returns:
             List[float, float, float]: Magnetic field strength at a given position.
         """
-        if self.tmp_parameter['mag_field_geometry'] == 'toroidal':
+        if self.parameter['mag_field_geometry'] == 'toroidal':
             magnetic_field = self.math.toroidal_mag_field(
-                self.position, mag_field_strength=1e-10)
-        elif self.tmp_parameter['mag_field_geometry'] == 'vertical':
+                position=self.position, mag_field_strength=self.parameter['mag_field_strength'])
+        elif self.parameter['mag_field_geometry'] == 'vertical':
             magnetic_field = self.math.simple_mag_field(
-                mag_field_strength=1e-10, axis='z')
-        elif self.tmp_parameter['mag_field_geometry'] == 'radial':
+                mag_field_strength=self.parameter['mag_field_strength'], axis='z')
+        elif self.parameter['mag_field_geometry'] == 'radial':
             magnetic_field = self.math.radial_mag_field(
-                mag_field_strength=1e-10, position=self.position)
+                mag_field_strength=self.parameter['mag_field_strength'], position=self.position)
         else:
             magnetic_field = [0, 0, 0]
+            print('  - Warning: invalid magnetic field geometry: ' + str(self.parameter['mag_field_geometry']))
         return magnetic_field
 
     def update_parameter(self, extra_parameter):
         """Use this function to set model parameter with the extra parameters and update 
         model parameter that depend on other parameter.
         """
-        if extra_parameter is not None:
-            if len(extra_parameter) == 1:
-                if extra_parameter[0] == 'toroidal_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'toroidal'
-                    print('HINT: The toroidal magnetic field is used (change with --extra)!')
-                elif extra_parameter[0] == 'vertical_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'vertical'
-                    print('HINT: The vertical magnetic field is used (change with --extra)!')
-                elif extra_parameter[0] == 'radial_mag_field':
-                    self.tmp_parameter['mag_field_geometry'] = 'radial'
-                    print('HINT: The radial magnetic field is used (change with --extra)!')
-            else:
-                print('HINT: 1 parameter value is expected, got ' + str(len(extra_parameter)))
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.custom_parameter_list:
+                print('  - Warning: invalid parameter: ' + str(param))
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print('  - Info: ' + str(param) + ' updated to ' + str(self.parameter[param]))

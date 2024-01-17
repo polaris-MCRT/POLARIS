@@ -3423,7 +3423,7 @@ class CDustMixture
                     *pp->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
                 else
                 {
-                    cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+                    cout << "\nHINT: Mean cross section for extinction is zero or negative!" << endl;
                     pp->getStokesVector()->clear();
                 }
             }
@@ -3526,7 +3526,7 @@ class CDustMixture
                 *pp_escape->getStokesVector() *= getCscaMean(grid, *pp) / getCextMean(grid, *pp);
             else
             {
-                cout << "HINT: Mean cross section for extinction is zero or negative!" << endl;
+                cout << "\nHINT: Mean cross section for extinction is zero or negative!" << endl;
                 pp_escape->getStokesVector()->clear();
             }
         }

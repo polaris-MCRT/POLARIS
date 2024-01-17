@@ -168,6 +168,7 @@ class CDetector
         matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
+        N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
@@ -179,6 +180,7 @@ class CDetector
                 matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
                 sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
@@ -254,6 +256,7 @@ class CDetector
         matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
+        N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
@@ -265,6 +268,7 @@ class CDetector
                 matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
                 sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
@@ -348,6 +352,7 @@ class CDetector
         matrixV = new Matrix2D[nr_spectral_bins];
         matrixT = new Matrix2D[nr_spectral_bins];
         matrixS = new Matrix2D[nr_spectral_bins];
+        N_photon = new Matrix2D[nr_spectral_bins];
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -357,6 +362,7 @@ class CDetector
             matrixV[i_spectral].resize(bins_x, bins_y);
             matrixT[i_spectral].resize(bins_x, bins_y);
             matrixS[i_spectral].resize(bins_x, bins_y);
+            N_photon[i_spectral].resize(bins_x, bins_y);
 
             sedI[i_spectral] = 0;
             sedQ[i_spectral] = 0;
@@ -435,6 +441,7 @@ class CDetector
         matrixV = new Matrix2D[nr_spectral_bins];
         matrixT = new Matrix2D[nr_spectral_bins];
         matrixS = new Matrix2D[nr_spectral_bins];
+        N_photon = new Matrix2D[nr_spectral_bins];
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -444,6 +451,7 @@ class CDetector
             matrixV[i_spectral].resize(bins_x, bins_y);
             matrixT[i_spectral].resize(bins_x, bins_y);
             matrixS[i_spectral].resize(bins_x, bins_y);
+            N_photon[i_spectral].resize(bins_x, bins_y);
 
             sedI[i_spectral] = 0;
             sedQ[i_spectral] = 0;
@@ -800,6 +808,7 @@ class CDetector
             matrixV[i_spectral].addValue(x, y, st.V());
             matrixT[i_spectral].addValue(x, y, st.T());
             matrixS[i_spectral].addValue(x, y, st.Sp());
+            N_photon[i_spectral].addValue(x, y, 1);
         }
         else
         {
@@ -1079,6 +1088,12 @@ class CDetector
                         array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                         array_S[i] = matrixS[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        double N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        if((results_type == RESULTS_RAY || results_type == RESULTS_FULL) && N_ph > 0)
+                        {
+                            array_T[i] /= N_ph;
+                            array_S[i] /= N_ph;
+                        }
                         i++;
                     }
 
