@@ -46,7 +46,7 @@ Alternatively, these libraries can be installed with a package manager (root per
 sudo apt-get update
 sudo apt-get install libccfits-dev libcfitsio-dev
 ```
-If these package are installed on the system, simply install POLARIS via
+If these packages are installed on the system, simply install POLARIS via
 ```bash
 ./compile.sh
 ```
