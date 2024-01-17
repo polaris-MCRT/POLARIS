@@ -41,12 +41,21 @@ To install POLARIS, run the installation script:
 ./compile.sh -f
 ```
 For the first installation, the option `-f` is required to install the [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/) and [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/) libraries.
+Alternatively, these libraries can be installed with a package manager (root permissions are required):
+```bash
+sudo apt-get update
+sudo apt-get install libccfits-dev libcfitsio-dev
+```
+If these package are installed on the system, simply install POLARIS via
+```bash
+./compile.sh
+```
 For more information, type:
 ```bash
 ./compile.sh -h
 ```
 POLARIS can now be executed from any newly opened terminal/console.
-However, to use it in already open terminals/consoles, execute the following command to update the environmental paths:
+To use it in already open terminals/consoles, execute the following command to update the environmental paths:
 ```bash
 source ~/.bashrc
 ```
@@ -78,7 +87,7 @@ If line radiative transfer and/or Zeeman simulations are used, please cite [Brau
     ├── projects                                 # Output directory to store simulation results and examples
     │   ├── disk                                 # Exemplary disk model
     │   ├── test                                 # Models for testing purposes
-    │   └── CommandList.cmd                      # List of avaiable POLARIS commands
+    │   └── CommandList.cmd                      # List of available POLARIS commands
     ├── src                                      # Source files of the POLARIS code
     ├── tools                                    # PolarisTools directory
     │   ├── polaris_tools_custom                 # User-definable modules for PolarisTools
