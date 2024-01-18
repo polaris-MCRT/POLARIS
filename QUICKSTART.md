@@ -38,6 +38,15 @@ Run the installation script:
 ./compile.sh -f
 ```
 For the first installation, the option `-f` is required to install the [CCfits](https://heasarc.gsfc.nasa.gov/fitsio/CCfits/) and [cfitsio](https://heasarc.gsfc.nasa.gov/fitsio/) libraries.
+Alternatively, these libraries can be installed with a package manager (root permissions are required):
+```bash
+sudo apt update
+sudo apt install libccfits-dev libcfitsio-dev
+```
+If these packages are installed on the system, simply install POLARIS via
+```bash
+./compile.sh
+```
 For more information, type:
 ```bash
 ./compile.sh -h
@@ -48,7 +57,7 @@ However, to use it in already open terminals/consoles, execute the following com
 source ~/.bashrc
 ```
 
-**HINT**: Please refer to the [manual](manual.pdf) for installation on **macOS**. An installer to use POLARIS with Windows is not available yet.
+**HINT**: Please refer to the [manual](manual.pdf) (Sect. 1.2) for installation on **macOS**. An installer to use POLARIS with Windows is not available yet.
 
 
 ## Start a simulation
@@ -60,6 +69,7 @@ Exemplary `.cmd` command files for temperature, thermal emission, and scattered 
 - `projects/disk/example/dust/`, and
 - `projects/disk/example/dust_mc/`, respectively.
 
+Parameters of the model such as density distribution or magnetic field direction are stored in a separate grid file (for detailed information, see the [manual](manual.pdf), Sect. 2.3).
 The simulations use an exemplary (binary) grid file `grid.dat` of a circumstellar disk which can be found in `projects/disk/`.
 
 To start the temperature simulation (`temp`), move into the POLARIS directory and execute `polaris` followed by the command file:
@@ -71,7 +81,7 @@ The results are stored at `projects/disk/example/temp/data/` as `.fits.gz` files
 These files can be opened with, for example, [SAOImageDS9](https://sites.google.com/cfa.harvard.edu/saoimageds9/home), or a python script using [astropy](https://docs.astropy.org/en/stable/generated/examples/io/plot_fits-image.html).
 
 Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
-Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) for available options of the command file.
+Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) (Table 2.4 - 2.10) for available options of the command file.
 
 **HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
 
@@ -185,4 +195,4 @@ To convert an existing binary grid file to an ascii grid file, use
 polaris-gen model_name grid_filename.dat --convert binary2ascii
 ```
 The input grid file has to be located in `projects/model_name/` and the new output grid file will be stored at `projects/model_name/`.
-For the general structure and available options in the grid file, please read the [manual](manual.pdf).
+For the general structure and available options in the grid file, please read the [manual](manual.pdf) (Sect. 2.3).
