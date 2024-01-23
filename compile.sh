@@ -305,53 +305,13 @@ function update_installation()
 
 
 # ================================================================================ #
-# ================================ Delete POLARIS ================================ #
-# ================================================================================ #
-
-
-function delete_installation()
-{
-    printf "%s\n" "Do you really want to delete your POLARIS installation [y/N]?"
-    read really_delete
-    case ${really_delete:=n} in
-    [yY]*)
-        echo "------ delete POLARIS ------"
-
-        export_str="export POLARIS_PATH=\"${current_path}\""
-        if grep -q "${export_str}" ${HOME}/.bashrc; then
-            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
-        fi
-
-        export_str="export POLARIS_FITS_PATH=\""'${POLARIS_PATH}'"/lib/CCfits/build:"'${POLARIS_PATH}'"/lib/cfitsio/build\""
-        if grep -q "${export_str}" ${HOME}/.bashrc; then
-            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
-        fi
-
-        export_str="export POLARISTOOLS_PATH=\"$HOME/.local/bin\""
-        if grep -q "${export_str}" ${HOME}/.bashrc; then
-            sed -i.bak "/${export_str//\//\\/}/,+4d" ${HOME}/.bashrc
-        fi
-
-        cd ${current_path}/../
-        rm -rfv ${current_path}
-        pip3 uninstall PolarisTools
-        exit
-        ;;
-    *)
-        exit
-        ;;
-    esac
-}
-
-
-# ================================================================================ #
 # =========================== Get user input and verify ========================== #
 # ================================================================================ #
 
 
 function usage() {
     echo ""
-    echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR] [-D]"
+    echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
     echo ""
     echo "Install and compile POLARIS"
     echo -e "${YELLOW}HINT:${NC} For first installation, use option -f"
@@ -371,7 +331,6 @@ function usage() {
     echo "        choose the generator for cmake:"
     echo "          - make (default)"
     echo "          - ninja"
-    echo "-D delete POLARIS from your computer"
     echo ""
     exit
 }
@@ -414,9 +373,6 @@ while getopts "hfrduc:g:D" opt; do
         elif [[ ${OPTARG,,} = "make" || ${OPTARG,,} = "unix makefiles" ]]; then
             CMAKE_GENERATOR="Unix Makefiles"
         fi
-        ;;
-    D)
-        delete_installation
         ;;
     *)
         usage
