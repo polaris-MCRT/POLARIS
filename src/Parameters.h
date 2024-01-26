@@ -103,7 +103,7 @@ class parameters
         f_highJ = 0.25;
         Q_ref = 0.4;
         alpha_Q = 3.0;
-        R_rat = 1.0;
+        R_rayleigh = 1.0;
 
         f_cor = 0.6;
         adjTgas = 0;
@@ -473,6 +473,11 @@ class parameters
         return (align & ALIG_PA) == ALIG_PA;
     }
 
+    bool getAligNONPA() const
+    {
+        return (align & ALIG_NONPA) == ALIG_NONPA;
+    }
+
     bool getAligIDG() const
     {
         return (align & ALIG_IDG) == ALIG_IDG;
@@ -699,9 +704,9 @@ class parameters
         return alpha_Q;
     }
 
-    double getRATReductionFactor() const
+    double getRayleighReductionFactor() const
     {
-        return R_rat;
+        return R_rayleigh;
     }
 
     double getFcorr() const
@@ -1337,9 +1342,9 @@ class parameters
         alpha_Q = val;
     }
 
-    void setRATReductionFactor(double val)
+    void setRayleighReductionFactor(double val)
     {
-        R_rat = val;
+        R_rayleigh = val;
     }
 
     void setFcorr(double val)
@@ -2351,7 +2356,7 @@ class parameters
     double f_cor;
     double Q_ref;
     double alpha_Q;
-    double R_rat;
+    double R_rayleigh;
 
     double adjTgas;
     double isrf_g_zero;

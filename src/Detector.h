@@ -4696,6 +4696,12 @@ class CDetector
                 alignment_string += ", ";
             alignment_string += "PA";
         }
+        if((alignment & ALIG_NONPA) == ALIG_NONPA)
+        {
+            if(alignment_string != "")
+                alignment_string += ", ";
+            alignment_string += "NONPA";
+        }
         if((alignment & ALIG_IDG) == ALIG_IDG)
         {
             if(alignment_string != "")

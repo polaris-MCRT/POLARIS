@@ -174,7 +174,7 @@ class CPipeline
             cout << "- RAT efficiency ref. (Qref)   : " << param.getQref() << endl;
             cout << "- RAT efficiency exp. (alphaQ) : " << param.getAlphaQ() << endl;
         }
-        cout << "- Rayleigh reduction fact. (R) : " << param.getRATReductionFactor() << endl;
+        cout << "- Rayleigh reduction fact. (R) : " << param.getRayleighReductionFactor() << endl;
         cout << "- Align limit prefact. (larmF) : " << param.getLarmF() << endl;
     }
 
@@ -235,17 +235,14 @@ class CPipeline
             cout << "- No alignment" << endl;
         else if(param.getAligPA())
             cout << "- Perfect alignment" << endl;
+        else if(param.getAligNONPA())
+            cout << "- Non-perfect alignment" << endl;
         else
         {
             if(param.getAligIDG())
                 cout << "- IDG (paramagnetic alignment)" << endl;
             if(param.getAligRAT())
-            {
-                if(param.getRATReductionFactor() == 1)
-                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << endl;
-                else
-                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << "; R_rat: " << param.getRATReductionFactor() << endl;
-            }
+                cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << endl;
             if(param.getAligGOLD())
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())
