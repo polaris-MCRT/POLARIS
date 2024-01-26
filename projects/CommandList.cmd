@@ -151,7 +151,7 @@
     <detector_sync_healpix nr_sides = "512"> 0.03 0.7 11 1.65e+20 0 0 -80 80 -45 45
 
     # maximum level of subpixeling (DUST_EMISSION, LINE_EMISSION)
-    <max_subpixel_lvl> 1
+    <max_subpixel_lvl> 3
 
     # rotation axis for first and second rotation angle (ALL) axis_x axis_y axis_z
     <axis1>	1	0	0
