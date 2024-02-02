@@ -174,8 +174,8 @@ class CPipeline
             cout << "- RAT efficiency ref. (Qref)   : " << param.getQref() << endl;
             cout << "- RAT efficiency exp. (alphaQ) : " << param.getAlphaQ() << endl;
         }
-        cout << "- Rayleigh reduction fact. (R) : " << param.getRATReductionFactor() << endl;
-        cout << "- Align limit prefact. (larmF) : " << param.getLarmF() << endl;
+        else
+            cout << "- None" << endl;
     }
 
     void printPathParameters(parameters & param)
@@ -235,21 +235,32 @@ class CPipeline
             cout << "- No alignment" << endl;
         else if(param.getAligPA())
             cout << "- Perfect alignment" << endl;
+        else if(param.getAligNONPA())
+        {
+            cout << "- Non-perfect alignment" << endl;
+            cout << "    Rayleigh reduction fact. (R) : " << param.getRayleighReductionFactor() << endl;
+        }
         else
         {
             if(param.getAligIDG())
                 cout << "- IDG (paramagnetic alignment)" << endl;
             if(param.getAligRAT())
             {
-                if(param.getRATReductionFactor() == 1)
-                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << endl;
-                else
-                    cout << "- RAT (radiative torques); f_highJ: " << param.getFHighJ() << "; R_rat: " << param.getRATReductionFactor() << endl;
+                cout << "- RAT (radiative torques)" << endl;
+                if(!param.getAligINTERNAL())
+                    cout << "    Rayleigh reduction fact. (R) : " << param.getRayleighReductionFactor() << endl;
             }
             if(param.getAligGOLD())
                 cout << "- GOLD (mechanical alignment)" << endl;
             if(param.getAligINTERNAL())
-                cout << "- Internal alignment; f_c: " << param.getFcorr() << endl;
+            {
+                cout << "- Internal alignment" << endl;
+                if(param.getAligIDG() || param.getAligGOLD())
+                    cout << "    Correlation factor (f_c)     : " << param.getFcorr() << endl;
+                if(param.getAligRAT())
+                    cout << "    Fraction at high-J (f_highJ) : " << param.getFHighJ() << endl;
+            }
+            cout << "    Align limit prefact. (larmF) : " << param.getLarmF() << endl;
         }
     }
 

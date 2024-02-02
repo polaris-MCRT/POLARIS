@@ -11,7 +11,7 @@
     <dust_component>	"/PATH/TO/POLARIS/input/dust/silicate_d03.nk" "plaw" 1.0 3500.0 5e-09 2.5e-07 -3.5
 
     # considered alignment mechanism of non-spherical dust grains (DUST_EMISSION)
-    <align> ALIG_PA or ALIG_RAT or ALIG_IDG or ALIG_GOLD or ALIG_INTERNAL
+    <align> ALIG_PA or ALIG_RAT or ALIG_IDG or ALIG_GOLD or ALIG_INTERNAL or ALIG_NONPA
 
     # enables/disables sublimation of dust grains, sublimation temperature is set in the dust catalog (TEMP, TEMP_RAT)
     <sub_dust> 1 (yes) or 0 (no) 
@@ -28,8 +28,8 @@
     # exponent for the radiative torque efficiency power law (RAT, TEMP_RAT)
     <alpha_Q> 3.0
 
-    # Rayleigh reduction factor for RAT alignment if imperfect internal alignment is not used (TEMP, RAT, TEMP_RAT, DUST_EMISSION)
-    <R_rat> 1.0
+    # Rayleigh reduction factor for not-perfect alignment or RAT alignment if imperfect internal alignment is not used (TEMP, RAT, TEMP_RAT, DUST_EMISSION)
+    <R_rayleigh> 1.0
 
     # overwrite the gas temperature with the dust temperature times TEMP_FACTOR (TEMP, TEMP_RAT)
     <adj_tgas> 1.0
@@ -151,7 +151,7 @@
     <detector_sync_healpix nr_sides = "512"> 0.03 0.7 11 1.65e+20 0 0 -80 80 -45 45
 
     # maximum level of subpixeling (DUST_EMISSION, LINE_EMISSION)
-    <max_subpixel_lvl> 1
+    <max_subpixel_lvl> 3
 
     # rotation axis for first and second rotation angle (ALL) axis_x axis_y axis_z
     <axis1>	1	0	0

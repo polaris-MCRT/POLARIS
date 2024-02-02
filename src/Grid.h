@@ -2412,7 +2412,10 @@ class CGridBasic
         const cell_basic & cell = *pp.getPositionCell();
         Vector3D tmp_dir(cell.getData(data_pos_vx), cell.getData(data_pos_vy), cell.getData(data_pos_vz));
         // Rotate vector from cell center to position
-        return rotateToCenter(pp, tmp_dir, true, true);
+        // return rotateToCenter(pp, tmp_dir, true, true);
+        // ?! Why should the velocity field be rotated ?!
+
+        return tmp_dir;
     }
 
     Vector3D getVelocityField(const cell_basic & cell) const
@@ -2460,7 +2463,10 @@ class CGridBasic
         const cell_basic & cell = *pp.getPositionCell();
         Vector3D tmp_dir(cell.getData(data_pos_mx), cell.getData(data_pos_my), cell.getData(data_pos_mz));
         // Rotate vector from cell center to position
-        return rotateToCenter(pp, tmp_dir, true, true);
+        // return rotateToCenter(pp, tmp_dir, true, true);
+        // ?! Why should the magnetic field be rotated ?!
+
+        return tmp_dir;
     }
 
     void setMagField(cell_basic * cell, const Vector3D & mag)

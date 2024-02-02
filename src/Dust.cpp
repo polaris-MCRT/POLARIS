@@ -3104,7 +3104,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         f_highJ = comp->getFHighJ();
         Q_ref = comp->getQref();
         alpha_Q = comp->getAlphaQ();
-        R_rat = comp->getRATReductionFactor();
+        R_rayleigh = comp->getRayleighReductionFactor();
         larm_f = comp->getLarmF();
 
         // Init dust properties to be filled with grain properties
@@ -3417,6 +3417,42 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     cs *= PI * a_eff_2[a];
 }
 
+void CDustComponent::calcNONPACrossSections(uint a, uint w, cross_sections & cs, double theta) const
+{
+    double sinsq_th = sin(theta);
+    sinsq_th *= sinsq_th;
+
+    double c_s_ext = getCext1(a, w);
+    double c_p_ext = getCext2(a, w);
+    double c_av_ext = getCextMean(a, w);
+
+    double cx_ext = c_av_ext + R_rayleigh / 3.0 * (c_s_ext - c_p_ext) * (1 - 3.0 * sinsq_th);
+    double cy_ext = c_av_ext + R_rayleigh / 3.0 * (c_s_ext - c_p_ext);
+
+    cs.Cext = 0.5 * (cx_ext + cy_ext);
+    cs.Cpol = 0.5 * R_rayleigh * (c_s_ext - c_p_ext) * sinsq_th;
+
+    double c_s_abs = getCabs1(a, w);
+    double c_p_abs = getCabs2(a, w);
+    double c_av_abs = getCabsMean(a, w);
+
+    double cx_abs = c_av_abs + R_rayleigh / 3.0 * (c_s_abs - c_p_abs) * (1 - 3.0 * sinsq_th);
+    double cy_abs = c_av_abs + R_rayleigh / 3.0 * (c_s_abs - c_p_abs);
+
+    cs.Cabs = 0.5 * (cx_abs + cy_abs);
+    cs.Cpabs = 0.5 * R_rayleigh * (c_s_abs - c_p_abs) * sinsq_th;
+
+    double c_s_sca = getCsca1(a, w);
+    double c_p_sca = getCsca2(a, w);
+    double c_av_sca = getCscaMean(a, w);
+
+    double cx_sca = c_av_sca + R_rayleigh / 3.0 * (c_s_sca - c_p_sca) * (1 - 3.0 * sinsq_th);
+    double cy_sca = c_av_sca + R_rayleigh / 3.0 * (c_s_sca - c_p_sca);
+
+    cs.Csca = 0.5 * (cx_sca + cy_sca);
+    cs.Ccirc = 0.5 * getCcirc(a, w) * R_rayleigh * sinsq_th;
+}
+
 void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        const photon_package & pp,
                                        uint i_density,
@@ -3440,6 +3476,13 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     if((alignment & ALIG_PA) == ALIG_PA)
     {
         calcPACrossSections(a, w, cs, mag_field_theta);
+        return;
+    }
+
+    // Not perfect alignment
+    if((alignment & ALIG_NONPA) == ALIG_NONPA)
+    {
+        calcNONPACrossSections(a, w, cs, mag_field_theta);
         return;
     }
 
@@ -3471,7 +3514,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
                 Rrat = f_highJ + (1 - f_highJ) * getInternalRAT();
             else
-                Rrat = R_rat;
+                Rrat = R_rayleigh;
         }
     }
 
@@ -5136,7 +5179,7 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             single_component[i_comp].setFcorr(param.getFcorr());
             single_component[i_comp].setQref(param.getQref());
             single_component[i_comp].setAlphaQ(param.getAlphaQ());
-            single_component[i_comp].setRATReductionFactor(param.getRATReductionFactor());
+            single_component[i_comp].setRayleighReductionFactor(param.getRayleighReductionFactor());
 
             single_component[i_comp].setDelta0(param.getDelta0());
             single_component[i_comp].setLarmF(param.getLarmF());
