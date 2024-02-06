@@ -2862,7 +2862,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         string path = seperateString(data);
         param->setPathGrid(path);
 
-        param->updateSIConvDH(1e3);
+        param->updateSIConvDH(1e6);
         param->updateSIConvLength(1e-2);
         param->updateSIConvBField(1e-4);
         param->updateSIConvVField(1e-2);
