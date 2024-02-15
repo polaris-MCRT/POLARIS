@@ -22,6 +22,8 @@ class CDustComponent
         phase_pdf = 0;
 
         HG_g_factor = 0;
+        HG_g2_factor = 0;
+        HG_g3_factor = 0;
         Qtrq = 0;
         tab_em = 0;
         tab_em_inv = 0;
@@ -43,6 +45,8 @@ class CDustComponent
         Qsca2 = 0;
         Qcirc = 0;
         HGg = 0;
+        HGg2 = 0;
+        HGg3 = 0;
         a_eff = 0;
         a_eff_1_5 = 0;
         a_eff_3_5 = 0;
@@ -64,6 +68,8 @@ class CDustComponent
         tCsca2 = 0;
         tCcirc = 0;
         tHGg = 0;
+        tHGg2 = 0;
+        tHGg3 = 0;
 
         stringID = "";
         size_keyword = "";
@@ -188,6 +194,18 @@ class CDustComponent
                 delete[] HGg[a];
             delete[] HGg;
         }
+        if(HGg2 != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] HGg2[a];
+            delete[] HGg2;
+        }
+        if(HGg3 != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] HGg3[a];
+            delete[] HGg3;
+        }
         if(avg_scattering_frac != 0)
         {
             for(uint a = 0; a < nr_of_dust_species; a++)
@@ -229,6 +247,10 @@ class CDustComponent
             delete[] Qtrq;
         if(HG_g_factor != 0)
             delete[] HG_g_factor;
+        if(HG_g2_factor != 0)
+            delete[] HG_g2_factor;
+        if(HG_g3_factor != 0)
+            delete[] HG_g3_factor;
 
         if(CextMean != 0)
         {
@@ -265,6 +287,10 @@ class CDustComponent
             delete[] tCcirc;
         if(tHGg != 0)
             delete[] tHGg;
+        if(tHGg2 != 0)
+            delete[] tHGg2;
+        if(tHGg3 != 0)
+            delete[] tHGg3;
 
         if(tab_em != 0)
             delete[] tab_em;
@@ -341,6 +367,31 @@ class CDustComponent
         return HGg[a][w];
     }
 
+    inline double getHGg2(uint a, uint w) const
+    {
+        return HGg2[a][w];
+    }
+
+    inline double getHGg3(uint a, uint w) const
+    {
+        return HGg3[a][w];
+    }
+
+    void setHGg(uint a, uint w, double val)
+    {
+        HGg[a][w] = val;
+    }
+
+    void setHGg2(uint a, uint w, double val)
+    {
+        HGg2[a][w] = val;
+    }
+
+    void setHGg3(uint a, uint w, double val)
+    {
+        HGg3[a][w] = val;
+    }
+
     // ------------------------------------------------------------------------------------
     // ----------- Add values to efficiencies for grain size and wavelength
     // ---------------
@@ -383,6 +434,16 @@ class CDustComponent
     void addHGg(uint a, uint w, double val)
     {
         HGg[a][w] += val;
+    }
+
+    void addHGg2(uint a, uint w, double val)
+    {
+        HGg2[a][w] += val;
+    }
+
+    void addHGg3(uint a, uint w, double val)
+    {
+        HGg3[a][w] += val;
     }
 
     // ------------------------------------------------------------------------
@@ -641,6 +702,58 @@ class CDustComponent
         return res;
     }
 
+    double getHGg2(CGridBasic * grid, const photon_package & pp) const
+    {
+        // Get wavelength of photon package
+        uint w = pp.getDustWavelengthID();
+
+        // Return precalculated value if available
+        if(tHGg2 != 0)
+            return tHGg2[w];
+
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, pp);
+        double a_max = getSizeMax(grid, pp);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= getHGg2(a, w);
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+        return res;
+    }
+
+    double getHGg3(CGridBasic * grid, const photon_package & pp) const
+    {
+        // Get wavelength of photon package
+        uint w = pp.getDustWavelengthID();
+
+        // Return precalculated value if available
+        if(tHGg3 != 0)
+            return tHGg3[w];
+
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, pp);
+        double a_max = getSizeMax(grid, pp);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= getHGg3(a, w);
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+        return res;
+    }
+
     // -----------------------------------------------------------------------------
     // ----------- Average cross-sections for grain size and wavelength ------------
     // -----------------------------------------------------------------------------
@@ -792,6 +905,30 @@ class CDustComponent
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min_global, a_max_global);
         delete[] HGg;
+        return res;
+    }
+
+    double getHGg2(uint w) const
+    {
+        double * HGg2 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            HGg2[a] = a_eff_3_5[a] * getHGg2(a, w);
+        double res =
+            1.0 / getWeight() *
+            CMathFunctions::integ_dust_size(a_eff, HGg2, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] HGg2;
+        return res;
+    }
+
+    double getHGg3(uint w) const
+    {
+        double * HGg3 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            HGg3[a] = a_eff_3_5[a] * getHGg3(a, w);
+        double res =
+            1.0 / getWeight() *
+            CMathFunctions::integ_dust_size(a_eff, HGg3, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] HGg3;
         return res;
     }
 
@@ -1169,6 +1306,21 @@ class CDustComponent
                 g = getHGg(a, w);
                 res = CMathFunctions::phaseFunctionHG(g, theta);
                 break;
+            
+            case PH_DHG:
+                double alpha;
+                g = getHGg(a, w);
+                alpha = getHGg2(a, w);
+                res = CMathFunctions::phaseFunctionDHG(g, alpha, theta);
+                break;
+            
+            case PH_TTHG:
+                double g2, weight;
+                g = getHGg(a, w);
+                g2 = getHGg2(a, w);
+                weight = getHGg3(a, w);
+                res = CMathFunctions::phaseFunctionTTHG(g, g2, weight, theta);
+                break;
 
             case PH_MIE:
                 res = getScatteredFractionMie(a, w, theta);
@@ -1195,6 +1347,20 @@ class CDustComponent
             {
                 uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
                 henyeygreen(pp, a, rand_gen);
+                break;
+            }
+
+            case PH_DHG:
+            {
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                drainehenyeygreen(pp, a, rand_gen);
+                break;
+            }
+
+            case PH_TTHG:
+            {
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                threeparamhenyeygreen(pp, a, rand_gen);
                 break;
             }
 
@@ -1922,6 +2088,16 @@ class CDustComponent
         return nr_of_dust_species;
     }
 
+    void setNrOfDustSpecies(uint val)
+    {
+        nr_of_dust_species = val;
+    }
+
+    void setNrOfWavelength(uint val)
+    {
+        nr_of_wavelength = val;
+    }
+
     uint getNrOfIncidentAngles() const
     {
         return nr_of_incident_angles;
@@ -2159,6 +2335,18 @@ class CDustComponent
         y = HG_g_factor[i].getY(j);
     }
 
+    void getHG_g2_factor(uint i, uint j, double & x, double & y)
+    {
+        x = HG_g2_factor[i].getX(j);
+        y = HG_g2_factor[i].getY(j);
+    }
+
+    void getHG_g3_factor(uint i, uint j, double & x, double & y)
+    {
+        x = HG_g3_factor[i].getX(j);
+        y = HG_g3_factor[i].getY(j);
+    }
+
     bool getCalorimetryLoaded()
     {
         return calorimetry_loaded;
@@ -2271,6 +2459,8 @@ class CDustComponent
     void preCalcEffProperties(parameters & param);
 
     void henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void drainehenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void threeparamhenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
     void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
@@ -2373,7 +2563,7 @@ class CDustComponent
     interp ** avg_scattering_frac;
     interp ** phase_pdf;
 
-    spline *HG_g_factor, *Qtrq;
+    spline *HG_g_factor, *HG_g2_factor, *HG_g3_factor, *Qtrq;
     spline * tab_planck;
     spline * tab_em;
     spline * tab_em_inv;
@@ -2383,12 +2573,12 @@ class CDustComponent
     prob_list *dust_prob, *sca_prob, *abs_prob;
 
     Matrix2D ***** sca_mat;
-    double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg;
+    double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg, **HGg2, **HGg3;
     double ** enthalpy;
     double *a_eff, *a_eff_1_5, *a_eff_3_5, *a_eff_2;
     double * calorimetry_temperatures;
     double * mass;
-    double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
+    double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg, *tHGg2, *tHGg3;
     double * relWeightTab;
     double **CextMean, **CabsMean, **CscaMean;
 
@@ -2535,6 +2725,14 @@ class CDustMixture
 
                 case PH_HG:
                     str_res = "Henyey and Greenstein";
+                    break;
+                
+                case PH_DHG:
+                    str_res = "Draine Henyey and Greenstein";
+                    break;
+                
+                case PH_TTHG:
+                    str_res = "Three parameter Henyey and Greenstein";
                     break;
 
                 case PH_MIE:

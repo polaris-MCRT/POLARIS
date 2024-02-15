@@ -27,6 +27,8 @@ void CDustComponent::initDustProperties()
     Qsca2 = new double *[nr_of_dust_species];
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
+    HGg2 = new double *[nr_of_dust_species];
+    HGg3 = new double *[nr_of_dust_species];
 
     CextMean = new double *[nr_of_dust_species];
     CabsMean = new double *[nr_of_dust_species];
@@ -49,6 +51,8 @@ void CDustComponent::initDustProperties()
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+        HGg2[a] = new double[nr_of_wavelength];
+        HGg3[a] = new double[nr_of_wavelength];
 
         CextMean[a] = new double [nr_of_wavelength];
         fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
@@ -68,12 +72,16 @@ void CDustComponent::initDustProperties()
             Qsca2[a][w] = 0;
             Qcirc[a][w] = 0;
             HGg[a][w] = 0;
+            HGg2[a][w] = 0;
+            HGg3[a][w] = 1;
         }
     }
 
-    // Qtrq and HG_g_Factor are splines over the incident angle
+    // Qtrq and parameters for Henyey-Greenstein phase function are splines over the incident angle
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g2_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g3_factor = new spline[nr_of_dust_species * nr_of_wavelength];
 }
 
 void CDustComponent::initScatteringMatrixArray()
@@ -244,7 +252,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     dlist values, wavelength_list_dustcat;
 
     // temporary variables for wavelength interpolation
-    spline *eff_wl, *Qtrq_wl, *HG_g_factor_wl;
+    spline *eff_wl, *Qtrq_wl, *HG_g_factor_wl, *HG_g2_factor_wl, *HG_g3_factor_wl;
     uint nr_of_wavelength_dustcat;
 
     // Get min and max dust grain size
@@ -355,11 +363,12 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 // Calculate the GOLD alignment g factor
                 gold_g_factor = 0.5 * (aspect_ratio * aspect_ratio - 1);
 
-                // Init splines for wavelength interpolation of the dust optical
-                // properties
+                // Init splines for wavelength interpolation of the dust optical properties
                 eff_wl = new spline[nr_of_dust_species * NR_OF_EFF];
                 Qtrq_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
                 HG_g_factor_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
+                HG_g2_factor_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
+                HG_g3_factor_wl = new spline[nr_of_dust_species * nr_of_incident_angles];
 
                 break;
 
@@ -429,37 +438,196 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     for(uint i = 0; i < NR_OF_EFF - 1; i++)
                         eff_wl[a * NR_OF_EFF + i].resize(nr_of_wavelength_dustcat);
 
-                // Each line contains NR_OF_EFF - 1 plus 2 times nr_of_incident_angles
-                // values
-                if(values.size() == NR_OF_EFF - 1 + 2 * nr_of_incident_angles)
+                // Each line contains NR_OF_EFF - 1 plus nr_of_incident_angles values
+                if(values.size() == NR_OF_EFF - 1 + nr_of_incident_angles)
                 {
-                    // he current line contains enough values
+                    // the current line contains enough values
                     rec = true;
 
                     // Set the dust grain optical properties
                     for(uint i = 0; i < NR_OF_EFF - 1; i++)
                         eff_wl[a * NR_OF_EFF + i].setValue(w, wavelength_list_dustcat[w], values[i]);
 
-                    // For each incident angles, get Qtrq and HG g factor
+                    // For each incident angles, get Qtrq
                     for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
                     {
                         // At the first wavelength, resize the splines for the wavelengths
                         if(w == 0)
                         {
                             Qtrq_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
-                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(
-                                nr_of_wavelength_dustcat);
+                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
                         }
 
                         // Set the radiative torque efficiency
                         Qtrq_wl[a * nr_of_incident_angles + i_inc].setValue(
                             w, wavelength_list_dustcat[w], values[NR_OF_EFF - 1 + i_inc]);
 
-                        // Set the Henyey-Greenstein factor
+                        // Set the Henyey-Greenstein g factor
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            0.0);
+                        
+                        // Set the second Henyey-Greenstein factor to 0
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            0.0);
+                        
+                        // Set the third Henyey-Greenstein factor to 1
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            1.0);
+                    }
+
+                    // Increace the counter for the dust grain optical properties
+                    eff_counter++;
+                }
+
+                // Alternatively, each line contains additional column with g for HG
+                if(values.size() == NR_OF_EFF - 1 + 2 * nr_of_incident_angles)
+                {
+                    // the current line contains enough values
+                    rec = true;
+
+                    // Set the dust grain optical properties
+                    for(uint i = 0; i < NR_OF_EFF - 1; i++)
+                        eff_wl[a * NR_OF_EFF + i].setValue(w, wavelength_list_dustcat[w], values[i]);
+
+                    // For each incident angles, get Qtrq and HG parameter
+                    for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+                    {
+                        // At the first wavelength, resize the splines for the wavelengths
+                        if(w == 0)
+                        {
+                            Qtrq_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                        }
+
+                        // Set the radiative torque efficiency
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w, wavelength_list_dustcat[w], values[NR_OF_EFF - 1 + i_inc]);
+
+                        // Set the Henyey-Greenstein g factor
                         HG_g_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
                             w,
                             wavelength_list_dustcat[w],
                             values[NR_OF_EFF - 1 + i_inc + nr_of_incident_angles]);
+
+                        // Set the second Henyey-Greenstein factor
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            0.0);
+
+                        // Set the third Henyey-Greenstein factor to 0
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            1.0);
+                    }
+
+                    // Increace the counter for the dust grain optical properties
+                    eff_counter++;
+                }
+
+                // Alternatively, each line contains additional two columns with g and alpha for Draine HG
+                if(values.size() == NR_OF_EFF - 1 + 3 * nr_of_incident_angles)
+                {
+                    // the current line contains enough values
+                    rec = true;
+
+                    // Set the dust grain optical properties
+                    for(uint i = 0; i < NR_OF_EFF - 1; i++)
+                        eff_wl[a * NR_OF_EFF + i].setValue(w, wavelength_list_dustcat[w], values[i]);
+
+                    // For each incident angles, get Qtrq and HG parameters
+                    for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+                    {
+                        // At the first wavelength, resize the splines for the wavelengths
+                        if(w == 0)
+                        {
+                            Qtrq_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                        }
+
+                        // Set the radiative torque efficiency
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w, wavelength_list_dustcat[w], values[NR_OF_EFF - 1 + i_inc]);
+
+                        // Set the Henyey-Greenstein g factor
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + nr_of_incident_angles]);
+
+                        // Set the second Henyey-Greenstein factor
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + 2 * nr_of_incident_angles]);
+
+                        // Set the third Henyey-Greenstein factor to 1
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            1.0);
+                    }
+
+                    // Increace the counter for the dust grain optical properties
+                    eff_counter++;
+                }
+
+                // Alternatively, each line contains additional three columns with g1, g2 and weight for TTHG
+                if(values.size() == NR_OF_EFF - 1 + 4 * nr_of_incident_angles)
+                {
+                    // the current line contains enough values
+                    rec = true;
+
+                    // Set the dust grain optical properties
+                    for(uint i = 0; i < NR_OF_EFF - 1; i++)
+                        eff_wl[a * NR_OF_EFF + i].setValue(w, wavelength_list_dustcat[w], values[i]);
+
+                    // For each incident angles, get Qtrq and HG parameters
+                    for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
+                    {
+                        // At the first wavelength, resize the splines for the wavelengths
+                        if(w == 0)
+                        {
+                            Qtrq_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                            HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].resize(nr_of_wavelength_dustcat);
+                        }
+
+                        // Set the radiative torque efficiency
+                        Qtrq_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w, wavelength_list_dustcat[w], values[NR_OF_EFF - 1 + i_inc]);
+
+                        // Set the Henyey-Greenstein g factor
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + nr_of_incident_angles]);
+
+                        // Set the second Henyey-Greenstein factor
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + 2 * nr_of_incident_angles]);
+
+                        // Set the third Henyey-Greenstein factor
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].setValue(
+                            w,
+                            wavelength_list_dustcat[w],
+                            values[NR_OF_EFF - 1 + i_inc + 3 * nr_of_incident_angles]);
                     }
 
                     // Increace the counter for the dust grain optical properties
@@ -478,6 +646,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     {
                         Qtrq_wl[a * nr_of_incident_angles + i_inc].createSpline();
                         HG_g_factor_wl[a * nr_of_incident_angles + i_inc].createSpline();
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].createSpline();
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].createSpline();
                     }
                 }
 
@@ -512,14 +682,18 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     Qsca2 = new double *[nr_of_dust_species];
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
+    HGg2 = new double *[nr_of_dust_species];
+    HGg3 = new double *[nr_of_dust_species];
 
     CextMean = new double *[nr_of_dust_species];
     CabsMean = new double *[nr_of_dust_species];
     CscaMean = new double *[nr_of_dust_species];
 
-    // Init splines for incident angle interpolation of Qtrq and HG g factor
+    // Init splines for incident angle interpolation of Qtrq, HG parameters
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g2_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g3_factor = new spline[nr_of_dust_species * nr_of_wavelength];
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
@@ -532,6 +706,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+        HGg2[a] = new double[nr_of_wavelength];
+        HGg3[a] = new double[nr_of_wavelength];
 
         CextMean[a] = new double [nr_of_wavelength];
         fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
@@ -545,6 +721,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             // Resize the splines of Qtrq and HG g factor for each wavelength
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g2_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g3_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
             if(sizeIndexUsed(a))
             {
@@ -565,18 +743,45 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     HG_g_factor[w * nr_of_dust_species + a].setValue(
                         i_inc,
                         i_inc * d_ang,
-                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w],
-                                                                                   CONST));
+                        HG_g_factor_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w], CONST));
+                    HG_g2_factor[w * nr_of_dust_species + a].setValue(
+                        i_inc,
+                        i_inc * d_ang,
+                        HG_g2_factor_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w], CONST));
+                    HG_g3_factor[w * nr_of_dust_species + a].setValue(
+                        i_inc,
+                        i_inc * d_ang,
+                        HG_g3_factor_wl[a * nr_of_incident_angles + i_inc].getValue(wavelength_list[w], CONST));
                 }
 
-                // Calculate the average HG g factor over all angles
+                // Calculate the average parameters for Henyey-Greenstein phase function over all angles
                 double avg_HG_g_factor = HG_g_factor[w * nr_of_dust_species + a].getAverageY();
+                double avg_HG_g2_factor = HG_g2_factor[w * nr_of_dust_species + a].getAverageY();
+                double avg_HG_g3_factor = HG_g3_factor[w * nr_of_dust_species + a].getAverageY();
 
-                // Show error if the g factor is lower than -1 and larger than 1
-                if(avg_HG_g_factor > 1 || avg_HG_g_factor < -1)
-                {
-                    cout << "\nERROR: Henyey-Greenstein g factor is smaller than -1 or "
-                            "larger than 1!";
+                if(avg_HG_g_factor <= -1.0 || avg_HG_g_factor >= 1.0) {
+                    cout << "\nERROR: Henyey-Greenstein g factor is invalid: " << avg_HG_g_factor << endl;
+                    return false;
+                }
+
+                if(param.getPhaseFunctionID(dust_component_choice) == PH_DHG) {
+                    if(avg_HG_g2_factor < 0.0 || avg_HG_g2_factor > 1.0) {
+                        cout << "\nERROR: Henyey-Greenstein factor alpha is invalid: " << avg_HG_g2_factor << endl;
+                        return false;
+                    }
+                } else if(param.getPhaseFunctionID(dust_component_choice) == PH_TTHG) {
+                    if(avg_HG_g2_factor <= -1.0 || avg_HG_g2_factor >= 1.0) {
+                        cout << "\nERROR: Henyey-Greenstein factor g2 is invalid: " << avg_HG_g2_factor << endl;
+                        return false;
+                    }
+                    if(avg_HG_g2_factor * avg_HG_g3_factor > 0.0) {
+                        cout << "\nERROR: Henyey-Greenstein g1 and g2 must have different signs." << endl;
+                        return false;
+                    }
+                }
+
+                if(avg_HG_g3_factor < 0.0 || avg_HG_g3_factor > 1.0) {
+                    cout << "\nERROR: Henyey-Greenstein weight factor is invalid: " << avg_HG_g3_factor << endl;
                     return false;
                 }
 
@@ -612,6 +817,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     Qcirc[a][w] = 0;
                 }
                 HGg[a][w] = avg_HG_g_factor;
+                HGg2[a][w] = avg_HG_g2_factor;
+                HGg3[a][w] = avg_HG_g3_factor;
             }
             else
             {
@@ -623,11 +830,15 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 Qsca2[a][w] = 0;
                 Qcirc[a][w] = 0;
                 HGg[a][w] = 0;
+                HGg2[a][w] = 0;
+                HGg3[a][w] = 1;
             }
 
             // Activate the splines of Qtrq and HG g factor
             Qtrq[w * nr_of_dust_species + a].createSpline();
             HG_g_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g2_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
             CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
             CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
@@ -645,6 +856,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     delete[] eff_wl;
     delete[] Qtrq_wl;
     delete[] HG_g_factor_wl;
+    delete[] HG_g2_factor_wl;
+    delete[] HG_g3_factor_wl;
 
     return true;
 }
@@ -849,6 +1062,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     Qsca2 = new double *[nr_of_dust_species];
     Qcirc = new double *[nr_of_dust_species];
     HGg = new double *[nr_of_dust_species];
+    HGg2 = new double *[nr_of_dust_species];
+    HGg3 = new double *[nr_of_dust_species];
 
     CextMean = new double *[nr_of_dust_species];
     CabsMean = new double *[nr_of_dust_species];
@@ -864,6 +1079,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
         Qsca2[a] = new double[nr_of_wavelength];
         Qcirc[a] = new double[nr_of_wavelength];
         HGg[a] = new double[nr_of_wavelength];
+        HGg2[a] = new double[nr_of_wavelength];
+        HGg3[a] = new double[nr_of_wavelength];
 
         CextMean[a] = new double [nr_of_wavelength];
         fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
@@ -873,9 +1090,11 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
         fill(CscaMean[a], CscaMean[a] + nr_of_wavelength, 0);
     }
 
-    // Init splines for incident angle interpolation of Qtrq and HG g factor
+    // Init splines for incident angle interpolation of Qtrq and parameters for Henyey-Greenstein phase function
     Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g2_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g3_factor = new spline[nr_of_dust_species * nr_of_wavelength];
 
     // Set variables for scattering via Mie theory
     nr_of_scat_mat_elements = 4;
@@ -933,6 +1152,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             // Resize the splines of Qtrq and HG g factor for each wavelength
             Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g2_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g3_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
 
             if(sizeIndexUsed(a))
             {
@@ -979,6 +1200,10 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 S33_final[0] = S33_start[0];
                 S34_final[0] = S34_start[0];
                 scat_angle_final[0] = scat_angle_start[0];
+
+                // set default HG values if optical properties are calcualted with Mie-scattering
+                HGg2[a][w] = 0.0;
+                HGg3[a][w] = 1.0;
 
                 double current_S11_rel_diff;
 
@@ -1135,11 +1360,15 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 Qsca2[a][w] = 0;
                 Qcirc[a][w] = 0;
                 HGg[a][w] = 0;
+                HGg2[a][w] = 0;
+                HGg3[a][w] = 1;
             }
 
             // Activate the splines of Qtrq and HG g factor
             Qtrq[w * nr_of_dust_species + a].createSpline();
             HG_g_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g2_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
             CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
             CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
@@ -2594,6 +2823,8 @@ void CDustComponent::preCalcEffProperties(parameters & param)
     tCsca2 = new double[nr_of_wavelength];
     tCcirc = new double[nr_of_wavelength];
     tHGg = new double[nr_of_wavelength];
+    tHGg2 = new double[nr_of_wavelength];
+    tHGg3 = new double[nr_of_wavelength];
 
     for(uint w = 0; w < nr_of_wavelength; w++)
     {
@@ -2605,6 +2836,8 @@ void CDustComponent::preCalcEffProperties(parameters & param)
         tCsca2[w] = getCsca2(w);
         tCcirc[w] = getCcirc(w);
         tHGg[w] = getHGg(w);
+        tHGg2[w] = getHGg2(w);
+        tHGg3[w] = getHGg3(w);
     }
 
     // -------------- Calculate emission of effective grain size --------------
@@ -3117,11 +3350,13 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
             a_eff_2[a] = comp->getEffectiveRadius_2(a);
         }
 
-        // Resize Qtrq and Henyey-Greenstein g factor
+        // Resize Qtrq and parameters for Henyey-Greenstein phase function
         for(uint i = 0; i < nr_of_dust_species * nr_of_wavelength; i++)
         {
             Qtrq[i].resize(nr_of_incident_angles);
             HG_g_factor[i].resize(nr_of_incident_angles);
+            HG_g2_factor[i].resize(nr_of_incident_angles);
+            HG_g3_factor[i].resize(nr_of_incident_angles);
         }
 
         // If the scattering matrix is read in, add them together as well
@@ -3234,6 +3469,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 addQsca2(a, w, size_fraction[a][1] * comp->getQsca2(a, w));
                 addQcirc(a, w, size_fraction[a][1] * comp->getQcirc(a, w));
                 addHGg(a, w, size_fraction[a][1] * comp->getHGg(a, w));
+                addHGg2(a, w, size_fraction[a][1] * comp->getHGg2(a, w));
+                addHGg3(a, w, size_fraction[a][1] * comp->getHGg3(a, w));
 
                 CextMean[a][w] = PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
                 CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
@@ -3247,8 +3484,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         cout << "- mixing Qtrq and HG g                         \r";
 
         // Init variables
-        double tmpHGgX, tmpQtrqX;
-        double tmpHGgY, tmpQtrqY;
+        double tmpHGgX, tmpHGg2X, tmpHGg3X, tmpQtrqX;
+        double tmpHGgY, tmpHGg2Y, tmpHGg3Y, tmpQtrqY;
 
         // Calculate the difference between two incident angles
         double d_ang;
@@ -3264,14 +3501,18 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 uint i = w * nr_of_dust_species + a;
                 for(uint i_inc = 0; i_inc < nr_of_incident_angles; i_inc++)
                 {
-                    // Get incident angle and value of Qtrq and Henyey-Greenstein g factor
+                    // Get incident angle and value of Qtrq and parameters for Henyey-Greenstein phase function
                     comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
                     comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
+                    comp->getHG_g2_factor(i, i_inc, tmpHGg2X, tmpHGg3Y);
+                    comp->getHG_g3_factor(i, i_inc, tmpHGg2X, tmpHGg3Y);
 
                     // Add the values on top of the mixture Qtrq and Henyey-Greenstein g
                     // factor
                     Qtrq[i].addValue(i_inc, i_inc * d_ang, size_fraction[a][1] * tmpQtrqY);
                     HG_g_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a][1] * tmpHGgY);
+                    HG_g2_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a][1] * tmpHGg2Y);
+                    HG_g3_factor[i].addValue(i_inc, i_inc * d_ang, size_fraction[a][1] * tmpHGg3Y);
                 }
             }
         }
@@ -3303,6 +3544,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         {
             Qtrq[i].createSpline();
             HG_g_factor[i].createSpline();
+            HG_g2_factor[i].createSpline();
+            HG_g3_factor[i].createSpline();
         }
     }
 
@@ -4925,50 +5168,182 @@ double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package &
 
 void CDustComponent::henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen)
 {
+    // Calculate a new random direction based on the Henyey-Greenstein function
+    // Henyey & Greenstein 1941, ApJ 93, 70
+
     // Init variables
     double cos_theta, theta, phi;
-    double g = 0;
-
-    // Get two random numbers for the new direction
-    double z1 = rand_gen->getRND();
-    double z2 = rand_gen->getRND();
 
     // Get the current wavelength
     double w = pp->getDustWavelengthID();
 
     // Get the Henyey-Greenstein g factor
-    g = getHGg(a, w);
+    double g = getHGg(a, w);
 
-    // If g is very close to zero, use random direction
-    if(abs(g) < 0.5e-5)
-    {
-        pp->setRandomDirection(rand_gen->getRND(),rand_gen->getRND());
-        pp->updateCoordSystem();
+    if(g <= -1.0 || g >= 1.0) {
+        cout << "\nERROR: Henyey-Greenstein g factor is invalid: " << g << endl;
         return;
     }
 
-    // Set g factor to the boundaries if larger/smaller
-    if(g < -1)
-    {
-        cout << endl << "Serious problem with g factor: smaller than -1!" << endl;
-        g = -0.99999;
-    }
-    if(g > 1)
-    {
-        cout << endl << "Serious problem with g factor: larger than 1!" << endl;
-        g = 0.99999;
+    double rnd = rand_gen->getRND();
+    if(abs(g) < 2.0 * EPS_DOUBLE) { // If g is close to zero, use random isotropic direction
+        cos_theta = 2.0 * rnd - 1.0;
+    } else { // get cosine theta, see e.g. Eq. (19) in Witt 1977, ApJS 35, 1
+        cos_theta = (1.0 - g * g) / (1.0 - g + 2.0 * g * rnd);
+        cos_theta = 1.0 + g * g - cos_theta * cos_theta;
+        cos_theta /= (2.0 * g);
     }
 
-    // Get cosine theta from g factor
-    cos_theta = (1.0 - g * g) / (1.0 - g + 2.0 * g * z1);
-    cos_theta = 1 + g * g - cos_theta * cos_theta;
-    cos_theta /= (2.0 * g);
+    if(cos_theta < -1.0) {
+        cos_theta = -1.0;
+    }
+    if(cos_theta > 1.0) {
+        cos_theta = 1.0;
+    }
 
     // Get theta from cosine theta
     theta = acos(cos_theta);
 
     // equal distribution of the phi angles
-    phi = PIx2 * z2;
+    phi = PIx2 * rand_gen->getRND();
+
+    // Update the photon package with the new direction
+    pp->updateCoordSystem(phi, theta);
+}
+
+void CDustComponent::drainehenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen)
+{
+    // Calculate a new random direction based on the Draine Henyey-Greenstein function
+    // Draine 2003, ApJ 598, 1017
+
+    // Init variables
+    double cos_theta, theta, phi;
+
+    // Get the current wavelength
+    double w = pp->getDustWavelengthID();
+
+    // Get the parameters for Henyey-Greenstein phase function
+    double g = getHGg(a, w);
+    double alpha = getHGg2(a, w);
+
+    if(g <= -1.0 || g >= 1.0) {
+        cout << "\nERROR: Henyey-Greenstein g factor is invalid: " << g << endl;
+        return;
+    }
+
+    if(alpha < 0.0 || alpha > 1.0) {
+        cout << "\nERROR: Henyey-Greenstein alpha factor is invalid: " << alpha << endl;
+        return;
+    }
+
+    if(alpha < 2.0 * EPS_DOUBLE) { // If alpha is close to zero, use Henyey-Greenstein
+        henyeygreen(pp, a, rand_gen);
+        return;
+    }
+
+    double rnd = rand_gen->getRND();
+    if(abs(g) < 2.0 * EPS_DOUBLE) {
+        // If g is close to zero, use Cardano's formula
+        // the integral of the phase function leads to a cubic equation
+        // x^3 + px + q = 0
+        // where x = cos(theta), p = 3/alpha, q = (1 + 3/alpha - 2*rnd*(1 + 3/alpha))
+        // solve for x with Cardan's formula
+        // we only get one real solution, since discr = (q/2)^2 + (p/3)^3 > 0
+        double coeff_p = 3.0 / alpha;
+        double coeff_q = (1.0 + coeff_p - 2.0 * rnd * (1.0 + coeff_p));
+        double discr = 0.25 * coeff_q * coeff_q + coeff_p * coeff_p * coeff_p / 27.0;
+
+        double u_plus = cbrt(-0.5 * coeff_q + sqrt(discr));
+        // double u_minus = cbrt(-0.5 * coeff_q - sqrt(discr));
+        // cos_theta = u_plus + u_minus;
+
+        // since u_plus * u_minus = -p/3, we can also write cos_theta as
+        cos_theta = u_plus - coeff_p / (3.0 * u_plus);
+        // or
+        // cos_theta = u_minus - coeff_p / (3.0 * u_minus);
+    } else {
+        // find cos_theta with Brent's method
+        cos_theta = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getDHGIntegral, {g, alpha, rnd});
+    }
+
+    if(cos_theta < -1.0) {
+        cos_theta = -1.0;
+    }
+    if(cos_theta > 1.0) {
+        cos_theta = 1.0;
+    }
+
+    // Get theta from cosine theta
+    theta = acos(cos_theta);
+
+    // equal distribution of the phi angles
+    phi = PIx2 * rand_gen->getRND();
+
+    // Update the photon package with the new direction
+    pp->updateCoordSystem(phi, theta);
+}
+
+void CDustComponent::threeparamhenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen)
+{
+    // Calculate a new random direction based on the three parameter Henyey-Greenstein function
+    // Kattawar 1975, JQSRT 15, 839
+    // Witt 1977, ApJS 31, 1
+
+    // Init variables
+    double cos_theta, theta, phi;
+
+    // Get the current wavelength
+    double w = pp->getDustWavelengthID();
+
+    // Get the parameters for Henyey-Greenstein phase function
+    double g1 = getHGg(a, w);
+    double g2 = getHGg2(a, w);
+    double weight = getHGg3(a, w);
+
+    if(g1 <= -1.0 || g1 >= 1.0) {
+        cout << "\nERROR: Henyey-Greenstein g factor is invalid: " << g1 << endl;
+        return;
+    }
+
+    if(g2 <= -1.0 || g2 >= 1.0) {
+        cout << "\nERROR: Henyey-Greenstein g2 factor is invalid: " << g2 << endl;
+        return;
+    }
+
+    if(g1 * g2 > 0.0) {
+        cout << "\nERROR: Henyey-Greenstein g1 and g2 must have different signs." << endl;
+        return;
+    }
+    
+    if(weight < 0.0 || weight > 1.0) {
+        cout << "\nERROR: Henyey-Greenstein weight factor is invalid: " << weight << endl;
+        return;
+    }
+
+    if(1.0 - weight < 2.0 * EPS_DOUBLE) { // If weight is close to one, use Henyey-Greenstein
+        henyeygreen(pp, a, rand_gen);
+        return;
+    }
+
+    double rnd = rand_gen->getRND();
+    if(abs(g1) < 2.0 * EPS_DOUBLE && abs(g2) < 2.0 * EPS_DOUBLE){ // if both g1 and g2 are close to zero, use random isotropic direction
+        cos_theta = 2.0 * rnd - 1.0;
+    } else { // find cos_theta with Brent's method
+        cos_theta = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getTTHGIntegral, {g1, g2, weight, rnd});
+    }
+
+    if(cos_theta < -1.0) {
+        cos_theta = -1.0;
+    }
+    if(cos_theta > 1.0) {
+        cos_theta = 1.0;
+    }
+
+    // Get theta from cosine theta
+    theta = acos(cos_theta);
+
+    // equal distribution of the phi angles
+    phi = PIx2 * rand_gen->getRND();
 
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
@@ -4981,6 +5356,7 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
 
     // Get theta angle from distribution
     double theta = findTheta(a, w, rand_gen->getRND());
+    double phi;
 
     // Get theta index from theta angle
     uint thID = getScatThetaID(theta,a,w);
@@ -4993,18 +5369,17 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
 
     double phipar;
     // Get PHIPAR to take non equal distribution of phi angles into account
-    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0)
-    {
+    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0) {
         double q_i = tmp_stokes.Q() / tmp_stokes.I();
         double u_i = tmp_stokes.U() / tmp_stokes.I();
         phipar = sqrt(q_i * q_i + u_i * u_i) * (-mat_sca(0, 1) / mat_sca(0, 0));
-    }
-    else
-    {
-        if(tmp_stokes.I() <= 0.0)
+    } else {
+        if(tmp_stokes.I() <= 0.0) {
             cout << "\nERROR: Photon package intensity is zero or negative!\n" << endl;
-        if(mat_sca(0, 0) <= 0.0)
+        }
+        if(mat_sca(0, 0) <= 0.0) {
             cout << "\nERROR: First scattering matrix element is zero or negative!\n" << endl;
+        }
 
         tmp_stokes.clear();
         pp->setStokesVector(tmp_stokes);
@@ -5013,46 +5388,21 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
 
     double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
 
-    // find phi that solves 0 = phi - phipar * 0.5 * sin(2.0 * phi) - rndx * PIx2 = root_phi
-    // (Kepler's equation)
-    // see O. Fischer (1993) Equation (3.45) on page 49
-    // find phi with Halley's method (phi_error < 1e-10)
-    // x_{n+1} = x_{n} - 2 * f(x_{n}) * f'(x_{n}) / (2 * [f'(x_{n})]^2 - f(x_{n}) * f''(x_{n}))
-    // set phi_{0} = rndx * PIx2
-    double rndx = rand_gen->getRND();
-    double phi = rndx * PIx2;
-    double root_phi = -phipar * 0.5 * sin(2.0 * phi);
-    double d_root_phi = 1.0 - phipar * cos(2.0 * phi);
-    double d2_root_phi = 2.0 * phipar * sin(2.0 * phi);
-    double delta_phi;
-    uint run_counter = 0;
-
-    while(abs(root_phi) > 1e-10 && run_counter < 1000)
-    {
-        delta_phi = 2.0 * root_phi * d_root_phi / (2.0 * d_root_phi * d_root_phi - root_phi * d2_root_phi);
-        phi -= delta_phi;
-        root_phi = phi - phipar * 0.5 * sin(2.0 * phi) - PIx2 * rndx;
-        d_root_phi = 1.0 - phipar * cos(2.0 * phi);
-        d2_root_phi = 2.0 * phipar * sin(2.0 * phi);
-        run_counter++;
-    }
-    if(run_counter == 1000 || abs(root_phi) > 1e-10)
-        cout << "\nERROR: No scattering angle phi found!\n" << endl;
-
+    // find phi (Kepler's equation) with Brent's method
+    phi = CMathFunctions::findRootBrent(0.0, PIx2, &CMathFunctions::getPhiIntegral, {phipar, rand_gen->getRND()});
     phi = PI - gamma + phi;
 
     // Update the photon package with the new direction
     pp->updateCoordSystem(phi, theta);
 
     double i_1 = tmp_stokes.I();
-    if(i_1 > 1e-200)
-    {
+    if(i_1 > 1e-200) {
         tmp_stokes.rot(phi);
         tmp_stokes *= mat_sca;
         tmp_stokes *= i_1 / tmp_stokes.I();
-    }
-    else
+    } else {
         tmp_stokes.clear();
+    }
 
     pp->setStokesVector(tmp_stokes);
 }
