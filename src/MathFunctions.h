@@ -2915,71 +2915,65 @@ class CMathFunctions
                           double * S33,
                           double * S34)
     // Wolf & Voshchinnikov approximation of optical properties for spherical grains.
+    // see Wolf & Voshchinnikov (2004), Comput. Phys. Commun. 162, 113
     {
         // Step width
         uint n_scat_angle = scat_angle.size();
         double factor = 1e250;
 
-        if(x <= MIN_MIE_SIZE_PARAM)
-        {
-            cout << "\nError: Mie scattering limit exceeded, current size parameter: " << x << "\n" << endl;
+        if(x <= MIN_MIE_SIZE_PARAM) {
+            cout << "\nERROR: Mie scattering limit exceeded, current size parameter: " << x << endl;
             return false;
         }
 
-        double ax = 1 / x;
-        double b = 2 * pow(ax, 2);
-        dcomplex ss(0, 0);
-        dcomplex s3(0, -1);
-        double an = 3;
+        double ax = 1.0 / x;
+        double b = 2.0 * ax * ax;
+        dcomplex ss(0.0, 0.0);
+        dcomplex s3(0.0, -1.0);
+        double an = 3.0;
 
         // choice of number for subroutine aa [Loskutov (1971)]
         double y = abs(refractive_index) * x;
         uint num = uint(1.25 * y + 15.5);
-        if(y < 1)
+        if(y < 1.0) {
             num = uint(7.5 * y + 9.0);
-        else if(y > 100 && y < 50000)
+        } else if(y > 100.0 && y < 50000.0) {
             num = uint(1.0625 * y + 28.5);
-        else if(y >= 50000)
+        } else if(y >= 50000.0) {
             num = uint(1.005 * y + 50.5);
+        }
 
-        if(num > MAX_MIE_ITERATIONS)
-        {
-            cout << "\nError: Maximum number of terms : " << MAX_MIE_ITERATIONS << endl;
-            cout << "       Number of terms required: " << num << endl;
-            cout << "       Increase default value of the variable MAX_MIE_ITERATIONS in Typedefs.h\n" << endl;
+        if(num > MAX_MIE_ITERATIONS) {
+            cout << "\nERROR: Maximum number of terms : " << MAX_MIE_ITERATIONS << ", number of terms required: " << num << endl;
+            cout << "  increase default value of MAX_MIE_ITERATIONS in src/Typedefs.h" << endl;
             return false;
             // return calcGeometricOptics(x, refractive_index, qext, qabs,
             //    qabs, gsca, S11, S12, S33, S34);
         }
 
         // logarithmic derivative to Bessel function (complex argument)
-        dcomplex *ru = new dcomplex[num + 1];
+        dcomplex *ru = new dcomplex[num];
         dcomplex s_tmp = ax / refractive_index;
-        ru[num] = dcomplex(num + 1, 0) * s_tmp;
-        for(uint n = 1; n <= num - 1; n++)
-        {
-            double rn = double(num - n);
-            dcomplex s1 = (rn + 1) * s_tmp;
-            ru[num - n] = s1 - dcomplex(1, 0) / (ru[num - n + 1] + s1);
+        ru[num-1] = dcomplex(num + 1, 0.0) * s_tmp;
+        for(uint i = num - 1; i >= 1; i--) {
+            dcomplex s1 = double(i + 1) * s_tmp;
+            ru[i-1] = s1 - dcomplex(1.0, 0.0) / (ru[i] + s1);
         }
 
-        // initialize term counter
-        uint iterm = 1;
-
         // Bessel functions
-        double ass = sqrt(PI2 * ax);
+        double ass = 1.0 / sqrt(PI2 * ax);
         double w1 = invPI2 * ax;
         double Si = sin(x) / x;
         double Co = cos(x) / x;
 
         // n=0
-        double besJ0 = Si / ass;
-        double besY0 = -Co / ass;
+        double besJ0 = Si * ass;
+        double besY0 = -Co * ass;
         uint iu0 = 0;
 
         // n=1
-        double besJ1 = (Si * ax - Co) / ass;
-        double besY1 = (-Co * ax - Si) / ass;
+        double besJ1 = (Si * ax - Co) * ass;
+        double besY1 = (-Co * ax - Si) * ass;
         uint iu1 = 0;
         uint iu2 = 0;
 
@@ -2987,13 +2981,13 @@ class CMathFunctions
         dcomplex s, s1, s2, ra0, rb0;
 
         // coefficient a_1
-        s = ru[iterm] / refractive_index + ax;
+        s = ru[0] / refractive_index + ax;
         s1 = s * besJ1 - besJ0;
         s2 = s * besY1 - besY0;
         ra0 = s1 / (s1 - s3 * s2);
 
         // coefficient b_1
-        s = ru[iterm] * refractive_index + ax;
+        s = ru[0] * refractive_index + ax;
         s1 = s * besJ1 - besJ0;
         s2 = s * besY1 - besY0;
         rb0 = s1 / (s1 - s3 * s2);
@@ -3003,53 +2997,43 @@ class CMathFunctions
         qext = an * real(ra0 + rb0);
         qsca = an * (norm(ra0) + norm(rb0));
 
-        // first term (iterm=1)
-        double r_iterm = double(iterm);
-        double FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
-
+        // scattering amplitude functions
+        double FN = 1.5;
         dlist dPI(n_scat_angle), dTAU(n_scat_angle);
         dlist dAMU(n_scat_angle), dPI0(n_scat_angle, 0), dPI1(n_scat_angle, 1);
-
         dcomplex SM1[n_scat_angle], SM2[n_scat_angle];
-
-        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
-        {
+        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++) {
             dAMU[i_scat_ang] = cos(scat_angle[i_scat_ang]);
 
-            SM1[i_scat_ang] = dcomplex(0, 0);
-            SM2[i_scat_ang] = dcomplex(0, 0);
+            SM1[i_scat_ang] = dcomplex(0.0, 0.0);
+            SM2[i_scat_ang] = dcomplex(0.0, 0.0);
 
-            dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI1[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
+            dTAU[i_scat_ang] = dAMU[i_scat_ang] * dPI1[i_scat_ang] - 2.0 * dPI0[i_scat_ang];
 
             SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI1[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
             SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI1[i_scat_ang]);
 
             dPI[i_scat_ang] = dPI1[i_scat_ang];
-            dPI1[i_scat_ang] *= (2 + 1 / r_iterm) * dAMU[i_scat_ang];
-            dPI1[i_scat_ang] -= dPI0[i_scat_ang] * (1 + 1 / r_iterm);
+            dPI1[i_scat_ang] *= (dAMU[i_scat_ang] * 3.0);
+            dPI1[i_scat_ang] -= (dPI0[i_scat_ang] * 2.0);
             dPI0[i_scat_ang] = dPI[i_scat_ang];
         }
 
-        iterm++;
-        // r_iterm = double(iterm);
-
-        double z = -1, besY2, besJ2, an2, qq;
+        // 2., 3., ... num
+        double z = -1.0, besY2, besJ2, an2, qq, r_iterm;
         dcomplex ra1, rb1, rr;
-        while(true)
-        {
-            // if(iterm % 1000 == 0)
-            //    cout << x << TAB << iterm << endl;
-            an = an + 2;
-            an2 = an - 2;
+        for(uint iterm = 2; iterm <= num; iterm++) {
+            an = an + 2.0;
+            an2 = an - 2.0;
 
             // Bessel functions
-            if(iu1 == iu0)
+            if(iu1 == iu0) {
                 besY2 = an2 * ax * besY1 - besY0;
-            else
+            } else {
                 besY2 = an2 * ax * besY1 - besY0 / factor;
+            }
 
-            if(abs(besY2) > 1e200)
-            {
+            if(abs(besY2) > 1e200) {
                 besY2 = besY2 / factor;
                 iu2 = iu1 + 1;
             }
@@ -3063,16 +3047,12 @@ class CMathFunctions
             // Mie coefficients
             r_iterm = double(iterm);
 
-            dcomplex ru_tmp(0, 0);
-            if(iterm <= num)
-                ru_tmp = ru[iterm];
-
-            s = ru_tmp / refractive_index + r_iterm * ax;
+            s = ru[iterm-1] / refractive_index + r_iterm * ax;
             s1 = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
             s2 = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
             ra1 = s1 / (s1 - s3 * s2); // coefficient a_n, (n=iterm)
 
-            s = ru_tmp * refractive_index + r_iterm * ax;
+            s = ru[iterm-1] * refractive_index + r_iterm * ax;
             s1 = s * (besJ2 / factorial(iu2)) - besJ1 / factorial(iu1);
             s2 = s * (besY2 * factorial(iu2)) - besY1 * factorial(iu1);
             rb1 = s1 / (s1 - s3 * s2); // coefficient b_n, (n=iterm)
@@ -3081,19 +3061,22 @@ class CMathFunctions
             z = -z;
             rr = z * (r_iterm + 0.5) * (ra1 - rb1);
             r = r + rr;
-            ss = ss + (r_iterm - 1) * (r_iterm + 1) / r_iterm * (ra0 * conj(ra1) + rb0 * conj(rb1)) +
-                 an2 / r_iterm / (r_iterm - 1) * (ra0 * conj(rb0));
+            ss = ss + (r_iterm - 1.0) * (r_iterm + 1.0) / r_iterm * (ra0 * conj(ra1) + rb0 * conj(rb1)) +
+                 an2 / r_iterm / (r_iterm - 1.0) * (ra0 * conj(rb0));
             qq = an * real(ra1 + rb1);
             qext = qext + qq;
             qsca = qsca + an * (norm(ra1) + norm(rb1));
 
             // leaving-the-loop with error criterion
-            if(isnan(qext))
+            if(isnan(qext)) {
+                cout << "\nERROR: Qext is not a number" << endl;
                 return false;
+            }
 
             // leaving-the-loop criterion
-            if(abs(qq / qext) < MIE_ACCURACY)
+            if(abs(qq / qext) < MIE_ACCURACY) {
                 break;
+            }
 
             // Bessel functions
             besJ0 = besJ1;
@@ -3105,27 +3088,19 @@ class CMathFunctions
             ra0 = ra1;
             rb0 = rb1;
 
-            // terms iterm=2,...
-            // r_iterm = double(iterm);
-            FN = (2 * r_iterm + 1) / (r_iterm * (r_iterm + 1));
-            for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
-            {
-                dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI1[i_scat_ang] - (r_iterm + 1) * dPI0[i_scat_ang];
+            // scattering amplitude functions
+            FN = (2.0 * r_iterm + 1.0) / (r_iterm * (r_iterm + 1.0));
+            for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++) {
+                dTAU[i_scat_ang] = r_iterm * dAMU[i_scat_ang] * dPI1[i_scat_ang] - (r_iterm + 1.0) * dPI0[i_scat_ang];
 
                 SM1[i_scat_ang] = SM1[i_scat_ang] + FN * (ra0 * dPI1[i_scat_ang] + rb0 * dTAU[i_scat_ang]);
                 SM2[i_scat_ang] = SM2[i_scat_ang] + FN * (ra0 * dTAU[i_scat_ang] + rb0 * dPI1[i_scat_ang]);
 
                 dPI[i_scat_ang] = dPI1[i_scat_ang];
-                dPI1[i_scat_ang] *= (2 + 1 / r_iterm) * dAMU[i_scat_ang];
-                dPI1[i_scat_ang] -= dPI0[i_scat_ang] * (1 + 1 / r_iterm);
+                dPI1[i_scat_ang] *= (dAMU[i_scat_ang] * (2.0 + 1.0 / r_iterm));
+                dPI1[i_scat_ang] -= (dPI0[i_scat_ang] * (1.0 + 1.0 / r_iterm));
                 dPI0[i_scat_ang] = dPI[i_scat_ang];
             }
-
-            iterm++;
-            // r_iterm = double(iterm);
-
-            if(iterm > num)
-                break;
         }
 
         delete[] ru;
@@ -3133,13 +3108,12 @@ class CMathFunctions
         // efficiency factors (final calculations)
         qext = b * qext;
         qsca = b * qsca;
-        // qback = 2 * b * r * conj(r);
-        double qpr = qext - 2 * b * real(ss);
+        // double qbk = 2.0 * b * r * conj(r);
+        double qpr = qext - 2.0 * b * real(ss);
         qabs = qext - qsca;
         gsca = (qext - qpr) / qsca;
 
-        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++)
-        {
+        for(uint i_scat_ang = 0; i_scat_ang < n_scat_angle; i_scat_ang++) {
             S11[i_scat_ang] = 0.5 * (abs(SM2[i_scat_ang]) * abs(SM2[i_scat_ang]) + abs(SM1[i_scat_ang]) * abs(SM1[i_scat_ang]));
             S12[i_scat_ang] = 0.5 * (abs(SM2[i_scat_ang]) * abs(SM2[i_scat_ang]) - abs(SM1[i_scat_ang]) * abs(SM1[i_scat_ang]));
             S33[i_scat_ang] = real(SM2[i_scat_ang] * conj(SM1[i_scat_ang]));
@@ -3148,10 +3122,9 @@ class CMathFunctions
             // if SM2 and SM1 get really large (if x >> 1 for instance)
             // then double precision may not be enough
             // to get S12/S34 = 0 for theta = 0/pi (cos(theta) = +-1)
-            if(abs(dAMU[i_scat_ang]) == 1)
-            {
-                S12[i_scat_ang] = 0;
-                S34[i_scat_ang] = 0;
+            if(abs(dAMU[i_scat_ang]) == 1.0) {
+                S12[i_scat_ang] = 0.0;
+                S34[i_scat_ang] = 0.0;
             }
         }
 
