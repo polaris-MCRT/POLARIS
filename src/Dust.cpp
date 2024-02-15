@@ -13,9 +13,9 @@ void CDustComponent::initDustProperties()
 {
     // Init pointer arrays for grain sizes and size distributions
     a_eff = new double[nr_of_dust_species];
-    a_eff_1_5 = new double[nr_of_dust_species];
-    a_eff_3_5 = new double[nr_of_dust_species];
-    a_eff_2 = new double[nr_of_dust_species];
+    grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
+    grain_size_distribution = new double[nr_of_dust_species];
+    a_eff_sqared = new double[nr_of_dust_species];
     mass = new double[nr_of_dust_species];
 
     // Init pointer arrays for dust optical properties
@@ -38,9 +38,9 @@ void CDustComponent::initDustProperties()
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         a_eff[a] = 0;
-        a_eff_1_5[a] = 0;
-        a_eff_3_5[a] = 0;
-        a_eff_2[a] = 0;
+        grain_distribution_x_aeff_sq[a] = 0;
+        grain_size_distribution[a] = 0;
+        a_eff_sqared[a] = 0;
         mass[a] = 0;
 
         Qext1[a] = new double[nr_of_wavelength];
@@ -382,9 +382,9 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
 
                 // Init arrays for grain size, size distribution, and mass
                 a_eff = new double[nr_of_dust_species];
-                a_eff_2 = new double[nr_of_dust_species];
-                a_eff_1_5 = new double[nr_of_dust_species];
-                a_eff_3_5 = new double[nr_of_dust_species];
+                a_eff_sqared = new double[nr_of_dust_species];
+                grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
+                grain_size_distribution = new double[nr_of_dust_species];
                 mass = new double[nr_of_dust_species];
 
                 // Calculate the grain size distribution
@@ -840,9 +840,9 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             HG_g2_factor[w * nr_of_dust_species + a].createSpline();
             HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
-            CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
-            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
-            CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
+            CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         }
     }
 
@@ -995,9 +995,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
                 // Set size parameters
                 a_eff = new double[nr_of_dust_species];
-                a_eff_2 = new double[nr_of_dust_species];
-                a_eff_1_5 = new double[nr_of_dust_species];
-                a_eff_3_5 = new double[nr_of_dust_species];
+                a_eff_sqared = new double[nr_of_dust_species];
+                grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
+                grain_size_distribution = new double[nr_of_dust_species];
                 mass = new double[nr_of_dust_species];
 
                 // Calculate the grain size distribution
@@ -1370,9 +1370,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             HG_g2_factor[w * nr_of_dust_species + a].createSpline();
             HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
-            CextMean[a][w] = PI * a_eff_2[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
-            CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
-            CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
+            CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         } // end of wavelength loop
     } // end of grain size loop
 
@@ -2636,7 +2636,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
                     {
                         double Csca_tmp = getCscaMean(a, w);
                         sum += Csca_tmp;
-                        double rel_amount = a_eff_3_5[a] / weight;
+                        double rel_amount = grain_size_distribution[a] / weight;
                         S11_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
                                      getScatteringMatrixElement(a, w, 0, 0, sth, 0, 0);
                         S12_tmp[a] = Csca_tmp * rel_amount * // getScatteredFractionMie(a, w, sth) *
@@ -2765,10 +2765,10 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     {
         if(sizeIndexUsed(a))
         {
-            if(getEffectiveRadius3_5(a) / weight < SizeDistMin && getEffectiveRadius3_5(a) / weight > 0)
-                SizeDistMin = getEffectiveRadius3_5(a) / weight;
-            if(getEffectiveRadius3_5(a) / weight > SizeDistMax)
-                SizeDistMax = getEffectiveRadius3_5(a) / weight;
+            if(getGrainSizeDistribution(a) / weight < SizeDistMin && getGrainSizeDistribution(a) / weight > 0)
+                SizeDistMin = getGrainSizeDistribution(a) / weight;
+            if(getGrainSizeDistribution(a) / weight > SizeDistMax)
+                SizeDistMax = getGrainSizeDistribution(a) / weight;
         }
     }
 
@@ -2797,7 +2797,7 @@ bool CDustComponent::writeComponent(string path_data, string path_plot)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         if(sizeIndexUsed(a))
-            size_dist_writer << getEffectiveRadius(a) << "\t" << getEffectiveRadius3_5(a) / weight << endl;
+            size_dist_writer << getEffectiveRadius(a) << "\t" << getGrainSizeDistribution(a) / weight << endl;
         else
             size_dist_writer << getEffectiveRadius(a) << "\t0" << endl;
     }
@@ -2898,9 +2898,9 @@ void CDustComponent::preCalcEffProperties(parameters & param)
         {
             if(sizeIndexUsed(a))
             {
-                amount[a] = a_eff_3_5[a];
-                amount_abs[a] = a_eff_3_5[a] * getCabsMean(a, w);
-                amount_sca[a] = a_eff_3_5[a] * getCscaMean(a, w);
+                amount[a] = grain_size_distribution[a];
+                amount_abs[a] = grain_size_distribution[a] * getCabsMean(a, w);
+                amount_sca[a] = grain_size_distribution[a] * getCscaMean(a, w);
             }
             else
             {
@@ -3217,7 +3217,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         a_eff[a] = values[a];
-        a_eff_2[a] = a_eff[a] * a_eff[a];
+        a_eff_sqared[a] = a_eff[a] * a_eff[a];
     }
 
     // Calculate the dust grain size distribution depending on user input
@@ -3225,14 +3225,14 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     {
         // Power-law distribution
         for(uint a = 0; a < nr_of_dust_species; a++)
-            a_eff_3_5[a] = pow(a_eff[a], size_parameter[0]);
+            grain_size_distribution[a] = pow(a_eff[a], size_parameter[0]);
 
         // Add exponential decay if demanded
         if(size_keyword.find("-ed") != std::string::npos)
         {
             for(uint a = 0; a < nr_of_dust_species; a++)
                 if(a_eff[a] > size_parameter[1])
-                    a_eff_3_5[a] *=
+                    grain_size_distribution[a] *=
                         exp(-pow((a_eff[a] - size_parameter[1]) / size_parameter[2], size_parameter[3]));
         }
         // Add curvature term if demanded
@@ -3254,7 +3254,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
                 gama = size_parameter[3];
             }
             for(uint a = 0; a < nr_of_dust_species; a++)
-                a_eff_3_5[a] *= pow(1.0 + zeta * pow(a_eff[a] / au, gama), zxp);
+                grain_size_distribution[a] *= pow(1.0 + zeta * pow(a_eff[a] / au, gama), zxp);
         }
     }
     else if(size_keyword.find("logn") != std::string::npos)
@@ -3269,7 +3269,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
         {
             double aux = log(a_eff[a]);
             double argu = -0.5 * pow((aux - log(size_parameter[0])) / size_parameter[1], 2);
-            a_eff_3_5[a] = exp(argu);
+            grain_size_distribution[a] = exp(argu);
         }
     }
     else if(size_keyword.find("zda") != std::string::npos)
@@ -3289,7 +3289,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
                 log_g -= size_parameter[9] * pow(abs(a_eff_micron - size_parameter[10]), size_parameter[8]);
             if(size_parameter[11] != 0 || size_parameter[12] != 0 || size_parameter[13] != 0)
                 log_g -= size_parameter[12] * pow(abs(a_eff_micron - size_parameter[13]), size_parameter[11]);
-            a_eff_3_5[a] = pow(10, log_g);
+            grain_size_distribution[a] = pow(10, log_g);
         }
     }
 
@@ -3297,7 +3297,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Set relative abundance of dust grains times their squared radius
-        a_eff_1_5[a] = a_eff_3_5[a] * a_eff_2[a];
+        grain_distribution_x_aeff_sq[a] = grain_size_distribution[a] * a_eff_sqared[a];
 
         // For PAHs, their mass can be calculated as standard grains or specifically for
         // PAHs
@@ -3347,7 +3347,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
             a_eff[a] = comp->getEffectiveRadius(a);
-            a_eff_2[a] = comp->getEffectiveRadius_2(a);
+            a_eff_sqared[a] = comp->getEffectiveRadiusSquared(a);
         }
 
         // Resize Qtrq and parameters for Henyey-Greenstein phase function
@@ -3397,8 +3397,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         if(comp->sizeIndexUsed(a, a_min, a_max))
         {
             // Mix size distribution with their relative fraction
-            a_eff_3_5[a] += size_fraction[a][0];
-            a_eff_1_5[a] += size_fraction[a][0] * comp->getEffectiveRadius_2(a);
+            grain_size_distribution[a] += size_fraction[a][0];
+            grain_distribution_x_aeff_sq[a] += size_fraction[a][0] * comp->getEffectiveRadiusSquared(a);
             mass[a] += size_fraction[a][1] * comp->getMass(a);
         }
     }
@@ -3472,9 +3472,9 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 addHGg2(a, w, size_fraction[a][1] * comp->getHGg2(a, w));
                 addHGg3(a, w, size_fraction[a][1] * comp->getHGg3(a, w));
 
-                CextMean[a][w] = PI * a_eff_2[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
-                CabsMean[a][w] = PI * a_eff_2[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
-                CscaMean[a][w] = PI * a_eff_2[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
+                CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
+                CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
+                CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
             }
 
     if(comp->isAligned())
@@ -3597,15 +3597,15 @@ uint CDustComponent::getInteractingDust(CGridBasic * grid, photon_package * pp, 
             switch(cross_section)
             {
                 case CROSS_ABS:
-                    amount[a] = a_eff_3_5[a] * getCabsMean(a, w);
+                    amount[a] = grain_size_distribution[a] * getCabsMean(a, w);
                     break;
 
                 case CROSS_SCA:
-                    amount[a] = a_eff_3_5[a] * getCscaMean(a, w);
+                    amount[a] = grain_size_distribution[a] * getCscaMean(a, w);
                     break;
 
                 default:
-                    amount[a] = a_eff_3_5[a];
+                    amount[a] = grain_size_distribution[a];
                     break;
             }
         }
@@ -3657,7 +3657,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     cs.Ccirc = sCcirc * sinsq_th;
 
     // Convert from efficiencies to cross-sections
-    cs *= PI * a_eff_2[a];
+    cs *= PI * a_eff_sqared[a];
 }
 
 void CDustComponent::calcNONPACrossSections(uint a, uint w, cross_sections & cs, double theta) const
