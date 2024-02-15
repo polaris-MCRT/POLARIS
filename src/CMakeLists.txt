@@ -37,7 +37,7 @@ INSTALL (TARGETS polaris)
 
 INCLUDE (CTest)
 if(BUILD_TESTING)
-    ADD_EXECUTABLE (tests tests.cpp MathFunctions_t.cpp ${SRC_FILES})
+    ADD_EXECUTABLE (tests tests.cpp MathFunctions_t.cpp Dust_t.cpp ${SRC_FILES})
     TARGET_LINK_LIBRARIES (tests PRIVATE OpenMP::OpenMP_CXX ${CCFITS_LIBRARY} ${CFITSIO_LIBRARY})
     TARGET_INCLUDE_DIRECTORIES (tests PRIVATE ../ext ${CMAKE_CURRENT_LIST_DIR} ${CFITSIO_INCLUDE_DIR})
     # allow user to run tests with `make test` or `ctest`
