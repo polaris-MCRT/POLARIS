@@ -15,7 +15,7 @@ void CDustComponent::initDustProperties()
     a_eff = new double[nr_of_dust_species];
     grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
     grain_size_distribution = new double[nr_of_dust_species];
-    a_eff_sqared = new double[nr_of_dust_species];
+    a_eff_squared = new double[nr_of_dust_species];
     mass = new double[nr_of_dust_species];
 
     // Init pointer arrays for dust optical properties
@@ -40,7 +40,7 @@ void CDustComponent::initDustProperties()
         a_eff[a] = 0;
         grain_distribution_x_aeff_sq[a] = 0;
         grain_size_distribution[a] = 0;
-        a_eff_sqared[a] = 0;
+        a_eff_squared[a] = 0;
         mass[a] = 0;
 
         Qext1[a] = new double[nr_of_wavelength];
@@ -382,7 +382,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
 
                 // Init arrays for grain size, size distribution, and mass
                 a_eff = new double[nr_of_dust_species];
-                a_eff_sqared = new double[nr_of_dust_species];
+                a_eff_squared = new double[nr_of_dust_species];
                 grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
                 grain_size_distribution = new double[nr_of_dust_species];
                 mass = new double[nr_of_dust_species];
@@ -840,9 +840,9 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             HG_g2_factor[w * nr_of_dust_species + a].createSpline();
             HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
-            CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
-            CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
-            CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
+            CextMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         }
     }
 
@@ -995,7 +995,7 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
                 // Set size parameters
                 a_eff = new double[nr_of_dust_species];
-                a_eff_sqared = new double[nr_of_dust_species];
+                a_eff_squared = new double[nr_of_dust_species];
                 grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
                 grain_size_distribution = new double[nr_of_dust_species];
                 mass = new double[nr_of_dust_species];
@@ -1370,9 +1370,9 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
             HG_g2_factor[w * nr_of_dust_species + a].createSpline();
             HG_g3_factor[w * nr_of_dust_species + a].createSpline();
 
-            CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
-            CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
-            CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
+            CextMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qext1[a][w] + Qext2[a][w]) / 3.0;
+            CabsMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
+            CscaMean[a][w] = PI * a_eff_squared[a] * (2.0 * Qsca1[a][w] + Qsca2[a][w]) / 3.0;
         } // end of wavelength loop
     } // end of grain size loop
 
@@ -3217,7 +3217,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         a_eff[a] = values[a];
-        a_eff_sqared[a] = a_eff[a] * a_eff[a];
+        a_eff_squared[a] = a_eff[a] * a_eff[a];
     }
 
     // Calculate the dust grain size distribution depending on user input
@@ -3297,7 +3297,7 @@ bool CDustComponent::calcSizeDistribution(dlist values, double * mass)
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         // Set relative abundance of dust grains times their squared radius
-        grain_distribution_x_aeff_sq[a] = grain_size_distribution[a] * a_eff_sqared[a];
+        grain_distribution_x_aeff_sq[a] = grain_size_distribution[a] * a_eff_squared[a];
 
         // For PAHs, their mass can be calculated as standard grains or specifically for
         // PAHs
@@ -3347,7 +3347,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
         for(uint a = 0; a < nr_of_dust_species; a++)
         {
             a_eff[a] = comp->getEffectiveRadius(a);
-            a_eff_sqared[a] = comp->getEffectiveRadiusSquared(a);
+            a_eff_squared[a] = comp->getEffectiveRadiusSquared(a);
         }
 
         // Resize Qtrq and parameters for Henyey-Greenstein phase function
@@ -3472,9 +3472,9 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 addHGg2(a, w, size_fraction[a][1] * comp->getHGg2(a, w));
                 addHGg3(a, w, size_fraction[a][1] * comp->getHGg3(a, w));
 
-                CextMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
-                CabsMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
-                CscaMean[a][w] = PI * a_eff_sqared[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
+                CextMean[a][w] = PI * a_eff_squared[a] * (2.0 * getQext1(a, w) + getQext2(a, w)) / 3.0;
+                CabsMean[a][w] = PI * a_eff_squared[a] * (2.0 * getQabs1(a, w) + getQabs2(a, w)) / 3.0;
+                CscaMean[a][w] = PI * a_eff_squared[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
             }
 
     if(comp->isAligned())
@@ -3657,7 +3657,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     cs.Ccirc = sCcirc * sinsq_th;
 
     // Convert from efficiencies to cross-sections
-    cs *= PI * a_eff_sqared[a];
+    cs *= PI * a_eff_squared[a];
 }
 
 void CDustComponent::calcNONPACrossSections(uint a, uint w, cross_sections & cs, double theta) const
