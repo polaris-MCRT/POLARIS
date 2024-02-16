@@ -13,7 +13,7 @@ using namespace std;
 
 // Header and Version of POLARIS
 #define PROG_ID "POLARIS: POLArized RadIation Simulator"
-#define VERS_ID "           Version 4.11.03            "
+#define VERS_ID "           Version 4.12.00            "
 #define COPY_ID "   Copyright (C) 2018 Stefan Reissl   "
 
 // Flags to activate WINDOWS support, some DEBUG messages, BENCHMARK settings
@@ -122,7 +122,8 @@ using namespace std;
 // ".fits.gz" compressed fits file
 #define FITS_COMPRESS_EXT ".fits.gz"
 
-// Number of quantities in dust component file (C_{x,abs}, C_{x,ext}, C_{x,sca}, ...)
+// Number of quantities in dust component file + 1
+// C_{per,ext}, C_{par,ext}, C_{per,abs}, C_{par,abs}, C_{per,sca}, C_{par,sca}, Q_{circ}
 #define NR_OF_EFF 8
 
 // Number of dust grain size distribution parameters
@@ -164,7 +165,9 @@ using namespace std;
 // phase functions
 #define PH_ISO 0
 #define PH_HG 1
-#define PH_MIE 2
+#define PH_DHG 2 // Draine 2003, ApJ 598, 1017
+#define PH_TTHG 3
+#define PH_MIE 4
 
 // Alignment mechanisms
 #define ALIG_RND 0

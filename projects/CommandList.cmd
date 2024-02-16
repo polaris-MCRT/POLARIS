@@ -56,7 +56,7 @@
     <larm_f> 4.1e-19
 
     # phase function used for the dust grains, Henyey-Greenstein, Mie or isotropic (TEMP, RAT, DUST_SCATTERING)
-    <phase_function> PH_HG or PH_MIE or PH_ISO
+    <phase_function> PH_HG or PH_DHG or PH_TTHG or PH_MIE or PH_ISO
 
 
     # Gas

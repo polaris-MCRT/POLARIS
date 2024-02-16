@@ -22,6 +22,8 @@ class CDustComponent
         phase_pdf = 0;
 
         HG_g_factor = 0;
+        HG_g2_factor = 0;
+        HG_g3_factor = 0;
         Qtrq = 0;
         tab_em = 0;
         tab_em_inv = 0;
@@ -43,10 +45,12 @@ class CDustComponent
         Qsca2 = 0;
         Qcirc = 0;
         HGg = 0;
+        HGg2 = 0;
+        HGg3 = 0;
         a_eff = 0;
-        a_eff_1_5 = 0;
-        a_eff_3_5 = 0;
-        a_eff_2 = 0;
+        grain_distribution_x_aeff_sq = 0;
+        grain_size_distribution = 0;
+        a_eff_squared = 0;
         mass = 0;
         relWeightTab = 0;
         fraction = 0;
@@ -64,6 +68,8 @@ class CDustComponent
         tCsca2 = 0;
         tCcirc = 0;
         tHGg = 0;
+        tHGg2 = 0;
+        tHGg3 = 0;
 
         stringID = "";
         size_keyword = "";
@@ -188,6 +194,18 @@ class CDustComponent
                 delete[] HGg[a];
             delete[] HGg;
         }
+        if(HGg2 != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] HGg2[a];
+            delete[] HGg2;
+        }
+        if(HGg3 != 0)
+        {
+            for(uint a = 0; a < nr_of_dust_species; a++)
+                delete[] HGg3[a];
+            delete[] HGg3;
+        }
         if(avg_scattering_frac != 0)
         {
             for(uint a = 0; a < nr_of_dust_species; a++)
@@ -229,6 +247,10 @@ class CDustComponent
             delete[] Qtrq;
         if(HG_g_factor != 0)
             delete[] HG_g_factor;
+        if(HG_g2_factor != 0)
+            delete[] HG_g2_factor;
+        if(HG_g3_factor != 0)
+            delete[] HG_g3_factor;
 
         if(CextMean != 0)
         {
@@ -265,6 +287,10 @@ class CDustComponent
             delete[] tCcirc;
         if(tHGg != 0)
             delete[] tHGg;
+        if(tHGg2 != 0)
+            delete[] tHGg2;
+        if(tHGg3 != 0)
+            delete[] tHGg3;
 
         if(tab_em != 0)
             delete[] tab_em;
@@ -286,12 +312,12 @@ class CDustComponent
 
         if(a_eff != 0)
             delete[] a_eff;
-        if(a_eff_1_5 != 0)
-            delete[] a_eff_1_5;
-        if(a_eff_3_5 != 0)
-            delete[] a_eff_3_5;
-        if(a_eff_2 != 0)
-            delete[] a_eff_2;
+        if(grain_distribution_x_aeff_sq != 0)
+            delete[] grain_distribution_x_aeff_sq;
+        if(grain_size_distribution != 0)
+            delete[] grain_size_distribution;
+        if(a_eff_squared != 0)
+            delete[] a_eff_squared;
         if(mass != 0)
             delete[] mass;
         if(relWeightTab != 0)
@@ -341,6 +367,31 @@ class CDustComponent
         return HGg[a][w];
     }
 
+    inline double getHGg2(uint a, uint w) const
+    {
+        return HGg2[a][w];
+    }
+
+    inline double getHGg3(uint a, uint w) const
+    {
+        return HGg3[a][w];
+    }
+
+    void setHGg(uint a, uint w, double val)
+    {
+        HGg[a][w] = val;
+    }
+
+    void setHGg2(uint a, uint w, double val)
+    {
+        HGg2[a][w] = val;
+    }
+
+    void setHGg3(uint a, uint w, double val)
+    {
+        HGg3[a][w] = val;
+    }
+
     // ------------------------------------------------------------------------------------
     // ----------- Add values to efficiencies for grain size and wavelength
     // ---------------
@@ -385,42 +436,52 @@ class CDustComponent
         HGg[a][w] += val;
     }
 
+    void addHGg2(uint a, uint w, double val)
+    {
+        HGg2[a][w] += val;
+    }
+
+    void addHGg3(uint a, uint w, double val)
+    {
+        HGg3[a][w] += val;
+    }
+
     // ------------------------------------------------------------------------
     // ----------- Cross-sections for grain size and wavelength ---------------
     // ------------------------------------------------------------------------
     double getCext1(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQext1(a, w);
+        return PI * a_eff_squared[a] * getQext1(a, w);
     }
 
     double getCext2(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQext2(a, w);
+        return PI * a_eff_squared[a] * getQext2(a, w);
     }
 
     double getCabs1(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQabs1(a, w);
+        return PI * a_eff_squared[a] * getQabs1(a, w);
     }
 
     double getCabs2(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQabs2(a, w);
+        return PI * a_eff_squared[a] * getQabs2(a, w);
     }
 
     double getCsca1(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQsca1(a, w);
+        return PI * a_eff_squared[a] * getQsca1(a, w);
     }
 
     double getCsca2(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQsca2(a, w);
+        return PI * a_eff_squared[a] * getQsca2(a, w);
     }
 
     double getCcirc(uint a, uint w) const
     {
-        return PI * a_eff_2[a] * getQcirc(a, w);
+        return PI * a_eff_squared[a] * getQcirc(a, w);
     }
 
     // -------------------------------------------------------------------------------
@@ -446,7 +507,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQext1(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQext1(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -473,7 +534,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQext2(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQext2(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -500,7 +561,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQabs1(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQabs1(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -527,7 +588,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQabs2(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQabs2(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -554,7 +615,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQsca1(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQsca1(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -581,7 +642,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQsca2(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQsca2(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -608,7 +669,7 @@ class CDustComponent
         double * rel_weight = getRelWeight(a_min, a_max, size_param);
 
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_weight[a] *= a_eff_2[a] * getQcirc(a, w);
+            rel_weight[a] *= a_eff_squared[a] * getQcirc(a, w);
         double res =
             PI * CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
@@ -636,6 +697,58 @@ class CDustComponent
 
         for(uint a = 0; a < nr_of_dust_species; a++)
             rel_weight[a] *= getHGg(a, w);
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+        return res;
+    }
+
+    double getHGg2(CGridBasic * grid, const photon_package & pp) const
+    {
+        // Get wavelength of photon package
+        uint w = pp.getDustWavelengthID();
+
+        // Return precalculated value if available
+        if(tHGg2 != 0)
+            return tHGg2[w];
+
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, pp);
+        double a_max = getSizeMax(grid, pp);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= getHGg2(a, w);
+        double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+        delete[] rel_weight;
+        return res;
+    }
+
+    double getHGg3(CGridBasic * grid, const photon_package & pp) const
+    {
+        // Get wavelength of photon package
+        uint w = pp.getDustWavelengthID();
+
+        // Return precalculated value if available
+        if(tHGg3 != 0)
+            return tHGg3[w];
+
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, pp);
+        double a_max = getSizeMax(grid, pp);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, pp);
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            rel_weight[a] *= getHGg3(a, w);
         double res = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
         delete[] rel_weight;
         return res;
@@ -703,7 +816,7 @@ class CDustComponent
     {
         double * Cext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
+            Cext1[a] = grain_distribution_x_aeff_sq[a] * getQext1(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min_global, a_max_global);
@@ -715,7 +828,7 @@ class CDustComponent
     {
         double * Cext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
+            Cext2[a] = grain_distribution_x_aeff_sq[a] * getQext2(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min_global, a_max_global);
@@ -727,7 +840,7 @@ class CDustComponent
     {
         double * Cabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
+            Cabs1[a] = grain_distribution_x_aeff_sq[a] * getQabs1(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min_global, a_max_global);
@@ -739,7 +852,7 @@ class CDustComponent
     {
         double * Cabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
+            Cabs2[a] = grain_distribution_x_aeff_sq[a] * getQabs2(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min_global, a_max_global);
@@ -751,7 +864,7 @@ class CDustComponent
     {
         double * Csca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
+            Csca1[a] = grain_distribution_x_aeff_sq[a] * getQsca1(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min_global, a_max_global);
@@ -763,7 +876,7 @@ class CDustComponent
     {
         double * Csca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
+            Csca2[a] = grain_distribution_x_aeff_sq[a] * getQsca2(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min_global, a_max_global);
@@ -775,7 +888,7 @@ class CDustComponent
     {
         double * Ccirc = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Ccirc[a] = a_eff_1_5[a] * getQcirc(a, w);
+            Ccirc[a] = grain_distribution_x_aeff_sq[a] * getQcirc(a, w);
         double res =
             PI / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min_global, a_max_global);
@@ -787,11 +900,35 @@ class CDustComponent
     {
         double * HGg = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            HGg[a] = a_eff_3_5[a] * getHGg(a, w);
+            HGg[a] = grain_size_distribution[a] * getHGg(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, HGg, nr_of_dust_species, a_min_global, a_max_global);
         delete[] HGg;
+        return res;
+    }
+
+    double getHGg2(uint w) const
+    {
+        double * HGg2 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            HGg2[a] = grain_size_distribution[a] * getHGg2(a, w);
+        double res =
+            1.0 / getWeight() *
+            CMathFunctions::integ_dust_size(a_eff, HGg2, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] HGg2;
+        return res;
+    }
+
+    double getHGg3(uint w) const
+    {
+        double * HGg3 = new double[nr_of_dust_species];
+        for(uint a = 0; a < nr_of_dust_species; a++)
+            HGg3[a] = grain_size_distribution[a] * getHGg3(a, w);
+        double res =
+            1.0 / getWeight() *
+            CMathFunctions::integ_dust_size(a_eff, HGg3, nr_of_dust_species, a_min_global, a_max_global);
+        delete[] HGg3;
         return res;
     }
 
@@ -802,7 +939,7 @@ class CDustComponent
     {
         double * Qext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qext1[a] = a_eff_3_5[a] * getQext1(a, w);
+            Qext1[a] = grain_size_distribution[a] * getQext1(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qext1, nr_of_dust_species, a_min_global, a_max_global);
@@ -814,7 +951,7 @@ class CDustComponent
     {
         double * Qext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qext2[a] = a_eff_3_5[a] * getQext2(a, w);
+            Qext2[a] = grain_size_distribution[a] * getQext2(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qext2, nr_of_dust_species, a_min_global, a_max_global);
@@ -826,7 +963,7 @@ class CDustComponent
     {
         double * Qabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qabs1[a] = a_eff_3_5[a] * getQabs1(a, w);
+            Qabs1[a] = grain_size_distribution[a] * getQabs1(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qabs1, nr_of_dust_species, a_min_global, a_max_global);
@@ -838,7 +975,7 @@ class CDustComponent
     {
         double * Qabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qabs2[a] = a_eff_3_5[a] * getQabs2(a, w);
+            Qabs2[a] = grain_size_distribution[a] * getQabs2(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qabs2, nr_of_dust_species, a_min_global, a_max_global);
@@ -850,7 +987,7 @@ class CDustComponent
     {
         double * Qsca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qsca1[a] = a_eff_3_5[a] * getQsca1(a, w);
+            Qsca1[a] = grain_size_distribution[a] * getQsca1(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qsca1, nr_of_dust_species, a_min_global, a_max_global);
@@ -862,7 +999,7 @@ class CDustComponent
     {
         double * Qsca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qsca2[a] = a_eff_3_5[a] * getQsca2(a, w);
+            Qsca2[a] = grain_size_distribution[a] * getQsca2(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qsca2, nr_of_dust_species, a_min_global, a_max_global);
@@ -874,7 +1011,7 @@ class CDustComponent
     {
         double * Qcirc = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Qcirc[a] = a_eff_3_5[a] * getQcirc(a, w);
+            Qcirc[a] = grain_size_distribution[a] * getQcirc(a, w);
         double res =
             1.0 / getWeight() *
             CMathFunctions::integ_dust_size(a_eff, Qcirc, nr_of_dust_species, a_min_global, a_max_global);
@@ -889,7 +1026,7 @@ class CDustComponent
     {
         double * Cext1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext1[a] = a_eff_1_5[a] * getQext1(a, w);
+            Cext1[a] = grain_distribution_x_aeff_sq[a] * getQext1(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cext1, nr_of_dust_species, a_min_global, a_max_global);
@@ -901,7 +1038,7 @@ class CDustComponent
     {
         double * Cext2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cext2[a] = a_eff_1_5[a] * getQext2(a, w);
+            Cext2[a] = grain_distribution_x_aeff_sq[a] * getQext2(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cext2, nr_of_dust_species, a_min_global, a_max_global);
@@ -913,7 +1050,7 @@ class CDustComponent
     {
         double * Cabs1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs1[a] = a_eff_1_5[a] * getQabs1(a, w);
+            Cabs1[a] = grain_distribution_x_aeff_sq[a] * getQabs1(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cabs1, nr_of_dust_species, a_min_global, a_max_global);
@@ -925,7 +1062,7 @@ class CDustComponent
     {
         double * Cabs2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Cabs2[a] = a_eff_1_5[a] * getQabs2(a, w);
+            Cabs2[a] = grain_distribution_x_aeff_sq[a] * getQabs2(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Cabs2, nr_of_dust_species, a_min_global, a_max_global);
@@ -937,7 +1074,7 @@ class CDustComponent
     {
         double * Csca1 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca1[a] = a_eff_1_5[a] * getQsca1(a, w);
+            Csca1[a] = grain_distribution_x_aeff_sq[a] * getQsca1(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Csca1, nr_of_dust_species, a_min_global, a_max_global);
@@ -949,7 +1086,7 @@ class CDustComponent
     {
         double * Csca2 = new double[nr_of_dust_species];
         for(uint a = 0; a < nr_of_dust_species; a++)
-            Csca2[a] = a_eff_1_5[a] * getQsca2(a, w);
+            Csca2[a] = grain_distribution_x_aeff_sq[a] * getQsca2(a, w);
         double res =
             PI / getWeight() / getAvgMass() *
             CMathFunctions::integ_dust_size(a_eff, Csca2, nr_of_dust_species, a_min_global, a_max_global);
@@ -976,7 +1113,7 @@ class CDustComponent
         {
             // Create normalization factor
             for(uint a = 0; a < nr_of_dust_species; a++)
-                rel_weight[a] = a_eff_3_5[a] * pow(a_eff[a], size_param);
+                rel_weight[a] = grain_size_distribution[a] * pow(a_eff[a], size_param);
 
             double weight = CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
 
@@ -1007,7 +1144,7 @@ class CDustComponent
     double getWeight() const
     {
         double weight =
-            CMathFunctions::integ_dust_size(a_eff, a_eff_3_5, nr_of_dust_species, a_min_global, a_max_global);
+            CMathFunctions::integ_dust_size(a_eff, grain_size_distribution, nr_of_dust_species, a_min_global, a_max_global);
         return weight;
     }
 
@@ -1018,7 +1155,7 @@ class CDustComponent
 
         // Set the relative mass of each dust grain size bin
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_mass[a] = a_eff_3_5[a] * mass[a];
+            rel_mass[a] = grain_size_distribution[a] * mass[a];
 
         // Calculate the average mass of the dust grains in the current cell
         double mass_weight =
@@ -1161,13 +1298,19 @@ class CDustComponent
         switch(phID)
         {
             case PH_ISO:
-                res = 1 / PIx4;
+                res = 1.0 / PIx4;
                 break;
 
             case PH_HG:
-                double g;
-                g = getHGg(a, w);
-                res = CMathFunctions::phaseFunctionHG(g, theta);
+                res = CMathFunctions::phaseFunctionHG(getHGg(a, w), theta);
+                break;
+            
+            case PH_DHG:
+                res = CMathFunctions::phaseFunctionDHG(getHGg(a, w), getHGg2(a, w), theta);
+                break;
+            
+            case PH_TTHG:
+                res = CMathFunctions::phaseFunctionTTHG(getHGg(a, w), getHGg2(a, w), getHGg3(a, w), theta);
                 break;
 
             case PH_MIE:
@@ -1195,6 +1338,20 @@ class CDustComponent
             {
                 uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
                 henyeygreen(pp, a, rand_gen);
+                break;
+            }
+
+            case PH_DHG:
+            {
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                drainehenyeygreen(pp, a, rand_gen);
+                break;
+            }
+
+            case PH_TTHG:
+            {
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                threeparamhenyeygreen(pp, a, rand_gen);
                 break;
             }
 
@@ -1847,7 +2004,7 @@ class CDustComponent
 
         // Set the relative mass of each dust grain size bin
         for(uint a = 0; a < nr_of_dust_species; a++)
-            rel_mass[a] = a_eff_3_5[a] * mass[a];
+            rel_mass[a] = grain_size_distribution[a] * mass[a];
 
         // Calculate the average mass of the dust grains in the current cell
         double avg_mass =
@@ -1920,6 +2077,16 @@ class CDustComponent
     uint getNrOfDustSpecies() const
     {
         return nr_of_dust_species;
+    }
+
+    void setNrOfDustSpecies(uint val)
+    {
+        nr_of_dust_species = val;
+    }
+
+    void setNrOfWavelength(uint val)
+    {
+        nr_of_wavelength = val;
     }
 
     uint getNrOfIncidentAngles() const
@@ -2060,24 +2227,24 @@ class CDustComponent
         return a_eff;
     }
 
-    double getEffectiveRadius1_5(uint a) const
+    double getGrainDistributionXRadiusSq(uint a) const
     {
-        return a_eff_1_5[a];
+        return grain_distribution_x_aeff_sq[a];
     }
 
-    double getEffectiveRadius3_5(uint a) const
+    double getGrainSizeDistribution(uint a) const
     {
-        return a_eff_3_5[a];
+        return grain_size_distribution[a];
     }
 
-    double * getEffectiveRadii3_5()
+    double * getGrainSizeDistribution()
     {
-        return a_eff_3_5;
+        return grain_size_distribution;
     }
 
-    double getEffectiveRadius_2(uint a) const
+    double getEffectiveRadiusSquared(uint a) const
     {
-        return a_eff_2[a];
+        return a_eff_squared[a];
     }
 
     double getMass(uint a) const
@@ -2157,6 +2324,18 @@ class CDustComponent
     {
         x = HG_g_factor[i].getX(j);
         y = HG_g_factor[i].getY(j);
+    }
+
+    void getHG_g2_factor(uint i, uint j, double & x, double & y)
+    {
+        x = HG_g2_factor[i].getX(j);
+        y = HG_g2_factor[i].getY(j);
+    }
+
+    void getHG_g3_factor(uint i, uint j, double & x, double & y)
+    {
+        x = HG_g3_factor[i].getX(j);
+        y = HG_g3_factor[i].getY(j);
     }
 
     bool getCalorimetryLoaded()
@@ -2271,6 +2450,8 @@ class CDustComponent
     void preCalcEffProperties(parameters & param);
 
     void henyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void drainehenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void threeparamhenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
     void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
@@ -2373,7 +2554,7 @@ class CDustComponent
     interp ** avg_scattering_frac;
     interp ** phase_pdf;
 
-    spline *HG_g_factor, *Qtrq;
+    spline *HG_g_factor, *HG_g2_factor, *HG_g3_factor, *Qtrq;
     spline * tab_planck;
     spline * tab_em;
     spline * tab_em_inv;
@@ -2383,12 +2564,12 @@ class CDustComponent
     prob_list *dust_prob, *sca_prob, *abs_prob;
 
     Matrix2D ***** sca_mat;
-    double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg;
+    double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg, **HGg2, **HGg3;
     double ** enthalpy;
-    double *a_eff, *a_eff_1_5, *a_eff_3_5, *a_eff_2;
+    double *a_eff, *grain_distribution_x_aeff_sq, *grain_size_distribution, *a_eff_squared;
     double * calorimetry_temperatures;
     double * mass;
-    double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
+    double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg, *tHGg2, *tHGg3;
     double * relWeightTab;
     double **CextMean, **CabsMean, **CscaMean;
 
@@ -2535,6 +2716,14 @@ class CDustMixture
 
                 case PH_HG:
                     str_res = "Henyey and Greenstein";
+                    break;
+                
+                case PH_DHG:
+                    str_res = "Draine Henyey and Greenstein";
+                    break;
+                
+                case PH_TTHG:
+                    str_res = "Three parameter Henyey and Greenstein";
                     break;
 
                 case PH_MIE:
@@ -3489,7 +3678,7 @@ class CDustMixture
                 if(single_component[i_comp].sizeIndexUsed(a))
                 {
                     size_fraction[i_comp][a][0] =
-                        mass_weight_ratio * single_component[i_comp].getEffectiveRadius3_5(a);
+                        mass_weight_ratio * single_component[i_comp].getGrainSizeDistribution(a);
                 }
         }
 

@@ -1,9 +1,10 @@
 cmake_minimum_required (VERSION 3.13.4)
-PROJECT (POLARIS LANGUAGES CXX)
-
-SET (${PROJECT_NAME}_MAJOR_VERSION 5)
-SET (${PROJECT_NAME}_MINOR_VERSION 05)
-SET (${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
+PROJECT (POLARIS
+    VERSION 4.12.00
+    DESCRIPTION "POLARIS: POLArized RadIation Simulator, Copyright (C) 2018 Stefan Reissl"
+    HOMEPAGE_URL "https://portia.astrophysik.uni-kiel.de/polaris/"
+    LANGUAGES CXX
+    )
 
 SET (CMAKE_CXX_STANDARD 11)
 SET (CXX_STANDARD_REQUIRED ON)
@@ -37,7 +38,7 @@ INSTALL (TARGETS polaris)
 
 INCLUDE (CTest)
 if(BUILD_TESTING)
-    ADD_EXECUTABLE (tests tests.cpp MathFunctions_t.cpp ${SRC_FILES})
+    ADD_EXECUTABLE (tests tests.cpp MathFunctions_t.cpp Dust_t.cpp ${SRC_FILES})
     TARGET_LINK_LIBRARIES (tests PRIVATE OpenMP::OpenMP_CXX ${CCFITS_LIBRARY} ${CFITSIO_LIBRARY})
     TARGET_INCLUDE_DIRECTORIES (tests PRIVATE ../ext ${CMAKE_CURRENT_LIST_DIR} ${CFITSIO_INCLUDE_DIR})
     # allow user to run tests with `make test` or `ctest`

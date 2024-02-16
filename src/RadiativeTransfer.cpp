@@ -3566,9 +3566,6 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                 // Is a smaller step width needed
                 if(epsi <= 1.0)
                 {
-                    // Backup old intensity
-                    double old_stokes = pp->getStokesVector()->I();
-
                     // Stokes_new is the current flux of this line-of-sight
                     pp->setStokesVector(stokes_new);
 

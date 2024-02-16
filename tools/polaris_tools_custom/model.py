@@ -71,15 +71,13 @@ class CustomModel(Model):
 
 
 class CustomDisk(Model):
-    """The disk model with the Shakura and Sunyaev disk density profile.
+    """Power-law or viscous accretion disk model.
+    Andrews et al. (2009), ApJ 700, 1502
+    Kwon et al. (2015), ApJ 808, 102
     """
 
     def __init__(self):
         """Initialisation of the model parameters.
-
-        Notes:
-            Shakura and Sunyaev (1973)
-            Link: http://adsabs.harvard.edu/abs/1973A&A....24..337S
         """
         Model.__init__(self)
 
@@ -109,15 +107,15 @@ class CustomDisk(Model):
         self.parameter['ref_radius'] = 100. * self.math.const['au']
         self.parameter['ref_scale_height'] = 10. * self.math.const['au']
         self.parameter['beta'] = 1.1
-        # Woitke et al. 2019, http://adsabs.harvard.edu/abs/2019PASP..131f4301W
         self.parameter['alpha'] = 3.0 * (self.parameter['beta'] - 0.5)
-        # Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%26A....24..337S
+        self.parameter['tapered_gamma'] = None
 
         self.custom_parameter_list = [
             'ref_radius',
             'ref_scale_height',
             'beta',
-            'alpha'
+            'alpha',
+            'tapered_gamma',
         ]
 
     def update_parameter(self, extra_parameter):
@@ -140,7 +138,6 @@ class CustomDisk(Model):
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.
 
-
         Returns:
             float: Gas density at a given position.
         """
@@ -149,7 +146,8 @@ class CustomDisk(Model):
                                                      outer_radius=self.parameter['outer_radius'],
                                                      ref_radius=self.parameter['ref_radius'],
                                                      ref_scale_height=self.parameter['ref_scale_height'],
-                                                     alpha=self.parameter['alpha'], beta=self.parameter['beta'])
+                                                     alpha=self.parameter['alpha'], beta=self.parameter['beta'],
+                                                     tapered_gamma=self.parameter['tapered_gamma'])
         return gas_density
 
     def get_scale_height(self, radius):

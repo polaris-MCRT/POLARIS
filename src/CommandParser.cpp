@@ -888,6 +888,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return true;
         }
 
+        if(data.compare("PH_DHG") == 0)
+        {
+            param->setPhaseFunctionID(PH_DHG, dust_component_choice);
+            return true;
+        }
+
+        if(data.compare("PH_TTHG") == 0)
+        {
+            param->setPhaseFunctionID(PH_TTHG, dust_component_choice);
+            return true;
+        }
+
         if(data.compare("PH_MIE") == 0)
         {
             param->setPhaseFunctionID(PH_MIE, dust_component_choice);
