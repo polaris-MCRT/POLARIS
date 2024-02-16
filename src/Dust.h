@@ -1298,28 +1298,19 @@ class CDustComponent
         switch(phID)
         {
             case PH_ISO:
-                res = 1 / PIx4;
+                res = 1.0 / PIx4;
                 break;
 
             case PH_HG:
-                double g;
-                g = getHGg(a, w);
-                res = CMathFunctions::phaseFunctionHG(g, theta);
+                res = CMathFunctions::phaseFunctionHG(getHGg(a, w), theta);
                 break;
             
             case PH_DHG:
-                double alpha;
-                g = getHGg(a, w);
-                alpha = getHGg2(a, w);
-                res = CMathFunctions::phaseFunctionDHG(g, alpha, theta);
+                res = CMathFunctions::phaseFunctionDHG(getHGg(a, w), getHGg2(a, w), theta);
                 break;
             
             case PH_TTHG:
-                double g2, weight;
-                g = getHGg(a, w);
-                g2 = getHGg2(a, w);
-                weight = getHGg3(a, w);
-                res = CMathFunctions::phaseFunctionTTHG(g, g2, weight, theta);
+                res = CMathFunctions::phaseFunctionTTHG(getHGg(a, w), getHGg2(a, w), getHGg3(a, w), theta);
                 break;
 
             case PH_MIE:
