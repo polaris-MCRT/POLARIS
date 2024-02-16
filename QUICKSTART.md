@@ -100,8 +100,7 @@ The (binary) grid file can be created with the command `polaris-gen`.
 
 There are already two models available:
 
-**Circumstellar disk** with a [Shakura & Sunyaev](https://ui.adsabs.harvard.edu/abs/1973A&A....24..337S) density distribution
-([Lynden-Bell & Pringle 1974](https://ui.adsabs.harvard.edu/abs/1974MNRAS.168..603L); [Hartmann et al. 1998](https://ui.adsabs.harvard.edu/abs/1998ApJ...495..385H))
+**Circumstellar disk** with a power-law density distribution
 
 $$
 \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
@@ -145,7 +144,7 @@ polaris-gen -h
 To modify further model specific parameter values, the user can parse a list of parameter values using the option `--extra` followed by the keywords and the corresponding value (int, float, or str).
 By default, the user can parse
 
-- 4 values for the `disk` model: reference radius `ref_radius` ($r_0$ in meter), reference scale height `ref_scale_height` ($h_0$ in meter), `alpha` ($\alpha$), and `beta` ($\beta$),
+- 5 values for the `disk` model: reference radius `ref_radius` ($r_0$ in meter), reference scale height `ref_scale_height` ($h_0$ in meter), `alpha` ($\alpha$), `beta` ($\beta$), and `tapered_gamma` ($\gamma$),
 
 - 2 values for the `sphere` model: the geometry of the magnetic field `mag_field_geometry` (toroidal, vertical, or radial) and the magnetic field strength `mag_field_strength` (in tesla).
 
@@ -157,6 +156,11 @@ or the magnetic field of the sphere to a radial geometry with
 ```bash
 polaris-gen sphere grid_filename.dat --extra mag_field_geometry radial
 ```
+
+By adding `tapered_gamma` ($\gamma$) to the extra parameter of the disk model, the density distribution has an additional exponential taper at large radii (e.g. [Andrews et al. 2009](https://ui.adsabs.harvard.edu/abs/2009ApJ...700.1502A))
+$$
+\rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \exp\left[ -\left( \frac{r}{r_0} \right)^{2 - \gamma} \right] \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
+$$
 
 Additional parameter values to modify the model can be defined in the function `update_parameter` in the file `tools/polaris_tools_modules/model.py`.
 

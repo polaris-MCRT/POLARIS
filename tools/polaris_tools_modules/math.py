@@ -528,8 +528,9 @@ class Math:
     def default_disk_density(position, inner_radius, outer_radius, ref_scale_height=10. * 149597870700.0,
                              ref_radius=100. * 149597870700.0, alpha=1.8, beta=1.1, tapered_gamma=None,
                              column_dens_exp=None, real_zero=True):
-        """Shakura and Sunyaev disk density profile.
-        Shakura & Sunyaev 1973, https://ui.adsabs.harvard.edu/abs/1973A%2526A....24..337S
+        """Power-law or viscous accretion disk model (exponential taper).
+        Andrews et al. (2009), ApJ 700, 1502
+        Kwon et al. (2015), ApJ 808, 102
 
         Args:
             position (List[float, float, float]): Position in model space.
@@ -539,6 +540,7 @@ class Math:
             ref_radius (float): Reference radius.
             alpha (float): Exponent for radial density decrease.
             beta (float): Exponent for disk flaring.
+            tapered_gamma (float): If set, add an exponential taper at large radii characterized by tapered_gamma.
             column_dens_exp (float): If set, calculate alpha from the surface density exponent.
                 (Defined positively)
             real_zero (bool): No minimum value for the density.
@@ -562,8 +564,7 @@ class Math:
             density = 0.
 
         if tapered_gamma is not None:
-            density *= np.exp(-(radius_cy / ref_radius)
-                              ** (2 - tapered_gamma))
+            density *= np.exp(-(radius_cy / ref_radius) ** (2 - tapered_gamma))
         if not real_zero:
             density = max(density, 1e-200)
 
@@ -572,13 +573,13 @@ class Math:
     @staticmethod
     def default_disk_scale_height(radius, beta=1.1,
                                   ref_scale_height=10. * 149597870700.0, ref_radius=100. * 149597870700.0):
-        """Shakura and Sunyaev disk density profile.
+        """Width of the Gaussian vertical density profile.
 
         Args:
             radius (float): Distance from the center in the midplane.
+            beta (float): Exponent for disk flaring.
             ref_scale_height (float): Reference scale height.
             ref_radius (float): Reference radius.
-            beta (float): Exponent for disk flaring.
 
         Returns:
             Float: Scale Height at the given position.
