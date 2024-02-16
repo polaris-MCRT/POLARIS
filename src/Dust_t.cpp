@@ -21,6 +21,7 @@ TEST_CASE("CDustComponent::henyeygreen", "[Dust][CDustComponent]")
     Vector3D ez {Vector3D(0.0, 0.0, 1.0)};
 
     // mu = cos(theta)
+    double mu {};
     double mu_mean {0.0};
     double mu_min {1.0};
     double mu_max {-1.0};
@@ -30,11 +31,13 @@ TEST_CASE("CDustComponent::henyeygreen", "[Dust][CDustComponent]")
         pp.setDirection(ez);
         pp.initCoordSystem();
         dust.henyeygreen(&pp, 0, &randgen);
-        double mu {ez * pp.getDirection()};
+        mu = ez * pp.getDirection();
         mu_mean += mu;
         mu_min = std::min(mu, mu_min);
         mu_max = std::max(mu, mu_max);
     }
+
+    CAPTURE(g);
 
     mu_mean /= static_cast<double>(n_samples);
     // mu should be between -1 and 1
@@ -42,7 +45,6 @@ TEST_CASE("CDustComponent::henyeygreen", "[Dust][CDustComponent]")
     REQUIRE(mu_max <= 1.0);
     REQUIRE(mu_min < mu_max);
     // mean value should be approximately g
-    CAPTURE(g);
     REQUIRE(std::abs(mu_mean - g) < 0.001);
 }
 
@@ -67,6 +69,7 @@ TEST_CASE("CDustComponent::drainehenyeygreen", "[Dust][CDustComponent]")
     Vector3D ez {Vector3D(0.0, 0.0, 1.0)};
 
     // mu = cos(theta)
+    double mu {};
     double mu_mean {0.0};
     double mu_min {1.0};
     double mu_max {-1.0};
@@ -76,11 +79,14 @@ TEST_CASE("CDustComponent::drainehenyeygreen", "[Dust][CDustComponent]")
         pp.setDirection(ez);
         pp.initCoordSystem();
         dust.drainehenyeygreen(&pp, 0, &randgen);
-        double mu {ez * pp.getDirection()};
+        mu = ez * pp.getDirection();
         mu_mean += mu;
         mu_min = std::min(mu, mu_min);
         mu_max = std::max(mu, mu_max);
     }
+
+    CAPTURE(g);
+    CAPTURE(alpha);
 
     mu_mean /= static_cast<double>(n_samples);
     // mu should be between -1 and 1
@@ -88,8 +94,6 @@ TEST_CASE("CDustComponent::drainehenyeygreen", "[Dust][CDustComponent]")
     REQUIRE(mu_max <= 1.0);
     REQUIRE(mu_min < mu_max);
     // mean value should be approximately Eq. (A2) in Draine 2003, ApJ 598, 1017
-    CAPTURE(g);
-    CAPTURE(alpha);
     double first_moment {g * (1.0 + alpha * (3.0 + 2.0 * g * g) / 5.0) / (1.0 + alpha * (1.0 + 2.0 * g * g) / 3.0)};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
 }
@@ -117,6 +121,7 @@ TEST_CASE("CDustComponent::threeparamhenyeygreen", "[Dust][CDustComponent]")
     Vector3D ez {Vector3D(0.0, 0.0, 1.0)};
 
     // mu = cos(theta)
+    double mu {};
     double mu_mean {0.0};
     double mu_min {1.0};
     double mu_max {-1.0};
@@ -126,11 +131,15 @@ TEST_CASE("CDustComponent::threeparamhenyeygreen", "[Dust][CDustComponent]")
         pp.setDirection(ez);
         pp.initCoordSystem();
         dust.threeparamhenyeygreen(&pp, 0, &randgen);
-        double mu {ez * pp.getDirection()};
+        mu = ez * pp.getDirection();
         mu_mean += mu;
         mu_min = std::min(mu, mu_min);
         mu_max = std::max(mu, mu_max);
     }
+
+    CAPTURE(g1);
+    CAPTURE(g2);
+    CAPTURE(weight);
 
     mu_mean /= static_cast<double>(n_samples);
     // mu should be between -1 and 1
@@ -138,9 +147,6 @@ TEST_CASE("CDustComponent::threeparamhenyeygreen", "[Dust][CDustComponent]")
     REQUIRE(mu_max <= 1.0);
     REQUIRE(mu_min < mu_max);
     // mean value should be approximately w*g1 + (1-w)*g2
-    CAPTURE(g1);
-    CAPTURE(g2);
-    CAPTURE(weight);
     double first_moment {weight * g1 + (1.0 - weight) * g2};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
 }

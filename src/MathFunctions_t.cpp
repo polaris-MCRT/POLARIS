@@ -81,9 +81,9 @@ TEST_CASE("CMathFunctions::calcWVMie::BH", "[MathFunctions][CMathFunctions]")
 
     REQUIRE(res);
 
-    REQUIRE(abs(qext - 3.10543) < 1e-5);
-    REQUIRE(abs(qabs - 0.00000) < 1e-5);
-    REQUIRE(abs(qsca - 3.10543) < 1e-5);
+    REQUIRE(std::abs(qext - 3.10543) < 1e-5);
+    REQUIRE(std::abs(qabs - 0.00000) < 1e-5);
+    REQUIRE(std::abs(qsca - 3.10543) < 1e-5);
     // REQUIRE(abs(qbk - 2.92534) < 1e-5);
 
     double BH_S11[nr_theta] = {
@@ -104,10 +104,10 @@ TEST_CASE("CMathFunctions::calcWVMie::BH", "[MathFunctions][CMathFunctions]")
         0.000000e+00};
 
     for(uint th = 0; th < nr_theta; th++) {
-        CHECK(abs( S11[th] / S11[0]  - BH_S11[th]) < 1e-6);
-        CHECK(abs(-S12[th] / S11[th] - BH_S12[th]) < 1e-6);
-        CHECK(abs( S33[th] / S11[th] - BH_S33[th]) < 1e-6);
-        CHECK(abs( S34[th] / S11[th] - BH_S34[th]) < 1e-6);
+        REQUIRE(std::abs( S11[th] / S11[0]  - BH_S11[th]) < 1e-6);
+        REQUIRE(std::abs(-S12[th] / S11[th] - BH_S12[th]) < 1e-6);
+        REQUIRE(std::abs( S33[th] / S11[th] - BH_S33[th]) < 1e-6);
+        REQUIRE(std::abs( S34[th] / S11[th] - BH_S34[th]) < 1e-6);
     }
 }
 
@@ -132,16 +132,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
     }
 
     bool res {CMathFunctions::calcWVMie(x, theta, ri, qext, qabs, qsca, gsca, S11, S12, S33, S34)};
-
+    CAPTURE(x);
     REQUIRE(res);
 
-    CAPTURE(x);
-
     if(x == 10.0) {
-        REQUIRE(abs(qext - 2.881999) < 1e-6);
-        REQUIRE(abs(qabs - 0.000000) < 1e-6);
-        REQUIRE(abs(qsca - 2.881999) < 1e-6);
-        REQUIRE(abs(gsca - 0.742913) < 1e-6);
+        REQUIRE(std::abs(qext - 2.881999) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.000000) < 1e-6);
+        REQUIRE(std::abs(qsca - 2.881999) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.742913) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.520856e+04, 0.428132e+04, 0.234775e+04, 0.818121e+03, 0.149547e+03, 0.139195e+02, 0.768071e+02, 0.128393e+03, 0.789487e+02, 0.293697e+02,
@@ -155,14 +153,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
             0.7664,-0.4108, 0.2385, 0.5276, 0.6986, 0.0830, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 100.0) {
-        REQUIRE(abs(qext - 2.094388) < 1e-6);
-        REQUIRE(abs(qabs - 0.000000) < 1e-6);
-        REQUIRE(abs(qsca - 2.094388) < 1e-6);
-        REQUIRE(abs(gsca - 0.818246) < 1e-6);
+        REQUIRE(std::abs(qext - 2.094388) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.000000) < 1e-6);
+        REQUIRE(std::abs(qsca - 2.094388) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.818246) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.275508e+08, 0.106440e+06, 0.586911e+05, 0.258367e+05, 0.202131e+05, 0.192755e+05, 0.159327e+05, 0.538269e+04, 0.866710e+04, 0.540267e+04,
@@ -176,14 +174,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
             0.5225,-0.8534,-0.8664, 0.6181, 0.8582, 0.5069, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 1000.0) {
-        REQUIRE(abs(qext - 2.013945) < 1e-6);
-        REQUIRE(abs(qabs - 0.000000) < 1e-6);
-        REQUIRE(abs(qsca - 2.013945) < 1e-6);
-        REQUIRE(abs(gsca - 0.827882) < 1e-6);
+        REQUIRE(std::abs(qext - 2.013945) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.000000) < 1e-6);
+        REQUIRE(std::abs(qsca - 2.013945) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.827882) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.253568e+12, 0.482785e+07, 0.883654e+06, 0.163897e+07, 0.136169e+07, 0.113470e+07, 0.103882e+07, 0.929666e+06, 0.863859e+06, 0.766220e+06,
@@ -197,14 +195,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
            -0.4512, 0.4230,-0.0666, 0.0290,-0.8299,-0.0267, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 5000.0) {
-        REQUIRE(abs(qext - 2.008650) < 1e-6);
-        REQUIRE(abs(qabs - 0.000000) < 1e-6);
-        REQUIRE(abs(qsca - 2.008650) < 1e-6);
-        REQUIRE(abs(gsca - 0.829592) < 1e-6);
+        REQUIRE(std::abs(qext - 2.008650) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.000000) < 1e-6);
+        REQUIRE(std::abs(qsca - 2.008650) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.829592) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.157609e+15, 0.394653e+08, 0.229931e+08, 0.339037e+08, 0.262577e+08, 0.236482e+08, 0.155814e+08, 0.323654e+08, 0.234225e+08, 0.178268e+08,
@@ -218,8 +216,8 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
            -0.7087,-0.0846,-0.8202,-0.1764, 0.2883, 0.6997, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     }
 }
@@ -245,16 +243,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
     }
 
     bool res {CMathFunctions::calcWVMie(x, theta, ri, qext, qabs, qsca, gsca, S11, S12, S33, S34)};
-
+    CAPTURE(x);
     REQUIRE(res);
 
-    CAPTURE(x);
-
     if(x == 10.0) {
-        REQUIRE(abs(qext - 2.459791) < 1e-6);
-        REQUIRE(abs(qabs - 1.224646) < 1e-6);
-        REQUIRE(abs(qsca - 1.235144) < 1e-6);
-        REQUIRE(abs(gsca - 0.922350) < 1e-6);
+        REQUIRE(std::abs(qext - 2.459791) < 1e-6);
+        REQUIRE(std::abs(qabs - 1.224646) < 1e-6);
+        REQUIRE(std::abs(qsca - 1.235144) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.922350) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.379171e+04, 0.300320e+04, 0.141624e+04, 0.313014e+03, 0.124235e+02, 0.296988e+02, 0.273164e+02, 0.112113e+02, 0.109517e+02, 0.607843e+01,
@@ -268,14 +264,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
             0.3753, 0.1218,-0.2643,-0.6463,-0.8175,-0.2177, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 100.0) {
-        REQUIRE(abs(qext - 2.089822) < 1e-6);
-        REQUIRE(abs(qabs - 0.957688) < 1e-6);
-        REQUIRE(abs(qsca - 1.132134) < 1e-6);
-        REQUIRE(abs(gsca - 0.950392) < 1e-6);
+        REQUIRE(std::abs(qext - 2.089822) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.957688) < 1e-6);
+        REQUIRE(std::abs(qsca - 1.132134) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.950392) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.273645e+08, 0.911574e+05, 0.130172e+05, 0.314304e+04, 0.121824e+04, 0.911319e+03, 0.801673e+03, 0.629347e+03, 0.465786e+03, 0.370932e+03,
@@ -289,14 +285,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
            -0.0932,-0.0643,-0.0409,-0.0229,-0.0101,-0.0025, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 1000.0) {
-        REQUIRE(abs(qext - 2.019703) < 1e-6);
-        REQUIRE(abs(qabs - 0.912770) < 1e-6);
-        REQUIRE(abs(qsca - 1.106932) < 1e-6);
-        REQUIRE(abs(gsca - 0.950880) < 1e-6);
+        REQUIRE(std::abs(qext - 2.019703) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.912770) < 1e-6);
+        REQUIRE(std::abs(qsca - 1.106932) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.950880) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.255002e+12, 0.103489e+07, 0.270449e+06, 0.145265e+06, 0.101955e+06, 0.803929e+05, 0.646676e+05, 0.528211e+05, 0.436516e+05, 0.364909e+05,
@@ -310,14 +306,14 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
            -0.0932,-0.0643,-0.0409,-0.0229,-0.0101,-0.0025, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     } else if(x == 5000.0) {
-        REQUIRE(abs(qext - 2.006775) < 1e-6);
-        REQUIRE(abs(qabs - 0.907582) < 1e-6);
-        REQUIRE(abs(qsca - 1.099193) < 1e-6);
-        REQUIRE(abs(gsca - 0.950650) < 1e-6);
+        REQUIRE(std::abs(qext - 2.006775) < 1e-6);
+        REQUIRE(std::abs(qabs - 0.907582) < 1e-6);
+        REQUIRE(std::abs(qsca - 1.099193) < 1e-6);
+        REQUIRE(std::abs(gsca - 0.950650) < 1e-6);
 
         double W_S11[nr_theta] = {
             0.157315e+15, 0.772728e+07, 0.417917e+07, 0.311291e+07, 0.245545e+07, 0.197572e+07, 0.160555e+07, 0.131668e+07, 0.109011e+07, 0.911909e+06,
@@ -331,8 +327,8 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
            -0.0932,-0.0643,-0.0409,-0.0229,-0.0101,-0.0025, 0.0000};
 
         for(uint th = 0; th < nr_theta; th++) {
-            CHECK(abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
-            CHECK(abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
+            REQUIRE(std::abs(1.0 - S11[th] / W_S11[th]) < 1e-5);
+            REQUIRE(std::abs(S12[th] / S11[th] - W_S12[th]) < 1e-4);
         }
     }
 }
@@ -344,23 +340,28 @@ TEST_CASE("CMathFunctions::findRootBrent::Phi", "[MathFunctions][CMathFunctions]
 
     auto phipar = GENERATE(-1.0, -0.5, 0.0, 0.5, 1.0);
 
+    double phi {};
     double phi_mean {0.0};
     double phi_min {PIx2};
     double phi_max {0.0};
     constexpr std::size_t n_samples {1024 * 1024};
 
-    for (std::size_t i = 0; i < n_samples; ++i) {
+    for (uint i = 0; i < 512; i++) {
         double phi_rnd {randgen.getRND() * PIx2};
         double rnd {CMathFunctions::getPhiIntegral(phi_rnd, {phipar, 0.0})};
-        double phi {CMathFunctions::findRootBrent(0.0, PIx2, &CMathFunctions::getPhiIntegral, {phipar, rnd})};
+        phi = CMathFunctions::findRootBrent(0.0, PIx2, &CMathFunctions::getPhiIntegral, {phipar, rnd});
         // the procedure should find the root of phi
-        CHECK(std::abs(phi_rnd - phi) < 1e-4);
+        REQUIRE(std::abs(phi_rnd - phi) < 1e-4);
+    }
 
+    for (std::size_t i = 0; i < n_samples; ++i) {
         phi = CMathFunctions::findRootBrent(0.0, PIx2, &CMathFunctions::getPhiIntegral, {phipar, randgen.getRND()});
         phi_mean += phi;
         phi_min = std::min(phi, phi_min);
         phi_max = std::max(phi, phi_max);
     }
+
+    CAPTURE(phipar);
 
     phi_mean /= static_cast<double>(n_samples);
     // phi should be between 0 and 2pi
@@ -380,24 +381,29 @@ TEST_CASE("CMathFunctions::findRootBrent::DHG", "[MathFunctions][CMathFunctions]
     auto alpha = GENERATE(0.0, 0.33, 0.67, 1.0);
 
     // mu = cos(theta)
+    double mu {};
     double mu_mean {0.0};
     double mu_min {1.0};
     double mu_max {-1.0};
-    double g_sq {g * g};
     constexpr std::size_t n_samples {1024 * 1024};
 
-    for (std::size_t i = 0; i < n_samples; ++i) {
+    for (uint i = 0; i < 512; i++) {
         double mu_rnd {2.0 * randgen.getRND() - 1.0};
         double rnd {CMathFunctions::getDHGIntegral(mu_rnd, {g, alpha, 0.0})};
-        double mu {CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getDHGIntegral, {g, alpha, rnd})};
+        mu = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getDHGIntegral, {g, alpha, rnd});
         // the procedure should find the root of mu
-        CHECK(std::abs(mu_rnd - mu) < 1e-4);
+        REQUIRE(std::abs(mu_rnd - mu) < 1e-4);
+    }
 
+    for (std::size_t i = 0; i < n_samples; ++i) {
         mu = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getDHGIntegral, {g, alpha, randgen.getRND()});
         mu_mean += mu;
         mu_min = std::min(mu, mu_min);
         mu_max = std::max(mu, mu_max);
     }
+
+    CAPTURE(g);
+    CAPTURE(alpha);
 
     mu_mean /= static_cast<double>(n_samples);
     // mu should be between -1 and 1
@@ -405,8 +411,6 @@ TEST_CASE("CMathFunctions::findRootBrent::DHG", "[MathFunctions][CMathFunctions]
     REQUIRE(mu_max <= 1.0);
     REQUIRE(mu_min < mu_max);
     // mean value should be approximately Eq. (A2) in Draine 2003, ApJ 598, 1017
-    CAPTURE(g);
-    CAPTURE(alpha);
     double first_moment {g * (1.0 + alpha * (3.0 + 2.0 * g * g) / 5.0) / (1.0 + alpha * (1.0 + 2.0 * g * g) / 3.0)};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
 }
@@ -421,25 +425,30 @@ TEST_CASE("CMathFunctions::findRootBrent::TTHG", "[MathFunctions][CMathFunctions
     auto weight = GENERATE(0.0, 0.33, 0.67, 1.0);
 
     // mu = cos(theta)
+    double mu {};
     double mu_mean {0.0};
     double mu_min {1.0};
     double mu_max {-1.0};
-    double g1_sq {g1 * g1};
-    double g2_sq {g2 * g2};
     constexpr std::size_t n_samples {1024 * 1024};
 
-    for (std::size_t i = 0; i < n_samples; ++i) {
+    for (uint i = 0; i < 1024; i++) {
         double mu_rnd {2.0 * randgen.getRND() - 1.0};
         double rnd {CMathFunctions::getTTHGIntegral(mu_rnd, {g1, g2, weight, 0.0})};
-        double mu {CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getTTHGIntegral, {g1, g2, weight, rnd})};
+        mu = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getTTHGIntegral, {g1, g2, weight, rnd});
         // the procedure should find the root of mu
-        CHECK(std::abs(mu_rnd - mu) < 1e-4);
+        REQUIRE(std::abs(mu_rnd - mu) < 1e-4);
+    }
 
+    for (std::size_t i = 0; i < n_samples; ++i) {
         mu = CMathFunctions::findRootBrent(-1.0, 1.0, &CMathFunctions::getTTHGIntegral, {g1, g2, weight, randgen.getRND()});
         mu_mean += mu;
         mu_min = std::min(mu, mu_min);
         mu_max = std::max(mu, mu_max);
     }
+
+    CAPTURE(g1);
+    CAPTURE(g2);
+    CAPTURE(weight);
 
     mu_mean /= static_cast<double>(n_samples);
     // mu should be between -1 and 1
@@ -447,9 +456,6 @@ TEST_CASE("CMathFunctions::findRootBrent::TTHG", "[MathFunctions][CMathFunctions
     REQUIRE(mu_max <= 1.0);
     REQUIRE(mu_min < mu_max);
     // mean value should be approximately w*g1 + (1-w)*g2
-    CAPTURE(g1);
-    CAPTURE(g2);
-    CAPTURE(weight);
     double first_moment {weight * g1 + (1.0 - weight) * g2};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
 }

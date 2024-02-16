@@ -24,7 +24,7 @@ jobs:
       - run: sudo apt-get update -yy && sudo apt-get install -yy ninja-build libomp-dev
       - uses: actions/checkout@v3
       - run: ./compile.sh -f -c ${{ matrix.compiler }} -g ${{ matrix.generator }}
-      - run: ./src/build/tests -as
+      - run: ./src/build/tests -a
       # - run: ./ci/test.sh polaris projects
   ubuntu-cmake:
     strategy:
