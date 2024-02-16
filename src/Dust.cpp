@@ -3504,8 +3504,8 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                     // Get incident angle and value of Qtrq and parameters for Henyey-Greenstein phase function
                     comp->getQtrq(i, i_inc, tmpQtrqX, tmpQtrqY);
                     comp->getHG_g_factor(i, i_inc, tmpHGgX, tmpHGgY);
-                    comp->getHG_g2_factor(i, i_inc, tmpHGg2X, tmpHGg3Y);
-                    comp->getHG_g3_factor(i, i_inc, tmpHGg2X, tmpHGg3Y);
+                    comp->getHG_g2_factor(i, i_inc, tmpHGg2X, tmpHGg2Y);
+                    comp->getHG_g3_factor(i, i_inc, tmpHGg3X, tmpHGg3Y);
 
                     // Add the values on top of the mixture Qtrq and Henyey-Greenstein g
                     // factor

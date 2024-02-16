@@ -697,7 +697,8 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
     plt_mach = plt_vel && plt_gas_temp;
 
-    ullong per_counter = 0, per_max = bins * bins;
+    ullong per_counter = 0;
+    // per_max = bins * bins;
     string dens_filename = path + "gas_density.am";
     string dtemp_filename = path + "dust_temp.am";
     string gtemp_filename = path + "gas_temp.am";
