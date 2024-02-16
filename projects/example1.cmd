@@ -1,6 +1,6 @@
 <common>
     # considered dust grain composition "path_to_file" "size_distribution_keyword" mass_fraction mass_density a_min a_max a_0 sigma
-	<dust_component>	"/zfshome/supas357/progs/POLARIS_DustyPlasma/polaris/input/dust/1p8_0p05_660.nk" "logn" 1.0 1.0 2e-07 2e-07 2e-07 0.1
+	<dust_component>	"input/dust/1p8_0p05_660.nk" "logn" 1.0 1.0 2e-07 2e-07 2e-07 0.1
 
 	# phase function used for the dust grains, Henyey-Greenstein, Mie or isotropic (TEMP, RAT, DUST_SCATTERING)
 	<phase_function>	PH_MIE
@@ -29,10 +29,10 @@
 	<cmd>			CMD_DUST_SCATTERING
 
     # Path to the used grid
-	<path_grid>		"/zfshome/supas357/progs/POLARIS_DustyPlasma/polaris/projects/constantCylinder/example1.grid"
+	<path_grid>		"projects/constantCylinder/example1.grid"
 
 	# Path to the POLARIS results
-	<path_out>		"/zfshome/supas357/progs/POLARIS_DustyPlasma/polaris/projects/constantCylinder/example1/"
+	<path_out>		"projects/constantCylinder/example1/"
 
     # enables/disables the use of the peel-off technique
 	<peel_off>		1
