@@ -72,8 +72,7 @@ class Grid:
             (self.data.dust_size_param() is not None)
         if self.data.get_dust_id() is not None:
             if self.nr_gas_densities > 1 or self.nr_dust_densities > 1:
-                raise ValueError(
-                    'Multiple density distributions and dust_id function defined')
+                raise ValueError('Multiple density distributions and dust_id function defined')
             else:
                 self.data_length += 1
 
@@ -115,34 +114,36 @@ class Grid:
                         not isinstance(self.data.get_gas_density_distribution(), (float, int)):
                     if len(self.data.get_gas_density_distribution()[0]) != \
                             len(self.model.parameter['gas_mass'][0]):
-                        raise ValueError("gas_density_distribution does not provide the same array than "
-                                         "defined in self.parameter['gas_mass']")
+                        raise ValueError(
+                            'gas_density_distribution does not provide the same array than '
+                            'defined in self.parameter[\'gas_mass\']')
             elif self.nr_gas_densities > 1:
                 for i_gas_dens in range(self.nr_gas_densities):
                     if len(self.data.get_gas_density_distribution()[i_gas_dens]) != \
                             len(self.model.parameter['gas_mass'][i_gas_dens]):
-                        raise ValueError("gas_density_distribution does not provide the same array than "
-                                         "defined in self.parameter['gas_mass']")
+                        raise ValueError(
+                            'gas_density_distribution does not provide the same array than '
+                            'defined in self.parameter[\'gas_mass\']')
         except:
-            raise ValueError(
-                "the gas_density function and the defined gas_mass do not fit!")
+            raise ValueError('the gas_density function and the defined gas_mass do not fit!')
         try:
             if self.nr_dust_densities == 1:
                 if self.data.get_dust_density_distribution() is not None and \
                         not isinstance(self.data.get_dust_density_distribution(), (float, int)):
                     if len(self.data.get_dust_density_distribution()[0]) != \
                             len(self.model.parameter['dust_mass'][0]):
-                        raise ValueError("dust_density_distribution does not provide the same array than "
-                                         "defined in self.parameter['dust_mass']")
+                        raise ValueError(
+                            'dust_density_distribution does not provide the same array than '
+                            'defined in self.parameter[\'dust_mass\']')
             elif self.nr_dust_densities > 1:
                 for i_dust_dens in range(self.nr_dust_densities):
                     if len(self.data.get_dust_density_distribution()[i_dust_dens]) != \
                             len(self.model.parameter['dust_mass'][i_dust_dens]):
-                        raise ValueError("dust_density_distribution does not provide the same array than "
-                                         "defined in self.parameter['dust_mass']")
+                        raise ValueError(
+                            'dust_density_distribution does not provide the same array than '
+                            'defined in self.parameter[\'dust_mass\']')
         except:
-            raise ValueError(
-                "the dust_density function and the defined dust_mass do not fit!")
+            raise ValueError('the dust_density function and the defined dust_mass do not fit!')
 
     def write_header(self, grid_file, grid_type='', num_dens=False, root=None):
         """Writes general header to binary file.
@@ -192,7 +193,7 @@ class Grid:
         elif grid_type == 'cylindrical':
             grid_id = 40
         else:
-            raise ValueError('Grid type: ' + str(grid_type) + 'is not known!')
+            raise ValueError(f'Grid type: {grid_type} is not known!')
 
         grid_file.write(struct.pack('H', grid_id))
         grid_file.write(struct.pack('H', self.data_length))
@@ -248,8 +249,7 @@ class Grid:
                 grid_file.write(struct.pack('H', root.parameter['is_leaf']))
                 grid_file.write(struct.pack('H', root.parameter['level']))
             else:
-                raise ValueError(
-                    'root node has to be defined for writing the grid header!')
+                raise ValueError('root node has to be defined for writing the grid header!')
 
     def write_node_data(self, grid_file, node, data_type='f', cell_IDs=None, rewrite=False):
         """Write data of each node.
@@ -269,8 +269,7 @@ class Grid:
         elif data_type == 'd':
             data_type_length = 8
         else:
-            raise ValueError(
-                'Do not understand the data type ' + data_type + ' in grid.py!')
+            raise ValueError(f'Do not understand the data type {data_type} in grid.py!')
 
         if rewrite:
             grid_file.seek(-(self.data_length * data_type_length), 1)
@@ -347,8 +346,7 @@ class Grid:
         elif data_type == 'd':
             data_type_length = 8
         else:
-            raise ValueError(
-                'Do not understand the data type ' + data_type + ' in grid.py!')
+            raise ValueError(f'Do not understand the data type {data_type} in grid.py!')
 
         # Calculate normalized density
         for i_gas_dens in range(self.nr_gas_densities):
@@ -441,7 +439,7 @@ class OcTree(Grid):
         
         percentage = 100 * percentage_count / 64
         if percentage - last_percentage > 10:
-            stdout.write(f'--- Generate cartesian grid: ' + str(int(percentage)) + ' %      \r')
+            stdout.write(f'--- Generate cartesian grid: {int(percentage)} %      \r')
             stdout.flush()
             last_percentage = percentage
 
@@ -706,8 +704,7 @@ class Spherical(Grid):
         if sp_param['sf_r'] == 0:
             if sp_param['radius_list'][0] != sp_param['inner_radius'] or \
                     sp_param['radius_list'][-1] != sp_param['outer_radius']:
-                raise ValueError(
-                    'radius_list does not agree with the inner and outer grid borders!')
+                raise ValueError('radius_list does not agree with the inner and outer grid borders!')
             radius_list = sp_param['radius_list']
             sp_param['n_r'] = len(radius_list) - 1
         elif sp_param['sf_r'] == 1:
@@ -782,7 +779,7 @@ class Spherical(Grid):
                 for i_t in range(sp_param['n_th']):
                     percentage = 100 * i_node / nr_cells
                     if percentage - last_percentage > 10:
-                        stdout.write(f'--- Generate spherical grid: ' + str(int(percentage)) + ' %      \r')
+                        stdout.write(f'--- Generate spherical grid: {int(percentage)} %      \r')
                         stdout.flush()
                         last_percentage = percentage
                     # Calculate the cell midpoint in spherical coordinates
@@ -984,8 +981,7 @@ class Cylindrical(Grid):
         if cy_param['sf_r'] == 0:
             if cy_param['radius_list'][0] != cy_param['inner_radius'] or \
                     cy_param['radius_list'][-1] != cy_param['outer_radius']:
-                raise ValueError(
-                    'radius_list does not agree with the inner and outer grid borders!')
+                raise ValueError('radius_list does not agree with the inner and outer grid borders!')
             radius_list = cy_param['radius_list']
             cy_param['n_r'] = len(radius_list) - 1
         elif cy_param['sf_r'] == 1:
@@ -1021,8 +1017,7 @@ class Cylindrical(Grid):
                                      for i_r in range(cy_param['n_r'])])
                 cy_param['n_ph'] = [len(phi_list[0])-1] * cy_param['n_r']
             else:
-                raise ValueError(
-                    'Cell distriution in phi-direction not understood!')
+                raise ValueError('Cell distriution in phi-direction not understood!')
         elif cy_param['sf_ph'] == -1:
             phi_list = [self.math.lin_list(0., 2. * np.pi, n_ph)
                         for n_ph in cy_param['n_ph']]
@@ -1035,14 +1030,12 @@ class Cylindrical(Grid):
             if len(cy_param['z_list']) > 0:
                 if cy_param['z_list'][0] != -cy_param['z_max'] or \
                         cy_param['z_list'][-1] != cy_param['z_max']:
-                    raise ValueError(
-                        'z_list does not agree with the inner and outer grid borders!')
+                    raise ValueError('z_list does not agree with the inner and outer grid borders!')
                 z_list = np.array([cy_param['z_list']
                                    for i_r in range(cy_param['n_r'])])
                 cy_param['n_z'] = len(z_list[0]) - 1
             else:
-                raise ValueError(
-                    'Cell distribution in z-direction not understood!')
+                raise ValueError('Cell distribution in z-direction not understood!')
         elif cy_param['sf_z'] == -1:
             z_max_tmp = [self.model.get_dz(
                 radius_list[i_r]) * cy_param['n_z'] / 2. for i_r in range(cy_param['n_r'])]
@@ -1101,7 +1094,7 @@ class Cylindrical(Grid):
                 for i_z in range(cy_param['n_z']):
                     percentage = 100 * i_node / nr_cells
                     if percentage - last_percentage > 10:
-                        stdout.write('--- Generate cylindrical grid: ' + str(int(percentage)) + ' %      \r')
+                        stdout.write(f'--- Generate cylindrical grid: {int(percentage)} %      \r')
                         stdout.flush()
                         last_percentage = percentage
                     # Calculate the cell midpoint in cylindrical coordinates

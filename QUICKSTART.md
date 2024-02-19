@@ -23,7 +23,7 @@ The following packages are required for the installation:
 
 - cmake (preferred), or ninja
 
-- python3 (packages: *numpy*, *setuptools*)
+- Python version >= 3.6 (packages: *numpy*, *setuptools*)
 
 
 ## Installation (Linux)

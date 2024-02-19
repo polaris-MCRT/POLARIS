@@ -17,7 +17,7 @@ from argparse import RawTextHelpFormatter, ArgumentParser
 
 __author__ = "Robert Brauer"
 __license__ = "GPL"
-__version__ = "3.0"
+__version__ = "2.0.0"
 __maintainer__ = "Robert Brauer"
 __email__ = "robert.brauer@cea.fr"
 __status__ = "Production"
@@ -136,7 +136,7 @@ class GridRoutines:
             from polaris_tools_modules.grid import Cylindrical
             grid = Cylindrical(self.model, self.path, self.parse_args)
         else:
-            raise ValueError('Grid type ' + str(self.model.parameter['grid_type']) + ' not known!')
+            raise ValueError(f'Grid type {self.model.parameter["grid_type"]} not known!')
         #: Root node
         root = grid.init_root()
         #: Temporary tree file
@@ -208,9 +208,9 @@ class GridRoutines:
                             'tmp_' + self.parse_args.grid_filename)
 
             else:
-                raise ValueError('The number of gas masses ' +
-                                    str(len(self.model.parameter['gas_mass'])) + ' does not fit with the numbers of densities ' +
-                                    'get via density_distribution ' + str(np.shape(grid.total_gas_mass)))
+                raise ValueError(
+                    f'The number of gas masses {len(self.model.parameter["gas_mass"])} '
+                    f'does not fit with the numbers of densities {np.shape(grid.total_gas_mass)}')
         else:
             # Rename the temporary grid file
             os.rename(self.path['model'] + 'tmp_' + self.parse_args.grid_filename,
@@ -219,15 +219,15 @@ class GridRoutines:
         if self.model.parameter['gas_mass'] is not None and not isinstance(self.model.parameter['gas_mass'], float):
             for i in range(len(self.model.parameter['gas_mass'])):
                 for j in range(len(self.model.parameter['gas_mass'][i])):
-                    print('--- Total gas mass of density distribution ' + str(i + 1) +
-                          ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_gas_mass[i][j] /
-                                                                                    self.math.const['M_sun']))
+                    print(
+                        f'--- Total gas mass of density distribution {i + 1} '
+                        f'and region {j + 1}: {grid.total_gas_mass[i][j] / self.math.const["M_sun"]:.02e} M_sun')
         if self.model.parameter['dust_mass'] is not None and not isinstance(self.model.parameter['dust_mass'], float):
             for i in range(len(self.model.parameter['dust_mass'])):
                 for j in range(len(self.model.parameter['dust_mass'][i])):
-                    print('--- Total dust mass of density distribution ' + str(i + 1) +
-                          ' and region ' + str(j + 1) + ':', '%02e M_sun       ' % (grid.total_dust_mass[i][j] /
-                                                                                    self.math.const['M_sun']))
+                    print(
+                        f'--- Total dust mass of density distribution {i + 1} '
+                        f'and region {j + 1}: {grid.total_dust_mass[i][j] / self.math.const["M_sun"]:.02e} M_sun')
 
     def convert_polaris_grid(self):
         """convert existing ascii grid file to binary grid file or vice versa.

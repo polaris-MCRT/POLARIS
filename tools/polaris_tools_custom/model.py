@@ -127,13 +127,13 @@ class CustomDisk(Model):
 
         for i, param in enumerate(extra_parameter[::2]):
             if param not in self.custom_parameter_list:
-                print('  - Warning: invalid parameter: ' + str(param))
+                print(f'  - Warning: invalid parameter: {param}')
                 continue
             try:
                 self.parameter[param] = float(eval(extra_parameter[2*i+1]))
             except:
                 self.parameter[param] = extra_parameter[2*i+1]
-            print('  - Info: ' + str(param) + ' updated to ' + str(self.parameter[param]))
+            print(f'  - Info: {param} updated to {self.parameter[param]}')
 
     def gas_density_distribution(self):
         """Calculates the gas density at a given position.

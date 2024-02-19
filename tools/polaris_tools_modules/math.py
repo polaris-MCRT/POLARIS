@@ -55,8 +55,7 @@ class Math:
                 new_length = np.divide(
                     length, self.const['au'] * (distance / self.const['pc']))
             else:
-                raise ValueError('The distance is not set. Without the distance, '
-                                 'no conversion to arcseconds is available!')
+                raise ValueError('The distance is not set. Without the distance, no conversion to arcseconds is available!')
         elif unit == 'au':
             new_length = np.divide(length, self.const['au'])
         elif unit == 'pc':
@@ -85,8 +84,7 @@ class Math:
             if distance is not None:
                 return (self.const['au'] * (distance / self.const['pc']))
             else:
-                raise ValueError('The distance is not set. Without the distance, '
-                                 'no conversion to arcseconds is available!')
+                raise ValueError('The distance is not set. Without the distance, no conversion to arcseconds is available!')
         elif unit == 'au':
             return self.const['au']
         elif unit == 'pc':
@@ -128,8 +126,7 @@ class Math:
             elif unit == 'm' or unit is None:
                 return parsed_value
             else:
-                raise ValueError(
-                    'There is no unit type available for conversion!')
+                raise ValueError('There is no unit type available for conversion!')
         elif unit_type == 'velocity':
             parsed_value = self.parse_velocity(value)
             if unit == 'km/s':
@@ -139,8 +136,7 @@ class Math:
             elif unit == 'm/s' or unit is None:
                 return parsed_value
             else:
-                raise ValueError(
-                    'There is no unit type available for conversion!')
+                raise ValueError('There is no unit type available for conversion!')
         elif unit_type == 'mass':
             parsed_value = self.parse_mass(value)
             if unit == 'm_jup' or unit == 'mjup':
@@ -150,8 +146,7 @@ class Math:
             elif unit == 'kg' or unit is None:
                 return parsed_value
             else:
-                raise ValueError(
-                    'There is no unit type available for conversion!')
+                raise ValueError('There is no unit type available for conversion!')
         elif unit_type == 'luminosity':
             parsed_value = self.parse_luminosity(value)
             if unit == 'l_sun' or unit == 'lsun':
@@ -159,8 +154,7 @@ class Math:
             elif unit == 'w' or unit is None:
                 return parsed_value
             else:
-                raise ValueError(
-                    'There is no unit type available for conversion!')
+                raise ValueError('There is no unit type available for conversion!')
         elif unit_type == 'angle':
             parsed_value = self.parse_angle(value)
             if unit == 'arcsec' or unit == 'arc_sec':
@@ -170,11 +164,9 @@ class Math:
             elif unit == 'degree' or unit is None:
                 return parsed_value
             else:
-                raise ValueError(
-                    'There is no unit type available for conversion!')
+                raise ValueError('There is no unit type available for conversion!')
         else:
-            raise ValueError(
-                'There is no unit type available for conversion!')
+            raise ValueError('There is no unit type available for conversion!')
 
     def parse_length(self, length):
         """Convert input length string into length in meters.
@@ -216,7 +208,7 @@ class Math:
         try:
             return float(length) * conv
         except ValueError:
-            print('Length string ' + length + ' cannot be interpreted!')
+            print(f'Length string {length} cannot be interpreted!')
 
     def parse_velocity(self, velocity):
         """Convert input velocity string into velocity in meter/seconds.
@@ -237,7 +229,7 @@ class Math:
         try:
             return float(velocity) * conv
         except ValueError:
-            print('Velocity string ' + velocity + ' cannot be interpreted!')
+            print(f'Velocity string {velocity} cannot be interpreted!')
 
     def parse_mass(self, mass):
         """Convert input mass string into mass in kg.
@@ -264,7 +256,7 @@ class Math:
         try:
             return float(mass) * conv
         except ValueError:
-            print('Mass string ' + mass + ' cannot be interpreted!')
+            print(f'Mass string {mass} cannot be interpreted!')
 
     def parse_angle(self, angle):
         """Convert input angle string into angle in degree.
@@ -285,7 +277,7 @@ class Math:
         try:
             return float(angle) * conv
         except ValueError:
-            print('Angle string ' + angle + ' cannot be interpreted!')
+            print(f'Angle string {angle} cannot be interpreted!')
 
     def parse_luminosity(self, luminosity):
         """Convert input luminosity string into luminosity in Watt.
@@ -312,7 +304,7 @@ class Math:
         try:
             return float(luminosity) * conv
         except ValueError:
-            print('Luminosity string ' + luminosity + ' cannot be interpreted!')
+            print(f'Luminosity string {luminosity} cannot be interpreted!')
 
     @staticmethod
     def spherical_to_cartesian(spherical_coord):
@@ -640,8 +632,7 @@ class Math:
         elif axis == 'z':
             mag[2] += mag_field_strength
         else:
-            raise ValueError(
-                'Chosen axis direction for the magnetic field strength is not valid!')
+            raise ValueError('Chosen axis direction for the magnetic field strength is not valid!')
         return mag
 
     @staticmethod
@@ -695,8 +686,7 @@ class Math:
             mag[1] += sec_mag_strength_2
             mag[2] += mag_field_strength
         else:
-            raise ValueError(
-                'Chosen main axis direction for the magnetic field strength is not valid!')
+            raise ValueError('Chosen main axis direction for the magnetic field strength is not valid!')
         return mag
 
     @staticmethod
@@ -735,8 +725,7 @@ class Math:
             mag[1] += mag_strength_perp_2
             mag[2] += mag_strength_main
         else:
-            raise ValueError(
-                'Chosen main axis direction for the magnetic field strength is not valid!')
+            raise ValueError('Chosen main axis direction for the magnetic field strength is not valid!')
         return mag
 
     @staticmethod
