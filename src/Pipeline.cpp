@@ -1610,7 +1610,7 @@ pos_1.normalized();
         cell_1->updateData(data_off + 1, -F1.Y());
         cell_1->updateData(data_off + 2, -F1.Z());
 
-        /*for(long c_2 = c_1 + 1; c_2 < long(max_cells - 1); c_2++)
+        for(long c_2 = c_1 + 1; c_2 < long(max_cells - 1); c_2++)
         {
         cell_oc * cell_2 = (cell_oc*) grid->getCellFromIndex(c_2);
         double dens_2 = grid->getGasNumberDensity(cell_2);

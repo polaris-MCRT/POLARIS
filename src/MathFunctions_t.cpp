@@ -67,10 +67,7 @@ TEST_CASE("CMathFunctions::calcWVMie::BH", "[MathFunctions][CMathFunctions]")
     dcomplex ri {1.55, 0.0};
     double x {PIx2 * 0.525 / 0.6328};
     double qext, qabs, qsca, gsca {};
-    double* S11 = new double[nr_theta];
-    double* S12 = new double[nr_theta];
-    double* S33 = new double[nr_theta];
-    double* S34 = new double[nr_theta];
+    double S11[nr_theta], S12[nr_theta], S33[nr_theta], S34[nr_theta];
 
     dlist theta(nr_theta);
     for(uint th = 0; th < nr_theta; th++) {
@@ -121,10 +118,7 @@ TEST_CASE("CMathFunctions::calcWVMie::W1", "[MathFunctions][CMathFunctions]")
     dcomplex ri {1.5, 0.0};
     auto x = GENERATE(10.0, 100.0, 1000.0, 5000.0);
     double qext, qabs, qsca, gsca {};
-    double *S11 = new double[nr_theta];
-    double *S12 = new double[nr_theta];
-    double *S33 = new double[nr_theta];
-    double *S34 = new double[nr_theta];
+    double S11[nr_theta], S12[nr_theta], S33[nr_theta], S34[nr_theta];
 
     dlist theta(nr_theta);
     for(uint th = 0; th < nr_theta; th++) {
@@ -232,10 +226,7 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
     dcomplex ri {1.5, 0.1};
     auto x = GENERATE(10.0, 100.0, 1000.0, 5000.0);
     double qext, qabs, qsca, gsca {};
-    double *S11 = new double[nr_theta];
-    double *S12 = new double[nr_theta];
-    double *S33 = new double[nr_theta];
-    double *S34 = new double[nr_theta];
+    double S11[nr_theta], S12[nr_theta], S33[nr_theta], S34[nr_theta];
 
     dlist theta(nr_theta);
     for(uint th = 0; th < nr_theta; th++) {
