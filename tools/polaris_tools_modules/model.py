@@ -110,34 +110,6 @@ class ModelChooser:
                 if model.cylindrical_parameter['z_max'] is None:
                     model.cylindrical_parameter['z_max'] = model.parameter['outer_radius']
 
-        # Convert radius in various units
-        if model.parameter['grid_type'] == 'octree':
-            model.tmp_parameter['radius_x_m'] = model.octree_parameter['sidelength'] / 2.
-            model.tmp_parameter['radius_y_m'] = model.octree_parameter['sidelength'] / 2.
-        elif model.parameter['grid_type'] == 'spherical':
-            model.tmp_parameter['radius_x_m'] = model.spherical_parameter['outer_radius']
-            model.tmp_parameter['radius_y_m'] = model.spherical_parameter['outer_radius']
-        elif model.parameter['grid_type'] == 'cylindrical':
-            model.tmp_parameter['radius_x_m'] = model.cylindrical_parameter['outer_radius']
-            model.tmp_parameter['radius_y_m'] = model.cylindrical_parameter['outer_radius']
-        else:
-            raise ValueError('Grid type not known!')
-
-        model.tmp_parameter['radius_x_arcsec'] = self.math.length_conv(
-            model.tmp_parameter['radius_x_m'], 'arcsec', model.parameter['distance'])
-        model.tmp_parameter['radius_y_arcsec'] = self.math.length_conv(
-            model.tmp_parameter['radius_y_m'], 'arcsec', model.parameter['distance'])
-        model.tmp_parameter['radius_x_pc'] = self.math.length_conv(
-            model.tmp_parameter['radius_x_m'], 'pc')
-        model.tmp_parameter['radius_y_pc'] = self.math.length_conv(
-            model.tmp_parameter['radius_y_m'], 'pc')
-        model.tmp_parameter['radius_x_au'] = self.math.length_conv(
-            model.tmp_parameter['radius_x_m'], 'au')
-        model.tmp_parameter['radius_y_au'] = self.math.length_conv(
-            model.tmp_parameter['radius_y_m'], 'au')
-        model.tmp_parameter['radius_x_ae'] = model.tmp_parameter['radius_x_au']
-        model.tmp_parameter['radius_y_ae'] = model.tmp_parameter['radius_y_au']
-
         return model
 
 

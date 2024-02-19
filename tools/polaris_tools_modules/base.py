@@ -188,24 +188,6 @@ class Model:
         """
         return 10. * self.get_scale_height(radius) / self.cylindrical_parameter['n_z']
 
-    def adjust_extent(self, sidelength_x, sidelength_y):
-        """Adjust the extent of the model.
-
-        Args:
-            sidelength_x (float): New x-axis extent.
-            sidelength_y (float): New y-axis extent.
-        """
-        factor_x = (0.5 * sidelength_x) / self.tmp_parameter['radius_x_m']
-        factor_y = (0.5 * sidelength_y) / self.tmp_parameter['radius_y_m']
-        self.tmp_parameter['radius_x_m'] *= factor_x
-        self.tmp_parameter['radius_y_m'] *= factor_y
-        self.tmp_parameter['radius_x_arcsec'] *= factor_x
-        self.tmp_parameter['radius_y_arcsec'] *= factor_y
-        self.tmp_parameter['radius_x_au'] *= factor_x
-        self.tmp_parameter['radius_y_au'] *= factor_y
-        self.tmp_parameter['radius_x_pc'] *= factor_x
-        self.tmp_parameter['radius_y_pc'] *= factor_y
-
     def adjust(self, value, name):
         """Adjust a parameter of the model.
 
