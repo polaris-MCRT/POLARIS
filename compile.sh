@@ -288,19 +288,26 @@ function update_installation()
     fi
     cd ".."
 
+    install_polaristools
+
+    source ${HOME}/.bashrc
+
+    exit
+}
+
+
+function install_polaristools()
+{
     # compile and install PolarisTools if available
-    # PolarisTools is no longer maintained and is not shipped with POLARIS anymore
     if [[ -d "tools" ]]; then
         cd "tools/"
         python3 setup.py install --user &>/dev/null \
             && { echo -e "Compile and installing PolarisTools [${GREEN}done${NC}]"; echo ""; } \
             || { echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1; }
         cd ".."
+    else
+        echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1;
     fi
-
-    source ${HOME}/.bashrc
-
-    exit
 }
 
 
@@ -313,15 +320,16 @@ function usage() {
     echo ""
     echo "usage: compile.sh [-h] [-frdu] [-c CXX_COMPILER] [-g CMAKE_GENERATOR]"
     echo ""
-    echo "Install and compile POLARIS"
+    echo "Install POLARIS, PolarisTools, and optionally the cfitsio and CCfits libraries"
     echo -e "${YELLOW}HINT:${NC} For first installation, use option -f"
     echo ""
     echo "optional arguments:"
     echo "-h      show this help message and exit"
-    echo "-f      first installation (compile POLARIS and install the cfitsio and CCfits libraries)"
-    echo "-r      clear and compile POLARIS (release mode) (default)"
-    echo "-d      clear and compile POLARIS (debug mode)"
-    echo "-u      re-compile POLARIS if necessary with last configuration (update)"
+    echo "-f      first installation (compile POLARIS, PolarisTools, and the cfitsio and CCfits libraries)"
+    echo "-r      clear and compile POLARIS and PolarisTools (release mode) (default)"
+    echo "-d      clear and compile POLARIS and PolarisTools (debug mode)"
+    echo "-u      re-compile POLARIS and PolarisTools if necessary with last configuration (update)"
+    echo "-t      (re-)compile PolarisTools only"
     echo "-c CXX_compiler"
     echo "        choose the c++ compiler you want to use:"
     echo "          - gcc (default)"
@@ -338,7 +346,7 @@ function usage() {
 release=false
 debug=false
 
-while getopts "hfrduc:g:D" opt; do
+while getopts "hfrdutc:g:D" opt; do
     case $opt in
     h)
         usage
@@ -359,6 +367,11 @@ while getopts "hfrduc:g:D" opt; do
         ;;
     f)
         DO_FITS=true
+        ;;
+    t)
+        install_polaristools
+        source ${HOME}/.bashrc
+        exit
         ;;
     c)
         if [[ ${OPTARG,,} = "gcc" ]]; then
@@ -626,13 +639,7 @@ install_polaris
 
 # compile and install PolarisTools if available
 if [[ -d "tools" ]]; then
-    # go to PolarisTools dir
-    cd "tools/"
-
-    # compile and install PolarisTools
-    python3 setup.py install --user &>/dev/null \
-        && { echo -e "Compile and installing PolarisTools [${GREEN}done${NC}]"; echo ""; } \
-        || { echo -e "Compile and installing PolarisTools [${RED}Error${NC}]"; exit 1; }
+    install_polaristools
 
     # set POLARISTOOLS_PATH as environment variable
     set_envvar_TOOLS_str="export POLARISTOOLS_PATH=\"$HOME/.local/bin\""

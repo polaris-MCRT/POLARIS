@@ -83,7 +83,13 @@ These files can be opened with, for example, [SAOImageDS9](https://sites.google.
 Simulations are performed similarly for thermal emission (`dust`) and stellar scattered radiation (`dust_mc`).
 Please refer to the [command list](projects/CommandList.cmd) in the `projects` folder or the [manual](manual.pdf) (Table 2.4 - 2.10) for available options of the command file.
 
-**HINT**: For thermal emission simulations, a temperature simulation has to be performed first.
+**HINT**: For thermal emission simulations, a temperature simulation (`temp`) has to be performed first.
+
+**HINT**: To include self-scattering, `<source_dust nr_photons = "Nph">` (`Nph` is the number of photon packages) and `<path_grid>` with the path to the grid file of the temperature simulation (e.g. "projects/disk/example/temp/grid_temp.dat") have to be provided in the command file (`dust_mc`).
+
+**HINT**: `dust` simulations only include directly emitted radiation of the dust.
+`dust_mc` simulations include directly emitted and scattered stellar radiation, scattered radiation thermally emitted by dust, but **not** directly emitted radiation of the dust.
+Thus, the user has to combine the results of `dust` and `dust_mc` simulations to obtain a complete spectrum.
 
 **HINT**: The previous results will be overwritten, if the same command file is used. Please change `<path_out>` in the command file to use a new directory for the new results.
 
@@ -165,9 +171,13 @@ $$
 
 Additional parameter values to modify the model can be defined in the function `update_parameter` in the file `tools/polaris_tools_modules/model.py`.
 
-**Hint**: For any changes in the files, the user has to recompile with:
+**Hint**: For any changes in the files, the user has to recompile PolarisTools with:
 ```bash
-./compile.sh -u
+./compile.sh -t
+```
+or if compiled without the script:
+```
+python3 tools/setup.py install --user &>/dev/null
 ```
 
 
@@ -181,9 +191,13 @@ polaris-gen model_name grid_filename.dat
 ```
 where `model_name` is the name of the model in the dictionary of `model.py`.
 
-**Hint**: For any changes in the files, the user has to recompile with:
+**Hint**: For any changes in the files, the user has to recompile PolarisTools with:
 ```bash
-./compile.sh -u
+./compile.sh -t
+```
+or if compiled without the script:
+```
+python3 tools/setup.py install --user &>/dev/null
 ```
 
 
