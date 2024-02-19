@@ -158,6 +158,7 @@ polaris-gen sphere grid_filename.dat --extra mag_field_geometry radial
 ```
 
 By adding `tapered_gamma` ($\gamma$) to the extra parameter of the disk model, the density distribution has an additional exponential taper at large radii (e.g. [Andrews et al. 2009](https://ui.adsabs.harvard.edu/abs/2009ApJ...700.1502A))
+
 $$
 \rho(r, z) = \rho_0 \left( \frac{r}{r_0} \right)^{-\alpha} \exp\left[ -\left( \frac{r}{r_0} \right)^{2 - \gamma} \right] \times \exp\left[ -\frac{1}{2} \left( \frac{z}{h(r)} \right)^2 \right]
 $$
