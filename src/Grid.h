@@ -591,6 +591,15 @@ class CGridBasic
 
     virtual Vector3D getCenter(const cell_basic & cell) const = 0;
 
+    virtual double getRmin() const
+    {
+        return 0;
+    }
+    virtual double getRmax() const
+    {
+        return 0;
+    }
+
     Vector3D getCenter(const photon_package & pp) const
     {
         return getCenter(*pp.getPositionCell());
@@ -2928,9 +2937,9 @@ class CGridBasic
         size_gd_list = data_pos_gd_list.size();
         size_dd_list = data_pos_dd_list.size();
 
-        if(size_gd_list == 0)
+        if(size_gd_list == 0 && size_dd_list == 0)
         {
-            cout << "\nERROR: Grid requires a gas density! " << endl;
+            cout << "\nERROR: Grid requires a gas or dust density! " << endl;
             return false;
         }
 

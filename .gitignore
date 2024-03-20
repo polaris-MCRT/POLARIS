@@ -15,6 +15,12 @@ projects/*
 !projects/CommandList.cmd
 !projects/disk/
 !projects/test/
+!projects/cloudy/
+!projects/methane/
+!projects/rayleigh/
+!projects/ringed/
+!projects/venus/
+!projects/plot.py
 
 .tags
 .tags1

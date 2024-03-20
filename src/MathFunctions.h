@@ -344,7 +344,7 @@ class spline
         return res;
     }
 
-    double getLinearValue(double v)
+    double getLinearValue(double v, bool use_log=true)
     {
         uint min = 0, max = N;
 
@@ -369,16 +369,31 @@ class spline
                 min = i;
         }
 
-        double x1 = log10(x[min]);
-        double x2 = log10(x[min+1]);
+        double x1, x2, y1, y2, res = 0;
+        if(use_log)
+        {
+            x1 = log10(x[min]);
+            x2 = log10(x[min+1]);
 
-        double y1 = log10(y[min]);
-        double y2 = log10(y[min+1]);
+            y1 = log10(y[min]);
+            y2 = log10(y[min+1]);
 
-        v = log10(v);
+            v = log10(v);
 
-        double res = y1 + ((y2-y1)/(x2-x1)) * (v-x1);
-        res = pow(10.0, res);
+            res = y1 + ((y2 - y1) / (x2 - x1)) * (v - x1);
+            res = pow(10.0, res);
+        }
+        else
+        {
+            x1 = x[min];
+            x2 = x[min+1];
+
+            y1 = y[min];
+            y2 = y[min+1];
+
+            res = y1 + ((y2 - y1) / (x2 - x1)) * (v - x1);
+        }
+
         return res;
     }
 
@@ -1901,6 +1916,19 @@ class CMathFunctions
         return list;
     }
 
+    static inline void LinearList(double start, double stop, dlist & list)
+    {
+        uint N = list.size();
+        double dx = (stop - start) / (N - 1);
+
+        list[0] = start;
+
+        for(uint i_x = 1; i_x < N - 1; i_x++)
+            list[i_x] = start + i_x * dx;
+
+        list[N - 1] = stop;
+    }
+
     static inline void ExpList(double start, double stop, double * list, uint N, double base)
     {
         if(N == 1)
@@ -2275,6 +2303,76 @@ class CMathFunctions
         return Q1 * (1 - s) * (1 - t) + Q2 * s * (1 - t) + Q3 * (1 - s) * t + Q4 * s * t;
     }
 
+    static inline double getCoxMunkProb(double cos_n, double sigma_sq)
+    {
+        // Returns probability of wave facet normal
+        // see Cox & Munk 1954, JOSA 44, 838
+        // see Nakajima 1983, JQSRT 29, 521
+
+        double res = exp(-(1.0 - cos_n * cos_n) / (sigma_sq * cos_n * cos_n));
+        res /= (PI * sigma_sq * cos_n * cos_n * cos_n);
+        return res;
+    }
+
+    static inline interp integCoxMunkNorm(double sigma_sq)
+    {
+        // Returns the integral in Eq. 10, to account for probability of interaction of the photon and facet
+        // see Zeisse 1995, JOSAA 12, 2022
+
+        uint size = 91;
+        interp res(size);
+        double step = 90.0 / (size - 1);
+        double cos_i_n, phi, theta, cos_theta_0, sin_theta_0, prob, res_tmp;
+
+        uint n_phi = 3601;
+        uint n_theta = 901;
+        double dPhi = PIx2 / double(n_phi);
+        double dTheta = PI2 / double(n_theta);
+        for(uint i = 1; i < size; i++)
+        {
+            cos_theta_0 = cos(grad2rad(double(i * step)));
+            sin_theta_0 = sqrt(1.0 - cos_theta_0 * cos_theta_0);
+
+            res_tmp = 0.0;
+            for(uint t = 0; t < n_theta; t++)
+            {
+                theta = double(t) * dTheta;
+                prob = getCoxMunkProb(cos(theta), sigma_sq);
+                for(uint p = 0; p < n_phi; p++)
+                {
+                    phi = double(p) * dPhi;
+                    cos_i_n = sin_theta_0 * tan(theta) * cos(phi) + cos_theta_0;
+                    if(cos_i_n > 0.0)
+                        res_tmp += cos_i_n * prob * sin(theta);
+                }
+            }
+            res_tmp *= dTheta * dPhi;
+            res.setValue(size - 1 - i, cos_theta_0, res_tmp);
+        }
+
+        res.setValue(size - 1, 1.0, 1.0);
+        return res;
+    }
+
+    static inline double getShadowing(double cos_in, double cos_out, double sigma_sq)
+    {
+        // Returns shadowing function for a rough surface
+        // see Smith 1967, ITAP 15, 668
+        // see Sancer 1969, ITAP 17, 577
+        // see Zhai et al. 2010, JQSRT 111, 1025
+
+        double sin_in = sqrt(1.0 - cos_in * cos_in);
+        double eta_in = cos_in / (sqrt(sigma_sq) * sin_in);
+
+        double sin_out = sqrt(1.0 - cos_out * cos_out);
+        double eta_out = cos_out / (sqrt(sigma_sq) * sin_out);
+
+        double lambda_in = 0.5 * ( exp(-eta_in*eta_in) / (PIsq * eta_in) - erfc(eta_in) );
+        double lambda_out = 0.5 * ( exp(-eta_out*eta_out) / (PIsq * eta_out) - erfc(eta_out) );
+
+        return 1.0 / (1.0 + lambda_in + lambda_out);
+    }
+
     static inline double phaseFunctionHG(double g, double theta)
     {
         // Returns normalized scattering phase function of the Henyey-Greenstein function
@@ -2313,6 +2411,18 @@ class CMathFunctions
         return res;
     }
 
+    static inline double phaseFunctionRayleigh(double depol, double theta)
+    {
+        // Returns normalized scattering phase function of the Rayleigh function
+        // Hansen & Travis 1974, SSR 16, 527
+        double cos_theta = cos(theta);
+        double delta_1 = (1.0 - depol) / (1.0 + 0.5 * depol);
+        double res = 1.0 / PIx4;
+        res *= (0.75 * delta_1 * (1.0 + cos_theta * cos_theta) + (1.0 - delta_1));
+
+        return res;
+    }
+
     static inline double getPhiIntegral(double phi, dlist args)
     {
         // Returns the integral of the phi scattering angle distribution minus random number
@@ -2322,6 +2432,24 @@ class CMathFunctions
         double rnd = args[1];
 
         double res = (phi - phipar * 0.5 * sin(2.0 * phi)) / PIx2;
+
+        res -= rnd;
+        if(abs(res) < 2.0 * EPS_DOUBLE) {
+            res = 0.0;
+        }
+        return res;
+    }
+
+    static inline double getLommelSeeligerIntegral(double cos_r, dlist args)
+    {
+        // Returns the integral of the Lommel-Seeliger reflection law minus random number
+        // see Lester et al. 1979, JRASC 73, 233
+
+        double cos_0 = args[0];
+        double rnd = args[1];
+
+        double res = cos_0 * log(cos_0 + cos_r) - cos_r - (cos_0 * log(1.0 + cos_0) - 1.0);
+        res /= (1.0 - cos_0 * log(1.0 + 1.0 / cos_0));
 
         res -= rnd;
         if(abs(res) < 2.0 * EPS_DOUBLE) {
@@ -3184,6 +3312,118 @@ class CMathFunctions
         }
 
         return true;
+    }
+
+    static inline bool intersectionLineSphere(Vector3D start, Vector3D dir, Vector3D center, double radius)
+    {
+        // check if a line with origin "start" and direction "dir" intersects
+        // with a sphere at position "center" and radius "radius"
+        Vector3D start_center = start - center;
+        double length;
+        double res = dir * start_center;
+        res *= res;
+        res -= (start_center.sq_length() - radius*radius);
+
+        // res > 0: two solutions
+        // res = 0: one solution
+        // res < 0: no solution
+        if(res >= 0.0)
+        {
+            length = -(dir * start_center) + sqrt(res);
+            if(length >= 0.0)
+                return true;
+        }
+
+        return false;
+    }
+
+    static inline double getIntersectionLineSphereLength(Vector3D start, Vector3D dir, Vector3D center, double radius, bool plus=true)
+    {
+        // return length to intersection point
+        // if a line with origin "start" and direction "dir" intersects
+        // with a sphere at position "center" and radius "radius"
+        Vector3D start_center = start - center;
+        double length = 0.0;
+        double res = dir * start_center;
+        res *= res;
+        res -= (start_center.sq_length() - radius*radius);
+
+        // res > 0: two solutions
+        // res = 0: one solution
+        // res < 0: no solution
+        if(res >= 0.0)
+        {
+            if(plus)
+                length = -(dir * start_center) + sqrt(res);
+            else
+                length = -(dir * start_center) - sqrt(res);
+        }
+
+        return length;
+    }
+
+    static inline Matrix2D getRayleighScatteringMatrix(double depol, double theta)
+    {
+        // Returns scattering matrix of Rayleigh scattering
+        // Hansen & Travis 1974, SSR 16, 527
+        Matrix2D mat = Matrix2D(4,4);
+        double cos_theta = cos(theta);
+        double sin_theta = sin(theta);
+        double delta_1 = (1.0 - depol) / (1.0 + 0.5 * depol);
+        double delta_2 = (1.0 - 2.0 * depol) / (1.0 - depol);
+
+        mat(0,0) = 0.75 * delta_1 * (1.0 + cos_theta*cos_theta) + (1.0 - delta_1);
+        mat(0,1) = -0.75 * delta_1 * sin_theta*sin_theta;
+        mat(1,0) = -0.75 * delta_1 * sin_theta*sin_theta;
+        mat(1,1) = 0.75 * delta_1 * (1.0 + cos_theta*cos_theta);
+        mat(2,2) = 1.5 * delta_1 * cos_theta;
+        mat(3,3) = 1.5 * delta_1 * delta_2 * cos_theta;
+
+        return mat;
+    }
+
+    static inline Matrix2D getReflectionMatrix(double refractive_ratio, double cos_in)
+    {
+        // Returns the reflection matrix for surface scattering
+        // Zhai et al. 2010, JQSRT 111, 1025
+        // refractive_ratio = index of other medium / index of incident medium
+        // cos_in is the cosine ofincident angle with respect to the surface normal
+        Matrix2D mat = Matrix2D(4,4);
+
+        dcomplex sin_out_sq = (1.0 - cos_in*cos_in) / (refractive_ratio*refractive_ratio);
+        dcomplex cos_out = sqrt(1.0 - sin_out_sq);
+
+        dcomplex rpll = (refractive_ratio * cos_in - cos_out) /
+                        (refractive_ratio * cos_in + cos_out);
+        dcomplex rper = (cos_in - refractive_ratio * cos_out) /
+                        (cos_in + refractive_ratio * cos_out);
+
+        mat(0,0) = 0.5 * (norm(rpll) + norm(rper));
+        mat(0,1) = 0.5 * (norm(rpll) - norm(rper));
+        mat(1,0) = 0.5 * (norm(rpll) - norm(rper));
+        mat(1,1) = 0.5 * (norm(rpll) + norm(rper));
+        mat(2,2) = real(rper * conj(rpll));
+        mat(2,3) = imag(rpll * conj(rper));
+        mat(3,2) = imag(rper * conj(rpll));
+        mat(3,3) = real(rper * conj(rpll));
+
+        return mat;
+    }
+
+    static inline double effFresnelReflection(double refractive_ratio, double cos_in)
+    {
+        // Returns the reflectance or reflection coefficient for surface scattering
+        // Zhai et al. 2010, JQSRT 111, 1025
+        // refractive_ratio = index of other medium / index of incident medium
+        // cos_in is the cosine ofincident angle with respect to the surface normal
+        dcomplex sin_out_sq = (1.0 - cos_in*cos_in) / (refractive_ratio*refractive_ratio);
+        dcomplex cos_out = sqrt(1.0 - sin_out_sq);
+
+        dcomplex rpll = (refractive_ratio * cos_in - cos_out) /
+                        (refractive_ratio * cos_in + cos_out);
+        dcomplex rper = (cos_in - refractive_ratio * cos_out) /
+                        (cos_in + refractive_ratio * cos_out);
+        return 0.5 * (norm(rpll) + norm(rper));
     }
 
     static inline double calcReflectionCoefficients(dcomplex refractive_index, double theta)

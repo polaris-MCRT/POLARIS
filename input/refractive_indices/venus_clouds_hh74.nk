@@ -1,0 +1,12 @@
+#string ID
+concentrated sulfuric acid solution [H2O + 75.9% H2SO4], liquid, 250K - 288K
+
+#Hansen & Hovenier, 1974, J. Atmos. Sci. 31, 1137 (imaginary refractive index by iterative calculations to obtain single scattering albedo)
+
+#nr. of wavelength #inc. angles #aspect ratio #density [kg/m^3] #sub.temp #delta  #align
+3     1     1     1600     0     1     0
+
+#wavelength     real refractive index     imaginary refractive index
+3.65e-07     1.46e+00     4.747247839e-04
+5.50e-07     1.44e+00     4.605086883e-05
+9.90e-07     1.43e+00     6.899984192e-05

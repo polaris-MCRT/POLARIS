@@ -122,6 +122,22 @@ class Vector3D
         z = res.Z();
     }
 
+
+    void reflect(const Vector3D & n)
+    {
+        // reflection, "n" is the surface normal
+        // vectors have to be normalized
+        Vector3D cx(x, y, z);
+        double dot = x * n.X() + y * n.Y() + z * n.Z();
+
+        Vector3D res = cx - n * 2.0 * dot;
+
+        x = res.X();
+        y = res.Y();
+        z = res.Z();
+        normalize();
+    }
+
     void spher2cart()
     {
         double r = x;

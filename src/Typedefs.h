@@ -66,6 +66,7 @@ using namespace std;
 #define M_sun 1.9884754153381438e+30                  // Solar mass [kg]
 #define R_sun 695700000.0                             // Nominal solar radius [m]
 #define con_Na 6.02214129e23                          // Avogadro's number [1 / mol]
+#define con_loschmidt 2.6867811e+25                   // Loschmidt constant [1 / m^3]
 #define con_mb 9.274009994e-24                        // Bohr magneton [J / T]
 #define con_r_bohr 5.2917721067e-11                   // Bohr radius [m]
 #define con_m_e 9.10938356e-31                        // Electron mass [kg]
@@ -137,6 +138,8 @@ using namespace std;
 
 // Number of entries for different sources
 #define NR_OF_POINT_SOURCES 8
+#define NR_OF_PLANE_SOURCES 8
+#define NR_OF_EXTENDED_SOURCES 9
 #define NR_OF_DIFF_SOURCES 9
 #define NR_OF_LASER_SOURCES 12
 #define NR_OF_BG_SOURCES 8
@@ -144,6 +147,14 @@ using namespace std;
 #define TEMP_MIN 2.728
 #define TEMP_MAX 3000
 #define TEMP_STEP 1000
+
+// Surface reflection ids for planetary simulations
+#define LAMBERTIAN 0
+#define LOMMELSEELIGER 1
+#define OCEAN 2
+// Surface polarization ids for planetary simulations
+#define DEPOL 0
+#define SPECULAR 1
 
 // detector ids
 #define DET_PLANE 0
@@ -161,6 +172,8 @@ using namespace std;
 #define SRC_GAS_LVL 6
 #define SRC_LASER 7
 #define SRC_AGN 8
+#define SRC_PLANE 9
+#define SRC_EXTENDED 10
 
 // phase functions
 #define PH_ISO 0
@@ -168,6 +181,7 @@ using namespace std;
 #define PH_DHG 2 // Draine 2003, ApJ 598, 1017
 #define PH_TTHG 3
 #define PH_MIE 4
+#define PH_RAYLEIGH 5
 
 // Alignment mechanisms
 #define ALIG_RND 0
@@ -194,6 +208,7 @@ using namespace std;
 #define CMD_FORCE 7
 #define CMD_OPIATE 8
 #define CMD_SYNCHROTRON 9
+#define CMD_PLANET_SCATTERING 10
 
 // PDA IDs
 #define PDA_TEMP 0
@@ -316,7 +331,7 @@ using namespace std;
 
 // Mie-scattering calculation
 // Nr of grain sizes, Nr of size bins will be MIE_NR_DUST_SIZE - 1
-#define MIE_NR_DUST_SIZE 100
+#define MIE_NR_DUST_SIZE 1000
 #define MAX_MIE_ITERATIONS 20000000
 #define MIN_MIE_SIZE_PARAM 1e-6
 #define MIE_ACCURACY 1e-15

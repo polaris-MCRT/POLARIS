@@ -425,9 +425,9 @@ uint CGridBasic::validateDataPositions(parameters & param)
 
     cout << CLR_LINE;
 
-    if(size_gd_list == 0)
+    if(size_gd_list == 0 && size_dd_list == 0)
     {
-        cout << "\nERROR: Grid contains no gas (number) density!" << endl;
+        cout << "\nERROR: Grid contains no gas or dust (number) density!" << endl;
         cout << "       No RT calculations possible!" << endl;
         return MAX_UINT;
     }
@@ -512,6 +512,11 @@ uint CGridBasic::validateDataPositions(parameters & param)
             break;
 
         case CMD_DUST_SCATTERING:
+            if(CheckDustScattering(param) == MAX_UINT)
+                return MAX_UINT;
+            break;
+        
+        case CMD_PLANET_SCATTERING:
             if(CheckDustScattering(param) == MAX_UINT)
                 return MAX_UINT;
             break;

@@ -39,6 +39,7 @@ class CPipeline
     bool calcPolarizationMapsViaSynchrotron(parameters & param);
     bool calcChMapsViaRayTracing(parameters & param);
     bool calcPolarizationMapsViaMC(parameters & param);
+    bool calcPlanetPolarizationMapsViaMC(parameters & param);
     bool calcOpiateMapsViaRayTracing(parameters & param);
     bool proberobeLineOfSight(parameters & param);
 
@@ -290,6 +291,49 @@ class CPipeline
                 }
             }
                 // cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
+
+            if(param.getNrOfPlaneSources() > 0 && !param.isRaytracingSimulation())
+            {
+                dlist sources_list = param.getPlaneSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_PLANE_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_PLANE_SOURCES;
+                    cout << "- Plane Star " << pos + 1 << " :\n"
+                         << "    Position    : "
+                         << sources_list[s + 0] << ", "
+                         << sources_list[s + 1] << ", "
+                         << sources_list[s + 2] << " (x,y,z) [m]\n"
+                         << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
+                         << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                         << "    Stokes      : "
+                         << sources_list[s + 5] << ", "
+                         << sources_list[s + 6] << " (q,u)" << endl;
+                }
+            }
+                // cout << "- Plane Star(s)        : " << param.getNrOfPlaneSources() << endl;
+
+            if(param.getNrOfExtendedSources() > 0 && !param.isRaytracingSimulation())
+            {
+                dlist sources_list = param.getExtendedSources();
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_EXTENDED_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_EXTENDED_SOURCES;
+                    cout << "- Spatially extended Star " << pos + 1 << " :\n"
+                         << "    Position     : "
+                         << sources_list[s + 0] << ", "
+                         << sources_list[s + 1] << ", "
+                         << sources_list[s + 2] << " (x,y,z) [m]\n"
+                         << "    Radius       : " << sources_list[s + 3] << " [R_sun]\n"
+                         << "    Temperature  : " << sources_list[s + 4] << " [K]\n"
+                         << "    Dir. Emission: " << sources_list[s + 5] << "\n"
+                         << "    Stokes       : "
+                         << sources_list[s + 6] << ", "
+                         << sources_list[s + 7] << " (q,u)" << endl;
+                }
+            }
+                // cout << "- Spatially extended Star(s)        : " << param.getNrOfExtendedSources() << endl;
 
             if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
             {

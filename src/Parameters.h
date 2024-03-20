@@ -61,6 +61,9 @@ class parameters
         task_id = 0;
 
         rt_grid_description = "";
+        
+        surface_refl_model = 0;
+        surface_pol_model = 0;
 
         b_mrw = false;
         b_pda = false;
@@ -513,6 +516,26 @@ class parameters
         return b_pda;
     }
 
+    uint getSurfaceReflModel() const
+    {
+        return surface_refl_model;
+    }
+
+    uint getSurfacePolModel() const
+    {
+        return surface_pol_model;
+    }
+
+    dlist getSurfaceReflParam() const
+    {
+        return surface_refl_param;
+    }
+
+    dlist getSurfacePolParam() const
+    {
+        return surface_pol_param;
+    }
+
     bool getEnfScattering() const
     {
         return b_enforced;
@@ -729,6 +752,16 @@ class parameters
         return uint(point_sources.size() / NR_OF_POINT_SOURCES);
     }
 
+    uint getNrOfPlaneSources() const
+    {
+        return uint(plane_sources.size() / NR_OF_PLANE_SOURCES);
+    }
+
+    uint getNrOfExtendedSources() const
+    {
+        return uint(extended_sources.size() / NR_OF_EXTENDED_SOURCES);
+    }
+
     uint getNrOfLaserSources() const
     {
         return uint(laser_sources.size() / NR_OF_LASER_SOURCES);
@@ -772,7 +805,7 @@ class parameters
     uint getNrOfSources() const
     {
         uint res = getNrOfPointSources() + getNrOfDiffuseSources() + getNrOfBackgroundSources() +
-                   getNrOfLaserSources();
+                   getNrOfPlaneSources() + getNrOfExtendedSources() + getNrOfLaserSources();
 
         if(nr_ofDustPhotons > 0)
             res++;
@@ -1039,6 +1072,26 @@ class parameters
     void setPDA(bool val)
     {
         b_pda = val;
+    }
+
+    void setSurfaceReflModel(uint val)
+    {
+        surface_refl_model = val;
+    }
+
+    void setSurfacePolModel(uint val)
+    {
+        surface_pol_model = val;
+    }
+
+    void setSurfaceReflParam(dlist val)
+    {
+        surface_refl_param = val;
+    }
+
+    void setSurfacePolParam(dlist val)
+    {
+        surface_pol_param = val;
     }
 
     void setEnfScattering(bool val)
@@ -1392,6 +1445,16 @@ class parameters
         return point_sources;
     }
 
+    dlist & getPlaneSources()
+    {
+        return plane_sources;
+    }
+
+    dlist & getExtendedSources()
+    {
+        return extended_sources;
+    }
+
     dlist & getLaserSources()
     {
         return laser_sources;
@@ -1405,6 +1468,26 @@ class parameters
     string & getPointSourceString(uint i_str)
     {
         return point_sources_str[i_str];
+    }
+
+    strlist & getPlaneSourceStringList()
+    {
+        return plane_sources_str;
+    }
+
+    string & getPlaneSourceString(uint i_str)
+    {
+        return plane_sources_str[i_str];
+    }
+
+    strlist & getExtendedSourceStringList()
+    {
+        return extended_sources_str;
+    }
+
+    string & getExtendedSourceString(uint i_str)
+    {
+        return extended_sources_str[i_str];
     }
 
     strlist & getDiffuseSourceStringList()
@@ -1855,6 +1938,50 @@ class parameters
         point_sources_str.push_back(path);
     }
 
+    void addPlaneSource(dlist & val, string path)
+    {
+        // Position X
+        plane_sources.push_back(val[0]);
+        // Position Y
+        plane_sources.push_back(val[1]);
+        // Position Z
+        plane_sources.push_back(val[2]);
+        // Radius [m]
+        plane_sources.push_back(val[3]);
+        // Effective temperature [K]
+        plane_sources.push_back(val[4]);
+        // Stokes Q polarization
+        plane_sources.push_back(val[5]);
+        // Stokes U polarization
+        plane_sources.push_back(val[6]);
+        // Number of photons
+        plane_sources.push_back(val[7]);
+        plane_sources_str.push_back(path);
+    }
+
+    void addExtendedSource(dlist & val, string path)
+    {
+        // Position X
+        extended_sources.push_back(val[0]);
+        // Position Y
+        extended_sources.push_back(val[1]);
+        // Position Z
+        extended_sources.push_back(val[2]);
+        // Radius [m]
+        extended_sources.push_back(val[3]);
+        // Effective temperature [K]
+        extended_sources.push_back(val[4]);
+        // Biased Emission
+        extended_sources.push_back(val[5]);
+        // Stokes Q polarization
+        extended_sources.push_back(val[6]);
+        // Stokes U polarization
+        extended_sources.push_back(val[7]);
+        // Number of photons
+        extended_sources.push_back(val[8]);
+        extended_sources_str.push_back(path);
+    }
+
     void addLaserSource(dlist & val)
     {
         // Position X
@@ -2280,6 +2407,11 @@ class parameters
 
     uilist plot_list;
 
+    uint surface_refl_model;
+    uint surface_pol_model;
+    dlist surface_refl_param;
+    dlist surface_pol_param;
+
     bool b_mrw;
     bool b_pda;
     bool b_enforced;
@@ -2328,6 +2460,8 @@ class parameters
     dlist sync_ray_detectors;
 
     dlist point_sources;
+    dlist plane_sources;
+    dlist extended_sources;
     dlist diffuse_sources;
     dlist laser_sources;
     dlist background_sources;
@@ -2337,6 +2471,8 @@ class parameters
 
     strlist gas_species_cat_path;
     strlist point_sources_str;
+    strlist plane_sources_str;
+    strlist extended_sources_str;
     strlist diffuse_sources_str;
     strlist background_sources_path;
     string isrf_path;

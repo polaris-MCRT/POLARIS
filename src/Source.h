@@ -137,7 +137,18 @@ class CSourceBasic
     virtual void setSideLength(double val)
     {}
 
+    virtual bool isBiasedEmission()
+    {
+        return false;
+    }
+
     virtual void createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
+    {}
+
+    virtual void createNextRay(photon_package * pp, CRandomGenerator * rand_gen, double epsilon)
+    {}
+
+    virtual void createNextBiasedRay(photon_package * pp, CRandomGenerator * rand_gen)
     {}
 
     virtual void createNextRayToCell(photon_package * pp,
@@ -147,6 +158,9 @@ class CSourceBasic
     {}
 
     virtual void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs = Vector3D())
+    {}
+
+    virtual void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs, ulong i_cell)
     {}
 
     virtual ullong getNrOfPhotons()
@@ -230,6 +244,92 @@ class CSourceStar : public CSourceBasic
 
         L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
     }
+};
+
+
+class CSourcePlaneStar : public CSourceBasic
+{
+  public:
+    CSourcePlaneStar()
+    {
+        pos = 0;
+        source_id = SRC_PLANE;
+    }
+
+    ~CSourcePlaneStar()
+    {}
+
+    bool initSource(uint id, uint max, bool use_energy_density);
+
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
+    {
+        dlist values = param.getPlaneSources();
+
+        pos = Vector3D(values[p], values[p + 1], values[p + 2]);
+        R = values[p + 3];
+        T = values[p + 4];
+
+        q = values[p + 5];
+        u = values[p + 6];
+
+        nr_of_photons = (ullong)values[p + NR_OF_PLANE_SOURCES - 1];
+
+        L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+    }
+};
+
+class CSourceExtendedStar : public CSourceBasic
+{
+  public:
+    CSourceExtendedStar()
+    {
+        pos = 0;
+        biased_emission = false;
+        limb_dark_param[0] = 0.0;
+        limb_dark_param[1] = 0.0;
+        limb_dark_param[2] = 0.0;
+        limb_dark_param[3] = 0.0;
+        source_id = SRC_EXTENDED;
+    }
+
+    ~CSourceExtendedStar()
+    {}
+
+    bool initSource(uint id, uint max, bool use_energy_density);
+
+    bool isBiasedEmission()
+    {
+        return biased_emission;
+    }
+
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createNextBiasedRay(photon_package * pp, CRandomGenerator * rand_gen);
+
+    bool setParameterFromFile(parameters & param, uint p);
+    void setParameter(parameters & param, uint p)
+    {
+        dlist values = param.getExtendedSources();
+
+        pos = Vector3D(values[p], values[p + 1], values[p + 2]);
+        R = values[p + 3];
+        T = values[p + 4];
+
+        if(values[p + 5] == 1)
+            biased_emission = true;
+
+        q = values[p + 6];
+        u = values[p + 7];
+
+        nr_of_photons = (ullong)values[p + NR_OF_EXTENDED_SOURCES - 1];
+
+        L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+    }
+  private:
+    bool biased_emission;
+    double limb_dark_param [4];
 };
 
 
@@ -533,7 +633,9 @@ class CSourceDust : public CSourceBasic
     bool initSource(uint id, uint max, bool use_energy_density);
 
     void createNextRay(photon_package * pp, CRandomGenerator * rand_gen);
+    void createNextRay(photon_package * pp, CRandomGenerator * rand_gen, double epsilon);
     void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
+    void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs, ulong i_cell);
 
     void setParameter(parameters & param, uint p)
     {

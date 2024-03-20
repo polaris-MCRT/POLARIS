@@ -18,7 +18,7 @@ class Model:
         #: dict: Includes parameters of a specific model
         self.parameter = {
             'distance': 1. * self.math.const['pc'],
-            'gas_mass': 1. * self.math.const['M_sun'],
+            'gas_mass': None,
             'dust_mass': None,
             # Global extent variables to set all grid types at once
             'inner_radius': 1. * self.math.const['au'],

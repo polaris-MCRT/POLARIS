@@ -96,7 +96,32 @@ class CDetector
         w4_V = 0;
         w4_PI = 0;
 
+        w1_sedI = 0;
+        w1_sedQ = 0;
+        w1_sedU = 0;
+        w1_sedV = 0;
+        w1_sedPI = 0;
+
+        w2_sedI = 0;
+        w2_sedQ = 0;
+        w2_sedU = 0;
+        w2_sedV = 0;
+        w2_sedPI = 0;
+
+        w3_sedI = 0;
+        w3_sedQ = 0;
+        w3_sedU = 0;
+        w3_sedV = 0;
+        w3_sedPI = 0;
+
+        w4_sedI = 0;
+        w4_sedQ = 0;
+        w4_sedU = 0;
+        w4_sedV = 0;
+        w4_sedPI = 0;
+
         N_photon = 0;
+        N_photon_tot = 0;
     }
 
     // Detector for dust and synchrotron
@@ -169,6 +194,7 @@ class CDetector
         matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
         N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
+        N_photon_tot = new double[nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
@@ -180,7 +206,6 @@ class CDetector
                 matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
                 sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
@@ -516,7 +541,8 @@ class CDetector
         nr_spectral_bins = _nr_spectral_bins;
 
         wavelength_list_det.resize(nr_spectral_bins);
-        CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        // CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        CMathFunctions::LinearList(lam_min, lam_max, wavelength_list_det);
 
         sedI = new double[nr_spectral_bins];
         sedQ = new double[nr_spectral_bins];
@@ -556,7 +582,32 @@ class CDetector
         w4_V = new Matrix2D[nr_spectral_bins];
         w4_PI = new Matrix2D[nr_spectral_bins];
 
+        w1_sedI = new double[nr_spectral_bins];
+        w1_sedQ = new double[nr_spectral_bins];
+        w1_sedU = new double[nr_spectral_bins];
+        w1_sedV = new double[nr_spectral_bins];
+        w1_sedPI = new double[nr_spectral_bins];
+
+        w2_sedI = new double[nr_spectral_bins];
+        w2_sedQ = new double[nr_spectral_bins];
+        w2_sedU = new double[nr_spectral_bins];
+        w2_sedV = new double[nr_spectral_bins];
+        w2_sedPI = new double[nr_spectral_bins];
+
+        w3_sedI = new double[nr_spectral_bins];
+        w3_sedQ = new double[nr_spectral_bins];
+        w3_sedU = new double[nr_spectral_bins];
+        w3_sedV = new double[nr_spectral_bins];
+        w3_sedPI = new double[nr_spectral_bins];
+    
+        w4_sedI = new double[nr_spectral_bins];
+        w4_sedQ = new double[nr_spectral_bins];
+        w4_sedU = new double[nr_spectral_bins];
+        w4_sedV = new double[nr_spectral_bins];
+        w4_sedPI = new double[nr_spectral_bins];
+
         N_photon = new Matrix2D[nr_spectral_bins];
+        N_photon_tot = new double[nr_spectral_bins];
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -598,7 +649,32 @@ class CDetector
             w4_V[i_spectral].resize(bins_x, bins_y);
             w4_PI[i_spectral].resize(bins_x, bins_y);
 
+            w1_sedI[i_spectral] = 0;
+            w1_sedQ[i_spectral] = 0;
+            w1_sedU[i_spectral] = 0;
+            w1_sedV[i_spectral] = 0;
+            w1_sedPI[i_spectral] = 0;
+
+            w2_sedI[i_spectral] = 0;
+            w2_sedQ[i_spectral] = 0;
+            w2_sedU[i_spectral] = 0;
+            w2_sedV[i_spectral] = 0;
+            w2_sedPI[i_spectral] = 0;
+
+            w3_sedI[i_spectral] = 0;
+            w3_sedQ[i_spectral] = 0;
+            w3_sedU[i_spectral] = 0;
+            w3_sedV[i_spectral] = 0;
+            w3_sedPI[i_spectral] = 0;
+
+            w4_sedI[i_spectral] = 0;
+            w4_sedQ[i_spectral] = 0;
+            w4_sedU[i_spectral] = 0;
+            w4_sedV[i_spectral] = 0;
+            w4_sedPI[i_spectral] = 0;
+
             N_photon[i_spectral].resize(bins_x, bins_y);
+            N_photon_tot[i_spectral] = 0;
         }
     }
 
@@ -661,8 +737,54 @@ class CDetector
         if(w4_PI != 0)
             delete[] w4_PI;
 
+        if(w1_sedI != 0)
+            delete[] w1_sedI;
+        if(w1_sedQ != 0)
+            delete[] w1_sedQ;
+        if(w1_sedU != 0)
+            delete[] w1_sedU;
+        if(w1_sedV != 0)
+            delete[] w1_sedV;
+        if(w1_sedPI != 0)
+            delete[] w1_sedPI;
+        
+        if(w2_sedI != 0)
+            delete[] w2_sedI;
+        if(w2_sedQ != 0)
+            delete[] w2_sedQ;
+        if(w2_sedU != 0)
+            delete[] w2_sedU;
+        if(w2_sedV != 0)
+            delete[] w2_sedV;
+        if(w2_sedPI != 0)
+            delete[] w2_sedPI;
+
+        if(w3_sedI != 0)
+            delete[] w3_sedI;
+        if(w3_sedQ != 0)
+            delete[] w3_sedQ;
+        if(w3_sedU != 0)
+            delete[] w3_sedU;
+        if(w3_sedV != 0)
+            delete[] w3_sedV;
+        if(w3_sedPI != 0)
+            delete[] w3_sedPI;
+
+        if(w4_sedI != 0)
+            delete[] w4_sedI;
+        if(w4_sedQ != 0)
+            delete[] w4_sedQ;
+        if(w4_sedU != 0)
+            delete[] w4_sedU;
+        if(w4_sedV != 0)
+            delete[] w4_sedV;
+        if(w4_sedPI != 0)
+            delete[] w4_sedPI;
+
         if(N_photon != 0)
             delete[] N_photon;
+        if(N_photon_tot != 0)
+            delete[] N_photon_tot;
 
         if(sedI != 0)
             delete[] sedI;
@@ -875,7 +997,53 @@ class CDetector
             w4_V[i_det_spectral].addValue(x, y, pow(st.V(),4));
             w4_PI[i_det_spectral].addValue(x, y, pow(st.tPol(),4));
 
+            #pragma omp atomic update
+            w1_sedI[i_det_spectral] += st.I();
+            #pragma omp atomic update
+            w1_sedQ[i_det_spectral] += st.Q();
+            #pragma omp atomic update
+            w1_sedU[i_det_spectral] += st.U();
+            #pragma omp atomic update
+            w1_sedV[i_det_spectral] += st.V();
+            #pragma omp atomic update
+            w1_sedPI[i_det_spectral] += st.tPol();
+
+            #pragma omp atomic update
+            w2_sedI[i_det_spectral] += pow(st.I(), 2);
+            #pragma omp atomic update
+            w2_sedQ[i_det_spectral] += pow(st.Q(), 2);
+            #pragma omp atomic update
+            w2_sedU[i_det_spectral] += pow(st.U(), 2);
+            #pragma omp atomic update
+            w2_sedV[i_det_spectral] += pow(st.V(), 2);
+            #pragma omp atomic update
+            w2_sedPI[i_det_spectral] += pow(st.tPol(), 2);
+
+            #pragma omp atomic update
+            w3_sedI[i_det_spectral] += pow(st.I(), 3);
+            #pragma omp atomic update
+            w3_sedQ[i_det_spectral] += pow(st.Q(), 3);
+            #pragma omp atomic update
+            w3_sedU[i_det_spectral] += pow(st.U(), 3);
+            #pragma omp atomic update
+            w3_sedV[i_det_spectral] += pow(st.V(), 3);
+            #pragma omp atomic update
+            w3_sedPI[i_det_spectral] += pow(st.tPol(), 3);
+
+            #pragma omp atomic update
+            w4_sedI[i_det_spectral] += pow(st.I(), 4);
+            #pragma omp atomic update
+            w4_sedQ[i_det_spectral] += pow(st.Q(), 4);
+            #pragma omp atomic update
+            w4_sedU[i_det_spectral] += pow(st.U(), 4);
+            #pragma omp atomic update
+            w4_sedV[i_det_spectral] += pow(st.V(), 4);
+            #pragma omp atomic update
+            w4_sedPI[i_det_spectral] += pow(st.tPol(), 4);
+
             N_photon[i_det_spectral].addValue(x, y, 1);
+            #pragma omp atomic update
+            N_photon_tot[i_det_spectral] += 1;
         }
 
         // Add to SED
@@ -962,6 +1130,57 @@ class CDetector
         return R;
     }
 
+    double calc_R(uint i_spectral, uint quantity)
+    {
+        double w1, w2, N;
+        double R = 1;
+
+        N = N_photon_tot[i_spectral];
+        if(N >= 2)
+        {
+            switch(quantity)
+            {
+                case 0:
+                {
+                    w1 = w1_sedI[i_spectral];
+                    w2 = w2_sedI[i_spectral];
+                    break;
+                }
+                case 1:
+                {
+                    w1 = w1_sedQ[i_spectral];
+                    w2 = w2_sedQ[i_spectral];
+                    break;
+                }
+                case 2:
+                {
+                    w1 = w1_sedU[i_spectral];
+                    w2 = w2_sedU[i_spectral];
+                    break;
+                }
+                case 3:
+                {
+                    w1 = w1_sedV[i_spectral];
+                    w2 = w2_sedV[i_spectral];
+                    break;
+                }
+                case 4:
+                {
+                    w1 = w1_sedPI[i_spectral];
+                    w2 = w2_sedPI[i_spectral];
+                    break;
+                }
+            }
+
+            if(w1 != 0)
+            {
+                R = w2 / pow(w1,2) - 1/N;
+                R = sqrt(R);
+            }
+        }
+        return R;
+    }
+
     double calc_VOV(uint i_spectral, uint x, uint y, uint quantity)
     {
         double w1, w2, w3, w4, N;
@@ -1010,6 +1229,65 @@ class CDetector
                     w2 = w2_PI[i_spectral](x,y);
                     w3 = w3_PI[i_spectral](x,y);
                     w4 = w4_PI[i_spectral](x,y);
+                    break;
+                }
+            }
+
+            VOV = w4 + w1 / N * ( -3*w1 * pow(w1 / N, 2) + 6*w1*w2 / N - 4*w3 );
+            VOV /= pow(w2 - pow(w1,2) / N, 2);
+            VOV -= 1 / N;
+        }
+        return VOV;
+    }
+
+    double calc_VOV(uint i_spectral, uint quantity)
+    {
+        double w1, w2, w3, w4, N;
+        double VOV = 1;
+
+        N = N_photon_tot[i_spectral];
+        if(N >= 2)
+        {
+            switch(quantity)
+            {
+                case 0:
+                {
+                    w1 = w1_sedI[i_spectral];
+                    w2 = w2_sedI[i_spectral];
+                    w3 = w3_sedI[i_spectral];
+                    w4 = w4_sedI[i_spectral];
+                    break;
+                }
+                case 1:
+                {
+                    w1 = w1_sedQ[i_spectral];
+                    w2 = w2_sedQ[i_spectral];
+                    w3 = w3_sedQ[i_spectral];
+                    w4 = w4_sedQ[i_spectral];
+                    break;
+                }
+                case 2:
+                {
+                    w1 = w1_sedU[i_spectral];
+                    w2 = w2_sedU[i_spectral];
+                    w3 = w3_sedU[i_spectral];
+                    w4 = w4_sedU[i_spectral];
+                    break;
+                }
+                case 3:
+                {
+                    w1 = w1_sedV[i_spectral];
+                    w2 = w2_sedV[i_spectral];
+                    w3 = w3_sedV[i_spectral];
+                    w4 = w4_sedV[i_spectral];
+                    break;
+                }
+                case 4:
+                {
+                    w1 = w1_sedPI[i_spectral];
+                    w2 = w2_sedPI[i_spectral];
+                    w3 = w3_sedPI[i_spectral];
+                    w4 = w4_sedPI[i_spectral];
                     break;
                 }
             }
@@ -1259,7 +1537,7 @@ class CDetector
         return true;
     }
 
-    bool writeMapStats(uint nr, uint results_type)
+    bool writeMapStats(uint nr)
     {
         cout << CLR_LINE << flush;
         cout << " -> Writing map with statistics ...  \r" << flush;
@@ -1595,6 +1873,172 @@ class CDetector
             pFits->pHDU().addKey("CUNIT3", "I, Q, U, V, I_direct, I_scat [Jy]", "unit of axis 3");
             pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
         }
+        pFits->pHDU().addKey("ID", nr, "detector ID");
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+        {
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+            {
+                char str_1[1024];
+                char str_2[1024];
+#ifdef WINDOWS
+                sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+#else
+                sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+                sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+#endif
+                pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+            }
+        }
+        if(detector_id == DET_SPHER)
+        {
+            pFits->pHDU().addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
+            pFits->pHDU().addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
+            pFits->pHDU().addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
+            pFits->pHDU().addKey("OBS_VELOCITY_X", obs_vel.X(), "velocity of observer in x direction");
+            pFits->pHDU().addKey("OBS_VELOCITY_Y", obs_vel.Y(), "velocity of observer in y direction");
+            pFits->pHDU().addKey("OBS_VELOCITY_Z", obs_vel.Z(), "velocity of observer in z direction");
+            pFits->pHDU().addKey("LONGITUDE_MIN", l_min, "minimum considered galactic longitude");
+            pFits->pHDU().addKey("LONGITUDE_MAX", l_max, "maximum considered galactic longitude");
+            pFits->pHDU().addKey("LATITUDE_MIN", b_min, "minimum considered galactic latitude");
+            pFits->pHDU().addKey("LATITUDE_MAX", b_max, "maximum considered galactic latitude");
+        }
+        else
+        {
+            pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+            pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+            pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+            pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+            pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+            pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+            pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+            pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+            pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+        }
+        pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+        string alignment_descr = getAlignmentDescription();
+        if(alignment_descr != "")
+            pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
+
+        cout << CLR_LINE << flush;
+
+        return true;
+    }
+
+    bool writeSedStats(uint nr)
+    {
+        cout << CLR_LINE << flush;
+        cout << " -> Writing SED with statistics ...  \r" << flush;
+        // auto_ptr<CCfits::FITS> pFits(0);
+        unique_ptr<CCfits::FITS> pFits;
+
+        try
+        {
+            char str_tmp[1024];
+            char str_end[1024];
+            nr++;
+
+#ifdef WINDOWS
+            strcpy_s(str_tmp, "polaris_detector_nr%04d_sed_stats");
+            sprintf_s(str_end, str_tmp, nr);
+#else
+            strcpy(str_tmp, "polaris_detector_nr%04d_sed_stats");
+            sprintf(str_end, str_tmp, nr);
+#endif
+
+            string path_out = path + str_end + FITS_COMPRESS_EXT;
+            remove(path_out.c_str());
+
+            long naxis = 3;
+            long naxes[3] = { nr_spectral_bins, nr_extra, 11 };
+            pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+        }
+        catch(CCfits::FITS::CantCreate)
+        {
+            return false;
+        }
+
+        long nelements = uint(nr_spectral_bins);
+
+        vector<long> fpixel(3);
+        fpixel[0] = 1;
+
+        std::valarray<double> array_N_photon_tot(nelements);
+        std::valarray<double> array_R_I(nelements);
+        std::valarray<double> array_VOV_I(nelements);
+        std::valarray<double> array_R_Q(nelements);
+        std::valarray<double> array_VOV_Q(nelements);
+        std::valarray<double> array_R_U(nelements);
+        std::valarray<double> array_VOV_U(nelements);
+        std::valarray<double> array_R_V(nelements);
+        std::valarray<double> array_VOV_V(nelements);
+        std::valarray<double> array_R_PI(nelements);
+        std::valarray<double> array_VOV_PI(nelements);
+
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+        {
+            fpixel[1] = i_extra + 1;
+
+            for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+            {
+                array_N_photon_tot[i_spectral] = N_photon_tot[i_spectral + i_extra * nr_spectral_bins];
+                array_R_I[i_spectral] = calc_R(i_spectral + i_extra * nr_spectral_bins, 0);
+                array_VOV_I[i_spectral] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, 0);
+                array_R_Q[i_spectral] = calc_R(i_spectral + i_extra * nr_spectral_bins, 1);
+                array_VOV_Q[i_spectral] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, 1);
+                array_R_U[i_spectral] = calc_R(i_spectral + i_extra * nr_spectral_bins, 2);
+                array_VOV_U[i_spectral] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, 2);
+                array_R_V[i_spectral] = calc_R(i_spectral + i_extra * nr_spectral_bins, 3);
+                array_VOV_V[i_spectral] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, 3);
+                array_R_PI[i_spectral] = calc_R(i_spectral + i_extra * nr_spectral_bins, 4);
+                array_VOV_PI[i_spectral] = calc_VOV(i_spectral + i_extra * nr_spectral_bins, 4);
+
+                fpixel[2] = 1;
+                pFits->pHDU().write(fpixel, nelements, array_N_photon_tot);
+                fpixel[2] = 2;
+                pFits->pHDU().write(fpixel, nelements, array_R_I);
+                fpixel[2] = 3;
+                pFits->pHDU().write(fpixel, nelements, array_VOV_I);
+                fpixel[2] = 4;
+                pFits->pHDU().write(fpixel, nelements, array_R_Q);
+                fpixel[2] = 5;
+                pFits->pHDU().write(fpixel, nelements, array_VOV_Q);
+                fpixel[2] = 6;
+                pFits->pHDU().write(fpixel, nelements, array_R_U);
+                fpixel[2] = 7;
+                pFits->pHDU().write(fpixel, nelements, array_VOV_U);
+                fpixel[2] = 8;
+                pFits->pHDU().write(fpixel, nelements, array_R_V);
+                fpixel[2] = 9;
+                pFits->pHDU().write(fpixel, nelements, array_VOV_V);
+                fpixel[2] = 10;
+                pFits->pHDU().write(fpixel, nelements, array_R_PI);
+                fpixel[2] = 11;
+                pFits->pHDU().write(fpixel, nelements, array_VOV_PI);
+            }
+        }
+
+        pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+        pFits->pHDU().addKey("CRVAL1", 1, "value of axis 1");
+        pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+        pFits->pHDU().addKey("CDELT1", 1, "delta of axis 1");
+        pFits->pHDU().addKey("CUNIT1", "Wavelength index", "unit of axis 1");
+        pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+        pFits->pHDU().addKey("CRVAL2", 1, "value of axis 2");
+        pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+        pFits->pHDU().addKey("CDELT2", 1, "delta of axis 2");
+        pFits->pHDU().addKey("CUNIT2", "None", "unit of axis 2");
+
+        // Simulated quantities
+        pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+        pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+        pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined");
+        pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+        pFits->pHDU().addKey("ETYPE", "N, I(R,VOV), Q(R,VOV), U(R,VOV), V(R,VOV), PI(R,VOV)", "quantities");
+        pFits->pHDU().writeComment("N: Number of photon packages,");
+        pFits->pHDU().writeComment("R: relative error, VOV: variance of the variance");
+        pFits->pHDU().writeComment("(see Camps & Baes 2018, ApJ 861:80, Eqs. 14 and 15)");
+
         pFits->pHDU().addKey("ID", nr, "detector ID");
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
@@ -4757,6 +5201,12 @@ class CDetector
     Matrix2D *w1_PI, *w2_PI, *w3_PI, *w4_PI;
     Matrix2D *N_photon;
     double *sedI, *sedQ, *sedU, *sedV, *sedT, *sedS;
+    double *w1_sedI, *w2_sedI, *w3_sedI, *w4_sedI;
+    double *w1_sedQ, *w2_sedQ, *w3_sedQ, *w4_sedQ;
+    double *w1_sedU, *w2_sedU, *w3_sedU, *w4_sedU;
+    double *w1_sedV, *w2_sedV, *w3_sedV, *w4_sedV;
+    double *w1_sedPI, *w2_sedPI, *w3_sedPI, *w4_sedPI;
+    double *N_photon_tot;
     dlist wavelength_list_det;
     dlist velocity_channel;
     Vector3D axis1, axis2, pos;

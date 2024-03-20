@@ -784,6 +784,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return true;
         }
 
+        if(data.compare("CMD_PLANET_SCATTERING") == 0)
+        {
+            param->setCommand(CMD_PLANET_SCATTERING);
+            return true;
+        }
+
         if(data.compare("CMD_SYNCHROTRON") == 0)
         {
             param->setCommand(CMD_SYNCHROTRON);
@@ -903,6 +909,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(data.compare("PH_MIE") == 0)
         {
             param->setPhaseFunctionID(PH_MIE, dust_component_choice);
+            return true;
+        }
+
+        if(data.compare("PH_RAYLEIGH") == 0)
+        {
+            param->setPhaseFunctionID(PH_RAYLEIGH, dust_component_choice);
             return true;
         }
 
@@ -2554,6 +2566,139 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
 
+    if(cmd.compare("<source_plane_star nr_photons = >") == 0)
+    {
+        string str = seperateString(data);
+        ullong nr_of_photons = ullong(atof(str.c_str()));
+        string ps_path = seperateString(data);
+
+        if(nr_of_photons < 0)
+        {
+            cout << "\nERROR: Number of plane star photons could not be recognized!" << endl;
+            return false;
+        }
+
+        dlist values = parseValues(data);
+
+        if(ps_path.size() != 0)
+        {
+            if(values.size() == NR_OF_PLANE_SOURCES - 5)
+            {
+                values.push_back(0); // Radius
+                values.push_back(0); // Temperature
+                values.push_back(0); // Stokes q
+                values.push_back(0); // Stokes u
+            }
+            else
+            {
+                cout << "\nERROR: False amount of parameters for source star in line " << line_counter << "!"
+                     << endl;
+                return false;
+            }
+        }
+        else
+        {
+            if(values.size() == NR_OF_PLANE_SOURCES - 3)
+            {
+                values.push_back(0);
+                values.push_back(0);
+            }
+            else if(values.size() != NR_OF_PLANE_SOURCES - 1)
+            {
+                cout << "\nERROR: False amount of parameters for source star in line " << line_counter << "!"
+                     << endl;
+                return false;
+            }
+        }
+
+        double P_l = sqrt(pow(values[5], 2) + pow(values[6], 2));
+        if(P_l > 1.0)
+        {
+            cout << "\nERROR: Chosen polarization of source star is larger than 1!" << endl;
+            return false;
+        }
+        else if(P_l < 0)
+        {
+            cout << "\nHINT: Chosen polarization of source star is less than 0 (now set "
+                    "to 0)!"
+                 << endl;
+            values[5] = 0;
+            values[6] = 0;
+        }
+
+        values.push_back(double(nr_of_photons));
+        param->addPlaneSource(values, ps_path);
+        return true;
+    }
+
+    if(cmd.compare("<source_extended_star nr_photons = >") == 0)
+    {
+        string str = seperateString(data);
+        ullong nr_of_photons = ullong(atof(str.c_str()));
+        string es_path = seperateString(data);
+
+        if(nr_of_photons < 0)
+        {
+            cout << "\nERROR: Number of spatially extended star photons could not be recognized!" << endl;
+            return false;
+        }
+
+        dlist values = parseValues(data);
+
+        if(es_path.size() != 0)
+        {
+            if(values.size() == NR_OF_EXTENDED_SOURCES - 6)
+            {
+                values.push_back(0); // Radius
+                values.push_back(0); // Temperature
+                values.push_back(0); // biased emission?
+                values.push_back(0); // Stokes q
+                values.push_back(0); // Stokes u
+            }
+            else
+            {
+                cout << "\nERROR: False amount of parameters for spatially extended source star in line " << line_counter << "!" << endl;
+                return false;
+            }
+        }
+        else
+        {
+            if(values.size() == NR_OF_EXTENDED_SOURCES - 4)
+            {
+                values.push_back(0); // biased emission?
+                values.push_back(0); // Stokes q
+                values.push_back(0); // Stokes u
+            }
+            else if(values.size() == NR_OF_EXTENDED_SOURCES - 3)
+            {
+                values.push_back(0); // Stokes q
+                values.push_back(0); // Stokes u
+            }
+            else if(values.size() != NR_OF_EXTENDED_SOURCES - 1)
+            {
+                cout << "\nERROR: False amount of parameters for spatially extended source star in line " << line_counter << "!" << endl;
+                return false;
+            }
+        }
+
+        double P_l = sqrt(pow(values[6], 2) + pow(values[7], 2));
+        if(P_l > 1.0)
+        {
+            cout << "\nERROR: Chosen polarization of spatially extended source star is larger than 1!" << endl;
+            return false;
+        }
+        else if(P_l < 0.0)
+        {
+            cout << "\nWARNING: Chosen polarization of spatially extended source star is less than 0 (set to 0)" << endl;
+            values[6] = 0;
+            values[7] = 0;
+        }
+
+        values.push_back(double(nr_of_photons));
+        param->addExtendedSource(values, es_path);
+        return true;
+    }
+
     if(cmd.compare("<source_starfield nr_photons = >") == 0)
     {
         string str = seperateString(data);
@@ -3007,6 +3152,94 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
 
         return true;
+    }
+
+    if(cmd.compare("<gas_component>") == 0 || cmd.compare("<gas_component id = >") == 0)
+    {
+        // add gas component and consider it as a dust component for (rayleigh) scattering
+
+        string path;
+
+        uint dust_component_choice = 0;
+        if(cmd.compare("<gas_component id = >") == 0)
+        {
+            string str = seperateString(data);
+            dust_component_choice = uint(atof(str.c_str()));
+            path = seperateString(data);
+
+            if(dust_component_choice < 0)
+            {
+                cout << "Error ID " << dust_component_choice << " from <gas_component id = > is not valid!"
+                     << endl;
+                return false;
+            }
+        }
+        else
+        {
+            path = seperateString(data);
+        }
+
+        param->AddDustComponentChoice(dust_component_choice);
+
+        dlist fr = parseValues(data);
+        dlist size_parameter;
+        size_parameter.push_back(0);
+        if(fr.size() == 0)
+        {
+            param->addDustComponent(path, "plaw", 1, 0, 0, 0, size_parameter);
+        }
+        else if(fr.size() == 1)
+        {
+            // fr[0]: fraction of component
+            param->addDustComponent(path, "plaw", fr[0], 0, 0, 0, size_parameter);
+        }
+        else if(fr.size() == 2)
+        {
+            // fr[0]: fraction of component
+            // fr[1]: molecular weight [kg / mol]
+            param->addDustComponent(path, "plaw", fr[0], fr[1], 0, 0, size_parameter);
+        }
+        else
+        {
+            cout << "\nWARNING: False parameters set for gas component in line " << line_counter << "!"
+                 << endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    if(cmd.compare("<surface_reflection>") == 0)
+    {
+        string str = seperateString(data);
+        dlist values = parseValues(data);
+
+        if(str.compare("lambertian") == 0)
+        {
+            param->setSurfaceReflModel(LAMBERTIAN);
+            param->setSurfaceReflParam(values);
+            param->setSurfacePolModel(DEPOL);
+            return true;
+        }
+
+        if(str.compare("lommelseeliger") == 0)
+        {
+            param->setSurfaceReflModel(LOMMELSEELIGER);
+            param->setSurfaceReflParam(values);
+            param->setSurfacePolModel(DEPOL);
+            return true;
+        }
+
+        if(str.compare("ocean") == 0)
+        {
+            param->setSurfaceReflModel(OCEAN);
+            param->setSurfaceReflParam(values);
+            param->setSurfacePolModel(SPECULAR);
+            return true;
+        }
+
+        cout << "\nERROR: Surface reflection model could not be recognized!" << endl;
+        return false;
     }
 
     if(cmd.compare("<path_out>") == 0)

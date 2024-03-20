@@ -1747,7 +1747,7 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     {
         if(!detector[d].writeMap(d, RESULTS_MC))
             return false;
-        if(!detector[d].writeMapStats(d, RESULTS_MC))
+        if(!detector[d].writeMapStats(d))
             return false;
         if(!detector[d].writeSed(d, RESULTS_MC))
             return false;
@@ -1763,6 +1763,770 @@ bool CRadiativeTransfer::calcPolMapsViaMC()
     // Show amount of killed photons
     if(kill_counter > 0)
         cout << "- Photons killed                   : " << kill_counter << endl;
+    cout << "- Calculation of MC polarization maps (photons: " << float(nr_of_photons) << "): done" << endl;
+
+    return true;
+}
+
+bool CRadiativeTransfer::calcPlanetPolMapsViaMC()
+{
+    // Init variables
+    ullong nr_of_photons;
+    ullong per_counter = 0;
+    ullong nr_of_wavelength = dust->getNrOfWavelength();
+    float last_percentage = 0;
+    uint mrw_counter = 0;
+    ullong kill_counter = 0;
+    uint max_source = uint(sources_mc.size());
+
+    double mean_interactions = 0.0;
+    double mean_surface_interactions = 0.0;
+    ullong max_interactions = 0;
+    ullong no_interactions = 0;
+    ullong escape_photon_kill_counter = 0;
+    double mean_photon_weight = 0.0;
+    bool show_direct_source_warning = false;
+
+    double surface_layer = grid->getRmin();
+
+    // Format prints
+    cout << SEP_LINE;
+
+    for(uint wID = 0; wID < nr_of_wavelength; wID++)
+    {
+        photon_package pp_tau = photon_package();
+        pp_tau.setWavelength(dust->getWavelength(wID), wID);
+        pp_tau.setPosition(Vector3D(surface_layer, 0, 0));
+        pp_tau.setDirection(Vector3D(1, 0, 0));
+        double tau_x = getOpticalDepthAlongPath(&pp_tau);
+        pp_tau.setPosition(Vector3D(0, surface_layer, 0));
+        pp_tau.setDirection(Vector3D(0, 1, 0));
+        double tau_y = getOpticalDepthAlongPath(&pp_tau);
+        pp_tau.setPosition(Vector3D(0, 0, surface_layer));
+        pp_tau.setDirection(Vector3D(0, 0, 1));
+        double tau_z = getOpticalDepthAlongPath(&pp_tau);
+        cout << "- Optical depth (wavelength = " << dust->getWavelength(wID) << " m): " << tau_x << " (x-axis), " << tau_y << " (y-axis), " << tau_z << " (z-axis)" << endl;
+    }
+    cout << SEP_LINE;
+
+    // Init progress visualization
+    cout << "-> MC pol. map(s) 0 [%] \r" << flush;
+
+    // Perform Monte-Carlo radiative transfer for each chosen source
+    for(uint s = 0; s < max_source; s++)
+    {
+        // Init source object
+        CSourceBasic * tm_source = sources_mc[s];
+        cout << CLR_LINE;
+
+        #if (USE_PRECALC_TABLE)
+            grid->initPreCalcTables(nr_of_wavelength);
+        #endif
+
+        // Perform Monte-Carlo radiative transfer for
+        // each chosen wavelength of the chosen source
+        for(uint wID = 0; wID < nr_of_wavelength; wID++)
+        {
+            // Init source parameters for scattering maps
+            if(!tm_source->initSource(wID))
+                continue;
+
+            // Get number of photons that have to be emitted from the current source
+            nr_of_photons = tm_source->getNrOfPhotons();
+
+            #if (USE_PRECALC_TABLE)
+                ulong nr_of_cells = grid->getMaxDataCells();
+
+                #pragma omp parallel for schedule(dynamic)
+                for(long i_cell = 0; i_cell < long(nr_of_cells); i_cell++)
+                {
+                    photon_package pp = photon_package();
+
+                    pp.setWavelength(dust->getWavelength(wID), wID);
+                    // Put photon package into current cell
+                    pp.setPositionCell(grid->getCellFromIndex(i_cell));
+
+                    double i_cext = dust->getCextMean(grid, pp);
+                    double i_cabs = dust->getCabsMean(grid, pp);
+                    double i_csca = dust->getCscaMean(grid, pp);
+                    grid->setCextMeanTab(i_cext, i_cell, wID);
+                    grid->setCabsMeanTab(i_cabs, i_cell, wID);
+                    grid->setCscaMeanTab(i_csca, i_cell, wID);
+
+                    if(wID == 0)
+                    {
+                        double number_density = dust->getNumberDensity(grid, *pp.getPositionCell());
+                        grid->setNumberDensityTab(number_density, i_cell);
+                        double cell_emission = dust->getTotalCellEmission(grid, pp);
+                        grid->setTotalCellEmissionTab(cell_emission, i_cell);
+                    }
+                }
+            #endif
+
+            CRandomGenerator rand_gen;
+            // just an arbitrary, random number for the RNG seed
+            // this is NOT the seed for KISS
+            ullong seed = -1ULL;
+
+            // Create parallel region with individual RNGs and seeds for each thread
+            #pragma omp parallel firstprivate(rand_gen, seed)
+            {
+            #ifdef _OPENMP
+                seed *= -1 * (omp_get_thread_num() + 1);
+            #endif
+            rand_gen.init(seed);
+
+            // Perform radiative transfer through the model for each photon
+            #pragma omp for schedule(dynamic)
+            for(ullong i_phot = 0; i_phot < ullong(nr_of_photons); i_phot++)
+            {
+                // Init cross sections
+                double Cext;
+
+                // Increase counter used to show progress
+                #pragma omp atomic update
+                per_counter++;
+
+                // Calculate percentage of total progress per source, wavelength and photons
+                float percentage = 100.0 * float(per_counter) / (float(max_source) * float(nr_of_wavelength) * float(nr_of_photons));
+
+                // Show only new percentage number if it changed
+                if((percentage - last_percentage) >= PERCENTAGE_STEP)
+                {
+                    #pragma omp critical
+                    {
+                        cout << "-> MC pol. map(s) (source ID: " << s + 1
+                             << ", wavelength: " << dust->getWavelength(wID)
+                             << " [m], photons: " << float(nr_of_photons) << ") " << percentage << " [%]   \r"
+                             << flush;
+                        last_percentage = percentage;
+                    }
+                }
+
+                // Init the photon_package pp with the specific ray
+                photon_package pp = photon_package();
+                pp.setPhotonID(i_phot);
+
+                // Init variables
+                double end_tau, tau_tot;
+                Vector3D old_pos, start_pos, cur_pos;
+
+                // Init variables
+                ullong interactions = 0;
+                ullong surface_interactions = 0;
+                double tmp_tau;
+                double len, dens;
+                bool do_surface_interaction = false;
+
+                // Set current wavelength
+                pp.setWavelength(dust->getWavelength(wID), wID);
+
+                // Launch a new photon package from the source
+                if(tm_source->getID() != SRC_DUST)
+                {
+                    if(tm_source->isBiasedEmission())
+                    {
+                        tm_source->createNextBiasedRay(&pp, &rand_gen);
+                        // Get weight of photon
+                        #pragma omp atomic update
+                        mean_photon_weight += pp.getPhotonWeight();
+                    }
+                    else
+                    {
+                        tm_source->createNextRay(&pp, &rand_gen);
+                    }
+                }
+                else
+                {
+                    tm_source->createNextRay(&pp, &rand_gen, 0.5);
+                }
+
+                // Position the photon inside the grid
+                if(!grid->positionPhotonInGrid(&pp))
+                    if(!grid->findStartingPoint(&pp))
+                    {
+                        #pragma omp atomic update
+                        kill_counter++;
+                        continue;
+                    }
+
+                // Set starting position for enforced scattering
+                start_pos = pp.getPosition();
+
+                // Save position of last interaction to know to which pixel
+                // the photon belongs, if it is not scattered on its further
+                // path through the model
+                pp.updateBackupPosition();
+
+                if(b_forced)
+                {
+                    // if photon hits the surface
+                    // send only one photon package as without enfsca
+                    if(CMathFunctions::intersectionLineSphere(
+                        pp.getPosition(),
+                        pp.getDirection(),
+                        Vector3D(0,0,0),
+                        surface_layer))
+                    {
+                        tau_tot = 1e200;
+                        end_tau = -log(1.0 - rand_gen.getRND());
+                    }
+                    else
+                    {
+                        tau_tot = getOpticalDepthAlongPath(&pp);
+                        // Get tau for first interaction, if the interaction is forced
+                        end_tau = -log(1.0 - rand_gen.getRND() * (1.0 - exp(-tau_tot)));
+                        // If optical depth is exactly zero, send only one photon
+                        // package as without enfsca
+                        if(end_tau <= 0.0)
+                            end_tau = -log(1.0 - rand_gen.getRND());
+                    }
+                }
+                else
+                {
+                    // Get tau for first interaction
+                    end_tau = -log(1.0 - rand_gen.getRND());
+                }
+
+                // Save photon position to adjust it if necessary
+                old_pos = pp.getPosition();
+
+                // Transfer photon through grid
+                while(grid->next(&pp))
+                {
+                    // If max interactions is reached or the photon intensity
+                    // is too low, end photon transfer
+                    if(interactions >= MAX_INTERACTION_DUST_MC || pp.getStokesVector()->I() < 1e-200)
+                    {
+                        #pragma omp atomic update
+                        kill_counter++;
+                        break;
+                    }
+
+                    cur_pos = pp.getPosition();
+
+                    // Get dust number density of the current cell
+                    dens = dust->getNumberDensity(grid, pp);
+
+                    // If the dust density is too low, skip this cell
+                    // Do not skip if below surface layer -> surface interaction
+                    if(dens < 1e-200 && pp.getPosition().length() > surface_layer)
+                    {
+                        old_pos = cur_pos;
+                        continue;
+                    }
+
+                    // Calculate the dust absorption cross section (for random
+                    // alignment)
+                    Cext = dust->getCextMean(grid, pp);
+
+                    // Get path length through current cell
+                    len = pp.getTmpPathLength();
+
+                    // Calculate optical depth that is obtained on the path_length
+                    tmp_tau = Cext * len * dens;
+
+                    // optical depth for interaction is reached or not
+                    if(tmp_tau > end_tau)
+                    {
+                        // Reduce the photon position to match the exact
+                        // interaction position
+                        len = len * end_tau / tmp_tau;
+                        pp.adjustPosition(old_pos, len);
+
+                        // if old pos and current pos are above surface, do interaction
+                        // else, get new random optical depth and do surface interaction
+                        cur_pos = pp.getPosition();
+                        if(old_pos.length() > surface_layer && cur_pos.length() > surface_layer)
+                        {
+                            // Increase interaction counter
+                            interactions++;
+
+                            // Modify second photon if enforced scattering is used
+                            if(b_forced && interactions == 1)
+                            {
+                                if(!peel_off)
+                                {
+                                    for(uint d = 0; d < nr_mc_detectors; d++)
+                                    {
+                                        // Get index of wavelength in current detector
+                                        uint wID_det = detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                                        // Only calculate for detectors with the corresponding wavelengths
+                                        if(wID_det != MAX_UINT)
+                                        {
+                                            if(CMathFunctions::intersectionLineSphere(
+                                                pp.getPosition(),
+                                                pp.getDirection(),
+                                                Vector3D(0,0,0),
+                                                surface_layer))
+                                                continue;
+
+                                            // Check photon direction to observer for each detector
+                                            if(photonInDetectorDir(&pp, &detector[d]))
+                                            {
+                                                photon_package pp_enf = photon_package();
+                                                pp_enf.setWavelength(pp.getWavelength(), pp.getDustWavelengthID());
+                                                pp_enf.setPosition(pp.getPosition());
+                                                pp_enf.setPositionCell(pp.getPositionCell());
+                                                pp_enf.setBackupPosition(start_pos);
+                                                pp_enf.setDirection(pp.getDirection());
+                                                pp_enf.initCoordSystem();
+                                                pp_enf.setStokesVector(*pp.getStokesVector() * exp(-tau_tot));
+                                                scaleAddToDetector(&pp_enf, &detector[d], 0);
+                                            }
+                                        }
+                                    }
+                                }
+                                *pp.getStokesVector() *= (1.0 - exp(-tau_tot));
+                            }
+                            // Save position of last interaction to know to which pixel
+                            // the photon belongs, if it is not scattered on its further
+                            // path through the model
+                            pp.updateBackupPosition();
+
+                            if(!doMRWStepBWWithoutHeating(&pp))
+                            {
+                                // Calculate the dust scattering cross section (for random
+                                // alignment)
+                                // Csca = dust->getCscaMean(grid, pp);
+
+                                // If peel-off is used, add flux to the detector
+                                // except it is the first interaction of the non-forced photon
+                                if(peel_off)
+                                {
+                                    // Transport a separate photon to each detector
+                                    for(uint d = 0; d < nr_mc_detectors; d++)
+                                    {
+                                        // Get index of wavelength in current detector
+                                        uint wID_det =
+                                            detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                                        // Only calculate for detectors with the
+                                        // corresponding wavelengths
+                                        if(wID_det != MAX_UINT)
+                                        {
+                                            // Init photon package
+                                            photon_package pp_escape = photon_package();
+
+                                            // Get direction to the current detector
+                                            Vector3D dir_obs = detector[d].getDirection();
+
+                                            if(CMathFunctions::intersectionLineSphere(
+                                                pp.getPosition(),
+                                                dir_obs,
+                                                Vector3D(0,0,0),
+                                                surface_layer))
+                                                continue;
+
+                                            // Create an escaping photon into the
+                                            // direction of the detector
+                                            dust->getEscapePhoton(
+                                                grid, &pp,
+                                                detector[d].getEX(),
+                                                dir_obs,
+                                                &pp_escape,
+                                                &rand_gen);
+
+                                            // optical depth towards observer
+                                            double tau_obs = getOpticalDepthAlongPath(&pp_escape);
+                                            if(tau_obs < 0.0)
+                                            {
+                                                #pragma omp atomic update
+                                                escape_photon_kill_counter++;
+                                                continue;
+                                            }
+
+                                            // Reduce the Stokes vector by the optical depth
+                                            *pp_escape.getStokesVector() *= exp(-tau_obs);
+
+                                            // Convert the flux into Jy and consider
+                                            // the distance to the observer
+                                            CMathFunctions::lum2Jy(
+                                                pp_escape.getStokesVector(),
+                                                pp.getWavelength(),
+                                                detector[d].getDistance());
+
+                                            // Consider foreground extinction
+                                            *pp_escape.getStokesVector() *=
+                                                dust->getForegroundExtinction(pp.getWavelength());
+
+                                            // If the photon intensity is too low, end
+                                            // photon transfer (for better R and VOV statistics)
+                                            if(pp_escape.getStokesVector()->I() < 1e-200)
+                                                continue;
+
+                                            // Add the photon package to the detector
+                                            detector[d].addToMonteCarloDetector(
+                                                pp_escape, wID_det, SCATTERED_DUST);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                #pragma omp atomic update
+                                mrw_counter++;
+                                if(mrw_counter % 500000 == 0)
+                                {
+                                    #pragma omp critical
+                                    {
+                                        cout << " -> mrw  " << mrw_counter << "\r";
+                                    }
+                                }
+                            }
+                            // Perform scattering interaction into a new direction
+                            dust->scatter(grid, &pp, &rand_gen, true);
+                            // Calculate new optical depth for next interaction
+                            end_tau = -log(1.0 - rand_gen.getRND());
+                        }
+                        else
+                        {
+                            // Calculate new optical depth for next interaction
+                            end_tau = -log(1.0 - rand_gen.getRND());
+                            do_surface_interaction = true;
+                        }
+                    }
+                    else
+                    {
+                        // Remove the traveled distance from optical depth
+                        end_tau -= tmp_tau;
+
+                        if(old_pos.length() > surface_layer && cur_pos.length() < surface_layer)
+                            do_surface_interaction = true;
+                    }
+
+                    // Interaction with surface if the photon package crossed the surface layer
+                    if(do_surface_interaction)
+                    {
+                        pp.updateBackupPosition();
+
+                        // move photon a bit above of the surface boundary
+                        // '-' solution because the photon is inside the sphere
+                        double r2 = surface_layer * (1.0 + MIN_LEN_STEP*EPS_DOUBLE);
+                        len = CMathFunctions::getIntersectionLineSphereLength(
+                            cur_pos, pp.getDirection(), Vector3D(0, 0, 0), r2, false);
+                        pp.adjustPosition(cur_pos, len);
+
+                        if(pp.getPosition().length() < surface_layer)
+                            cout << "\nWARNING: Wrong photon position during surface interaction." << endl;
+
+                        CSurface surface_local = CSurface();
+                        // set local surface parameter
+                        // TODO: instead of using global parameters (homogeneous surface)
+                        // parse actually local parameters (inhomogeneous surface)
+                        surface_local.setSurfaceReflModel(surface->getSurfaceReflModel());
+                        surface_local.setSurfacePolModel(surface->getSurfacePolModel());
+                        surface_local.setSurfaceReflParam(surface->getSurfaceReflParam());
+                        surface_local.setSurfacePolParam(surface->getSurfacePolParam());
+
+                        if(surface->getSurfaceReflModel() == OCEAN)
+                        {
+                            surface_local.initOceanParam();
+                            surface_local.setCMNorm(surface->getCMNorm());
+                        }
+                        surface_local.setLocalParam(&pp, &rand_gen);
+
+                        while(do_surface_interaction && interactions < MAX_INTERACTION_DUST_MC && pp.getStokesVector()->I() > 1e-200)
+                        {
+                            // Increase interaction counter
+                            interactions++;
+                            surface_interactions++;
+
+                            if(b_forced && interactions == 1)
+                            {
+                                if(!peel_off)
+                                {
+                                    for(uint d = 0; d < nr_mc_detectors; d++)
+                                    {
+                                        // Get index of wavelength in current detector
+                                        uint wID_det = detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                                        // Only calculate for detectors with the corresponding wavelengths
+                                        if(wID_det != MAX_UINT)
+                                        {
+                                            if(CMathFunctions::intersectionLineSphere(
+                                                pp.getPosition(),
+                                                pp.getDirection(),
+                                                Vector3D(0,0,0),
+                                                surface_layer))
+                                                continue;
+
+                                            // Check photon direction to observer for each detector
+                                            if(photonInDetectorDir(&pp, &detector[d]))
+                                            {
+                                                photon_package pp_enf = photon_package();
+                                                pp_enf.setWavelength(pp.getWavelength(), pp.getDustWavelengthID());
+                                                pp_enf.setPosition(pp.getPosition());
+                                                pp_enf.setPositionCell(pp.getPositionCell());
+                                                pp_enf.setBackupPosition(start_pos);
+                                                pp_enf.setDirection(pp.getDirection());
+                                                pp_enf.initCoordSystem();
+                                                pp_enf.setStokesVector(*pp.getStokesVector() * exp(-tau_tot));
+                                                scaleAddToDetector(&pp_enf, &detector[d], 0);
+                                            }
+                                        }
+                                    }
+                                }
+                                *pp.getStokesVector() *= (1.0 - exp(-tau_tot));
+                            }
+
+                            // If peel-off is used, add flux to the detector
+                            if(peel_off)
+                            {
+                                // Transport a separate photon to each detector
+                                for(uint d = 0; d < nr_mc_detectors; d++)
+                                {
+                                    // Get index of wavelength in current detector
+                                    uint wID_det =
+                                        detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+
+                                    // Only calculate for detectors with the
+                                    // corresponding wavelengths
+                                    if(wID_det != MAX_UINT)
+                                    {
+                                        // Init photon package
+                                        photon_package pp_surface = photon_package();
+
+                                         // Get direction to the current detector
+                                        Vector3D dir_obs = detector[d].getDirection();
+
+                                        if(CMathFunctions::intersectionLineSphere(
+                                            pp.getPosition(),
+                                            dir_obs,
+                                            Vector3D(0,0,0),
+                                            surface_layer))
+                                            continue;
+
+                                        // Create an escaping photon into the
+                                        // direction of the detector
+                                        surface_local.getEscapePhotonSurface(&pp, detector[d].getEX(), dir_obs, &pp_surface);
+
+                                        // optical depth towards observer
+                                        double tau_obs = getOpticalDepthAlongPath(&pp_surface);
+                                        if(tau_obs < 0.0)
+                                        {
+                                            #pragma omp atomic update
+                                            escape_photon_kill_counter++;
+                                            continue;
+                                        }
+
+                                        // Reduce the Stokes vector by the optical depth
+                                        *pp_surface.getStokesVector() *= exp(-tau_obs);
+
+                                        // Convert the flux into Jy and consider
+                                        // the distance to the observer
+                                        CMathFunctions::lum2Jy(
+                                            pp_surface.getStokesVector(),
+                                            pp.getWavelength(),
+                                            detector[d].getDistance());
+
+                                        // Consider foreground extinction
+                                        *pp_surface.getStokesVector() *=
+                                            dust->getForegroundExtinction(pp.getWavelength());
+
+                                        // If the photon intensity is too low, end
+                                        // photon transfer (for better R and VOV statistics)
+                                        if(pp_surface.getStokesVector()->I() < 1e-200)
+                                            continue;
+
+                                        // Add the photon package to the detector
+                                        detector[d].addToMonteCarloDetector(
+                                            pp_surface, wID_det, SCATTERED_DUST);
+                                    }
+                                }
+                            }
+
+                            if(!(surface_local.surfaceInteraction(&pp, &rand_gen)))
+                            {
+                                do_surface_interaction = false;
+                                break;
+                            }
+                        }
+                        // Save position of last interaction to know to which pixel
+                        // the photon belongs, if it is not scattered on its further
+                        // path through the model
+                        pp.updateBackupPosition();
+                    }// end surface interaction
+
+                    // If the photon package is below the inner boundary, kill the photon package
+                    if(pp.getPosition().length() < surface_layer)
+                    {
+                        pp.getStokesVector()->clear();
+                        #pragma omp atomic update
+                        kill_counter++;
+                        break;
+                    }
+
+                    // Save photon position to adjust it if necessary
+                    old_pos = pp.getPosition();
+                }// end transfer photon through grid
+
+                // If peel-off is not used, use classic Monte-Carlo method
+                // Now, the photon has left the model space
+                if(!peel_off && pp.getStokesVector()->I() > 1e-200 && interactions <= MAX_INTERACTION_DUST_MC)
+                {
+                    // Move photon back to the point of last interaction
+                    pp.resetPositionToBackupPos();
+
+                    // Transport photon to observer for each detector
+                    for(uint d = 0; d < nr_mc_detectors; d++)
+                    {
+                        // Get index of wavelength in current detector
+                        uint wID_det = detector[d].getDetectorWavelengthID(pp.getWavelength());
+
+                        // Only calculate for detectors with the corresponding
+                        // wavelengths
+                        if(wID_det != MAX_UINT)
+                        {
+                            if(CMathFunctions::intersectionLineSphere(
+                                pp.getPosition(),
+                                pp.getDirection(),
+                                Vector3D(0,0,0),
+                                surface_layer))
+                                continue;
+
+                            // Check photon direction to observer for each detector
+                            if(photonInDetectorDir(&pp, &detector[d]))
+                                scaleAddToDetector(&pp, &detector[d], interactions);
+                        }
+                    }
+                }
+
+                if(interactions == 0)
+                {
+                    #pragma omp atomic update
+                    no_interactions++;
+                }
+
+                if(interactions > max_interactions)
+                    max_interactions = interactions;
+
+                #pragma omp atomic update
+                mean_interactions += interactions;
+                #pragma omp atomic update
+                mean_surface_interactions += surface_interactions;
+
+            }// end of photon loop
+            }// end of parallel block
+
+            // If peel-off is used, add direct source emission to each detector
+            if(peel_off && tm_source->getID() == SRC_DUST)
+            {
+                #pragma omp for schedule(dynamic)
+                for(ulong i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
+                {
+                    // Transport photon to observer for each detector
+                    for(uint d = 0; d < nr_mc_detectors; d++)
+                    {
+                        // Get index of wavelength in current detector
+                        uint wID_det = detector[d].getDetectorWavelengthID(dust->getWavelength(wID));
+
+                        // Only calculate for detectors with the corresponding wavelengths
+                        if(wID_det != MAX_UINT)
+                        {
+                            // Create temporary photon package
+                            photon_package pp_direct = photon_package();
+
+                            // Set current wavelength to temporary photon package
+                            pp_direct.setWavelength(dust->getWavelength(wID), wID);
+
+                            // Get direction to the current detector
+                            Vector3D dir_obs = detector[d].getDirection();
+
+                            // Launch a new photon package from the source
+                            tm_source->createDirectRay(&pp_direct, &rand_gen, dir_obs, i_cell);
+
+                            // Position the photon inside the grid
+                            if(!grid->positionPhotonInGrid(&pp_direct))
+                                if(!grid->findStartingPoint(&pp_direct))
+                                    continue;
+                            
+                            if(CMathFunctions::intersectionLineSphere(
+                                pp_direct.getPosition(),
+                                dir_obs,
+                                Vector3D(0,0,0),
+                                surface_layer))
+                                continue;
+
+                            // Rotate photon package into the coordinate space of the detector
+                            double rot_angle_phot_obs = CMathFunctions::getRotationAngleObserver(
+                                detector[d].getEX(), pp_direct.getEX(), -1*pp_direct.getEY());
+                            pp_direct.getStokesVector()->rot(rot_angle_phot_obs);
+
+                            // The scattering part is based on O. Fischer (1993)
+                            // But on our detectors, U is defined the other way round
+                            pp_direct.getStokesVector()->multU(-1);
+
+                            // optical depth towards observer
+                            double tau_obs = getOpticalDepthAlongPath(&pp_direct);
+                            if(tau_obs < 0.0)
+                                continue;
+
+                            // Reduce the Stokes vector by the optical depth
+                            *pp_direct.getStokesVector() *= exp(-tau_obs);
+
+                            // Convert the flux into Jy and consider the distance to the
+                            // observer
+                            CMathFunctions::lum2Jy(
+                                pp_direct.getStokesVector(),
+                                pp_direct.getWavelength(),
+                                detector[d].getDistance());
+
+                            // Consider foreground extinction
+                            *pp_direct.getStokesVector() *=
+                                dust->getForegroundExtinction(pp_direct.getWavelength());
+
+                            // Add the photon package to the detector
+                            detector[d].addToMonteCarloDetector(pp_direct, wID_det, DIRECT_STAR);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                show_direct_source_warning = true;
+            }
+        }// end of wavelength loop
+    }// end of source loop
+
+    // Write results either as text or fits file
+    for(uint d = 0; d < nr_mc_detectors; d++)
+    {
+        if(!detector[d].writeMap(d, RESULTS_MC))
+            return false;
+        if(!detector[d].writeMapStats(d))
+            return false;
+        if(!detector[d].writeSed(d, RESULTS_MC))
+            return false;
+        if(!detector[d].writeSedStats(d))
+            return false;
+    }
+
+    mean_photon_weight /= (float(max_source) * float(nr_of_wavelength) * float(nr_of_photons));
+    mean_interactions /= (float(max_source) * float(nr_of_wavelength) * float(nr_of_photons));
+    mean_surface_interactions /= (float(max_source) * float(nr_of_wavelength) * float(nr_of_photons));
+
+    if(mrw_step)
+        cout << "- MRW steps                           : " << mrw_counter << endl;
+
+    if(show_direct_source_warning)
+        cout << "\nWARNING: Planet MC simulations with peel-off do not include direct radiation of stellar sources." << endl;
+
+    // Show total weight factor for biased emission
+    if(mean_photon_weight > 0.0)
+        cout << "- Mean weighting factor for biased emission: " << mean_photon_weight << endl;
+    // Show amount of killed photons
+    cout << "- Photons killed: " << kill_counter << endl;
+    // Show amount of photons without any interaction
+    cout << "- Photons without interactions: " << no_interactions << endl;
+
+    if(escape_photon_kill_counter > 0)
+        cout << " WARNING: " << escape_photon_kill_counter << " peel-off Photon(s) could not be added to the detector" << endl;
+
+    // Show the mean of interactions and the amount of interactions with the surface
+    cout << "- Max interactions: " << max_interactions << endl;
+    cout << "- Mean interactions: " << mean_interactions << ", mean surface interactions: " << mean_surface_interactions << endl;
     cout << "- Calculation of MC polarization maps (photons: " << float(nr_of_photons) << "): done" << endl;
 
     return true;
@@ -1934,6 +2698,7 @@ double CRadiativeTransfer::getOpticalDepthAlongPath(photon_package * pp)
     pp_new.setDirection(pp->getDirection());
     pp_new.setDirectionID(pp->getDirectionID());
 
+    ullong loop_counter = 0;
     double len, dens, Cext, tau = 0.0;
     while(grid->next(&pp_new))
     {
@@ -1945,6 +2710,11 @@ double CRadiativeTransfer::getOpticalDepthAlongPath(photon_package * pp)
         Cext = dust->getCextMean(grid, pp_new);
         // Add the optical depth of the current path to the total optical depth
         tau += Cext * len * dens;
+
+        loop_counter++;
+        if(loop_counter > 1e3 * grid->getMaxDataCells()) // arbitrary limit
+            return -1.0;
+
     }
     return tau;
 }

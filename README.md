@@ -17,6 +17,8 @@ is a 3D Monte Carlo radiative transfer code that
 
 - makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
 
+This branch extends POLARIS and adds the ability to calculate the reflected stellar radiation including polarization of planets arising from scattering in the atmosphere , surface or the planetary environment (e.g. circumplanetary rings).
+
 
 ## Requirements
 
@@ -80,12 +82,17 @@ If line radiative transfer and/or Zeeman simulations are used, please cite [Brau
     ├── ci                                       # CI test script (only for testing purposes)
     ├── ext                                      # Catch2 test framework for unit-tests (only for testing purposes)
     ├── input                                    # Input data used by POLARIS
-    │   ├── dust                                 # Dust database files in the default POLARIS format
-    │   ├── gas                                  # Gas database files in the LAMDA format (including Zeeman files)
+    │   ├── cross_sections                       # Cross section files in the default POLARIS format
+    │   ├── gas_lines                            # Gas line list files
+    │   ├── refractive_indices                   # Refractive index files in the default POLARIS format
     │   └── interstellar_radiation_field.dat     # Spectral energy distribution of the ISRF
     ├── lib                                      # CCfits and cfitsio libraries
     ├── projects                                 # Output directory to store simulation results and examples
+    │   ├── cloudy                               # Exemplary cloudy planet model
     │   ├── disk                                 # Exemplary disk model
+    │   ├── methane                              # Exemplary cloud-free planet model with methane absorption
+    │   ├── rayleigh                             # Exemplary cloud-free planet model, scattering only
+    │   ├── ringed                               # Exemplary cloud-free planet model with circumplanetary ring
     │   ├── test                                 # Models for testing purposes
     │   └── CommandList.cmd                      # List of available POLARIS commands
     ├── src                                      # Source files of the POLARIS code
@@ -101,7 +108,6 @@ If line radiative transfer and/or Zeeman simulations are used, please cite [Brau
     ├── README.md
     ├── manual.pdf
     └── quickstart.pdf
-
 
 
 ## Copyright

@@ -22,6 +22,8 @@ class photon_package
         trans_frequency = 0;
         dirID = MAX_UINT;
 
+        photon_weight = 1.0;
+
         // Set total number of wavelength saved in photon package (usually 1)
         nr_of_spectral_bins = nr_bins;
 
@@ -49,6 +51,8 @@ class photon_package
         tmp_path = 0;
         i_spectral = 0;
         dirID = MAX_UINT;
+
+        photon_weight = 1.0;
 
         // Set number of velocity channels saved in photon package
         nr_of_spectral_bins = nr_bins;
@@ -442,6 +446,33 @@ class photon_package
         return photonID;
     }
 
+    void rotateToVector(Vector3D v)
+    {
+        StokesVector stokes = *getStokesVector();
+
+        // Calculate the theta and phi angle to the vector
+        double phi_photon_to_v = atan3(getEY() * v, -1*getEX() * v);
+        double theta_photon_to_v = acos(getEZ() * v);
+
+        // Update the coordinate space of the photon
+        updateCoordSystem(phi_photon_to_v, theta_photon_to_v);
+
+        // Rotate Stokes vector to new photon direction
+        stokes.rot(phi_photon_to_v);
+
+        setStokesVector(stokes);
+    }
+
+    double getPhotonWeight() const
+    {
+        return photon_weight;
+    }
+
+    void setPhotonWeight(double value)
+    {
+        photon_weight = value;
+    }
+
   private:
     Vector3D pos;
     Vector3D backup_pos;
@@ -456,6 +487,8 @@ class photon_package
     uint dirID;
     uint i_spectral;
     uint nr_of_spectral_bins;
+
+    double photon_weight;
 
     double tmp_path;
     double trans_frequency;

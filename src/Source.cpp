@@ -282,6 +282,576 @@ void CSourceStar::createDirectRay(photon_package * pp, CRandomGenerator * rand_g
     pp->setStokesVector(tmp_stokes_vector);
 }
 
+bool CSourcePlaneStar::initSource(uint id, uint max, bool use_energy_density)
+{
+    // Initial output
+    cout << CLR_LINE << flush;
+    cout << "-> Initiating source star         \r" << flush;
+
+    // Init variables
+    dlist star_emi;
+    double tmp_luminosity, diff_luminosity, max_flux = 0;
+    ullong kill_counter = 0;
+
+    for(uint w = 0; w < getNrOfWavelength(); w++)
+    {
+        double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
+        double sp_energy;
+
+        if(is_ext)
+            sp_energy = sp_ext.getValue(wavelength_list[w]);
+        else
+            sp_energy =
+                4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
+        star_emi.push_back(sp_energy);
+    }
+
+    tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+    L = tmp_luminosity;
+
+    if(use_energy_density)
+    {
+        // For using energy density, only the photon number is required
+        cout << "- Source (" << id + 1 << " of " << max << ") PLANE STAR: " << float(L / L_sun)
+             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+    }
+    else
+    {
+        cout << "- Source (" << id + 1 << " of " << max << ") PLANE STAR: " << float(L / L_sun)
+             << " [L_sun], photons: " << nr_of_photons << endl;
+
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            if(wavelength_list[w] * star_emi[w] > max_flux)
+                max_flux = wavelength_list[w] * star_emi[w];
+        }
+
+        max_flux *= ACC_SELECT_LEVEL;
+
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+            if(wavelength_list[w] * star_emi[w] < max_flux)
+            {
+                kill_counter++;
+                star_emi[w] = 0;
+            }
+
+        diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        diff_luminosity -= tmp_luminosity;
+
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of " << getNrOfWavelength()
+             << ", neglected energy: " << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
+
+        double fr;
+        lam_pf.resize(getNrOfWavelength());
+        for(uint l = 0; l < getNrOfWavelength(); l++)
+        {
+            fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
+            lam_pf.setValue(l, fr, double(l));
+        }
+    }
+
+    return true;
+}
+
+bool CSourcePlaneStar::setParameterFromFile(parameters & param, uint p)
+{
+    dlist values = param.getPlaneSources();
+    string filename = param.getPlaneSourceString(p / NR_OF_PLANE_SOURCES);
+
+    ifstream reader(filename.c_str());
+    int line_counter = 0;
+    string line;
+    CCommandParser ps;
+
+    double w_min = 1e300;
+    double w_max = 0;
+
+    is_ext = true;
+
+    pos = Vector3D(values[p], values[p + 1], values[p + 2]);
+    R = values[p + 3];
+    T = values[p + 4];
+
+    nr_of_photons = ullong(values[p + NR_OF_PLANE_SOURCES - 1]);
+    cout << CLR_LINE << flush;
+    cout << "-> Loading spectrum for plane star...           \r" << flush;
+
+    if(reader.fail())
+    {
+        cout << "\nERROR: Cannot open spectrum file: \n" << filename << "  \n" << endl;
+        return false;
+    }
+
+    while(getline(reader, line))
+    {
+        ps.formatLine(line);
+
+        if(line.size() == 0)
+            continue;
+
+        dlist value = ps.parseValues(line);
+
+        if(value.size() != 4 && value.size() != 2)
+        {
+            cout << "\nERROR: In spectrum file:\n" << filename << endl;
+            cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
+            return false;
+        }
+
+        line_counter++;
+        sp_ext.setDynValue(value[0], value[1]);
+
+        if(value.size() == 4)
+        {
+            sp_ext_q.setDynValue(value[0], value[2]);
+            sp_ext_u.setDynValue(value[0], value[3]);
+        }
+        else
+        {
+            sp_ext_q.setDynValue(value[0], 0);
+            sp_ext_u.setDynValue(value[0], 0);
+        }
+
+        if(w_min > value[0])
+            w_min = value[0];
+
+        if(w_max < value[0])
+            w_max = value[0];
+    }
+
+    sp_ext.createDynSpline();
+    sp_ext_q.createDynSpline();
+    sp_ext_u.createDynSpline();
+    reader.close();
+
+    return true;
+}
+
+void CSourcePlaneStar::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
+{
+    // Init variables
+    StokesVector tmp_stokes_vector;
+    double energy;
+    uint wID;
+    double upper_boundary = grid->getRmax() * (1.0 + MIN_LEN_STEP*EPS_DOUBLE);
+
+    pp->setPosition(Vector3D(0, 0, 0));
+    pp->setDirection(pos.normalized());
+    pp->initCoordSystem();
+
+    // random direction
+    double phi = rand_gen->getRND() * PIx2;
+    double cos_2 = 1.0 - 2.0 * rand_gen->getRND();
+    double theta = 0.5 * acos( cos_2 );
+    // alternative method
+    // double theta = acos(sqrt(rand_gen->getRND()));
+
+    pp->updateCoordSystem(phi, theta);
+
+    // place photon on top of planetary atmosphere
+    pp->adjustPosition(pp->getPosition(), upper_boundary);
+
+    // set direction parallel to star-planet vector
+    pp->setDirection(-1*pos.normalized());
+
+    // init coordinate system again
+    pp->initCoordSystem();
+
+    if(pp->getDustWavelengthID() != MAX_UINT)
+    {
+        wID = pp->getDustWavelengthID();
+        if(is_ext)
+        {
+            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+        {
+            double pl = CMathFunctions::planck(wavelength_list[wID], T);
+            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+        }
+    }
+    else
+    {
+        energy = L / nr_of_photons;
+        wID = lam_pf.getXIndex(rand_gen->getRND());
+
+        if(is_ext)
+        {
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+
+        // Mol3D uses the upper value of the wavelength interval,
+        // used for the selection of the emitting wavelengths from source!
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
+    }
+
+    double weight = 0.25 * upper_boundary * upper_boundary / pos.sq_length();
+    pp->setStokesVector(tmp_stokes_vector * weight);
+
+    // Move photon towards upper boundary
+    // This avoids positioning outside model space when calling findStartingPoint() in RadiativeTransfer.cpp
+    // due to numerical precision errors
+    double length = CMathFunctions::getIntersectionLineSphereLength(
+        pp->getPosition(), pp->getDirection(), Vector3D(0, 0, 0), upper_boundary, false);
+    pp->adjustPosition(pp->getPosition(), length);
+}
+
+bool CSourceExtendedStar::initSource(uint id, uint max, bool use_energy_density)
+{
+    // Initial output
+    cout << CLR_LINE << flush;
+    cout << "-> Initiating source star         \r" << flush;
+
+    // Init variables
+    dlist star_emi;
+    double tmp_luminosity, diff_luminosity, max_flux = 0;
+    ullong kill_counter = 0;
+
+    for(uint w = 0; w < getNrOfWavelength(); w++)
+    {
+        double pl = CMathFunctions::planck(wavelength_list[w], T); //[W m^-2 m^-1 sr^-1]
+        double sp_energy;
+
+        if(is_ext)
+            sp_energy = sp_ext.getValue(wavelength_list[w]);
+        else
+            sp_energy =
+                4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
+        star_emi.push_back(sp_energy);
+    }
+
+    tmp_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+    L = tmp_luminosity;
+
+    if(use_energy_density)
+    {
+        // For using energy density, only the photon number is required
+        cout << "- Source (" << id + 1 << " of " << max << ") EXTENDED STAR: " << float(L / L_sun)
+             << " [L_sun], photons per wavelength: " << nr_of_photons << "      " << endl;
+    }
+    else
+    {
+        cout << "- Source (" << id + 1 << " of " << max << ") EXTENDED STAR: " << float(L / L_sun)
+             << " [L_sun], photons: " << nr_of_photons << endl;
+
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+        {
+            if(wavelength_list[w] * star_emi[w] > max_flux)
+                max_flux = wavelength_list[w] * star_emi[w];
+        }
+
+        max_flux *= ACC_SELECT_LEVEL;
+
+        for(uint w = 0; w < getNrOfWavelength(); w++)
+            if(wavelength_list[w] * star_emi[w] < max_flux)
+            {
+                kill_counter++;
+                star_emi[w] = 0;
+            }
+
+        diff_luminosity = CMathFunctions::integ(wavelength_list, star_emi, 0, getNrOfWavelength() - 1);
+        diff_luminosity -= tmp_luminosity;
+
+        cout << "    wavelengths: " << getNrOfWavelength() - kill_counter << " of " << getNrOfWavelength()
+             << ", neglected energy: " << float(100.0 * diff_luminosity / tmp_luminosity) << " [%]" << endl;
+
+        double fr;
+        lam_pf.resize(getNrOfWavelength());
+        for(uint l = 0; l < getNrOfWavelength(); l++)
+        {
+            fr = CMathFunctions::integ(wavelength_list, star_emi, 0, l) / tmp_luminosity;
+            lam_pf.setValue(l, fr, double(l));
+        }
+    }
+
+    return true;
+}
+
+bool CSourceExtendedStar::setParameterFromFile(parameters & param, uint p)
+{
+    dlist values = param.getExtendedSources();
+    string filename = param.getExtendedSourceString(p / NR_OF_EXTENDED_SOURCES);
+
+    ifstream reader(filename.c_str());
+    int line_counter = 0;
+    string line;
+    CCommandParser ps;
+
+    double w_min = 1e300;
+    double w_max = 0;
+
+    is_ext = true;
+
+    pos = Vector3D(values[p], values[p + 1], values[p + 2]);
+    R = values[p + 3];
+    T = values[p + 4];
+
+    biased_emission = false;
+
+    nr_of_photons = (ullong)values[p + NR_OF_EXTENDED_SOURCES - 1];
+
+    cout << CLR_LINE << flush;
+    cout << "-> Loading spectrum for source star...           \r" << flush;
+
+    if(reader.fail())
+    {
+        cout << "\nERROR: Cannot open spectrum file: \n" << filename << "  \n" << endl;
+        return false;
+    }
+
+    while(getline(reader, line))
+    {
+        ps.formatLine(line);
+
+        if(line.size() == 0)
+            continue;
+
+        dlist value = ps.parseValues(line);
+
+        if(value.size() != 4 && value.size() != 2)
+        {
+            cout << "\nERROR: In spectrum file:\n" << filename << endl;
+            cout << "Wrong amount of values in line " << line_counter + 1 << "!" << endl;
+            return false;
+        }
+
+        line_counter++;
+        sp_ext.setDynValue(value[0], value[1]);
+
+        if(value.size() == 4)
+        {
+            sp_ext_q.setDynValue(value[0], value[2]);
+            sp_ext_u.setDynValue(value[0], value[3]);
+        }
+        else
+        {
+            sp_ext_q.setDynValue(value[0], 0);
+            sp_ext_u.setDynValue(value[0], 0);
+        }
+
+        if(w_min > value[0])
+            w_min = value[0];
+
+        if(w_max < value[0])
+            w_max = value[0];
+    }
+
+    sp_ext.createDynSpline();
+    sp_ext_q.createDynSpline();
+    sp_ext_u.createDynSpline();
+    reader.close();
+
+    return true;
+}
+
+void CSourceExtendedStar::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
+{
+    // Init variables
+    StokesVector tmp_stokes_vector;
+    double energy;
+    uint wID;
+
+    pp->setPosition(pos);
+
+    // random position on stellar photosphere
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
+    pp->adjustPosition(pos, R * R_sun);
+    pp->initCoordSystem();
+
+    // random direction
+    double phi = rand_gen->getRND() * PIx2;
+    double cos_2 = 1.0 - 2.0 * rand_gen->getRND();
+    double theta = 0.5 * acos( cos_2 );
+    // alternative method
+    // double theta = acos(sqrt(rand_gen->getRND()));
+
+    pp->updateCoordSystem(phi, theta);
+
+    if(pp->getDustWavelengthID() != MAX_UINT)
+    {
+        wID = pp->getDustWavelengthID();
+        if(is_ext)
+        {
+            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+        {
+            double pl = CMathFunctions::planck(wavelength_list[wID], T);
+            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+        }
+    }
+    else
+    {
+        energy = L / nr_of_photons;
+        wID = lam_pf.getXIndex(rand_gen->getRND());
+
+        if(is_ext)
+        {
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+
+        // Mol3D uses the upper value of the wavelength interval,
+        // used for the selection of the emitting wavelengths from source!
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
+    }
+
+    pp->setStokesVector(tmp_stokes_vector);
+}
+
+void CSourceExtendedStar::createNextBiasedRay(photon_package * pp, CRandomGenerator * rand_gen)
+{
+    // Init variables
+    StokesVector tmp_stokes_vector;
+    double energy;
+    uint wID;
+    double cos_th, sin_th, theta, phi, cos_th_min, cos_th_max, pp_weight = 1;
+    double distance_to_star = pos.length();
+    double upper_boundary = grid->getRmax() * (1.0 + MIN_LEN_STEP*EPS_DOUBLE);
+
+    cos_th_max = (R * R_sun - upper_boundary) / distance_to_star;
+
+    // first, calculate random position on the stellar photosphere
+    // position photon in stellar center with direction to the planet
+    pp->setPosition(pos);
+    pp->setDirection(-pos.normalized());
+    pp->initCoordSystem();
+
+    // rotate direction to get random position on the stellar photosphere
+    phi = PIx2 * rand_gen->getRND();
+    cos_th = 1.0 - rand_gen->getRND() * (1.0 - cos_th_max);
+    theta = acos(cos_th);
+
+    pp->updateCoordSystem(phi, theta);
+    pp->adjustPosition(pp->getPosition(), R * R_sun);
+
+    pp_weight *= 0.5 * (1.0 - cos_th_max);
+
+    Vector3D pp_pos = pp->getPosition();
+    Vector3D pp_dir = pp->getDirection();
+    // Determination of the angle (phi_to_center, theta_to_center) towards the center
+    // of the coordinate space where the planet is located
+    Vector3D dir_center = -pp_pos.normalized();
+    double phi_to_center = atan3(pp->getEY() * dir_center, -1*pp->getEX() * dir_center);
+    double theta_to_center = acos(pp_dir * dir_center);
+
+    // Determination of theta2
+    // Calculate theta2_min and theta2_max so the photon hits the planet
+    double delta_theta = asin( upper_boundary / pp_pos.length() );
+    cos_th_min = cos(theta_to_center - delta_theta);
+    cos_th_max = cos(theta_to_center + delta_theta);
+
+    if(cos_th_max < 0.0)
+        cos_th_max = 0.0;
+
+    cos_th = cos_th_min - rand_gen->getRND() * (cos_th_min - cos_th_max);
+    sin_th = sqrt(1.0 - cos_th * cos_th);
+    theta = acos(cos_th);
+
+    // Determination of phi2
+    // Calculate phi2_min and phi2_max so the photon hits the planet
+    // set the origin of a cartesian coordinate space into the photons position with z-axis parallel to the surface normal
+    // the allowed phi angles are the intersection of the emission cone with angle theta2 and the planetary sphere
+    double offset_x = sin(theta_to_center);
+    double offset_z = cos(theta_to_center);
+    double surface_line_cone = cos(theta_to_center - theta);
+    double radius_cone = surface_line_cone * sin_th;
+    double height_cone = surface_line_cone * cos_th;
+    double upper_boundary_norm = upper_boundary / pp_pos.length();
+    double radius_pl_sq = (upper_boundary_norm * upper_boundary_norm) - (height_cone - offset_z) * (height_cone - offset_z);
+
+    if(radius_pl_sq < 0.0 || (radius_cone - offset_x) * (radius_cone - offset_x) > radius_pl_sq)
+    {
+        cout << "\nERROR: No photon position and direction for biased emission found!" << endl;
+        tmp_stokes_vector = StokesVector(0, 0, 0, 0);
+        pp->setStokesVector(tmp_stokes_vector);
+        return;
+    }
+
+    double delta_phi;
+    if((radius_cone + offset_x) * (radius_cone + offset_x) > radius_pl_sq)
+    {
+        double cos_delta_phi = ((radius_cone - offset_x) * (radius_cone - offset_x) - radius_pl_sq) /
+                                (2.0 * radius_cone * offset_x) + 1.0;
+        delta_phi = acos( cos_delta_phi );
+    }
+    else
+    {
+        delta_phi = PI;
+    }
+
+    double phi_min = phi_to_center - delta_phi;
+    double phi_max = phi_to_center + delta_phi;
+    phi = rand_gen->getRND() * (phi_max - phi_min) + phi_min;
+
+    // Update photon direction
+    pp->updateCoordSystem(phi, theta);
+
+    pp_weight *= 2.0 * cos_th * (cos_th_min - cos_th_max) * delta_phi / PI;
+
+    if(pp->getDustWavelengthID() != MAX_UINT)
+    {
+        wID = pp->getDustWavelengthID();
+        if(is_ext)
+        {
+            energy = sp_ext.getValue(wavelength_list[wID]) / nr_of_photons;
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+        {
+            double pl = CMathFunctions::planck(wavelength_list[wID], T);
+            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+        }
+    }
+    else
+    {
+        energy = L / nr_of_photons;
+        wID = lam_pf.getXIndex(rand_gen->getRND());
+
+        if(is_ext)
+        {
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+
+        // Mol3D uses the upper value of the wavelength interval,
+        // used for the selection of the emitting wavelengths from source!
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
+    }
+
+    pp->setPhotonWeight(pp_weight);
+    tmp_stokes_vector *= pp_weight;
+    pp->setStokesVector(tmp_stokes_vector);
+
+    // Move photon towards upper boundary
+    // This avoids positioning outside model space when calling findStartingPoint() in RadiativeTransfer.cpp
+    // due to numerical precision errors
+    double length = CMathFunctions::getIntersectionLineSphereLength(
+        pp_pos, pp->getDirection(), Vector3D(0, 0, 0), upper_boundary, false);
+    pp->adjustPosition(pp_pos, length);
+}
+
 bool CSourceAGN::initSource(uint id, uint max, bool use_energy_density)
 {
     // Initial output
@@ -1470,6 +2040,72 @@ void CSourceDust::createNextRay(photon_package * pp, CRandomGenerator * rand_gen
     pp->initCoordSystem();
 }
 
+void CSourceDust::createNextRay(photon_package * pp, CRandomGenerator * rand_gen, double epsilon)
+{
+    // Set wavelength of photon package
+    uint w = pp->getDustWavelengthID();
+
+    // Get index of current cell
+    ulong i_cell = 0;
+    #if (DUST_EMI_PROB)
+        // Get random number
+        double rnd = rand_gen->getRND();
+
+        i_cell = cell_prob[w].getIndex(rnd);
+    #else
+        i_cell = ulong(pp->getPhotonID() % grid->getMaxDataCells());
+    #endif
+
+    // Put photon package into current cell
+    pp->setPositionCell(grid->getCellFromIndex(i_cell));
+
+    // Set random position in cell
+    grid->setRndPositionInCell(pp, rand_gen);
+
+    double weight = 1.0;
+    if(epsilon >= 0.0 && epsilon < 1.0)
+    {
+        Vector3D surface_normal = pp->getPosition();
+        surface_normal.normalize();
+
+        pp->setDirection(surface_normal);
+        // Init coordinate System for polarization
+        pp->initCoordSystem();
+
+        // get biased direction
+        // epsilon -> 1: increase number of photons emitted radially upward
+        // theta = 0: radially downward, theta = pi: radially upward
+        // Note: Stokes vector has to be weighted with (1.0 + epsilon * cos(theta)) * 0.5 * PI * sin(theta) / sqrt(1.0 - epsilon * epsilon)
+        // see Gordon 1987, Applied Optics 26, 4133
+
+        double y = (1.0 + epsilon) * tan(PI2 * rand_gen->getRND()) / sqrt(1.0 - epsilon * epsilon);
+        double cos_theta = (1.0 - y * y) / (1.0 + y * y);
+        double phi = PIx2 * rand_gen->getRND();
+        
+        pp->updateCoordSystem(phi, acos(cos_theta));
+
+        double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+        weight = (1.0 + epsilon * cos_theta) * 0.5 * PI * sin_theta / sqrt(1.0 - epsilon * epsilon);
+    }
+    else
+    {
+        pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
+        // Init coordinate System for polarization
+        pp->initCoordSystem();
+    }
+
+    // Set Stokes vector of photon package
+    double energy = 0;
+    #if (DUST_EMI_PROB)
+        energy = total_energy[w] / double(nr_of_photons);
+    #else
+        energy = dust->getTotalCellEmission(grid, *pp) / double(nr_of_photons_per_cell);
+    #endif
+
+    // Set Stokes Vector
+    pp->setStokesVector(StokesVector(energy * weight, 0, 0, 0));
+}
+
 void CSourceDust::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     // Set wavelength of photon package
@@ -1488,7 +2124,42 @@ void CSourceDust::createDirectRay(photon_package * pp, CRandomGenerator * rand_g
     grid->setRndPositionInCell(pp, rand_gen);
 
     // Set Stokes vector of photon package
-    double energy = total_energy[w] / PIx4;
+    double energy = 0.0;
+    #if (DUST_EMI_PROB)
+        energy = total_energy[w] / PIx4;
+    #else
+        energy = dust->getTotalCellEmission(grid, *pp) / PIx4;
+    #endif
+
+    // Set Stokes Vector
+    pp->setStokesVector(StokesVector(energy, 0, 0, 0));
+
+    // Set direction of the photon package to the observer
+    if(dir_obs.length() > 0)
+    {
+        pp->setDirection(dir_obs);
+        pp->initCoordSystem();
+    }
+}
+
+void CSourceDust::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs, ulong i_cell)
+{
+    // Set wavelength of photon package
+    uint w = pp->getDustWavelengthID();
+
+    // Put photon package into current cell
+    pp->setPositionCell(grid->getCellFromIndex(i_cell));
+
+    // Set random position in cell
+    grid->setRndPositionInCell(pp, rand_gen);
+
+    // Set Stokes vector of photon package
+    double energy = 0.0;
+    #if (DUST_EMI_PROB)
+        energy = total_energy[w] / PIx4;
+    #else
+        energy = dust->getTotalCellEmission(grid, *pp) / PIx4;
+    #endif
 
     // Set Stokes Vector
     pp->setStokesVector(StokesVector(energy, 0, 0, 0));

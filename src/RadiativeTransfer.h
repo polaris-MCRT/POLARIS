@@ -14,6 +14,7 @@
 #include "Parameters.h"
 #include "Stokes.h"
 #include "Vector.h"
+#include "Surface.h"
 
 class CRadiativeTransfer
 {
@@ -39,6 +40,8 @@ class CRadiativeTransfer
         detector = 0;
         nr_mc_detectors = 0;
         nr_ray_detectors = 0;
+
+        surface = 0;
 
         RK_c = 0;
         RK_b1 = 0;
@@ -83,6 +86,7 @@ class CRadiativeTransfer
     bool initiateProbing(parameters & param);
     void initiateRadFieldMC(parameters & param);
     void initiateDustMC(parameters & param);
+    void initiatePlanetMC(parameters & param);
 
     void initiateRungeKuttaFehlberg()
     {
@@ -167,6 +171,9 @@ class CRadiativeTransfer
 
     // Dust scattered light
     bool calcPolMapsViaMC();
+
+    // Planet scattered light
+    bool calcPlanetPolMapsViaMC();
 
     // Dust emission
     bool calcPolMapsViaRaytracing(parameters & param);
@@ -338,6 +345,11 @@ class CRadiativeTransfer
         detector = d;
     }
 
+    void setSurface(CSurface * _surface)
+    {
+        surface = _surface;
+    }
+
     double getOpticalDepthAlongPath(photon_package * pp);
 
     bool photonInDetectorDir(photon_package * pp, CDetector * detector);
@@ -419,4 +431,5 @@ class CRadiativeTransfer
     uilist detector_wl_index;
 
     CSynchrotron * synchrotron;
+    CSurface * surface;
 };

@@ -426,6 +426,16 @@ class CGridSpherical : public CGridBasic
         return Rmax;
     }
 
+    double getRmin() const
+    {
+        return Rmin;
+    }
+
+    double getRmax() const
+    {
+        return Rmax;
+    }
+
     bool createArtificialGrid(string path);
 
     bool saveBinaryGridFile(string filename)

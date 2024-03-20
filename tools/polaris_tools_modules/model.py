@@ -4,6 +4,8 @@
 from polaris_tools_modules.math import Math
 from polaris_tools_modules.base import Model
 from polaris_tools_custom.model import *
+from polaris_tools_modules.atmosphere import AtmosphereRoutines
+import numpy as np
 
 
 class ModelChooser:
@@ -29,6 +31,10 @@ class ModelChooser:
         # dict: Dictionary with all usable models
         self.model_dict = {
             'default': Model,
+            'cloudy': Cloudy,
+            'rayleigh': Rayleigh,
+            'ringed': Ringed,
+            'venus': Venus,
             'disk': Disk,
             'sphere': Sphere,
         }
@@ -111,6 +117,367 @@ class ModelChooser:
                     model.cylindrical_parameter['z_max'] = model.parameter['outer_radius']
 
         return model
+
+
+class Rayleigh(Model):
+    def __init__(self):
+        Model.__init__(self)
+        self.ar = AtmosphereRoutines()
+
+        # boundaries of the grid [m]
+        # first value is the inner model radius
+        # last value is the outer model radius
+        self.spherical_parameter['radius_list'] = np.array([7.0e7, 7.01e7])
+
+        # Use spherical coordinate system
+        self.parameter['grid_type'] = 'spherical'
+        # sf_r = 0: user defined radial boundaries
+        self.spherical_parameter['sf_r'] = 0
+
+        # set inner and outer grid radius (bottom and top of atmosphere)
+        self.parameter['inner_radius'] = self.spherical_parameter['radius_list'][0]
+        self.parameter['outer_radius'] = self.spherical_parameter['radius_list'][-1]
+
+        # number of radial grid cells
+        self.spherical_parameter['n_r'] = len(self.spherical_parameter['radius_list']) - 1
+
+        # sf_th = -1: equally distributed theta cells
+        self.spherical_parameter['sf_th'] = -1
+        # number of theta cells
+        self.spherical_parameter['n_th'] = 1
+
+        # sf_ph = -1: equally distributed phi cells
+        self.spherical_parameter['sf_ph'] = -1
+        # number of phi cells
+        self.spherical_parameter['n_ph'] = 1
+
+        self.parameter['optical_depth'] = 1
+
+        self.parameter_list = [
+            'optical_depth', # vertical optical depth of the atmosphere
+        ]
+
+    def update_parameter(self, extra_parameter):
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.parameter_list:
+                print(f'  - Warning: invalid parameter: {param}')
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print(f"  - Info: {param} updated to {self.parameter[param]}")
+
+    def dust_density_distribution(self):
+        # density: molecular hydrogen (input/cross_sections/molecular_hydrogen.dat)
+        # calculate the number density based on a given optical depth, radial boundaries, and cross section
+        density = self.ar.getNumberDensityFromOpticalDepth(
+                self.parameter['optical_depth'],
+                self.spherical_parameter['radius_list'][1] - self.spherical_parameter['radius_list'][0],
+                self.ar.getRayleighCrossSection(5.5e-7, '1H2'))
+
+        return density
+
+    def dust_temperature(self):
+        # return constant temperature
+        return 300.0
+
+
+class Cloudy(Model):
+    def __init__(self):
+        Model.__init__(self)
+        self.ar = AtmosphereRoutines()
+
+        self.planetary_radius = 7.0e7 # [m]
+        self.gravity = 25 # [m/s^2]
+
+        # pressure profile of the atmosphere (bottom to top)
+        self.pressure_profile = np.geomspace(1e+1, 1e-5, 7) * 1e5  # bar -> Pa
+
+        # constant temperature_profile [K]
+        self.temperature_profile = 300 * np.ones_like(self.pressure_profile)
+
+        # boundaries of the grid [m]
+        # first value is the inner model radius
+        # last value is the outer model radius
+        self.spherical_parameter['radius_list'] = self.ar.getAltitudeFromPressure(
+            self.pressure_profile,
+            self.temperature_profile,
+            self.ar.getMolarMass('1H2'),
+            self.gravity)
+        self.spherical_parameter['radius_list'] += self.planetary_radius
+
+        # Use spherical coordinate system
+        self.parameter['grid_type'] = 'spherical'
+        # sf_r = 0: user defined radial boundaries
+        self.spherical_parameter['sf_r'] = 0
+
+        # set inner and outer grid radius (bottom and top of atmosphere)
+        self.parameter['inner_radius'] = self.spherical_parameter['radius_list'][0]
+        self.parameter['outer_radius'] = self.spherical_parameter['radius_list'][-1]
+
+        # number of radial grid cells
+        self.spherical_parameter['n_r'] = len(self.spherical_parameter['radius_list']) - 1
+
+        # sf_th = -1: equally distributed theta cells
+        self.spherical_parameter['sf_th'] = -1
+        # number of theta cells
+        self.spherical_parameter['n_th'] = 1
+
+        # sf_ph = -1: equally distributed phi cells
+        self.spherical_parameter['sf_ph'] = -1
+        # number of phi cells
+        self.spherical_parameter['n_ph'] = 1
+
+        self.parameter['optical_depth'] = 1
+
+        self.parameter_list = [
+            'optical_depth', # vertical optical depth of the cloud layer
+        ]
+
+    def update_parameter(self, extra_parameter):
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.parameter_list:
+                print(f'  - Warning: invalid parameter: {param}')
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print(f"  - Info: {param} updated to {self.parameter[param]}")
+
+    def dust_density_distribution(self):
+        density = np.zeros(2, dtype=float)
+        # density[0]: molecular hydrogen (input/cross_sections/molecular_hydrogen.dat)
+        # density[1]: clouds (input/refractive_indices/water_s81.nk)
+
+        pos = np.linalg.norm(self.position)
+        idx = np.searchsorted(self.spherical_parameter['radius_list'], pos)
+
+        # calculate the number density assuming hydrostatic equilibrium and an ideal gas
+        density[0] = self.ar.getNumberDensityFromPressureAltitude(
+            self.pressure_profile[idx-1] - self.pressure_profile[idx],
+            self.spherical_parameter['radius_list'][idx] - self.spherical_parameter['radius_list'][idx-1],
+            self.ar.getMolarMass('1H2'),
+            self.gravity)
+
+        # add water clouds between 1 bar and 0.1 bar
+        c_ext = 2.05786e-11  # precalculated cross section [m^2] using r_eff = 2.0e-06 m, veff = 0.1 (550 nm)
+        if self.spherical_parameter['radius_list'][1] < pos < self.spherical_parameter['radius_list'][2]:
+            density[1] = self.ar.getNumberDensityFromOpticalDepth(
+                self.parameter['optical_depth'],
+                self.spherical_parameter['radius_list'][2] - self.spherical_parameter['radius_list'][1],
+                c_ext)
+
+        return density
+    
+    def dust_temperature(self):
+        # return temperature at self.position
+        pos = np.linalg.norm(self.position)
+        # interpolate temperature profile based on current position
+        return np.interp(pos, self.spherical_parameter['radius_list'], self.temperature_profile)
+
+
+class Ringed(Model):
+    def __init__(self):
+        Model.__init__(self)
+        self.ar = AtmosphereRoutines()
+
+        self.planetary_radius = 7.0e7 # [m]
+        self.ring_inner_radius = 1.2 * self.planetary_radius
+        self.ring_outer_radius = 2.3 * self.planetary_radius
+        self.ring_opening_angle = 0.2 / 3600 # [deg]
+
+        # boundaries of the grid [m]
+        # first value is the inner model radius
+        # last value is the outer model radius
+        self.spherical_parameter['radius_list'] = np.array([self.planetary_radius, 7.01e7, self.ring_inner_radius, self.ring_outer_radius])
+
+        # Use spherical coordinate system
+        self.parameter['grid_type'] = 'spherical'
+        # sf_r = 0: user defined radial boundaries
+        self.spherical_parameter['sf_r'] = 0
+
+        # set inner and outer grid radius (bottom and top of atmosphere)
+        self.parameter['inner_radius'] = self.spherical_parameter['radius_list'][0]
+        self.parameter['outer_radius'] = self.spherical_parameter['radius_list'][-1]
+
+        # number of radial grid cells
+        self.spherical_parameter['n_r'] = len(self.spherical_parameter['radius_list']) - 1
+
+        # sf_th = 0: user defined theta cells
+        self.spherical_parameter['sf_th'] = 0
+        # custom theta cells [rad]
+        self.spherical_parameter['theta_list'] = np.deg2rad( np.array([0, 90 - 0.5*self.ring_opening_angle, 90 + 0.5*self.ring_opening_angle, 180]) )
+        # number of theta cells
+        self.spherical_parameter['n_th'] = len(self.spherical_parameter['theta_list']) - 1
+
+        # sf_ph = -1: equally distributed phi cells
+        self.spherical_parameter['sf_ph'] = -1
+        # number of phi cells
+        self.spherical_parameter['n_ph'] = 1
+
+        self.parameter['optical_depth_gas'] = 1
+        self.parameter['optical_depth_ring'] = 1
+
+        self.parameter_list = [
+            'optical_depth_gas', # vertical optical depth of the atmosphere
+            'optical_depth_ring', # vertical optical depth of the ring
+        ]
+
+    def update_parameter(self, extra_parameter):
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.parameter_list:
+                print(f'  - Warning: invalid parameter: {param}')
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print(f"  - Info: {param} updated to {self.parameter[param]}")
+
+    def dust_density_distribution(self):
+        density = np.zeros(2, dtype=float)
+        # density[0]: molecular hydrogen (input/cross_sections/molecular_hydrogen.dat)
+        # density[1]: ring particles (input/refractive_indices/silicate_d03.nk)
+        
+        pos = np.linalg.norm(self.position)
+        theta = 0.0
+    
+        if pos > 0.0:
+            theta = np.rad2deg( np.arccos(self.position[2] / pos) )
+
+        if self.spherical_parameter['radius_list'][0] < pos < self.spherical_parameter['radius_list'][1]:
+            # calculate the number density based on a given optical depth, radial boundaries, and cross section
+            density[0] = self.ar.getNumberDensityFromOpticalDepth(
+                self.parameter['optical_depth_gas'],
+                self.spherical_parameter['radius_list'][1] - self.spherical_parameter['radius_list'][0],
+                self.ar.getRayleighCrossSection(5.5e-7, '1H2'))
+
+        if self.ring_inner_radius < pos < self.ring_outer_radius and np.abs(theta - 90.0) < 0.5 * self.ring_opening_angle:
+            # vertical height of the ring at outer radius
+            length = self.ring_outer_radius * np.tan(np.deg2rad(self.ring_opening_angle))
+            c_ext = 9.46314e-13 # precalculated cross section using q = -3, s_min = 1e-7 m, s_max = 1e-4 m, n = 1.69 + 0.03 (550 nm)
+            density[1] = self.parameter['optical_depth_ring'] / (c_ext * length)
+
+        return density
+    
+    def dust_temperature(self):
+        # return constant temperature
+        return 300.0
+    
+
+class Venus(Model):
+    def __init__(self):
+        Model.__init__(self)
+        self.ar = AtmosphereRoutines()
+
+        self.planetary_radius = 6.05e6 # [m]
+        self.gravity = 8.9 # [m/s^2]
+
+        # pressure profile [bar]
+        # Venus Global Reference Atmospheric Model sample output
+        self.pressure_profile = np.array([
+            9.3e+01, 7.0e+01, 4.9e+01, 3.4e+01, 2.3e+01, 1.6e+01, 9.9e+00, 6.1e+00, 3.6e+00, 2.0e+00,
+            1.1e+00, 5.3e-01, 2.3e-01, 8.7e-02, 3.1e-02, 1.2e-02, 4.1e-03, 1.4e-03, 3.8e-04, 1.1e-04,
+            2.6e-05])
+        # bar -> Pa
+        self.pressure_profile *= 1e5
+
+        # temperature_profile [K]
+        # Venus Global Reference Atmospheric Model sample output
+        self.temperature_profile = np.array([
+            737, 697, 658, 621, 581, 540, 496, 456, 414, 378,
+            343, 297, 244, 228, 230, 226, 209, 188, 175, 170,
+            168])
+
+        # boundaries of the grid [m]
+        # first value is the inner model radius
+        # last value is the outer model radius
+        self.spherical_parameter['radius_list'] = np.arange(0.0, 105e3, 5e3)
+        self.spherical_parameter['radius_list'] += self.planetary_radius
+
+        # Use spherical coordinate system
+        self.parameter['grid_type'] = 'spherical'
+        # sf_r = 0: user defined radial boundaries
+        self.spherical_parameter['sf_r'] = 0
+
+        # set inner and outer grid radius (bottom and top of atmosphere)
+        self.parameter['inner_radius'] = self.spherical_parameter['radius_list'][0]
+        self.parameter['outer_radius'] = self.spherical_parameter['radius_list'][-1]
+
+        # number of radial grid cells
+        self.spherical_parameter['n_r'] = len(self.spherical_parameter['radius_list']) - 1
+
+        # sf_th = -1: equally distributed theta cells
+        self.spherical_parameter['sf_th'] = -1
+        # number of theta cells
+        self.spherical_parameter['n_th'] = 1
+
+        # sf_ph = -1: equally distributed phi cells
+        self.spherical_parameter['sf_ph'] = -1
+        # number of phi cells
+        self.spherical_parameter['n_ph'] = 1
+
+        self.parameter['optical_depth'] = 30
+
+        self.parameter_list = []
+
+    def update_parameter(self, extra_parameter):
+        if extra_parameter is None:
+            return
+
+        for i, param in enumerate(extra_parameter[::2]):
+            if param not in self.parameter_list:
+                print(f'  - Warning: invalid parameter: {param}')
+                continue
+            try:
+                self.parameter[param] = float(eval(extra_parameter[2*i+1]))
+            except:
+                self.parameter[param] = extra_parameter[2*i+1]
+            print(f"  - Info: {param} updated to {self.parameter[param]}")
+
+    def dust_density_distribution(self):
+        density = np.zeros(2, dtype=float)
+        # density[0]: carbon dioxide (input/cross_sections/carbon_dioxide.dat)
+        # density[1]: venus-like clouds (input/refractive_indices/venus_clouds_hh74.nk)
+
+        pos = np.linalg.norm(self.position)
+        idx = np.searchsorted(self.spherical_parameter['radius_list'], pos)
+
+        # calculate the number density assuming hydrostatic equilibrium and an ideal gas
+        density[0] = self.ar.getNumberDensityFromPressureAltitude(
+            self.pressure_profile[idx-1] - self.pressure_profile[idx],
+            self.spherical_parameter['radius_list'][idx] - self.spherical_parameter['radius_list'][idx-1],
+            self.ar.getMolarMass('12C-16O2'),
+            self.gravity)
+
+        # add clouds between 48 km and 68 km
+        idx_bot = np.searchsorted(self.spherical_parameter['radius_list'], self.planetary_radius + 50e3)
+        idx_top = np.searchsorted(self.spherical_parameter['radius_list'], self.planetary_radius + 70e3)
+        c_ext = 6.631955598e-12  # precalculated cross section [m^2] using r_eff = 1.05e-06 m, veff = 0.07 (550 nm)
+        if self.spherical_parameter['radius_list'][idx_bot] < pos < self.spherical_parameter['radius_list'][idx_top]:
+            density[1] = self.ar.getNumberDensityFromOpticalDepth(
+                self.parameter['optical_depth'],
+                self.spherical_parameter['radius_list'][idx_top] - self.spherical_parameter['radius_list'][idx_bot],
+                c_ext)
+
+        return density
+    
+    def dust_temperature(self):
+        # return temperature at self.position
+        pos = np.linalg.norm(self.position)
+        # interpolate temperature profile based on current position
+        return np.interp(pos, self.spherical_parameter['radius_list'], self.temperature_profile)
 
 
 class Disk(Model):

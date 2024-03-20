@@ -8,7 +8,10 @@
     # Dust
 
     # considered dust grain compositions (ALL) "path_to_file" "size_keyword" mass_fraction mass_density radius_min radius_max exponent
-    <dust_component>	"/PATH/TO/POLARIS/input/dust/silicate_d03.nk" "plaw" 1.0 3500.0 5e-09 2.5e-07 -3.5
+    <dust_component>	"/PATH/TO/POLARIS/input/refractive_indices/silicate_d03.nk" "plaw" 1.0 3500.0 5e-09 2.5e-07 -3.5
+    
+    # considered gaseous species for scattering (PLANET_SCATTERING) fraction molecular_weight [kg/mol]
+    <gas_component>    "/PATH/TO/POLARIS/input/cross_sections/molecular_hydrogen.dat"
 
     # considered alignment mechanism of non-spherical dust grains (DUST_EMISSION)
     <align> ALIG_PA or ALIG_RAT or ALIG_IDG or ALIG_GOLD or ALIG_INTERNAL or ALIG_NONPA
@@ -56,7 +59,7 @@
     <larm_f> 4.1e-19
 
     # phase function used for the dust grains, Henyey-Greenstein, Mie or isotropic (TEMP, RAT, DUST_SCATTERING)
-    <phase_function> PH_HG or PH_DHG or PH_TTHG or PH_MIE or PH_ISO
+    <phase_function> PH_HG or PH_DHG or PH_TTHG or PH_MIE or PH_ISO or PH_RAYLEIGH
 
 
     # Gas
@@ -164,6 +167,12 @@
     # or nr_photons = "Nph"> x [m] y [m] z [m] "path"
     <source_star nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 17000
 
+    # spatially extended star as radiation source (PLANET_SCATTERING) nr_photons = "Nph"> x [m] y [m] z [m] R [Rsun] T [K] biased q u
+    <source_extended_star nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 17000 1
+
+    # plane parallel radiation source (PLANET_SCATTERING) nr_photons = "Nph"> x [m] y [m] z [m] R [Rsun] T [K] q u
+    <source_plane_star nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 17000 1
+
     # starfield radiation source (TEMP, RAT, DUST_SCATTERING) nr_photons = "Nph"> x [m] y [m] z [m] R [Rsun] T [K] μf [m]
     # or nr_photons = "Nph"> x [m] y [m] z [m] μf [m] "path"
     <source_starfield nr_photons = "5e6"> 1.15e2 4.16e2 1.8e1 12 23e4 1e18
@@ -197,6 +206,9 @@
 
     # calculate Monte Carlo dust scattering
     <cmd>          CMD_DUST_SCATTERING
+
+    # calculate Monte Carlo scattering in planetary atmosphere
+    <cmd>          CMD_PLANET_SCATTERING
 
     # ray-tracing for thermal emission of dust grains
     <cmd>          CMD_DUST_EMISSION
@@ -242,6 +254,9 @@
 
     # acceptance angle, if peel-off is not used (DUST_SCATTERING)
     <acceptance_angle> 1
+
+    # surface reflection (PLANET_SCATTERING) "type" parameter
+    <surface_reflection>    "lambertian" 0.0
 
 </task>
 

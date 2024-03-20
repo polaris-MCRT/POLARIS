@@ -1316,6 +1316,10 @@ class CDustComponent
             case PH_MIE:
                 res = getScatteredFractionMie(a, w, theta);
                 break;
+
+            case PH_RAYLEIGH:
+                res = CMathFunctions::phaseFunctionRayleigh(getHGg(a, w), theta);
+                break;
         }
         return res;
     }
@@ -1359,6 +1363,13 @@ class CDustComponent
             {
                 uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
                 miesca(pp, a, rand_gen);
+                break;
+            }
+
+            case PH_RAYLEIGH:
+            {
+                uint a = getInteractingDust(grid, pp, rand_gen, CROSS_SCA);
+                rayleighsca(pp, a, rand_gen);
                 break;
             }
 
@@ -2151,15 +2162,26 @@ class CDustComponent
                   comp->getSizeMin(),
                   comp->getSizeMax());
 #else
-        sprintf(tmp_str,
-                "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
-                comp->getStringID().c_str(),
-                fraction_string.c_str(),
-                fraction,
-                comp->getDustSizeKeyword().c_str(),
-                comp->getDustSizeParameterString().c_str(),
-                comp->getSizeMin(),
-                comp->getSizeMax());
+        if(comp->getPhaseFunctionID() == PH_RAYLEIGH)
+        {
+            sprintf(tmp_str,
+                    "- %s\n    %s: %g\n",
+                    comp->getStringID().c_str(),
+                    fraction_string.c_str(),
+                    fraction);
+        }
+        else
+        {
+            sprintf(tmp_str,
+                    "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                    comp->getStringID().c_str(),
+                    fraction_string.c_str(),
+                    fraction,
+                    comp->getDustSizeKeyword().c_str(),
+                    comp->getDustSizeParameterString().c_str(),
+                    comp->getSizeMin(),
+                    comp->getSizeMax());
+        }
 #endif
 
         // Add formatted string to stream
@@ -2453,6 +2475,7 @@ class CDustComponent
     void drainehenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
     void threeparamhenyeygreen(photon_package * pp, uint a, CRandomGenerator * rand_gen);
     void miesca(photon_package * pp, uint a, CRandomGenerator * rand_gen);
+    void rayleighsca(photon_package * pp, uint a, CRandomGenerator * rand_gen);
 
     void preCalcTemperatureLists(double _minTemp, double _maxTemp, uint _nr_of_temperatures);
     void preCalcAbsorptionRates();
@@ -2491,6 +2514,7 @@ class CDustComponent
     void initCalorimetry();
 
     bool readDustParameterFile(parameters & param, uint dust_component_choice);
+    bool readGasCrossSectionFile(parameters & param, uint dust_component_choice);
     bool readDustRefractiveIndexFile(parameters & param,
                                      uint dust_component_choice,
                                      double a_min_mixture,
@@ -2543,6 +2567,12 @@ class CDustComponent
                          Vector3D dir_obs,
                          photon_package * pp_escape) const;
     void getEscapePhotonMie(CGridBasic * grid,
+                            photon_package * pp,
+                            uint a,
+                            Vector3D obs_ex,
+                            Vector3D dir_obs,
+                            photon_package * pp_escape) const;
+    void getEscapePhotonRayleigh(CGridBasic * grid,
                             photon_package * pp,
                             uint a,
                             Vector3D obs_ex,
@@ -2728,6 +2758,10 @@ class CDustMixture
 
                 case PH_MIE:
                     str_res = "Mie scattering";
+                    break;
+
+                case PH_RAYLEIGH:
+                    str_res = "Rayleigh scattering";
                     break;
             }
         }
@@ -3064,7 +3098,8 @@ class CDustMixture
             wavelength_offset += nr_of_wavelength;
 
         // Add new wavelengths first
-        CMathFunctions::LogList(lam_min, lam_max, tmp_wavelength_list, 10);
+        // CMathFunctions::LogList(lam_min, lam_max, tmp_wavelength_list, 10);
+        CMathFunctions::LinearList(lam_min, lam_max, tmp_wavelength_list);
 
         // Update wavelengths
         for(uint w = 0; w < nr_of_wavelength; w++)

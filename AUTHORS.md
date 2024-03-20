@@ -8,7 +8,7 @@ History: January 15, 2024
 ## POLARIS - general
 
 - Stefan Reissl\
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
+  University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
 - Robert Brauer
 
@@ -26,12 +26,18 @@ University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 - Robert Brauer
 
 - Stefan Reissl\
-University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
+  University of Heidelberg, Institute of Theoretical Astrophysics (ITA)
 
 
 - Co-Authors:
 
   - Florian Ober
+  
+
+## POLARIS - radiative transfer in planetary atmospheres
+
+- Moritz Lietzow-Sinjen\
+  Kiel University, Institute of Theoretical Physics and Astrophysics (ITAP)
 
 
 ## PolarisTools - Python script collection

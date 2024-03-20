@@ -862,6 +862,318 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     return true;
 }
 
+bool CDustComponent::readGasCrossSectionFile(parameters & param, uint dust_component_choice)
+{
+    // Get Path to dust parameters file
+    string path = param.getDustPath(dust_component_choice);
+
+    // Init variables
+    CCommandParser ps;
+    string line;
+    dlist values, wavelength_list_dustcat;
+
+    // temporary variables for wavelength interpolation
+    spline *eff_wl;
+    uint nr_of_wavelength_dustcat;
+
+    // Get min and max dust grain size
+    double a_min = 0;
+    double a_max = 0;
+
+    // Init text file reader for dust cat file
+    fstream reader(path.c_str());
+
+    cout << "- reading gas cross section file              \r";
+
+    // Error message if the read does not work
+    if(reader.fail())
+    {
+        cout << "\nERROR: Cannot open gas cross section file:" << endl;
+        cout << path << endl;
+        return false;
+    }
+
+    // Init progress counter
+    uint line_counter = 0;
+    uint cmd_counter = 0;
+    uint eff_counter = 0;
+
+    while(getline(reader, line))
+    {
+        // Format the text file line
+        ps.formatLine(line);
+
+        // Increase line counter
+        line_counter++;
+
+        // If the line is empty -> skip
+        if(line.size() == 0)
+            continue;
+
+        if(cmd_counter > 0)
+        {
+            // Parse the values of the current line
+            values = ps.parseValues(line);
+
+            // If no values found -> skip
+            if(values.size() == 0)
+                continue;
+        }
+
+        // Increase the command counter
+        cmd_counter++;
+
+        switch(cmd_counter)
+        {
+            case 1:
+            {
+                // The first line contains the name of the dust component
+                stringID = line;
+                break;
+            }
+            case 2:
+            {
+                // The second line needs 2 values
+                if(values.size() != 2)
+                {
+                    cout << "\nERROR: Line " << line_counter << " wrong amount of numbers!" << endl;
+                    return false;
+                }
+
+                nr_of_dust_species = 1;
+
+                // The number of wavelength used by the dust catalog
+                nr_of_wavelength_dustcat = (uint)values[0];
+
+                nr_of_incident_angles = 1;
+
+                aspect_ratio = 1;
+
+                // The material density (only used if no one was set in the command file)
+                if(material_density == 0)
+                {
+                    if(values[1] == 0)
+                    {
+                        printIDs();
+                        cout << "\nERROR: gas bulk mass is zero!" << endl;
+                        return false;
+                    }
+                    material_density = values[1];
+                    material_density *= con_loschmidt / con_Na;
+                }
+
+                sub_temp = TEMP_MAX;
+
+                delta_rat = 1;
+
+                is_align = false;
+
+                gold_g_factor = 0;
+
+                // Init splines for wavelength interpolation of the dust optical
+                // properties
+                eff_wl = new spline[nr_of_dust_species * (NR_OF_EFF - 4)];
+
+                // Init arrays for grain size, size distribution, and mass
+                a_eff = new double[nr_of_dust_species];
+                a_eff_squared = new double[nr_of_dust_species];
+                grain_distribution_x_aeff_sq = new double[nr_of_dust_species];
+                grain_size_distribution = new double[nr_of_dust_species];
+                mass = new double[nr_of_dust_species];
+
+                dlist values_tmp;
+                values_tmp.push_back(1);
+
+                // Calculate the grain size distribution
+                calcSizeDistribution(values_tmp, mass);
+
+                // Check if size limits are inside grain sizes and set global ones
+                if(!checkGrainSizeLimits(a_min, a_max))
+                    return false;
+
+                break;
+            }
+            case 3:
+            {
+                // The fourth line needs a values per wavelength of the dust grain catalog
+                if(values.size() != nr_of_wavelength_dustcat)
+                {
+                    cout << "\nERROR: Line " << line_counter << " wrong amount of wavelength!" << endl;
+                    return false;
+                }
+
+                // Init an array for the wavelengths of the dust grain catalog
+                wavelength_list_dustcat.resize(nr_of_wavelength_dustcat);
+
+                // Fill the wavelength array
+                for(uint w = 0; w < nr_of_wavelength_dustcat; w++)
+                    wavelength_list_dustcat[w] = values[w];
+
+                if(wavelength_list[0] < wavelength_list_dustcat[0] * 0.1 ||
+                   wavelength_list[nr_of_wavelength - 1] * 0.1 >
+                       wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
+                {
+                    cout << "\nHINT: The wavelength range is out of the limits of the "
+                            "catalog. "
+                         << "This may cause problems!" << endl;
+                    cout << "      wavelength range          : " << wavelength_list[0] << " [m] to "
+                         << wavelength_list[nr_of_wavelength - 1] << " [m]" << endl;
+                    cout << "      wavelength range (catalog): " << wavelength_list_dustcat[0] << " [m] to "
+                         << wavelength_list_dustcat[nr_of_wavelength_dustcat - 1] << " [m]" << endl;
+                }
+
+                break;
+            }
+            default:
+            {
+                // Init boolean value to check if the lines contain the right values
+                bool rec = false;
+
+                // Get the wavelength and grain size indizes
+                uint w = int(eff_counter / nr_of_dust_species);
+                uint a = eff_counter % nr_of_dust_species;
+
+                // At the first wavelength, resize the splines for the wavelengths
+                if(w == 0)
+                    for(uint i = 0; i < NR_OF_EFF - 4; i++)
+                        eff_wl[a * (NR_OF_EFF - 4) + i].resize(nr_of_wavelength_dustcat);
+
+                // Each line contains NR_OF_EFF - 4 == 4 values
+                if(values.size() == NR_OF_EFF - 4)
+                {
+                    // the current line contains enough values
+                    rec = true;
+
+                    // Set the dust grain optical properties
+                    for(uint i = 0; i < NR_OF_EFF - 4; i++)
+                        eff_wl[a * (NR_OF_EFF - 4) + i].setValue(w, wavelength_list_dustcat[w], values[i]);
+
+                    // Increace the counter for the dust grain optical properties
+                    eff_counter++;
+                }
+
+                // At the last wavelength, activate the splines
+                if(w == nr_of_wavelength_dustcat - 1)
+                {
+                    // For the dust grain optical properties
+                    for(uint i = 0; i < NR_OF_EFF - 4; i++)
+                        eff_wl[a * (NR_OF_EFF - 4) + i].createSpline();
+                }
+
+                //  If a line was not correct, show error
+                if(!rec)
+                {
+                    cout << "WARNING: Wrong amount of values in line " << line_counter << "!" << endl;
+                    return false;
+                }
+                break;
+            }
+        }
+    }
+
+    // If not a line per combination of grain size and wavelength was found in the
+    // catalog, show error
+    if(eff_counter != nr_of_dust_species * nr_of_wavelength_dustcat)
+    {
+        cout << stringID << endl;
+        cout << "\nERROR: Wrong amount of cross sections in file!" << endl;
+        return false;
+    }
+
+    // Close the text file reader for the dust catalog
+    reader.close();
+
+    // Init pointer arrays for dust optical properties
+    Qext1 = new double *[nr_of_dust_species];
+    Qext2 = new double *[nr_of_dust_species];
+    Qabs1 = new double *[nr_of_dust_species];
+    Qabs2 = new double *[nr_of_dust_species];
+    Qsca1 = new double *[nr_of_dust_species];
+    Qsca2 = new double *[nr_of_dust_species];
+    Qcirc = new double *[nr_of_dust_species];
+    HGg = new double *[nr_of_dust_species];
+    HGg2 = new double *[nr_of_dust_species];
+    HGg3 = new double *[nr_of_dust_species];
+
+    CextMean = new double *[nr_of_dust_species];
+    CabsMean = new double *[nr_of_dust_species];
+    CscaMean = new double *[nr_of_dust_species];
+
+    // Init splines for incident angle interpolation of Qtrq and HG g factor
+    Qtrq = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g2_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+    HG_g3_factor = new spline[nr_of_dust_species * nr_of_wavelength];
+
+    for(uint a = 0; a < nr_of_dust_species; a++)
+    {
+        // Resize the splines for each grain size
+        Qext1[a] = new double[nr_of_wavelength];
+        Qext2[a] = new double[nr_of_wavelength];
+        Qabs1[a] = new double[nr_of_wavelength];
+        Qabs2[a] = new double[nr_of_wavelength];
+        Qsca1[a] = new double[nr_of_wavelength];
+        Qsca2[a] = new double[nr_of_wavelength];
+        Qcirc[a] = new double[nr_of_wavelength];
+        HGg[a] = new double[nr_of_wavelength];
+        HGg2[a] = new double[nr_of_wavelength];
+        HGg3[a] = new double[nr_of_wavelength];
+
+        CextMean[a] = new double [nr_of_wavelength];
+        fill(CextMean[a], CextMean[a] + nr_of_wavelength, 0);
+        CabsMean[a] = new double [nr_of_wavelength];
+        fill(CabsMean[a], CabsMean[a] + nr_of_wavelength, 0);
+        CscaMean[a] = new double [nr_of_wavelength];
+        fill(CscaMean[a], CscaMean[a] + nr_of_wavelength, 0);
+
+        for(uint w = 0; w < nr_of_wavelength; w++)
+        {
+            // Resize the splines of Qtrq and HG g factor for each wavelength
+            Qtrq[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g2_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            HG_g3_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+
+            if(sizeIndexUsed(a))
+            {
+                CextMean[a][w] = eff_wl[a * NR_OF_EFF + 0].getLinearValue(wavelength_list[w], false);
+                CabsMean[a][w] = eff_wl[a * NR_OF_EFF + 1].getLinearValue(wavelength_list[w], false);
+                CscaMean[a][w] = eff_wl[a * NR_OF_EFF + 2].getLinearValue(wavelength_list[w], false);
+                HGg[a][w] = eff_wl[a * NR_OF_EFF + 3].getLinearValue(wavelength_list[w], false);
+            }
+            else
+            {
+                CextMean[a][w] = 0;
+                CabsMean[a][w] = 0;
+                CscaMean[a][w] = 0;
+                HGg[a][w] = 0;
+            }
+
+            HGg2[a][w] = 0;
+            HGg3[a][w] = 1;
+
+            // Activate the splines of Qtrq and HG g factor
+            Qtrq[w * nr_of_dust_species + a].createSpline();
+            HG_g_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g2_factor[w * nr_of_dust_species + a].createSpline();
+            HG_g3_factor[w * nr_of_dust_species + a].createSpline();
+
+            Qext1[a][w] = CextMean[a][w] / (PI * a_eff_squared[a]);
+            Qext2[a][w] = CextMean[a][w] / (PI * a_eff_squared[a]);
+            Qabs1[a][w] = CabsMean[a][w] / (PI * a_eff_squared[a]);
+            Qabs2[a][w] = CabsMean[a][w] / (PI * a_eff_squared[a]);
+            Qsca1[a][w] = CscaMean[a][w] / (PI * a_eff_squared[a]);
+            Qsca2[a][w] = CscaMean[a][w] / (PI * a_eff_squared[a]);
+            Qcirc[a][w] = 0;
+        }
+    }
+
+    // Remove temporary pointer arrays
+    delete[] eff_wl;
+
+    return true;
+}
+
 bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                                                  uint dust_component_choice,
                                                  double a_min_mixture,
@@ -4966,6 +5278,9 @@ void CDustComponent::getEscapePhoton(CGridBasic * grid,
         case PH_MIE:
             getEscapePhotonMie(grid, pp, a, obs_ex, dir_obs, pp_escape);
             break;
+        case PH_RAYLEIGH:
+            getEscapePhotonRayleigh(grid, pp, a, obs_ex, dir_obs, pp_escape);
+            break;
         default:
         {
             // Get wavelength index of the photon package
@@ -5074,6 +5389,105 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Calculate the fraction that is scattered into this theta direction
     double theta_fraction = getScatteredFractionMie(a, w, theta_photon_to_obs);
+
+    // Reduce Stokes vector by scattering propability into theta and phi
+    tmp_stokes *= theta_fraction * phi_fraction;
+
+    // Backup Stokes vector
+    double stokes_1_bak = tmp_stokes.I();
+    if(stokes_1_bak > 1e-200)
+    {
+        // Rotate Stokes vector to new photon direction
+        tmp_stokes.rot(phi_photon_to_obs);
+        // Multiply Stokes vector with scattering matrix
+        tmp_stokes *= mat_sca;
+        // Normalize Stokes vector to preserve total intensity
+        tmp_stokes *= stokes_1_bak / tmp_stokes.I();
+    }
+    else
+    {
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
+    }
+
+    // Rotate photon package into the coordinate space of the detector
+    // (x or r)-axis of photon is y-axis of detector
+    // (y or l)-axis of photon is negative x-axis of detector
+    // see Figure 12 in O. Fischer (1993)
+    double rot_angle_phot_obs =
+        CMathFunctions::getRotationAngleObserver(obs_ex, pp_escape->getEX(), -1*pp_escape->getEY());
+    tmp_stokes.rot(rot_angle_phot_obs);
+
+    // The scattering part is based on O. Fischer (1993)
+    // But on our detectors, U is defined the other way round
+    tmp_stokes.multU(-1);
+
+    // Set the new Stokes vector to the photon package
+    pp_escape->setStokesVector(tmp_stokes);
+}
+
+void CDustComponent::getEscapePhotonRayleigh(CGridBasic * grid,
+                                        photon_package * pp,
+                                        uint a,
+                                        Vector3D obs_ex,
+                                        Vector3D dir_obs,
+                                        photon_package * pp_escape) const
+{
+    // Get wavelength index of the photon package
+    uint w = pp->getDustWavelengthID();
+
+    // Get the Stokes vector of the current photon package
+    StokesVector tmp_stokes = *pp->getStokesVector();
+
+    // Init temporary photon package
+    pp_escape->setPosition(pp->getPosition());
+    pp_escape->setPositionCell(pp->getPositionCell());
+
+    // Set the photon package at the position of the current photon
+    pp_escape->setD(pp->getD());
+    pp_escape->setWavelength(wavelength_list[w], w);
+
+    // Calculate the theta and phi angle to the observer
+    double phi_photon_to_obs = atan3(pp->getEY() * dir_obs, -1*pp->getEX() * dir_obs);
+    double theta_photon_to_obs = acos(pp->getDirection() * dir_obs);
+
+    // Update the coordinate space of the photon
+    pp_escape->updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
+
+    // Create the scattering matrix with the local parameters
+    double depol = getHGg(a, w);
+    const Matrix2D & mat_sca = CMathFunctions::getRayleighScatteringMatrix(depol, theta_photon_to_obs);
+
+    // Default phi distribution is isotropic
+    double phi_fraction = 1;
+    // Get PHIPAR to take non equal distribution of phi angles into account
+    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0)
+    {
+        double q_i = tmp_stokes.Q() / tmp_stokes.I();
+        double u_i = tmp_stokes.U() / tmp_stokes.I();
+        double phipar = sqrt(q_i * q_i + u_i * u_i) * (-mat_sca(0, 1) / mat_sca(0, 0));
+
+        double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
+        double cos_2_phi = cos(2.0 * (phi_photon_to_obs + gamma - PI));
+
+        // Calculate the fraction that is scattered into this phi direction
+        phi_fraction = (1.0 - phipar * cos_2_phi);
+    }
+    else
+    {
+        if(tmp_stokes.I() <= 0.0)
+            cout << "\nERROR: Photon package intensity is zero or negative." << endl;
+        if(mat_sca(0, 0) <= 0.0)
+            cout << "\nERROR: First scattering matrix element is zero or negative." << endl;
+        
+        tmp_stokes.clear();
+        pp_escape->setStokesVector(tmp_stokes);
+        return;
+    }
+
+    // Calculate the fraction that is scattered into this theta direction
+    double theta_fraction = CMathFunctions::phaseFunctionRayleigh(depol, theta_photon_to_obs);
 
     // Reduce Stokes vector by scattering propability into theta and phi
     tmp_stokes *= theta_fraction * phi_fraction;
@@ -5407,6 +5821,76 @@ void CDustComponent::miesca(photon_package * pp, uint a, CRandomGenerator * rand
     pp->setStokesVector(tmp_stokes);
 }
 
+void CDustComponent::rayleighsca(photon_package * pp, uint a, CRandomGenerator * rand_gen)
+{
+    // Get wavelength of photon package
+    uint w = pp->getDustWavelengthID();
+
+    // Get Stokes vector from photon package
+    StokesVector tmp_stokes = *pp->getStokesVector();
+
+    // Get theta angle from distribution
+    // the integral of the rayleigh phase function leads to a cubic equation
+    // x^3 + px + q = 0
+    // where x = cos(theta), p = (4-delta)/delta, q = 4/delta*(2*rnd - 1 + 2*delta)
+    // solve for x with Cardan's formula
+    // we only get one real solution, since discr = (q/2)^2 + (p/3)^3 > 0
+    double depol = getHGg(a, w);
+    double delta = (1.0 - depol) / (1.0 + 0.5 * depol);
+    double p = (4.0 - delta) / delta;
+    double q = 4.0 / delta * (2.0 * rand_gen->getRND() - 1.0);
+    double discr = 0.25 * q*q + p*p*p / 27.0;
+    // double u_plus = cbrt(-0.5 * q + sqrt(discr));
+    double u_minus = cbrt(-0.5 * q - sqrt(discr));
+    // theta = acos(u_plus + u_minus);
+
+    // since u_plus * u_minus = -p/3, we can simply write theta as
+    double theta = acos(u_minus - p / (3.0 * u_minus));
+    // or theta = acos(u_plus - p / (3.0 * u_plus));
+
+    // Get scattering matrix
+    Matrix2D mat_sca = CMathFunctions::getRayleighScatteringMatrix(depol, theta);
+
+    double phipar;
+    // Get PHIPAR to take non equal distribution of phi angles into account
+    if(tmp_stokes.I() > 0.0 && mat_sca(0, 0) > 0.0) {
+        double q_i = tmp_stokes.Q() / tmp_stokes.I();
+        double u_i = tmp_stokes.U() / tmp_stokes.I();
+        phipar = sqrt(q_i * q_i + u_i * u_i) * (-mat_sca(0, 1) / mat_sca(0, 0));
+    } else {
+        if(tmp_stokes.I() <= 0.0) {
+            cout << "\nERROR: Photon package intensity is zero or negative!\n" << endl;
+        }
+        if(mat_sca(0, 0) <= 0.0) {
+            cout << "\nERROR: First scattering matrix element is zero or negative!\n" << endl;
+        }
+
+        tmp_stokes.clear();
+        pp->setStokesVector(tmp_stokes);
+        return;
+    }
+
+    double gamma = 0.5 * atan3(tmp_stokes.Q(), tmp_stokes.U());
+
+    // find phi (Kepler's equation) with Brent's method
+    double phi = CMathFunctions::findRootBrent(0.0, PIx2, &CMathFunctions::getPhiIntegral, {phipar, rand_gen->getRND()});
+    phi = PI - gamma + phi;
+
+    // Update the photon package with the new direction
+    pp->updateCoordSystem(phi, theta);
+
+    double i_1 = tmp_stokes.I();
+    if(i_1 > 1e-200) {
+        tmp_stokes.rot(phi);
+        tmp_stokes *= mat_sca;
+        tmp_stokes *= i_1 / tmp_stokes.I();
+    } else {
+        tmp_stokes.clear();
+    }
+
+    pp->setStokesVector(tmp_stokes);
+}
+
 bool CDustMixture::createDustMixtures(parameters & param, string path_data, string path_plot)
 {
     // Do not load dust component if not required
@@ -5553,10 +6037,19 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             }
             else
             {
-                // Read the dust catalog file for each dust component (including scatter
-                // matrix)
-                if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
-                    return false;
+                if(single_component[i_comp].getPhaseFunctionID() == PH_RAYLEIGH)
+                {
+                    // Read cross section file for gas component
+                    if(!single_component[i_comp].readGasCrossSectionFile(param, dust_component_choice))
+                        return false;
+                }
+                else
+                {
+                    // Read the dust catalog file for each dust component (including scatter
+                    // matrix)
+                    if(!single_component[i_comp].readDustParameterFile(param, dust_component_choice))
+                        return false;
+                }
             }
 
             // Read the calorimetric file for each dust component
@@ -5625,7 +6118,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
     //     cout << "- Phase function          : " << getPhaseFunctionStr() << endl;
 
     // Enforced first scattering method is only used for Monte-Carlo scattering maps
-    if(param.getCommand() == CMD_DUST_SCATTERING)
+    if(param.getCommand() == CMD_DUST_SCATTERING || param.getCommand() == CMD_PLANET_SCATTERING)
     {
         cout << "- Enforced first scat.    : ";
         if(param.getEnfScattering())
@@ -5750,7 +6243,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
     }
 
     // Show information about dust scattering simulations
-    if(param.getCommand() == CMD_DUST_SCATTERING)
+    if(param.getCommand() == CMD_DUST_SCATTERING || param.getCommand() == CMD_PLANET_SCATTERING)
     {
         cout << "- Scattering method       : ";
         if(param.getPeelOff())
@@ -5767,7 +6260,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
             if(uint(dust_mc_detectors[i + 2]) > 1)
                 cout << "- Scattering detetector " << (pos + 1) << " : from " << dust_mc_detectors[i + 0]
                      << " [m]) to " << dust_mc_detectors[i + 1] << " [m]) with "
-                     << uint(dust_mc_detectors[i + 2]) << " logarithmic values" << endl;
+                     << uint(dust_mc_detectors[i + 2]) << " linear values" << endl;
             else if(uint(dust_mc_detectors[i + 2]) == 1)
                 cout << "- Scattering detetector " << (pos + 1) << "   : " << dust_mc_detectors[i + 0]
                      << " [m]" << endl;
@@ -5814,7 +6307,8 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
              << param.getDustChoiceFromMixtureId(i_mixture) << ")" << endl;
 
         cout << "- Phase function          : " << getPhaseFunctionStr(i_mixture) << endl;
-        cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
+        if(mixed_component[i_mixture].getPhaseFunctionID() != PH_RAYLEIGH)
+            cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
 
         if(param.getCommand() == CMD_DUST_EMISSION && !param.getAligRANDOM())
         {

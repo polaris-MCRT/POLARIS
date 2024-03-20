@@ -12,6 +12,7 @@
 #include "OPIATE.h"
 #include "Detector.h"
 #include "MathFunctions.h"
+#include "Surface.h"
 
 bool CPipeline::Init(int argc, char ** argv)
 {
@@ -138,6 +139,10 @@ void CPipeline::Run()
 
             case CMD_DUST_SCATTERING:
                 result = calcPolarizationMapsViaMC(param);
+                break;
+            
+            case CMD_PLANET_SCATTERING:
+                result = calcPlanetPolarizationMapsViaMC(param);
                 break;
 
             case CMD_LINE_EMISSION:
@@ -350,6 +355,80 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
 
     rad.initiateDustMC(param);
     rad.calcPolMapsViaMC();
+
+    cout << CLR_LINE;
+
+    delete grid;
+    delete dust;
+    delete[] detector;
+    deleteSourceLists();
+
+    return true;
+}
+
+bool CPipeline::calcPlanetPolarizationMapsViaMC(parameters & param)
+{
+    CGridBasic * grid = 0;
+    CDustMixture * dust = new CDustMixture();
+    CSurface * surface = new CSurface();
+
+    if(!createOutputPaths(param.getPathOutput()))
+        return false;
+
+    if(!assignGridType(grid, param))
+        return false;
+
+    if(!createWavelengthList(param, dust, 0, 0))
+        return false;
+
+    if(!assignDustMixture(param, dust, grid))
+        return false;
+
+    grid->setSIConversionFactors(param);
+
+    if(!grid->loadGridFromBinaryFile(param, 0))
+        return false;
+
+    // Print helpfull information
+    grid->createCellList();
+    dust->printParameters(param, grid);
+    grid->printParameters();
+
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
+        return false;
+
+    if(!grid->writePlotFiles(path_plot + "input_", param))
+        return false;
+
+    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
+        return false;
+
+    createSourceLists(param, dust, grid);
+    if(sources_mc.size() == 0)
+    {
+        cout << "\nERROR: No sources for Monte-Carlo simulations defined!" << endl;
+        return false;
+    }
+
+    CDetector * detector = createDetectorList(param, dust, grid);
+
+    if(detector == 0)
+        return false;
+
+    CRadiativeTransfer rad(param);
+
+    rad.setGrid(grid);
+    rad.setDust(dust);
+    rad.setSourcesLists(sources_mc, sources_ray);
+    rad.setDetectors(detector);
+
+    surface->initSurface(
+        param.getSurfaceReflModel(), param.getSurfacePolModel(),
+        param.getSurfaceReflParam(), param.getSurfacePolParam());
+    surface->printParameters();
+    rad.setSurface(surface);
+    rad.initiateDustMC(param);
+    rad.calcPlanetPolMapsViaMC();
 
     cout << CLR_LINE;
 
@@ -909,6 +988,46 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
             }
         }
 
+        if(param.getNrOfExtendedSources() > 0)
+        {
+            if(!dust->getScatteringToRay())
+                nr_ofSources -= param.getNrOfExtendedSources();
+            else if(param.getCommand() != CMD_DUST_EMISSION)
+                cout << "\nWARNING: Extended sources cannot be considered in line or "
+                        "synchrotron emission!"
+                     << endl;
+            else
+            {
+                for(uint s = 0; s < param.getExtendedSources().size(); s += NR_OF_EXTENDED_SOURCES)
+                {
+                    cout << "-> Creating star source list             \r" << flush;
+                    string path = param.getExtendedSourceString(s / NR_OF_EXTENDED_SOURCES);
+                    CSourceBasic * tmp_source = new CSourceStar();
+
+                    if(path.size() == 0)
+                    {
+                        tmp_source->setParameter(param, grid, dust, s);
+                        // tmp_source->setNrOfPhotons(1);
+                    }
+                    else
+                    {
+                        if(!tmp_source->setParameterFromFile(param, grid, dust, s))
+                        {
+                            cout << "\nERROR: Star source nr. " << s / NR_OF_EXTENDED_SOURCES + 1
+                                 << " undefined!" << endl;
+                            sources_mc.clear();
+                        }
+                    }
+                    sources_mc.push_back(tmp_source);
+                }
+            }
+        }
+
+        if(param.getNrOfPlaneSources() > 0)
+        {
+            cout << "\nWARNING: Plane sources can only be considered in planet scattering!" << endl;
+        }
+
         if(param.getNrOfLaserSources() > 0)
         {
             if(!dust->getScatteringToRay())
@@ -975,6 +1094,46 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
                 if(!tmp_source->setParameterFromFile(param, grid, dust, s))
                 {
                     cout << "\nERROR: Star source nr. " << s / NR_OF_POINT_SOURCES + 1 << " undefined!"
+                         << endl;
+                    sources_mc.clear();
+                }
+            }
+            sources_mc.push_back(tmp_source);
+        }
+
+        for(uint s = 0; s < param.getPlaneSources().size(); s += NR_OF_PLANE_SOURCES)
+        {
+            cout << "-> Creating plane star source list             \r" << flush;
+            string path = param.getPlaneSourceString(s / NR_OF_PLANE_SOURCES);
+            CSourceBasic * tmp_source = new CSourcePlaneStar();
+
+            if(path.size() == 0)
+                tmp_source->setParameter(param, grid, dust, s);
+            else
+            {
+                if(!tmp_source->setParameterFromFile(param, grid, dust, s))
+                {
+                    cout << "\nERROR: Plane star source nr. " << s / NR_OF_PLANE_SOURCES + 1 << " undefined!"
+                         << endl;
+                    sources_mc.clear();
+                }
+            }
+            sources_mc.push_back(tmp_source);
+        }
+
+        for(uint s = 0; s < param.getExtendedSources().size(); s += NR_OF_EXTENDED_SOURCES)
+        {
+            cout << "-> Creating spatially extended star source list             \r" << flush;
+            string path = param.getExtendedSourceString(s / NR_OF_EXTENDED_SOURCES);
+            CSourceBasic * tmp_source = new CSourceExtendedStar();
+
+            if(path.size() == 0)
+                tmp_source->setParameter(param, grid, dust, s);
+            else
+            {
+                if(!tmp_source->setParameterFromFile(param, grid, dust, s))
+                {
+                    cout << "\nERROR: Extended star source nr. " << s / NR_OF_EXTENDED_SOURCES + 1 << " undefined!"
                          << endl;
                     sources_mc.clear();
                 }
@@ -1323,11 +1482,21 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printDetectorParameters(param, true);
             printPlotParameters(param);
             break;
+        
+        case CMD_PLANET_SCATTERING:
+            cout << "- Command          : PLANET SCATTERING (Monte-Carlo)" << endl;
+            printPathParameters(param);
+            printSourceParameters(param, true);
+            printConversionParameters(param);
+            printAlignmentParameters(param);
+            printDetectorParameters(param, true);
+            printPlotParameters(param);
+            break;
 
         case CMD_OPIATE:
             cout << "todo: OPIATE parameter" << endl;
-
             break;
+
         case CMD_LINE_EMISSION:
             cout << "- Command          : SPECTRAL LINE EMISSION" << endl;
             printPathParameters(param);
@@ -1380,6 +1549,7 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             break;
 
         case CMD_DUST_SCATTERING:
+        case CMD_PLANET_SCATTERING:
             // Get detector parameters list
             values = param.getDustMCDetectors();
 
