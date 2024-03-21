@@ -26,7 +26,7 @@
 
     # spatially extended star as radiation source
     # star = "N_photons"> pos_x pos_y pos_z radius temperature biased_emission
-    <source_extended_star nr_photons = "1e6">    0 -14959787070 0 1.0 6000 1
+    <source_extended_star nr_photons = "1e7">    0 -14959787070 0 1.0 6000 1
 
     # Monte Carlo dust scattering in planetary atmosphere
     <cmd>    CMD_PLANET_SCATTERING
