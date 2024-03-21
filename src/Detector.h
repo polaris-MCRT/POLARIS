@@ -178,7 +178,8 @@ class CDetector
         nr_extra = _nr_extra;
 
         wavelength_list_det.resize(nr_spectral_bins);
-        CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        // CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        CMathFunctions::LinearList(lam_min, lam_max, wavelength_list_det);
 
         sedI = new double[nr_extra * nr_spectral_bins];
         sedQ = new double[nr_extra * nr_spectral_bins];
@@ -266,7 +267,8 @@ class CDetector
         nr_extra = _nr_extra;
 
         wavelength_list_det.resize(nr_spectral_bins);
-        CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        // CMathFunctions::LogList(lam_min, lam_max, wavelength_list_det, 10);
+        CMathFunctions::LinearList(lam_min, lam_max, wavelength_list_det);
 
         sedI = new double[nr_extra * nr_spectral_bins];
         sedQ = new double[nr_extra * nr_spectral_bins];

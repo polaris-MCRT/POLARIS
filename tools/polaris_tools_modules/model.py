@@ -366,7 +366,7 @@ class Ringed(Model):
         if self.ring_inner_radius < pos < self.ring_outer_radius and np.abs(theta - 90.0) < 0.5 * self.ring_opening_angle:
             # vertical height of the ring at outer radius
             length = self.ring_outer_radius * np.tan(np.deg2rad(self.ring_opening_angle))
-            c_ext = 9.46314e-13 # precalculated cross section using q = -3, s_min = 1e-7 m, s_max = 1e-4 m, n = 1.69 + 0.03 (550 nm)
+            c_ext = 7.13263e-13  # precalculated cross section using q = -3, s_min = 1e-7 m, s_max = 1e-5 m, n = 1.69 + 0.03 (550 nm)
             density[1] = self.parameter['optical_depth_ring'] / (c_ext * length)
 
         return density
