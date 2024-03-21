@@ -6235,7 +6235,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
             if(uint(dust_ray_detectors[i + 2]) > 1)
                 cout << "- Emission detetector " << (pos + 1) << "   : from " << dust_ray_detectors[i + 0]
                      << " [m] to " << dust_ray_detectors[i + 1] << " [m] with "
-                     << uint(dust_ray_detectors[i + 2]) << " logarithmic values" << endl;
+                     << uint(dust_ray_detectors[i + 2]) << " linear values" << endl;
             else if(uint(dust_ray_detectors[i + 2]) == 1)
                 cout << "- Emission detetector " << (pos + 1) << "   : " << dust_ray_detectors[i + 0]
                      << " [m]" << endl;

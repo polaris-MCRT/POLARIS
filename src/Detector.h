@@ -195,7 +195,6 @@ class CDetector
         matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
         N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
-        N_photon_tot = new double[nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
@@ -207,6 +206,7 @@ class CDetector
                 matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
                 sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
