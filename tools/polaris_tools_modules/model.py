@@ -387,23 +387,23 @@ class Venus(Model):
         # pressure profile [bar]
         # Venus Global Reference Atmospheric Model sample output
         self.pressure_profile = np.array([
-            9.3e+01, 7.0e+01, 4.9e+01, 3.4e+01, 2.3e+01, 1.6e+01, 9.9e+00, 6.1e+00, 3.6e+00, 2.0e+00,
-            1.1e+00, 5.3e-01, 2.3e-01, 8.7e-02, 3.1e-02, 1.2e-02, 4.1e-03, 1.4e-03, 3.8e-04, 1.1e-04,
-            2.6e-05])
+            9.30e+01, 6.65e+01, 4.64e+01, 3.20e+01, 2.30e+01, 1.52e+01, 9.82e+00, 6.01e+00, 3.55e+00, 1.98e+00,
+            1.06e+00, 5.34e-01, 2.30e-01, 8.42e-02, 3.16e-02, 1.18e-02, 4.28e-03, 1.38e-03, 3.89e-04, 1.03e-04,
+            2.85e-05, 7.35e-06, 1.66e-06, 3.27e-07, 6.69e-08, 1.46e-08, 2.93e-09, 7.57e-10, 2.08e-10, 7.90e-11])
         # bar -> Pa
         self.pressure_profile *= 1e5
 
         # temperature_profile [K]
         # Venus Global Reference Atmospheric Model sample output
         self.temperature_profile = np.array([
-            737, 697, 658, 621, 581, 540, 496, 456, 414, 378,
-            343, 297, 244, 228, 230, 226, 209, 188, 175, 170,
-            168])
+            737, 703, 664, 626, 586, 545, 504, 461, 418, 382,
+            347, 301, 248, 226, 231, 227, 211, 190, 175, 170,
+            169, 160, 146, 140, 140, 139, 141, 142, 144, 146])
 
         # boundaries of the grid [m]
         # first value is the inner model radius
         # last value is the outer model radius
-        self.spherical_parameter['radius_list'] = np.arange(0.0, 105e3, 5e3)
+        self.spherical_parameter['radius_list'] = np.arange(0.0, 150e3, 5e3)
         self.spherical_parameter['radius_list'] += self.planetary_radius
 
         # Use spherical coordinate system

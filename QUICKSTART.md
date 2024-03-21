@@ -64,7 +64,8 @@ source ~/.bashrc
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
 Exemplary `.cmd` command files for various planetary models can be found in `projects/`.
-These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy atmosphere (`cloudy`), a ringed planet (`ringed`), a cloud-free Rayleigh-scattering atmosphere with absorbing methane (`methane`), and a venus-like atmosphere (`venus`) which can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
+These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy atmosphere (`cloudy`), a ringed planet (`ringed`), a cloud-free Rayleigh-scattering atmosphere with absorbing methane (`methane`), and a venus-like atmosphere (`venus`) with cloud parameters based on [Hansen & Hovenier (1974)](https://ui.adsabs.harvard.edu/abs/1974JAtS...31.1137H).
+The results of the venus-like atmosphere can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
 
 Parameters of the model such as the grid cell structure or the density of the atmospheric particles are stored in a separate grid file (please refer to the [manual](manual.pdf) Sect. 2.3 for detailed information).
 
