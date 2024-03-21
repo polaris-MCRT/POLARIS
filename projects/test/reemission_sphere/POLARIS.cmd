@@ -1,6 +1,6 @@
 <common>
 
-	<dust_component>	"input/dust/silicate_d03.nk" "plaw" 1.0 3800.0 1e-06 1e-06 -3.5
+	<dust_component>	"input/refractive_indices/silicate_d03.nk" "plaw" 1.0 3800.0 1e-06 1e-06 -3.5
     <phase_function>	PH_MIE
 
 	<mass_fraction>		0.01
