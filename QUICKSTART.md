@@ -63,9 +63,11 @@ source ~/.bashrc
 ## Start a simulation
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
-Exemplary `.cmd` command files for various planetary models can be found in `projects/`.
-These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy atmosphere (`cloudy`), a ringed planet (`ringed`), a cloud-free Rayleigh-scattering atmosphere with absorbing methane (`methane`), and a venus-like atmosphere (`venus`) with cloud parameters based on [Hansen & Hovenier (1974)](https://ui.adsabs.harvard.edu/abs/1974JAtS...31.1137H).
-The results of the venus-like atmosphere can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
+Exemplary `.cmd` command files for various planetary models can be found in [`projects/`].
+
+These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy atmosphere (`cloudy`), an ocean covered cloud-free planet (`ocean`), a ringed planet (`ringed`), a cloud-free Rayleigh-scattering atmosphere with absorbing methane (`methane`), and a Venus-like atmosphere (`venus`) with cloud parameters based on [Hansen & Hovenier (1974)](https://ui.adsabs.harvard.edu/abs/1974JAtS...31.1137H).
+The results of the Venus-like atmosphere can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
+Please also refer to [projects/MODELS.md](projects/MODELS.md) for detailed information about the planetary models.
 
 Parameters of the model such as the grid cell structure or the density of the atmospheric particles are stored in a separate grid file (please refer to the [manual](manual.pdf) Sect. 2.3 for detailed information).
 
@@ -80,18 +82,21 @@ For this sample simulations, a simple python script is provided, which can be ex
 ```bash
 python projects/plot.py rayleigh
 ```
+The output file is stored in the corresping directory, e.g. `projects/rayleigh/rayleigh.png`.
 
 **HINT**: The previous results will be overwritten, if the same command file is used. Please change `<path_out>` in the command file to use a new directory for the new results.
 
 **HINT**: If users write their own command file, before starting the simulation, please check `<dust_component>`, `<path_grid>`, and `<path_out>` in the command file for the correct (absolute) paths.
 
-| Default model | Runtime (4 cores) | Comment                                                        |
+
+| Default model | Runtime (8 cores) | Comment                                                        |
 | -----         | -----             | ----------                                                     |
-| Rayleigh      | $\sim$ 30 seconds  | 36 phase angles, 1 wavelength, $10^6$ photons                  |
-| Cloudy        | $\sim$ 2 minutes   | 36 phase angles, 1 wavelength, $10^6$ photons                  |
-| Ringed        | $\sim$ 3 minutes   | 1 phase angle, 1 wavelength, $10^8$ photons                    |
-| Methane       | $\sim$ 4 minutes   | 1 phase angle, 61 wavelengths, $10^6$ photons per wavelength   |
-| Venus         | $\sim$ 1 hour      | 36 phase angles, 10 wavelengths, $10^5$ photons per wavelength |
+| Rayleigh      | $\sim$ 2 minutes  | 36 phase angles, 1 wavelength, $10^7$ photons                  |
+| Cloudy        | $\sim$ 5 minutes  | 36 phase angles, 1 wavelength, $10^7$ photons                  |
+| Ocean         | $\sim$ 14 minutes | 36 phase angles, 1 wavelength, $10^8$ photons                  |
+| Ringed        | $\sim$ 16 minutes | 1 phase angle, 1 wavelength, $10^9$ photons                    |
+| Methane       | $\sim$ 23 minutes | 1 phase angle, 61 wavelengths, $10^7$ photons per wavelength   |
+| Venus         | $\sim$ 3 hours    | 36 phase angles, 10 wavelengths, $10^6$ photons per wavelength |
 
 
 ## Create a grid
@@ -104,21 +109,27 @@ The (binary) grid file can be created with the command `polaris-gen`.
 
 There are already various models available (see above):
 
-**rayleigh**: Cloud-free Rayleigh scattering atmosphere and an absorbing surface
+**rayleigh**: Cloud-free Rayleigh scattering atmosphere
 
-**cloudy**: Cloudy atmosphere with water clouds of a given optical depth and an absorbing surface
+**cloudy**: Cloudy atmosphere
 
 **ringed**: Ringed cloud-free planet
 
-**venus**:: Venus-like cloudy atmosphere
+**venus**: Venus-like cloudy atmosphere
 
 To create a grid file, use
 ```bash
 polaris-gen model_name grid_filename.dat --num_dens 1 --normalize 0
 ```
 where `model_name` is one of the above models.
-The keyword `--num_dens 1` tells PolarisTools that the density in `model.py` (see below) is a number density (instead of a mass density), and `--normalize 0` tells PolarisTools not to normalize the density distribution to a given total dust mass.
+The parameters of the respective model are defined in `tools/polaris_tools_modules/model.py`.
+
+In addition, the keyword `--num_dens 1` tells PolarisTools that the density in `model.py` (see below) is a number density (instead of a mass density), and `--normalize 0` tells PolarisTools not to normalize the density distribution to a given total dust mass.
 The (binary) grid file will be stored at `projects/model_name/`.
+
+**HINT**: The optical depth of the cloudy, ringed and Venus-like model are based on precalculated extinction cross sections at 550 nm for a given size distribution (see see respective `.cmd` file).
+
+**NOTE**: the **methane** and the **ocean** model are based on the **rayleigh** model.
 
 
 ### Extra parameter
@@ -146,7 +157,7 @@ polaris-gen rayleigh grid_filename.dat --extra optical_depth 5\
     --num_dens 1 --normalize 0
 ```
 
-Additional parameter values to modify the model can be defined in the function `update_parameter` in the file `tools/polaris_tools_modules/model.py`.
+Additional parameter values to modify the model can be defined in the function `update_parameter(self, extra_parameter)` in the file `tools/polaris_tools_modules/model.py`.
 
 **Hint**: For any changes in the files, the user has to recompile PolarisTools with:
 ```bash
@@ -162,6 +173,10 @@ python3 tools/setup.py install --user &>/dev/null
 
 For a more complex model modification, it is recommended that users define their own models in `tools/polaris_tools_custom/model.py`.
 Therein, each model is defined as a class with a corresponding entry in the dictionary at the top of `model.py`.
+General model parameters are defined in `__init__(self)`.
+The dust density distribution or the temperature are defined in `dust_density_distribution(self)` and `dust_temperature(self)`, respectively.
+Hereby, `self.position` is a list with three entries defining the position in the grid (x, y, z).
+
 Similar, to create a grid file for a custom model, use
 ```bash
 polaris-gen model_name grid_filename.dat --num_dens 1 --normalize 0
