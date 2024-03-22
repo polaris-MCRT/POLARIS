@@ -6,16 +6,13 @@
 #include "Stokes.h"
 #include "Grid.h"
 
-void CSurface::initSurface(
-    uint _surface_refl_model, uint _surface_pol_model,
-    dlist _surface_refl_param, dlist _surface_pol_param)
+void CSurface::initSurface(parameters & param)
 {
-    surface_refl_model = _surface_refl_model;
-    surface_pol_model = _surface_pol_model;
-    surface_refl_model_loc = surface_refl_model;
-    surface_pol_model_loc = surface_pol_model;
-    surface_refl_param = _surface_refl_param;
-    surface_pol_param = _surface_pol_param;
+    surface_refl_model = param.getSurfaceReflModel();
+    surface_pol_model = param.getSurfacePolModel();
+    surface_refl_param = param.getSurfaceReflParam();
+    surface_pol_param = param.getSurfacePolParam();
+
     if(surface_refl_model == OCEAN) {
         initOceanParam();
         cout << "-> Calculating Integral for Cox-Munk wave facet distribution     \r" << flush;
@@ -36,13 +33,10 @@ void CSurface::setLocalParam(photon_package * pp, CRandomGenerator * rand_gen)
     surface_normal = pp->getPosition();
     surface_normal.normalize();
 
-    if(surface_refl_model == OCEAN) {
-        refractive_ratio = surface_refl_param[2];
-    }
-
     surface_refl_model_loc = surface_refl_model;
     surface_pol_model_loc = surface_pol_model;
-    if(surface_refl_model == OCEAN) {
+
+    if(surface_refl_model_loc == OCEAN) {
         if(rand_gen->getRND() < white_cap_fraction) {
             surface_refl_model_loc = LAMBERTIAN;
             surface_pol_model_loc = DEPOL;
@@ -219,7 +213,7 @@ void CSurface::getEscapePhotonSurfaceOcean(
     scat_fraction *= CMathFunctions::getShadowing(cos_0_tmp, cos_r, sigma_sq);
 
     // Reduce Stokes vector by albedo and scattering propability into theta and phi
-    tmp_stokes *= CMathFunctions::effFresnelReflection(refractive_ratio, cos_i) * scat_fraction;
+    tmp_stokes *= CMathFunctions::effFresnelReflection(surface_refl_param[2], cos_i) * scat_fraction;
     tmp_stokes *= cos_i / (cm_norm.getValue(cos_0_tmp) * cos_n);
 
     // Rotate Stokes vector to new photon direction
@@ -244,7 +238,7 @@ void CSurface::specularPolarization(photon_package * pp)
     StokesVector tmp_stokes = *pp->getStokesVector();
     double stokes_1_bak = tmp_stokes.I();
 
-    Matrix2D mat = CMathFunctions::getReflectionMatrix(refractive_ratio, cos_i);
+    Matrix2D mat = CMathFunctions::getReflectionMatrix(surface_refl_param[2], cos_i);
 
     if(stokes_1_bak > 1e-200) {
         // Multiply Stokes vector with scattering matrix
@@ -285,6 +279,7 @@ void CSurface::setRandomWaveNormal(photon_package * pp, CRandomGenerator * rand_
 
         // get vector in the plane of surface
         Vector3D ref_vector = cross(dir, surface_normal);
+        ref_vector.normalize();
 
         // rotate around phi and theta to get wave normal vector
         ref_vector.rot(surface_normal, phi);
@@ -430,7 +425,7 @@ int CSurface::specularInteraction(photon_package * pp, CRandomGenerator * rand_g
     StokesVector stokes = *pp->getStokesVector();
 
     cos_i = -1*d_in * wave_normal;
-    double fresnelRefl = CMathFunctions::effFresnelReflection(refractive_ratio, cos_i);
+    double fresnelRefl = CMathFunctions::effFresnelReflection(surface_refl_param[2], cos_i);
 
     // reflection
     d_in.reflect(wave_normal);

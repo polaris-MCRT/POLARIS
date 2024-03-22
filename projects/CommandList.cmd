@@ -256,6 +256,9 @@
     <acceptance_angle> 1
 
     # surface reflection (PLANET_SCATTERING) "type" parameter
+    # "lambertian" surface_albedo
+    # "lommelseeliger" scattering_albedo
+    # "ocean" foam_albedo wind_speed refractive_index
     <surface_reflection>    "lambertian" 0.0
 
 </task>

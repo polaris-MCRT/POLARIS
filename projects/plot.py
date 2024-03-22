@@ -20,7 +20,7 @@ def read_data(fits_file, model):
     sed_data = {}
     _stokes = ['I', 'Q', 'U', 'V']
 
-    if model in ['cloudy', 'rayleigh']:
+    if model in ['cloudy', 'rayleigh', 'ocean']:
         phase_angle = float(fits_header['RANGLE2'])
         wavelength = float(fits_header['HIERARCH WAVELENGTH1']) * u.m
         for i_s, i_stokes in enumerate(_stokes):
@@ -31,6 +31,14 @@ def read_data(fits_file, model):
             sed_data[i_stokes] = sed_data[i_stokes].to(u.dimensionless_unscaled)
 
         return phase_angle, sed_data
+
+    elif model == 'ocean_res':
+        wavelength = float(fits_header['HIERARCH WAVELENGTH1']) * u.m
+        for i_s, i_stokes in enumerate(_stokes):
+            sed_data[i_stokes] = fits_data[i_s,0,:,:] * u.Jy
+            sed_data[i_stokes] = sed_data[i_stokes].to(u.W / u.m**2 / u.um, equivalencies=u.spectral_density(wavelength))
+        
+        return sed_data
 
     elif model == 'methane':
         nr_wave = int(fits_header['NAXIS1'])
@@ -90,7 +98,7 @@ def load_obs_data():
     return phase_angles, polarization
 
 def plot(model):
-    if model in ['cloudy', 'rayleigh']:
+    if model in ['cloudy', 'rayleigh', 'ocean']:
         files = sorted(glob.glob(
             os.path.join('projects', model, 'data', 'polaris_detector_nr????_sed.fits.gz')))
 
@@ -108,6 +116,22 @@ def plot(model):
         ax.set_xlabel('Phase angle [deg]')
         ax.legend()
         fig.savefig(os.path.join('projects', model, f'{model}.png'), bbox_inches='tight')
+
+        if model == 'ocean':
+            nr = len(files) // 2
+            file = os.path.join('projects', model, 'data', f'polaris_detector_nr{nr:04d}.fits.gz')
+            sed_data = read_data(file, f'{model}_res')
+            sed_data['P'] = np.sqrt(sed_data['Q']**2 + sed_data['U']**2) / sed_data['I']
+
+            fig1, ax1 = plt.subplots(layout='constrained')
+            im1 = ax1.imshow(sed_data['I'].value, origin='lower')
+            fig1.colorbar(im1, label='Surface brightness [W m$^{-2}$ µm$^{-1}$ px$^{-1}$]')
+            fig1.savefig(os.path.join('projects', model, f'{model}_I.png'), bbox_inches='tight')
+
+            fig2, ax2 = plt.subplots(layout='constrained')
+            im2 = ax2.imshow(sed_data['P'].value, origin='lower')
+            fig2.colorbar(im2, label='Degree of Polarization')
+            fig2.savefig(os.path.join('projects', model, f'{model}_P.png'), bbox_inches='tight')
 
     elif model == 'methane':
         file = os.path.join('projects', model, 'data', 'polaris_detector_nr0001_sed.fits.gz')
@@ -167,6 +191,6 @@ def plot(model):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print('Wrong amount of arguments. Needs exactly 1 argument: python plot.py model_name (cloudy, methane, rayleigh, ringed, venus)')
+        print('Wrong amount of arguments. Needs exactly 1 argument: python plot.py model_name (cloudy, methane, ocean, rayleigh, ringed, venus)')
     else:
         plot(sys.argv[1])

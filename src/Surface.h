@@ -36,7 +36,7 @@ class CSurface
             surface_pol_model = DEPOL;
         }
 
-        void initSurface(uint surface_refl_model, uint surface_pol_model, dlist surface_refl_param, dlist surface_pol_param);
+        void initSurface(parameters & param);
 
         void initOceanParam();
 
@@ -152,8 +152,7 @@ class CSurface
 
         dlist surface_refl_param, surface_pol_param;
 
-        double surface_layer;
-        double sigma_sq, white_cap_fraction, refractive_ratio;
+        double sigma_sq, white_cap_fraction;
         double cos_0, cos_r, cos_i;
 
         Vector3D surface_normal, wave_normal;

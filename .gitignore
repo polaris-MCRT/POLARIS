@@ -17,6 +17,7 @@ projects/*
 !projects/test/
 !projects/cloudy/
 !projects/methane/
+!projects/ocean/
 !projects/rayleigh/
 !projects/ringed/
 !projects/venus/

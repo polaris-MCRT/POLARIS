@@ -422,9 +422,7 @@ bool CPipeline::calcPlanetPolarizationMapsViaMC(parameters & param)
     rad.setSourcesLists(sources_mc, sources_ray);
     rad.setDetectors(detector);
 
-    surface->initSurface(
-        param.getSurfaceReflModel(), param.getSurfacePolModel(),
-        param.getSurfaceReflParam(), param.getSurfacePolParam());
+    surface->initSurface(param);
     surface->printParameters();
     rad.setSurface(surface);
     rad.initiateDustMC(param);

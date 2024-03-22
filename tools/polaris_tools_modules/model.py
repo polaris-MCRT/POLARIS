@@ -175,9 +175,9 @@ class Rayleigh(Model):
         # density: molecular hydrogen (input/cross_sections/molecular_hydrogen.dat)
         # calculate the number density based on a given optical depth, radial boundaries, and cross section
         density = self.ar.getNumberDensityFromOpticalDepth(
-                self.parameter['optical_depth'],
-                self.spherical_parameter['radius_list'][1] - self.spherical_parameter['radius_list'][0],
-                self.ar.getRayleighCrossSection(5.5e-7, '1H2'))
+            self.parameter['optical_depth'],
+            self.spherical_parameter['radius_list'][1] - self.spherical_parameter['radius_list'][0],
+            self.ar.getRayleighCrossSection(5.5e-7, '1H2'))
 
         return density
 
@@ -461,7 +461,7 @@ class Venus(Model):
             self.ar.getMolarMass('12C-16O2'),
             self.gravity)
 
-        # add clouds between 48 km and 68 km
+        # add clouds between 50 km and 70 km
         idx_bot = np.searchsorted(self.spherical_parameter['radius_list'], self.planetary_radius + 50e3)
         idx_top = np.searchsorted(self.spherical_parameter['radius_list'], self.planetary_radius + 70e3)
         c_ext = 6.631955598e-12  # precalculated cross section [m^2] using r_eff = 1.05e-06 m, veff = 0.07 (550 nm)
