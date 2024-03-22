@@ -63,7 +63,7 @@ source ~/.bashrc
 ## Start a simulation
 
 POLARIS simulations are performed by parsing a command file with the simulation parameters.
-Exemplary `.cmd` command files for various planetary models can be found in [`projects/`].
+Exemplary `.cmd` command files for various planetary models can be found in `projects/`.
 
 These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy atmosphere (`cloudy`), an ocean covered cloud-free planet (`ocean`), a ringed planet (`ringed`), a cloud-free Rayleigh-scattering atmosphere with absorbing methane (`methane`), and a Venus-like atmosphere (`venus`) with cloud parameters based on [Hansen & Hovenier (1974)](https://ui.adsabs.harvard.edu/abs/1974JAtS...31.1137H).
 The results of the Venus-like atmosphere can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
