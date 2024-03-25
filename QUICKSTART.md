@@ -93,8 +93,8 @@ The output file is stored in the corresping directory, e.g. `projects/rayleigh/r
 | -----         | -----             | ----------                                                     |
 | Rayleigh      | $\sim$ 2 minutes  | 36 phase angles, 1 wavelength, $10^7$ photons                  |
 | Cloudy        | $\sim$ 5 minutes  | 36 phase angles, 1 wavelength, $10^7$ photons                  |
+| Ringed        | $\sim$ 12 minutes | 1 phase angle, 1 wavelength, $10^9$ photons                    |
 | Ocean         | $\sim$ 14 minutes | 36 phase angles, 1 wavelength, $10^8$ photons                  |
-| Ringed        | $\sim$ 16 minutes | 1 phase angle, 1 wavelength, $10^9$ photons                    |
 | Methane       | $\sim$ 23 minutes | 1 phase angle, 61 wavelengths, $10^7$ photons per wavelength   |
 | Venus         | $\sim$ 3 hours    | 36 phase angles, 10 wavelengths, $10^6$ photons per wavelength |
 

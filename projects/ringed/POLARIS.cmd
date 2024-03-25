@@ -33,12 +33,16 @@
     <axis2>    0    0    1
 
     # detector for dust scattering = "N_pixel"> wavelength_min wavelength_max wavelength_nr rot_1 rot_2 distance (sidelength_x sidelength_y)
-    # use one detector for each phase angle, here the phase angle is 30 deg, ring inclination is 25 deg
-    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 65.0 30.0 3.0856775814671917e+17
+    # use one detector only, ring inclination (i) is 25 deg, phase angle defined by position of radiation source
+    # rot_1 = 90 deg - i
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 65.0 0.0 3.0856775814671917e+17
 
     # spatially extended star as radiation source
     # star = "N_photons"> pos_x pos_y pos_z radius temperature biased_emission
-    <source_extended_star nr_photons = "1e9">    0 -13558171514 6322279208 1.0 6000 1
+    # x, y, z = n * dot(n, s) + cos(phase) * cross(cross(n, s), n) + sin(phase) * cross(n, s)
+    # rotation axis: n = [0, sin(i), cos(i)]
+    # source vector (at phase = 0): s = 14959787070 * [0, -cos(i), sin(i)]
+    <source_extended_star nr_photons = "1e9">    12955555638 -6779085757 3161139604 1.0 6000 1
 
     # Monte Carlo dust scattering in planetary atmosphere
     <cmd>    CMD_PLANET_SCATTERING
