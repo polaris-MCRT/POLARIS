@@ -17,7 +17,14 @@ is a 3D Monte Carlo radiative transfer code that
 
 - makes use of a full set of physical quantities (density, temperature, velocity, magnetic field distribution, and dust grain properties as well as different sources of radiation) as input
 
-This branch extends POLARIS and adds the ability to calculate the reflected stellar radiation including polarization of planets arising from scattering in the atmosphere , surface or the planetary environment (e.g. circumplanetary rings).
+This branch extends POLARIS and adds the ability to calculate the reflected stellar radiation including polarization of planets arising from scattering in the atmosphere, surface or the planetary environment (e.g. circumplanetary rings).
+
+[Lietzow et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021A%2526A...645A.146L):
+*Three-dimensional continuum radiative transfer of polarized radiation in exoplanetary atmospheres*\
+[Lietzow & Wolf (2022)](https://ui.adsabs.harvard.edu/abs/2022A%2526A...663A..55L):
+*Polarimetric investigation of selected cloud compositions in exoplanetary atmospheres*\
+[Lietzow & Wolf (2023)](https://ui.adsabs.harvard.edu/abs/2023A%2526A...671A.113L):
+*Scattered polarized radiation of extrasolar circumplanetary rings*
 
 
 ## Requirements
@@ -83,18 +90,20 @@ If line radiative transfer and/or Zeeman simulations are used, please cite [Brau
     ├── ext                                      # Catch2 test framework for unit-tests (only for testing purposes)
     ├── input                                    # Input data used by POLARIS
     │   ├── cross_sections                       # Cross section files in the default POLARIS format
-    │   ├── gas_lines                            # Gas line list files
     │   ├── refractive_indices                   # Refractive index files in the default POLARIS format
     │   └── interstellar_radiation_field.dat     # Spectral energy distribution of the ISRF
     ├── lib                                      # CCfits and cfitsio libraries
     ├── projects                                 # Output directory to store simulation results and examples
-    │   ├── cloudy                               # Exemplary cloudy planet model
-    │   ├── disk                                 # Exemplary disk model
-    │   ├── methane                              # Exemplary cloud-free planet model with methane absorption
-    │   ├── rayleigh                             # Exemplary cloud-free planet model, scattering only
-    │   ├── ringed                               # Exemplary cloud-free planet model with circumplanetary ring
+    │   ├── cloudy                               # Cloudy planet model
+    │   ├── methane                              # Cloud-free planet model, methane absorption
+    │   ├── ocean                                # Cloud-free planet model, ocean surface
+    │   ├── rayleigh                             # Cloud-free planet model, scattering only
+    │   ├── ringed                               # Cloud-free planet model with circumplanetary ring
     │   ├── test                                 # Models for testing purposes
-    │   └── CommandList.cmd                      # List of available POLARIS commands
+    │   ├── venus                                # Venus-like model
+    │   ├── CommandList.cmd                      # List of available POLARIS commands
+    │   ├── MODELS.md                            # Details of the exemplary models
+    │   └── plot.py                              # Python script to plot results of simulations with exemplary models
     ├── src                                      # Source files of the POLARIS code
     ├── tools                                    # PolarisTools directory
     │   ├── polaris_tools_custom                 # User-definable modules for PolarisTools

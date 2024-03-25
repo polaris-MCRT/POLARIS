@@ -32,7 +32,7 @@ def read_data(fits_file, model):
 
         return phase_angle, sed_data
 
-    elif model == 'ocean_res':
+    elif model == 'ocean_map':
         wavelength = float(fits_header['HIERARCH WAVELENGTH1']) * u.m
         for i_s, i_stokes in enumerate(_stokes):
             sed_data[i_stokes] = fits_data[i_s,0,:,:] * u.Jy
@@ -120,7 +120,7 @@ def plot(model):
         if model == 'ocean':
             nr = 2 * len(files) // 3
             file = os.path.join('projects', model, 'data', f'polaris_detector_nr{nr:04d}.fits.gz')
-            sed_data = read_data(file, f'{model}_res')
+            sed_data = read_data(file, f'{model}_map')
             sed_data['P'] = np.sqrt(sed_data['Q']**2 + sed_data['U']**2) / sed_data['I']
 
             fig1, ax1 = plt.subplots(layout='constrained')
