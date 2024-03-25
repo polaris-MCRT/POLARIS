@@ -69,7 +69,7 @@ These include a cloud-free Rayleigh-scattering atmosphere (`rayleigh`), a cloudy
 The results of the Venus-like atmosphere can be compared with observations by [Coffeen & Gehrels (1969)](https://ui.adsabs.harvard.edu/abs/1969AJ.....74..433C).
 Please also refer to [projects/MODELS.md](projects/MODELS.md) for detailed information about the planetary models.
 
-Parameters of the model such as the grid cell structure or the density of the atmospheric particles are stored in a separate grid file (please refer to the [manual](manual.pdf) Sect. 2.3 for detailed information).
+Parameters of the model such as the grid cell structure or the density of the atmospheric particles are stored in a separate binary grid file (see [Create a grid](##create-a-grid) or refer to the [manual](manual.pdf) Sect. 2.3 for detailed information).
 
 To start a simulation, move into the POLARIS directory and execute `polaris` followed by the command file:
 ```bash
@@ -102,7 +102,7 @@ The output file is stored in the corresping directory, e.g. `projects/rayleigh/r
 ## Create a grid
 
 POLARIS includes PolarisTools, a Python package to create custom grid files for POLARIS.
-The (binary) grid file can be created with the command `polaris-gen`.
+The binary grid file can be created with the command `polaris-gen`.
 
 
 ### Predefined models
@@ -127,9 +127,9 @@ The parameters of the respective model are defined in `tools/polaris_tools_modul
 In addition, the keyword `--num_dens 1` tells PolarisTools that the density in `model.py` (see below) is a number density (instead of a mass density), and `--normalize 0` tells PolarisTools not to normalize the density distribution to a given total dust mass.
 The (binary) grid file will be stored at `projects/model_name/`.
 
-**HINT**: The optical depth of the cloudy, ringed and Venus-like model are based on precalculated extinction cross sections at 550 nm for a given size distribution (see see respective `.cmd` file).
+**HINT**: The optical depth of the cloudy, ringed and Venus-like model are based on precalculated extinction cross sections at 550 nm for a given size distribution (see respective `.cmd` file and in `tools/polaris_tools_modules/model.py`).
 
-**NOTE**: the **methane** and the **ocean** model are based on the **rayleigh** model.
+**NOTE**: The **methane** and the **ocean** model are based on the **rayleigh** model.
 
 
 ### Extra parameter
