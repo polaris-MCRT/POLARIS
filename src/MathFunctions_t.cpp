@@ -324,6 +324,57 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
     }
 }
 
+TEST_CASE("CMathFunctions::integCoxMunkNorm", "[MathFunctions][CMathFunctions]")
+{
+    // at low wind speeds, the integral should be approximately cos(theta)
+    interp cm_norm = CMathFunctions::integCoxMunkNorm(0.003);
+    uint n_theta = 901;
+    for(uint t = 0; t < n_theta; t++) {
+        double mu = cos(double(t / n_theta) * PI2);
+        REQUIRE(std::abs(cm_norm.getValue(mu) - mu) < 1e-3);
+    }
+}
+
+TEST_CASE("CMathFunctions::findRootBrent::LommelSeeliger", "[MathFunctions][CMathFunctions]")
+{
+    CRandomGenerator randgen {};
+    randgen.init(123);
+
+    auto mu_0 = GENERATE(0.01, 0.25, 0.33, 0.5, 0.67, 0.75, 1.0);
+
+    double mu {};
+    double mu_mean {0.0};
+    double mu_min {PI2};
+    double mu_max {0.0};
+    constexpr std::size_t n_samples {1024 * 1024};
+
+    for (uint i = 0; i < 512; i++) {
+        double mu_rnd {randgen.getRND()};
+        double rnd {CMathFunctions::getLommelSeeligerIntegral(mu_rnd, {mu_0, 0.0})};
+        mu = CMathFunctions::findRootBrent(0.0, 1.0, &CMathFunctions::getLommelSeeligerIntegral, {mu_0, rnd});
+        // the procedure should find the root of mu
+        REQUIRE(std::abs(mu_rnd - mu) < 1e-4);
+    }
+
+    for (std::size_t i = 0; i < n_samples; ++i) {
+        mu = CMathFunctions::findRootBrent(0.0, 1.0, &CMathFunctions::getLommelSeeligerIntegral, {mu_0, randgen.getRND()});
+        mu_mean += mu;
+        mu_min = std::min(mu, mu_min);
+        mu_max = std::max(mu, mu_max);
+    }
+
+    CAPTURE(mu_0);
+
+    mu_mean /= static_cast<double>(n_samples);
+    // mu should be between 0 and pi/2
+    REQUIRE(mu_min >= 0.0);
+    REQUIRE(mu_max <= PI2);
+    REQUIRE(mu_min < mu_max);
+    // mean value should be approximately 1 / (2 - 2 * mu_0 * ln(1 + 1/mu_0)) - mu_0
+    double mean_value {0.5 / (1.0 - mu_0 * log(1.0 + 1.0 / mu_0)) - mu_0};
+    REQUIRE(std::abs(mu_mean - mean_value) < 0.01);
+}
+
 TEST_CASE("CMathFunctions::findRootBrent::Phi", "[MathFunctions][CMathFunctions]")
 {
     CRandomGenerator randgen {};

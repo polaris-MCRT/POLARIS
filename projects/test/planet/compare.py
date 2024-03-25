@@ -16,6 +16,11 @@ def lambertian(phase, albedo=1.0):
     return albedo * 2.0 / (3.0 * np.pi) * (np.sin(phase) + (np.pi - phase) * np.cos(phase))
 
 
+def lommelseeliger(phase, albedo=1.0):
+    res = 0.125 * albedo
+    return res * (1.0 + np.sin(0.5 * phase) * np.tan(0.5 * phase) * np.log(np.tan(0.25 * phase), out=np.zeros_like(phase), where=phase > 0.0))
+
+
 def read_data(sed_fits_file):
     fits_header = fits.getheader(sed_fits_file)
     fits_data = fits.getdata(sed_fits_file)
@@ -38,8 +43,10 @@ def read_data(sed_fits_file):
 
 def compare():
     benchmarks = [
-        "lambertian_exten", "rayleigh_tau0.3_surface1.0_exten", "rayleigh_tau5.0_surface0.0_exten", "rayleigh_tau10.0_surface0.3_exten",
-        "lambertian_plane", "rayleigh_tau0.3_surface1.0_plane", "rayleigh_tau5.0_surface0.0_plane", "rayleigh_tau10.0_surface0.3_plane"]
+        "lambertian_exten", "lommelseeliger_exten",
+        "rayleigh_tau0.3_surface1.0_exten", "rayleigh_tau5.0_surface0.0_exten", "rayleigh_tau10.0_surface0.3_exten",
+        "lambertian_plane", "lommelseeliger_plane",
+        "rayleigh_tau0.3_surface1.0_plane", "rayleigh_tau5.0_surface0.0_plane", "rayleigh_tau10.0_surface0.3_plane"]
 
     for benchmark in benchmarks:
         phase_angles = []
@@ -56,6 +63,9 @@ def compare():
 
         if benchmark.replace('_exten', '').replace('_plane', '') == 'lambertian':
             I_ref = lambertian(np.deg2rad(phase_angles))
+            P_ref = np.zeros_like(I_ref)
+        elif benchmark.replace('_exten', '').replace('_plane', '') == 'lommelseeliger':
+            I_ref = lommelseeliger(np.deg2rad(phase_angles))
             P_ref = np.zeros_like(I_ref)
         else:
             ref_file = os.path.join('projects', 'test', 'planet', 'reference', benchmark.replace('_exten', '').replace('_plane', '') + '.txt')

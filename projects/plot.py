@@ -118,7 +118,7 @@ def plot(model):
         fig.savefig(os.path.join('projects', model, f'{model}.png'), bbox_inches='tight')
 
         if model == 'ocean':
-            nr = len(files) // 2
+            nr = 2 * len(files) // 3
             file = os.path.join('projects', model, 'data', f'polaris_detector_nr{nr:04d}.fits.gz')
             sed_data = read_data(file, f'{model}_res')
             sed_data['P'] = np.sqrt(sed_data['Q']**2 + sed_data['U']**2) / sed_data['I']
