@@ -5,7 +5,7 @@ stages:
 script_gcc_make:
     stage: build
     before_script:
-        - pip3 install astropy numpy
+        - pip3 install astropy numpy scipy
     script:
         - ./compile.sh -f -c gcc -g make
         - ./src/build/tests -a
