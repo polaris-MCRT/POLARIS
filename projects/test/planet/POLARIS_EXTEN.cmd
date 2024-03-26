@@ -82,6 +82,36 @@
     <gas_component>    "input/cross_sections/rayleigh_1.0.dat"
 
     <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 0.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 10.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 20.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 30.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 40.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 50.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 60.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 70.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 80.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 90.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 100.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 110.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 120.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 130.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 140.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 150.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 160.0 3.0856775814671917e+17
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 170.0 3.0856775814671917e+17
+
+    <path_grid>    "projects/test/planet/no_atmosphere.dat"
+    <path_out>    "projects/test/planet/ocean_exten/"
+
+    <surface_reflection>    "ocean" 0.2 3.0 1.33
+
+</task>
+
+<task> 1
+
+    <gas_component>    "input/cross_sections/rayleigh_1.0.dat"
+
+    <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 0.0 3.0856775814671917e+17
     <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 7.5 3.0856775814671917e+17
     <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 17.5 3.0856775814671917e+17
     <detector_dust_mc nr_pixel = "64">    5.5e-07 5.5e-07 1 90.0 27.5 3.0856775814671917e+17

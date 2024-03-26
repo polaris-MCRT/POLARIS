@@ -327,7 +327,7 @@ TEST_CASE("CMathFunctions::calcWVMie::W2", "[MathFunctions][CMathFunctions]")
 TEST_CASE("CMathFunctions::integCoxMunkNorm", "[MathFunctions][CMathFunctions]")
 {
     // at low wind speeds, the integral should be approximately cos(theta)
-    interp cm_norm = CMathFunctions::integCoxMunkNorm(0.003);
+    interp cm_norm = CMathFunctions::integCoxMunkNorm(0.01836);
     uint n_theta = 901;
     for(uint t = 0; t < n_theta; t++) {
         double mu = cos(double(t / n_theta) * PI2);

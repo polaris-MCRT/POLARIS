@@ -127,6 +127,7 @@ void CSurface::getEscapePhotonSurfaceLambertian(
 
     Vector3D w_normal = dir_obs - d_in;
     w_normal.normalize();
+
     cos_r = dir_obs * surface_normal;
     cos_i = -1*d_in * w_normal;
 
@@ -161,6 +162,7 @@ void CSurface::getEscapePhotonSurfaceLommelSeeliger(
 
     Vector3D w_normal = dir_obs - d_in;
     w_normal.normalize();
+
     cos_r = dir_obs * surface_normal;
     cos_i = -1*d_in * w_normal;
 
@@ -193,20 +195,16 @@ void CSurface::getEscapePhotonSurfaceOcean(
     // Update the coordinate space of the photon
     pp_surface->updateCoordSystem(phi_photon_to_obs, theta_photon_to_obs);
 
-    double cos_n;
-    double cos_0_tmp = -1*d_in * surface_normal;
-    cos_r = dir_obs * surface_normal;
-    double scat_fraction = 0.0;
-    Vector3D w_normal;
-
-    w_normal = dir_obs - d_in;
+    Vector3D w_normal = dir_obs - d_in;
     w_normal.normalize();
 
-    cos_n = w_normal * surface_normal;
+    double cos_0_tmp = -1*d_in * surface_normal;
+    double cos_n = w_normal * surface_normal;
     cos_i = -1*d_in * w_normal;
+    cos_r = dir_obs * surface_normal;
 
     // get probability of water surface normal
-    scat_fraction = CMathFunctions::getCoxMunkProb(cos_n, sigma_sq);
+    double scat_fraction = CMathFunctions::getCoxMunkProb(cos_n, sigma_sq);
     scat_fraction /= (4.0 * cos_n * cos_0_tmp);
 
     // get shadowing function
@@ -383,6 +381,7 @@ int CSurface::lambertianReflection(photon_package * pp, CRandomGenerator * rand_
     Vector3D d_out = pp->getDirection();
     Vector3D w_normal = d_out - d_in;
     w_normal.normalize();
+
     cos_r = d_out * surface_normal;
     cos_i = -1*d_in * w_normal;
 
@@ -410,6 +409,7 @@ int CSurface::lommelSeeligerReflection(photon_package * pp, CRandomGenerator * r
     Vector3D d_out = pp->getDirection();
     Vector3D w_normal = d_out - d_in;
     w_normal.normalize();
+
     cos_i = -1*d_in * w_normal;
 
     // Multiply stokes vector by the surface albedo
@@ -435,7 +435,9 @@ int CSurface::specularInteraction(photon_package * pp, CRandomGenerator * rand_g
     stokes *= fresnelRefl;
 
     Vector3D d_out = pp->getDirection();
+
     cos_r = d_out * surface_normal;
+
     pp->setStokesVector(stokes);
     return 1;
 }
