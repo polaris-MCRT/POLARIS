@@ -191,10 +191,8 @@ def compare():
             if abs(pol - ref) > 1e-2:
                 raise Exception(f'{benchmark} Test FAILED (polarization, {pol} != {ref} at {phase} deg)')
 
-    return True
+        print(f'{benchmark} Test ... OK')
 
 
 if __name__ == '__main__':
-    res = compare()
-    if res:
-        print('Tests OK')
+    compare()
