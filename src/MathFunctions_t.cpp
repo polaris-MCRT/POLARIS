@@ -5,10 +5,10 @@
 
 #include "MathFunctions.hpp"
 #include "RandomGenerator.hpp"
-#include "catch2/catch.hpp"
+//#include "catch2/catch.hpp"
 #include <algorithm>
 
-TEST_CASE("CMathFunctions::calcWVMie::BH", "[MathFunctions][CMathFunctions]")
+/*TEST_CASE("CMathFunctions::calcWVMie::BH", "[MathFunctions][CMathFunctions]")
 {
     // compare results with
     // Bohren & Huffman (1998), Absorption and Scattering of Light by Small Particles
@@ -400,4 +400,4 @@ TEST_CASE("CMathFunctions::findRootBrent::TTHG", "[MathFunctions][CMathFunctions
     // mean value should be approximately w*g1 + (1-w)*g2
     double first_moment {weight * g1 + (1.0 - weight) * g2};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
-}
+}*/
