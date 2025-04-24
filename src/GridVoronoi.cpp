@@ -1246,10 +1246,14 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     uint n_size = center_cell->getNrOfNeighbors();
     Vector3D c_pos = center_cell->getCenter();
 
+    //uint counter = 0;
+
     if(n_size == 0)
     {
         double volume = center_cell->getVolume();
-        path_length = 1.0 * pow(volume, 1.0 / 3.0);
+        double ref_length = pow(3.0 * volume / PIx4, 1.0 / 3.0);
+    
+        path_length = ref_length;
         hit = true;
     }
 
