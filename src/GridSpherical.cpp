@@ -419,7 +419,7 @@ bool CGridSpherical::writePlotFiles(string path, parameters & param)
                        // (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 6
     plt_larm = false; // param.getPlot(plIDlarm) && (data_pos_tg != MAX_UINT) &&
                       // (data_pos_mx != MAX_UINT) && (data_pos_td != MAX_UINT); // 7
-    plt_mach = false; // param.getPlot(plIDmach) && (data_pos_vx != MAX_UINT) &&
+    //plt_mach = false; // param.getPlot(plIDmach) && (data_pos_vx != MAX_UINT) &&
                       // (data_pos_tg != MAX_UINT); // 8
 
     plt_mag = (data_pos_mx != MAX_UINT); // 0
@@ -436,7 +436,7 @@ bool CGridSpherical::writePlotFiles(string path, parameters & param)
         plt_rat = false;
         //plt_delta = false;
         plt_larm = false;
-        plt_mach = false;
+        //plt_mach = false;
     }
     else
         nrOfPlotPoints = max_cells / nrOfPlotPoints;
@@ -464,9 +464,9 @@ bool CGridSpherical::writePlotFiles(string path, parameters & param)
     string temp_gas_filename = path + "grid_gas_temp.plt";
     string temp_dust_filename = path + "grid_dust_temp.plt";
     string rat_filename = path + "grid_RAT.plt";
-    string delta_filename = path + "grid_data.dat";
+    //string delta_filename = path + "grid_data.dat";
     string larm_filename = path + "grid_mag.plt";
-    string mach_filename = path + "grid_vel.plt";
+    //string mach_filename = path + "grid_vel.plt";
     string mag_filename = path + "grid_mag.plt";
     string vel_filename = path + "grid_vel.plt";
 
@@ -558,7 +558,7 @@ bool CGridSpherical::writePlotFiles(string path, parameters & param)
         }
     }
 
-    if(plt_mach)
+    /*if(plt_mach)
     {
         point_fields[8].open(mach_filename.c_str());
 
@@ -567,7 +567,7 @@ bool CGridSpherical::writePlotFiles(string path, parameters & param)
             cout << ERROR_LINE << "Cannot write to:\n" << mach_filename << endl;
             return false;
         }
-    }
+    }*/
 
     if(plt_mag)
     {

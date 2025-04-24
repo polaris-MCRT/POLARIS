@@ -27,10 +27,10 @@ public:
         max_value = 0;
         max_data = 0;
 
-        min_delta = 0;
-        max_delta = 0;
+        /*min_delta = 0;
+        max_delta = 0;*/
 
-        min_mach = 0;
+        min_mach = 1e300;
         max_mach = 0;
 
         min_mag = 0;
@@ -133,7 +133,7 @@ public:
         plt_rat = false;
         //plt_delta = false;
         plt_larm = false;
-        plt_mach = false;
+        //plt_mach = false;
         plt_dust_id = false;
 
         total_volume = 0;

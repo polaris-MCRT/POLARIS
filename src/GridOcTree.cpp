@@ -762,7 +762,7 @@ bool CGridOcTree::writePlotFiles(string path, parameters & param)
     plt_rat = (!data_pos_aalg_list.empty());     // 5
     //plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
     plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);  // && (data_pos_td != MAX_UINT); // 7
-    plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8
+    //plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8
 
     plt_mag = (data_pos_mx != MAX_UINT); // 0
     plt_vel = (data_pos_vx != MAX_UINT); // 1
@@ -778,7 +778,7 @@ bool CGridOcTree::writePlotFiles(string path, parameters & param)
         plt_rat = false;
         //plt_delta = false;
         plt_larm = false;
-        plt_mach = false;
+        //plt_mach = false;
     }
     else
         nrOfPlotPoints = max_cells / nrOfPlotPoints;
@@ -900,7 +900,7 @@ bool CGridOcTree::writePlotFiles(string path, parameters & param)
         }
     }
 
-    if(plt_mach)
+    /*if(plt_mach)
     {
         point_fields[8].open(mach_filename.c_str());
 
@@ -909,7 +909,7 @@ bool CGridOcTree::writePlotFiles(string path, parameters & param)
             cout << ERROR_LINE << "Cannot write to:\n " << mach_filename << endl;
             return false;
         }
-    }
+    }*/
 
     if(plt_mag)
     {

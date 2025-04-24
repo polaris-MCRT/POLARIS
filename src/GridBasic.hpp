@@ -201,7 +201,7 @@ public:
         plt_rat = false;
         //plt_delta = false;
         plt_larm = false;
-        plt_mach = false;
+        //plt_mach = false;
         plt_dust_id = false;
         plt_amin = false;
         plt_amax = false;
@@ -238,7 +238,7 @@ public:
         buffer_vel_y = 0;
         buffer_vel_z = 0;
         buffer_larm = 0;
-        buffer_mach = 0;
+        //buffer_mach = 0;
         buffer_dust_mixture = 0;
         buffer_dust_amin = 0;
         buffer_dust_amax = 0;
@@ -1022,7 +1022,7 @@ protected:
     bool plt_rat;
     //bool plt_delta;
     bool plt_larm;
-    bool plt_mach;
+    //bool plt_mach;
     bool plt_dust_id;
     bool plt_amin;
     bool plt_amax;
@@ -1066,7 +1066,7 @@ protected:
     double * buffer_vel_y;
     double * buffer_vel_z;
     double * buffer_larm;
-    double * buffer_mach;
+    //double * buffer_mach;
     double * buffer_dust_mixture;
     double * buffer_dust_amin;
     double * buffer_dust_amax;
