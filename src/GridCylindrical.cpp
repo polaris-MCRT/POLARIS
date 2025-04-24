@@ -534,7 +534,7 @@ bool CGridCylindrical::writePlotFiles(string path, parameters & param)
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
     plt_rat = (!data_pos_aalg_list.empty());     // 5
-    plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
+    //plt_delta = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT); // && (data_pos_td != MAX_UINT); // 6
     plt_larm = (data_pos_tg != MAX_UINT) && (data_pos_mx != MAX_UINT);  // && (data_pos_td != MAX_UINT); // 7
     plt_mach = (data_pos_vx != MAX_UINT) && (data_pos_tg != MAX_UINT);  // 8
 
@@ -550,7 +550,7 @@ bool CGridCylindrical::writePlotFiles(string path, parameters & param)
         plt_gas_temp = false;
         plt_dust_temp = false;
         plt_rat = false;
-        plt_delta = false;
+        //plt_delta = false;
         plt_larm = false;
         plt_mach = false;
     }
@@ -652,7 +652,7 @@ bool CGridCylindrical::writePlotFiles(string path, parameters & param)
         }
     }
 
-    if(plt_delta)
+    /*if(plt_delta)
     {
         point_fields[6].open(delta_filename.c_str());
 
@@ -661,7 +661,7 @@ bool CGridCylindrical::writePlotFiles(string path, parameters & param)
             cout << ERROR_LINE << "Cannot write to:\n " << delta_filename << endl;
             return false;
         }
-    }
+    }*/
 
     if(plt_larm)
     {

@@ -135,7 +135,7 @@ public:
         plt_mag = false;
         plt_vel = false;
         plt_rat = false;
-        plt_delta = false;
+        //plt_delta = false;
         plt_larm = false;
         plt_mach = false;
         plt_dust_id = false;

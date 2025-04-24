@@ -128,7 +128,7 @@ void CGridBasic::resetGridValues()
     plt_mag = false;
     plt_vel = false;
     plt_rat = false;
-    plt_delta = false;
+    //plt_delta = false;
     plt_larm = false;
     plt_mach = false;
     plt_dust_id = false;
@@ -157,7 +157,7 @@ void CGridBasic::resetGridValues()
     buffer_gas_temp = 0;
     buffer_dust_temp = 0;
     buffer_rat = 0;
-    buffer_delta = 0;
+    //buffer_delta = 0;
     buffer_mag = 0;
     buffer_mag_x = 0;
     buffer_mag_y = 0;
@@ -865,7 +865,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
     plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) &&
               param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
 
-    plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+    //plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
     plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
     plt_mach = plt_vel && plt_gas_temp;
 
@@ -930,7 +930,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
         }
     }
 
-    if(plt_delta)
+    /*if(plt_delta)
     {
         d_writer.open(d_filename.c_str(), ios::out);
 
@@ -939,7 +939,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
             cout << ERROR_LINE << "Cannot write to:\n " << d_filename << endl;
             return false;
         }
-    }
+    }*/
 
     if(plt_mag)
     {
@@ -1113,7 +1113,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                     if(plt_rat)
                         rat_writer << float(log10(getAlignedRadius(pp, 0))) << endl;
 
-                    if(plt_delta)
+                    /*if(plt_delta)
                     {
                         double field = getMagField(pp).length();
                         double Td = getDustTemperature(pp);
@@ -1121,7 +1121,7 @@ bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
                         double dens = getGasDensity(pp);
                         double delta = CMathFunctions::calc_delta(field, Td, Tg, dens);
                         d_writer << float(log10(delta)) << endl;
-                    }
+                    }*/
                 }
             }
 
@@ -1359,7 +1359,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) &&
                   param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
 
-        plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
+        //plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
         plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
         plt_mach = plt_vel && plt_gas_temp;
 
@@ -1426,7 +1426,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_mag = false;
         plt_vel = false;
         plt_rat = false;
-        plt_delta = false;
+        //plt_delta = false;
         plt_larm = false;
         plt_mach = false;
         plt_dust_id = false;
@@ -1495,8 +1495,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             plt_g_zero1 = true;
     }
 
+    //+ uint(plt_delta)
     uint nr_parameters = uint(plt_gas_dens) + uint(plt_dust_dens) + uint(plt_gas_temp) + uint(plt_dust_temp) +
-                         4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + uint(plt_delta) +
+                         4 * uint(plt_mag) + 4 * uint(plt_vel) + uint(plt_rat) + 
                          uint(plt_larm) + uint(plt_mach) + uint(plt_dust_id) +
                          uint(plt_rad_field1) * nr_rad_field_comp * WL_STEPS + uint(plt_g_zero1) +
                          uint(plt_u_rad) + uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + uint(plt_g_min) +
@@ -1605,7 +1606,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     valarray<double> array_gas_temp(nelements);
     valarray<double> array_dust_temp(nelements);
     valarray<double> array_rat(nelements);
-    valarray<double> array_delta(nelements);
+    //valarray<double> array_delta(nelements);
     valarray<double> array_mag(nelements);
     valarray<double> array_mag_x(nelements);
     valarray<double> array_mag_y(nelements);
@@ -1690,8 +1691,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         for(long i_cell = 0; i_cell < nelements; i_cell++)
             buffer_rat[i_cell] = new double[data_pos_aalg_list.size()];
     }
-    if(plt_delta)
-        buffer_delta = new double[nelements];
+        
+    //if(plt_delta)
+    //    buffer_delta = new double[nelements];
+        
     if(plt_mag)
     {
         buffer_mag = new double[nelements];
@@ -1868,14 +1871,16 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                     pFits->pHDU().write(fpixel, nelements, array_rat);
                 }
             }
-            if(plt_delta)
+            
+            /*if(plt_delta)
             {
                 for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_delta[i_cell] = buffer_delta[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_delta);
-            }
+            }*/
+            
             if(plt_mag)
             {
                 for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -2166,14 +2171,16 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                     pFits->pHDU().write(fpixel, nelements, array_rat);
                 }
             }
-            if(plt_delta)
+            
+            /*if(plt_delta)
             {
                 for(long i_cell = 0; i_cell < nelements; i_cell++)
                     array_delta[i_cell] = buffer_delta[i_cell];
 
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_delta);
-            }
+            }*/
+            
             if(plt_mag)
             {
                 for(long i_cell = 0; i_cell < nelements; i_cell++)
@@ -2553,12 +2560,12 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             pFits->pHDU().addKey(str_1, "rat_aalig [m]", str_2);
         }
     }
-    if(plt_delta)
+    /*if(plt_delta)
     {
         counter++;
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "delta [m]", str_2);
-    }
+    }*/
     if(plt_mag)
     {
         counter++;
@@ -2765,8 +2772,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     }
     if(plt_rat)
         delete[] buffer_rat;
-    if(plt_delta)
-        delete[] buffer_delta;
+        
+    /*if(plt_delta)
+        delete[] buffer_delta;*/
+        
     if(plt_mag)
     {
         delete[] buffer_mag;
@@ -4234,7 +4243,8 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_rat)
             for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
                 buffer_rat[i_cell][i_density] = getAlignedRadius(pp, i_density);
-        if(plt_delta)
+        
+        /*if(plt_delta)
         {
             double field = getMagField(pp).length();
             double Td = getDustTemperature(pp);
@@ -4242,7 +4252,8 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
             double dens = getGasDensity(pp);
             double delta = CMathFunctions::calc_delta(field, Td, Tg, dens);
             buffer_delta[i_cell] = delta;
-        }
+        }*/
+        
         if(plt_mag)
         {
             Vector3D mag_field = getMagField(pp);
@@ -4368,8 +4379,10 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
             for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
                 buffer_rat[i_cell][i_density] = 0;
         }
-        if(plt_delta)
-            buffer_delta[i_cell] = 0;
+        
+        //if(plt_delta)
+        //    buffer_delta[i_cell] = 0;
+        
         if(plt_mag)
         {
             buffer_mag[i_cell] = 0;

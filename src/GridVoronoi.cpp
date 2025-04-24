@@ -260,7 +260,7 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
     plt_gas_temp = (data_pos_tg != MAX_UINT);    // 3
     plt_dust_temp = (!data_pos_dt_list.empty()); // 4
     plt_rat = (!data_pos_aalg_list.empty());     // 5
-    plt_delta = false;                           // param.getPlot(plIDdelta) && (data_pos_tg != uint(-1)) &&
+    //plt_delta = false;                           // param.getPlot(plIDdelta) && (data_pos_tg != uint(-1)) &&
                        // (data_pos_mx != uint(-1)) && (data_pos_td != uint(-1)); // 6
     plt_larm = false; // param.getPlot(plIDlarm) && (data_pos_tg != uint(-1)) &&
                       // (data_pos_mx != uint(-1)) && (data_pos_td != uint(-1)); // 7
@@ -279,7 +279,7 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
         plt_gas_temp = false;
         plt_dust_temp = false;
         plt_rat = false;
-        plt_delta = false;
+        //plt_delta = false;
         plt_larm = false;
         plt_mach = false;
     }
@@ -388,7 +388,7 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
         }
     }
 
-    if(plt_delta)
+    /*if(plt_delta)
     {
         point_fields[6].open(delta_filename.c_str());
 
@@ -397,7 +397,7 @@ bool CGridVoronoi::writePlotFiles(string path, parameters & param)
             cout << ERROR_LINE << "Cannot write to:\n " << delta_filename << "          \n";
             return false;
         }
-    }
+    }*/
 
     if(plt_larm)
     {

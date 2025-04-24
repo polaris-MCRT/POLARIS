@@ -199,7 +199,7 @@ public:
         plt_mag = false;
         plt_vel = false;
         plt_rat = false;
-        plt_delta = false;
+        //plt_delta = false;
         plt_larm = false;
         plt_mach = false;
         plt_dust_id = false;
@@ -228,7 +228,7 @@ public:
         buffer_gas_temp = 0;
         buffer_dust_temp = 0;
         buffer_rat = 0;
-        buffer_delta = 0;
+        //buffer_delta = 0;
         buffer_mag = 0;
         buffer_mag_x = 0;
         buffer_mag_y = 0;
@@ -1020,7 +1020,7 @@ protected:
     bool plt_mag;
     bool plt_vel;
     bool plt_rat;
-    bool plt_delta;
+    //bool plt_delta;
     bool plt_larm;
     bool plt_mach;
     bool plt_dust_id;
@@ -1056,7 +1056,7 @@ protected:
     double * buffer_gas_temp;
     double ** buffer_dust_temp;
     double ** buffer_rat;
-    double * buffer_delta;
+    //double * buffer_delta;
     double * buffer_mag;
     double * buffer_mag_x;
     double * buffer_mag_y;
