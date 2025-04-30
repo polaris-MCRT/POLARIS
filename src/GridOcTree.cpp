@@ -560,13 +560,13 @@ bool CGridOcTree::loadGridFromBinaryFile(parameters & param, uint _data_len)
     {
         line_counter++;
 
-        // if(line_counter % 5000 == 0)
-        // {
-        //     char_counter++;
-        //     cout << "-> Loading octree grid file: " << ru[(unsigned int)char_counter % 4] << "           \r";
-        // }
+        if(line_counter % 5000 == 0)
+        {
+             char_counter++;
+             cout << "-> Loading octree grid file: " << ru[(unsigned int)char_counter % 4] << "           \r";
+        }
 
-        // Calculate percentage of total progress per source
+        /*// Calculate percentage of total progress per source
         float percentage = 100.0 * double(line_counter) / double(max_cells);
 
         // Show only new percentage number if it changed
@@ -575,7 +575,7 @@ bool CGridOcTree::loadGridFromBinaryFile(parameters & param, uint _data_len)
             char_counter++;
             cout << "-> Loading octree grid file: " << percentage << " [%]      \r" << flush;
             last_percentage = percentage;
-        }
+        }*/
 
         bin_reader.read((char *)&isleaf, 2);
         bin_reader.read((char *)&level, 2);
