@@ -4,10 +4,10 @@
 ************************************************************************************/
 
 #include "RandomGenerator.hpp"
-//#include "catch2/catch.hpp"
+#include "catch2/catch.hpp"
 #include <algorithm>
 
-/*TEST_CASE("CRandomGenerator::getRND", "[MathFunctions][CRandomGenerator]") {
+TEST_CASE("CRandomGenerator::getRND", "[MathFunctions][CRandomGenerator]") {
     CRandomGenerator rng{};
     rng.init(123);
     double r_mean{0};
@@ -60,4 +60,4 @@ TEST_CASE("CRandomGenerator::getRNDnormal", "[MathFunctions][CRandomGenerator]")
     // ~68% of values should lie within mu +/- sigma
     constexpr double frac_within_1sd{0.6827};
     REQUIRE(std::abs(r_frac_within_1sd - frac_within_1sd) < 0.001);
-}*/
+}

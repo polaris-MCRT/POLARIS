@@ -4,7 +4,7 @@
 ************************************************************************************/
 
 #include "DustComponent.hpp"
-/*#include "catch2/catch.hpp"
+#include "catch2/catch.hpp"
 
 TEST_CASE("CDustComponent::henyeygreen", "[Dust][CDustComponent]")
 {
@@ -153,4 +153,4 @@ TEST_CASE("CDustComponent::threeparamhenyeygreen", "[Dust][CDustComponent]")
     // mean value should be approximately w*g1 + (1-w)*g2
     double first_moment {weight * g1 + (1.0 - weight) * g2};
     REQUIRE(std::abs(mu_mean - first_moment) < 0.01);
-}*/
+}

@@ -96,7 +96,7 @@ using namespace std;
     #define WL_STEPS 100
 #else
     // Default parameters of the global wavelength grid
-    #define WL_MIN 0.1e-6
+    #define WL_MIN 9.12e-08 // Lyman limit
     #define WL_MAX 2000e-6
     #define WL_STEPS 100
 #endif
