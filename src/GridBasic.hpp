@@ -803,6 +803,9 @@ public:
     void setMagField(cell_basic * cell, const Vector3D & mag);
 
     virtual bool next(photon_package * pp) = 0;
+    
+    
+    double getThetaSync(const photon_package & pp) const;
 
     double getThetaMag(const photon_package & pp) const;
 

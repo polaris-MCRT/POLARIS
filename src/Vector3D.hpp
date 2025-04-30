@@ -116,6 +116,8 @@ public:
     static double atan3(double x, double y);
 
     static double getAngleTheta(Vector3D lhs, Vector3D rhs);
+    
+    static double getAngleThetaOff(Vector3D lhs, Vector3D rhs);
 
     Vector3D projection(const Vector3D & v, const Vector3D & w);
 

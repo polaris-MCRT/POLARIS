@@ -16,7 +16,7 @@
 #define syn_kB 1.380662e-16  // Boltzmann constant [erg/K]
 #define syn_c 2.99792458e10  // speed of light     [cm/s]
 // conversion factor 100.0 (1/cm -> 1/m) * 1e-3 (erg s^-1 cm^-2 Hz^-1 -> W m^-2 Hz^-1) 
-#define syn_SI 0.1
+#define syn_SI_int 0.1
 // conversion factor 100.0 (1/cm -> 1/m) 
 #define syn_SI_abs 100.0
 

@@ -168,11 +168,11 @@ syn_param CSynchrotron::get_Thermal_Parameter(double n_e, double T_e, double l, 
     // Get rid of Bessel functions when Theta << 1;  otherwise
     // res.kappa_Q=res.kappa_Q*getK_Q_th(x)*(bessel_1/ bessel_2 + 6. * Theta)
     res.kappa_Q =
-        -PIx2 * nu / (2. * syn_c) * wp2 * pow(omega0, 2.) / pow(PIx2 * nu, 4.) * sin_theta * sin_theta;
+        PIx2 * nu / (2. * syn_c) * wp2 * pow(omega0, 2.) / pow(PIx2 * nu, 4.) * sin_theta * sin_theta;
 
     // Get rid of Bessel functions when Theta << 1;  otherwise
     // res.kappa_V=res.kappa_V*(bessel_0 - getK_V_th(x))/ bessel_2;
-    res.kappa_V = -PIx2 * nu / syn_c * wp2 * omega0 / pow((2. * PI * nu), 3.) * cos_theta;
+    res.kappa_V = PIx2 * nu / syn_c * wp2 * omega0 / pow((2. * PI * nu), 3.) * cos_theta;
 
     // same notation as Ensslin 2003 for testing (identical with current implementation)
     // l=l*100.0;

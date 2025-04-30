@@ -4745,9 +4745,15 @@ void CGridBasic::setMagField(cell_basic * cell, const Vector3D & mag)
     cell->setData(data_pos_mz, mag.Z());
 }
 
+//add some small value to avoid singularities
+double CGridBasic::getThetaSync(const photon_package & pp) const
+{
+    return Vector3D::getAngleTheta(pp.getDirection(), getMagField(pp))+EPS_DOUBLE;
+}
+
 double CGridBasic::getThetaMag(const photon_package & pp) const
 {
-    return Vector3D::getAngleTheta(pp.getDirection(), getMagField(pp));
+    return Vector3D::getAngleThetaOff(pp.getDirection(), getMagField(pp));
 }
 
 double CGridBasic::getPhiMag(const photon_package & pp) const

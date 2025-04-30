@@ -7,16 +7,16 @@
 
 void syn_param::scale()
 {
-    j_I *= syn_SI;
-    j_Q *= syn_SI;
-    j_V *= syn_SI;
+    j_I *= syn_SI_int;
+    j_Q *= syn_SI_int;
+    j_V *= syn_SI_int;
 
     alpha_I *= syn_SI_abs;
     alpha_Q *= syn_SI_abs;
     alpha_V *= syn_SI_abs;
 
-    kappa_Q *= syn_SI;
-    kappa_V *= syn_SI;
+    kappa_Q *= syn_SI_abs;
+    kappa_V *= syn_SI_abs;
 }
 
 Matrix2D syn_param::getSyncMatrix()

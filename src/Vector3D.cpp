@@ -409,24 +409,38 @@ double Vector3D::atan3(double x, double y)
 
 double Vector3D::getAngleTheta(Vector3D lhs, Vector3D rhs)
 {
-    double lhs_len = lhs.length();
-    double rhs_len = rhs.length();
-
-    if(lhs_len == 0.0 || rhs_len == 0.0)
-        return 0.0;
-
-    double arg = lhs * rhs / (lhs_len * rhs_len);
-
-    if(arg == 0.0)
+    if(rhs * lhs == 0.0)
         return PI2;
 
+    double arg = (lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z()) / (lhs.length() * rhs.length());
+
     if(arg < -1.0)
-        return PI;
+        arg = -1.0;
 
     if(arg > 1.0)
-        return 0.0;
+        arg = 1.0;
 
-    return acos(arg);
+    return abs(acos(arg));
+    // return abs(0.5*PI-acos((lhs.X()*rhs.X()+lhs.Y()*rhs.Y()+lhs.Z()*rhs.Z())
+    //	/(lhs.length()*rhs.length()) ));
+}
+
+double Vector3D::getAngleThetaOff(Vector3D lhs, Vector3D rhs)
+{
+    if(rhs * lhs == 0.0)
+        return PI2;
+
+    double arg = (lhs.X() * rhs.X() + lhs.Y() * rhs.Y() + lhs.Z() * rhs.Z()) / (lhs.length() * rhs.length());
+
+    if(arg < -1.0)
+        arg = -1.0;
+
+    if(arg > 1.0)
+        arg = 1.0;
+
+    return abs(0.5*PI-acos(arg));
+    // return abs(0.5*PI-acos((lhs.X()*rhs.X()+lhs.Y()*rhs.Y()+lhs.Z()*rhs.Z())
+    //	/(lhs.length()*rhs.length()) ));
 }
 
 Vector3D Vector3D::projection(const Vector3D & v, const Vector3D & w)
