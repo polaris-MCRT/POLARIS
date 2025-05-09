@@ -1605,36 +1605,41 @@ void parameters::addLineRayDetector(dlist & val)
     tmp_list.push_back(val[1] - 1);
     // source ID (all)
     tmp_list.push_back(val[2] - 1);
-    // max_velocity (all)
+    
+    // min_velocity (all)
     tmp_list.push_back(val[3]);
-    // Rot angle #1 (cart, polar) / obs. position X (healpix)
+    // max_velocity (all)
     tmp_list.push_back(val[4]);
-    // Rot angle #2 (cart, polar) / obs. position Y (healpix)
+    
+    
+    // Rot angle #1 (cart, polar) / obs. position X (healpix)
     tmp_list.push_back(val[5]);
-    // Distance from observer to model (cart, polar) / obs. position Z (healpix)
+    // Rot angle #2 (cart, polar) / obs. position Y (healpix)
     tmp_list.push_back(val[6]);
-    // Side length of dust detector in x-dir (cart, polar) / l_max (healpix)
+    // Distance from observer to model (cart, polar) / obs. position Z (healpix)
     tmp_list.push_back(val[7]);
-    // Side length of dust detector in y-dir (cart, polar) / l_min (healpix)
+    // Side length of dust detector in x-dir (cart, polar) / l_max (healpix)
     tmp_list.push_back(val[8]);
-    // delta_x (cart, slice) / None (polar) / b_max (healpix)
+    // Side length of dust detector in y-dir (cart, polar) / l_min (healpix)
     tmp_list.push_back(val[9]);
-    // delta_y (cart, slice) / None (polar) / b_min (healpix)
+    // delta_x (cart, slice) / None (polar) / b_max (healpix)
     tmp_list.push_back(val[10]);
-    // None (cart, polar, slice) / obs. velocity X (healpix)
+    // delta_y (cart, slice) / None (polar) / b_min (healpix)
     tmp_list.push_back(val[11]);
-    // None (cart, polar, slice) / obs. velocity Y (healpix)
+    // None (cart, polar, slice) / obs. velocity X (healpix)
     tmp_list.push_back(val[12]);
-    // None (cart, polar, slice) / obs. velocity Z (healpix)
+    // None (cart, polar, slice) / obs. velocity Y (healpix)
     tmp_list.push_back(val[13]);
-    // dust detector type/grid (all)
+    // None (cart, polar, slice) / obs. velocity Z (healpix)
     tmp_list.push_back(val[14]);
-    // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
+    // dust detector type/grid (all)
     tmp_list.push_back(val[15]);
-    // number of pixel in y-direction (all)
+    // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
     tmp_list.push_back(val[16]);
-    // number of velocity channels (all)
+    // number of pixel in y-direction (all)
     tmp_list.push_back(val[17]);
+    // number of velocity channels (all)
+    tmp_list.push_back(val[18]);
 
     line_ray_detector_list[i_species] = tmp_list;
 

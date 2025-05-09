@@ -19,8 +19,8 @@ double cell_basic::getData(uint i) const
     if(i == MAX_UINT)
         return 0;
 
-    if(i > 4138637280)
-        return 0;
+    //if(i > 4138637280)
+    //    return 0;
 
     return data[i];
 }

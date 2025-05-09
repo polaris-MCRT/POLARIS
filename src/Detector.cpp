@@ -1787,7 +1787,7 @@ bool CDetector::writeLineSpectrum(CGasMixture * gas, uint i_species, uint i_line
 
     // Frequency
     pFits->pHDU().addKey("CTYPE1", "VELO", "type of unit 1");
-    pFits->pHDU().addKey("CRVAL1", -max_velocity, "value of axis 1");
+    pFits->pHDU().addKey("CRVAL1", min_velocity, "value of axis 1");
     pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
     pFits->pHDU().addKey("CDELT1", channel_width, "delta of axis 1");
     pFits->pHDU().addKey("CUNIT1", "m/s", "unit of axis 1");
@@ -1811,7 +1811,8 @@ bool CDetector::writeLineSpectrum(CGasMixture * gas, uint i_species, uint i_line
     pFits->pHDU().addKey(
         "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("ZEEMAN",
                             gas->isTransZeemanSplit(i_species, i_trans),
                             "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -1894,7 +1895,7 @@ bool CDetector::writeOPIATESpectrum(COpiateDataBase *op, uint det_id)
 
     // Frequency
     pFits->pHDU().addKey("CTYPE1", "VELO", "type of unit 1");
-    pFits->pHDU().addKey("CRVAL1", -max_velocity, "value of axis 1");
+    pFits->pHDU().addKey("CRVAL1", min_velocity, "value of axis 1");
     pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
     pFits->pHDU().addKey("CDELT1", channel_width, "delta of axis 1");
     pFits->pHDU().addKey("CUNIT1", "m/s", "unit of axis 1");
@@ -1910,7 +1911,8 @@ bool CDetector::writeOPIATESpectrum(COpiateDataBase *op, uint det_id)
     pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
     pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
     pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
     pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
@@ -2093,7 +2095,8 @@ bool CDetector::writeOPIATEVelChannelMaps(COpiateDataBase * op, uint det_id)
                                 "frequency of the simulated transition");
         pFits->pHDU().addKey("VCH", i_spectral, "current velocity channel");
         pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-        pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+        pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
         pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
         pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
         pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
@@ -2292,7 +2295,8 @@ bool CDetector::writeOPIATEVelChannelMaps(COpiateDataBase * op, uint det_id)
     pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
     pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
     pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
     pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
@@ -2365,13 +2369,13 @@ bool CDetector::writeOPIATEIntChannelMaps(COpiateDataBase * op, uint det_id)
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 array_I[i] +=
-                    matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixI[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_Q[i] +=
-                    matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixQ[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_U[i] +=
-                    matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixU[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_V[i] +=
-                    matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixV[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
             }
             array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
@@ -2485,7 +2489,8 @@ bool CDetector::writeOPIATEIntChannelMaps(COpiateDataBase * op, uint det_id)
     pFits->pHDU().addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
     pFits->pHDU().addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
     pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
     pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
@@ -2674,8 +2679,8 @@ bool CDetector::writeVelChannelMaps(CGasMixture * gas, uint i_species, uint i_li
                                 "frequency of the simulated transition");
         pFits->pHDU().addKey("VCH", i_spectral, "current velocity channel");
         pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-        pFits->pHDU().addKey(
-            "MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+        pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
         pFits->pHDU().addKey("ZEEMAN",
                                 gas->isTransZeemanSplit(i_species, i_trans),
                                 "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -2891,7 +2896,8 @@ bool CDetector::writeVelChannelMaps(CGasMixture * gas, uint i_species, uint i_li
     pFits->pHDU().addKey(
         "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("ZEEMAN",
                             gas->isTransZeemanSplit(i_species, i_trans),
                             "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -2991,13 +2997,13 @@ bool CDetector::writeIntChannelMaps(CGasMixture * gas, uint i_species, uint i_li
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 array_I[i] +=
-                    matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixI[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_Q[i] +=
-                    matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixQ[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_U[i] +=
-                    matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixU[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_V[i] +=
-                    matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixV[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
             }
 
             if(isZeeman==true)
@@ -3193,7 +3199,8 @@ bool CDetector::writeIntChannelMaps(CGasMixture * gas, uint i_species, uint i_li
                             "lower energy level index number (see leiden database)");
     pFits->pHDU().addKey("FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
     pFits->pHDU().addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    pFits->pHDU().addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    pFits->pHDU().addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    pFits->pHDU().addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     pFits->pHDU().addKey("ZEEMAN",isZeeman,
                             "is zeeman splitting in the simulations considered (1=yes/0=no)");
     pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
@@ -3319,7 +3326,8 @@ bool CDetector::writeOPIATEVelChannelHealMaps(COpiateDataBase * op, uint det_id)
         newTable->addKey("FREQ", op->getCurrentFrequency(),"frequency of the simulated transition");
         newTable->addKey("VCH", i_spectral, "current velocity channel");
         newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-        newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+        newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
         newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
         newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
         newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
@@ -3448,7 +3456,8 @@ bool CDetector::writeOPIATEVelChannelHealMaps(COpiateDataBase * op, uint det_id)
     newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
     newTable->addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
     newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
     newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
     newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
@@ -3582,7 +3591,8 @@ bool CDetector::writeVelChannelHealMaps(CGasMixture * gas, uint i_species, uint 
                             "frequency of the simulated transition");
         newTable->addKey("VCH", i_spectral, "current velocity channel");
         newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-        newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+        newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+        newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
         newTable->addKey("ZEEMAN",
                             gas->isTransZeemanSplit(i_species, i_trans),
                             "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -3743,7 +3753,8 @@ bool CDetector::writeVelChannelHealMaps(CGasMixture * gas, uint i_species, uint 
     newTable->addKey(
         "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
     newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     newTable->addKey("ZEEMAN",
                         gas->isTransZeemanSplit(i_species, i_trans),
                         "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -3843,13 +3854,13 @@ bool CDetector::writeOPIATEIntVelChannelHealMaps(COpiateDataBase * op, uint det_
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 array_I[i] +=
-                    matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixI[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_Q[i] +=
-                    matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixQ[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_U[i] +=
-                    matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixU[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_V[i] +=
-                    matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixV[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
             }
             array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
@@ -3883,7 +3894,8 @@ bool CDetector::writeOPIATEIntVelChannelHealMaps(COpiateDataBase * op, uint det_
     newTable->addKey("TRANS", i_trans + 1, "transition index number (see leiden database)");
     newTable->addKey("FREQ", op->getCurrentFrequency(), "frequency of the simulated transition");
     newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     newTable->addKey("OBS_POSITION_X", obs_pos.X(), "x-axis position of observer");
     newTable->addKey("OBS_POSITION_Y", obs_pos.Y(), "y-axis position of observer");
     newTable->addKey("OBS_POSITION_Z", obs_pos.Z(), "z-axis position of observer");
@@ -3980,13 +3992,13 @@ bool CDetector::writeIntVelChannelHealMaps(CGasMixture * gas, uint i_species, ui
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 array_I[i] +=
-                    matrixI[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixI[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_Q[i] +=
-                    matrixQ[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixQ[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_U[i] +=
-                    matrixU[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixU[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
                 array_V[i] +=
-                    matrixV[i_spectral](i_x, i_y) * (2 * max_velocity / nr_spectral_bins);// * 1e-3;
+                    matrixV[i_spectral](i_x, i_y) * (channel_width / nr_spectral_bins);// * 1e-3;
             }
             array_T[i] = matrixT[int(nr_spectral_bins / 2.0)](i_x, i_y);
 
@@ -4028,7 +4040,8 @@ bool CDetector::writeIntVelChannelHealMaps(CGasMixture * gas, uint i_species, ui
     newTable->addKey(
         "FREQ", gas->getTransitionFrequency(i_species, i_trans), "frequency of the simulated transition");
     newTable->addKey("CHANNELS", nr_spectral_bins, "number of velocity channels");
-    newTable->addKey("MAXVEL", max_velocity, "velocity of the velocity channels (-maxvel to maxvel)");
+    newTable->addKey("MINVEL", min_velocity, "velocity of the velocity channels (minvel to maxvel)");
+    newTable->addKey("MAXVEL", max_velocity1, "velocity of the velocity channels (minvel to maxvel)");
     newTable->addKey("ZEEMAN",
                         gas->isTransZeemanSplit(i_species, i_trans),
                         "is zeeman splitting in the simulations considered (1=yes/0=no)");
@@ -4070,7 +4083,35 @@ void CDetector::calcCoordinateParameters(double sidelength,
     first_pix_val_deg += (deg_per_pix / 2.0);
 }
 
-void CDetector::calcVelocityChannels(uint _nr_spectral_bins, double _max_velocity)
+void CDetector::calcVelocityChannels(uint _nr_spectral_bins, double _min_velocity, double _max_velocity)
+{
+    nr_spectral_bins = _nr_spectral_bins;
+    min_velocity = _min_velocity;
+    max_velocity1 = _max_velocity;
+
+    if(nr_spectral_bins > 1)
+        channel_width = (_max_velocity-_min_velocity) / (nr_spectral_bins - 1);
+    else
+        channel_width = (_max_velocity-_min_velocity);
+
+    velocity_channel.resize(nr_spectral_bins);
+    
+    if(nr_spectral_bins > 1)
+    {
+        for(uint i = 0; i < nr_spectral_bins; i++)
+        {
+            velocity_channel[i] = _min_velocity + i* channel_width;
+        }
+        
+        velocity_channel[nr_spectral_bins-1]=_max_velocity;
+    }           
+    else if(nr_spectral_bins == 1)
+    {
+        velocity_channel[0] = 0.5*channel_width;
+    }
+}
+
+/*void CDetector::calcVelocityChannels(uint _nr_spectral_bins, double _min_velocity, double _max_velocity)
 {
     nr_spectral_bins = _nr_spectral_bins;
     max_velocity = _max_velocity;
@@ -4088,6 +4129,7 @@ void CDetector::calcVelocityChannels(uint _nr_spectral_bins, double _max_velocit
     else if(nr_spectral_bins == 1)
         velocity_channel[0] = 0;
 }
+*/
 
 string CDetector::getPath()
 {

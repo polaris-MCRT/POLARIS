@@ -68,8 +68,10 @@ bool CPipeline::Init(int argc, char ** argv)
 
     CCommandParser parser(argv[1]);
     
-    /*string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
-    CCommandParser parser(filename);*/
+    //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
+     
+    //string filename = "/mnt/f/work/velocity_test/cmd_line";
+    //CCommandParser parser(filename);
     
 
     if(!parser.parse())

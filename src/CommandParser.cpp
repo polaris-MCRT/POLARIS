@@ -633,8 +633,7 @@ bool CCommandParser::parse()
                 {
                     stop = map_max - 1;
                     cout << WARNING_LINE << "<stop> value larger than number of raytracing "
-                            "detectors!"
-                         << endl;
+                            "detectors!" << endl;
                     cout << " Value set to " << stop + 1 << "." << endl;
                 }
 
@@ -642,8 +641,7 @@ bool CCommandParser::parse()
                 {
                     start = 0;
                     cout << WARNING_LINE << "<start> value larger than number of raytracing "
-                            "detectors!"
-                         << endl;
+                            "detectors!" << endl;
                     cout << " Value set to 1." << endl;
                 }
 
@@ -1150,10 +1148,10 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         formatLine(data);
         dlist values = parseValues(data);
 
-        while(values[3] < 0)
-            values[3] += 360;
-        while(values[4] < 0)
-            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+        while(values[6] < 0)
+            values[6] += 360;
 
         if(values.size() == NR_OF_LINE_DET - 11)
         {
@@ -1230,10 +1228,10 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
 
         param->addLineRayDetector(values);
-        param->updateDetectorAngles(values[4], values[5]);
-        param->updateObserverDistance(values[6]);
-        param->updateMapSidelength(values[7], values[8]);
-        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorAngles(values[5], values[6]);
+        param->updateObserverDistance(values[7]);
+        param->updateMapSidelength(values[8], values[9]);
+        param->updateRayGridShift(values[10], values[11]);
         param->updateDetectorPixel(uint(values[NR_OF_LINE_DET - 2]), uint(values[NR_OF_LINE_DET - 1]));
 
         return true;
@@ -1250,6 +1248,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         formatLine(data);
         dlist values = parseValues(data);
+        
+        cout << values.size() << endl;
 
         if(values.size() == NR_OF_LINE_DET - 10)
         {
@@ -1265,7 +1265,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             values.push_back(0.0);
             values.push_back(0.0);
         }
-        else if(values.size() == NR_OF_LINE_DET - 7)
+        else if(values.size() == NR_OF_LINE_DET - 6)
         {
             // As above, but with galactic coordinates
             // Set velocity of the observer to (0, 0, 0) [m/s]
@@ -1280,18 +1280,19 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(!checkVelChannels(values, nr_of_channels))
             return false;
 
+        cout << values.size() << endl;
+        
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
             cout << ERROR_LINE << "Number of parameters in healpix line detector could not be "
-                    "recognized!"
-                 << endl;
+                    "recognized!"  << endl;
             return false;
         }
 
         param->addLineRayDetector(values);
         param->updateDetectorPixel(uint(nr_of_sides[0]), 0);
 
-        double distance = sqrt(values[4] * values[4] + values[5] * values[5] + values[6] * values[6]);
+        double distance = sqrt(values[5] * values[5] + values[6] * values[6] + values[7] * values[7]);
         param->updateObserverDistance(distance);
 
         // Showing full sphere coverage
@@ -3613,5 +3614,36 @@ bool CCommandParser::checkVelChannels(dlist & values, dlist nr_of_channels)
              << endl;
         return false;
     }
+    
+    double v_min=values[3];
+    double v_max=values[4];
+    
+    if(v_min>v_max)
+    {
+        cout << ERROR_LINE << "Minimal velocity (" << v_min 
+            << " m/s) needs to be smaller than the maximal velocity (" << v_max << " m/s)!";
+        return false;
+    }
+    
+    if(v_min==v_max)
+    {
+        cout << ERROR_LINE << "The minimal velocity (" << v_min 
+            << " m/s) cannot be identical with the maximal velocity (" << v_max << " m/s)!";
+        return false;
+    }
+    
+    if(abs(v_min)>1.0e6)
+    {
+        cout << WARNING_LINE << "A minimal velocity of " << v_min 
+            << " m/s is most likely not physical! Check the units of the input grid!" << endl;
+    }
+    
+    if(abs(v_max)>1.0e6)
+    {
+        cout << WARNING_LINE << "A maximal velocity of " << v_min 
+            << " m/s is most likely not physical! Check the units of the input grid!" << endl;
+    }
+        
+    
     return true;
 }

@@ -165,22 +165,23 @@ bool CRaytracingCartesian::setLineDetector(uint pos,
 
     uint i_trans = uint(line_ray_detectors[pos + 0]);
     sID = uint(line_ray_detectors[pos + 1]);
-    double max_velocity = line_ray_detectors[pos + 2];
+    double min_velocity = line_ray_detectors[pos + 2];
+    double max_velocity = line_ray_detectors[pos + 3];
 
-    rot_angle1 = PI / 180.0 * line_ray_detectors[pos + 3];
-    rot_angle2 = PI / 180.0 * line_ray_detectors[pos + 4];
+    rot_angle1 = PI / 180.0 * line_ray_detectors[pos + 4];
+    rot_angle2 = PI / 180.0 * line_ray_detectors[pos + 5];
 
-    distance = line_ray_detectors[pos + 5];
+    distance = line_ray_detectors[pos + 6];
 
-    sidelength_x = line_ray_detectors[pos + 6];
-    sidelength_y = line_ray_detectors[pos + 7];
+    sidelength_x = line_ray_detectors[pos + 7];
+    sidelength_y = line_ray_detectors[pos + 8];
 
     max_length = _max_length;
 
-    if(line_ray_detectors[pos + 8] != -1)
-        map_shift_x = line_ray_detectors[pos + 8];
     if(line_ray_detectors[pos + 9] != -1)
-        map_shift_y = line_ray_detectors[pos + 9];
+        map_shift_x = line_ray_detectors[pos + 9];
+    if(line_ray_detectors[pos + 10] != -1)
+        map_shift_y = line_ray_detectors[pos + 10];
 
     map_pixel_x = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 3]);
     map_pixel_y = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 2]);
@@ -208,6 +209,7 @@ bool CRaytracingCartesian::setLineDetector(uint pos,
                                 distance,
                                 i_trans,
                                 nr_spectral_bins,
+                                min_velocity,
                                 max_velocity);
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
@@ -233,6 +235,7 @@ bool CRaytracingCartesian::setOPIATEDetector(uint pos,
 
     uint i_trans = -1;
     sID = uint(op_ray_detectors[pos]);
+    double min_velocity = 0;
     double max_velocity = op_ray_detectors[pos + 1];
 
     double tmp_angle1 = op_ray_detectors[pos + 2];
@@ -279,6 +282,7 @@ bool CRaytracingCartesian::setOPIATEDetector(uint pos,
                                 distance,
                                 i_trans,
                                 nr_spectral_bins,
+                                min_velocity,
                                 max_velocity);
     detector->setOrientation(n1, n2, tmp_angle1, tmp_angle2);
 

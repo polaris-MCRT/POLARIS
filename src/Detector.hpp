@@ -306,6 +306,7 @@ public:
               double _distance,
               uint _i_trans,
               uint _nr_spectral_bins,
+              double _min_velocity,
               double _max_velocity)
     {
         detector_id = _detector_id;
@@ -336,7 +337,7 @@ public:
 
         nr_extra = 1;
 
-        calcVelocityChannels(_nr_spectral_bins, _max_velocity);
+        calcVelocityChannels(_nr_spectral_bins, _min_velocity,  _max_velocity);
 
         sidelength_x = _sidelength_x;
         sidelength_y = _sidelength_y;
@@ -387,7 +388,7 @@ public:
         lam_max = 0;
     }
 
-    // Spherical detector
+    // Spherical line detector
     CDetector(string _path,
               uint _bins,
               uint _id,
@@ -395,6 +396,7 @@ public:
               double _sidelength,
               uint _i_trans,
               uint _nr_spectral_bins,
+              double _min_velocity,
               double _max_velocity)
     {
         detector_id = DET_SPHER;
@@ -423,7 +425,7 @@ public:
         max_cells = bins_x * bins_y;
         distance = 1;
 
-        calcVelocityChannels(_nr_spectral_bins, _max_velocity);
+        calcVelocityChannels(_nr_spectral_bins, _min_velocity, _max_velocity);
 
         sidelength_x = _sidelength;
         sidelength_y = _sidelength;
@@ -641,7 +643,7 @@ public:
                                   double & deg_per_pix,
                                   double & first_pix_val_deg);
 
-    void calcVelocityChannels(uint _nr_spectral_bins, double _max_velocity);
+    void calcVelocityChannels(uint _nr_spectral_bins, double _min_velocity, double _max_velocity);
 
     string getPath();
 
@@ -671,7 +673,7 @@ private:
     double lam_min, lam_max;
     double sidelength_x, sidelength_y;
     double map_shift_x, map_shift_y;
-    double channel_width, max_velocity;
+    double channel_width, min_velocity, max_velocity1;
     Vector3D ex, ey, ez;
     Vector3D obs_pos, obs_vel;
     string path;

@@ -137,7 +137,7 @@ using namespace std;
 // Number of entries for different detectors
 #define NR_OF_MC_DET 12
 #define NR_OF_RAY_DET 15
-#define NR_OF_LINE_DET 17
+#define NR_OF_LINE_DET 18
 #define NR_OF_OPIATE_DET 17
 
 // Number of entries for different sources

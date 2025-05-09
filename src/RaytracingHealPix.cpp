@@ -147,22 +147,24 @@ bool CRaytracingHealPix::setLineDetector(uint pos,
 
     uint i_trans = uint(line_ray_detectors[pos + 0]);
     sID = uint(line_ray_detectors[pos + 1]);
-    double max_velocity = line_ray_detectors[pos + 2];
+    
+    double min_velocity = line_ray_detectors[pos + 2];
+    double max_velocity = line_ray_detectors[pos + 3];
 
-    sx = line_ray_detectors[pos + 3];
-    sy = line_ray_detectors[pos + 4];
-    sz = line_ray_detectors[pos + 5];
+    sx = line_ray_detectors[pos + 4];
+    sy = line_ray_detectors[pos + 5];
+    sz = line_ray_detectors[pos + 6];
 
-    l_min = PI * (-line_ray_detectors[pos + 7] + 180.0) / 180.0;
-    l_max = PI * (-line_ray_detectors[pos + 6] + 180.0) / 180.0;
-    b_min = PI * (-line_ray_detectors[pos + 9] + 90.0) / 180;
-    b_max = PI * (-line_ray_detectors[pos + 8] + 90.0) / 180;
+    l_min = PI * (-line_ray_detectors[pos + 8] + 180.0) / 180.0;
+    l_max = PI * (-line_ray_detectors[pos + 7] + 180.0) / 180.0;
+    b_min = PI * (-line_ray_detectors[pos + 10] + 90.0) / 180;
+    b_max = PI * (-line_ray_detectors[pos + 9] + 90.0) / 180;
 
     setOrientation(param.getHealpixOrientation());
 
-    vx = line_ray_detectors[pos + 10];
-    vy = line_ray_detectors[pos + 11];
-    vz = line_ray_detectors[pos + 12];
+    vx = line_ray_detectors[pos + 11];
+    vy = line_ray_detectors[pos + 12];
+    vz = line_ray_detectors[pos + 13];
 
     nside = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 2]);
     nr_spectral_bins = uint(line_ray_detectors[pos + NR_OF_LINE_DET - 1]);
@@ -175,7 +177,7 @@ bool CRaytracingHealPix::setLineDetector(uint pos,
     det_pos.setX(sx);
     det_pos.setY(sy);
     det_pos.setZ(sz);
-    detector = new CDetector(path, npix, 1, det_pos, max_length, i_trans, nr_spectral_bins, max_velocity);
+    detector = new CDetector(path, npix, 1, det_pos, max_length, i_trans, nr_spectral_bins, min_velocity, max_velocity);
     detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(vx, vy, vz), l_min, l_max, b_min, b_max);
 
     return true;
