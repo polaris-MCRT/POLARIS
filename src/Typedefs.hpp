@@ -330,6 +330,9 @@ using namespace std;
 #define IGNORE_WAVELENGTH_RANGE false
 
 // Mie-scattering calculation
+// Determine, if the complex refractive index should be interpolated using Splines;
+// otherwise linear interpolation is used
+#define USE_SPLINE_FOR_REFRACTIVE_INDEX false
 // Nr of grain sizes, Nr of size bins will be MIE_NR_DUST_SIZE - 1
 #define MIE_NR_DUST_SIZE 100
 #define MAX_MIE_ITERATIONS 20000000

@@ -1136,10 +1136,18 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
     // Init error check
     bool error = false;
 
+    // Init error in refractive index data check
+    bool nk_error = false;
+
     double max_rel_diff = 0.0;
 
     // Init maximum counter value
     uint max_counter = nr_of_dust_species * nr_of_wavelength;
+
+    if(USE_SPLINE_FOR_REFRACTIVE_INDEX){
+        cout << WARNING_LINE << "USE_SPLINE_FOR_REFRACTIVE_INDEX was set to true in 'Typedefs.h'!" << endl;
+        cout << "(When the wavelength list in the input .nk-file has gaps that are too large compared with the change of the complex refractive index n+ik, using Splines can cause large errors and negative values of n or k.)" << endl;
+    }
 
     #pragma omp parallel for schedule(dynamic) collapse(2)
     for(int a = 0; a < int(nr_of_dust_species); a++)
@@ -1191,13 +1199,35 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
                 // Set size index and refractive index as complex number
                 double x = 2.0 * PI * a_eff[a] / wavelength_list[w];
+                dcomplex refractive_index;
 #if BENCHMARK == PINTE
-                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], LOGLINEAR),
-                                                     refractive_index_imag.getValue(wavelength_list[w], LOGLINEAR));
+                refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], LOGLINEAR),
+                                            refractive_index_imag.getValue(wavelength_list[w], LOGLINEAR));
 #else
-                dcomplex refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], LOGLINEAR),
-                                                     refractive_index_imag.getValue(wavelength_list[w], LOGLINEAR));
+                if(USE_SPLINE_FOR_REFRACTIVE_INDEX)
+                {
+                    refractive_index = dcomplex(refractive_index_real.getValue(wavelength_list[w], LOGLINEAR),
+                                                refractive_index_imag.getValue(wavelength_list[w], LOGLINEAR));
+                }
+                else
+                {
+                    refractive_index = dcomplex(refractive_index_real.getLinearValue(wavelength_list[w]),
+                                                refractive_index_imag.getLinearValue(wavelength_list[w]));
+                }
 #endif
+                if(refractive_index.imag() < 0)
+                {
+                    error = true;
+                    nk_error = true;
+                    continue;
+                }
+
+                if(refractive_index.real() < 0)
+                {
+                    error = true;
+                    nk_error = true;
+                    continue;
+                }
 
                 // Calculate Mie-scattering
                 if(!CMathFunctions::calcWVMie(x,
@@ -1397,6 +1427,11 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
 
     // Set that the scattering matrix was successfully read
     scat_loaded = true;
+
+    if(nk_error)
+    {
+        cout << ERROR_LINE << "Either the real or the complex part of the refractive index is negative." << endl;
+    }
 
     if(error)
     {
