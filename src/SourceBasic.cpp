@@ -32,7 +32,7 @@ double CSourceBasic::getTemperature()
 
 double CSourceBasic::getSublimationRadius()
 {
-    return 0;
+    return r_sub;
 }
 
 void CSourceBasic::setParameter(parameters & param, CGridBasic * _grid, CDustMixture * _dust, uint p)

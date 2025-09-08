@@ -96,6 +96,8 @@ bool CSourceStar::setParameterFromFile(parameters & param, uint p)
     pos = Vector3D(values[p], values[p + 1], values[p + 2]);
     R = values[p + 3];
     T = values[p + 4];
+    
+    r_sub = values[p + 5];
 
     nr_of_photons = ullong(values[p + NR_OF_POINT_SOURCES - 1]);
     cout << CLR_LINE << flush;
@@ -290,9 +292,11 @@ void CSourceStar::setParameter(parameters & param, uint p)
     pos = Vector3D(values[p], values[p + 1], values[p + 2]);
     R = values[p + 3];
     T = values[p + 4];
+    
+    r_sub = values[p + 5];
 
-    q = values[p + 5];
-    u = values[p + 6];
+    q = values[p + 6];
+    u = values[p + 7];
 
     nr_of_photons = (ullong)values[p + NR_OF_POINT_SOURCES - 1];
 

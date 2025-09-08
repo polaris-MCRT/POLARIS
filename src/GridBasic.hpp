@@ -174,11 +174,12 @@ public:
         data_pos_px = MAX_UINT;
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
+        
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
         data_pos_size_param = MAX_UINT;
-        data_pos_ra = MAX_UINT;
-        data_pos_id = MAX_UINT;
+        //data_pos_ra = MAX_UINT;
+        data_pos_id = MAX_UINT; //dust id
 
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;
@@ -983,7 +984,7 @@ protected:
     uint data_pos_amin;
     uint data_pos_amax;
     uint data_pos_size_param;
-    uint data_pos_ra;
+    //uint data_pos_ra;
     uint data_pos_id;
 
     uint data_pos_vt;

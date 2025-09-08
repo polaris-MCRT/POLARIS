@@ -2488,16 +2488,28 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
             else
             {
-                cout << ERROR_LINE << "False amount of parameters for source star in line " << line_counter << "!"
+                cout << ERROR_LINE << "False amount of parameters for source star in line " << line_counter << " !"
                      << endl;
                 return false;
             }
         }
         else
         {
+            cout << values.size() << endl;
+            if(values.size() == NR_OF_POINT_SOURCES - 4)
+            {
+                //sublimation radius
+                values.push_back(-1);
+                //Stokes q
+                values.push_back(0);
+                //Stokes u
+                values.push_back(0);
+            }
             if(values.size() == NR_OF_POINT_SOURCES - 3)
             {
+                //Stokes q
                 values.push_back(0);
+                //Stokes u
                 values.push_back(0);
             }
             else if(values.size() != NR_OF_POINT_SOURCES - 1)
@@ -2508,7 +2520,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             }
         }
 
-        double P_l = sqrt(pow(values[5], 2) + pow(values[6], 2));
+        double P_l = sqrt(pow(values[6], 2) + pow(values[7], 2));
+        double r_sub = values[5];
         if(P_l > 1.0)
         {
             cout << ERROR_LINE << "Chosen polarization of source star is larger than 1!" << endl;
@@ -2517,10 +2530,16 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         else if(P_l < 0)
         {
             cout << INFO_LINE << "Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
-            values[5] = 0;
             values[6] = 0;
+            values[7] = 0;
         }
-
+        
+        if (r_sub!=-1 && r_sub<0)
+        {
+            cout << INFO_LINE << "Sublimation radius of source star is less than 0 (now set to 0)!" << endl;
+            values[5] = -1;
+        }
+            
         values.push_back(double(nr_of_photons));
         param->addPointSource(values, ps_path);
         return true;

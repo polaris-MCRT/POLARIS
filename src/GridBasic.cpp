@@ -100,7 +100,9 @@ void CGridBasic::resetGridValues()
     data_pos_amin = MAX_UINT;
     data_pos_amax = MAX_UINT;
     data_pos_size_param = MAX_UINT;
-    data_pos_ra = MAX_UINT;
+    
+    
+    //data_pos_ra = MAX_UINT;
     data_pos_id = MAX_UINT;
 
     data_pos_vt = MAX_UINT;

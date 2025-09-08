@@ -22,6 +22,8 @@ public:
         L = 0;
         T = 0;
         R = 0;
+        
+        r_sub=-1;
 
         q = 0;
         u = 0;
@@ -105,6 +107,7 @@ protected:
     double R;
     double L;
     double T;
+    double r_sub;
 
     double q;
     double u;

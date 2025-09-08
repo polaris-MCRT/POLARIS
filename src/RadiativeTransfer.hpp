@@ -21,6 +21,7 @@
 #include "RaytracingPolar.hpp"
 #include "RaytracingSlice.hpp"
 #include "Synchrotron.hpp"
+#include "FreeFree.hpp"
 #include "Matrix2D.hpp"
 #include "Parameters.hpp"
 #include "Stokes.hpp"

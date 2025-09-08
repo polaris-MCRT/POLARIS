@@ -62,6 +62,7 @@ using namespace std;
 #define PIx4_c (PIx4 / con_c)                         // 4 * PI / c
 #define con_e 1.6021766208e-19                        // Electron charge [C]
 #define con_Ryd 10973731.568508                       // Rydberg constant [1 / m]
+#define con_RyJ (con_h * con_c * con_Ryd)               // Rydberg energy in Joule
 #define con_AU 149597870700.0                         // Astronomical Unit [m]
 #define con_pc 3.0856775814671916e+16                 // Parsec [m]
 #define con_ly 9460730472580800.0                     // Lightyear [m]
@@ -141,7 +142,7 @@ using namespace std;
 #define NR_OF_OPIATE_DET 17
 
 // Number of entries for different sources
-#define NR_OF_POINT_SOURCES 8
+#define NR_OF_POINT_SOURCES 9
 #define NR_OF_DIFF_SOURCES 9
 #define NR_OF_LASER_SOURCES 12
 #define NR_OF_BG_SOURCES 8
@@ -246,8 +247,25 @@ using namespace std;
 #define GRIDavg_th 34
 #define GRIDavg_dir 35
 
+#define GRIDavg_ux 36
+#define GRIDavg_uy 37
+#define GRIDavg_uz 38
+
+#define GRID_akRAT 39
+#define GRID_alarm 40
+
+#define GRID_aeff 41
+#define GRID_dnda 42
+
+#define GRID_vdx 43
+#define GRID_vdy 44
+#define GRID_vdz 45
+
+#define GRID_ni 46
+#define GRID_Z  47
+
 #define minGRID GRIDgas_dens
-#define maxGRID GRIDavg_dir
+#define maxGRID GRID_Z
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))

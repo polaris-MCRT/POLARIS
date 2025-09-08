@@ -107,7 +107,7 @@ public:
         data_pos_amin = MAX_UINT;
         data_pos_amax = MAX_UINT;
         data_pos_size_param = MAX_UINT;
-        data_pos_ra = MAX_UINT;
+        //data_pos_ra = MAX_UINT;
 
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;

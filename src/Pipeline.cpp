@@ -58,7 +58,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     cout << SEP_LINE;
 
-    if(argc != 2)
+    /*if(argc != 2)
     {
         cout << ERROR_LINE << "Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -66,14 +66,12 @@ bool CPipeline::Init(int argc, char ** argv)
         return false;
     }
 
-    CCommandParser parser(argv[1]);
+    CCommandParser parser(argv[1]);*/
     
     //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
-     
-    //string filename = "/mnt/f/work/velocity_test/cmd_line";
-    //CCommandParser parser(filename);
+    string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
+    CCommandParser parser(filename);
     
-
     if(!parser.parse())
     {
         Error();

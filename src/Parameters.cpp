@@ -1733,12 +1733,14 @@ void parameters::addPointSource(dlist & val, string path)
     point_sources.push_back(val[3]);
     // Effective temperature [K]
     point_sources.push_back(val[4]);
-    // Stokes Q plarization
+    // sublimation radius
     point_sources.push_back(val[5]);
-    // Stokes U plarization
+    // Stokes q plarization
     point_sources.push_back(val[6]);
-    // Number of photons
+    // Stokes u plarization
     point_sources.push_back(val[7]);
+    // Number of photons
+    point_sources.push_back(val[8]);
     point_sources_str.push_back(path);
 }
 
