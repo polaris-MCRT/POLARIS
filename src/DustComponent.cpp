@@ -6824,7 +6824,7 @@ double CDustComponent::getAspectRatio()
 
 double CDustComponent::getSizeParam(CGridBasic * grid, const cell_basic & cell) const
 {
-    double size_param = grid->getGrainSizeParam(cell);
+    double size_param = grid->getGrainSizeParam(cell, component_id);
     if(size_param != 0)
         return size_param;
     return 0;
@@ -6842,7 +6842,7 @@ double CDustComponent::getSizeParam() const
 
 double CDustComponent::getSizeMin(CGridBasic * grid, const cell_basic & cell) const
 {
-    double a_min = grid->getMinGrainRadius(cell);
+    double a_min = grid->getMinGrainRadius(cell, component_id);
     if(a_min > 0)
         return a_min;
     return a_min_global;
@@ -6865,7 +6865,7 @@ void CDustComponent::setSizeMin(double val)
 
 double CDustComponent::getSizeMax(CGridBasic * grid, const cell_basic & cell) const
 {
-    double a_max = grid->getMaxGrainRadius(cell);
+    double a_max = grid->getMaxGrainRadius(cell, component_id);
     if(a_max != 0 && a_max < nr_of_dust_species)
         return a_max;
     return a_max_global;

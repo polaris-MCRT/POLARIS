@@ -1,3 +1,8 @@
+/************************************************************************************
+*                      POLARIS: POLArized RadIation Simulator                       *
+*                         Copyright (C) 2018 Stefan Reissl                          *
+************************************************************************************/
+
 #ifndef CFREEFREE_HPP
 #define CFREEFREE_HPP
 

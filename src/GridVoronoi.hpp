@@ -74,10 +74,6 @@ public:
         conv_Bfield_in_SI = 1;
         conv_Vfield_in_SI = 1;
 
-        nrOfPlotPoints = 1000;
-        nrOfPlotVectors = 1000;
-        maxPlotLines = 3;
-
         cell_list = 0;
 
         data_offset = 6;
@@ -103,13 +99,14 @@ public:
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
         // data_pos_aalg = MAX_UINT;
-        data_pos_amin = MAX_UINT;
-        data_pos_amax = MAX_UINT;
-        data_pos_size_param = MAX_UINT;
+        //data_pos_amin = MAX_UINT;
+        //data_pos_amax = MAX_UINT;
+        //data_pos_size_param = MAX_UINT;
         //data_pos_ra = MAX_UINT;
 
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;
+        
 
         data_pos_op = MAX_UINT;
 
@@ -119,6 +116,13 @@ public:
         data_pos_g_min = MAX_UINT;
         data_pos_g_max = MAX_UINT;
         data_pos_p = MAX_UINT;
+        
+        data_pos_avg_ux = MAX_UINT;
+        data_pos_avg_uy = MAX_UINT;
+        data_pos_avg_uz = MAX_UINT;
+        
+        data_pos_n_i = MAX_UINT;
+        data_pos_Z = MAX_UINT;        
 
         pos_GasSpecRatios = 0;
         pos_OpiateIDS = 0;
@@ -183,7 +187,7 @@ public:
 
     bool isInside(const Vector3D & pos) const;
 
-    bool writePlotFiles(string path, parameters & param);
+    
 
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);

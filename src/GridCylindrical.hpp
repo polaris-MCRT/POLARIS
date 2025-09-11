@@ -72,10 +72,6 @@ public:
         conv_Bfield_in_SI = 1;
         conv_Vfield_in_SI = 1;
 
-        nrOfPlotPoints = 1000;
-        nrOfPlotVectors = 1000;
-        maxPlotLines = 3;
-
         cell_list = 0;
 
         data_offset = 6;
@@ -102,9 +98,9 @@ public:
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
         // data_pos_aalg = MAX_UINT;
-        data_pos_amin = MAX_UINT;
-        data_pos_amax = MAX_UINT;
-        data_pos_size_param = MAX_UINT;
+        //data_pos_amin = MAX_UINT;
+        //data_pos_amax = MAX_UINT;
+        //data_pos_size_param = MAX_UINT;
         //data_pos_ra = MAX_UINT;
 
         data_pos_vt = MAX_UINT;
@@ -121,6 +117,13 @@ public:
 
         data_pos_avg_th = MAX_UINT;
         data_pos_avg_dir = MAX_UINT;
+        
+        data_pos_avg_ux = MAX_UINT;
+        data_pos_avg_uy = MAX_UINT;
+        data_pos_avg_uz = MAX_UINT;
+        
+        data_pos_n_i = MAX_UINT;
+        data_pos_Z = MAX_UINT;
 
         pos_GasSpecRatios = 0;
         pos_OpiateIDS = 0;
@@ -253,7 +256,6 @@ public:
         // cout << CLR_LINE << flush;
     }
 
-    bool writePlotFiles(string path, parameters & param);
 
     bool goToNextCellBorder(photon_package * pp);
     bool updateShortestDistance(photon_package * pp);

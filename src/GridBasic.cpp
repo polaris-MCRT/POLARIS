@@ -44,17 +44,26 @@ void CGridBasic::resetGridValues()
     max_mach = -1e300;
     min_mach = 1e300;
 
-    aalg_max = -1e300;
-    aalg_min = 1e300;
+    min_dust_aalg = -1e300;
+    max_dust_aalg =  1e300;
+    
+    min_dust_akrat = -1e300;
+    max_dust_akrat =  1e300;
 
-    a_min_min = 1e300;
-    a_min_max = -1e300;
+    min_dust_amin = -1e300;
+    max_dust_amin =  1e300;
+    
+    min_dust_amax = -1e300;
+    max_dust_amax =  1e300;
 
-    a_max_min = 1e300;
-    a_max_max = -1e300;
-
-    size_param_min = 1e300;
-    size_param_max = -1e300;
+    min_dust_size_param = -1e300;
+    max_dust_size_param =  1e300;
+    
+    min_ion_dens = -1e300;
+    max_ion_dens =  1e300;
+    
+    min_ion_Z = -1e300;
+    max_ion_Z =  1e300;
 
     dust_id_min = MAX_UINT;
     dust_id_max = 0;
@@ -97,9 +106,9 @@ void CGridBasic::resetGridValues()
     data_pos_px = MAX_UINT;
     data_pos_py = MAX_UINT;
     data_pos_pz = MAX_UINT;
-    data_pos_amin = MAX_UINT;
-    data_pos_amax = MAX_UINT;
-    data_pos_size_param = MAX_UINT;
+    //data_pos_amin = MAX_UINT;
+    //data_pos_amax = MAX_UINT;
+    //data_pos_size_param = MAX_UINT;
     
     
     //data_pos_ra = MAX_UINT;
@@ -382,9 +391,9 @@ void CGridBasic::updateDataRange(cell_basic * cell)
 
     if(!data_pos_aalg_list.empty())
     {
-        for(uint i_dens = 0; i_dens < data_pos_aalg_list.size(); i_dens++)
+        for(uint i = 0; i < data_pos_aalg_list.size(); i++)
         {
-            a_alg = cell->getData(data_pos_aalg_list[i_dens]);
+            a_alg = cell->getData(data_pos_aalg_list[i]);
 
             if(a_alg > float(aalg_max))
                 aalg_max = (double)a_alg;
@@ -394,37 +403,46 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         }
     }
 
-    if(data_pos_amin != MAX_UINT)
+    if(!data_pos_amin_list.empty())
     {
-        double a_min = cell->getData(data_pos_amin);
+        for(uint i = 0; i < data_pos_amin_list.size(); i++)
+        {
+            double a_min = cell->getData(data_pos_amin_list[i]);
 
-        if(a_min > float(a_min_max))
-            a_min_max = a_min;
+            if(a_min > float(a_min_max))
+                a_min_max = a_min;
 
-        if(a_min < float(a_min_min))
-            a_min_min = a_min;
+            if(a_min < float(a_min_min))
+                a_min_min = a_min;
+        }
     }
 
-    if(data_pos_amax != MAX_UINT)
+    if(!data_pos_amax_list.empty())
     {
-        double a_max = cell->getData(data_pos_amax);
+        for(uint i = 0; i < data_pos_amax_list.size(); i++)
+        {
+            double a_max = cell->getData(data_pos_amax_list[i]);
 
-        if(a_max > float(a_max_max))
-            a_max_max = a_max;
+            if(a_max > float(a_max_max))
+                a_max_max = a_max;
 
-        if(a_max < float(a_max_min))
-            a_max_min = a_max;
+            if(a_max < float(a_max_min))
+                a_max_min = a_max;
+        }
     }
 
-    if(data_pos_size_param != MAX_UINT)
+    if(!data_pos_size_param_list.empty())
     {
-        uint size_param = cell->getData(data_pos_size_param);
+        for(uint i = 0; i < data_pos_size_param_list.size(); i++)
+        {
+            double size_param = cell->getData(data_pos_size_param_list[i]);
 
-        if(size_param > float(size_param_max))
-            size_param_max = size_param;
+            if(size_param > float(size_param_max))
+                size_param_max = size_param;
 
-        if(size_param < float(size_param_min))
-            size_param_min = size_param;
+            if(size_param < float(size_param_min))
+                size_param_min = size_param;
+        }
     }
 
     if(data_pos_id != MAX_UINT)
@@ -772,13 +790,13 @@ void CGridBasic::printPhysicalParameters()
         cout << "- Mach number         (min,max) : [" << min_mach << ", " << max_mach << "]" << endl;
     }
 
-    if(data_pos_amin != MAX_UINT)
+    if(data_pos_amin_list.size()>0)
         cout << "- Minimum grain size  (min,max) : [" << a_min_min << ", " << a_min_max << "] [m]" << endl;
 
-    if(data_pos_amax != MAX_UINT)
+    if(data_pos_amax_list.size()>0)
         cout << "- Maximum grain size  (min,max) : [" << a_max_min << ", " << a_max_max << "] [m]" << endl;
 
-    if(data_pos_size_param != MAX_UINT)
+    if(data_pos_size_param_list.size()>0)
         cout << "- Dust size parameter (min,max) : [" << size_param_min << ", " << size_param_max << "]"
              << endl;
 
@@ -849,492 +867,6 @@ void CGridBasic::printPhysicalParameters()
         cout << " - Unique OPIATE IDs" << endl;
 }
 
-bool CGridBasic::writeAMIRAFiles(string path, parameters & param, uint bins)
-{
-    if(bins == 0)
-        return true;
-
-    bool plt_gas_dens = (size_gd_list > 0) && param.isInPlotList(GRIDgas_dens);
-    // bool plt_dust_dens = param.getPlot(plIDnd) && (!data_pos_dd_list.empty()); //to
-    // do if dust denity is possible
-    bool plt_gas_temp = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
-    bool plt_dust_temp = (!data_pos_dt_list.empty()) && param.isInPlotList(GRIDdust_temp);
-    bool plt_mag = (data_pos_mx != MAX_UINT) && param.isInPlotList(GRIDgas_dens);
-
-    plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_my != MAX_UINT) &&
-              param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
-
-    plt_vel = (data_pos_vx != MAX_UINT) && (data_pos_vy != MAX_UINT) && (data_pos_vz != MAX_UINT) &&
-              param.isInPlotList(GRIDvx) && param.isInPlotList(GRIDvy) && param.isInPlotList(GRIDvz);
-
-    //plt_delta = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
-    plt_larm = plt_gas_temp && plt_mag && (!data_pos_dt_list.empty());
-    //plt_mach = plt_vel && plt_gas_temp;
-
-    ullong per_counter = 0;
-    // per_max = bins * bins;
-    string dens_filename = path + "gas_density.am";
-    string dtemp_filename = path + "dust_temp.am";
-    string gtemp_filename = path + "gas_temp.am";
-    string magvec_filename = path + "mag_vec_field.am";
-    string velvec_filename = path + "vel_vec_field.am";
-    string magf_filename = path + "mag_field.am";
-    string velf_filename = path + "vel_field.am";
-    string a_filename = path + "aalig.am";
-    string d_filename = path + "delta.am";
-
-    ofstream dens_writer, rat_writer;
-    ofstream gas_writer, dust_writer;
-    ofstream magvec_writer, magf_writer;
-    ofstream velvec_writer, velf_writer;
-    ofstream d_writer;
-
-    if(plt_gas_dens)
-    {
-        dens_writer.open(dens_filename.c_str(), ios::out);
-
-        if(dens_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << dens_filename << endl;
-            return false;
-        }
-    }
-
-    if(plt_gas_temp)
-    {
-        gas_writer.open(gtemp_filename.c_str(), ios::out);
-
-        if(gas_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << gtemp_filename << endl;
-            return false;
-        }
-    }
-
-    if(plt_dust_temp)
-    {
-        dust_writer.open(dtemp_filename.c_str(), ios::out);
-        if(dust_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << dtemp_filename << endl;
-            return false;
-        }
-    }
-
-    if(plt_rat)
-    {
-        rat_writer.open(a_filename.c_str(), ios::out);
-
-        if(rat_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << a_filename << endl;
-            return false;
-        }
-    }
-
-    /*if(plt_delta)
-    {
-        d_writer.open(d_filename.c_str(), ios::out);
-
-        if(d_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << d_filename << endl;
-            return false;
-        }
-    }*/
-
-    if(plt_mag)
-    {
-        magvec_writer.open(magvec_filename.c_str(), ios::out);
-
-        if(magvec_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << magvec_filename << endl;
-            return false;
-        }
-
-        magf_writer.open(magf_filename.c_str(), ios::out);
-
-        if(magf_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << magf_filename << endl;
-            return false;
-        }
-    }
-
-    if(plt_vel)
-    {
-        velvec_writer.open(velvec_filename.c_str(), ios::out);
-
-        if(velvec_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << velvec_filename << endl;
-            return false;
-        }
-
-        velf_writer.open(velf_filename.c_str(), ios::out);
-
-        if(velf_writer.fail())
-        {
-            cout << ERROR_LINE << "Cannot write to:\n " << velf_filename << endl;
-            return false;
-        }
-    }
-
-    stringstream point_header, vec_header;
-    point_header.str("");
-    vec_header.str("");
-
-    int b_limit = int(bins) / 2;
-    double xyz_step = max_len / double(bins);
-
-    double off_xyz = 0.5 * xyz_step;
-    photon_package pp = photon_package();
-
-    point_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
-    point_header << "define Lattice " << bins << " " << bins << " " << bins;
-    point_header << "\tParameters {" << endl;
-    point_header << "Content \"" << bins << "x" << bins << "x" << bins << " float, uniform coordinates\","
-                 << endl;
-    point_header << "BoundingBox ";
-    point_header << 0 << " "; // float(cell_oc_root->getXmin())
-    point_header << 1 << " "; // float(cell_oc_root->getXmax())
-    point_header << 0 << " "; // float(cell_oc_root->getXmin())
-    point_header << 1 << " "; // float(cell_oc_root->getXmax())
-    point_header << 0 << " "; // float(cell_oc_root->getXmin())
-    point_header << 1 << " "; // float(cell_oc_root->getXmax())
-    point_header << "," << endl;
-    point_header << " CoordType \"uniform\"" << endl;
-    point_header << "}" << endl;
-    point_header << "Lattice { float Data } @1" << endl;
-    point_header << "# Data section follows" << endl;
-    point_header << "@1" << endl;
-
-    vec_header << "# AmiraMesh 3D ASCII 2.0\n" << endl;
-    vec_header << "define Lattice " << bins << " " << bins << " " << bins;
-    vec_header << "\tParameters {" << endl;
-    vec_header << "Content \"" << bins << "x" << bins << "x" << bins << " float[3], uniform coordinates\","
-               << endl;
-    vec_header << "BoundingBox ";
-    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
-    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
-    vec_header << 0 << " "; // float(cell_oc_root->getXmin())
-    vec_header << 1 << " "; // float(cell_oc_root->getXmax())
-    vec_header << "," << endl;
-    vec_header << " CoordType \"uniform\"" << endl;
-    vec_header << "}" << endl;
-    vec_header << "Lattice { float[3] Data } @1" << endl;
-    vec_header << "# Data section follows" << endl;
-    vec_header << "@1" << endl;
-
-    dens_writer << "# " << (min_len) << " " << (max_len);
-    dens_writer << point_header.str();
-    gas_writer << point_header.str();
-    dust_writer << point_header.str();
-    magf_writer << point_header.str();
-    velf_writer << point_header.str();
-
-    magvec_writer << vec_header.str();
-    velvec_writer << vec_header.str();
-
-    rat_writer << point_header.str();
-    d_writer << point_header.str();
-
-    Vector3D mag_field, vel_field;
-
-    for(int z = -b_limit; z <= b_limit; z++)
-    {
-        if(z == 0)
-            continue;
-
-        for(int y = -b_limit; y <= b_limit; y++)
-        {
-            if(y == 0)
-                continue;
-
-            for(int x = -b_limit; x <= b_limit; x++)
-            {
-                if(x == 0)
-                    continue;
-
-                double sgx = CMathFunctions::sgn(x);
-                double sgy = CMathFunctions::sgn(y);
-                double sgz = CMathFunctions::sgn(z);
-                double tx = double(x) * xyz_step - sgx * off_xyz;
-                double ty = double(y) * xyz_step - sgy * off_xyz;
-                double tz = double(z) * xyz_step - sgz * off_xyz;
-
-                pp.setPosition(Vector3D(tx, ty, tz));
-
-                if(!positionPhotonInGrid(&pp))
-                {
-                    dens_writer << float(log10(min_gas_dens)) << endl;
-                    gas_writer << uint(0) << endl;
-                    dust_writer << uint(0) << endl;
-                    magf_writer << float(log10(min_mag)) << endl;
-                    velf_writer << float(log10(min_vel)) << endl;
-
-                    magvec_writer << uint(0) << " " << uint(0) << " " << uint(0) << endl;
-                    velvec_writer << uint(0) << " " << uint(0) << " " << uint(0) << endl;
-
-                    d_writer << uint(0) << endl;
-
-                    rat_writer << uint(0) << endl;
-                }
-                else
-                {
-                    dens_writer << float(log10(getGasDensity(pp))) << endl;
-                    gas_writer << float((getGasTemperature(pp))) << endl;
-                    dust_writer << float((getDustTemperature(pp))) << endl;
-
-                    if(plt_mag)
-                    {
-                        mag_field = getMagField(pp);
-                        magf_writer << float(log10(mag_field.length())) << endl;
-                        mag_field.normalize();
-                        // mag_field *= max_len;
-
-                        magvec_writer << float(mag_field.X()) << " " << float(mag_field.Y()) << " "
-                                      << float(mag_field.Z()) << endl;
-                    }
-
-                    if(plt_vel)
-                    {
-                        vel_field = getVelocityField(pp);
-                        velf_writer << float(log10(vel_field.length())) << endl;
-
-                        vel_field.normalize();
-                        // vel_field *= max_len;
-
-                        velvec_writer << float(vel_field.X()) << " " << float(vel_field.Y()) << " "
-                                      << float(vel_field.Z()) << endl;
-                    }
-
-                    if(plt_rat)
-                        rat_writer << float(log10(getAlignedRadius(pp, 0))) << endl;
-
-                    /*if(plt_delta)
-                    {
-                        double field = getMagField(pp).length();
-                        double Td = getDustTemperature(pp);
-                        double Tg = getGasTemperature(pp);
-                        double dens = getGasDensity(pp);
-                        double delta = CMathFunctions::calc_delta(field, Td, Tg, dens);
-                        d_writer << float(log10(delta)) << endl;
-                    }*/
-                }
-            }
-
-            per_counter++;
-            // if(per_counter % 49 == 0)
-            //     cout << " -> Writing AMIRA files:     " << 100.0 * float(per_counter) / float(per_max)
-            //          << " [%]                  \r";
-        }
-    }
-
-    dens_writer.close();
-    gas_writer.close();
-    dust_writer.close();
-    magvec_writer.close();
-    magf_writer.close();
-
-    velvec_writer.close();
-    velf_writer.close();
-    rat_writer.close();
-    d_writer.close();
-
-    cout << "- Writing AMIRA files                  : done" << endl;
-
-    return true;
-}
-
-bool CGridBasic::writeSpecialLines(string data_path)
-{
-    string x_filename = data_path + "center_lines_x.dat";
-    string y_filename = data_path + "center_lines_y.dat";
-    string z_filename = data_path + "center_lines_z.dat";
-
-    ofstream x_writer, y_writer, z_writer;
-
-    x_writer.open(x_filename.c_str(), ios::out);
-    y_writer.open(y_filename.c_str(), ios::out);
-    z_writer.open(z_filename.c_str(), ios::out);
-
-    if(x_writer.fail())
-    {
-        cout << ERROR_LINE << "Cannot write to:\n " << x_filename << endl;
-        return false;
-    }
-
-    if(y_writer.fail())
-    {
-        cout << ERROR_LINE << "Cannot write to:\n " << y_filename << endl;
-        return false;
-    }
-
-    if(z_writer.fail())
-    {
-        cout << ERROR_LINE << "Cannot write to:\n " << z_filename << endl;
-        return false;
-    }
-
-    x_writer.precision(8);
-    x_writer << scientific;
-
-    y_writer.precision(8);
-    y_writer << scientific;
-
-    z_writer.precision(8);
-    z_writer << scientific;
-
-    // cout << " -> Writing lines: 0.0 [%]                   \r" << flush;
-
-    photon_package pp = photon_package();
-
-    // along z
-    pp.setPosition(Vector3D(0, 0, 2.0 * max_len));
-    pp.setDirection(Vector3D(0.0001, 0.0001, -1.00001).normalized());
-    findStartingPoint(&pp);
-
-    z_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
-
-    while(next(&pp))
-    {
-        double pos = pp.getPosition().Z();
-        double dens = getGasDensity(pp);
-        double Tg = 0;
-        double Td = 0;
-        double a_alg = 0;
-        double mx = 0, my = 0, mz = 0;
-        double vx = 0, vy = 0, vz = 0;
-
-        if(data_pos_tg != MAX_UINT)
-            Tg = getGasTemperature(pp);
-
-        if(!data_pos_dt_list.empty())
-            Td = getDustTemperature(pp);
-
-        if(data_pos_mx != MAX_UINT)
-        {
-            mx = getMagField(pp).X();
-            my = getMagField(pp).Y();
-            mz = getMagField(pp).Z();
-        }
-
-        if(data_pos_vx != MAX_UINT)
-        {
-            vx = getVelocityField(pp).X();
-            vy = getVelocityField(pp).Y();
-            vz = getVelocityField(pp).Z();
-        }
-
-        if(!data_pos_aalg_list.empty())
-            a_alg = getAlignedRadius(pp, 0);
-
-        z_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
-                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
-    }
-
-    // cout << " -> Writing lines: 33.3 [%]                  \r" << flush;
-
-    pp.setPosition(Vector3D(0, 2.0 * max_len, 0));
-    pp.setDirection(Vector3D(0.0001, -1.00001, 0.0001).normalized());
-    findStartingPoint(&pp);
-
-    y_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
-
-    while(next(&pp))
-    {
-        double pos = pp.getPosition().Y();
-        double dens = getGasDensity(pp);
-        double Tg = 0;
-        double Td = 0;
-        double a_alg = 0;
-        double mx = 0, my = 0, mz = 0;
-        double vx = 0, vy = 0, vz = 0;
-
-        if(data_pos_tg != MAX_UINT)
-            Tg = getGasTemperature(pp);
-
-        if(!data_pos_dt_list.empty())
-            Td = getDustTemperature(pp);
-
-        if(data_pos_mx != MAX_UINT)
-        {
-            mx = getMagField(pp).X();
-            my = getMagField(pp).Y();
-            mz = getMagField(pp).Z();
-        }
-
-        if(data_pos_vx != MAX_UINT)
-        {
-            vx = getVelocityField(pp).X();
-            vy = getVelocityField(pp).Y();
-            vz = getVelocityField(pp).Z();
-        }
-
-        if(!data_pos_aalg_list.empty())
-            a_alg = getAlignedRadius(pp, 0);
-
-        y_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
-                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
-    }
-
-    // cout << " -> Writing lines: 66.6 [%]                   \r" << flush;
-
-    pp.setPosition(Vector3D(2.0 * max_len, 0, 0));
-    pp.setDirection(Vector3D(-1.00001, 0.0001, 0.0001).normalized());
-    findStartingPoint(&pp);
-
-    x_writer << "ng\tTg\tTd\tmx\tmy\tmz\tvx\tvy\tvz\ta_alg" << endl;
-
-    while(next(&pp))
-    {
-        double pos = pp.getPosition().X();
-        double dens = getGasDensity(pp);
-        double Tg = 0;
-        double Td = 0;
-        double a_alg = 0;
-        double mx = 0, my = 0, mz = 0;
-        double vx = 0, vy = 0, vz = 0;
-
-        if(data_pos_tg != MAX_UINT)
-            Tg = getGasTemperature(pp);
-
-        if(!data_pos_dt_list.empty())
-            Td = getDustTemperature(pp);
-
-        if(data_pos_mx != MAX_UINT)
-        {
-            mx = getMagField(pp).X();
-            my = getMagField(pp).Y();
-            mz = getMagField(pp).Z();
-        }
-
-        if(data_pos_vx != MAX_UINT)
-        {
-            vx = getVelocityField(pp).X();
-            vy = getVelocityField(pp).Y();
-            vz = getVelocityField(pp).Z();
-        }
-
-        if(!data_pos_aalg_list.empty())
-            a_alg = getAlignedRadius(pp, 0);
-
-        x_writer << pos << "\t" << dens << "\t" << Tg << "\t" << Td << "\t" << mx << "\t" << my << "\t" << mz
-                 << "\t" << vx << "\t" << vy << "\t" << vz << "\t" << a_alg << endl;
-    }
-
-    x_writer.close();
-    y_writer.close();
-    z_writer.close();
-
-    cout << "- Writing lines                 : done" << endl;
-    return true;
-}
-
 bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bins, bool all)
 {
     bool res = true;
@@ -1346,7 +878,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
 
     cout << CLR_LINE;
-    cout << " -> Allocating memory for midplane files ...             \r" << flush;
+    cout << " -> Allocating memory for plotting midplane files ...             \r" << flush;
 
     if(all)
     {
@@ -1367,9 +899,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         plt_dust_id = (data_pos_id != MAX_UINT);
 
-        plt_amin = (data_pos_amin != MAX_UINT) && param.isInPlotList(GRIDa_min);
-        plt_amax = (data_pos_amax != MAX_UINT) && param.isInPlotList(GRIDa_max);
-        plt_size_param = (data_pos_size_param != MAX_UINT) && param.isInPlotList(GRIDq);
+        plt_amin = (data_pos_amin_list.size()>0) && param.isInPlotList(GRIDa_min);
+        plt_amax = (data_pos_amax_list.size()>0) && param.isInPlotList(GRIDa_max);
+        plt_size_param = (data_pos_size_param_list.size()>0) && param.isInPlotList(GRIDq);
 
         plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
         plt_T_e = (data_pos_T_e != MAX_UINT) && param.isInPlotList(GRIDT_e);
@@ -3642,6 +3174,36 @@ void CGridBasic::setAvgDir(cell_basic * cell, double dir)
         cell->setData(data_pos_avg_dir, dir);
 }
 
+void CGridBasic::setAvg_ux(cell_basic * cell, double ux)
+{
+    if(data_pos_avg_ux != MAX_UINT)
+        cell->setData(data_pos_avg_ux, ux);
+}
+
+void CGridBasic::setAvg_uy(cell_basic * cell, double uy)
+{
+    if(data_pos_avg_uy != MAX_UINT)
+        cell->setData(data_pos_avg_uy, uy);
+}
+
+void CGridBasic::setAvg_uz(cell_basic * cell, double uz)
+{
+    if(data_pos_avg_uz != MAX_UINT)
+        cell->setData(data_pos_avg_uz, uz);
+}
+
+void CGridBasic::setIonDensity(cell_basic * cell, double n_i)
+{
+    if(data_pos_n_i != MAX_UINT)
+        cell->setData(data_pos_n_i, n_i);
+}
+
+void CGridBasic::setIonCharge(cell_basic * cell, double Z)
+{
+    if(data_pos_Z != MAX_UINT)
+        cell->setData(data_pos_Z, Z);
+}
+
 void CGridBasic::setDustChoiceID(cell_basic * cell, uint dust_id)
 {
     if(data_pos_id != MAX_UINT)
@@ -3735,40 +3297,49 @@ void CGridBasic::setAlignedRadius(cell_basic * cell, uint i_density, double _a_a
     cell->setData(data_pos_aalg_list[i_density], _a_alg);
 }
 
-double CGridBasic::getMinGrainRadius(const cell_basic & cell) const
+double CGridBasic::getMinGrainRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_amin != MAX_UINT)
-        return cell.getData(data_pos_amin);
-    return 0;
+    if(data_pos_amin_list.size() == 1)
+        return cell.getData(data_pos_amin_list[0]);
+    else if(data_pos_amin_list.size() > i_density)
+        return cell.getData(data_pos_amin_list[i_density]);
+    else
+        return 0;
 }
 
-double CGridBasic::getMinGrainRadius(const photon_package & pp) const
+double CGridBasic::getMinGrainRadius(const photon_package & pp, uint i_density) const
 {
-    return getMinGrainRadius(*pp.getPositionCell());
+    return getMinGrainRadius(*pp.getPositionCell(), i_density);
 }
 
-double CGridBasic::getMaxGrainRadius(const cell_basic & cell) const
+double CGridBasic::getMaxGrainRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_amax != MAX_UINT)
-        return cell.getData(data_pos_amax);
-    return 0;
+    if(data_pos_amax_list.size() == 1)
+        return cell.getData(data_pos_amax_list[0]);
+    else if(data_pos_amax_list.size() > i_density)
+        return cell.getData(data_pos_amax_list[i_density]);
+    else
+        return 0;
 }
 
-double CGridBasic::getMaxGrainRadius(const photon_package & pp) const
+double CGridBasic::getMaxGrainRadius(const photon_package & pp, uint i_density) const
 {
-    return getMaxGrainRadius(*pp.getPositionCell());
+    return getMaxGrainRadius(*pp.getPositionCell(), i_density);
 }
 
-double CGridBasic::getGrainSizeParam(const cell_basic & cell) const
+double CGridBasic::getGrainSizeParam(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_amax != MAX_UINT)
-        return cell.getData(data_pos_size_param);
-    return 0;
+    if(data_pos_size_param_list.size() == 1)
+        return cell.getData(data_pos_size_param_list[0]);
+    else if(data_pos_size_param_list.size() > i_density)
+        return cell.getData(data_pos_size_param_list[i_density]);
+    else
+        return 0;
 }
 
-double CGridBasic::getGrainSizeParam(const photon_package & pp) const
+double CGridBasic::getGrainSizeParam(const photon_package & pp, uint i_density) const
 {
-    return getGrainSizeParam(*pp.getPositionCell());
+    return getGrainSizeParam(*pp.getPositionCell(), i_density);
 }
 
 uint CGridBasic::getDustChoiceID(const photon_package & pp) const
@@ -4016,6 +3587,72 @@ double CGridBasic::getPowerLawIndex(const cell_basic & cell) const
     return 0;
 }
 
+Vector3D CGridBasic::getAvg_u(const photon_package & pp) const
+{
+    return getAvg_u(*pp.getPositionCell());
+}
+
+Vector3D CGridBasic::getAvg_u(const cell_basic & cell) const
+{
+    double ux=0, uy=0, uz=0;
+
+    if(data_pos_avg_ux != MAX_UINT)
+        ux=cell.getData(data_pos_avg_ux);
+    else
+        return Vector3D(0,0,0);
+
+    if(data_pos_avg_uy != MAX_UINT)
+        uy=cell.getData(data_pos_avg_uy);
+    else
+        return Vector3D(0,0,0);    
+
+    if(data_pos_avg_uz != MAX_UINT)
+        uz=cell.getData(data_pos_avg_uz);
+    else
+        return Vector3D(0,0,0);    
+
+    return Vector3D(ux,uy,uz);
+}
+
+double CGridBasic::getAvg_ux(const cell_basic & cell) const
+{
+    if(data_pos_avg_ux != MAX_UINT)
+        return cell.getData(data_pos_avg_ux);
+
+    return 0;
+}
+
+double CGridBasic::getAvg_ux(const photon_package & pp) const
+{
+    return getAvg_ux(*pp.getPositionCell());
+}
+
+double CGridBasic::getAvg_uy(const cell_basic & cell) const
+{
+    if(data_pos_avg_uy != MAX_UINT)
+        return cell.getData(data_pos_avg_uy);
+
+    return 0;
+}
+
+double CGridBasic::getAvg_uy(const photon_package & pp) const
+{
+    return getAvg_uy(*pp.getPositionCell());
+}
+
+double CGridBasic::getAvg_uz(const cell_basic & cell) const
+{
+    if(data_pos_avg_uz != MAX_UINT)
+        return cell.getData(data_pos_avg_uz);
+
+    return 0;
+}
+
+double CGridBasic::getAvg_uz(const photon_package & pp) const
+{
+    return getAvg_uz(*pp.getPositionCell());
+}
+
 double CGridBasic::getAvgTheta(const photon_package & pp) const
 {
     return getAvgTheta(*pp.getPositionCell());
@@ -4028,6 +3665,33 @@ double CGridBasic::getAvgTheta(const cell_basic & cell) const
 
     return 0;
 }
+
+double CGridBasic::getIonDensity(const photon_package & pp) const
+{
+    return getIonDensity(*pp.getPositionCell());
+}
+
+double CGridBasic::getIonDensity(const cell_basic & cell) const
+{
+    if(data_pos_n_i != MAX_UINT)
+        return cell.getData(data_pos_n_i);
+
+    return 0;
+}
+
+double CGridBasic::getIonCharge(const photon_package & pp) const
+{
+    return getIonCharge(*pp.getPositionCell());
+}
+
+double CGridBasic::getIonCharge(const cell_basic & cell) const
+{
+    if(data_pos_Z != MAX_UINT)
+        return cell.getData(data_pos_Z);
+
+    return 0;
+}
+
 
 double CGridBasic::getAvgDir(const photon_package & pp) const
 {
@@ -4297,11 +3961,11 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_dust_id)
             buffer_dust_mixture[i_cell] = getDustChoiceID(pp);
         if(plt_amin)
-            buffer_dust_amin[i_cell] = getMinGrainRadius(pp);
+            buffer_dust_amin[i_cell] = getMinGrainRadius(pp,0);
         if(plt_amax)
-            buffer_dust_amax[i_cell] = getMaxGrainRadius(pp);
+            buffer_dust_amax[i_cell] = getMaxGrainRadius(pp,0);
         if(plt_size_param)
-            buffer_dust_size_param[i_cell] = getGrainSizeParam(pp);
+            buffer_dust_size_param[i_cell] = getGrainSizeParam(pp,0);
         if(plt_rad_field1)
             for(uint i_comp = 0; i_comp < nr_rad_field_comp; i_comp++)
             {
@@ -4567,7 +4231,7 @@ bool CGridBasic::useDustChoice()
 
 bool CGridBasic::useConstantGrainSizes()
 {
-    if(data_pos_amin != MAX_UINT || data_pos_amax != MAX_UINT || data_pos_size_param != MAX_UINT)
+    if(data_pos_amin_list.size() != 0 || data_pos_amax_list.size() != 0 || data_pos_size_param_list.size() != 0)
         return false;
     return true;
 }
@@ -5031,33 +4695,36 @@ bool CGridBasic::setDataPositionsVariable()
                 break;
 
             case GRIDa_min:
-                if(data_pos_amin != MAX_UINT)
+                /*if(data_pos_amin != MAX_UINT)
                 {
                     cout << ERROR_LINE << "Grid ID " << GRIDa_min << " can be set only once!" << endl;
                     return false;
                 }
 
-                data_pos_amin = i;
+                data_pos_amin = i;*/
+                data_pos_amin_list.push_back(i);
                 break;
 
             case GRIDa_max:
-                if(data_pos_amax != MAX_UINT)
+                /*if(data_pos_amax != MAX_UINT)
                 {
                     cout << ERROR_LINE << "Grid ID " << GRIDa_max << " can be set only once!" << endl;
                     return false;
                 }
 
-                data_pos_amax = i;
+                data_pos_amax = i;*/
+                data_pos_amax_list.push_back(i);
                 break;
 
             case GRIDq:
-                if(data_pos_size_param != MAX_UINT)
+                /*if(data_pos_size_param != MAX_UINT)
                 {
                     cout << ERROR_LINE << "Grid ID " << GRIDq << " can be set only once!" << endl;
                     return false;
                 }
 
-                data_pos_size_param = i;
+                data_pos_size_param = i;*/
+                data_pos_size_param_list.push_back(i);
                 break;
 
             case GRIDv_turb:
@@ -5149,7 +4816,66 @@ bool CGridBasic::setDataPositionsVariable()
 
                 data_pos_avg_th = i;
                 break;
+                
+            case GRIDavg_ux:
+                if(data_pos_avg_ux != MAX_UINT)
+                {
+                    cout << "\nERROR: Grid ID " << GRIDavg_ux << " can be set only once!" << endl;
+                    return false;
+                }
 
+                data_pos_avg_ux = i;
+                break;  
+
+            case GRIDavg_uy:
+                if(data_pos_avg_uy != MAX_UINT)
+                {
+                    cout << "\nERROR: Grid ID " << GRIDavg_uy << " can be set only once!" << endl;
+                    return false;
+                }
+
+                data_pos_avg_uy = i;
+                break; 
+
+            case GRIDavg_uz:
+                if(data_pos_avg_uz != MAX_UINT)
+                {
+                    cout << "\nERROR: Grid ID " << GRIDavg_uz << " can be set only once!" << endl;
+                    return false;
+                }
+
+                data_pos_avg_uz = i;
+                break; 
+
+            case GRID_akRAT:
+                data_pos_dust_a_krat_list.push_back(i);
+                break;
+
+            case GRID_alarm:
+                data_pos_dust_a_larm_list.push_back(i);
+                break;                
+
+                
+            case GRID_ni:
+                if(data_pos_n_i != MAX_UINT)
+                {
+                    cout << "\nERROR: Grid ID " << GRID_ni << " can be set only once!" << endl;
+                    return false;
+                }
+
+                data_pos_n_i = i;
+                break; 
+
+            case GRID_Z:
+                if(data_pos_Z != MAX_UINT)
+                {
+                    cout << "\nERROR: Grid ID " << GRID_Z << " can be set only once!" << endl;
+                    return false;
+                }
+
+                data_pos_Z = i;
+                break; 
+                
             case GRIDratio:
                 nrOfDensRatios++;
                 break;
@@ -5192,12 +4918,13 @@ bool CGridBasic::setDataPositionsVariable()
                 break;
 
             default:
-                cout << ERROR_LINE << "Unknown data IDs!" << endl;
+                cout << ERROR_LINE << "Unknown data IDs in grid file!" << endl;
                 cout << "         IDs have to be between " << minGRID << " and " << maxGRID << "!"
                         << endl;
                 return false;
         }
     }
+    
     size_gd_list = data_pos_gd_list.size();
     size_dd_list = data_pos_dd_list.size();
 
@@ -5552,6 +5279,26 @@ uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
             tmp_data_offset++;
         }
     }
+    
+    if(data_pos_dust_a_krat_list.empty())
+    {
+        for(uint i_density = 0; i_density < nr_densities; i_density++)
+        {
+            data_pos_dust_a_krat_list.push_back(data_offset + tmp_data_offset);
+            data_ids.push_back(GRID_akRAT);
+            tmp_data_offset++;
+        }
+    }
+
+    if(data_pos_dust_a_larm_list.empty())
+    {
+        for(uint i_density = 0; i_density < nr_densities; i_density++)
+        {
+            data_pos_dust_a_larm_list.push_back(data_offset + tmp_data_offset);
+            data_ids.push_back(GRID_alarm);
+            tmp_data_offset++;
+        }
+    }
 
     if(data_pos_avg_dir == MAX_UINT)
     {
@@ -5564,6 +5311,27 @@ uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
     {
         data_pos_avg_th = data_offset + tmp_data_offset;
         data_ids.push_back(GRIDavg_th);
+        tmp_data_offset++;
+    }
+    
+    if(data_pos_avg_ux == MAX_UINT)
+    {
+        data_pos_avg_ux = data_offset + tmp_data_offset;
+        data_ids.push_back(GRIDavg_ux);
+        tmp_data_offset++;
+    }
+
+    if(data_pos_avg_uy == MAX_UINT)
+    {
+        data_pos_avg_uy = data_offset + tmp_data_offset;
+        data_ids.push_back(GRIDavg_uy);
+        tmp_data_offset++;
+    }
+
+    if(data_pos_avg_uz == MAX_UINT)
+    {
+        data_pos_avg_uz = data_offset + tmp_data_offset;
+        data_ids.push_back(GRIDavg_uz);
         tmp_data_offset++;
     }
 

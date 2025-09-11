@@ -244,12 +244,6 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
-        return false;
-
     createSourceLists(param, dust, grid);
     if(sources_mc.size() == 0)
     {
@@ -286,14 +280,6 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 
     if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
         return false;
-
-    if(!grid->writePlotFiles(path_plot + "output_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "output_", param, param.getOutAMIRAPoints()))
-        return false;
-
-    grid->writeSpecialLines(path_data);
 
     if(param.getSaveRadiationField())
         grid->saveRadiationField();
@@ -337,12 +323,6 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
-        return false;
-
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
         return false;
 
     createSourceLists(param, dust, grid);
@@ -405,12 +385,6 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
-        return false;
-
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
         return false;
 
     createSourceLists(param, dust, grid);
@@ -491,12 +465,6 @@ bool CPipeline::calcChMapsViaRayTracing(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
-        return false;
-
     createSourceLists(param, dust, grid);
     if(sources_ray.size() == 0)
     {
@@ -563,12 +531,6 @@ bool CPipeline::calcOpiateMapsViaRayTracing(parameters & param)
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
-        return false;
-
     createSourceLists(param, dust, grid);
     if(sources_ray.size() == 0)
     {
@@ -627,12 +589,6 @@ bool CPipeline::calcPolarizationMapsViaSynchrotron(parameters & param)
     grid->printParameters();
 
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
-        return false;
-
-    if(!grid->writePlotFiles(path_plot + "input_", param))
-        return false;
-
-    if(!grid->writeAMIRAFiles(path_plot + "input_", param, param.getInpAMIRAPoints()))
         return false;
 
     createSourceLists(param, dust, grid);
@@ -1670,17 +1626,8 @@ void CPipeline::printPathParameters(parameters & param)
 
 void CPipeline::printPlotParameters(parameters & param, bool input_output)
 {
-    if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() + param.getInpMidDataPoints() +
-            param.getOutMidDataPoints() + param.getInpAMIRAPoints() + param.getOutAMIRAPoints() >
-        0)
+    if(param.getInpMidDataPoints() + param.getOutMidDataPoints() > 0)
         cout << "Plot parameters" << endl;
-
-    if(param.getNrOfPlotPoints() + param.getNrOfPlotVectors() != 0)
-    {
-        cout << "- Raw data                     : " << param.getNrOfPlotPoints() << " points, ";
-        cout << param.getNrOfPlotVectors() << " vectors, ";
-        cout << param.getMaxPlotLines() << " lines" << endl;
-    }
 
     if(param.getInpMidDataPoints() != 0 && param.getOutMidDataPoints() != 0)
     {
@@ -1696,17 +1643,6 @@ void CPipeline::printPlotParameters(parameters & param, bool input_output)
         if(param.getOutMidDataPoints() != 0)
             cout << "- Midplane               (out) : " << param.getOutMidDataPoints() << " pixel"
                     << endl;
-    }
-
-    if(param.getInpAMIRAPoints() != 0 && param.getOutAMIRAPoints() != 0)
-        cout << "- Amira points (in,out)        : " << param.getInpAMIRAPoints() << ", "
-                << param.getOutAMIRAPoints() << " pixel" << endl;
-    else
-    {
-        if(param.getInpAMIRAPoints() != 0)
-            cout << "- Amira points            (in) : " << param.getInpAMIRAPoints() << " pixel" << endl;
-        if(param.getOutAMIRAPoints() != 0)
-            cout << "- Amira points           (out) : " << param.getOutAMIRAPoints() << " pixel" << endl;
     }
 }
 

@@ -85,9 +85,6 @@ public:
         nr_ofISRFPhotons = 0;
         nr_ofDustPhotons = 0;
 
-        nrOfPlotPoints = 0;
-        nrOfPlotVectors = 0;
-        maxPlotLines = 0;
         cmd = -1;
 
         healpix_orientation = HEALPIX_YAXIS;
@@ -158,10 +155,6 @@ public:
     const Vector3D & getAxis1() const;
 
     const Vector3D & getAxis2() const;
-
-    uint getOutAMIRAPoints() const;
-
-    uint getInpAMIRAPoints() const;
 
     bool plotInpMidPoints() const;
 
@@ -395,12 +388,6 @@ public:
 
     uint getNrOfSources() const;
 
-    uint getNrOfPlotPoints() const;
-
-    uint getNrOfPlotVectors() const;
-
-    uint getMaxPlotLines() const;
-
     uint getStart() const;
 
     uint getStop() const;
@@ -430,12 +417,6 @@ public:
     void setStop(uint val);
 
     void setMu(double val);
-
-    void setNrOfPlotPoints(uint val);
-
-    void setnrOfPlotVectors(uint val);
-
-    void setMaxPlotLines(uint val);
 
     void setNrOfThreads(uint val);
 
@@ -849,10 +830,6 @@ private:
     double extinction_magnitude;
     double extinction_magnitude_wavelength;
     uint extinction_i_mixture;
-
-    uint nrOfPlotPoints;
-    uint nrOfPlotVectors;
-    uint maxPlotLines;
 
     uint nr_of_mc_lvl_pop_photons;
     uint mc_lvl_pop_seed;

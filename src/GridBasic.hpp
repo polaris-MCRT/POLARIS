@@ -95,17 +95,26 @@ public:
         min_dust_dens = 0;
         max_dust_dens = 0;
 
-        aalg_min = 0;
-        aalg_max = 0;
+        min_dust_aalg = 0;
+        max_dust_aalg = 0;
 
-        a_min_min = 0;
-        a_min_max = 0;
+        min_dust_akrat = 0;
+        max_dust_akrat = 0;
 
-        a_max_min = 0;
-        a_max_max = 0;
+        min_dust_amin = 0;
+        max_dust_amin = 0;
 
-        size_param_min = 0;
-        size_param_max = 0;
+        min_dust_amax = 0;
+        max_dust_amax = 0;
+
+        min_dust_size_param = 0;
+        max_dust_size_param = 0;
+
+        min_ion_dens = 0;
+        max_ion_dens = 0;
+
+        min_ion_Z = 0;
+        max_ion_Z = 0;
 
         dust_id_min = 0;
         dust_id_max = 0;
@@ -132,10 +141,6 @@ public:
         gas_is_mass_density = false;
         velocity_field_needed = false;
         spec_length_as_vector = false;
-
-        nrOfPlotPoints = 1000;
-        nrOfPlotVectors = 1000;
-        maxPlotLines = 3;
 
         cell_list = 0;
 
@@ -175,14 +180,21 @@ public:
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
         
-        data_pos_amin = MAX_UINT;
-        data_pos_amax = MAX_UINT;
-        data_pos_size_param = MAX_UINT;
+        //data_pos_amin = MAX_UINT;
+        //data_pos_amax = MAX_UINT;
+        //data_pos_size_param = MAX_UINT;
         //data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT; //dust id
 
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;
+        
+        data_pos_avg_ux = MAX_UINT;
+        data_pos_avg_uy = MAX_UINT;
+        data_pos_avg_uz = MAX_UINT;
+        
+        data_pos_n_i = MAX_UINT;
+        data_pos_Z = MAX_UINT;
 
         pos_GasSpecRatios = 0;
         pos_OpiateIDS = 0;
@@ -416,8 +428,7 @@ public:
 
     void setSIConversionFactors(parameters & param);
 
-    virtual bool writePlotFiles(string path, parameters & param) = 0;
-
+    
     void setDataSize(uint sz);
 
     void setDustInformation(uint _nr_mixtures,
@@ -540,6 +551,16 @@ public:
     void setAvgTheta(cell_basic * cell, double phi);
 
     void setAvgDir(cell_basic * cell, double dir);
+    
+    void setAvg_ux(cell_basic * cell, double ux);
+
+    void setAvg_uy(cell_basic * cell, double uy);
+    
+    void setAvg_uz(cell_basic * cell, double uz);
+    
+    void setIonDensity(cell_basic * cell, double n_i);
+
+    void setIonCharge(cell_basic * cell, double Z);
 
     void setDustChoiceID(cell_basic * cell, uint dust_id);
 
@@ -567,17 +588,17 @@ public:
 
     void setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg);
 
-    double getMinGrainRadius(const cell_basic & cell) const;
+    double getMinGrainRadius(const cell_basic & cell, uint i_density) const;
 
-    double getMinGrainRadius(const photon_package & pp) const;
+    double getMinGrainRadius(const photon_package & pp, uint i_density) const;
 
-    double getMaxGrainRadius(const cell_basic & cell) const;
+    double getMaxGrainRadius(const cell_basic & cell, uint i_density) const;
 
-    double getMaxGrainRadius(const photon_package & pp) const;
+    double getMaxGrainRadius(const photon_package & pp, uint i_density) const;
 
-    double getGrainSizeParam(const cell_basic & cell) const;
+    double getGrainSizeParam(const cell_basic & cell, uint i_density) const;
 
-    double getGrainSizeParam(const photon_package & pp) const;
+    double getGrainSizeParam(const photon_package & pp, uint i_density) const;
 
     uint getDustChoiceID(const photon_package & pp) const;
 
@@ -649,7 +670,7 @@ public:
     double getThermalElectronDensity(const photon_package & pp) const;
 
     double getThermalElectronDensity(const cell_basic & cell) const;
-
+    
     double getCRElectronDensity(const photon_package & pp) const;
 
     double getCRElectronDensity(const cell_basic & cell) const;
@@ -665,6 +686,14 @@ public:
     double getPowerLawIndex(const photon_package & pp) const;
 
     double getPowerLawIndex(const cell_basic & cell) const;
+    
+    double getIonDensity(const photon_package & pp) const;
+
+    double getIonDensity(const cell_basic & cell) const;
+    
+    double getIonCharge(const photon_package & pp) const;
+
+    double getIonCharge(const cell_basic & cell) const;
 
     double getAvgTheta(const photon_package & pp) const;
 
@@ -673,6 +702,23 @@ public:
     double getAvgDir(const photon_package & pp) const;
 
     double getAvgDir(const cell_basic & cell) const;
+    
+    Vector3D getAvg_u(const photon_package & pp) const;
+    
+    Vector3D getAvg_u(const cell_basic & cell) const;
+    
+    double getAvg_ux(const cell_basic & cell) const;
+    
+    double getAvg_ux(const photon_package & pp) const;
+    
+    double getAvg_uy(const cell_basic & cell) const;
+    
+    double getAvg_uy(const photon_package & pp) const;
+    
+    double getAvg_uz(const cell_basic & cell) const;
+    
+    double getAvg_uz(const photon_package & pp) const;
+    
 
     double getDustTemperature(const cell_basic & cell, uint i_density, uint a) const;
 
@@ -710,9 +756,7 @@ public:
                            double & tz);
 
     void fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell);
-
-    bool writeSpecialLines(string path);
-    bool writeAMIRAFiles(string path, parameters & param, uint bins);
+    
     bool writeMidplaneFits(string data_path, parameters & param, uint bins, bool all = false);
 
     void updateMidplaneString(char * str_1, char * str_2, uint counter);
@@ -883,17 +927,27 @@ protected:
 
     double max_mach;
     double min_mach;
+    
+    double min_dust_aalg;
+    double max_dust_aalg;
+    
+    double min_dust_akrat;
+    double max_dust_akrat;
 
-    double aalg_min;
-    double aalg_max;
+    double min_dust_amin;
+    double max_dust_amin;
+    
+    double min_dust_amax;
+    double max_dust_amax;
 
-    double a_min_min;
-    double a_min_max;
-    double a_max_min;
-    double a_max_max;
-
-    double size_param_min;
-    double size_param_max;
+    double min_dust_size_param;
+    double max_dust_size_param;
+    
+    double min_ion_dens;
+    double max_ion_dens;
+    
+    double min_ion_Z;
+    double max_ion_Z;
 
     uint dust_id_min;
     uint dust_id_max;
@@ -938,9 +992,6 @@ protected:
     uint char_counter;
     unsigned char ru[4];
 
-    uint nrOfPlotPoints, nrOfPlotVectors;
-    uint maxPlotLines;
-
     Vector3D ex, ey, ez;
 
     cell_basic ** cell_list;
@@ -981,10 +1032,10 @@ protected:
     uint data_pos_py;
     uint data_pos_pz;
     uilist data_pos_aalg_list;
-    uint data_pos_amin;
-    uint data_pos_amax;
-    uint data_pos_size_param;
-    //uint data_pos_ra;
+    uilist data_pos_amin_list;
+    uilist data_pos_amax_list;
+    uilist data_pos_size_param_list;
+    
     uint data_pos_id;
 
     uint data_pos_vt;
@@ -1004,13 +1055,25 @@ protected:
     uilist data_pos_ry_list;
     uilist data_pos_rz_list;
     uilist data_pos_rf_list;
+    
+    uilist data_pos_dust_a_alg_list;
+    uilist data_pos_dust_a_krat_list;
+    uilist data_pos_dust_a_larm_list;
 
     uint data_pos_avg_th;
     uint data_pos_avg_dir;
+    
+    uint data_pos_avg_ux;
+    uint data_pos_avg_uy;
+    uint data_pos_avg_uz;
+    
+    uint data_pos_n_i;
+    uint data_pos_Z;
 
     double turbulent_velocity;
 
-    uslist data_ids;
+    uslist data_ids; // data ids for physical quantities
+    
     uint * pos_GasSpecRatios;
     uint * pos_OpiateIDS;
 
@@ -1024,9 +1087,7 @@ protected:
     bool plt_mag;
     bool plt_vel;
     bool plt_rat;
-    //bool plt_delta;
     bool plt_larm;
-    //bool plt_mach;
     bool plt_dust_id;
     bool plt_amin;
     bool plt_amax;
@@ -1060,7 +1121,6 @@ protected:
     double * buffer_gas_temp;
     double ** buffer_dust_temp;
     double ** buffer_rat;
-    //double * buffer_delta;
     double * buffer_mag;
     double * buffer_mag_x;
     double * buffer_mag_y;
@@ -1070,7 +1130,6 @@ protected:
     double * buffer_vel_y;
     double * buffer_vel_z;
     double * buffer_larm;
-    //double * buffer_mach;
     double * buffer_dust_mixture;
     double * buffer_dust_amin;
     double * buffer_dust_amax;

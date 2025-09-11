@@ -146,6 +146,8 @@ public:
 
         a_min_global = 1e200;
         a_max_global = 0;
+        
+        component_id = 0;
     }
 
     ~CDustComponent()
@@ -993,6 +995,8 @@ private:
 
     uilist dust_mixtures;
     uilist dust_choices_to_index;
+    
+    uint component_id;
 };
 
 #endif /* CDUST_COMPONENT_H */

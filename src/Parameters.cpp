@@ -35,16 +35,6 @@ const Vector3D & parameters::getAxis2() const
     return axis2;
 }
 
-uint parameters::getOutAMIRAPoints() const
-{
-    return nr_ofOutAMIRAPoints;
-}
-
-uint parameters::getInpAMIRAPoints() const
-{
-    return nr_ofInpAMIRAPoints;
-}
-
 bool parameters::plotInpMidPoints() const
 {
     return plot_inp_points;
@@ -657,21 +647,6 @@ uint parameters::getNrOfSources() const
     return res;
 }
 
-uint parameters::getNrOfPlotPoints() const
-{
-    return nrOfPlotPoints;
-}
-
-uint parameters::getNrOfPlotVectors() const
-{
-    return nrOfPlotVectors;
-}
-
-uint parameters::getMaxPlotLines() const
-{
-    return maxPlotLines;
-}
-
 uint parameters::getStart() const
 {
     return start;
@@ -749,21 +724,6 @@ void parameters::setStop(uint val)
 void parameters::setMu(double val)
 {
     mu = val;
-}
-
-void parameters::setNrOfPlotPoints(uint val)
-{
-    nrOfPlotPoints = val;
-}
-
-void parameters::setnrOfPlotVectors(uint val)
-{
-    nrOfPlotVectors = val;
-}
-
-void parameters::setMaxPlotLines(uint val)
-{
-    maxPlotLines = val;
 }
 
 void parameters::setNrOfThreads(uint val)

@@ -3019,18 +3019,6 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }*/
 
-    if(cmd.compare("<nr_plot_points>") == 0)
-    {
-        param->setNrOfPlotPoints(uint(atof(data.c_str())));
-        return true;
-    }
-
-    if(cmd.compare("<nr_plot_vectors>") == 0)
-    {
-        param->setnrOfPlotVectors(uint(atof(data.c_str())));
-        return true;
-    }
-
     if(cmd.compare("<f_highJ>") == 0)
     {
         param->setFhighJ(atof(data.c_str()));
@@ -3064,12 +3052,6 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
     if(cmd.compare("<adj_tgas>") == 0)
     {
         param->setAdjTgas(atof(data.c_str()));
-        return true;
-    }
-
-    if(cmd.compare("<max_plot_lines>") == 0)
-    {
-        param->setMaxPlotLines(uint(atof(data.c_str())));
         return true;
     }
 
