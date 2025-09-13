@@ -25,6 +25,7 @@
 #include "Detector.hpp"
 #include "MathFunctions.hpp"
 
+
 bool CPipeline::Init(int argc, char ** argv)
 {
     end = 0, len = 0;
@@ -172,6 +173,10 @@ void CPipeline::Run()
             case CMD_SYNCHROTRON:
                 result = calcPolarizationMapsViaSynchrotron(param);
                 break;
+                
+            case CMD_FREE_FREE:
+                result = calcFreeFreeMapsViaRayTracing(param);
+                break;    
 
             default:
                 cout << ERROR_LINE << "Command is unknown!" << endl;
@@ -358,6 +363,79 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
 }
 
 bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
+{
+    CGridBasic * grid = 0;
+    CDustMixture * dust = new CDustMixture();
+
+    if(!createOutputPaths(param.getPathOutput()))
+        return false;
+
+    if(!assignGridType(grid, param))
+        return false;
+
+    if(!createWavelengthList(param, dust,0, 0))
+        return false;
+
+    if(!assignDustMixture(param, dust, grid))
+        return false;
+
+    grid->setSIConversionFactors(param);
+
+    if(!grid->loadGridFromBinaryFile(param, getNrOffsetEntriesRay(param, dust, grid)))
+        return false;
+
+    // Print helpfull information
+    grid->createCellList();
+    dust->printParameters(param, grid);
+    grid->printParameters();
+
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
+        return false;
+
+    createSourceLists(param, dust, grid);
+    if(sources_ray.size() == 0)
+    {
+        cout << ERROR_LINE << "No sources for raytracing simulations defined!" << endl;
+        return false;
+    }
+
+    CRadiativeTransfer rad(param);
+
+    rad.setGrid(grid);
+    rad.setDust(dust);
+    rad.setSourcesLists(sources_mc, sources_ray);
+
+    if(!rad.initiateDustRaytrace(param))
+        return false;
+
+    if(param.getStochasticHeatingMaxSize() > 0)
+        rad.calcStochasticHeating();
+
+    // Calculate radiation field before raytracing (if sources defined and no radiation
+    // field in grid)
+    if(!grid->isRadiationFieldAvailable() && dust->getScatteringToRay() && !sources_mc.empty())
+        rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
+
+    if(!rad.calcPolMapsViaRaytracing(param))
+        return false;
+
+    cout << CLR_LINE;
+
+    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
+        return false;
+
+    delete grid;
+    delete dust;
+    deleteSourceLists();
+
+    param.setPathInput(path_data);
+    param.setPathGrid("");
+    param.resetNrOfDustComponents();
+
+    return true;
+}
+
+bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();

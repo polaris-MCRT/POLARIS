@@ -204,7 +204,7 @@ bool CGridOcTree::loadGridFromBinaryFile(parameters & param, uint _data_len)
     cell_oc_root = new cell_oc();
     cell_oc_pos = cell_oc_root;
 
-    resetGridValues();
+//    resetGridValues();
 
     turbulent_velocity = param.getTurbulentVelocity();
 
@@ -571,7 +571,7 @@ void CGridOcTree::printParameters()
 
 bool CGridOcTree::createArtificialGrid(string path)
 {
-    resetGridValues();
+//    resetGridValues();
 
     cell_oc_root = new cell_oc();
     cell_oc_pos = cell_oc_root;
@@ -1335,9 +1335,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx,
     max_gas_dens = -1e30;
     min_gas_dens = 1e30;
 
-    max_delta = -1e30;
-    min_delta = 1e30;
-
     max_mag = -1e30;
     min_mag = 1e30;
 
@@ -1347,8 +1344,6 @@ bool CGridOcTree::initiateTreeFromFile(uint _nx,
     max_dust_temp = -1e30;
     min_dust_temp = 1e30;
 
-    max_delta = -1e30;
-    min_delta = 1e30;
 
     max_level = _max_level;
 
@@ -1599,10 +1594,7 @@ bool CGridOcTree::createTree(cell_oc * parent,
         if(dust_temp < min_dust_temp)
             min_dust_temp = dust_temp;
 
-        if(delta > max_delta)
-            max_delta = delta;
-        if(delta < min_delta)
-            min_delta = delta;
+
 
         return true;
     }
@@ -1739,11 +1731,6 @@ bool CGridOcTree::createTree(cell_oc * parent,
                 max_dust_temp = dust_temp;
             if(dust_temp < min_dust_temp)
                 min_dust_temp = dust_temp;
-
-            if(delta > max_delta)
-                max_delta = delta;
-            if(delta < min_delta)
-                min_delta = delta;
 
             delete[] parent->getChildren();
             parent->setChildren(0);

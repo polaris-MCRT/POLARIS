@@ -31,7 +31,7 @@ bool CGridSpherical::loadGridFromBinaryFile(parameters & param, uint _data_len)
         return false;
     }
 
-    resetGridValues();
+//    resetGridValues();
 
     turbulent_velocity = param.getTurbulentVelocity();
 
@@ -484,7 +484,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
 
 bool CGridSpherical::createArtificialGrid(string path)
 {
-    resetGridValues();
+//    resetGridValues();
 
     line_counter = 1;
     char_counter = 0;

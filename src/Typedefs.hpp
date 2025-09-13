@@ -200,6 +200,7 @@ using namespace std;
 #define CMD_FORCE 7
 #define CMD_OPIATE 8
 #define CMD_SYNCHROTRON 9
+#define CMD_FREE_FREE 10
 
 // PDA IDs
 #define PDA_TEMP 0

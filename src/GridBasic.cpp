@@ -13,7 +13,7 @@
 #include "fitsio.h"
 #include "GridBasic.hpp"
 
-void CGridBasic::resetGridValues()
+/*void CGridBasic::resetGridValues()
 {
     max_cells = 0;
     max_value = 0;
@@ -35,12 +35,6 @@ void CGridBasic::resetGridValues()
     max_dust_temp = -1e300;
     min_dust_temp = 1e300;
 
-    max_larm_limit = -1e300;
-    min_larm_limit = 1e300;
-
-    max_delta = -1e300;
-    min_delta = 1e300;
-
     max_mach = -1e300;
     min_mach = 1e300;
 
@@ -58,12 +52,6 @@ void CGridBasic::resetGridValues()
 
     min_dust_size_param = -1e300;
     max_dust_size_param =  1e300;
-    
-    min_ion_dens = -1e300;
-    max_ion_dens =  1e300;
-    
-    min_ion_Z = -1e300;
-    max_ion_Z =  1e300;
 
     dust_id_min = MAX_UINT;
     dust_id_max = 0;
@@ -97,19 +85,18 @@ void CGridBasic::resetGridValues()
     max_p = -1e300;
 
     data_pos_tg = MAX_UINT;
+    
     data_pos_mx = MAX_UINT;
     data_pos_my = MAX_UINT;
     data_pos_mz = MAX_UINT;
+    
     data_pos_vx = MAX_UINT;
     data_pos_vy = MAX_UINT;
     data_pos_vz = MAX_UINT;
+    
     data_pos_px = MAX_UINT;
     data_pos_py = MAX_UINT;
     data_pos_pz = MAX_UINT;
-    //data_pos_amin = MAX_UINT;
-    //data_pos_amax = MAX_UINT;
-    //data_pos_size_param = MAX_UINT;
-    
     
     //data_pos_ra = MAX_UINT;
     data_pos_id = MAX_UINT;
@@ -204,7 +191,7 @@ void CGridBasic::resetGridValues()
     numberDensityTab = 0;
     totalCellEmissionTab = 0;
     max_wavelengths = 0;
-}
+}*/
 
 double CGridBasic::getCextMeanTab(uint cellID, uint wID) const
 {
@@ -292,142 +279,167 @@ void CGridBasic::initPreCalcTables(uint nr_used_wavelengths)
 
 void CGridBasic::updateDataRange(cell_basic * cell)
 {
-    double gas_dens = 0;
-    double dust_dens = 0;
-    double mx = 0;
-    double my = 0;
-    double mz = 0;
-    double vx = 0;
-    double vy = 0;
-    double vz = 0;
-    double a_alg = 0;
-    double dust_temp = 0;
     double gas_temp = 0;
-    double mach = 0;
-    double delta = 0;
-    double a_limit = 0;
-
+    
     if(size_gd_list > 0)
     {
         for(uint i_dens = 0; i_dens < size_gd_list; i_dens++)
+        {
             cell->convertData(data_pos_gd_list[i_dens], conv_dens_in_SI);
-        gas_dens = getGasDensity(*cell);
-
-        if(gas_dens > max_gas_dens)
-            max_gas_dens = gas_dens;
-        if(gas_dens < min_gas_dens)
-            min_gas_dens = gas_dens;
+        }
+        
+        double gas_dens = getGasDensity(*cell);
+        
+        min_gas_dens=min(min_gas_dens,gas_dens);
+        max_gas_dens=max(max_gas_dens,gas_dens);
     }
 
     if(size_dd_list > 0)
     {
         for(uint i_dens = 0; i_dens < size_dd_list; i_dens++)
+        {
             cell->convertData(data_pos_dd_list[i_dens], conv_dens_in_SI);
+        }
 
-        dust_dens = getDustDensity(*cell);
+        double dust_dens = getDustDensity(*cell);
 
-        if(dust_dens > max_dust_dens)
-            max_dust_dens = dust_dens;
-        if(dust_dens < min_dust_dens)
-            min_dust_dens = dust_dens;
+        min_dust_dens=min(min_dust_dens,dust_dens);
+        max_dust_dens=max(max_dust_dens,dust_dens);
     }
 
     if(!data_pos_dt_list.empty())
     {
-        dust_temp = cell->getData(data_pos_dt_list[0]);
-        // to do if conversion is implemented
-
-        if(dust_temp > max_dust_temp)
-            max_dust_temp = dust_temp;
-        if(dust_temp < min_dust_temp)
-            min_dust_temp = dust_temp;
+        for(uint i = 0; i < data_pos_dt_list.size(); i++)
+        {
+            double dust_temp = cell->getData(data_pos_dt_list[i]);
+            
+            min_dust_temp=min(min_dust_temp,dust_temp);
+            max_dust_temp=max(max_dust_temp,dust_temp);
+        }
     }
 
     if(data_pos_tg != MAX_UINT)
     {
         gas_temp = cell->getData(data_pos_tg);
+        
         // to do if conversion is implemented
-        if(gas_temp > max_gas_temp)
-            max_gas_temp = gas_temp;
-        if(gas_temp < min_gas_temp)
-            min_gas_temp = gas_temp;
+        min_gas_temp=min(min_gas_temp,gas_temp);
+        max_gas_temp=max(max_gas_temp,gas_temp);
     }
 
-    if(data_pos_mx != MAX_UINT)
+    if(data_pos_mx != MAX_UINT && data_pos_my != MAX_UINT && data_pos_mz != MAX_UINT)
     {
         cell->convertData(data_pos_mx, conv_Bfield_in_SI);
-        mx = cell->getData(data_pos_mx);
-    }
+        double mx = cell->getData(data_pos_mx);
 
-    if(data_pos_my != MAX_UINT)
-    {
         cell->convertData(data_pos_my, conv_Bfield_in_SI);
-        my = cell->getData(data_pos_my);
-    }
+        double my = cell->getData(data_pos_my);
 
-    if(data_pos_mz != MAX_UINT)
-    {
         cell->convertData(data_pos_mz, conv_Bfield_in_SI);
-        mz = cell->getData(data_pos_mz);
+        double mz = cell->getData(data_pos_mz);
+        
+        double mag = sqrt(mx * mx + my * my + mz * mz);
+     
+        min_mag = min(min_mag, mag);
+        max_mag = max(max_mag, mag);
+
+        meanBdir += Vector3D(mx, my, mz);
     }
 
-    if(data_pos_vx != MAX_UINT)
+    if(data_pos_vx != MAX_UINT && data_pos_vy != MAX_UINT && data_pos_vz != MAX_UINT)
     {
         cell->convertData(data_pos_vx, conv_Vfield_in_SI);
-        vx = cell->getData(data_pos_vx);
-    }
-
-    if(data_pos_vy != MAX_UINT)
-    {
+        double vx = cell->getData(data_pos_vx);
+    
         cell->convertData(data_pos_vy, conv_Vfield_in_SI);
-        vy = cell->getData(data_pos_vy);
-    }
-
-    if(data_pos_vz != MAX_UINT)
-    {
+        double vy = cell->getData(data_pos_vy);
+    
         cell->convertData(data_pos_vz, conv_Vfield_in_SI);
-        vz = cell->getData(data_pos_vz);
+        double vz = cell->getData(data_pos_vz);
+        
+        double v = sqrt(vx * vx + vy * vy + vz * vz);
+        double mach = 0;
+
+        if(gas_temp > 0)
+        {
+            mach = v / sqrt(con_kB * gas_temp / (mu * m_H));
+
+            min_mach = min(min_mach, mach);
+            max_mach = max(max_mach, mach);
+        }
+        
+        min_v_gas = min(min_v_gas, v); 
+        max_v_gas = max(max_v_gas, v);
+
+        meanVdir += Vector3D(vx, vy, vz);
+    }
+    
+    if(data_pos_avg_ux != MAX_UINT && data_pos_avg_uy != MAX_UINT && data_pos_avg_uz != MAX_UINT)
+    {
+        double ux = cell->getData(data_pos_avg_ux);
+        double uy = cell->getData(data_pos_avg_uy);
+        double uz = cell->getData(data_pos_avg_uz);
+        
+        double u_dir = sqrt(ux * ux + uy * uy + uz * uz);
+        
+        min_avg_u_dir = min(min_avg_u_dir, u_dir);
+        max_avg_u_dir = max(max_avg_u_dir, u_dir);
+        
+        meanUdir += Vector3D(ux, uy, uz);
     }
 
-    if(!data_pos_aalg_list.empty())
+    if(!data_pos_a_alg_list.empty())
     {
-        for(uint i = 0; i < data_pos_aalg_list.size(); i++)
+        for(uint i = 0; i < data_pos_a_alg_list.size(); i++)
         {
-            a_alg = cell->getData(data_pos_aalg_list[i]);
+            double a_alg = cell->getData(data_pos_a_alg_list[i]);
+            
+            min_dust_aalg = min(min_dust_aalg, a_alg);
+            max_dust_aalg = max(max_dust_aalg, a_alg);
+        }
+    }
+    
+    if(!data_pos_a_krat_list.empty())
+    {
+        for(uint i = 0; i < data_pos_a_krat_list.size(); i++)
+        {
+            double a_krat = cell->getData(data_pos_a_krat_list[i]);
 
-            if(a_alg > float(aalg_max))
-                aalg_max = (double)a_alg;
+            min_dust_akrat = min(min_dust_akrat, a_krat);
+            max_dust_akrat = max(max_dust_akrat, a_krat);
+        }
+    }
+    
+    if(!data_pos_a_larm_list.empty())
+    {
+        for(uint i = 0; i < data_pos_a_larm_list.size(); i++)
+        {
+            double a_larm = cell->getData(data_pos_a_larm_list[i]);
 
-            if(a_alg < float(aalg_min))
-                aalg_min = (double)a_alg;
+            min_dust_alarm = min(min_dust_alarm, a_larm);
+            max_dust_alarm = max(max_dust_alarm, a_larm);
         }
     }
 
-    if(!data_pos_amin_list.empty())
+    if(!data_pos_a_min_list.empty())
     {
-        for(uint i = 0; i < data_pos_amin_list.size(); i++)
+        for(uint i = 0; i < data_pos_a_min_list.size(); i++)
         {
-            double a_min = cell->getData(data_pos_amin_list[i]);
+            double a_min = cell->getData(data_pos_a_min_list[i]);
 
-            if(a_min > float(a_min_max))
-                a_min_max = a_min;
-
-            if(a_min < float(a_min_min))
-                a_min_min = a_min;
+            min_dust_amin = min(min_dust_amin, a_min);
+            max_dust_amin = max(max_dust_amin, a_min);
         }
     }
 
-    if(!data_pos_amax_list.empty())
+    if(!data_pos_a_max_list.empty())
     {
-        for(uint i = 0; i < data_pos_amax_list.size(); i++)
+        for(uint i = 0; i < data_pos_a_max_list.size(); i++)
         {
-            double a_max = cell->getData(data_pos_amax_list[i]);
+            double a_max = cell->getData(data_pos_a_max_list[i]);
 
-            if(a_max > float(a_max_max))
-                a_max_max = a_max;
-
-            if(a_max < float(a_max_min))
-                a_max_min = a_max;
+            min_dust_amax = min(min_dust_amax, a_max);
+            max_dust_amax = max(max_dust_amax, a_max);
         }
     }
 
@@ -437,11 +449,8 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         {
             double size_param = cell->getData(data_pos_size_param_list[i]);
 
-            if(size_param > float(size_param_max))
-                size_param_max = size_param;
-
-            if(size_param < float(size_param_min))
-                size_param_min = size_param;
+            min_dust_size_param = min(min_dust_size_param, size_param);
+            max_dust_size_param = max(max_dust_size_param, size_param);
         }
     }
 
@@ -449,135 +458,76 @@ void CGridBasic::updateDataRange(cell_basic * cell)
     {
         uint dust_id = cell->getData(data_pos_id);
 
-        if(dust_id > float(dust_id_max))
-            dust_id_max = dust_id;
-
-        if(dust_id < float(dust_id_min))
-            dust_id_min = dust_id;
+        dust_id_min = min(dust_id_min, dust_id);
+        dust_id_max = max(dust_id_max, dust_id);
     }
 
     // data positions for synchrotron
     if(data_pos_n_th != MAX_UINT)
     {
         cell->convertData(data_pos_n_th, conv_dens_in_SI);
-        double data = cell->getData(data_pos_n_th);
+        double n_th = cell->getData(data_pos_n_th);
 
-        if(data < min_n_th)
-            min_n_th = data;
-
-        if(data > max_n_th)
-            max_n_th = data;
+        min_n_th = min(min_n_th, n_th);
+        max_n_th = max(max_n_th, n_th);
     }
 
     if(data_pos_T_e != MAX_UINT)
     {
-        double data = cell->getData(data_pos_T_e);
+        double T_e = cell->getData(data_pos_T_e);
 
-        if(data < min_T_e)
-            min_T_e = data;
-
-        if(data > max_T_e)
-            max_T_e = data;
+        min_T_e = min(min_T_e, T_e);
+        max_T_e = max(max_T_e, T_e);
     }
 
     if(data_pos_n_cr != MAX_UINT)
     {
         cell->convertData(data_pos_n_cr, conv_dens_in_SI);
-        double data = cell->getData(data_pos_n_cr);
+        double n_cr = cell->getData(data_pos_n_cr);
 
-        if(data < min_n_cr)
-            min_n_cr = data;
-
-        if(data > max_n_cr)
-            max_n_cr = data;
+        min_n_cr = min(min_n_cr, n_cr);
+        max_n_cr = max(max_n_cr, n_cr);
     }
 
     if(data_pos_g_min != MAX_UINT)
     {
-        double data = cell->getData(data_pos_g_min);
+        double g_min = cell->getData(data_pos_g_min);
 
-        if(data < min_g_min)
-            min_g_min = data;
-
-        if(data > max_g_min)
-            max_g_min = data;
+        min_g_min = min(min_g_min, g_min);
+        max_g_min = max(max_g_min, g_min);
     }
 
     if(data_pos_g_max != MAX_UINT)
     {
-        double data = cell->getData(data_pos_g_max);
+        double g_max = cell->getData(data_pos_g_max);
 
-        if(data < min_g_max)
-            min_g_max = data;
-
-        if(data > max_g_max)
-            max_g_max = data;
+        min_g_max = min(min_g_max, g_max);
+        max_g_max = max(max_g_max, g_max);
     }
 
     if(data_pos_p != MAX_UINT)
     {
-        double data = cell->getData(data_pos_p);
-
-        if(data < min_p)
-            min_p = data;
-
-        if(data > max_p)
-            max_p = data;
+        double p = cell->getData(data_pos_p);
+        
+        min_p = min(min_p, p);     
+        max_p = max(max_p, p);
     }
-
-    double Bfield = sqrt(mx * mx + my * my + mz * mz);
-    double Vfield = sqrt(vx * vx + vy * vy + vz * vz);
-
-    if(Bfield > 0)
+    
+    if(data_pos_ion_n_i != MAX_UINT)
     {
-        if(dust_temp * gas_temp * gas_dens >= 0)
-        {
-            //delta = CMathFunctions::calc_delta(Bfield, dust_temp, gas_temp, gas_dens) * delta0;
-            a_limit = CMathFunctions::calc_larm_limit(Bfield, dust_temp, gas_temp, gas_dens, 0.5, larm_f);
-        }
+        double n_i = cell->getData(data_pos_ion_n_i);
+        
+        min_ion_n_i = min(min_ion_n_i, n_i);     
+        max_ion_n_i = max(max_ion_n_i, n_i);
     }
-    else
+
+    if(data_pos_ion_Z != MAX_UINT)
     {
-        Bfield = 0;
-        //delta = 0;
-        a_limit = 0;
-    }
-
-    /*if(delta > max_delta)
-        max_delta = delta;
-    if(delta < min_delta)
-        min_delta = delta;*/
-
-    if(Bfield > max_mag)
-        max_mag = Bfield;
-    if(Bfield < min_mag)
-        min_mag = Bfield;
-
-    meanBdir += Vector3D(mx, my, mz);
-
-    if(a_limit > max_larm_limit)
-        max_larm_limit = a_limit;
-    if(a_limit < min_larm_limit)
-        min_larm_limit = a_limit;
-
-    if(Vfield >= 0)
-    {
-        if(gas_temp > 0)
-            mach = Vfield / sqrt(con_kB * gas_temp / (mu * m_H));
-        else
-            mach = 0;
-    }
-
-    if(Vfield > max_vel)
-        max_vel = Vfield;
-    if(Vfield < min_vel)
-        min_vel = Vfield;
-    if(mach > max_mach)
-        max_mach = mach;
-    if(mach < min_mach)
-        min_mach = mach;
-
-    meanVdir += Vector3D(vx, vy, vz);
+        double Z = cell->getData(data_pos_ion_Z);
+        
+        min_ion_Z = min(min_ion_Z, Z);     
+        max_ion_Z = max(max_ion_Z, Z);
+    }    
 }
 
 bool CGridBasic::fillGridWithOpiateData(uint col_id)
@@ -771,33 +721,46 @@ void CGridBasic::printPhysicalParameters()
         cout << "- Magnetic field      (min,max) : [" << min_mag << ", " << max_mag << "] [T]" << endl;
         cout << "- Mean direction      (norm.)   : X: " << meanBdir.X() << " Y: " << meanBdir.Y()
              << " Z: " << meanBdir.Z() << endl;
-        //cout << "- Delta0              (min,max) : [" << min_delta << ", " << max_delta << "] [m]" << endl;
-        cout << "- Larm. limit         (min,max) : [" << min_larm_limit << ", " << max_larm_limit << "] [m]"
-             << endl;
     }
     else
         cout << "- Magnetic field      (min,max) : none" << endl;
 
-    if(!data_pos_aalg_list.empty())
-        cout << "- a_alig              (min,max) : [" << aalg_min << ", " << aalg_max << "] [m]" << endl;
+    if(!data_pos_a_alg_list.empty())
+        cout << "- a_alig              (min,max) : [" << min_dust_aalg << ", " << max_dust_aalg << "] [m]" << endl;
+    
+    if(!data_pos_a_krat_list.empty())
+        cout << "- a_krat              (min,max) : [" << min_dust_akrat << ", " << max_dust_akrat << "] [m]" << endl;
+    
+    if(!data_pos_a_larm_list.empty())
+        cout << "- a_larm              (min,max) : [" << min_dust_alarm << ", " << max_dust_alarm << "] [m]" << endl;
+    
+    if(data_pos_avg_ux != MAX_UINT)
+    {
+        meanUdir.normalize();
+        cout << "- Rad. direction      (min,max) : [" << min_avg_u_dir << ", " << max_avg_u_dir << "] [J m^-3]" << endl;
+        cout << "- Mean direction      (norm.)   : X: " << meanUdir.X() << " Y: " << meanUdir.Y()
+             << " Z: " << meanUdir.Z() << endl;
+    }
+    else
+        cout << "- Rad. direction      (min,max) : none" << endl;
 
     if(data_pos_vx != MAX_UINT)
     {
         meanVdir.normalize();
-        cout << "- Velocity field      (min,max) : [" << min_vel << ", " << max_vel << "] [m/s]" << endl;
+        cout << "- Velocity field      (min,max) : [" << min_v_gas << ", " << max_v_gas << "] [m/s]" << endl;
         cout << "- Mean direction      (norm.)   : X: " << meanVdir.X() << " Y: " << meanVdir.Y()
              << " Z: " << meanVdir.Z() << endl;
         cout << "- Mach number         (min,max) : [" << min_mach << ", " << max_mach << "]" << endl;
     }
 
-    if(data_pos_amin_list.size()>0)
-        cout << "- Minimum grain size  (min,max) : [" << a_min_min << ", " << a_min_max << "] [m]" << endl;
+    if(data_pos_a_min_list.size()>0)
+        cout << "- Minimum grain size  (min,max) : [" << min_dust_amin << ", " << max_dust_amin << "] [m]" << endl;
 
-    if(data_pos_amax_list.size()>0)
-        cout << "- Maximum grain size  (min,max) : [" << a_max_min << ", " << a_max_max << "] [m]" << endl;
+    if(data_pos_a_max_list.size()>0)
+        cout << "- Maximum grain size  (min,max) : [" << min_dust_amax << ", " << max_dust_amax << "] [m]" << endl;
 
     if(data_pos_size_param_list.size()>0)
-        cout << "- Dust size parameter (min,max) : [" << size_param_min << ", " << size_param_max << "]"
+        cout << "- Dust size parameter (min,max) : [" << min_dust_size_param << ", " << max_dust_size_param << "]"
              << endl;
 
     if(data_pos_id != MAX_UINT)
@@ -834,6 +797,22 @@ void CGridBasic::printPhysicalParameters()
     }
     else
         cout << "- Therm. el. density  (min,max) : none" << endl;
+    
+    
+    if(data_pos_ion_n_i != MAX_UINT)
+    {
+        cout << "- Ion density  (min,max)        : [" << min_ion_n_i << "; " << max_ion_n_i << "] [m]" << endl;
+    }
+    else
+        cout << "- Ion density  (min,max)        : none" << endl;
+    
+    
+    if(data_pos_ion_Z != MAX_UINT)
+    {
+        cout << "- Ion charge (min,max)         : [" << min_ion_Z << "; " << max_ion_Z << "] [m]" << endl;
+    }
+    else
+        cout << "- Ion charge (min,max)         : none" << endl;
 
     if(nrOfOpiateIDs > 0 || nrOfDensRatios > 0)
     {
@@ -899,8 +878,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         plt_dust_id = (data_pos_id != MAX_UINT);
 
-        plt_amin = (data_pos_amin_list.size()>0) && param.isInPlotList(GRIDa_min);
-        plt_amax = (data_pos_amax_list.size()>0) && param.isInPlotList(GRIDa_max);
+        plt_amin = (data_pos_a_min_list.size()>0) && param.isInPlotList(GRIDa_min);
+        plt_amax = (data_pos_a_max_list.size()>0) && param.isInPlotList(GRIDa_max);
         plt_size_param = (data_pos_size_param_list.size()>0) && param.isInPlotList(GRIDq);
 
         plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
@@ -912,7 +891,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
         if(cmd != CMD_RAT && cmd != CMD_TEMP_RAT)
         {
-            plt_rat = (!data_pos_aalg_list.empty()) && param.isInPlotList(GRIDa_alg);
+            plt_rat = (!data_pos_a_alg_list.empty()) && param.isInPlotList(GRIDa_alg);
             plt_avg_th = (data_pos_avg_th != MAX_UINT) && param.isInPlotList(GRIDavg_th);
             plt_avg_dir = (data_pos_avg_dir != MAX_UINT) && param.isInPlotList(GRIDavg_dir);
         }
@@ -1223,7 +1202,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     {
         buffer_rat = new double *[nelements];
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            buffer_rat[i_cell] = new double[data_pos_aalg_list.size()];
+            buffer_rat[i_cell] = new double[data_pos_a_alg_list.size()];
     }
         
     //if(plt_delta)
@@ -3194,14 +3173,14 @@ void CGridBasic::setAvg_uz(cell_basic * cell, double uz)
 
 void CGridBasic::setIonDensity(cell_basic * cell, double n_i)
 {
-    if(data_pos_n_i != MAX_UINT)
-        cell->setData(data_pos_n_i, n_i);
+    if(data_pos_ion_n_i != MAX_UINT)
+        cell->setData(data_pos_ion_n_i, n_i);
 }
 
 void CGridBasic::setIonCharge(cell_basic * cell, double Z)
 {
-    if(data_pos_Z != MAX_UINT)
-        cell->setData(data_pos_Z, Z);
+    if(data_pos_ion_Z != MAX_UINT)
+        cell->setData(data_pos_ion_Z, Z);
 }
 
 void CGridBasic::setDustChoiceID(cell_basic * cell, uint dust_id)
@@ -3274,15 +3253,15 @@ void CGridBasic::setQBOffset(cell_basic * cell, uint i_density, double temp)
 
 uint CGridBasic::getNrAlignedRadii()
 {
-    return data_pos_aalg_list.size();
+    return data_pos_a_alg_list.size();
 }
 
 double CGridBasic::getAlignedRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_aalg_list.size() == 1)
-        return cell.getData(data_pos_aalg_list[0]);
-    else if(data_pos_aalg_list.size() > i_density)
-        return cell.getData(data_pos_aalg_list[i_density]);
+    if(data_pos_a_alg_list.size() == 1)
+        return cell.getData(data_pos_a_alg_list[0]);
+    else if(data_pos_a_alg_list.size() > i_density)
+        return cell.getData(data_pos_a_alg_list[i_density]);
     else
         return 0;
 }
@@ -3294,15 +3273,15 @@ double CGridBasic::getAlignedRadius(const photon_package & pp, uint i_density) c
 
 void CGridBasic::setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg)
 {
-    cell->setData(data_pos_aalg_list[i_density], _a_alg);
+    cell->setData(data_pos_a_alg_list[i_density], _a_alg);
 }
 
 double CGridBasic::getMinGrainRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_amin_list.size() == 1)
-        return cell.getData(data_pos_amin_list[0]);
-    else if(data_pos_amin_list.size() > i_density)
-        return cell.getData(data_pos_amin_list[i_density]);
+    if(data_pos_a_min_list.size() == 1)
+        return cell.getData(data_pos_a_min_list[0]);
+    else if(data_pos_a_min_list.size() > i_density)
+        return cell.getData(data_pos_a_min_list[i_density]);
     else
         return 0;
 }
@@ -3314,10 +3293,10 @@ double CGridBasic::getMinGrainRadius(const photon_package & pp, uint i_density) 
 
 double CGridBasic::getMaxGrainRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_amax_list.size() == 1)
-        return cell.getData(data_pos_amax_list[0]);
-    else if(data_pos_amax_list.size() > i_density)
-        return cell.getData(data_pos_amax_list[i_density]);
+    if(data_pos_a_max_list.size() == 1)
+        return cell.getData(data_pos_a_max_list[0]);
+    else if(data_pos_a_max_list.size() > i_density)
+        return cell.getData(data_pos_a_max_list[i_density]);
     else
         return 0;
 }
@@ -3673,8 +3652,8 @@ double CGridBasic::getIonDensity(const photon_package & pp) const
 
 double CGridBasic::getIonDensity(const cell_basic & cell) const
 {
-    if(data_pos_n_i != MAX_UINT)
-        return cell.getData(data_pos_n_i);
+    if(data_pos_ion_n_i != MAX_UINT)
+        return cell.getData(data_pos_ion_n_i);
 
     return 0;
 }
@@ -3686,8 +3665,8 @@ double CGridBasic::getIonCharge(const photon_package & pp) const
 
 double CGridBasic::getIonCharge(const cell_basic & cell) const
 {
-    if(data_pos_Z != MAX_UINT)
-        return cell.getData(data_pos_Z);
+    if(data_pos_ion_Z != MAX_UINT)
+        return cell.getData(data_pos_ion_Z);
 
     return 0;
 }
@@ -3913,7 +3892,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
                     buffer_dust_temp[i_cell][i_density + 1] = getDustTemperature(pp, i_density);
         }
         if(plt_rat)
-            for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
+            for(uint i_density = 0; i_density < data_pos_a_alg_list.size(); i_density++)
                 buffer_rat[i_cell][i_density] = getAlignedRadius(pp, i_density);
         
         /*if(plt_delta)
@@ -4048,7 +4027,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         }
         if(plt_rat)
         {
-            for(uint i_density = 0; i_density < data_pos_aalg_list.size(); i_density++)
+            for(uint i_density = 0; i_density < data_pos_a_alg_list.size(); i_density++)
                 buffer_rat[i_cell][i_density] = 0;
         }
         
@@ -4231,7 +4210,7 @@ bool CGridBasic::useDustChoice()
 
 bool CGridBasic::useConstantGrainSizes()
 {
-    if(data_pos_amin_list.size() != 0 || data_pos_amax_list.size() != 0 || data_pos_size_param_list.size() != 0)
+    if(data_pos_a_min_list.size() != 0 || data_pos_a_max_list.size() != 0 || data_pos_size_param_list.size() != 0)
         return false;
     return true;
 }
@@ -4467,10 +4446,10 @@ void CGridBasic::setDustTemperatureRange(double _min_dust_temp, double _max_dust
     min_dust_temp = _min_dust_temp;
 }
 
-void CGridBasic::setalignedRadiusRange(double a_min, double a_max)
+void CGridBasic::setAlignedRadiusRange(double a_min, double a_max)
 {
-    aalg_min = a_min;
-    aalg_max = a_max;
+    min_dust_aalg = a_min;
+    max_dust_aalg = a_max;
 }
 
 uint CGridBasic::getTemperatureFieldInformation() const
@@ -4691,7 +4670,7 @@ bool CGridBasic::setDataPositionsVariable()
                 break;
 
             case GRIDa_alg:
-                data_pos_aalg_list.push_back(i);
+                data_pos_a_alg_list.push_back(i);
                 break;
 
             case GRIDa_min:
@@ -4702,7 +4681,7 @@ bool CGridBasic::setDataPositionsVariable()
                 }
 
                 data_pos_amin = i;*/
-                data_pos_amin_list.push_back(i);
+                data_pos_a_min_list.push_back(i);
                 break;
 
             case GRIDa_max:
@@ -4713,7 +4692,7 @@ bool CGridBasic::setDataPositionsVariable()
                 }
 
                 data_pos_amax = i;*/
-                data_pos_amax_list.push_back(i);
+                data_pos_a_max_list.push_back(i);
                 break;
 
             case GRIDq:
@@ -4848,32 +4827,32 @@ bool CGridBasic::setDataPositionsVariable()
                 break; 
 
             case GRID_akRAT:
-                data_pos_dust_a_krat_list.push_back(i);
+                data_pos_a_krat_list.push_back(i);
                 break;
 
             case GRID_alarm:
-                data_pos_dust_a_larm_list.push_back(i);
+                data_pos_a_larm_list.push_back(i);
                 break;                
 
                 
             case GRID_ni:
-                if(data_pos_n_i != MAX_UINT)
+                if(data_pos_ion_n_i != MAX_UINT)
                 {
                     cout << "\nERROR: Grid ID " << GRID_ni << " can be set only once!" << endl;
                     return false;
                 }
 
-                data_pos_n_i = i;
+                data_pos_ion_n_i = i;
                 break; 
 
             case GRID_Z:
-                if(data_pos_Z != MAX_UINT)
+                if(data_pos_ion_Z != MAX_UINT)
                 {
                     cout << "\nERROR: Grid ID " << GRID_Z << " can be set only once!" << endl;
                     return false;
                 }
 
-                data_pos_Z = i;
+                data_pos_ion_Z = i;
                 break; 
                 
             case GRIDratio:
@@ -5009,7 +4988,7 @@ bool CGridBasic::createCompatibleTree()
             data_pos_my = 4;
             data_pos_mz = 5;
 
-            data_pos_aalg_list.push_back(6);
+            data_pos_a_alg_list.push_back(6);
 
             data_ids[0] = GRIDgas_dens;
             data_ids[1] = GRIDdust_temp;
@@ -5076,7 +5055,7 @@ bool CGridBasic::createCompatibleTree()
             data_pos_vy = 7;
             data_pos_vz = 8;
 
-            data_pos_aalg_list.push_back(9);
+            data_pos_a_alg_list.push_back(9);
 
             data_ids[0] = GRIDgas_dens;
             data_ids[1] = GRIDdust_temp;
@@ -5270,31 +5249,31 @@ uint CGridBasic::CheckTemp(parameters & param, uint & tmp_data_offset)
 
 uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
 {
-    if(data_pos_aalg_list.empty())
+    if(data_pos_a_alg_list.empty())
     {
         for(uint i_density = 0; i_density < nr_densities; i_density++)
         {
-            data_pos_aalg_list.push_back(data_offset + tmp_data_offset);
+            data_pos_a_alg_list.push_back(data_offset + tmp_data_offset);
             data_ids.push_back(GRIDa_alg);
             tmp_data_offset++;
         }
     }
     
-    if(data_pos_dust_a_krat_list.empty())
+    if(data_pos_a_krat_list.empty())
     {
         for(uint i_density = 0; i_density < nr_densities; i_density++)
         {
-            data_pos_dust_a_krat_list.push_back(data_offset + tmp_data_offset);
+            data_pos_a_krat_list.push_back(data_offset + tmp_data_offset);
             data_ids.push_back(GRID_akRAT);
             tmp_data_offset++;
         }
     }
 
-    if(data_pos_dust_a_larm_list.empty())
+    if(data_pos_a_larm_list.empty())
     {
         for(uint i_density = 0; i_density < nr_densities; i_density++)
         {
-            data_pos_dust_a_larm_list.push_back(data_offset + tmp_data_offset);
+            data_pos_a_larm_list.push_back(data_offset + tmp_data_offset);
             data_ids.push_back(GRID_alarm);
             tmp_data_offset++;
         }
@@ -5471,13 +5450,13 @@ uint CGridBasic::CheckDustEmission(parameters & param)
 
     if(param.getAligRAT())
     {
-        if(data_pos_aalg_list.empty())
+        if(data_pos_a_alg_list.empty())
         {
             cout << ERROR_LINE << "Grid contains no minimum alignment radius for RATs!" << endl;
             cout << "        No dust emission with RAT alignment possible." << endl;
             return MAX_UINT;
         }
-        else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
+        else if(data_pos_a_alg_list.size() != 1 && data_pos_a_alg_list.size() != nr_densities)
         {
             cout << ERROR_LINE << "Grid contains not the correct amount of minimum alignment radii for "
                     "RATs!"
@@ -5557,7 +5536,7 @@ uint CGridBasic::CheckDustScattering(parameters & param)
 
     if(param.getAligRAT())
     {
-        if(data_pos_aalg_list.empty())
+        if(data_pos_a_alg_list.empty())
         {
             cout << ERROR_LINE << "Grid contains no minimum alignment radius for RATs!" << endl;
             cout << "        No dust scattering calculations with RAT alignment "
@@ -5565,7 +5544,7 @@ uint CGridBasic::CheckDustScattering(parameters & param)
                     << endl;
             return MAX_UINT;
         }
-        else if(data_pos_aalg_list.size() != 1 && data_pos_aalg_list.size() != nr_densities)
+        else if(data_pos_a_alg_list.size() != 1 && data_pos_a_alg_list.size() != nr_densities)
         {
             cout << ERROR_LINE << "Grid contains not the correct amount of minimum alignment radii for "
                     "RATs!"

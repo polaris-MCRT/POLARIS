@@ -68,59 +68,56 @@ public:
         max_value = 0;
         max_data = 0;
 
-        min_delta = 0;
-        max_delta = 0;
+        min_mach = 1e300;
+        max_mach = -1e300;
 
-        min_mach = 0;
-        max_mach = 0;
+        min_mag = 1e300;
+        max_mag = -1e300;
 
-        min_mag = 0;
-        max_mag = 0;
+        min_v_gas = 1e300;
+        max_v_gas = -1e300;
 
-        min_vel = 0;
-        max_vel = 0;
+        min_len = 1e300;
+        max_len = -1e300;
+        
+        min_avg_u_dir = 1e300;
+        max_avg_u_dir = -1e300;
+        
+        min_gas_temp = 1e300;
+        max_gas_temp = -1e300;
 
-        min_len = 0;
-        max_len = 0;
+        min_dust_temp = 1e300;
+        max_dust_temp = -1e300;
 
-        min_gas_temp = 0;
-        max_gas_temp = 0;
+        min_gas_dens = 1e300;
+        max_gas_dens = -1e300;
 
-        min_dust_temp = 0;
-        max_dust_temp = 0;
+        min_dust_dens = 1e300;
+        max_dust_dens = -1e300;
 
-        min_gas_dens = 0;
-        max_gas_dens = 0;
+        min_dust_aalg = 1e300;
+        max_dust_aalg = -1e300;
 
-        min_dust_dens = 0;
-        max_dust_dens = 0;
+        min_dust_akrat = 1e300;
+        max_dust_akrat = -1e300;
 
-        min_dust_aalg = 0;
-        max_dust_aalg = 0;
+        min_dust_amin = 1e300;
+        max_dust_amin = -1e300;
 
-        min_dust_akrat = 0;
-        max_dust_akrat = 0;
+        min_dust_amax = 1e300;
+        max_dust_amax = -1e300;
 
-        min_dust_amin = 0;
-        max_dust_amin = 0;
+        min_dust_size_param = 1e300;
+        max_dust_size_param = -1e300;
 
-        min_dust_amax = 0;
-        max_dust_amax = 0;
+        min_ion_n_i = 1e300;
+        max_ion_n_i = -1e300;
 
-        min_dust_size_param = 0;
-        max_dust_size_param = 0;
+        min_ion_Z = 1e300;
+        max_ion_Z = -1e300;
 
-        min_ion_dens = 0;
-        max_ion_dens = 0;
-
-        min_ion_Z = 0;
-        max_ion_Z = 0;
-
-        dust_id_min = 0;
+        dust_id_min = int(1e6);
         dust_id_max = 0;
-
-        min_larm_limit = 0;
-        max_larm_limit = 0;
 
         min_pres = 0;
         max_pres = 0;
@@ -149,7 +146,7 @@ public:
         data_len = 0;
 
         total_gas_mass = 0;
-        mu = 0;
+        mu = 2;
 
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
@@ -193,8 +190,8 @@ public:
         data_pos_avg_uy = MAX_UINT;
         data_pos_avg_uz = MAX_UINT;
         
-        data_pos_n_i = MAX_UINT;
-        data_pos_Z = MAX_UINT;
+        data_pos_ion_n_i = MAX_UINT;
+        data_pos_ion_Z = MAX_UINT;
 
         pos_GasSpecRatios = 0;
         pos_OpiateIDS = 0;
@@ -353,7 +350,7 @@ public:
 
     void printPhysicalParameters();
 
-    void resetGridValues();
+    //void resetGridValues();
 
     double getCextMeanTab(uint cellID, uint wID) const;
     double getCabsMeanTab(uint cellID, uint wID) const;
@@ -870,7 +867,7 @@ public:
 
     void setDustTemperatureRange(double _min_dust_temp, double _max_dust_temp);
 
-    void setalignedRadiusRange(double a_min, double a_max);
+    void setAlignedRadiusRange(double a_min, double a_max);
 
     bool doPDA(parameters & param, uint pda_id);
 
@@ -904,8 +901,12 @@ protected:
     uint max_data;
     Vector3D meanBdir;
     Vector3D meanVdir;
+    Vector3D meanUdir;
 
     char * basic_path;
+    
+    double max_avg_u_dir;
+    double min_avg_u_dir;
 
     double max_gas_dens;
     double min_gas_dens;
@@ -919,12 +920,6 @@ protected:
     double max_dust_temp;
     double min_dust_temp;
 
-    double max_larm_limit;
-    double min_larm_limit;
-
-    double min_delta;
-    double max_delta;
-
     double max_mach;
     double min_mach;
     
@@ -933,6 +928,9 @@ protected:
     
     double min_dust_akrat;
     double max_dust_akrat;
+    
+    double min_dust_alarm;
+    double max_dust_alarm;
 
     double min_dust_amin;
     double max_dust_amin;
@@ -943,20 +941,15 @@ protected:
     double min_dust_size_param;
     double max_dust_size_param;
     
-    double min_ion_dens;
-    double max_ion_dens;
-    
-    double min_ion_Z;
-    double max_ion_Z;
-
+        
     uint dust_id_min;
     uint dust_id_max;
 
     double min_pres;
     double max_pres;
 
-    double max_vel;
-    double min_vel;
+    double max_v_gas;
+    double min_v_gas;
 
     double max_mag;
     double min_mag;
@@ -979,6 +972,12 @@ protected:
     double max_g_min;
     double max_g_max;
     double max_p;
+    
+    double min_ion_n_i;
+    double max_ion_n_i;
+    
+    double min_ion_Z;
+    double max_ion_Z;
 
     double conv_length_in_SI, conv_dens_in_SI;
     double conv_Bfield_in_SI, conv_Vfield_in_SI;
@@ -1021,21 +1020,29 @@ protected:
     uilist data_pos_gd_list;
     uilist data_pos_dd_list;
     uilist data_pos_dt_list;
+    
     uint data_pos_tg;
+    
     uint data_pos_mx;
     uint data_pos_my;
     uint data_pos_mz;
+    
     uint data_pos_vx;
     uint data_pos_vy;
     uint data_pos_vz;
+    
     uint data_pos_px;
     uint data_pos_py;
     uint data_pos_pz;
-    uilist data_pos_aalg_list;
-    uilist data_pos_amin_list;
-    uilist data_pos_amax_list;
+    
+    uilist data_pos_a_alg_list;
+    uilist data_pos_a_min_list;
+    uilist data_pos_a_max_list;
     uilist data_pos_size_param_list;
     
+    uilist data_pos_a_krat_list;
+    uilist data_pos_a_larm_list;
+
     uint data_pos_id;
 
     uint data_pos_vt;
@@ -1056,10 +1063,6 @@ protected:
     uilist data_pos_rz_list;
     uilist data_pos_rf_list;
     
-    uilist data_pos_dust_a_alg_list;
-    uilist data_pos_dust_a_krat_list;
-    uilist data_pos_dust_a_larm_list;
-
     uint data_pos_avg_th;
     uint data_pos_avg_dir;
     
@@ -1067,8 +1070,8 @@ protected:
     uint data_pos_avg_uy;
     uint data_pos_avg_uz;
     
-    uint data_pos_n_i;
-    uint data_pos_Z;
+    uint data_pos_ion_n_i;
+    uint data_pos_ion_Z;
 
     double turbulent_velocity;
 

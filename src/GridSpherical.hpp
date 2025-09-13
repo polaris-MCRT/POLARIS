@@ -17,156 +17,22 @@ class CGridSpherical : public CGridBasic
 public:
     CGridSpherical(void)
     {
-        basic_path = 0;
-        buffer_size = 0;
-
-        max_cells = 0;
-        max_value = 0;
-        max_data = 0;
-
-        /*min_delta = 0;
-        max_delta = 0;*/
-
-        min_mach = 1e300;
-        max_mach = 0;
-
-        min_mag = 0;
-        max_mag = 0;
-
-        min_vel = 0;
-        max_vel = 0;
-
-        min_len = 0;
-        max_len = 0;
-
-        min_gas_temp = 0;
-        max_gas_temp = 0;
-
-        min_dust_temp = 0;
-        max_dust_temp = 0;
-
-        min_gas_dens = 0;
-        max_gas_dens = 0;
-
-        min_dust_dens = 0;
-        max_dust_dens = 0;
-
-        aalg_min = 1e300;
-        aalg_max = 0;
-
-        min_larm_limit = 0;
-        max_larm_limit = 0;
-
-        min_pres = 0;
-        max_pres = 0;
-
-        line_counter = 0;
-        char_counter = 0;
-        ru[0] = '|';
-        ru[1] = '/';
-        ru[2] = '-';
-        ru[3] = '\\';
-
-        conv_length_in_SI = 1;
-        conv_dens_in_SI = 1;
-        conv_Bfield_in_SI = 1;
-        conv_Vfield_in_SI = 1;
-
-        cell_list = 0;
-
-        data_offset = 6;
-        dataID = 0;
-        data_len = 0;
-
-        total_gas_mass = 0;
-        mu = 2.0;
-
-        nrOfDensRatios = 0;
-        nrOfOpiateIDs = 0;
-
-        // data_pos_gd = MAX_UINT;
-        // data_pos_dd = MAX_UINT;
-        // data_pos_td = MAX_UINT;
-        data_pos_tg = MAX_UINT;
-        data_pos_mx = MAX_UINT;
-        data_pos_my = MAX_UINT;
-        data_pos_mz = MAX_UINT;
-        data_pos_vx = MAX_UINT;
-        data_pos_vy = MAX_UINT;
-        data_pos_vz = MAX_UINT;
-        data_pos_px = MAX_UINT;
-        data_pos_py = MAX_UINT;
-        data_pos_pz = MAX_UINT;
-        // data_pos_aalg = MAX_UINT;
-        //data_pos_amin = MAX_UINT;
-        //data_pos_amax = MAX_UINT;
-        //data_pos_size_param = MAX_UINT;
-        //data_pos_ra = MAX_UINT;
-
-        data_pos_vt = MAX_UINT;
-        data_pos_pda = MAX_UINT;
-
-        data_pos_op = MAX_UINT;
-
-        data_pos_n_th = MAX_UINT;
-        data_pos_T_e = MAX_UINT;
-        data_pos_n_cr = MAX_UINT;
-        data_pos_g_min = MAX_UINT;
-        data_pos_g_max = MAX_UINT;
-        data_pos_p = MAX_UINT;
-        
-        data_pos_avg_ux = MAX_UINT;
-        data_pos_avg_uy = MAX_UINT;
-        data_pos_avg_uz = MAX_UINT;
-        
-        data_pos_n_i = MAX_UINT;
-        data_pos_Z = MAX_UINT;
-
-        pos_GasSpecRatios = 0;
-        pos_OpiateIDS = 0;
-
-        rot_angle1 = 0;
-        rot_angle2 = 0;
-
-        plt_gas_dens = false;
-        plt_mol_dens = false;
-        plt_dust_dens = false;
-        plt_gas_temp = false;
-        plt_dust_temp = false;
-        plt_mag = false;
-        plt_vel = false;
-        plt_rat = false;
-        //plt_delta = false;
-        plt_larm = false;
-        //plt_mach = false;
-        plt_dust_id = false;
-
-        total_volume = 0;
-        cell_volume = 0;
-
+        // spherical grid geometry & class-specific members
         Rmin = 0;
         Rmax = 1;
-        N_r = 4;
+        N_r  = 4;
         N_ph = 4;
         N_th = 3;
-        log_factorR = 0;
+        log_factorR  = 0;
         log_factorPh = 0;
         log_factorTh = 0;
 
-        grid_cells = 0;
+        grid_cells  = 0;
         center_cell = 0;
-
-        cell_list = 0;
 
         listR = 0;
         listPh = 0;
         listTh = 0;
-
-        line_counter = 0;
-        char_counter = 0;
-
-        rot_angle1 = 0;
-        rot_angle2 = 0;
     }
 
     ~CGridSpherical()

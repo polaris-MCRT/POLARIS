@@ -27,7 +27,7 @@ bool CGridVoronoi::loadGridFromBinaryFile(parameters & param, uint _data_len)
         return false;
     }
 
-    resetGridValues();
+//    resetGridValues();
 
     turbulent_velocity = param.getTurbulentVelocity();
 
@@ -336,7 +336,7 @@ bool CGridVoronoi::saveBinaryGridFile(string filename, ushort id, ushort data_si
 // function for debug purposes only
 bool CGridVoronoi::createArtificialGrid(string path)
 {
-    resetGridValues();
+//    resetGridValues();
 
     line_counter = 1;
     char_counter = 0;

@@ -2330,8 +2330,8 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uin
                 StokesVector S_em_cr, S_em_ca;
 
                 // Get syn parameter
-                syn_th = synchrotron->get_Thermal_Parameter(n_th, T_e, pp->getWavelength(), B, theta);
-                syn_cr = synchrotron->get_Power_Law_Parameter(
+                syn_th = synchrotron1->get_Thermal_Parameter(n_th, T_e, pp->getWavelength(), B, theta);
+                syn_cr = synchrotron1->get_Power_Law_Parameter(
                     n_cr, pp->getWavelength(), B, theta, g_min, g_max, pow_p);
 
                 // Get matrixes with the absorption's and conversions

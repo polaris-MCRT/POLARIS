@@ -28,7 +28,7 @@ bool CGridCylindrical::loadGridFromBinaryFile(parameters & param, uint _data_len
         return false;
     }
 
-    resetGridValues();
+//    resetGridValues();
 
     turbulent_velocity = param.getTurbulentVelocity();
 

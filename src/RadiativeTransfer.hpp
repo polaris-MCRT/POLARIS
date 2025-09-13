@@ -26,6 +26,7 @@
 #include "Parameters.hpp"
 #include "Stokes.hpp"
 #include "Vector3D.hpp"
+#include "FreeFree.hpp"
 
 class CRadiativeTransfer
 {
@@ -58,7 +59,8 @@ public:
 
         probing_points = 0;
 
-        synchrotron = 0;
+        synchrotron1 = 0;
+        ffree = 0;
 
         pathOutput = param.getPathOutput();
     }
@@ -84,8 +86,11 @@ public:
         if(RK_b2 != 0)
             delete[] RK_b2;
 
-        if(synchrotron != 0)
-            delete synchrotron;
+        if(synchrotron1 != 0)
+            delete synchrotron1;
+            
+        if(ffree != 0)
+            delete ffree;
     }
 
     bool initiateDustRaytrace(parameters & param);
@@ -293,7 +298,8 @@ private:
 
     uilist detector_wl_index;
 
-    CSynchrotron * synchrotron;
+    CSynchrotron * synchrotron1;
+    CFreeFree * ffree;
 };
 
 #endif /* CRADIATIVE_TRANSFER_H */
