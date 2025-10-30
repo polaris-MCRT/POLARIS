@@ -63,11 +63,17 @@ public:
                          double _max_length,
                          string path);
 
+    bool setFreeFreeDetector(uint pos,
+                         const parameters & param,
+                         dlist free_ray_detectors,
+                         double _max_length,
+                         string path);
+
     bool setLineDetector(uint pos,
                          const parameters & param,
                          dlist line_ray_detectors,
                          string path,
-                         double _max_length);
+                         double _max_length, bool hasZeeman);
 
     void setOrientation(uint orientation_reference);
 
@@ -100,6 +106,8 @@ public:
     bool writeLineResults(CGasMixture * gas, uint i_species, uint i_line);
 
     bool writeSyncResults();
+    
+    bool writeFreeFreeResults();
 
     void setObserverPosition(Vector3D pos);
 

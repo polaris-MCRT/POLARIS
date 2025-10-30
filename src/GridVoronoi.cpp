@@ -648,6 +648,7 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
     double length_eps_1, length_eps_2;
 
     cell_vo * center_cell = (cell_vo *)pp->getPositionCell();
+    double ref_length=0.01 * center_cell->getRefLength();
 
     if(center_cell == 0)
         return false;
@@ -767,7 +768,7 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
             // sign(num) is necessary to ensure that abs(num) gets larger
             length_eps_1 = abs(pos * v_n) * MIN_LEN_STEP * EPS_DOUBLE;
             num += Vector3D::sign(num) * length_eps_1;
-
+            
             length = -num / den;
 
             if(length > 0 && length < path_length)
@@ -777,6 +778,11 @@ bool CGridVoronoi::goToNextCellBorder(photon_package * pp)
                 path_length = length + length_eps_2;
             }
         }
+    }
+    
+    if(pos == pp->getPosition())
+    {
+        path_length += ref_length;
     }
 
     pp->setPosition(pos + dir * path_length);

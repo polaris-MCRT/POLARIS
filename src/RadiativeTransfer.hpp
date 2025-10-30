@@ -59,8 +59,8 @@ public:
 
         probing_points = 0;
 
-        synchrotron1 = 0;
-        ffree = 0;
+        synchrotron = 0;
+        freefree = 0;
 
         pathOutput = param.getPathOutput();
     }
@@ -86,18 +86,17 @@ public:
         if(RK_b2 != 0)
             delete[] RK_b2;
 
-        if(synchrotron1 != 0)
-            delete synchrotron1;
-            
-        if(ffree != 0)
-            delete ffree;
+        if(synchrotron != 0)
+            delete synchrotron;
     }
 
     bool initiateDustRaytrace(parameters & param);
 
     bool initiateSyncRaytrace(parameters & param);
+    
+    bool initiateFreeFreeRaytrace(parameters & param);
 
-    bool initiateLineRaytrace(parameters & param);
+    bool initiateLineRaytrace(parameters & param); 
 
     bool initiateOPIATERaytrace(parameters & param);
 
@@ -144,15 +143,35 @@ public:
 
     void calcStellarEmission(uint i_det, CRandomGenerator * rand_gen);
 
+    //free free emission 
+    bool calcFreeFreeMapsViaRaytracing(parameters & param);
+    
+    void getFreeFreePixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               uint i_det,
+                               uint subpixel_lvl,
+                               int pos_id);
+    
+    void getFreeFreeIntensity(photon_package * pp1,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint i_det,
+                          uint subpixel_lvl);
+                        
+    void rayThroughCellFreeFree(photon_package * pp1, uint i_det, uint nr_used_wavelengths);
+    
     // Synchrontron emission
     bool calcSyncMapsViaRaytracing(parameters & param);
-
+    
     void getSyncPixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
                                uint i_det,
                                uint subpixel_lvl,
                                int pos_id);
+    
     void getSyncIntensity(photon_package * pp1,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -231,6 +250,8 @@ public:
     void setGrid(CGridBasic * _grid);
 
     void setDust(CDustMixture * _dust);
+    
+    void setFreeFree(CFreeFree * _free);
 
     void setGas(CGasMixture * _gas);
 
@@ -298,8 +319,8 @@ private:
 
     uilist detector_wl_index;
 
-    CSynchrotron * synchrotron1;
-    CFreeFree * ffree;
+    CSynchrotron * synchrotron;
+    CFreeFree * freefree;
 };
 
 #endif /* CRADIATIVE_TRANSFER_H */

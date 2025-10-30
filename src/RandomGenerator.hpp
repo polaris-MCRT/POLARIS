@@ -9,6 +9,7 @@
 #include "Matrix2D.hpp"
 #include "Stokes.hpp"
 #include "Typedefs.hpp"
+#include "Vector3D.hpp"
 
 class CRandomGenerator
 {
@@ -33,7 +34,12 @@ public:
 
     double getRND();
 
+    double getABSRNDnormal(double mu, double sigma);
     double getRNDnormal(double mu, double sigma);
+    
+    Vector3D sampleGaussianInEllipsoid(
+    double a, double b, double c,            // Semi-axes of ellipsoid
+    double sigx, double sigy, double sigz);  // Sigma of Gaussian in each direction
 
 private:
     ullong KISS_state[4];

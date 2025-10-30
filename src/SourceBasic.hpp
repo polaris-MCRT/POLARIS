@@ -49,7 +49,7 @@ public:
 
     double getTemperature();
 
-    virtual double getSublimationRadius();
+    double getSublimationRadius();
 
     void setParameter(parameters & param, CGridBasic * _grid, CDustMixture * _dust, uint p);
 
@@ -95,6 +95,8 @@ public:
     virtual StokesVector getStokesVector(photon_package * pp);
 
     virtual uint getBins();
+    
+    double subRadius();
 
 protected:
     CDustMixture * dust;

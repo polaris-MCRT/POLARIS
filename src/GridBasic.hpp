@@ -95,7 +95,7 @@ public:
         min_dust_dens = 1e300;
         max_dust_dens = -1e300;
 
-        min_dust_aalg = 1e300;
+        min_dust_aalg1 = 1e300;
         max_dust_aalg = -1e300;
 
         min_dust_akrat = 1e300;
@@ -109,6 +109,31 @@ public:
 
         min_dust_size_param = 1e300;
         max_dust_size_param = -1e300;
+        
+            
+        min_ame_Zgr = 1e300;;
+        max_ame_Zgr = -1e300;
+
+        min_ame_Zs = 1e300;;
+        max_ame_Zs = -1e300;
+
+        min_ame_Trot = 1e300;;
+        max_ame_Trot = -1e300;
+        
+        
+        min_n_th = 1e300;
+        min_T_e = 1e300;
+        min_n_cr = 1e300;
+        min_g_min = 1e300;
+        min_g_max = 1e300;
+        min_p = 1e300;
+
+        max_n_th = -1e300;
+        max_T_e = -1e300;
+        max_n_cr = -1e300;
+        max_g_min = -1e300;
+        max_g_max = -1e300;
+        max_p = -1e300;
 
         min_ion_n_i = 1e300;
         max_ion_n_i = -1e300;
@@ -138,6 +163,7 @@ public:
         gas_is_mass_density = false;
         velocity_field_needed = false;
         spec_length_as_vector = false;
+        dust_ame = false;
 
         cell_list = 0;
 
@@ -167,24 +193,33 @@ public:
         line_to_pos = 0;
 
         data_pos_tg = MAX_UINT;
+        
         data_pos_mx = MAX_UINT;
         data_pos_my = MAX_UINT;
         data_pos_mz = MAX_UINT;
+        
         data_pos_vx = MAX_UINT;
         data_pos_vy = MAX_UINT;
         data_pos_vz = MAX_UINT;
+        
         data_pos_px = MAX_UINT;
         data_pos_py = MAX_UINT;
         data_pos_pz = MAX_UINT;
         
-        //data_pos_amin = MAX_UINT;
-        //data_pos_amax = MAX_UINT;
-        //data_pos_size_param = MAX_UINT;
-        //data_pos_ra = MAX_UINT;
         data_pos_id = MAX_UINT; //dust id
+        
+        data_pos_n_th = MAX_UINT;
+        data_pos_T_e = MAX_UINT;
+        data_pos_n_cr = MAX_UINT;
+        data_pos_g_min = MAX_UINT;
+        data_pos_g_max = MAX_UINT;
+        data_pos_p = MAX_UINT;
 
         data_pos_vt = MAX_UINT;
         data_pos_pda = MAX_UINT;
+        
+        data_pos_avg_th = MAX_UINT;
+        data_pos_avg_dir = MAX_UINT;
         
         data_pos_avg_ux = MAX_UINT;
         data_pos_avg_uy = MAX_UINT;
@@ -208,26 +243,38 @@ public:
         plt_dust_temp = false;
         plt_mag = false;
         plt_vel = false;
-        plt_rat = false;
-        //plt_delta = false;
-        plt_larm = false;
-        //plt_mach = false;
+
+        plt_avg_u = false;
+        plt_a_alig1 = false;
+        plt_a_krat = false;
+        plt_a_larm = false; 
+        
+        plt_ame_Zgr = false;
+        plt_ame_Zs = false;
+        plt_ame_Trot = false;
+
+        plt_ion_n_i = false;
+        plt_ion_Z = false; 
+
         plt_dust_id = false;
-        plt_amin = false;
-        plt_amax = false;
-        plt_size_param = false;
-        plt_rad_field1 = false;
+        plt_dust_a_min = false;
+        plt_dust_a_max = false;
+        plt_dust_size_param = false;
+        plt_rad_field = false;
         plt_u_rad = false;
-        plt_g_zero1 = false;
+        plt_g_zero = false;
         plt_n_th = false;
         plt_T_e = false;
         plt_n_cr = false;
-        plt_g_min = false;
-        plt_g_max = false;
-        plt_p = false;
+        
+        plt_sync_g_min = false;
+        plt_sync_g_max = false;
+        plt_sync_p = false;
 
         plt_avg_dir = false;
         plt_avg_th = false;
+        
+
 
         total_volume = 0;
         cell_volume = 0;
@@ -237,34 +284,53 @@ public:
         buffer_dust_dens = 0;
         buffer_gas_temp = 0;
         buffer_dust_temp = 0;
-        buffer_rat = 0;
-        //buffer_delta = 0;
+
+
         buffer_mag = 0;
         buffer_mag_x = 0;
         buffer_mag_y = 0;
         buffer_mag_z = 0;
+
         buffer_vel = 0;
         buffer_vel_x = 0;
         buffer_vel_y = 0;
         buffer_vel_z = 0;
-        buffer_larm = 0;
-        //buffer_mach = 0;
+
         buffer_dust_mixture = 0;
-        buffer_dust_amin = 0;
-        buffer_dust_amax = 0;
+        buffer_dust_a_min = 0;
+        buffer_dust_a_max = 0;
         buffer_dust_size_param = 0;
         buffer_rad_field = 0;
-        buffer_g_zero1 = 0;
+        buffer_g_zero = 0;
+        
         buffer_u_rad = 0;
+        
         buffer_n_th = 0;
         buffer_T_e = 0;
         buffer_n_cr = 0;
-        buffer_g_min = 0;
-        buffer_g_max = 0;
-        buffer_p = 0;
+        
+        buffer_sync_g_min = 0;
+        buffer_sync_g_max = 0;
+        buffer_sync_p = 0;
 
         buffer_avg_dir = 0;
         buffer_avg_th = 0;
+        
+        buffer_u = 0;
+        buffer_u_x = 0;
+        buffer_u_y = 0;
+        buffer_u_z = 0;
+
+        buffer_dust_a_alig1 = 0;
+        buffer_dust_a_larm = 0;
+        buffer_dust_a_krat = 0;
+
+        buffer_ion_n_i = 0;
+        buffer_ion_Z = 0;
+        
+        buffer_ame_Zgr = 0;
+        buffer_ame_Zs = 0;
+        buffer_ame_Trot = 0;
 
         turbulent_velocity = 0;
 
@@ -582,6 +648,14 @@ public:
     double getAlignedRadius(const cell_basic & cell, uint i_density) const;
 
     double getAlignedRadius(const photon_package & pp, uint i_density) const;
+    
+    double getkRATRadius(const cell_basic & cell, uint i_density) const;
+    
+    double getkRATRadius(const photon_package & pp, uint i_density) const;
+    
+    double getLarmRadius(const cell_basic & cell, uint i_density) const;
+    
+    double getLarmRadius(const photon_package & pp, uint i_density) const;    
 
     void setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg);
 
@@ -596,6 +670,15 @@ public:
     double getGrainSizeParam(const cell_basic & cell, uint i_density) const;
 
     double getGrainSizeParam(const photon_package & pp, uint i_density) const;
+    
+    double getAMEZgr(const cell_basic & cell, uint i_ame) const;
+    double getAMEZgr(const photon_package & pp, uint i_ame) const;
+
+    double getAMEZs(const cell_basic & cell, uint i_ame) const;
+    double getAMEZs(const photon_package & pp, uint i_ame) const;
+
+    double getAMETrot(const cell_basic & cell, uint i_ame) const;
+    double getAMETrot(const photon_package & pp, uint i_ame) const;
 
     uint getDustChoiceID(const photon_package & pp) const;
 
@@ -878,6 +961,8 @@ public:
     bool createCompatibleTree();
 
     uint CheckSynchrotron(parameters & param);
+    
+    uint CheckFreeFree(parameters & param);
 
     uint CheckOpiate(parameters & param);
 
@@ -923,7 +1008,7 @@ protected:
     double max_mach;
     double min_mach;
     
-    double min_dust_aalg;
+    double min_dust_aalg1;
     double max_dust_aalg;
     
     double min_dust_akrat;
@@ -941,6 +1026,14 @@ protected:
     double min_dust_size_param;
     double max_dust_size_param;
     
+    double min_ame_Zgr;
+    double max_ame_Zgr;
+    
+    double min_ame_Zs;
+    double max_ame_Zs;
+    
+    double min_ame_Trot;
+    double max_ame_Trot;
         
     uint dust_id_min;
     uint dust_id_max;
@@ -1005,6 +1098,7 @@ protected:
 
     uint nr_mixtures;
     uint nr_densities;
+    uint nr_ame;
     uint size_gd_list;
     uint size_dd_list;
     uint multi_temperature_entries;
@@ -1035,13 +1129,19 @@ protected:
     uint data_pos_py;
     uint data_pos_pz;
     
-    uilist data_pos_a_alg_list;
-    uilist data_pos_a_min_list;
-    uilist data_pos_a_max_list;
-    uilist data_pos_size_param_list;
+    uilist data_pos_dust_a_alig_list1;
+    uilist data_pos_dust_a_min_list;
+    uilist data_pos_dust_a_max_list;
+    uilist data_pos_dust_size_param_list;
     
-    uilist data_pos_a_krat_list;
-    uilist data_pos_a_larm_list;
+    uilist data_pos_dust_a_krat_list;
+    uilist data_pos_dust_a_larm_list;
+    
+    uilist data_pos_ame_Zgr;
+    uilist data_pos_ame_Zs;
+    uilist data_pos_ame_Trot;
+    
+    bool dust_ame;
 
     uint data_pos_id;
 
@@ -1089,25 +1189,37 @@ protected:
     bool plt_dust_temp;
     bool plt_mag;
     bool plt_vel;
-    bool plt_rat;
-    bool plt_larm;
+    
+    bool plt_avg_u;
+    bool plt_a_alig1;
+    bool plt_a_krat;
+    bool plt_a_larm;    
+    
+    bool plt_ame_Zgr;
+    bool plt_ame_Zs;
+    bool plt_ame_Trot;
+    
     bool plt_dust_id;
-    bool plt_amin;
-    bool plt_amax;
-    bool plt_size_param;
-    bool plt_rad_field1;
+    bool plt_dust_a_min;
+    bool plt_dust_a_max;
+    bool plt_dust_size_param;
+    bool plt_rad_field;
     bool plt_u_rad;
-    bool plt_g_zero1;
+    bool plt_g_zero;
     bool plt_n_th;
     bool plt_T_e;
     bool plt_n_cr;
-    bool plt_g_min;
-    bool plt_g_max;
-    bool plt_p;
+    
+    bool plt_sync_g_min;
+    bool plt_sync_g_max;
+    bool plt_sync_p;
 
     bool plt_avg_dir;
     bool plt_avg_th;
-
+    
+    bool plt_ion_n_i;
+    bool plt_ion_Z;
+    
     bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
     bool spec_length_as_vector;
@@ -1123,32 +1235,51 @@ protected:
     double ** buffer_dust_dens;
     double * buffer_gas_temp;
     double ** buffer_dust_temp;
-    double ** buffer_rat;
+    
     double * buffer_mag;
     double * buffer_mag_x;
     double * buffer_mag_y;
     double * buffer_mag_z;
+    
     double * buffer_vel;
     double * buffer_vel_x;
     double * buffer_vel_y;
     double * buffer_vel_z;
-    double * buffer_larm;
+    
     double * buffer_dust_mixture;
-    double * buffer_dust_amin;
-    double * buffer_dust_amax;
-    double * buffer_dust_size_param;
+    double ** buffer_dust_a_min;
+    double ** buffer_dust_a_max;
+    double ** buffer_dust_size_param;
+    
     double *** buffer_rad_field;
-    double * buffer_g_zero1;
+    double * buffer_g_zero;
     double * buffer_u_rad;
     double * buffer_n_th;
     double * buffer_T_e;
     double * buffer_n_cr;
-    double * buffer_g_min;
-    double * buffer_g_max;
-    double * buffer_p;
+    
+    double * buffer_sync_g_min;
+    double * buffer_sync_g_max;
+    double * buffer_sync_p;
 
     double * buffer_avg_th;
     double * buffer_avg_dir;
+    
+    double * buffer_u;
+    double * buffer_u_x;
+    double * buffer_u_y;
+    double * buffer_u_z;
+    
+    double ** buffer_dust_a_alig1;
+    double ** buffer_dust_a_larm;
+    double ** buffer_dust_a_krat;
+    
+    double ** buffer_ame_Zgr;
+    double ** buffer_ame_Zs;
+    double ** buffer_ame_Trot;
+    
+    double * buffer_ion_n_i;
+    double * buffer_ion_Z;
 
     double ** CextMeanTab;
     double ** CabsMeanTab;

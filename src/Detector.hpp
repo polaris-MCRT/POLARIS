@@ -56,7 +56,12 @@ public:
         matrixU = 0;
         matrixV = 0;
         matrixT = 0;
-        matrixS = 0;
+        matrixS1 = 0;
+        matrixS2 = 0;
+        matrixS3 = 0;
+        matrixS4 = 0;
+        
+        special_param = 1;
 
         sedI = 0;
         sedQ = 0;
@@ -104,7 +109,7 @@ public:
         N_photon = 0;
     }
 
-    // Detector for dust and synchrotron
+    // Detector for dust, synchrotron, and free free
     // Plane detector
     CDetector(uint _detector_id,
               string _path,
@@ -120,6 +125,7 @@ public:
               double _l_max,
               uint _nr_spectral_bins,
               uint _nr_extra,
+              uint _special_param,
               uint _alignment = ALIG_RND)
     {
         detector_id = _detector_id;
@@ -156,6 +162,8 @@ public:
         lam_max = _l_max;
         nr_spectral_bins = _nr_spectral_bins;
         nr_extra = _nr_extra;
+        
+        special_param = _special_param;
 
         wavelength_list_det.resize(nr_spectral_bins);
         if(USE_LOG_SPACING)
@@ -174,8 +182,23 @@ public:
         matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
         matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+        
         matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        matrixS1 = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        matrixS2 = 0;
+        matrixS3 = 0;
+        matrixS4 = 0;
+        
+        if(special_param==3)
+        {
+            matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
+            matrixS3 = new Matrix2D[nr_extra * nr_spectral_bins];
+        }
+        
+
+        
         N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
@@ -187,7 +210,19 @@ public:
                 matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS1!=0)
+                    matrixS1[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS2!=0)
+                    matrixS2[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS3!=0)
+                    matrixS3[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS4!=0)
+                    matrixS4[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
                 N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
@@ -200,7 +235,7 @@ public:
         }
     }
 
-    // Spherical detector
+    // Spherical dust detector
     CDetector(string _path,
               uint _bins,
               uint _id,
@@ -211,7 +246,9 @@ public:
               double _rad_bubble,
               uint _nr_of_spectral_bins,
               uint _nr_extra,
-              uint _alignment = ALIG_RND)
+              uint _special_param,
+              uint _alignment,
+              bool compact)
     {
         detector_id = DET_SPHER;
 
@@ -242,6 +279,8 @@ public:
         i_trans = 0;
         cos_acceptance_angle = 0;
         alignment = _alignment;
+        
+        special_param = _special_param;
 
         lam_min = _l_min;
         lam_max = _l_max;
@@ -262,24 +301,82 @@ public:
         sedS = new double[nr_extra * nr_spectral_bins];
 
         matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixS = new Matrix2D[nr_extra * nr_spectral_bins];
-        N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        matrixS2 = 0;
+        matrixS3 = 0;
+        matrixS4 = 0;
+        
+        if(compact)
+        {
+            matrixQ = 0;
+            matrixU = 0;
+            matrixV = 0;
+            matrixT = 0;
+            
+            matrixS1 = 0;
 
+            N_photon = 0;
+        }
+        else
+        {
+            matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+            matrixS1 = new Matrix2D[nr_extra * nr_spectral_bins];
+            
+            if(special_param==3)
+            {
+                matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
+                matrixS3 = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+            
+            N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
+            
+            if(alignment!=ALIG_RND)
+            {
+                matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
+                matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
+                matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+            else
+            {
+                matrixQ = 0;
+                matrixU = 0;
+                matrixV = 0;
+            }
+        }
+        
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
+                
                 matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixS[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixQ!=0)
+                    matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixU!=0)
+                    matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixV!=0)
+                    matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixT!=0)
+                    matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS1!=0)
+                    matrixS1[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS2!=0)
+                    matrixS2[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS3!=0)
+                    matrixS3[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixS4!=0)
+                    matrixS4[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(N_photon!=0)
+                    N_photon[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
 
                 sedI[i_spectral + i_extra * nr_spectral_bins] = 0;
                 sedQ[i_spectral + i_extra * nr_spectral_bins] = 0;
@@ -290,7 +387,7 @@ public:
             }
         }
     }
-    // End detector dust and synchrotron
+    // End detector dust, synchrotron, and free-free
 
     // Detector for line
     // Plane detector
@@ -307,7 +404,8 @@ public:
               uint _i_trans,
               uint _nr_spectral_bins,
               double _min_velocity,
-              double _max_velocity)
+              double _max_velocity,
+              bool hasZeeman)
     {
         detector_id = _detector_id;
 
@@ -336,6 +434,7 @@ public:
         distance = _distance;
 
         nr_extra = 1;
+        special_param=1;
 
         calcVelocityChannels(_nr_spectral_bins, _min_velocity,  _max_velocity);
 
@@ -363,8 +462,12 @@ public:
         matrixU = new Matrix2D[nr_spectral_bins];
         matrixV = new Matrix2D[nr_spectral_bins];
         matrixT = new Matrix2D[nr_spectral_bins];
-        matrixS = new Matrix2D[nr_spectral_bins];
+        matrixS1 = new Matrix2D[nr_spectral_bins];
         N_photon = new Matrix2D[nr_spectral_bins];
+        
+        matrixS2 = 0;
+        matrixS3 = 0;
+        matrixS4 = 0;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
@@ -373,7 +476,7 @@ public:
             matrixU[i_spectral].resize(bins_x, bins_y);
             matrixV[i_spectral].resize(bins_x, bins_y);
             matrixT[i_spectral].resize(bins_x, bins_y);
-            matrixS[i_spectral].resize(bins_x, bins_y);
+            matrixS1[i_spectral].resize(bins_x, bins_y);
             N_photon[i_spectral].resize(bins_x, bins_y);
 
             sedI[i_spectral] = 0;
@@ -397,7 +500,8 @@ public:
               uint _i_trans,
               uint _nr_spectral_bins,
               double _min_velocity,
-              double _max_velocity)
+              double _max_velocity,
+              bool hasZeeman)
     {
         detector_id = DET_SPHER;
 
@@ -424,6 +528,8 @@ public:
         bins_y = 1;
         max_cells = bins_x * bins_y;
         distance = 1;
+        
+        special_param = 1;
 
         calcVelocityChannels(_nr_spectral_bins, _min_velocity, _max_velocity);
 
@@ -449,22 +555,45 @@ public:
         sedS = new double[nr_spectral_bins];
 
         matrixI = new Matrix2D[nr_spectral_bins];
-        matrixQ = new Matrix2D[nr_spectral_bins];
-        matrixU = new Matrix2D[nr_spectral_bins];
-        matrixV = new Matrix2D[nr_spectral_bins];
+        
+        if(hasZeeman)
+        {
+            matrixQ = new Matrix2D[nr_spectral_bins];
+            matrixU = new Matrix2D[nr_spectral_bins];
+            matrixV = new Matrix2D[nr_spectral_bins]; 
+        }
+        else
+        {
+            matrixQ = 0;
+            matrixU = 0;
+            matrixV = 0; 
+        }
+        
         matrixT = new Matrix2D[nr_spectral_bins];
-        matrixS = new Matrix2D[nr_spectral_bins];
-        N_photon = new Matrix2D[nr_spectral_bins];
+        matrixS1 = new Matrix2D[nr_spectral_bins];
+        
+        matrixS2 = 0;
+        matrixS3 = 0;
+        matrixS4 = 0;
+        
+        N_photon = 0;
 
         for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
         {
             matrixI[i_spectral].resize(bins_x, bins_y);
-            matrixQ[i_spectral].resize(bins_x, bins_y);
-            matrixU[i_spectral].resize(bins_x, bins_y);
-            matrixV[i_spectral].resize(bins_x, bins_y);
+            
+            if(hasZeeman)
+            {
+                matrixQ[i_spectral].resize(bins_x, bins_y);
+                matrixU[i_spectral].resize(bins_x, bins_y);
+                matrixV[i_spectral].resize(bins_x, bins_y);
+            }
+            
             matrixT[i_spectral].resize(bins_x, bins_y);
-            matrixS[i_spectral].resize(bins_x, bins_y);
-            N_photon[i_spectral].resize(bins_x, bins_y);
+            
+            matrixS1[i_spectral].resize(bins_x, bins_y);
+            
+            //N_photon[i_spectral].resize(bins_x, bins_y);
 
             sedI[i_spectral] = 0;
             sedQ[i_spectral] = 0;
@@ -489,10 +618,18 @@ public:
             delete[] matrixU;
         if(matrixV != 0)
             delete[] matrixV;
+            
         if(matrixT != 0)
             delete[] matrixT;
-        if(matrixS != 0)
-            delete[] matrixS;
+            
+        if(matrixS1 != 0)
+            delete[] matrixS1;
+        if(matrixS2 != 0)
+            delete[] matrixS2;
+        if(matrixS3 != 0)
+            delete[] matrixS3;
+        if(matrixS4 != 0)
+            delete[] matrixS4;
 
         if(w1_I != 0)
             delete[] w1_I;
@@ -609,6 +746,10 @@ public:
     bool writeSed(uint nr, uint results_type);
 
     bool writeHealMaps(uint nr, uint results_type);
+    bool writeHealMapsTiny(uint nr, uint results_type);
+    
+    bool writeFreeFreeMap(uint nr);
+    bool writeFreeFreeHealMap(uint nr);
 
     bool writeSyncMap(uint nr);
 
@@ -629,6 +770,8 @@ public:
     bool writeOPIATEVelChannelHealMaps(COpiateDataBase * op, uint det_id);
 
     bool writeVelChannelHealMaps(CGasMixture * gas, uint i_species, uint i_line);
+    
+    bool writeVelChannelHealMapsTiny(CGasMixture * gas, uint i_species, uint i_line);
 
     bool writeOPIATEIntVelChannelHealMaps(COpiateDataBase * op, uint det_id);
 
@@ -679,6 +822,7 @@ private:
     string path;
     uint ID, detector_id;
     uint bins_x, bins_y;
+    uint special_param;
     uint max_cells;
     uint nr_spectral_bins;
     uint nr_velocity_channels;
@@ -686,7 +830,13 @@ private:
     uint nr_extra;
     uint alignment;
     uint processing_method;
-    Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV, *matrixT, *matrixS;
+    
+    //Stokes components
+    Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV;
+    
+    //special parameters
+    Matrix2D *matrixT, *matrixS1, *matrixS2, *matrixS3, *matrixS4;
+    
     Matrix2D *w1_I, *w2_I, *w3_I, *w4_I;
     Matrix2D *w1_Q, *w2_Q, *w3_Q, *w4_Q;
     Matrix2D *w1_U, *w2_U, *w3_U, *w4_U;

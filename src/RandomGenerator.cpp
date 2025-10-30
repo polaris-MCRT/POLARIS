@@ -50,17 +50,22 @@ double CRandomGenerator::getRND()
     return double(KISS_state[0] + KISS_state[1] + KISS_state[2]) / 18446744073709551615ULL;
 }
 
-double CRandomGenerator::getRNDnormal(double mu, double sigma)
+double CRandomGenerator::getABSRNDnormal(double mu, double sigma)
 {
     double U1, U2, W, mult;
     double X1, X2;
+    
+    int kill_counter = 10000;
 
     do
     {
         U1 = -1 + getRND() * 2;
         U2 = -1 + getRND() * 2;
         W = pow(U1, 2) + pow(U2, 2);
-    } while(W >= 1 || W == 0);
+        
+        kill_counter--;
+        
+    } while((W >= 1 || W == 0) && kill_counter>0);
 
     mult = sqrt((-2 * log(W)) / W);
     X1 = U1 * mult;
@@ -71,5 +76,60 @@ double CRandomGenerator::getRNDnormal(double mu, double sigma)
     if(res < 0)
         return getRNDnormal(mu, sigma);
 
+    return res;
+}
+
+double CRandomGenerator::getRNDnormal(double mu, double sigma)
+{
+    double U1, U2, W, mult;
+    double X1, X2;
+    
+    int kill_counter = 10000;
+
+    do
+    {
+        U1 = -1 + getRND() * 2;
+        U2 = -1 + getRND() * 2;
+        W = pow(U1, 2) + pow(U2, 2);
+        
+        kill_counter--;
+        
+    } while((W >= 1 || W == 0) && kill_counter>0);
+
+    mult = sqrt((-2 * log(W)) / W);
+    X1 = U1 * mult;
+    X2 = U2 * mult;
+
+    double res = mu + sigma * X1;
+
+    return res;
+}
+
+Vector3D CRandomGenerator::sampleGaussianInEllipsoid(
+    double a, double b, double c,           // Semi-axes of ellipsoid
+    double sigx, double sigy, double sigz)  // Sigma of Gaussian in each direction
+{
+    int kill_counter = 10000;
+    
+    Vector3D res(0,0,0);
+    
+    for (int i = 0; i < kill_counter; ++i)
+    {
+        double tx = getRNDnormal(0, sigx);
+        double ty = getRNDnormal(0, sigy);
+        double tz = getRNDnormal(0, sigz);
+
+        // Check if point lies within the ellipsoid
+        double dx = tx / a;
+        double dy = ty / b;
+        double dz = tz / c;
+
+        if (dx * dx + dy * dy + dz * dz <= 1.0)
+        {
+            res.set(tx, ty, tz);
+            return res;
+        }
+    }
+    // Failed to find a valid sample after many tries
     return res;
 }

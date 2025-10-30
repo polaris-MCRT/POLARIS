@@ -881,6 +881,19 @@ bool CGridOcTree::goToNextCellBorder(photon_package * pp)
             num += Vector3D::sign(num) * length_eps_1;
 
             length = -num / den;
+            
+            //position is exactly at the cell wall
+            if(abs(num)<=EPS_DOUBLE)
+            {
+                const double eps_len = (loc_z_max - loc_z_min) * EPS_DOUBLE;
+                
+                if (eps_len < path_length)
+                {
+                    hit = true;
+                    path_length = eps_len;
+                    continue;
+                }
+            }
 
             if(length > 0 && length < path_length)
             {

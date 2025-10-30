@@ -58,7 +58,8 @@ public:
         off_len_x = 0;
         off_len_y = 0;
 
-        vel_maps = false;
+        vel_maps_fits = false;
+        compact_fits = false;
 
         detector = 0;
         grid = 0;
@@ -78,12 +79,18 @@ public:
                                  dlist sync_ray_detectors,
                                  double _max_length,
                                  string path);
+    
+    virtual bool setFreeFreeDetector(uint pos,
+                                 const parameters & param,
+                                 dlist free_ray_detectors,
+                                 double _max_length,
+                                 string path);
 
     virtual bool setLineDetector(uint pos,
                                  const parameters & param,
                                  dlist line_ray_detectors,
                                  string path,
-                                 double _max_length);
+                                 double _max_length, bool hasZeeman);
 
     virtual bool setOPIATEDetector(uint pos,
                                  const parameters & param,
@@ -144,6 +151,8 @@ public:
     virtual bool writeOpiateResults(COpiateDataBase * op);
 
     virtual bool writeSyncResults();
+    
+    virtual bool writeFreeFreeResults();
 
     virtual bool getUseSubpixel(double cx, double cy, uint subpixel_lvl);
 
@@ -197,7 +206,9 @@ protected:
 
     int off_len_x, off_len_y;
 
-    bool vel_maps, split_emission;
+    bool vel_maps_fits;
+    bool compact_fits;
+    bool split_emission;
     CDetector * detector;
     CGridBasic * grid;
     Vector3D ex, ey, ez;

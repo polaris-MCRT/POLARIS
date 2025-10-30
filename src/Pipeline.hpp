@@ -97,6 +97,8 @@ public:
     void printDetectorParameters(parameters & param, bool monte_carlo = false);
 
     void printSynchrotronParameters(parameters & param);
+    
+    void printFreeFree(parameters & param);
 
     void deleteSourceLists();
 

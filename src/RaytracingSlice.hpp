@@ -46,7 +46,7 @@ public:
                          const parameters & param,
                          dlist line_ray_detectors,
                          string path,
-                         double _max_length);
+                         double _max_length, bool hasZeeman);
 
     void preparePhoton(photon_package * pp, double cx, double cy);
 

@@ -127,7 +127,8 @@ bool CRaytracingCartesian::setSyncDetector(uint pos,
 
     setDetCoordSystem(n1, n2);
 
-    detector = new CDetector(rt_detector_shape,
+    //todo: rewrite for sync
+    /*detector = new CDetector(rt_detector_shape,
                                 path,
                                 map_pixel_x,
                                 map_pixel_y,
@@ -141,6 +142,76 @@ bool CRaytracingCartesian::setSyncDetector(uint pos,
                                 lam_max,
                                 nr_spectral_bins,
                                 nr_extra);
+    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);*/
+
+    return true;
+}
+
+bool CRaytracingCartesian::setFreeFreeDetector(uint pos,
+                                           const parameters & param,
+                                           dlist free_ray_detectors,
+                                           double _max_length,
+                                           string path)
+{
+    rt_detector_shape = DET_PLANE;
+
+    if(detector != 0)
+    {
+        delete detector;
+        detector = 0;
+    }
+
+    dID = pos / NR_OF_RAY_DET;
+
+    double lam_min = free_ray_detectors[pos + 0];
+    double lam_max = free_ray_detectors[pos + 1];
+    nr_spectral_bins = uint(free_ray_detectors[pos + 2]);
+    nr_extra = 1;
+
+    sID = uint(free_ray_detectors[pos + 3]);
+
+    rot_angle1 = PI / 180.0 * free_ray_detectors[pos + 4];
+    rot_angle2 = PI / 180.0 * free_ray_detectors[pos + 5];
+
+    distance = free_ray_detectors[pos + 6];
+
+    sidelength_x = free_ray_detectors[pos + 7];
+    sidelength_y = free_ray_detectors[pos + 8];
+
+    max_length = _max_length;
+
+    if(free_ray_detectors[pos + 9] != -1)
+        map_shift_x = free_ray_detectors[pos + 9];
+    if(free_ray_detectors[pos + 10] != -1)
+        map_shift_y = free_ray_detectors[pos + 10];
+
+    map_pixel_x = uint(free_ray_detectors[pos + NR_OF_RAY_DET - 2]);
+    map_pixel_y = uint(free_ray_detectors[pos + NR_OF_RAY_DET - 1]);
+
+    max_subpixel_lvl = param.getMaxSubpixelLvl();
+
+    calcMapParameter();
+
+    Vector3D n1 = param.getAxis1();
+    Vector3D n2 = param.getAxis2();
+
+    setDetCoordSystem(n1, n2);
+
+    detector = new CDetector(rt_detector_shape,
+                                path,
+                                map_pixel_x,
+                                map_pixel_y,
+                                dID,
+                                sidelength_x,
+                                sidelength_y,
+                                map_shift_x,
+                                map_shift_y,
+                                distance,
+                                lam_min,
+                                lam_max,
+                                nr_spectral_bins,             
+                                nr_extra, 3);
+    
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
     return true;
@@ -150,10 +221,10 @@ bool CRaytracingCartesian::setLineDetector(uint pos,
                                            const parameters & param,
                                            dlist line_ray_detectors,
                                            string path,
-                                           double _max_length)
+                                           double _max_length, bool hasZeeman)
 {
     rt_detector_shape = DET_PLANE;
-    vel_maps = param.getVelMaps();
+    vel_maps_fits = param.getVelMapsFits();
 
     if(detector != 0)
     {
@@ -210,7 +281,8 @@ bool CRaytracingCartesian::setLineDetector(uint pos,
                                 i_trans,
                                 nr_spectral_bins,
                                 min_velocity,
-                                max_velocity);
+                                max_velocity,
+                                hasZeeman);
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
     return true;
@@ -223,7 +295,7 @@ bool CRaytracingCartesian::setOPIATEDetector(uint pos,
                                              double _max_length)
 {
     rt_detector_shape = DET_PLANE;
-    vel_maps = param.getVelMaps();
+    vel_maps_fits = param.getVelMapsFits();
 
     if(detector != 0)
     {
@@ -270,7 +342,7 @@ bool CRaytracingCartesian::setOPIATEDetector(uint pos,
 
     setDetCoordSystem(n1, n2);
 
-    detector = new CDetector(rt_detector_shape,
+    /*detector = new CDetector(rt_detector_shape,
                                 path,
                                 map_pixel_x,
                                 map_pixel_y,
@@ -284,7 +356,7 @@ bool CRaytracingCartesian::setOPIATEDetector(uint pos,
                                 nr_spectral_bins,
                                 min_velocity,
                                 max_velocity);
-    detector->setOrientation(n1, n2, tmp_angle1, tmp_angle2);
+    detector->setOrientation(n1, n2, tmp_angle1, tmp_angle2);*/
 
     return true;
 }
@@ -379,7 +451,7 @@ void CRaytracingCartesian::addToDetector(photon_package * pp, int i_pix, bool di
 
         // Multiply by min area if such a multiplication did not happen before
         if(!direct)
-            pp->getStokesVector(i_spectral)->multS(getMinArea());
+            pp->getStokesVector(i_spectral)->multStokesParam(getMinArea());
 
         // Add photon Stokes vector to detector
         detector->addToRaytracingDetector(*pp);

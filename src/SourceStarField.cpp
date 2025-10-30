@@ -94,7 +94,7 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
     pos = Vector3D(values[p + 0], values[p + 1], values[p + 2]);
     R = 0;
     T = 0;
-    var = values[p + 3];
+    //var = values[p + 3];
     nr_of_photons = ullong(values[p + NR_OF_DIFF_SOURCES - 1]);
 
     cout << CLR_LINE << flush;
@@ -159,10 +159,15 @@ void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * ran
 
     pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
 
-    double len = rand_gen->getRNDnormal(0, var);
-
-    pos = len * pp->getDirection();
-    pos += pos;
+    Vector3D ref_pos = rand_gen->sampleGaussianInEllipsoid(a, b, c, sig_x, sig_y, sig_z);
+        
+    if(ang1!=0)
+        ref_pos.rot(rot1,ang1);
+    
+    if(ang2!=0)
+        ref_pos.rot(rot2,ang2);
+    
+    ref_pos += pos;
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
@@ -192,21 +197,22 @@ void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * ran
         pp->setWavelength(wavelength_list[wID + 1], wID + 1);
     }
 
-    pp->setPosition(pos);
+    pp->setPosition(ref_pos);
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
 }
 
+//todo: does this function makes sense conceptually?
 void CSourceStarField::createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs)
 {
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
 
-    double len = rand_gen->getRNDnormal(0, var);
+    //double len = rand_gen->getRNDnormal(0, var);
 
-    pos = len * pp->getDirection();
-    pos += pos;
+    //pos = len * pp->getDirection();
+    //pos += pos;
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {
@@ -254,10 +260,23 @@ void CSourceStarField::setParameter(parameters & param, uint p)
     pos = Vector3D(values[p + 0], values[p + 1], values[p + 2]);
     R = values[p + 3];
     T = values[p + 4];
-    var = values[p + 5];
-
-    q = values[p + 6];
-    u = values[p + 7];
+    
+    sig_x = values[p + 5];
+    sig_y = values[p + 6];
+    sig_z = values[p + 7];
+    
+    a = values[p + 8];
+    b = values[p + 9];
+    c = values[p + 10];
+    
+    rot1 = Vector3D(values[p + 11], values[p + 12], values[p + 13]);
+    ang1 = values[p + 14] * PI / 180.;
+            
+    rot2 = Vector3D(values[p + 15], values[p + 16], values[p + 17]);
+    ang2 = values[p + 18] * PI / 180.;
+    
+    q = values[p + 19];
+    u = values[p + 20];
 
     nr_of_photons = ullong(values[p + NR_OF_DIFF_SOURCES - 1]);
 

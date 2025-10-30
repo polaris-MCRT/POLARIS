@@ -39,12 +39,18 @@ public:
                          dlist sync_ray_detectors,
                          double _max_length,
                          string path);
+    
+    bool setFreeFreeDetector(uint pos,
+                         const parameters & param,
+                         dlist free_ray_detectors,
+                         double _max_length,
+                         string path);
 
     bool setLineDetector(uint pos,
                          const parameters & param,
                          dlist line_ray_detectors,
                          string path,
-                         double _max_length);
+                         double _max_length, bool hasZeeman);
 
     bool setOPIATEDetector(uint pos,
                          const parameters & param,

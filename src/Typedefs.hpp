@@ -47,6 +47,7 @@ using namespace std;
 // Constants taken from astropy/numpy (reference: CODATA 2014, IAU 2012 Resolution B2)
 #define PI 3.1415926535897932384626433832795028841971 // PI
 #define PIsq sqrt(PI)                                 // sqrt(PI)
+#define PIx2sq sqrt(2*PI)                             // sqrt(2 * PI)
 #define PI2 (PI / 2.0)                                // PI / 2
 #define PI4 (PI / 4.0)                                // PI / 4
 #define invPI2 (2.0 / PI)                             // 2 / PI
@@ -62,7 +63,7 @@ using namespace std;
 #define PIx4_c (PIx4 / con_c)                         // 4 * PI / c
 #define con_e 1.6021766208e-19                        // Electron charge [C]
 #define con_Ryd 10973731.568508                       // Rydberg constant [1 / m]
-#define con_RyJ (con_h * con_c * con_Ryd)               // Rydberg energy in Joule
+#define con_RyJ (con_h * con_c * con_Ryd)             // Rydberg energy in Joule
 #define con_AU 149597870700.0                         // Astronomical Unit [m]
 #define con_pc 3.0856775814671916e+16                 // Parsec [m]
 #define con_ly 9460730472580800.0                     // Lightyear [m]
@@ -107,10 +108,20 @@ using namespace std;
 #define MAX_INTERACTION_RADFIELD 1e7
 #define MAX_INTERACTION_DUST_MC 1e7
 #define MAX_RT_RAYS 1e7
-#define MIN_LEN_STEP 1e4
+#define MIN_LEN_STEP 1e2
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
 #define PERCENTAGE_STEP 1
+
+// status of sublimation scheme
+#define SUB_CENTER 1  // only center cell
+#define SUB_RADIUS 2  // automatic gen. sub. radius
+#define SUB_VAR    4  // use user def. radius
+#define SUB_ERODE  8  // erode cells
+
+// reference sublimation radius
+// Dullemond et al. 2001, Hoang et al. 2021
+#define R_SUB  5.08633e9 // [m]
 
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
@@ -143,7 +154,7 @@ using namespace std;
 
 // Number of entries for different sources
 #define NR_OF_POINT_SOURCES 9
-#define NR_OF_DIFF_SOURCES 9
+#define NR_OF_DIFF_SOURCES 22
 #define NR_OF_LASER_SOURCES 12
 #define NR_OF_BG_SOURCES 8
 
@@ -245,7 +256,7 @@ using namespace std;
 #define GRIDradz 32
 #define GRIDrad 33
 
-#define GRIDavg_th 34
+#define GRIDavg_th  34
 #define GRIDavg_dir 35
 
 #define GRIDavg_ux 36
@@ -254,19 +265,25 @@ using namespace std;
 
 #define GRID_akRAT 39
 #define GRID_alarm 40
+#define GRID_ard   41 
 
-#define GRID_aeff 41
-#define GRID_dnda 42
+#define GRID_aeff 42
+#define GRID_dnda 43
 
-#define GRID_vdx 43
-#define GRID_vdy 44
-#define GRID_vdz 45
+#define GRID_Zgr  44
+#define GRID_Zs   45
+#define GRID_Trot 46
 
-#define GRID_ni 46
-#define GRID_Z  47
+#define GRID_vdx 47
+#define GRID_vdy 48
+#define GRID_vdz 49
+
+#define GRID_ni 50
+#define GRID_Z  51
+
 
 #define minGRID GRIDgas_dens
-#define maxGRID GRID_Z
+#define maxGRID GRID_Trot
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
@@ -405,29 +422,41 @@ using namespace std;
 #define LINE_DELAY 5
 #endif
 
-// the following are terminal color codes for Unix systems
-#define RESET   "\033[0m"
-#define BLACK   "\033[30m"      /* Black */
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
-#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
-#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
-#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
-#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
-#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#define USE_COLOR
 
-#define DEBUG_LINE   (BOLDBLUE "DEBUG: " RESET)
-#define INFO_LINE    (BOLDGREEN "INFO: " RESET)
-#define WARNING_LINE (BOLDYELLOW "WARNING: " RESET)
-#define ERROR_LINE   (BOLDRED "ERROR: " RESET)
+
+#ifdef USE_COLOR
+
+    // the following are terminal color codes for Unix systems
+    #define RESET   "\033[0m"
+    #define BLACK   "\033[30m"      /* Black */
+    #define RED     "\033[31m"      /* Red */
+    #define GREEN   "\033[32m"      /* Green */
+    #define YELLOW  "\033[33m"      /* Yellow */
+    #define BLUE    "\033[34m"      /* Blue */
+    #define MAGENTA "\033[35m"      /* Magenta */
+    #define CYAN    "\033[36m"      /* Cyan */
+    #define WHITE   "\033[37m"      /* White */
+    #define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+    #define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+    #define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+    #define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+    #define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+    #define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+    #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+    #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+    #define DEBUG_LINE   (BOLDBLUE "DEBUG: " RESET)
+    #define INFO_LINE    (BOLDGREEN "INFO: " RESET)
+    #define WARNING_LINE (BOLDYELLOW "WARNING: " RESET)
+    #define ERROR_LINE   (BOLDRED "ERROR: " RESET)
+
+#else
+    #define DEBUG_LINE   ( "DEBUG: " )
+    #define INFO_LINE    ( "INFO: " )
+    #define WARNING_LINE ( "WARNING: " )
+    #define ERROR_LINE   ( "ERROR: " )
+#endif
 
 // data types
 typedef unsigned int uint;
@@ -442,6 +471,7 @@ typedef vector<uchar> clist;
 typedef vector<uint> uilist;
 typedef vector<ushort> uslist;
 typedef vector<int> ilist;
+typedef vector<long> llist;
 typedef vector<string> strlist;
 typedef complex<float> fcomplex;
 typedef complex<double> dcomplex;

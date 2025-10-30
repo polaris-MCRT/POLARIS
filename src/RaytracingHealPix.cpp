@@ -18,6 +18,8 @@ bool CRaytracingHealPix::setDustDetector(uint pos,
         delete detector;
         detector = 0;
     }
+    
+    compact_fits = param.getCompactFits();
 
     dID = pos / NR_OF_RAY_DET;
 
@@ -40,8 +42,13 @@ bool CRaytracingHealPix::setDustDetector(uint pos,
     double tmp_b_min = dust_ray_detectors[pos + 9];
     double tmp_b_max = dust_ray_detectors[pos + 10];
 
-    l_min = PI * (-dust_ray_detectors[pos + 8] + 180.0) / 180.0;
-    l_max = PI * (-dust_ray_detectors[pos + 7] + 180.0) / 180.0;
+    //l_min = PI * (-dust_ray_detectors[pos + 8] + 180.0) / 180.0;
+    //l_max = PI * (-dust_ray_detectors[pos + 7] + 180.0) / 180.0;
+    
+    l_min = PI * (-dust_ray_detectors[pos + 7]) / 180.0;
+    l_max = PI * (-dust_ray_detectors[pos + 8] + 360.0) / 180.0;
+    
+    
     b_min = PI * (-dust_ray_detectors[pos + 10] + 90.0) / 180;
     b_max = PI * (-dust_ray_detectors[pos + 9] + 90.0) / 180;
 
@@ -57,11 +64,27 @@ bool CRaytracingHealPix::setDustDetector(uint pos,
     det_pos.setZ(sz);
 
     max_length = _max_length * 10;
+    uint alignment= param.getAlignmentMechanism();
 
     setOrientation(param.getHealpixOrientation());
+    
+        /*CDetector(string _path,
+              uint _bins,
+              uint _id,
+              Vector3D obs_pos,
+              double _sidelength,
+              double _l_min,
+              double _l_max,
+              double _rad_bubble,
+              uint _nr_of_spectral_bins,
+              uint _nr_extra,
+              uint _special_param,
+              uint _alignment,
+              bool compact)*/
 
     detector = new CDetector(
-        path, npix, 1, det_pos, max_length, lam_min, lam_max, rad_bubble, nr_spectral_bins, 1, param.getAlignmentMechanism());
+        path, npix, 1, det_pos, max_length, lam_min, lam_max, rad_bubble, nr_spectral_bins, nr_extra, 1,alignment,compact_fits);
+    
     detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), tmp_l_min, tmp_l_max, tmp_b_min, tmp_b_max);
 
 
@@ -101,8 +124,12 @@ bool CRaytracingHealPix::setSyncDetector(uint pos,
     double tmp_b_min = sync_ray_detectors[pos + 9];
     double tmp_b_max = sync_ray_detectors[pos + 10];
 
-    l_min = PI * (-sync_ray_detectors[pos + 8] + 180.0) / 180.0;
-    l_max = PI * (-sync_ray_detectors[pos + 7] + 180.0) / 180.0;
+    //l_min = PI * (-sync_ray_detectors[pos + 8] + 180.0) / 180.0;
+    //l_max = PI * (-sync_ray_detectors[pos + 7] + 180.0) / 180.0;
+    
+    l_min = PI * (-sync_ray_detectors[pos + 7]) / 180.0;
+    l_max = PI * (-sync_ray_detectors[pos + 8] + 360.0) / 180.0;
+    
     b_min = PI * (-sync_ray_detectors[pos + 10] + 90.0) / 180;
     b_max = PI * (-sync_ray_detectors[pos + 9] + 90.0) / 180;
 
@@ -120,9 +147,76 @@ bool CRaytracingHealPix::setSyncDetector(uint pos,
     max_length = _max_length * 10;
 
     setOrientation(param.getHealpixOrientation());
+    
 
-    detector =
-        new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max,rad_bubble, nr_spectral_bins, nr_extra);
+
+    detector = new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max,rad_bubble, nr_spectral_bins, nr_extra, 1, ALIG_PA, false);
+    detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), tmp_l_min, tmp_l_max, tmp_b_min, tmp_b_max);
+
+    return true;
+}
+
+bool CRaytracingHealPix::setFreeFreeDetector(uint pos,
+                                         const parameters & param,
+                                         dlist free_ray_detectors,
+                                         double _max_length,
+                                         string path)
+{
+    rt_detector_shape = DET_SPHER;
+
+    if(detector != 0)
+    {
+        delete detector;
+        detector = 0;
+    }
+
+    dID = pos / NR_OF_RAY_DET;
+
+    double lam_min = free_ray_detectors[pos + 0];
+    double lam_max = free_ray_detectors[pos + 1];
+    nr_spectral_bins = uint(free_ray_detectors[pos + 2]);
+    nr_extra = 1;
+
+    sID = uint(free_ray_detectors[pos + 3]);
+
+    sx = free_ray_detectors[pos + 4];
+    sy = free_ray_detectors[pos + 5];
+    sz = free_ray_detectors[pos + 6];
+
+    double tmp_l_min = free_ray_detectors[pos + 7];
+    double tmp_l_max = free_ray_detectors[pos + 8];
+
+    double tmp_b_min = free_ray_detectors[pos + 9];
+    double tmp_b_max = free_ray_detectors[pos + 10];
+
+    //l_min = PI * (-free_ray_detectors[pos + 8] + 180.0) / 180.0;
+    //l_max = PI * (-free_ray_detectors[pos + 7] + 180.0) / 180.0;
+    
+    l_min = PI * (-free_ray_detectors[pos + 7]) / 180.0;
+    l_max = PI * (-free_ray_detectors[pos + 8] + 360.0) / 180.0;
+    
+    
+    b_min = PI * (-free_ray_detectors[pos + 10] + 90.0) / 180;
+    b_max = PI * (-free_ray_detectors[pos + 9] + 90.0) / 180;
+
+    if(free_ray_detectors[pos + 11]>0)
+        rad_bubble = free_ray_detectors[pos + 11];
+
+    nside = uint(free_ray_detectors[pos + NR_OF_RAY_DET - 1]);
+
+    npix = 12 * nside * nside;
+
+    det_pos.setX(sx);
+    det_pos.setY(sy);
+    det_pos.setZ(sz);
+
+    max_length = _max_length * 10;
+
+    setOrientation(param.getHealpixOrientation());
+    
+
+
+    detector = new CDetector(path, npix, 1, det_pos, max_length, lam_min, lam_max,rad_bubble, nr_spectral_bins, nr_extra, 3,ALIG_PA,false);
     detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(0, 0, 0), tmp_l_min, tmp_l_max, tmp_b_min, tmp_b_max);
 
     return true;
@@ -132,10 +226,11 @@ bool CRaytracingHealPix::setLineDetector(uint pos,
                                          const parameters & param,
                                          dlist line_ray_detectors,
                                          string path,
-                                         double _max_length)
+                                         double _max_length, bool hasZeeman)
 {
     rt_detector_shape = DET_SPHER;
-    vel_maps = param.getVelMaps();
+    vel_maps_fits = param.getVelMapsFits();
+    compact_fits = param.getCompactFits();
 
     if(detector != 0)
     {
@@ -155,8 +250,12 @@ bool CRaytracingHealPix::setLineDetector(uint pos,
     sy = line_ray_detectors[pos + 5];
     sz = line_ray_detectors[pos + 6];
 
-    l_min = PI * (-line_ray_detectors[pos + 8] + 180.0) / 180.0;
-    l_max = PI * (-line_ray_detectors[pos + 7] + 180.0) / 180.0;
+    //l_min = PI * (-line_ray_detectors[pos + 8] + 180.0) / 180.0;
+    //l_max = PI * (-line_ray_detectors[pos + 7] + 180.0) / 180.0;
+    
+    l_min = PI * (-line_ray_detectors[pos + 7]) / 180.0;
+    l_max = PI * (-line_ray_detectors[pos + 8] + 360.0) / 180.0;
+    
     b_min = PI * (-line_ray_detectors[pos + 10] + 90.0) / 180;
     b_max = PI * (-line_ray_detectors[pos + 9] + 90.0) / 180;
 
@@ -177,7 +276,7 @@ bool CRaytracingHealPix::setLineDetector(uint pos,
     det_pos.setX(sx);
     det_pos.setY(sy);
     det_pos.setZ(sz);
-    detector = new CDetector(path, npix, 1, det_pos, max_length, i_trans, nr_spectral_bins, min_velocity, max_velocity);
+    detector = new CDetector(path, npix, 1, det_pos, max_length, i_trans, nr_spectral_bins, min_velocity, max_velocity, hasZeeman);
     detector->setObsPosition(Vector3D(sx, sy, sz), Vector3D(vx, vy, vz), l_min, l_max, b_min, b_max);
 
     return true;
@@ -318,6 +417,7 @@ void CRaytracingHealPix::setPosition(Vector3D pos)
     det_pos.setZ(sz);
 }
 
+//todo: check
 bool CRaytracingHealPix::getRelPosition(int i_pix, double & cx, double & cy)
 {
     pix2ang_ring(i_pix, &cx, &cy);
@@ -327,12 +427,15 @@ bool CRaytracingHealPix::getRelPosition(int i_pix, double & cx, double & cy)
 
     if(cx > b_max)
         return false;
+    
+     if(cy > l_min && cy < l_max)
+        return false;
 
-    if(cy < l_min)
+    /*if(cy < l_min)
         return false;
 
     if(cy > l_max)
-        return false;
+        return false;*/
 
     return true;
 }
@@ -358,7 +461,7 @@ void CRaytracingHealPix::addToDetector(photon_package * pp, int i_pix, bool dire
 
         // Multiply by min area if such a multiplication did not happen before
         if(!direct)
-            pp->getStokesVector(i_spectral)->multS(getMinArea());
+            pp->getStokesVector(i_spectral)->multStokesParam(getMinArea());
 
         // Add photon Stokes vector to detector
         detector->addToRaytracingDetector(*pp, i_pix);
@@ -368,9 +471,18 @@ void CRaytracingHealPix::addToDetector(photon_package * pp, int i_pix, bool dire
 
 bool CRaytracingHealPix::writeDustResults(uint ray_result_type)
 {
-    if(!detector->writeHealMaps(dID, ray_result_type))
-        return false;
-
+    if(compact_fits)
+    {
+        if(!detector->writeHealMapsTiny(dID, ray_result_type))
+            return false;
+    }
+    else
+    {
+        if(!detector->writeHealMaps(dID, ray_result_type))
+            return false;
+    }
+    
+    
     if(!detector->writeSed(dID, ray_result_type))
         return false;
 
@@ -379,14 +491,30 @@ bool CRaytracingHealPix::writeDustResults(uint ray_result_type)
 
 bool CRaytracingHealPix::writeLineResults(CGasMixture * gas, uint i_species, uint i_line)
 {
-    if(vel_maps)
+    if(vel_maps_fits)
+    {
         if(!detector->writeVelChannelHealMaps(gas, i_species, i_line))
             return false;
+    }
+    
+    if(compact_fits)
+    {
+        if(!detector->writeVelChannelHealMapsTiny(gas, i_species, i_line))
+            return false;
+    }
 
     if(!detector->writeIntVelChannelHealMaps(gas, i_species, i_line))
         return false;
 
     if(!detector->writeLineSpectrum(gas, i_species, i_line))
+        return false;
+
+    return true;
+}
+
+bool CRaytracingHealPix::writeFreeFreeResults()
+{
+    if(!detector->writeFreeFreeHealMap(dID))
         return false;
 
     return true;

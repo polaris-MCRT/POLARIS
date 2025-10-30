@@ -16,8 +16,8 @@ void cell_vo::initNeighbors(short nr)
 
 void cell_vo::setNeighbor(uint pos, int id)
 {
-    if(pos > 500)
-        return;
+    /*if(pos > 500)
+        return;*/
 
     neighbors[pos] = id;
 }
@@ -30,6 +30,7 @@ void cell_vo::setCenter(double cx, double cy, double cz)
 void cell_vo::setVolume(double v)
 {
     volume = v;
+    ref_length = cbrt((3.0 * v) / (PIx4) );
 }
 
 Vector3D cell_vo::getCenter() const
@@ -55,6 +56,11 @@ double cell_vo::getZ()
 double cell_vo::getVolume() const
 {
     return volume;
+}
+
+double cell_vo::getRefLength() const
+{
+    return ref_length;
 }
 
 int cell_vo::getNeighborID(uint pos)

@@ -84,6 +84,8 @@ public:
     bool isTransZeemanSplit(uint i_species, uint i_trans);
 
     bool isZeemanSplit(uint i_species);
+    
+    bool hasZeemanLines();
 
     uilist getUniqueTransitions(uint i_species);
 

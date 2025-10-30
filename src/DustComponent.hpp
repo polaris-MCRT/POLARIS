@@ -104,7 +104,7 @@ public:
         dust_offset = false;
         scat_loaded = false;
         calorimetry_loaded = false;
-        sublimate = false;
+        sub_status = 0;
         is_align = false;
         is_mixture = false;
         individual_dust_fractions = false;
@@ -148,6 +148,8 @@ public:
         a_max_global = 0;
         
         component_id = 0;
+        
+        marker=0;
     }
 
     ~CDustComponent()
@@ -328,6 +330,9 @@ public:
             delete[] mass;
         if(relWeightTab != 0)
             delete[] relWeightTab;
+            
+        if(marker != 0)
+            delete[] marker;
     }
 
     // ----------------------------------------------------------------------
@@ -793,7 +798,9 @@ public:
 
     void setScatLoaded(bool val);
 
-    void setSublimate(bool val);
+    void setSubStatus(int val);
+    
+    bool isErode();
 
     uint getComponentId();
 
@@ -897,6 +904,14 @@ public:
                                    Vector3D en_dir) const;
 
     double getCalorimetryA(uint a, uint f, uint i, const spline & abs_rate_per_wl) const;
+    
+    bool isMarkedCell(uint id) const;
+    double markerFactor(uint id) const;
+    void setMarker(uint id, char val);
+    void initMarker(uint Nc);
+    uint getNrMarked(uint Nc);
+    
+    
     long double * getStochasticProbability(uint a, const spline & abs_rate_per_wl) const;
 
     void getEscapePhoton(CGridBasic * grid,
@@ -968,7 +983,7 @@ private:
 
     bool dust_offset;
     bool scat_loaded, calorimetry_loaded;
-    bool sublimate;
+    int sub_status;
     bool is_mixture;
     bool individual_dust_fractions;
 
@@ -997,6 +1012,8 @@ private:
     uilist dust_choices_to_index;
     
     uint component_id;
+    
+    char * marker;
 };
 
 #endif /* CDUST_COMPONENT_H */

@@ -106,8 +106,10 @@ bool parameters::isMonteCarloSimulation() const
 bool parameters::isRaytracingSimulation() const
 {
     if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
-        getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION)
+        getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION || 
+            getCommand() == CMD_FREE_FREE)
         return true;
+    
     return false;
 }
 
@@ -1199,9 +1201,14 @@ void parameters::setAdjTgas(double val)
     adjTgas = val;
 }
 
-void parameters::setVelMaps(bool val)
+void parameters::setVelMapsFits(bool val)
 {
-    vel_maps = val;
+    vel_maps_fits = val;
+}
+
+void parameters::setCompactFits(bool val)
+{
+    vel_maps_compact = val;
 }
 
 void parameters::setAcceptanceAngle(double angle)
@@ -1222,6 +1229,11 @@ dlist & parameters::getDustRayDetectors()
 dlist & parameters::getSyncRayDetectors()
 {
     return sync_ray_detectors;
+}
+
+dlist & parameters::getFreeRayDetectors()
+{
+    return free_ray_detectors;
 }
 
 dlist & parameters::getOPIATERayDetectors()
@@ -1520,6 +1532,80 @@ void parameters::addSyncRayDetector(dlist & val)
     }
 }
 
+void parameters::addFreeRayDetector(dlist & val)
+{
+    // Minimum wavelength (in SI)
+    free_ray_detectors.push_back(val[0]);
+    // Maximum wavelength (in SI)
+    free_ray_detectors.push_back(val[1]);
+    // Number of wavelengths (all)
+    free_ray_detectors.push_back(val[2]);
+    // Source index (all)
+    free_ray_detectors.push_back(val[3] - 1);
+    // Rot angle #1 (cart, polar, slice) / obs. position X (healpix)
+    free_ray_detectors.push_back(val[4]);
+    // Rot angle #2 (cart, polar, slice) / obs. position Y (healpix)
+    free_ray_detectors.push_back(val[5]);
+    // Distance from observer to model (cart, polar, slice) / obs. position Z
+    // (healpix)
+    free_ray_detectors.push_back(val[6]);
+    // Side length of dust detector in x-dir (cart, polar, slice) / l_max (healpix)
+    free_ray_detectors.push_back(val[7]);
+    // Side length of dust detector in y-dir (cart, polar, slice) / l_min (healpix)
+    free_ray_detectors.push_back(val[8]);
+    // delta_x (cart, slice) / None (polar) / b_max (healpix)
+    free_ray_detectors.push_back(val[9]);
+    // delta_y (cart, slice) / None (polar) / b_min (healpix)
+    free_ray_detectors.push_back(val[10]);
+    // bubble size (heal)
+    free_ray_detectors.push_back(val[11]);
+    // dust detector type/grid (all)
+    free_ray_detectors.push_back(val[12]);
+    // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
+    free_ray_detectors.push_back(val[13]);
+    // number of pixel in y-direction (cart, polar, slice)
+    free_ray_detectors.push_back(val[14]);
+
+    switch(uint(val[NR_OF_RAY_DET - 3]))//
+    {
+        case DET_SPHER:
+            if(rt_grid_description.find("healpix") == string::npos)
+            {
+                rt_grid_description += "healpix";
+                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        case DET_POLAR:
+            if(rt_grid_description.find("polar") == string::npos)
+            {
+                rt_grid_description += "polar";
+                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        case DET_SLICE:
+            if(rt_grid_description.find("slice") == string::npos)
+            {
+                rt_grid_description += "slice";
+                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        default:
+            if(rt_grid_description.find("cartesian") == string::npos)
+            {
+                rt_grid_description += "cartesian";
+                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+    }
+}
+
 /*void parameters::addLineOpiateDetector(dlist & val)
 {
     // ang1
@@ -1774,6 +1860,16 @@ void parameters::addBackgroundSource(string path, dlist & val)
     background_sources_path.push_back(path);
 }
 
+void parameters::setGauntPath(string path)
+{
+    gaunt_path = path;
+}
+    
+string parameters::getGauntPath()
+{
+    return gaunt_path;
+}
+
 void parameters::addBackgroundSource(string path)
 {
     // Radiating effective black body surface [m^2]
@@ -1848,14 +1944,14 @@ uint parameters::getNrOfDustRayDetectors()
     return uint(dust_ray_detectors.size() / NR_OF_RAY_DET);
 }
 
-uint parameters::getNrOfSyncRayDetectors()
+uint parameters::getNrOfFreeRayDetectors()
 {
-    return uint(sync_ray_detectors.size() / NR_OF_RAY_DET);
+    return uint(free_ray_detectors.size() / NR_OF_RAY_DET);
 }
 
-void parameters::setSublimate(bool val)
+void parameters::addSubStatus(int val)
 {
-    sublimate = val;
+    sub_status |= val;
 }
 
 void parameters::setHealpixOrientation(uint val)
@@ -1896,9 +1992,14 @@ void parameters::addDustComponent(string path,
         size_parameter_map[i].push_back(size_parameter[i]);
 }
 
-bool parameters::getVelMaps() const
+bool parameters::getVelMapsFits() const
 {
-    return vel_maps;
+    return vel_maps_fits;
+}
+
+bool parameters::getCompactFits() const
+{
+    return vel_maps_compact;
 }
 
 uint parameters::getDustChoiceFromComponentId(uint i) const
@@ -1926,9 +2027,9 @@ string parameters::getDustPath(uint i) const
     return dust_paths[i];
 }
 
-bool parameters::isSublimate()
+int parameters::getSubStatus()
 {
-    return sublimate;
+    return sub_status;
 }
 
 double parameters::getDustFraction(uint i) const
@@ -1999,36 +2100,46 @@ void parameters::addDiffuseSource(dlist & val, string path)
     diffuse_sources.push_back(val[3]);
     // Effective temperature [K]
     diffuse_sources.push_back(val[4]);
-    // Extent of the starfield [m]
+    
+    // Extent of the starfield (sigma_x) [m]
     diffuse_sources.push_back(val[5]);
-    // Stokes Q plarization
+    // Extent of the starfield (sigma_y) [m]
     diffuse_sources.push_back(val[6]);
-    // Stokes U plarization
+    // Extent of the starfield (sigma_z) [m]
     diffuse_sources.push_back(val[7]);
-    // Number of photons
+    
+    // Extent of the ellipse (a) [m]
     diffuse_sources.push_back(val[8]);
+    // Extent of the ellipse (b) [m]
+    diffuse_sources.push_back(val[9]);
+    // Extent of the ellipse (c) [m]
+    diffuse_sources.push_back(val[10]);
+    
+    // rot. axis rx1 [m]
+    diffuse_sources.push_back(val[11]);
+    // rot. axis ry1 [m]
+    diffuse_sources.push_back(val[12]);
+    // rot. axis rz1 [m]
+    diffuse_sources.push_back(val[13]);
+    // rot. angle ang1 [deg]
+    diffuse_sources.push_back(val[14]);
+    
+    // rot. axis rx2 [m]
+    diffuse_sources.push_back(val[15]);
+    // rot. axis ry2 [m]
+    diffuse_sources.push_back(val[16]);
+    // rot. axis rz2 [m]
+    diffuse_sources.push_back(val[17]);
+    // rot. angle ang2 [deg]
+    diffuse_sources.push_back(val[18]);    
+    
+    // Stokes q plarization
+    diffuse_sources.push_back(val[19]);
+    // Stokes u plarization
+    diffuse_sources.push_back(val[20]);
+    
+    // Number of photons
+    diffuse_sources.push_back(val[21]);
     diffuse_sources_str.push_back(path);
 }
 
-void parameters::plot_parameter::addColorBarColor(double pos, double R, double G, double B)
-{
-    cbar.push_back(pos);
-    cbar.push_back(R);
-    cbar.push_back(G);
-    cbar.push_back(B);
-}
-
-void parameters::plot_parameter::addContourLine(double val, double R, double G, double B)
-{
-    cline.push_back(val);
-    cline.push_back(R);
-    cline.push_back(G);
-    cline.push_back(B);
-}
-
-void parameters::plot_parameter::setVectorColor(uchar R, uchar G, uchar B)
-{
-    vec_color[0] = R;
-    vec_color[1] = G;
-    vec_color[2] = B;
-}

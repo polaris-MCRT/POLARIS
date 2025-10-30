@@ -4112,7 +4112,7 @@ double CDustComponent::updateDustTemperature(CGridBasic * grid,
     // Get temperature depending on the absorption rate (Minimum temperature is TEMP_MIN)
     temp = findTemperature(a, abs_rate);
 
-    if(sublimate)
+    if(isErode())
         if(temp >= sub_temp)
             temp = 0;
 
@@ -4203,7 +4203,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             temp = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
 
             // Consider sublimation temperature
-            if(sublimate && grid->getTemperatureFieldInformation() == TEMP_FULL)
+            if(isErode() && grid->getTemperatureFieldInformation() == TEMP_FULL)
                 if(temp >= sub_temp)
                     temp = TEMP_MIN;
 
@@ -4245,7 +4245,8 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     delete[] rel_weight;
     delete[] abs_rate;
 
-    if(sublimate)
+    if(isErode())
+    {
         if(avg_temp >= sub_temp)
         {
             // Set temperature to zero
@@ -4254,8 +4255,9 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             // Remove sublimated dust from grid
             // Not if rad field can be used for stochastic heating later
             if(grid->specLengthIsVector())
-                grid->adjustDustDensity(cell, i_density, 0);
+                grid->adjustDustDensity(cell, i_density, 0); // todo: update marker here and not density
         }
+    }
 
     // Set average dust temperature in grid
     grid->setDustTemperature(cell, i_density, max(double(TEMP_MIN), avg_temp));
@@ -4557,6 +4559,63 @@ void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid,
             delete[] temp_probability;
         }
     }
+}
+
+void CDustComponent::initMarker(uint Nc)
+{
+    marker = new char[Nc];
+    
+    for(int i=0; i<Nc; i++)
+        marker[i]=0;
+}
+
+uint CDustComponent::getNrMarked(uint Nc)
+{
+    if(marker==0)
+        return 0;
+    
+    uint marked=0;
+    
+    for(int i=0; i<Nc; i++)
+    {
+        marked+=int(marker[i]);
+    }
+    
+    return marked;
+}
+
+
+double CDustComponent::markerFactor(uint id) const
+{
+    if(marker==0)
+        return 1.;
+    
+    if(marker[id]==1)
+        return 0.;
+    
+    return 1.;
+}
+
+bool CDustComponent::isMarkedCell(uint id) const
+{
+    if(marker==0)
+        return false;
+    
+    if(marker[id]==1)
+        return true;
+    
+    return false;
+}
+
+void CDustComponent::setMarker(uint id, char val)
+{
+    if(marker==0)
+        return;
+    
+    //cout << endl << int(marker[id]) << endl;
+    marker[id]=val;
+    
+    //cout << int(marker[id]) << endl;
 }
 
 double CDustComponent::getCalorimetryA(uint a, uint f, uint i, const spline & abs_rate_per_wl) const
@@ -7616,9 +7675,14 @@ void CDustComponent::setScatLoaded(bool val)
     scat_loaded = val;
 }
 
-void CDustComponent::setSublimate(bool val)
+void CDustComponent::setSubStatus(int val)
 {
-    sublimate = val;
+    sub_status = val;
+}
+
+bool CDustComponent::isErode()
+{
+    return ((sub_status & SUB_ERODE) == SUB_ERODE);
 }
 
 uint CDustComponent::getComponentId()

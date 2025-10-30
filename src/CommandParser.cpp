@@ -651,6 +651,45 @@ bool CCommandParser::parse()
                     stop = 0;
                 }
                 break;
+                
+            case CMD_FREE_FREE:
+                if(i == 0)
+                    break;
+
+                map_max = uint(param->getFreeRayDetectors().size() / NR_OF_RAY_DET);
+
+                if(start == MAX_UINT)
+                    start = 0;
+                else
+                    start--;
+
+                if(stop == MAX_UINT)
+                    stop = map_max - 1;
+                else
+                    stop--;
+
+                if(stop > map_max - 1)
+                {
+                    stop = map_max - 1;
+                    cout << WARNING_LINE << "<stop> value larger than number of raytracing "
+                            "detectors!" << endl;
+                    cout << " Value set to " << stop + 1 << "." << endl;
+                }
+
+                if(start > map_max - 1)
+                {
+                    start = 0;
+                    cout << WARNING_LINE << "<start> value larger than number of raytracing "
+                            "detectors!" << endl;
+                    cout << " Value set to 1." << endl;
+                }
+
+                if(map_max == 0)
+                {
+                    start = 0;
+                    stop = 0;
+                }
+                break;    
 
             case CMD_LINE_EMISSION:
                 if(i == 0)
@@ -789,6 +828,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(data.compare("CMD_SYNCHROTRON") == 0)
         {
             param->setCommand(CMD_SYNCHROTRON);
+            return true;
+        }
+        
+        if(data.compare("CMD_FREE_FREE") == 0)
+        {
+            param->setCommand(CMD_FREE_FREE);
             return true;
         }
 
@@ -1120,6 +1165,13 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
+    
+    if(cmd.compare("<gaunt_data>") == 0)
+    {
+        string str = seperateString(data);
+        param->setGauntPath(str);
+        return true;
+    }
 
     if(cmd.compare("<opiata_path_emi>") == 0)
     {
@@ -1249,7 +1301,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         formatLine(data);
         dlist values = parseValues(data);
         
-        cout << values.size() << endl;
+        //cout << values.size() << endl;
 
         if(values.size() == NR_OF_LINE_DET - 10)
         {
@@ -1280,7 +1332,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         if(!checkVelChannels(values, nr_of_channels))
             return false;
 
-        cout << values.size() << endl;
+        //cout << values.size() << endl;
         
         if(values.size() != (NR_OF_LINE_DET + 1))
         {
@@ -2222,6 +2274,293 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
+        
+    // begin free free detectors
+    if(cmd.compare("<detector_free nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        while(values[4] < 0)
+            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+
+        if(values.size() == NR_OF_RAY_DET - 9)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            // Set distance to 1
+            values.push_back(1.0);
+            // Set sidelength in x-direction to cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction to cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // As above, but with distance to observer
+            // Set sidelength in x-direction of cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction of cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 7)
+        {
+            // As above, but with one sidelength for both directions of cube sidelength
+            // Set given sidelength also for y-direction of cube sidelength
+            values.push_back(values[NR_OF_RAY_DET - 8]);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 6)
+        {
+            // As above, but with two sidelengths for x- and y-directions of cube
+            // sidelength Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //only the bubble param
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_PLANE);
+        if(!checkPixel(values, nr_of_pixel))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in raytracing detector could not be "
+                    "recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addFreeRayDetector(values);
+        param->updateDetectorAngles(values[4], values[5]);
+        param->updateObserverDistance(values[6]);
+        param->updateMapSidelength(values[7], values[8]);
+        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorPixel(uint(values[NR_OF_RAY_DET - 2]), uint(values[NR_OF_RAY_DET - 1]));
+
+        return true;
+    }
+    
+    if(cmd.compare("<detector_free_healpix nr_sides = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_sides = parseValues(str);
+
+        if(nr_of_sides.size() != 1)
+        {
+            cout << ERROR_LINE << "Number of sides in healpix raytracing detector could not "
+                    "be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(nr_of_sides[0] <= 0)
+        {
+            cout << ERROR_LINE << "Number of sides in healpix raytracing detector could not "
+                    "be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(!CMathFunctions::isPowerOfTwo(int(nr_of_sides[0])))
+        {
+            cout << ERROR_LINE << "Number of sides must be a power of two!" << endl;
+            return false;
+        }
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, position X, Y, and Z
+            // Set galactic coordinate l (Longitude) to [-180°, 180°]
+            values.push_back(-180);
+            values.push_back(180);
+            // Set galactic coordinate b (Latitude) to [-90°, 90°]
+            values.push_back(-90);
+            values.push_back(90);
+            //bubble radius
+            values.push_back(0.0);
+        }
+
+
+        if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //bubble radius
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_SPHER);
+        if(!checkPixel(values, nr_of_sides, true))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in healpix raytracing detector could "
+                    "not be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addFreeRayDetector(values);
+        param->updateDetectorPixel(uint(12 * nr_of_sides[0] * nr_of_sides[0]), 0);
+
+        double distance = sqrt(values[3] * values[3] + values[4] * values[4] + values[5] * values[5]);
+        param->updateObserverDistance(distance);
+
+        // Showing full sphere coverage
+        param->updateDetectorAngles(0, 0);
+        param->updateDetectorAngles(180, 360);
+
+        return true;
+    }
+    
+    if(cmd.compare("<detector_free_slice nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        while(values[4] < 0)
+            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+
+        if(values.size() == NR_OF_RAY_DET - 9)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            // Set distance to 1
+            values.push_back(1.0);
+            // Set sidelength in x-direction to cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction to cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // As above, but with distance to observer
+            // Set sidelength in x-direction of cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction of cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 7)
+        {
+            // As above, but with one sidelength for both directions of cube sidelength
+            // Set given sidelength also for y-direction of cube sidelength
+            values.push_back(values[NR_OF_RAY_DET - 8]);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 6)
+        {
+            // As above, but with two sidelengths for x- and y-directions of cube
+            // sidelength Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //only the bubble param
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_SLICE);
+        if(!checkPixel(values, nr_of_pixel))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in raytracing detector could not be "
+                    "recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addSyncRayDetector(values);
+        param->updateDetectorAngles(values[4], values[5]);
+        param->updateObserverDistance(values[6]);
+        param->updateMapSidelength(values[7], values[8]);
+        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorPixel(uint(values[NR_OF_RAY_DET - 2]), uint(values[NR_OF_RAY_DET - 1]));
+
+        return true;
+    }
+    
+    // end free free detectors
 
     if(cmd.compare("<detector_dust_polar nr_pixel = >") == 0)
     {
@@ -2511,6 +2850,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
                 values.push_back(0);
                 //Stokes u
                 values.push_back(0);
+                
+                param->addSubStatus(SUB_VAR);
             }
             else if(values.size() != NR_OF_POINT_SOURCES - 1)
             {
@@ -2577,30 +2918,140 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else
         {
-            if(values.size() == NR_OF_DIFF_SOURCES - 3)
+            if(values.size() == NR_OF_DIFF_SOURCES - 16)
             {
+                double sigma=values[5];
+                
+                //sigma_y sigma_z
+                values.push_back(sigma);
+                values.push_back(sigma);
+                
+                //ellipse a b c
+                values.push_back(50*sigma);
+                values.push_back(50*sigma);
+                values.push_back(50*sigma);
+                
+                //rx1 ry1 rz1 ang1
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx2 ry2 rz2 ang2
+                values.push_back(0);
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //q u
                 values.push_back(0);
                 values.push_back(0);
             }
-            else if(values.size() != NR_OF_DIFF_SOURCES - 1)
+            else if(values.size() == NR_OF_DIFF_SOURCES - 14)
             {
-                cout << ERROR_LINE << "False amount of parameters for source starfield in line " << line_counter
-                     << "!" << endl;
-                return false;
+                double sigma_x=values[5];
+                double sigma_y=values[6];
+                double sigma_z=values[7];
+                
+                //ellipse a b c
+                values.push_back(50*sigma_x);
+                values.push_back(50*sigma_y);
+                values.push_back(50*sigma_z);
+                
+                //rx1 ry1 rz1 ang1
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx2 ry2 rz2 ang2
+                values.push_back(0);
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //q u
+                values.push_back(0);
+                values.push_back(0);
+            }
+            else if(values.size() == NR_OF_DIFF_SOURCES - 11)
+            {
+                //rx1 ry1 rz1 ang1
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx2 ry2 rz2 ang2
+                values.push_back(0);
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //q u
+                values.push_back(0);
+                values.push_back(0);
+            }
+            else if(values.size() == NR_OF_DIFF_SOURCES - 9)
+            {
+                double q=values[11];
+                double u=values[12];
+                
+                //rx1 ry1 rz1 ang1
+                values[11]=1;
+                values[12]=0;
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx2 ry2 rz2 ang2
+                values.push_back(0);
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //q u
+                values.push_back(q);
+                values.push_back(u);
+            }
+            else if(values.size() == NR_OF_DIFF_SOURCES - 3)
+            {
+                Vector3D rot1(values[11],values[12],values[13]);
+                Vector3D rot2(values[15],values[16],values[17]);
+                
+                if(rot1==rot2)
+                {
+                    cout << WARNING_LINE << "Rotation vectors are identical in source starfield!" << endl;
+                }
+                
+                rot1.normalize();
+                rot2.normalize();
+                
+                values[11]=rot1.X();
+                values[12]=rot1.Y();
+                values[13]=rot1.Z();
+                
+                values[15]=rot2.X();
+                values[16]=rot2.Y();
+                values[17]=rot2.Z();
+                                
+                //q u
+                values.push_back(0);
+                values.push_back(0);
             }
         }
-
-        double P_l = sqrt(pow(values[6], 2) + pow(values[7], 2));
-        if(P_l > 1.0)
+        
+        if(values.size() != NR_OF_DIFF_SOURCES - 1)
         {
-            cout << ERROR_LINE << "Chosen polarization of source star is larger than 1!" << endl;
+            cout << ERROR_LINE << "False amount of parameters for source starfield in line " << line_counter
+                 << "!" << endl;
             return false;
         }
-        else if(P_l < 0)
+
+        double P_l = sqrt(pow(values[19], 2) + pow(values[20], 2));
+        if(P_l > 1.0)
         {
-            cout << INFO_LINE << "Chosen polarization of source star is less than 0 (now set to 0)!" << endl;
-            values[6] = 0;
-            values[7] = 0;
+            cout << ERROR_LINE << "Chosen polarization of source starfield is larger than 1!" << endl;
+            return false;
         }
 
         values.push_back(double(nr_of_photons));
@@ -2756,6 +3207,12 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<align>") == 0)
     {
+        if(data.compare("ALIG_RND") == 0)
+        {
+            param->addAlignmentMechanism(ALIG_RND);
+            return true;
+        }
+        
         if(data.compare("ALIG_INTERNAL") == 0)
         {
             param->addAlignmentMechanism(ALIG_INTERNAL);
@@ -2873,14 +3330,40 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<sub_dust>") == 0)
     {
-        param->setSublimate(atob(atoi(data.c_str())));
-        return true;
+        if(data.compare("SUB_CENTER") == 0)
+        {
+            param->addSubStatus(SUB_CENTER);
+            return true;
+        }
+        
+        if(data.compare("SUB_RADIUS") == 0)
+        {
+            param->addSubStatus(SUB_CENTER);
+            param->addSubStatus(SUB_RADIUS);
+            return true;
+        }
+        
+        if(data.compare("SUB_ERODE") == 0)
+        {
+            param->addSubStatus(SUB_ERODE);
+            return true;
+        }
+
+        cout << ERROR_LINE << "Sublimation status cannot be recognized!\n\t Check <sub_dust>." << endl;
+        return false;
     }
 
     if(cmd.compare("<vel_maps>") == 0)
     {
         bool b = atob(atoi(data.c_str()));
-        param->setVelMaps(b);
+        param->setVelMapsFits(b);
+        return true;
+    }
+    
+    if(cmd.compare("<fits_minimal>") == 0)
+    {
+        bool b = atob(atoi(data.c_str()));
+        param->setCompactFits(b);
         return true;
     }
 

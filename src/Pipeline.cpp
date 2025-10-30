@@ -24,7 +24,7 @@
 #include "OPIATE.hpp"
 #include "Detector.hpp"
 #include "MathFunctions.hpp"
-
+#include "FreeFree.hpp"
 
 bool CPipeline::Init(int argc, char ** argv)
 {
@@ -59,7 +59,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     cout << SEP_LINE;
 
-    /*if(argc != 2)
+    if(argc != 2)
     {
         cout << ERROR_LINE << "Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -67,11 +67,13 @@ bool CPipeline::Init(int argc, char ** argv)
         return false;
     }
 
-    CCommandParser parser(argv[1]);*/
+    CCommandParser parser(argv[1]);/**/
     
     //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
-    string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
-    CCommandParser parser(filename);
+    //string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
+    //string filename = "/mnt/f/work/velocity_test/cmd_line";
+    //string filename = "/mnt/f/work/free/cmd_file";
+    //CCommandParser parser(filename);
     
     if(!parser.parse())
     {
@@ -240,9 +242,11 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     grid->setSpecLengthAsVector(use_energy_density);
     if(!grid->loadGridFromBinaryFile(param, use_energy_density ? 4 * WL_STEPS : WL_STEPS))
         return false;
-
-    // Print helpfull information
+    
     grid->createCellList();
+    dust->markCells(grid, param);
+    
+    // Print helpfull information
     dust->printParameters(param, grid);
     grid->printParameters();
 
@@ -439,6 +443,7 @@ bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
+    CFreeFree * freefree = new CFreeFree();
 
     if(!createOutputPaths(param.getPathOutput()))
         return false;
@@ -446,7 +451,7 @@ bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
     if(!assignGridType(grid, param))
         return false;
 
-    if(!createWavelengthList(param, dust,0, 0))
+    if(!createWavelengthList(param, dust, 0, 0))
         return false;
 
     if(!assignDustMixture(param, dust, grid))
@@ -454,14 +459,22 @@ bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
 
     grid->setSIConversionFactors(param);
 
-    if(!grid->loadGridFromBinaryFile(param, getNrOffsetEntriesRay(param, dust, grid)))
+    if(!grid->loadGridFromBinaryFile(param, 0))
         return false;
 
     // Print helpfull information
     grid->createCellList();
+    
+    freefree->setGauntFile(param.getGauntPath());
+    
+    if(!freefree->loadGauntFITS())
+        return false;
+    
+    // Print helpfull information
     dust->printParameters(param, grid);
+    freefree->printParameters();
     grid->printParameters();
-
+    
     if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
         return false;
 
@@ -476,29 +489,19 @@ bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
 
     rad.setGrid(grid);
     rad.setDust(dust);
+    rad.setFreeFree(freefree);
     rad.setSourcesLists(sources_mc, sources_ray);
 
-    if(!rad.initiateDustRaytrace(param))
+    if(!rad.initiateFreeFreeRaytrace(param))
         return false;
 
-    if(param.getStochasticHeatingMaxSize() > 0)
-        rad.calcStochasticHeating();
-
-    // Calculate radiation field before raytracing (if sources defined and no radiation
-    // field in grid)
-    if(!grid->isRadiationFieldAvailable() && dust->getScatteringToRay() && !sources_mc.empty())
-        rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
-
-    if(!rad.calcPolMapsViaRaytracing(param))
-        return false;
-
-    cout << CLR_LINE;
-
-    if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
+    if(!rad.calcFreeFreeMapsViaRaytracing(param))
         return false;
 
     delete grid;
     delete dust;
+    delete freefree;
+    
     deleteSourceLists();
 
     param.setPathInput(path_data);
@@ -849,7 +852,7 @@ void CPipeline::createSourceLists(parameters & param, CDustMixture * dust, CGrid
         if(param.getNrOfDiffuseSources() > 0)
         {
             cout << WARNING_LINE << "Diffuse sources cannot be considered in "
-                 << "dust, line, or synchrotron emission!" << endl;
+                 << "dust, line, free-free, or synchrotron emission!" << endl;
             nr_ofSources--;
         }
 
@@ -1375,6 +1378,17 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printPlotParameters(param);
             printSynchrotronParameters(param);
             break;
+            
+        case CMD_FREE_FREE:
+            cout << "- Command          : FREE_FREE EMISSION" << endl;
+            printPathParameters(param);
+            printSourceParameters(param);
+            printConversionParameters(param);
+            printAdditionalParameters(param);
+            printDetectorParameters(param);
+            printPlotParameters(param);
+            printFreeFree(param);
+            break;    
 
         case CMD_DUST_SCATTERING:
             cout << "- Command          : DUST SCATTERING (Monte-Carlo)" << endl;
@@ -1559,6 +1573,22 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             if(values.empty())
             {
                 cout << ERROR_LINE << "No synchrotron detector defined (see <detector_sync>)!" << endl;
+                return false;
+            }
+
+            // Add wavelength to global list of wavelength
+            for(uint i = 0; i < values.size(); i += NR_OF_RAY_DET)
+                dust->addToWavelengthGrid(values[i], values[i + 1], values[i + 2]);
+            break;
+            
+        case CMD_FREE_FREE:
+            // Get detector parameters list
+            values = param.getFreeRayDetectors();
+
+            // Check if a detector is defined
+            if(values.empty())
+            {
+                cout << ERROR_LINE << "No free-free detector defined (see <detector_free>)!" << endl;
                 return false;
             }
 
@@ -1785,9 +1815,10 @@ void CPipeline::printSourceParameters(parameters & param, bool show_dust)
                         << sources_list[s + 2] << " (x,y,z) [m]\n"
                         << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
                         << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                        << "    Sub. radius : " << sources_list[s + 5] << " [m]\n"
                         << "    Stokes      : "
-                        << sources_list[s + 5] << ", "
-                        << sources_list[s + 6] << " (q,u)" << endl;
+                        << sources_list[s + 6] << ", "
+                        << sources_list[s + 7] << " (q,u)" << endl;
             }
         }
             // cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
@@ -1806,10 +1837,21 @@ void CPipeline::printSourceParameters(parameters & param, bool show_dust)
                         << sources_list[s + 2] << " (x,y,z) [m]\n"
                         << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
                         << "    Temperature : " << sources_list[s + 4] << " [K]\n"
-                        << "    Variance    : " << sources_list[s + 5] << " [m]\n"
-                        << "    Stokes      : "
+                        << "    Variance    : " << sources_list[s + 5] 
+                        << ", " << sources_list[s + 6] 
+                        << ", " << sources_list[s + 7] << " [m]\n"
+                        << "    Ellipse     : " << sources_list[s + 8] 
+                        << ", " << sources_list[s + 9] 
+                        << ", " << sources_list[s + 10] << " [m]";
+                
+                if(sources_list[s + 19]+sources_list[s + 20]!=0)
+                {
+                    cout << "\n    Stokes      : "
                         << sources_list[s + 6] << ", "
-                        << sources_list[s + 7] << " (q,u)" << endl;
+                        << sources_list[s + 7] << " (q,u)";
+                }
+                
+                cout << endl;
             }
         }
             // cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;
@@ -1873,13 +1915,13 @@ void CPipeline::printDetectorParameters(parameters & param, bool monte_carlo)
 {
     if(monte_carlo)
     {
-        cout << "Monte-Carlo parameter" << endl;
+        cout << "Monte-Carlo parameters" << endl;
         if(param.getNrOfDustMCDetectors() > 0)
             cout << "- Number of detectors   : " << param.getNrOfDustMCDetectors() << endl;
     }
     else
     {
-        cout << "Raytrace parameter" << endl;
+        cout << "Raytrace parameters" << endl;
         if(param.getNrOfDustRayDetectors() > 0)
             cout << "- Number of detectors   : " << param.getNrOfDustRayDetectors() << endl;
         param.printRTGridDescription();
@@ -1938,7 +1980,7 @@ void CPipeline::printDetectorParameters(parameters & param, bool monte_carlo)
 void CPipeline::printSynchrotronParameters(parameters & param)
 {
     cout << SEP_LINE;
-    cout << "Synchotron parameter" << endl;
+    cout << "Synchotron parameters" << endl;
     cout << SEP_LINE;
     cout << "Observed wavelengths" << endl;
     dlist sync_ray_detectors = param.getSyncRayDetectors();
@@ -1949,6 +1991,24 @@ void CPipeline::printSynchrotronParameters(parameters & param)
         double lam_max = sync_ray_detectors[i + 1];
         uint lam_skip = uint(sync_ray_detectors[i + 2]);
         cout << "    - Synchotron emission detector " << (pos + 1) << ": from wl = " << lam_min
+                << " [m] to wl = " << lam_max << " [m] with " << lam_skip << " step(s)" << endl;
+    }
+}
+
+void CPipeline::printFreeFree(parameters & param)
+{
+    cout << SEP_LINE;
+    cout << "free-free parameters" << endl;
+    cout << SEP_LINE;
+    cout << "Observed wavelengths" << endl;
+    dlist free_ray_detectors = param.getFreeRayDetectors();
+    for(uint i = 0; i < free_ray_detectors.size(); i += NR_OF_RAY_DET)
+    {
+        uint pos = i / NR_OF_RAY_DET;
+        double lam_min = free_ray_detectors[i + 0];
+        double lam_max = free_ray_detectors[i + 1];
+        uint lam_skip = uint(free_ray_detectors[i + 2]);
+        cout << "    - Free-free emission detector " << (pos + 1) << ": from wl = " << lam_min
                 << " [m] to wl = " << lam_max << " [m] with " << lam_skip << " step(s)" << endl;
     }
 }

@@ -35,12 +35,15 @@ public:
         nr_of_components = 0;
         nr_of_wavelength = 0;
         wavelength_offset = 0;
+        
+        mark_counter = 0;
     }
 
     ~CDustMixture(void)
     {
         if(single_component != 0)
             delete[] single_component;
+            
         if(mixed_component != 0)
             delete[] mixed_component;
     }
@@ -80,6 +83,8 @@ public:
     double getCabsMean(CGridBasic * grid, const photon_package & pp) const;
 
     double getCscaMean(CGridBasic * grid, const photon_package & pp) const;
+    
+    double getMaxSubTemperature() const;
 
     bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density, CRandomGenerator * rand_gen);
 
@@ -164,8 +169,11 @@ public:
     StokesVector getRadFieldScatteredFraction(CGridBasic * grid,
                                               const photon_package & pp,
                                               const Vector3D & en_dir,
+                  
                                               double energy) const;
-
+    
+    void markCells(CGridBasic * grid, parameters & param);
+    
     uint getNrOfMixtures() const;
 
     void convertTempInQB(CGridBasic * grid, cell_basic * cell, double min_gas_density, bool use_gas_temp);
@@ -212,6 +220,8 @@ public:
 private:
     CDustComponent * single_component;
     CDustComponent * mixed_component;
+    
+    uint mark_counter;
 
     bool scattering_to_raytracing;
 
@@ -228,7 +238,7 @@ private:
     uilist dust_choices_to_index;
 
     dlist wavelength_list;
-
+    
     spline diff_y; // diff_y as a function of z
 };
 

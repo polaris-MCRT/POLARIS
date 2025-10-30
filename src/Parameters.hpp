@@ -72,14 +72,15 @@ public:
         b_enforced = false;
         peel_off = true;
         is_speed_of_sound = false;
-        vel_maps = false;
+        vel_maps_fits = false;
+        vel_maps_compact = false;
         dust_offset = false;
         dust_gas_coupling = false;
         full_dust_temp = false;
         save_radiation_field = false;
         scattering_to_raytracing = false;
         split_dust_emision = false;
-        sublimate = false;
+        sub_status = 0;
         individual_dust_fractions = false;
 
         nr_ofISRFPhotons = 0;
@@ -566,7 +567,9 @@ public:
 
     void setAdjTgas(double val);
 
-    void setVelMaps(bool val);
+    void setVelMapsFits(bool val);
+    
+    void setCompactFits(bool val);
 
     void setAcceptanceAngle(double angle);
 
@@ -575,6 +578,8 @@ public:
     dlist & getDustRayDetectors();
 
     dlist & getSyncRayDetectors();
+    
+    dlist & getFreeRayDetectors();
 
     dlist & getOPIATERayDetectors();
 
@@ -603,6 +608,8 @@ public:
     void addOpiateRayDetector(dlist & val);
 
     void addSyncRayDetector(dlist & val);
+    
+    void addFreeRayDetector(dlist & val);
 
     /*
     void addLineOpiateDetector(dlist & val);
@@ -629,7 +636,11 @@ public:
     void addBackgroundSource(string path, dlist & val);
 
     void addBackgroundSource(string path);
-
+    
+    void setGauntPath(string path);
+    
+    string getGauntPath();
+    
     void resetDustFiles();
 
     void addGasSpecies(string gas_species_path, string zeeman_path, dlist & val);
@@ -643,8 +654,10 @@ public:
     uint getNrOfDustRayDetectors();
 
     uint getNrOfSyncRayDetectors();
+    
+    uint getNrOfFreeRayDetectors();
 
-    void setSublimate(bool val);
+    void addSubStatus(int val);
 
     void setHealpixOrientation(uint val);
 
@@ -662,7 +675,8 @@ public:
                           double a_max,
                           dlist size_parameter);
 
-    bool getVelMaps() const;
+    bool getVelMapsFits() const;
+    bool getCompactFits() const;
 
     uint getDustChoiceFromComponentId(uint i) const;
 
@@ -674,7 +688,7 @@ public:
 
     string getDustPath(uint i) const;
 
-    bool isSublimate();
+    int getSubStatus();
 
     double getDustFraction(uint i) const;
 
@@ -697,61 +711,6 @@ public:
     void resetNrOfDustComponents();
 
     void addDiffuseSource(dlist & val, string path);
-
-    class plot_parameter
-    {
-    public:
-        plot_parameter()
-        {
-            label = "";
-            abs_min_cut = double(MAX_UINT);
-            abs_max_cut = double(MAX_UINT);
-            rel_min_cut = double(MAX_UINT);
-            rel_max_cut = double(MAX_UINT);
-            int_cut = 0;
-            log = false;
-            plot = true;
-            normalized = true;
-            scale = 1;
-            offset = 0;
-
-            pixel_bins = MAX_UINT;
-            vec_bins = 26;
-            vec_color[0] = 255;
-            vec_color[1] = 255;
-            vec_color[2] = 255;
-        }
-
-        ~plot_parameter()
-        {}
-
-        void addColorBarColor(double pos, double R, double G, double B);
-
-        void addContourLine(double val, double R, double G, double B);
-
-        void setVectorColor(uchar R, uchar G, uchar B);
-
-        string label;
-        dlist cbar, cline;
-        double abs_min_cut;
-        double abs_max_cut;
-
-        double rel_min_cut;
-        double rel_max_cut;
-
-        double int_cut;
-
-        bool log;
-        bool plot;
-        bool normalized;
-
-        double scale;
-        double offset;
-
-        uint vec_bins;
-        uint pixel_bins;
-        uchar vec_color[3];
-    };
 
 private:
     int cmd;
@@ -806,7 +765,8 @@ private:
     bool b_enforced;
     bool is_speed_of_sound;
     bool peel_off;
-    bool vel_maps;
+    bool vel_maps_fits;
+    bool vel_maps_compact;
 
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
@@ -843,6 +803,7 @@ private:
     dlist dust_mc_detectors;
     dlist dust_ray_detectors;
     dlist sync_ray_detectors;
+    dlist free_ray_detectors;
 
     dlist point_sources;
     dlist diffuse_sources;
@@ -862,7 +823,7 @@ private:
     uint xy_bins;
     string xylabel;
     bool autoscale;
-    bool sublimate;
+    int sub_status;
 
     Vector3D axis1, axis2;
 
@@ -898,6 +859,9 @@ private:
     // opiate parameters
     dlist opiate_ray_detectors;
     strlist opiate_spec_ids;
+    
+    string gaunt_path;
+    
     string opiata_path_emi;
     string opiata_path_abs;
 };

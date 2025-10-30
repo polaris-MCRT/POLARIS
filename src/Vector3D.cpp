@@ -131,6 +131,7 @@ Vector3D Vector3D::getSphericalCoord() const
     double r = sqrt(x * x + y * y + z * z);
 
     double arg;
+    
     if(r != 0)
         arg = z / r;
     else
@@ -268,6 +269,7 @@ Vector3D Vector3D::normalized()
 
     if(len != 0)
         tmp.set(x / len, y / len, z / len);
+    
     return tmp;
 }
 

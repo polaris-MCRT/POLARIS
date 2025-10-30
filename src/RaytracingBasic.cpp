@@ -14,11 +14,20 @@ bool CRaytracingBasic::setSyncDetector(uint pos,
     return false;
 }
 
+bool CRaytracingBasic::setFreeFreeDetector(uint pos,
+                                       const parameters & param,
+                                       dlist free_ray_detectors,
+                                       double _max_length,
+                                       string path)
+{
+    return false;
+}
+
 bool CRaytracingBasic::setLineDetector(uint pos,
                                        const parameters & param,
                                        dlist line_ray_detectors,
                                        string path,
-                                       double _max_length)
+                                       double _max_length, bool hasZeeman)
 {
     return false;
 }
@@ -250,9 +259,18 @@ bool CRaytracingBasic::writeDustResults(uint ray_result_type)
 
 bool CRaytracingBasic::writeLineResults(CGasMixture * gas, uint i_species, uint i_line)
 {
-    if(vel_maps)
+    if(vel_maps_fits)
+    {
         if(!detector->writeVelChannelMaps(gas, i_species, i_line))
             return false;
+    }
+    
+    if(compact_fits)
+    {
+        //todo: include tiny fits
+        if(!detector->writeVelChannelMaps(gas, i_species, i_line))
+            return false;
+    }
 
     if(!detector->writeIntChannelMaps(gas, i_species, i_line))
         return false;
@@ -265,7 +283,7 @@ bool CRaytracingBasic::writeLineResults(CGasMixture * gas, uint i_species, uint 
 
 bool CRaytracingBasic::writeOpiateResults(COpiateDataBase * op)
 {
-    if(vel_maps)
+    /*if(vel_maps)
         if(!detector->writeOPIATEVelChannelMaps(op,dID))
             return false;
 
@@ -273,7 +291,7 @@ bool CRaytracingBasic::writeOpiateResults(COpiateDataBase * op)
         return false;
 
     if(!detector->writeOPIATESpectrum(op,dID))
-        return false;
+        return false;*/
 
     return true;
 }
@@ -286,6 +304,14 @@ bool CRaytracingBasic::writeSyncResults()
     return true;
 }
 
+bool CRaytracingBasic::writeFreeFreeResults()
+{
+    if(!detector->writeFreeFreeMap(dID))
+        return false;
+
+    return true;
+}
+
 bool CRaytracingBasic::getUseSubpixel(double cx, double cy, uint subpixel_lvl)
 {
     return false;
@@ -293,7 +319,7 @@ bool CRaytracingBasic::getUseSubpixel(double cx, double cy, uint subpixel_lvl)
 
 double CRaytracingBasic::getDistanceFactor()
 {
-    return 1 / (getDistance() * getDistance());
+    return 1.0 / (getDistance() * getDistance());
 }
 
 double CRaytracingBasic::getDistanceFactor(Vector3D pos)

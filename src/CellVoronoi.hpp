@@ -18,6 +18,7 @@ public:
         nr_neighbors = 0;
         neighbors = 0;
         volume = -1;
+        ref_length=0;
     }
 
     ~cell_vo()
@@ -50,7 +51,9 @@ public:
     double getZ();
 
     double getVolume() const;
-
+    
+    double getRefLength() const;
+    
     int getNeighborID(uint pos);
 
     ushort getNrOfNeighbors();
@@ -60,6 +63,7 @@ private:
     ushort nr_neighbors;
     int * neighbors;
     double volume;
+    double ref_length;
 };
 
 #endif /* CELL_VORONOI_H */

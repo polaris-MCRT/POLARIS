@@ -225,8 +225,18 @@ void CSourceStar::createNextRay(photon_package * pp, CRandomGenerator * rand_gen
             tmp_stokes_vector *= exponentThetaBias * pow(abs(cos(theta)),(double) 1.-1./exponentThetaBias);
         }
     #endif
-
+    
     pp->setPosition(pos);
+    
+    if(r_sub>0)
+    {
+        Vector3D ndir = pp->getDirection();
+        ndir.normalize();
+        
+        Vector3D rel_pos = pos + r_sub*ndir;
+        pp->setPosition(rel_pos);        
+    }   
+    
     pp->setStokesVector(tmp_stokes_vector);
     pp->initCoordSystem();
 }
@@ -280,8 +290,16 @@ void CSourceStar::createDirectRay(photon_package * pp, CRandomGenerator * rand_g
         pp->setDirection(dir_obs);
         pp->initCoordSystem();
     }
-
-    pp->setPosition(pos);
+    
+    if(r_sub>0)
+    {
+        Vector3D ndir = dir_obs.normalized();
+        Vector3D rel_pos = pos + r_sub*ndir;
+        pp->setPosition(rel_pos);        
+    }
+    else
+        pp->setPosition(pos);
+    
     pp->setStokesVector(tmp_stokes_vector);
 }
 
@@ -297,8 +315,20 @@ void CSourceStar::setParameter(parameters & param, uint p)
 
     q = values[p + 6];
     u = values[p + 7];
-
+    
     nr_of_photons = (ullong)values[p + NR_OF_POINT_SOURCES - 1];
 
     L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+    
+    int sub_status = param.getSubStatus();
+    
+    if((sub_status & SUB_RADIUS) == SUB_RADIUS)
+    {
+        if(r_sub<=0)
+        {
+            double T_sub = dust->getMaxSubTemperature();
+            
+            r_sub = R_SUB * sqrt(L / L_sun) * pow(T_sub / 1500, -2.8); 
+        }
+    }
 }

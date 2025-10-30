@@ -127,7 +127,7 @@ bool CRaytracingPolar::setSyncDetector(uint pos,
 
     initTmpStokes();
 
-    detector = new CDetector(rt_detector_shape,
+    /*detector = new CDetector(rt_detector_shape,
                                 path,
                                 map_pixel_x,
                                 map_pixel_y,
@@ -141,7 +141,7 @@ bool CRaytracingPolar::setSyncDetector(uint pos,
                                 lam_max,
                                 nr_spectral_bins,
                                 nr_extra);
-    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
+    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);*/
 
     return true;
 }
@@ -150,10 +150,10 @@ bool CRaytracingPolar::setLineDetector(uint pos,
                                        const parameters & param,
                                        dlist line_ray_detectors,
                                        string path,
-                                       double _max_length)
+                                       double _max_length, bool hasZeeman)
 {
     rt_detector_shape = DET_POLAR;
-    vel_maps = param.getVelMaps();
+    vel_maps_fits = param.getVelMapsFits();
 
     if(detector != 0)
     {
@@ -210,7 +210,8 @@ bool CRaytracingPolar::setLineDetector(uint pos,
                                 i_trans,
                                 nr_spectral_bins,
                                 min_velocity,
-                                max_velocity);
+                                max_velocity,
+                                hasZeeman);
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
     return true;
@@ -317,7 +318,7 @@ void CRaytracingPolar::addToDetector(photon_package * pp, int i_pix, bool direct
             tmpStokes[pp->getSpectralID()][rID][phID] = *pp->getStokesVector();
 
             // Update Stokes vector of photon package
-            pp->getStokesVector()->multS(getRingElementArea(rID));
+            pp->getStokesVector()->multStokesParam(getRingElementArea(rID));
 
             // Add photon Stokes vector SED detector
             detector->addToRaytracingSedDetector(*pp);
@@ -395,7 +396,7 @@ bool CRaytracingPolar::postProcessingUsingNearest()
             pp.setSpectralID(i_spectral);
 
             pp.setStokesVector(tmpStokes[i_spectral][rID][phID], i_spectral);
-            pp.getStokesVector(i_spectral)->multS(getRingElementArea(rID));
+            pp.getStokesVector(i_spectral)->multStokesParam(getRingElementArea(rID));
 
             // Transport pixel value to detector
             detector->addToRaytracingDetector(pp);
@@ -469,7 +470,7 @@ bool CRaytracingPolar::postProcessingUsingInterpolation()
 
                 // Get Stokes Vector
                 pp.setStokesVector(tmpStokes[i_spectral][npix_r][0], i_spectral);
-                pp.getStokesVector(i_spectral)->multS(getMinArea());
+                pp.getStokesVector(i_spectral)->multStokesParam(getMinArea());
 
                 // Transport pixel value to detector
                 detector->addToRaytracingDetector(pp);
@@ -559,13 +560,13 @@ bool CRaytracingPolar::postProcessingUsingInterpolation()
             double stokes_U = CMathFunctions::getPolarInterp(t, s, Q1.U(), Q2.U(), Q3.U(), Q4.U());
             double stokes_V = CMathFunctions::getPolarInterp(t, s, Q1.V(), Q2.V(), Q3.V(), Q4.V());
             double stokes_T = CMathFunctions::getPolarInterp(t, s, Q1.T(), Q2.T(), Q3.T(), Q4.T());
-            double stokes_Sp = CMathFunctions::getPolarInterp(t, s, Q1.Sp(), Q2.Sp(), Q3.Sp(), Q4.Sp());
+            double stokes_Sp = CMathFunctions::getPolarInterp(t, s, Q1.Sp1(), Q2.Sp1(), Q3.Sp1(), Q4.Sp1());
 
             // Add pixel value to photon_package
             StokesVector res_stokes =
                 StokesVector(stokes_I, stokes_Q, stokes_U, stokes_V, stokes_T, stokes_Sp);
             pp.setStokesVector(res_stokes, i_spectral);
-            pp.getStokesVector(i_spectral)->multS(getMinArea());
+            pp.getStokesVector(i_spectral)->multStokesParam(getMinArea());
             // Transport pixel value to detector
             detector->addToRaytracingDetector(pp);
         }

@@ -13,8 +13,16 @@
 #include "CCfits/PHDUT.h"
 using namespace CCfits;
 
+bool CFreeFree::loadGauntFITS()
+{
+    return loadGauntFITS(gaunt_file);
+}
+
 bool CFreeFree::loadGauntFITS(const string& filename)
 {
+    if(gaunt_file.length()==0)
+        return true;
+    
     try
     {
         unique_ptr<FITS> pInfile;
@@ -74,15 +82,97 @@ bool CFreeFree::loadGauntFITS(const string& filename)
         
         u_min  = log_u[0];
         u_max = log_u[N_u-1];
-
-
-        return true;
     }
     catch (CCfits::FitsException& e)
     {
         cout << "FITS read error: " << e.message() << endl;
         return false;
     }
+    
+    inter_gaunt=true;
+    return true;
+}
+
+void CFreeFree::setGauntFile(string f)
+{
+    gaunt_file = f;
+}
+
+void CFreeFree::printParameters()
+{
+    cout << CLR_LINE;
+    cout << SEP_LINE;
+    cout << " Free-free parameters                                   " << endl;
+    cout << SEP_LINE;
+
+    if(inter_gaunt)
+    {
+        cout << "Gaunt gff interpolated from:\n\t";
+        cout << gaunt_file << endl;        
+        
+        cout << "available range:" << endl;
+        cout << "- ion charge Z                 (min.max): ["<<Z_min << ", " << Z_max << "]" << endl;
+        cout << "- scaled photon energy log10 u (min.max): ["<<u_min << ", " << u_max << "]" << endl;
+        cout << "- energy ratio log10 gamma^2   (min.max): ["<<gam2_min << ", " << gam2_max << "]" << endl;
+    }
+    else
+    {
+        cout << "- Gaunt gff approximated (Draine 2011)" << endl;
+    }
+    
+    cout << flush;
+}
+
+void CFreeFree::get_coeff_lambda(Matrix2D & alpha, StokesVector & J, double lambda, double Te, double ne, double ni, double Z)
+{
+    double gff = getGauntFactor(lambda, Te, Z);
+    double jl = j_lambda(lambda, Te, ne, ni, Z, gff);
+    double al = alpha_lambda(lambda, Te, ne, ni, Z, gff);
+    
+    alpha.setValue(0, 0, -al);
+    alpha.setValue(1, 1, -al);
+    alpha.setValue(2, 2, -al);
+    alpha.setValue(3, 3, -al);
+    
+    J = StokesVector(jl, 0, 0, 0);
+}
+
+
+double CFreeFree::getGauntFactor(double lambda, double Te, double Z)
+{
+    if(inter_gaunt)
+    {
+        double log_gam2 = log10_gamma2(Z, Te);
+        double log_u = log10_u(lambda, Te);
+        
+        double gff = interpolate(Z, log_gam2, log_u);
+        
+        if(gff < 0)
+            return 0;
+            
+        return gff;    
+    }
+
+    return gaunt_ff_approx(lambda, Te, Z);
+}
+
+// Free-free Gaunt factor approximations in wavelength form (λ in meters).
+// References:
+//   - Spitzer, "Physical Processes in the Interstellar Medium", 1978 (reprint 1998).
+//   - Draine, "Physics of the Interstellar and Intergalactic Medium", 2011.
+// Domain: non-relativistic, h nu << k T  (radio / far-IR).
+
+inline double CFreeFree::gaunt_ff_approx(double lambda, double Te, double Z)
+{
+    const double gamma_EM = 0.5772156649015329; //Euler Mascheroni constant
+    const double sqrt3_over_pi = (sqrt(3.0) / PI);
+
+    double arg = 3.7e7 * pow(Te, 1.5) * lambda / max(Z, 1e-12);
+    double g = sqrt3_over_pi * ( log(arg) - 2.5 * gamma_EM );
+    
+    g = max(1.0, g);
+    
+    return g;
 }
 
 float CFreeFree::interpolate(float Z, float log_gam2_in, float log_u_in) const
@@ -116,11 +206,6 @@ float CFreeFree::interpolate(float Z, float log_gam2_in, float log_u_in) const
     return lerp(g00, g01, fz);
 }
 
-void CFreeFree::printParameters()
-{
-    cout << "Free-Free parameters" << endl << flush;
-}
-
 inline double CFreeFree::log10_u(double lambda, double Te)
 {
     // check for non-physical inputs
@@ -137,12 +222,14 @@ inline double CFreeFree::log10_u(double lambda, double Te)
     }
         
     const double u = (con_h * con_c) / (lambda * con_kB * Te);
-    return log10(u);
+    double log10_u = log10(u);
+    
+    return log10_u;
 } 
 
-inline double CFreeFree::log10_gamma2(int Z, double Te)
+inline double CFreeFree::log10_gamma2(double Z, double Te)
 {
-    if(Z <= 1)
+    if(Z < 1.0)
     {
         cout << "ERROR: Wrong charge number!" << endl << flush;
         return 0;
@@ -154,11 +241,13 @@ inline double CFreeFree::log10_gamma2(int Z, double Te)
         return 0;
     }
     
-    const double g2   = static_cast<double>(Z) * static_cast<double>(Z) * (con_RyJ / (con_kB * Te));
-    return log10(g2);
+    const double g2   = Z * Z * (con_RyJ / (con_kB * Te));
+    double log10_gamma2 = log10(g2);
+    
+    return log10_gamma2;
 }
 
-inline double CFreeFree::j_lambda(double lambda, double Te, double ne, double ni, int Z, double gff)
+inline double CFreeFree::j_lambda(double lambda, double Te, double ne, double ni, double Z, double gff)
 {
     if(lambda * Te * ne  * ni * Z  * gff <= 0.0)
     {
@@ -178,13 +267,16 @@ inline double CFreeFree::j_lambda(double lambda, double Te, double ne, double ni
     const double expo       = exp(-x);
     const double lambda2    = lambda * lambda;
 
-    const double pre = J_PREF * double(Z) * double(Z) * ne * ni * inv_sqrt_T;
-    return pre * (expo / lambda2) * gff; // [W m^-4]
+    const double pre = J_PREF * Z * Z * ne * ni * inv_sqrt_T;
+    
+    double j_lambda=pre * (expo / lambda2) * gff; // [W m^-4]
+    
+    return j_lambda;
 }
 
-inline double CFreeFree::alpha_lambda(double lambda, double Te, double ne, double ni, int Z, double gff)
+inline double CFreeFree::alpha_lambda(double lambda, double Te, double ne, double ni, double Z, double gff)
 {
-    if(lambda <= 0.0 || Te <= 0.0 || ne <= 0.0 || ni <= 0.0 || Z == 0 || gff <= 0.0) return 0.0;
+    if(lambda <= 0.0 || Te <= 0.0 || ne <= 0.0 || ni <= 0.0 || Z == 0 || gff <= 0.0)
     {
         cout << "ERROR: Non-physical units in alpha_lambda calculation!" << endl << flush;
         return 0.0;
@@ -203,7 +295,9 @@ inline double CFreeFree::alpha_lambda(double lambda, double Te, double ne, doubl
     const double lambda3    = lambda * lambda * lambda;
 
     const double pre = A_PREF * double(Z) * double(Z) * ne * ni * inv_sqrt_T;
-    return pre * (lambda3 * one_minus_exp) * gff; // [m^-1]
+    double alpha_lambda = pre * (lambda3 * one_minus_exp) * gff; // [m^-1]
+    
+    return alpha_lambda;
 }
 
 inline int CFreeFree::findIndex(float value, const float* axis, int length) const

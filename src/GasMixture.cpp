@@ -58,6 +58,17 @@ bool CGasMixture::isZeemanSplit(uint i_species)
     return single_species[i_species].isZeemanSplit();
 }
 
+bool CGasMixture::hasZeemanLines()
+{
+    for(uint i_species = 0; i_species < nr_of_species; i_species++)
+    {
+        if(single_species[i_species].isZeemanSplit())
+            return true;
+    }
+    
+    return false;
+}
+
 uilist CGasMixture::getUniqueTransitions(uint i_species)
 {
     return single_species[i_species].getUniqueTransitions();
@@ -542,23 +553,26 @@ void CGasMixture::printParameters(parameters & param, CGridBasic * grid)
             return;
         }
 
-        stringstream transition_str, vel_channels_str, max_vel_str;
+        stringstream transition_str, vel_channels_str, min_vel_str, max_vel_str;
         dlist line_ray_detectors = param.getLineRayDetector(i_species);
         for(uint i = 0; i < line_ray_detectors.size(); i += NR_OF_LINE_DET)
         {
             transition_str << uint(line_ray_detectors[i] + 1);
-            max_vel_str << line_ray_detectors[i + 2];
+            min_vel_str << line_ray_detectors[i + 2];
+            max_vel_str << line_ray_detectors[i + 3];
             vel_channels_str << uint(line_ray_detectors[i + NR_OF_LINE_DET - 1]);
             if(i < line_ray_detectors.size() - NR_OF_LINE_DET)
             {
                 transition_str << ", ";
+                min_vel_str << ", ";
                 max_vel_str << ", ";
                 vel_channels_str << ", ";
             }
         }
         cout << "- Line transition(s)            : " << transition_str.str() << endl;
         cout << "- Number of velocity channels   : " << vel_channels_str.str() << endl;
-        cout << "- Velocity limit(s)             : " << max_vel_str.str() << " [m/s]" << endl;
+        cout << "- Min. Velocity limit(s)        : " << min_vel_str.str() << " [m/s]" << endl;
+        cout << "- Max. Velocity limit(s)        : " << max_vel_str.str() << " [m/s]" << endl;
         cout << "- Level population              : ";
         uint lvl_pop_type = getLevelPopType(i_species);
         switch(lvl_pop_type)

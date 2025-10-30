@@ -153,7 +153,7 @@ bool CRaytracingSlice::setSyncDetector(uint pos,
 
     setDetCoordSystem(n1, n2);
 
-    detector = new CDetector(rt_detector_shape,
+    /*detector = new CDetector(rt_detector_shape,
                                 path,
                                 map_pixel_x,
                                 map_pixel_y,
@@ -167,7 +167,7 @@ bool CRaytracingSlice::setSyncDetector(uint pos,
                                 lam_max,
                                 nr_spectral_bins,
                                 nr_extra);
-    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
+    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);*/
 
     return true;
 }
@@ -176,10 +176,10 @@ bool CRaytracingSlice::setLineDetector(uint pos,
                                        const parameters & param,
                                        dlist line_ray_detectors,
                                        string path,
-                                       double _max_length)
+                                       double _max_length, bool hasZeeman)
 {
     rt_detector_shape = DET_SLICE;
-    vel_maps = param.getVelMaps();
+    vel_maps_fits = param.getVelMapsFits();
 
     if(detector != 0)
     {
@@ -233,7 +233,8 @@ bool CRaytracingSlice::setLineDetector(uint pos,
                                 i_trans,
                                 nr_spectral_bins,
                                 min_velocity,
-                                max_velocity);
+                                max_velocity,
+                                hasZeeman);
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
     return true;
@@ -265,7 +266,7 @@ void CRaytracingSlice::addToDetector(photon_package * pp, int i_pix, bool direct
 
         // Multiply by min area if such a multiplication did not happen before
         if(!direct)
-            pp->getStokesVector(i_spectral)->multS(getMinArea());
+            pp->getStokesVector(i_spectral)->multStokesParam(getMinArea());
 
         // Add photon Stokes vector to detector
         detector->addToRaytracingDetector(*pp);

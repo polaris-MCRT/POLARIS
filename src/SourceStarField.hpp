@@ -21,7 +21,21 @@ public:
     CSourceStarField(void)
     {
         pos = 0;
-        var = 0;
+        
+        sig_x = 0;
+        sig_y = 0;
+        sig_z = 0;
+    
+        a = 0;
+        b = 0;
+        c = 0;
+    
+        rot1 = Vector3D(1,0,0);
+        rot1 = Vector3D(0,1,0);
+    
+        ang1 = 0;
+        ang2 = 0;
+        
         source_id = SRC_SFIELD;
     }
 
@@ -37,7 +51,16 @@ public:
     void setParameter(parameters & param, uint p);
 
 private:
-    double var;
+    double sig_x;
+    double sig_y;
+    double sig_z;
+    
+    double a,b,c;
+    
+    Vector3D rot1;
+    Vector3D rot2;
+    
+    double ang1, ang2;
 };
 
 #endif /* CSOURCE_STARFIELD_H */
