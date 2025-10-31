@@ -350,6 +350,16 @@ bool parameters::getAligGOLD() const
     return (align & ALIG_GOLD) == ALIG_GOLD;
 }
 
+bool parameters::getAligRD() const
+{
+    return (align & ALIG_RD) == ALIG_RD;
+}
+
+bool parameters::getAligKRAT() const
+{
+    return (align & ALIG_KRAT) == ALIG_KRAT;
+}
+
 bool parameters::getAligINTERNAL() const
 {
     return (align & ALIG_INTERNAL) == ALIG_INTERNAL;

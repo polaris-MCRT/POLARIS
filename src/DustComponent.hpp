@@ -84,17 +84,28 @@ public:
         aspect_ratio = 0;
         sub_temp = 1e6;
         material_density = 0;
+        tensile_strengths = 1e8;
         gold_g_factor = 0;
         dust_mass_fraction = 0;
         R_rayleigh = 1.0;
 
         Q_ref = 0.4;
         alpha_Q = 3.0;
+        
+        min_a_alig = 1e200;
+        max_a_alig = 0;
+        
+        min_a_larm = 1e200;
+        max_a_larm = 0;
+        
+        min_a_krat = 1e200;
+        max_a_krat = 0;
+        
+        min_a_rd = 1e200;
+        max_a_rd = 0;
 
         // min_temp = 0;
         max_temp = 0;
-        min_a_alig = 1e200;
-        max_a_alig = 0;
         f_highJ = 0.25;
         f_cor = 0.6;
         delta_rat = 2;
@@ -551,6 +562,18 @@ public:
     double getMinAlignedRadius();
 
     double getMaxAlignedRadius();
+    
+    double getMinLarmRadius();
+
+    double getMaxLarmRadius();
+    
+    double getMinKRATRadius();
+
+    double getMaxKRATRadius();
+    
+    double getMinRDRadius();
+
+    double getMaxRDRadius();
 
     double getScatteringMatrixElement(uint a,
                                       uint w,
@@ -617,6 +640,7 @@ public:
     void setMu(double mu_);
 
     void setMaterialDensity(double dens);
+    void setTensileStrengths(double S);
 
     bool checkGrainSizeLimits(double a_min, double a_max);
 
@@ -749,7 +773,9 @@ public:
     double getEffectiveRadius(uint a) const;
 
     double * getEffectiveRadii();
-
+    
+    double getTensileStrengths();
+    
     double getGrainDistributionXRadiusSq(uint a) const;
 
     double getGrainSizeDistribution(uint a) const;
@@ -811,6 +837,82 @@ public:
     void SetScatTheta(double *** scat_theta_tmp);
 
     double * getScatTheta(uint a, uint w);
+    
+    double get_alarm(double B, double Td, double Tg, double ng) const
+    {        
+        //return 1;
+        double den = ng * Td * sqrt(Tg);
+
+        if(den <= 0)
+            return 1.0;
+        
+        if(B==0)
+            return 1.0;
+
+        double mag_chi = 4.2e-4*PIx4;
+        //2.16e+15
+        //2.71e8
+        //7.96e14
+        double a_larm = 1.33e21 * mag_chi * B * aspect_ratio * aspect_ratio / den;
+        
+        if(a_larm>1.0)
+            a_larm=1.0;
+        
+        return a_larm;
+    }
+    
+    double get_akrat(double Tg, double B, double Td, double ge3)
+    {
+        double den=Td*ge3;
+        
+        if(den<=0)
+            return 1.0; 
+        
+        if(B==0)
+            return 1.0;
+        
+        double mag_chi = 4.2e-4*PIx4*15;
+        //double res = 6.38e-10;     
+        double res = 4.90645e-16;     
+        res *= pow( aspect_ratio*B*mag_chi/den * sqrt(Tg / material_density),2.0/3.0);
+        
+        if(res>1.0)
+            res=1.0;
+        
+        //double test=707.5*B*mag_chi/(n)
+        
+        return res;
+    }
+    
+    double getGamma_par(double e)
+    {
+        if(e<=0)
+            return 1;
+        
+        if(e>=1)
+            return 1;
+        
+        double esq=e*e;
+        
+        double g=log(1+e/(1-e));
+       
+        double res=3+4*(1-esq)*g-(1 - (1-esq)*(1-esq))*g/esq;
+        
+        res*=3.0/16.0;
+        
+        return res;
+    }
+    
+    //returns the magnitude of the radiative torque
+    double getQrat(double l, double a_eff)
+    {
+        double Qr = Q_ref;
+
+        if(l > 1.8 * a_eff)
+            Qr = Q_ref / pow(l / (1.8 * a_eff), alpha_Q);
+        
+        return Qr;
+    }
 
     double getScatTheta(uint a, uint w, uint sth) const;
 
@@ -959,10 +1061,14 @@ private:
     double aspect_ratio;
     double sub_temp;
     double material_density;
+    double tensile_strengths;
     double dust_mass_fraction;
     // double min_temp;
     double max_temp;
     double min_a_alig, max_a_alig;
+    double min_a_larm, max_a_larm;
+    double min_a_krat, max_a_krat;
+    double min_a_rd, max_a_rd;
 
     // alignment paramaters
     bool is_align;

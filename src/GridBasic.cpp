@@ -219,14 +219,25 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         }
     }
     
-    if(!data_pos_dust_a_krat_list.empty())
+    if(!data_pos_dust_a_krat_list1.empty())
     {
-        for(uint i = 0; i < data_pos_dust_a_krat_list.size(); i++)
+        for(uint i = 0; i < data_pos_dust_a_krat_list1.size(); i++)
         {
-            double a_krat = cell->getData(data_pos_dust_a_krat_list[i]);
+            double a_krat = cell->getData(data_pos_dust_a_krat_list1[i]);
 
-            min_dust_akrat = min(min_dust_akrat, a_krat);
+            min_dust_akrat1 = min(min_dust_akrat1, a_krat);
             max_dust_akrat = max(max_dust_akrat, a_krat);
+        }
+    }
+    
+    if(!data_pos_dust_a_rd_list.empty())
+    {
+        for(uint i = 0; i < data_pos_dust_a_rd_list.size(); i++)
+        {
+            double a_rd = cell->getData(data_pos_dust_a_rd_list[i]);
+
+            min_dust_ard = min(min_dust_ard, a_rd);
+            max_dust_ard = max(max_dust_ard, a_rd);
         }
     }
     
@@ -586,13 +597,14 @@ void CGridBasic::printPhysicalParameters()
     if(!data_pos_dust_a_alig_list1.empty())
         cout << "- a_alig              (min,max) : [" << min_dust_aalg1 << ", " << max_dust_aalg << "] [m]" << endl;
     
-    if(!data_pos_dust_a_krat_list.empty())
-        cout << "- a_krat              (min,max) : [" << min_dust_akrat << ", " << max_dust_akrat << "] [m]" << endl;
+    if(!data_pos_dust_a_krat_list1.empty())
+        cout << "- a_krat              (min,max) : [" << min_dust_akrat1 << ", " << max_dust_akrat << "] [m]" << endl;
     
     if(!data_pos_dust_a_larm_list.empty())
         cout << "- a_larm              (min,max) : [" << min_dust_alarm << ", " << max_dust_alarm << "] [m]" << endl;
     
-    
+    if(!data_pos_dust_a_rd_list.empty())
+        cout << "- a_rd                (min,max) : [" << min_dust_ard << ", " << max_dust_ard << "] [m]" << endl;    
     
     
     if(data_pos_avg_ux != MAX_UINT)
@@ -761,7 +773,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         {
             plt_a_alig1 = (!data_pos_dust_a_alig_list1.empty()) && param.isInPlotList(GRIDa_alg);
             plt_a_larm = (!data_pos_dust_a_larm_list.empty()) && param.isInPlotList(GRID_alarm);
-            plt_a_krat = (!data_pos_dust_a_krat_list.empty()) && param.isInPlotList(GRID_akRAT);
+            plt_a_krat1 = (!data_pos_dust_a_krat_list1.empty()) && param.isInPlotList(GRID_akRAT);
+            plt_a_rd = (!data_pos_dust_a_rd_list.empty()) && param.isInPlotList(GRID_ard);
             
             plt_avg_th = (data_pos_avg_th != MAX_UINT) && param.isInPlotList(GRIDavg_th);
             plt_avg_dir = (data_pos_avg_dir != MAX_UINT) && param.isInPlotList(GRIDavg_dir);
@@ -820,9 +833,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         
         plt_avg_u = false;
         plt_a_alig1 = false;
-        plt_a_krat = false;
+        plt_a_krat1 = false;
         plt_a_larm = false; 
-
+        plt_a_rd = false;
+        
         plt_ion_n_i = false;
         plt_ion_Z = false; 
         
@@ -857,11 +871,12 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             plt_dust_temp = param.isInPlotList(GRIDdust_temp);
         }
 
-        if(cmd != CMD_RAT && cmd != CMD_TEMP_RAT)
+        if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
         {
             plt_a_alig1 = (!data_pos_dust_a_alig_list1.empty()) && param.isInPlotList(GRIDa_alg);
             plt_a_larm = (!data_pos_dust_a_larm_list.empty()) && param.isInPlotList(GRID_alarm);
-            plt_a_krat = (!data_pos_dust_a_krat_list.empty()) && param.isInPlotList(GRID_akRAT);
+            plt_a_krat1 = (!data_pos_dust_a_krat_list1.empty()) && param.isInPlotList(GRID_akRAT);
+            plt_a_rd = (!data_pos_dust_a_rd_list.empty()) && param.isInPlotList(GRID_ard);
             
             plt_avg_th = (data_pos_avg_th != MAX_UINT) && param.isInPlotList(GRIDavg_th);
             plt_avg_dir = (data_pos_avg_dir != MAX_UINT) && param.isInPlotList(GRIDavg_dir);
@@ -916,7 +931,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                          uint(plt_u_rad) + uint(plt_n_th) + uint(plt_T_e) + uint(plt_n_cr) + 
                          uint(plt_sync_g_min) + uint(plt_sync_g_max) + uint(plt_sync_p) + 
                          uint(plt_avg_th) + uint(plt_avg_dir) + 4 * uint(plt_avg_u) +
-                         uint(plt_a_alig1) + uint(plt_a_larm) + uint(plt_a_krat) + 
+                         uint(plt_a_alig1) + uint(plt_a_larm) + uint(plt_a_krat1) + uint(plt_a_rd) + 
                          uint(plt_ame_Zgr) + uint(plt_ame_Zs) + uint(plt_ame_Trot) + 
                          uint(plt_ion_n_i) + uint(plt_ion_Z);
 
@@ -1059,8 +1074,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     valarray<double> array_u_z(nelements);
     
     valarray<double> array_dust_a_alig1(nelements);
-    valarray<double> array_dust_a_krat(nelements);
+    valarray<double> array_dust_a_krat1(nelements);
     valarray<double> array_dust_a_larm(nelements);
+    valarray<double> array_dust_a_rd(nelements);
     
     valarray<double> array_ion_n_i(nelements);
     valarray<double> array_ion_Z(nelements);
@@ -1135,11 +1151,18 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             buffer_dust_a_larm[i_cell] = new double[data_pos_dust_a_larm_list.size()];
     }
         
-    if(plt_a_krat)
+    if(plt_a_krat1)
     {
-        buffer_dust_a_krat = new double *[nelements];
+        buffer_dust_a_krat1 = new double *[nelements];
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            buffer_dust_a_krat[i_cell] = new double[data_pos_dust_a_krat_list.size()];
+            buffer_dust_a_krat1[i_cell] = new double[data_pos_dust_a_krat_list1.size()];
+    }
+        
+    if(plt_a_rd)
+    {
+        buffer_dust_a_rd = new double *[nelements];
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            buffer_dust_a_rd[i_cell] = new double[data_pos_dust_a_rd_list.size()];
     }
         
     if(plt_ame_Zgr)
@@ -1372,15 +1395,15 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 }
             }
             
-            if(plt_a_krat)
+            if(plt_a_krat1)
             {
                 for(uint i_density = 0; i_density < nr_densities; i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_a_krat[i_cell] = buffer_dust_a_krat[i_cell][i_density];
+                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat1[i_cell][i_density];
 
                     fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_dust_a_krat);
+                    pFits->pHDU().write(fpixel, nelements, array_dust_a_krat1);
                 }
             }
             
@@ -1393,6 +1416,18 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_dust_a_larm);
+                }
+            }
+            
+            if(plt_a_rd)
+            {
+                for(uint i_density = 0; i_density < nr_densities; i_density++)
+                {
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
+                        array_dust_a_rd[i_cell] = buffer_dust_a_rd[i_cell][i_density];
+
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_dust_a_rd);
                 }
             }
 
@@ -1760,15 +1795,15 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 }
             }
             
-            if(plt_a_krat)
+            if(plt_a_krat1)
             {
                 for(uint i_density = 0; i_density < nr_densities; i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_a_krat[i_cell] = buffer_dust_a_krat[i_cell][i_density];
+                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat1[i_cell][i_density];
 
                     fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_dust_a_krat);
+                    pFits->pHDU().write(fpixel, nelements, array_dust_a_krat1);
                 }
             }
             
@@ -1781,6 +1816,18 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_dust_a_larm);
+                }
+            }
+             
+            if(plt_a_rd)
+            {
+                for(uint i_density = 0; i_density < nr_densities; i_density++)
+                {
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
+                        array_dust_a_rd[i_cell] = buffer_dust_a_rd[i_cell][i_density];
+
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_dust_a_rd);
                 }
             }
             
@@ -2237,7 +2284,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
     }
     
-    if(plt_a_krat)
+    if(plt_a_krat1)
     {
         if(nr_densities > 1)
         {
@@ -2274,6 +2321,27 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             counter++;
             updateMidplaneString(str_1, str_2, counter);
             pFits->pHDU().addKey(str_1, "dust_alarm [m]", str_2);
+        }
+    }
+    
+        
+    if(plt_a_rd)
+    {
+        if(nr_densities > 1)
+        {
+            for(uint i_density = 1; i_density <= nr_densities; i_density++)
+            {
+                counter++;
+                updateMidplaneString(str_1, str_2, counter);
+                string str_3 = getDensityString("dust_rd_%i [m]", i_density);
+                pFits->pHDU().addKey(str_1, str_3, str_2);
+            }
+        }
+        else
+        {
+            counter++;
+            updateMidplaneString(str_1, str_2, counter);
+            pFits->pHDU().addKey(str_1, "dust_rd [m]", str_2);
         }
     }
     
@@ -2612,13 +2680,21 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_dust_a_larm;
     }
         
-    if(plt_a_krat)
+    if(plt_a_krat1)
     {
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            delete[] buffer_dust_a_krat[i_cell];
+            delete[] buffer_dust_a_krat1[i_cell];
 
-        delete[] buffer_dust_a_krat;
+        delete[] buffer_dust_a_krat1;
     }  
+        
+    if(plt_a_rd)
+    {
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_dust_a_rd[i_cell];
+
+        delete[] buffer_dust_a_rd;
+    } 
         
     if(plt_ame_Zgr)
     {
@@ -3653,10 +3729,10 @@ double CGridBasic::getAlignedRadius(const photon_package & pp, uint i_density) c
 
 double CGridBasic::getkRATRadius(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_dust_a_krat_list.size() == 1)
-        return cell.getData(data_pos_dust_a_krat_list[0]);
-    else if(data_pos_dust_a_krat_list.size() > i_density)
-        return cell.getData(data_pos_dust_a_krat_list[i_density]);
+    if(data_pos_dust_a_krat_list1.size() == 1)
+        return cell.getData(data_pos_dust_a_krat_list1[0]);
+    else if(data_pos_dust_a_krat_list1.size() > i_density)
+        return cell.getData(data_pos_dust_a_krat_list1[i_density]);
     else
         return 0;
 }
@@ -3664,6 +3740,21 @@ double CGridBasic::getkRATRadius(const cell_basic & cell, uint i_density) const
 double CGridBasic::getkRATRadius(const photon_package & pp, uint i_density) const
 {
     return CGridBasic::getkRATRadius(*pp.getPositionCell(), i_density);
+}
+
+double CGridBasic::getRDRadius(const cell_basic & cell, uint i_density) const
+{
+    if(data_pos_dust_a_rd_list.size() == 1)
+        return cell.getData(data_pos_dust_a_rd_list[0]);
+    else if(data_pos_dust_a_rd_list.size() > i_density)
+        return cell.getData(data_pos_dust_a_rd_list[i_density]);
+    else
+        return 0;
+}
+
+double CGridBasic::getRDRadius(const photon_package & pp, uint i_density) const
+{
+    return CGridBasic::getRDRadius(*pp.getPositionCell(), i_density);
 }
 
 double CGridBasic::getLarmRadius(const cell_basic & cell, uint i_density) const
@@ -3681,9 +3772,24 @@ double CGridBasic::getLarmRadius(const photon_package & pp, uint i_density) cons
     return CGridBasic::getLarmRadius(*pp.getPositionCell(), i_density);
 }
 
-void CGridBasic::setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg)
+void CGridBasic::setAlignedRadius(cell_basic * cell, uint i_density, double a_alg)
 {
-    cell->setData(data_pos_dust_a_alig_list1[i_density], _a_alg);
+    cell->setData(data_pos_dust_a_alig_list1[i_density], a_alg);
+}
+
+void CGridBasic::setLarmRadius(cell_basic * cell, uint i_density, double a_larm)
+{
+    cell->setData(data_pos_dust_a_larm_list[i_density], a_larm);
+}
+
+void CGridBasic::setKRATRadius(cell_basic * cell, uint i_density, double a_krat)
+{
+    cell->setData(data_pos_dust_a_krat_list1[i_density], a_krat);
+}
+
+void CGridBasic::setRDRadius(cell_basic * cell, uint i_density, double a_rd)
+{
+    cell->setData(data_pos_dust_a_rd_list[i_density], a_rd);
 }
 
 double CGridBasic::getAMEZgr(const cell_basic & cell, uint i_ame) const
@@ -4369,11 +4475,18 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
                 buffer_dust_a_larm[i_cell][i_density] = getLarmRadius(pp, i_density);
         }
 
-        if(plt_a_krat)
+        if(plt_a_krat1)
         {
-            for(uint i_density = 0; i_density < data_pos_dust_a_krat_list.size(); i_density++)
-                buffer_dust_a_krat[i_cell][i_density] = getkRATRadius(pp, i_density);
+            for(uint i_density = 0; i_density < data_pos_dust_a_krat_list1.size(); i_density++)
+                buffer_dust_a_krat1[i_cell][i_density] = getkRATRadius(pp, i_density);
         }
+        
+        if(plt_a_rd)
+        {
+            for(uint i_density = 0; i_density < data_pos_dust_a_rd_list.size(); i_density++)
+                buffer_dust_a_rd[i_cell][i_density] = getRDRadius(pp, i_density);
+        }
+        
         
         if(plt_ame_Zgr)
         {
@@ -4551,10 +4664,16 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
                 buffer_dust_a_larm[i_cell][i_density] = 0;
         }
 
-        if(plt_a_krat)
+        if(plt_a_krat1)
         {
-            for(uint i_density = 0; i_density < data_pos_dust_a_krat_list.size(); i_density++)
-                buffer_dust_a_krat[i_cell][i_density] = 0;
+            for(uint i_density = 0; i_density < data_pos_dust_a_krat_list1.size(); i_density++)
+                buffer_dust_a_krat1[i_cell][i_density] = 0;
+        }
+        
+        if(plt_a_rd)
+        {
+            for(uint i_density = 0; i_density < data_pos_dust_a_rd_list.size(); i_density++)
+                buffer_dust_a_rd[i_cell][i_density] = 0;
         }
         
         if(plt_ame_Zgr)
@@ -5386,12 +5505,16 @@ bool CGridBasic::setDataPositionsVariable()
                 break; 
 
             case GRID_akRAT:
-                data_pos_dust_a_krat_list.push_back(i);
+                data_pos_dust_a_krat_list1.push_back(i);
                 break;
 
             case GRID_alarm:
                 data_pos_dust_a_larm_list.push_back(i);
-                break;                
+                break;    
+                
+            case GRID_ard:
+                data_pos_dust_a_rd_list.push_back(i);
+                break;    
 
                 
             case GRID_ni:
@@ -5872,13 +5995,16 @@ uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
         }
     }
     
-    if(data_pos_dust_a_krat_list.empty())
+    if(param.getAligKRAT())
     {
-        for(uint i_density = 0; i_density < nr_densities; i_density++)
+        if(data_pos_dust_a_krat_list1.empty())
         {
-            data_pos_dust_a_krat_list.push_back(data_offset + tmp_data_offset);
-            data_ids.push_back(GRID_akRAT);
-            tmp_data_offset++;
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+            {
+                data_pos_dust_a_krat_list1.push_back(data_offset + tmp_data_offset);
+                data_ids.push_back(GRID_akRAT);
+                tmp_data_offset++;
+            }
         }
     }
 
@@ -5889,6 +6015,19 @@ uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
             data_pos_dust_a_larm_list.push_back(data_offset + tmp_data_offset);
             data_ids.push_back(GRID_alarm);
             tmp_data_offset++;
+        }
+    }
+    
+    if(param.getAligRD())
+    {
+        if(data_pos_dust_a_rd_list.empty())
+        {
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+            {
+                data_pos_dust_a_rd_list.push_back(data_offset + tmp_data_offset);
+                data_ids.push_back(GRID_ard);
+                tmp_data_offset++;
+            }
         }
     }
 

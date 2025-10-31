@@ -278,6 +278,10 @@ public:
     bool getAligRAT() const;
 
     bool getAligGOLD() const;
+    
+    bool getAligRD() const;
+    
+    bool getAligKRAT() const;
 
     bool getAligINTERNAL() const;
 

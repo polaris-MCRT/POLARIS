@@ -98,8 +98,11 @@ public:
         min_dust_aalg1 = 1e300;
         max_dust_aalg = -1e300;
 
-        min_dust_akrat = 1e300;
+        min_dust_akrat1 = 1e300;
         max_dust_akrat = -1e300;
+        
+        min_dust_ard = 1e300;
+        max_dust_ard = -1e300;
 
         min_dust_amin = 1e300;
         max_dust_amin = -1e300;
@@ -246,8 +249,9 @@ public:
 
         plt_avg_u = false;
         plt_a_alig1 = false;
-        plt_a_krat = false;
+        plt_a_krat1 = false;
         plt_a_larm = false; 
+        plt_a_rd = false;
         
         plt_ame_Zgr = false;
         plt_ame_Zs = false;
@@ -323,7 +327,8 @@ public:
 
         buffer_dust_a_alig1 = 0;
         buffer_dust_a_larm = 0;
-        buffer_dust_a_krat = 0;
+        buffer_dust_a_krat1 = 0;
+        buffer_dust_a_rd = 0;
 
         buffer_ion_n_i = 0;
         buffer_ion_Z = 0;
@@ -653,11 +658,21 @@ public:
     
     double getkRATRadius(const photon_package & pp, uint i_density) const;
     
+    double getRDRadius(const cell_basic & cell, uint i_density) const;
+    
+    double getRDRadius(const photon_package & pp, uint i_density) const;
+    
     double getLarmRadius(const cell_basic & cell, uint i_density) const;
     
     double getLarmRadius(const photon_package & pp, uint i_density) const;    
 
-    void setAlignedRadius(cell_basic * cell, uint i_density, double _a_alg);
+    void setAlignedRadius(cell_basic * cell, uint i_density, double a_alg);
+    
+    void setLarmRadius(cell_basic * cell, uint i_density, double a_larm);
+    
+    void setKRATRadius(cell_basic * cell, uint i_density, double a_krat);
+    
+    void setRDRadius(cell_basic * cell, uint i_density, double a_rd);
 
     double getMinGrainRadius(const cell_basic & cell, uint i_density) const;
 
@@ -1011,8 +1026,11 @@ protected:
     double min_dust_aalg1;
     double max_dust_aalg;
     
-    double min_dust_akrat;
+    double min_dust_akrat1;
     double max_dust_akrat;
+    
+    double min_dust_ard;
+    double max_dust_ard;
     
     double min_dust_alarm;
     double max_dust_alarm;
@@ -1134,8 +1152,9 @@ protected:
     uilist data_pos_dust_a_max_list;
     uilist data_pos_dust_size_param_list;
     
-    uilist data_pos_dust_a_krat_list;
+    uilist data_pos_dust_a_krat_list1;
     uilist data_pos_dust_a_larm_list;
+    uilist data_pos_dust_a_rd_list;
     
     uilist data_pos_ame_Zgr;
     uilist data_pos_ame_Zs;
@@ -1192,8 +1211,9 @@ protected:
     
     bool plt_avg_u;
     bool plt_a_alig1;
-    bool plt_a_krat;
+    bool plt_a_krat1;
     bool plt_a_larm;    
+    bool plt_a_rd;
     
     bool plt_ame_Zgr;
     bool plt_ame_Zs;
@@ -1272,7 +1292,8 @@ protected:
     
     double ** buffer_dust_a_alig1;
     double ** buffer_dust_a_larm;
-    double ** buffer_dust_a_krat;
+    double ** buffer_dust_a_krat1;
+    double ** buffer_dust_a_rd;
     
     double ** buffer_ame_Zgr;
     double ** buffer_ame_Zs;

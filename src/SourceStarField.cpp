@@ -30,7 +30,8 @@ bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
             if(is_ext)
                 sp_energy = sp_ext.getValue(wavelength_list[w]);
             else
-                sp_energy = R * pl; //[W m^-1] energy per second and wavelength
+                sp_energy =
+                    4.0 * PI * PI * (R * R_sun) * (R * R_sun) * pl; //[W m^-1] energy per second an wavelength
 
             star_emi.push_back(sp_energy);
         }
@@ -150,6 +151,57 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 
     return true;
 }
+
+/*void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
+{
+    // Init variables
+    StokesVector tmp_stokes_vector;
+    double energy;
+    uint wID;
+
+    uint exponentThetaBias = 1;
+    pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND(), exponentThetaBias);
+ 
+    if(pp->getDustWavelengthID() != MAX_UINT)
+    {
+        wID = pp->getDustWavelengthID();
+        if(is_ext)
+        {
+            energy = abs(sp_ext.getValue(wavelength_list[wID])) / nr_of_photons;
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+        {
+            double pl = CMathFunctions::planck(wavelength_list[wID], T);
+            energy = PIx4 * PI * (R * R_sun) * (R * R_sun) * pl / nr_of_photons;
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+        }
+    }
+    else
+    {
+        energy = L / nr_of_photons;
+        wID = lam_pf.getXIndex(rand_gen->getRND());
+
+        if(is_ext)
+        {
+            double tmp_q = sp_ext_q.getValue(wavelength_list[wID]);
+            double tmp_u = sp_ext_u.getValue(wavelength_list[wID]);
+            tmp_stokes_vector = energy * StokesVector(1.0, tmp_q, tmp_u, 0);
+        }
+        else
+            tmp_stokes_vector = energy * StokesVector(1.0, q, u, 0);
+
+        pp->setWavelength(wavelength_list[wID + 1], wID + 1);
+    }
+   
+    pp->setPosition(pos);
+    
+    pp->setStokesVector(tmp_stokes_vector);
+    pp->initCoordSystem();
+}*/
+
 
 void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
@@ -280,5 +332,5 @@ void CSourceStarField::setParameter(parameters & param, uint p)
 
     nr_of_photons = ullong(values[p + NR_OF_DIFF_SOURCES - 1]);
 
-    L = R * T * T * T * T;
+    L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
 }

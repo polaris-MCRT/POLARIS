@@ -1,6 +1,6 @@
 /************************************************************************************
 *                      POLARIS: POLArized RadIation Simulator                       *
-*                         Copyright (C) 2018 Stefan Reissl                          *
+*                      Copyright (C) 2018 - 2026 Stefan Reissl                      *
 ************************************************************************************/
 #include "Pipeline.hpp"
 

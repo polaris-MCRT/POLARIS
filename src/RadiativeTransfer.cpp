@@ -2013,7 +2013,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     cout << CLR_LINE;
     cout << " -> Calc. RAT dust alig. radius: 0.0 [%]  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
-    #pragma omp parallel for schedule(dynamic)
+    //#pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);

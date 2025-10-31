@@ -67,7 +67,7 @@ bool CPipeline::Init(int argc, char ** argv)
         return false;
     }
 
-    CCommandParser parser(argv[1]);/**/
+    CCommandParser parser(argv[1]);
     
     //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
     //string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
@@ -292,6 +292,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 
     if(param.getSaveRadiationField())
         grid->saveRadiationField();
+    
     if(param.isTemperatureSimulation())
         grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
     else if(param.getCommand() == CMD_RAT)

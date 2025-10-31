@@ -194,7 +194,8 @@ using namespace std;
 #define ALIG_RAT 8
 #define ALIG_GOLD 16
 #define ALIG_KRAT 32
-#define ALIG_NONPA 64
+#define ALIG_RD   64
+#define ALIG_NONPA 128
 
 #define SUPERTHERMAL_LIMIT 3
 #define MACH_LIMIT 1

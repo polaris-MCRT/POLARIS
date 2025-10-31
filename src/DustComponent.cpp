@@ -4202,7 +4202,7 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             // Calculate temperature from absorption rate
             temp = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
 
-            // Consider sublimation temperature
+            // Consider sublimation temperature todo: deal with marker system
             if(isErode() && grid->getTemperatureFieldInformation() == TEMP_FULL)
                 if(temp >= sub_temp)
                     temp = TEMP_MIN;
@@ -4285,11 +4285,23 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
     // default value of the alignment radius
     double a_alig = getSizeMax(grid, *cell);
+    double a_krat = getSizeMax(grid, *cell);
+    double a_larm = getSizeMax(grid, *cell);
+    double a_rd = getSizeMax(grid, *cell);
+    
+    double u = 0;
     double th = 0;
     double dir = 0;
+    double ux = 0;
+    double uy = 0;
+    double uz = 0;
 
     // Aspect ratio of the grain
     double s = getAspectRatio();
+    
+    // eccentricity
+    double e=sqrt(1-s*s);
+    double Gamma_par=getGamma_par(e);
 
     // alpha_1 ~ delta
     double alpha_1 = 1; // getDeltaRat();
@@ -4298,6 +4310,8 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     double T_gas = grid->getGasTemperature(*cell);
     double n_g = grid->getGasNumberDensity(*cell);
     double vol = grid->getVolume(*cell);
+    double B = grid->getMagField(*cell).length();
+    double T_dust = grid->getDustTemperature(*cell,i_density);   
 
     // Get average molecular weight
     double mu = grid->getMu();
@@ -4306,9 +4320,14 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     double v_th = sqrt(2.0 * con_kB * T_gas / (mu * m_H));
 
     // Loop over all considered grain sizes
-    double omega_old = 0;
+    double J_old = 0;
+    
+    bool found_alig=false;
+    bool found_krat=false;
+    bool found_rd=false;
 
     for(uint a = 0; a < nr_of_dust_species; a++)
+    {
         if(sizeIndexUsed(a, a_min, a_max))
         {
             // Minor and major axis
@@ -4323,12 +4342,17 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
             // Init. pointer arrays
             double * Gamma_rad = new double[nr_of_wavelength];
+            double * arr_gamma_e3 = new double[nr_of_wavelength];
             double * du = new double[nr_of_wavelength];
             double * ddir = new double[nr_of_wavelength];
             double * dth = new double[nr_of_wavelength];
+            
+            double * dux = new double[nr_of_wavelength];
+            double * duy = new double[nr_of_wavelength];
+            double * duz = new double[nr_of_wavelength];
 
             // Drag by gas
-            double tau_gas = 3. / (4 * PIsq) * I_p / (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4));
+            double tau_gas = 3. / (4 * PIsq) * I_p / (mu * n_g * m_H * v_th * alpha_1 * pow(a_eff[a], 4)); ////Gamma_par
 
             for(uint w = 0; w < nr_of_wavelength; w++)
             {
@@ -4343,9 +4367,16 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 if(arr_en_dens == 0)
                 {
                     Gamma_rad[w] = 0;
+
+                    arr_gamma_e3[w] = 0;
                     du[w] = 0;
                     ddir[w] = 0;
                     dth[w] = 0;
+                    
+                    dux[w] = 0;
+                    duy[w] = 0;
+                    duz[w] = 0;
+                    
                     continue;
                 }
 
@@ -4359,71 +4390,137 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 arr_en_dens /= double(vol * con_c);
 
                 du[w] = wavelength_list[w] * arr_en_dens;
+                
+                dux[w]=en_dir.X() / double(vol * con_c);
+                duy[w]=en_dir.Y() / double(vol * con_c);
+                duz[w]=en_dir.Z() / double(vol * con_c);
 
                 // Radiative torque efficiency as a power-law
-                double Qr = Q_ref;
-
-                if(wavelength_list[w] > 1.8 * a_eff[a])
-                    Qr = Q_ref / pow(wavelength_list[w] / (1.8 * a_eff[a]), alpha_Q);
+                double Qr  = getQrat(wavelength_list[w], a_eff[a]);//Q_ref;
+                double Qe3 = getQrat(wavelength_list[w], a_eff[a]);
 
                 double cos_theta = abs(cos(theta));
-
                 Qr *= cos_theta;
 
-                // Qr=getQrat(a, w, 0.0);
-                Gamma_rad[w] =
-                    arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
+                Gamma_rad[w] = arr_en_dens * (wavelength_list[w] / PIx2) * Qr * gamma * PI * pow(a_eff[a], 2);
+                arr_gamma_e3[w] = arr_en_dens * wavelength_list[w] * Qe3 * gamma;
 
                 ddir[w] = wavelength_list[w] * arr_en_dens * gamma;
                 dth[w] = wavelength_list[w] * arr_en_dens * cos_theta;
             }
 
             // Perform integration for total radiation field
-            double u = CMathFunctions::integ(wavelength_list, du, 0, nr_of_wavelength - 1);
-            dir = CMathFunctions::integ(wavelength_list, ddir, 0, nr_of_wavelength - 1);
-            th = CMathFunctions::integ(wavelength_list, dth, 0, nr_of_wavelength - 1);
+            // Perform integration for total radiation field
+            if(u==0)
+            {
+                u = CMathFunctions::integ(wavelength_list, du, 0, nr_of_wavelength - 1);
+                dir = CMathFunctions::integ(wavelength_list, ddir, 0, nr_of_wavelength - 1);
+                th = CMathFunctions::integ(wavelength_list, dth, 0, nr_of_wavelength - 1);
+                
+                ux = CMathFunctions::integ(wavelength_list, dux, 0, nr_of_wavelength - 1);
+                uy = CMathFunctions::integ(wavelength_list, duy, 0, nr_of_wavelength - 1);
+                uz = CMathFunctions::integ(wavelength_list, duz, 0, nr_of_wavelength - 1);
 
-            dir /= u;
-            th /= u;
+                dir /= u;
+                th /= u;
 
+                double a_larm = get_alarm(B, T_dust, T_gas, n_g);
+                
+                min_a_larm = min(min_a_larm,a_larm);
+                max_a_larm = max(max_a_larm,a_larm);
+                
+                grid->setAvgDir(cell, dir);
+                grid->setAvgTheta(cell, th);
+                
+                grid->setAvg_ux(cell, ux);
+                grid->setAvg_uy(cell, uy);
+                grid->setAvg_uz(cell, uz);
+                
+                grid->setLarmRadius(cell, i_density, a_larm);
+
+            }
+            
             // drag by thermal emission
             double FIR = 1.40e10 * pow(u, 2. / 3.) / (a_eff[a] * n_g * sqrt(T_gas));
 
-            // double FIR = CMathFunctions::integ(wavelength_list, dFIR, 0,
-            // nr_of_wavelength - 1);
-            double omega_frac = CMathFunctions::integ(wavelength_list, Gamma_rad, 0, nr_of_wavelength - 1);
-
+            double Gamma_RAT_max = CMathFunctions::integ(wavelength_list, Gamma_rad, 0, nr_of_wavelength - 1);
+            
             double tau_drag = tau_gas / (1. + FIR);
-            omega_frac *= tau_drag / J_th;
+            double J_RAT = Gamma_RAT_max * tau_drag;
+            double J_frac = J_RAT / J_th;
+            
+            if(!found_krat)
+            {
+                double Gamma_e3 = CMathFunctions::integ(wavelength_list, arr_gamma_e3, 0, nr_of_wavelength - 1);                
+                double tmp_a_krat = get_akrat(T_gas, B, T_dust, Gamma_e3);
+                
+                double mag_chi = 4.2e-4*PIx4*15;
+                double testt=pow( 7.31e-4 * mag_chi*B*J_RAT/(T_dust*material_density*Gamma_e3),0.25);
+            
+                if(a_eff[a]>tmp_a_krat)
+                {
+                    if(J_frac >= SUPERTHERMAL_LIMIT)
+                    {
+                        a_krat = tmp_a_krat;
+                        found_krat=true;
+                    }
+                    //else
+                    //    found_krat=false;
+                }
+            }
+
+            if(!found_rd)
+            {
+                double Jdisr = I_p / a_eff[a] * sqrt(tensile_strengths/material_density);
+
+                if(J_RAT>Jdisr)
+                {
+                        found_rd = true;
+                        a_rd = a_eff[a];     
+                }
+            }
+ 
 
             // Delete pointer array
             delete[] Gamma_rad;
+            delete[] arr_gamma_e3;
             delete[] du;
             delete[] ddir;
             delete[] dth;
+            
+            delete[] dux;
+            delete[] duy;
+            delete[] duz;
 
-            if(omega_frac >= SUPERTHERMAL_LIMIT)
+            if(!found_alig)
             {
-                // linear interpolation
-                if(a > 1)
+                if(J_frac >= SUPERTHERMAL_LIMIT)
                 {
-                    double a1 = a_eff[a - 1];
-                    double a2 = a_eff[a];
+                    // linear interpolation
+                    if(a > 1)
+                    {
+                        double a1 = a_eff[a - 1];
+                        double a2 = a_eff[a];
 
-                    double o1 = omega_old - SUPERTHERMAL_LIMIT;
-                    double o2 = omega_frac - SUPERTHERMAL_LIMIT;
+                        double o1 = J_old - SUPERTHERMAL_LIMIT;
+                        double o2 = J_frac - SUPERTHERMAL_LIMIT;
 
-                    a_alig = a1 - o1 * (a2 - a1) / (o2 - o1);
+                        a_alig = a1 - o1 * (a2 - a1) / (o2 - o1);
+                    }
+                    else
+                        a_alig = a_min;
+
+                    found_alig=true;
                 }
-                else
-                    a_alig = a_min;
-
-                break;
             }
+            
+            if(found_alig && found_krat && found_rd)
+                break;
 
             // keep the prev. omega fraction for interpolation
-            omega_old = omega_frac;
+            J_old = J_frac;
         }
+    }
 
     // Check for proper size range
     if(a_alig < a_min)
@@ -4431,17 +4528,33 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 
     if(a_alig > a_max)
         a_alig = a_max;
+    
+    if(a_krat < a_min)
+        a_krat = a_min;
 
+    if(a_krat > a_max)
+        a_krat = a_max;
+    
+    if(a_rd < a_min)
+        a_rd = a_min;
+
+    if(a_rd > a_max)
+        a_rd = a_max;
+    
     // Set aligned grain size in grid
     grid->setAlignedRadius(cell, i_density, a_alig);
+    grid->setKRATRadius(cell, i_density, a_krat);
+    grid->setRDRadius(cell, i_density, a_rd);
+    
     grid->setAvgDir(cell, dir);
     grid->setAvgTheta(cell, th);
 
     // Update aligned grain size limits
-    if(a_alig < min_a_alig)
-        min_a_alig = a_alig;
-    if(a_alig > max_a_alig)
-        max_a_alig = a_alig;
+    min_a_alig = min(min_a_alig,a_alig);
+    max_a_alig = max(max_a_alig,a_alig);    
+    
+    min_a_krat = min(min_a_krat, a_krat);
+    max_a_krat = max(max_a_krat, a_krat);                    
 }
 
 double CDustComponent::calcGoldReductionFactor(const Vector3D & v, const Vector3D & B) const
@@ -6529,6 +6642,36 @@ double CDustComponent::getMaxAlignedRadius()
     return max_a_alig;
 }
 
+double CDustComponent::getMinLarmRadius()
+{
+    return min_a_larm;
+}
+
+double CDustComponent::getMaxLarmRadius()
+{
+    return max_a_larm;
+}
+
+double CDustComponent::getMinKRATRadius()
+{
+    return min_a_krat;
+}
+
+double CDustComponent::getMaxKRATRadius()
+{
+    return max_a_krat;
+}
+
+double CDustComponent::getMinRDRadius()
+{
+    return min_a_rd;
+}
+
+double CDustComponent::getMaxRDRadius()
+{
+    return max_a_rd;
+}
+
 double CDustComponent::getScatteringMatrixElement(uint a,
                                     uint w,
                                     uint incID,
@@ -6805,6 +6948,11 @@ void CDustComponent::setMu(double mu_)
 void CDustComponent::setMaterialDensity(double dens)
 {
     material_density = dens;
+}
+
+void CDustComponent::setTensileStrengths(double S)
+{
+    tensile_strengths = S;
 }
 
 bool CDustComponent::checkGrainSizeLimits(double a_min, double a_max)
@@ -7526,6 +7674,11 @@ double CDustComponent::getEffectiveRadius(uint a) const
 double * CDustComponent::getEffectiveRadii()
 {
     return a_eff;
+}
+
+double CDustComponent::getTensileStrengths()
+{
+    return tensile_strengths;
 }
 
 double CDustComponent::getGrainDistributionXRadiusSq(uint a) const

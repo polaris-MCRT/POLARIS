@@ -1386,10 +1386,12 @@ void CDustMixture::markCells(CGridBasic * grid, parameters & param)
     for(uint i_star = 0; i_star < sources_list.size(); i_star += NR_OF_POINT_SOURCES)
     {
         cout << CLR_LINE;
-        cout << " -> Marking sublimation cells for star " << i_star +1 <<" of " << nr_stars << "   \r" << flush;
+        cout << " -> Marking sublimation cells for star " << i_star +1 <<" of " << nr_stars << " : 0%  \r" << flush;
         
         uint index = i_star / NR_OF_POINT_SOURCES;
         cell_basic * cell_star = 0;
+        uint per_counter=0;
+        uint last_percentage=0;
 
         double r_sub = sources_list[index + 5];
         Vector3D pos_star = Vector3D(sources_list[index + 0], sources_list[index + 1] ,sources_list[index + 2]);
@@ -1407,6 +1409,26 @@ void CDustMixture::markCells(CGridBasic * grid, parameters & param)
         {
             bool mark = false;
             const cell_basic * current_cell = grid->getCellFromIndex(i_cell);
+            
+            
+            
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100 * float(per_counter) / float(max_cells);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > PERCENTAGE_STEP)
+            {   
+                #pragma omp critical
+                {
+
+                    cout << " -> Marking sublimation cells for star " << i_star +1 
+                            << " of " << nr_stars << " : " << 100.0*float(per_counter)/float(max_cells) << "       \r" << flush;
+                }
+                
+                last_percentage = percentage;
+            }
 
             if(cell_star==current_cell)
             {
@@ -1441,10 +1463,9 @@ void CDustMixture::markCells(CGridBasic * grid, parameters & param)
             }
         }
     }
-
     
     cout << CLR_LINE;
-    cout << " - Marking sublimation cells: done \n" << flush;
+    cout << "- Marking sublimation cells: done \n" << flush;
 }
 
 void CDustMixture::calcEmissivityHz(CGridBasic * grid, const photon_package & pp, StokesVector * dust_emissivity)

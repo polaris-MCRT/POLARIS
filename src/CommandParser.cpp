@@ -3248,6 +3248,18 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->addAlignmentMechanism(ALIG_GOLD);
             return true;
         }
+        
+        if(data.compare("ALIG_KRAT") == 0)
+        {
+            param->addAlignmentMechanism(ALIG_KRAT);
+            return true;
+        }
+        
+        if(data.compare("ALIG_RD") == 0)
+        {
+            param->addAlignmentMechanism(ALIG_RD);
+            return true;
+        }
     }
 
     if(cmd.compare("<mu>") == 0)
