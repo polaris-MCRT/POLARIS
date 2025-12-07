@@ -690,6 +690,45 @@ bool CCommandParser::parse()
                     stop = 0;
                 }
                 break;    
+                
+            case CMD_AME_EMISSION:
+                if(i == 0)
+                    break;
+
+                map_max = uint(param->getFreeRayDetectors().size() / NR_OF_RAY_DET);
+
+                if(start == MAX_UINT)
+                    start = 0;
+                else
+                    start--;
+
+                if(stop == MAX_UINT)
+                    stop = map_max - 1;
+                else
+                    stop--;
+
+                if(stop > map_max - 1)
+                {
+                    stop = map_max - 1;
+                    cout << WARNING_LINE << "<stop> value larger than number of raytracing "
+                            "detectors!" << endl;
+                    cout << " Value set to " << stop + 1 << "." << endl;
+                }
+
+                if(start > map_max - 1)
+                {
+                    start = 0;
+                    cout << WARNING_LINE << "<start> value larger than number of raytracing "
+                            "detectors!" << endl;
+                    cout << " Value set to 1." << endl;
+                }
+
+                if(map_max == 0)
+                {
+                    start = 0;
+                    stop = 0;
+                }
+                break;        
 
             case CMD_LINE_EMISSION:
                 if(i == 0)
@@ -836,8 +875,14 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->setCommand(CMD_FREE_FREE);
             return true;
         }
+        
+        if(data.compare("CMD_AME_EMISSION") == 0)
+        {
+            param->setCommand(CMD_AME_EMISSION);
+            return true;
+        }
 
-        cout << ERROR_LINE << "Command cannot be recognized!" << endl;
+        cout << ERROR_LINE << "Command ("<< data << ") cannot be recognized!" << endl;
         return false;
     }
 
@@ -2274,6 +2319,293 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
+    
+    // begin AME detectors
+    if(cmd.compare("<detector_ame nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        while(values[4] < 0)
+            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+
+        if(values.size() == NR_OF_RAY_DET - 9)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            // Set distance to 1
+            values.push_back(1.0);
+            // Set sidelength in x-direction to cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction to cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // As above, but with distance to observer
+            // Set sidelength in x-direction of cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction of cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 7)
+        {
+            // As above, but with one sidelength for both directions of cube sidelength
+            // Set given sidelength also for y-direction of cube sidelength
+            values.push_back(values[NR_OF_RAY_DET - 8]);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 6)
+        {
+            // As above, but with two sidelengths for x- and y-directions of cube
+            // sidelength Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //only the bubble param
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_PLANE);
+        if(!checkPixel(values, nr_of_pixel))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in ame raytracing detector could not be "
+                    "recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addDustAMEDetector(values);
+        param->updateDetectorAngles(values[4], values[5]);
+        param->updateObserverDistance(values[6]);
+        param->updateMapSidelength(values[7], values[8]);
+        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorPixel(uint(values[NR_OF_RAY_DET - 2]), uint(values[NR_OF_RAY_DET - 1]));
+
+        return true;
+    }
+    
+    if(cmd.compare("<detector_ame_healpix nr_sides = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_sides = parseValues(str);
+
+        if(nr_of_sides.size() != 1)
+        {
+            cout << ERROR_LINE << "Number of sides in healpix raytracing detector could not "
+                    "be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(nr_of_sides[0] <= 0)
+        {
+            cout << ERROR_LINE << "Number of sides in healpix raytracing detector could not "
+                    "be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(!CMathFunctions::isPowerOfTwo(int(nr_of_sides[0])))
+        {
+            cout << ERROR_LINE << "Number of sides must be a power of two!" << endl;
+            return false;
+        }
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, position X, Y, and Z
+            // Set galactic coordinate l (Longitude) to [-180°, 180°]
+            values.push_back(-180);
+            values.push_back(180);
+            // Set galactic coordinate b (Latitude) to [-90°, 90°]
+            values.push_back(-90);
+            values.push_back(90);
+            //bubble radius
+            values.push_back(0.0);
+        }
+
+
+        if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //bubble radius
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_SPHER);
+        if(!checkPixel(values, nr_of_sides, true))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in ame healpix raytracing detector could "
+                    "not be recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addDustAMEDetector(values);
+        param->updateDetectorPixel(uint(12 * nr_of_sides[0] * nr_of_sides[0]), 0);
+
+        double distance = sqrt(values[3] * values[3] + values[4] * values[4] + values[5] * values[5]);
+        param->updateObserverDistance(distance);
+
+        // Showing full sphere coverage
+        param->updateDetectorAngles(0, 0);
+        param->updateDetectorAngles(180, 360);
+
+        return true;
+    }
+    
+    if(cmd.compare("<detector_free_slice nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+
+        formatLine(data);
+        dlist values = parseValues(data);
+
+        while(values[4] < 0)
+            values[4] += 360;
+        while(values[5] < 0)
+            values[5] += 360;
+
+        if(values.size() == NR_OF_RAY_DET - 9)
+        {
+            // Only wl_min, wl_max, wl_skip, source_id, rot_angle_1 and rot_angle_2
+            // Set distance to 1
+            values.push_back(1.0);
+            // Set sidelength in x-direction to cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction to cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 8)
+        {
+            // As above, but with distance to observer
+            // Set sidelength in x-direction of cube sidelength
+            values.push_back(-1);
+            // Set sidelength in y-direction of cube sidelength
+            values.push_back(-1);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 7)
+        {
+            // As above, but with one sidelength for both directions of cube sidelength
+            // Set given sidelength also for y-direction of cube sidelength
+            values.push_back(values[NR_OF_RAY_DET - 8]);
+            // Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 6)
+        {
+            // As above, but with two sidelengths for x- and y-directions of cube
+            // sidelength Do not use the other values
+            values.push_back(0.0);
+            values.push_back(0.0);
+            values.push_back(0.0);
+        }
+        else if(values.size() == NR_OF_RAY_DET - 4)
+        {
+            //only the bubble param
+            values.push_back(0.0);
+        }
+
+        values.push_back(DET_SLICE);
+        if(!checkPixel(values, nr_of_pixel))
+            return false;
+
+        if(values.size() != NR_OF_RAY_DET)
+        {
+            cout << ERROR_LINE << "Number of parameters in raytracing detector could not be "
+                    "recognized!"
+                 << endl;
+            return false;
+        }
+
+        if(values[2] < 1)
+        {
+            cout << ERROR_LINE << "Number of wavelengths needs to be at least 1!" << endl;
+            return false;
+        }
+        else if(values[2] > 1 && values[0] == values[1])
+        {
+            cout << ERROR_LINE << "Minimum and maximum wavelength cannot be the "
+                 << "same if the number of wavelengths is larger than 1!" << endl;
+            return false;
+        }
+
+        param->addDustAMEDetector(values);
+        param->updateDetectorAngles(values[4], values[5]);
+        param->updateObserverDistance(values[6]);
+        param->updateMapSidelength(values[7], values[8]);
+        param->updateRayGridShift(values[9], values[10]);
+        param->updateDetectorPixel(uint(values[NR_OF_RAY_DET - 2]), uint(values[NR_OF_RAY_DET - 1]));
+
+        return true;
+    }
+    
+    // end AME detectors
         
     // begin free free detectors
     if(cmd.compare("<detector_free nr_pixel = >") == 0)
@@ -2902,10 +3234,31 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         if(ps_path.size() != 0)
         {
-            if(values.size() == NR_OF_DIFF_SOURCES - 5)
+            if(values.size() == NR_OF_DIFF_SOURCES - 17)
             {
+                //sigma
                 values.push_back(0);
                 values.push_back(0);
+                values.push_back(0);
+                
+                //ellipse a b c
+                values.push_back(0);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx1 ry1 rz1 ang1
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //rx2 ry2 rz2 ang2
+                values.push_back(0);
+                values.push_back(1);
+                values.push_back(0);
+                values.push_back(0);
+                
+                //q u
                 values.push_back(0);
                 values.push_back(0);
             }
@@ -3260,6 +3613,9 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             param->addAlignmentMechanism(ALIG_RD);
             return true;
         }
+        
+        cout << ERROR_LINE << "Alignment mechanism ("<< data << ") cannot be recognized!" << endl;
+        return false;
     }
 
     if(cmd.compare("<mu>") == 0)
@@ -3361,7 +3717,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
             return true;
         }
 
-        cout << ERROR_LINE << "Sublimation status cannot be recognized!\n\t Check <sub_dust>." << endl;
+        cout << ERROR_LINE << "Sublimation status ("<< data << ") cannot be recognized!\n\t Check <sub_dust>." << endl;
         return false;
     }
 
@@ -3372,10 +3728,100 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         return true;
     }
     
-    if(cmd.compare("<fits_minimal>") == 0)
+    if(cmd.compare("<heal_type>") == 0)
     {
-        bool b = atob(atoi(data.c_str()));
-        param->setCompactFits(b);
+        if(data.compare("HEAL_NONE") == 0)
+        {
+            param->addHealType(HEAL_NONE);
+            return true;
+        }
+        
+        if(data.compare("HEAL_INDEX") == 0)
+        {
+            param->addHealType(HEAL_INDEX);
+            return true;
+        }
+        
+        if(data.compare("HEAL_FULL") == 0)
+        {
+            param->addHealType(HEAL_FULL);
+            return true;
+        }
+        
+        if(data.compare("HEAL_BOTH") == 0)
+        {
+            param->addHealType(HEAL_INDEX);
+            param->addHealType(HEAL_FULL);
+            return true;
+        }
+        
+        cout << ERROR_LINE << "The type of healpix file format ("<< data << ") cannot be recognized!" << endl;
+        return false;
+    }
+    
+    if(cmd.compare("<heal_projection nr_pixel = >") == 0)
+    {
+        string str = seperateString(data);
+        formatLine(str);
+        dlist nr_of_pixel = parseValues(str);
+        
+        if(nr_of_pixel.empty() || nr_of_pixel.size()>2)
+        {
+            cout << ERROR_LINE << "Number of pixel cannot be recognized!\n\t Check <heal_projection nr_pixel = >!" << endl;
+            return false;
+        }
+        
+        if(nr_of_pixel.size()==1)
+        {
+            nr_of_pixel.push_back(nr_of_pixel[0]);
+        }
+        
+        param->setProjectedFitsParam(nr_of_pixel);
+
+        return true;
+    }
+    
+    if(cmd.compare("<process_maps>") == 0)
+    {
+        string map_ID = seperateString(data);
+        
+        if(map_ID.size()==0)
+        {   
+            cout << ERROR_LINE << "Tag in command \"<process_maps>\" cannot be recognized!     \n";
+            return false;
+        }
+        
+        while(map_ID.size()>0)
+        {
+            if(map_ID.compare("I") == 0)
+            {
+                param->addFitsID(MAP_ID_I);
+            }
+            else if(map_ID.compare("QU") == 0)
+            {
+                param->addFitsID(MAP_ID_QU);
+            }
+            else if(map_ID.compare("V") == 0)
+            {
+                param->addFitsID(MAP_ID_V);
+            }
+            else if(map_ID.compare("TAU") == 0)
+            {
+                param->addFitsID(MAP_ID_TAU);
+            }
+            else if(map_ID.compare("N") == 0)
+            {
+                param->addFitsID(MAP_ID_N);
+            }
+            else 
+            {   
+                cout << ERROR_LINE << "Tag in command \"<process_maps>\" cannot be recognized!     \n";
+                return false;
+            }
+            
+            map_ID = seperateString(data);
+        }
+        
         return true;
     }
 
@@ -3391,12 +3837,62 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         param->setPathInput(path);
         return true;
     }
+    
+    if(cmd.compare("<nano_grains>") == 0 || cmd.compare("<nano_grains id = >") == 0)
+    {
+        uint dust_component_choice = 0;
+        
+        if(cmd.compare("<nano_grains id = >") == 0)
+        {
+            string str1 = seperateString(data);
+
+            if(str1.size() != 0)
+            {
+                dust_component_choice = uint(atof(str1.c_str()));
+            }
+            else
+            {
+                dust_component_choice = 1;
+            }
+
+            if(dust_component_choice < 0)
+            {
+                cout << "Error ID " << dust_component_choice 
+                        << " from <nano_grains> is not valid!" << endl;
+                return false;
+            }
+        }
+        else
+        {
+            dust_component_choice = 1;
+        }
+        
+        if(dust_component_choice <= 0)
+        {
+            cout << ERROR_LINE << "Component ID cannot be recognized!  \n";
+            return false;
+        }
+        
+        dlist pr = parseValues(data);
+        
+        pr.push_back(dust_component_choice);
+        
+        if(pr.size()!=NR_OF_NANO_GRAIN_PRAM)
+        {
+            cout << ERROR_LINE << "Wrong number of parameters in command \"<nano_grains>\" !     \n";
+            return false;
+        }  
+        
+        param->addNanoGrains(pr);
+
+        return true;
+    }
 
     if(cmd.compare("<dust_component>") == 0 || cmd.compare("<dust_component id = >") == 0)
     {
         string size_keyword, path;
 
-        uint dust_component_choice = 0;
+        uint dust_component_choice = 1;
         if(cmd.compare("<dust_component id = >") == 0)
         {
             string str1 = seperateString(data);
@@ -3608,14 +4104,25 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
     if(cmd.compare("<mass_fraction>") == 0)
     {
-        if(atof(data.c_str()) == 0)
+        
+        /*if(atof(data.c_str()) == 0)
         {
             // Use the dust fractions as dust-to-gas mass ratios
             param->setDustMassFraction(1.0);
             param->setIndividualDustMassFractions(true);
         }
-        else
-            param->setDustMassFraction(atof(data.c_str()));
+        else*/
+        
+        dlist fr = parseValues(data);
+        
+        if(fr.size()==0)
+        {
+            cout << ERROR_LINE << "Dust mass to gas mass ration could not be recognized!" << flush;
+            return false;
+        }    
+        
+        param->setDustMassFraction(fr);
+        
         return true;
     }
 
@@ -3726,9 +4233,8 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else
         {
-            cout << ERROR_LINE << "For stochastic heating, a non-negative dust grain size "
-                    "limit needs to be chosen!"
-                 << endl;
+            cout << ERROR_LINE << "For stochastic heating, a non-negative dust " 
+                    "grain size limit needs to be chosen!" << endl;
             return false;
         }
     }

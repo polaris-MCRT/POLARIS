@@ -71,9 +71,9 @@ public:
 
     void initTmpStokes();
 
-    bool getRelPosition(int i_pix, double & cx, double & cy);
+    bool getRelPosition(int64_t i_pix, double & cx, double & cy);
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false);
+    void addToDetector(photon_package * pp, int64_t i_pix, bool direct = false);
 
     /*
     during post processing, the polar detector is mapped onto a cartesian detector
@@ -104,7 +104,7 @@ public:
     long getNpix();
 
 private:
-    void getCoordinateIDs(uint i_pix, uint & rID, uint & phID);
+    void getCoordinateIDs(int64_t i_pix, uint & rID, uint & phID);
 
     double getRingElementArea(uint rID);
 

@@ -14,6 +14,16 @@ bool CRaytracingBasic::setSyncDetector(uint pos,
     return false;
 }
 
+    
+bool CRaytracingBasic::setDustAMEDetector(uint pos,
+                             const parameters & param,
+                             dlist ame_ray_detectors,
+                             double _max_length,
+                             string path)
+{
+    return false;
+}  
+
 bool CRaytracingBasic::setFreeFreeDetector(uint pos,
                                        const parameters & param,
                                        dlist free_ray_detectors,
@@ -91,7 +101,7 @@ void CRaytracingBasic::preparePhoton(photon_package * pp, double cx, double cy)
     pp->setEZ(ez);
 }
 
-void CRaytracingBasic::preparePhotonWithPosition(photon_package * pp, Vector3D pos, int & i_pix)
+void CRaytracingBasic::preparePhotonWithPosition(photon_package * pp, Vector3D pos, int64_t & i_pix)
 {
     pp->setPosition(pos);
     pp->setEX(ex);
@@ -108,7 +118,7 @@ void CRaytracingBasic::setCoordinateSystem(photon_package * pp)
     pp->setEZ(ez);
 }
 
-bool CRaytracingBasic::getRelPosition(int i_pix, double & cx, double & cy)
+bool CRaytracingBasic::getRelPosition(int64_t i_pix, double & cx, double & cy)
 {
     return getRelPositionMap(i_pix, cx, cy);
 }
@@ -137,10 +147,10 @@ void CRaytracingBasic::calcMapParameter()
         off_len_y = int(0.5 * (map_pixel_y - 1));
 }
 
-bool CRaytracingBasic::getRelPositionMap(int i_pix, double & cx, double & cy)
+bool CRaytracingBasic::getRelPositionMap(int64_t i_pix, double & cx, double & cy)
 {
-    int y = (i_pix % map_pixel_y);
-    int x = i_pix / map_pixel_y - off_len_x;
+    int64_t y = (i_pix % map_pixel_y);
+    int64_t x = i_pix / map_pixel_y - off_len_x;
     y -= off_len_y;
 
     if(map_pixel_x % 2 == 1)
@@ -150,7 +160,7 @@ bool CRaytracingBasic::getRelPositionMap(int i_pix, double & cx, double & cy)
         if(x > -1)
             x++;
 
-        cx = x * step_x - CMathFunctions::sgn(x) * off_x;
+        cx = x * step_x - CMathFunctions::sgn(double(x)) * off_x;
         cx += map_shift_x;
     }
 
@@ -161,7 +171,7 @@ bool CRaytracingBasic::getRelPositionMap(int i_pix, double & cx, double & cy)
         if(y > -1)
             y++;
 
-        cy = y * step_y - CMathFunctions::sgn(y) * off_y;
+        cy = y * step_y - CMathFunctions::sgn(double(y)) * off_y;
         cy += map_shift_y;
     }
     return true;
@@ -223,10 +233,10 @@ double CRaytracingBasic::getDistance(Vector3D pos)
     return proj_length + getDistance();
 }
 
-void CRaytracingBasic::addToDetector(photon_package * pp, int i_pix, bool direct)
+void CRaytracingBasic::addToDetector(photon_package * pp, int64_t i_pix, bool direct)
 {}
 
-void CRaytracingBasic::addToDetector(photon_package * pp1, photon_package * pp2, int i_pix, bool direct)
+void CRaytracingBasic::addToDetector(photon_package * pp1, photon_package * pp2, int64_t i_pix, bool direct)
 {
     // pos was only traced of first photon package
     pp2->setPosition(pp1->getPosition());
@@ -265,12 +275,12 @@ bool CRaytracingBasic::writeLineResults(CGasMixture * gas, uint i_species, uint 
             return false;
     }
     
-    if(compact_fits)
+    /*if(compact_fits1)
     {
         //todo: include tiny fits
         if(!detector->writeVelChannelMaps(gas, i_species, i_line))
             return false;
-    }
+    }*/
 
     if(!detector->writeIntChannelMaps(gas, i_species, i_line))
         return false;
@@ -307,6 +317,14 @@ bool CRaytracingBasic::writeSyncResults()
 bool CRaytracingBasic::writeFreeFreeResults()
 {
     if(!detector->writeFreeFreeMap(dID))
+        return false;
+
+    return true;
+}
+
+bool CRaytracingBasic::writeDustAMEResults()
+{
+    if(!detector->writeDustAMEMap(dID))
         return false;
 
     return true;

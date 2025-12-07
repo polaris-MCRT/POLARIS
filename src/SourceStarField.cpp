@@ -5,6 +5,11 @@
 
 #include "SourceStarField.hpp"
 #include "CommandParser.hpp"
+#include <CCfits/CCfits>
+
+#include <valarray>
+
+using namespace CCfits;
 
 bool CSourceStarField::initSource(uint id, uint max, bool use_energy_density)
 {
@@ -81,6 +86,27 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 {
     dlist values = param.getDiffuseSources();
     string filename = param.getDiffuseSourceString(p / NR_OF_DIFF_SOURCES);
+    
+    if(!read_fits_file(filename))
+        return false;
+
+    pos = Vector3D(values[p + 0], values[p + 1], values[p + 2]);
+    R = values[p + 3];
+    T = values[p + 4];
+    
+    nr_of_photons = ullong(values[p + NR_OF_DIFF_SOURCES - 1]);
+
+    L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+    
+    return true;
+}
+
+/*
+ 
+ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
+{
+    dlist values = param.getDiffuseSources();
+    string filename = param.getDiffuseSourceString(p / NR_OF_DIFF_SOURCES);
 
     ifstream reader(filename.c_str());
     int line_counter = 0;
@@ -151,6 +177,59 @@ bool CSourceStarField::setParameterFromFile(parameters & param, uint p)
 
     return true;
 }
+ 
+ */
+
+bool CSourceStarField::read_fits_file(string & filename)
+{
+    cout << CLR_LINE << flush;
+    cout << "-> Loading distribution from fits file...           \r" << flush;
+    
+    try
+    {
+        unique_ptr<FITS> pInfile;
+        pInfile.reset(new FITS(filename, Read, true));
+
+        // Access the first extension HDU (BinTableHDU)
+        ExtHDU& table = pInfile->extension(1);  
+        // or: ExtHDU& table = pIn->extension("BINTABLE");
+
+        Npos = table.rows();
+        
+        
+
+        // Temporary buffers for reading one row at a time
+        std::valarray<double> x(Npos), y(Npos), z(Npos);
+
+        table.column("POS_X").read(x, 1, Npos);   // read row i, count 1
+        table.column("POS_Y").read(y, 1, Npos);
+        table.column("POS_Z").read(z, 1, Npos);
+        
+        dist_pos = new Vector3D[Npos];
+        
+        for (long i = 0; i < Npos; i++)
+        {
+            double px = x[i];
+            double py = y[i];
+            double pz = z[i];
+
+            dist_pos[i].set(px,py,pz);
+
+            // Process or print
+            //std::cout << "Row " << i << ": " << px << ", " << py << ", " << pz << "\n";
+        }
+
+    } catch (FitsException& e)
+    {
+        cout << CLR_LINE << flush;
+        cout << ERROR_LINE << "FITS error: " << e.message() << "\n" << flush;
+        return false;
+    }
+    
+    cout << CLR_LINE << flush;
+    
+    return true;
+}
 
 /*void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * rand_gen)
 {
@@ -208,18 +287,34 @@ void CSourceStarField::createNextRay(photon_package * pp, CRandomGenerator * ran
     StokesVector tmp_stokes_vector;
     double energy;
     uint wID;
-
+    Vector3D ref_pos;
+    
     pp->setRandomDirection(rand_gen->getRND(), rand_gen->getRND());
-
-    Vector3D ref_pos = rand_gen->sampleGaussianInEllipsoid(a, b, c, sig_x, sig_y, sig_z);
+    
+    if(Npos!=0)
+    {
+        long index=long(rand_gen->getRND()*Npos-0.5);
         
-    if(ang1!=0)
-        ref_pos.rot(rot1,ang1);
-    
-    if(ang2!=0)
-        ref_pos.rot(rot2,ang2);
-    
-    ref_pos += pos;
+        if(index<0)
+            index=0;
+        
+        if(index>=Npos)
+            index=Npos-1;
+            
+        ref_pos=dist_pos[index];
+    }
+    else
+    {
+        ref_pos = rand_gen->sampleGaussianInEllipsoid(a, b, c, sig_x, sig_y, sig_z);
+
+        if(ang1!=0)
+            ref_pos.rot(rot1,ang1);
+
+        if(ang2!=0)
+            ref_pos.rot(rot2,ang2);
+
+        ref_pos += pos;
+    }
 
     if(pp->getDustWavelengthID() != MAX_UINT)
     {

@@ -75,10 +75,10 @@ bool CRaytracingSlice::setDustDetector(uint pos,
     return true;
 }
 
-bool CRaytracingSlice::getRelPositionMap(int i_pix, double & cx, double & cy)
+bool CRaytracingSlice::getRelPositionMap(int64_t i_pix, double & cx, double & cy)
 {
-    int y = (i_pix % map_pixel_y);
-    int x = i_pix / map_pixel_y - off_len_x;
+    int64_t y = (i_pix % map_pixel_y);
+    int64_t x = i_pix / map_pixel_y - off_len_x;
     y -= off_len_y;
 
     if(map_pixel_x % 2 == 1)
@@ -88,7 +88,7 @@ bool CRaytracingSlice::getRelPositionMap(int i_pix, double & cx, double & cy)
         if(x > -1)
             x++;
 
-        cx = x * step_x - CMathFunctions::sgn(x) * off_x;
+        cx = x * step_x - CMathFunctions::sgn(double(x)) * off_x;
         //cx += map_shift_x;
     }
 
@@ -249,14 +249,14 @@ void CRaytracingSlice::preparePhoton(photon_package * pp, double cx, double cy)
     pp->setEZ(ez);
 }
 
-void CRaytracingSlice::resetPhotonPosition(photon_package * pp, int i_pix)
+void CRaytracingSlice::resetPhotonPosition(photon_package * pp, int64_t i_pix)
 {
     double cx, cy;
     getRelPositionMap(i_pix, cx, cy);
     pp->setPosition(Vector3D(cx, cy, 0));
 }
 
-void CRaytracingSlice::addToDetector(photon_package * pp, int i_pix, bool direct)
+void CRaytracingSlice::addToDetector(photon_package * pp, int64_t i_pix, bool direct)
 {
     resetPhotonPosition(pp, i_pix);
     for(uint i_spectral = 0; i_spectral < nr_spectral_bins * nr_extra; i_spectral++)

@@ -95,6 +95,17 @@ bool parameters::isRatSimulation() const
     return false;
 }
 
+bool parameters::isAMESimulation() const
+{
+    if(getCommand() == CMD_RAT || getCommand() == CMD_TEMP_RAT)
+    {
+        if(!nano_grains.empty())
+            return true;
+    }
+        
+    return false;
+}
+
 bool parameters::isMonteCarloSimulation() const
 {
     if(getCommand() == CMD_TEMP || getCommand() == CMD_TEMP_RAT ||
@@ -107,7 +118,7 @@ bool parameters::isRaytracingSimulation() const
 {
     if(getCommand() == CMD_OPIATE || getCommand() == CMD_DUST_EMISSION ||
         getCommand() == CMD_SYNCHROTRON || getCommand() == CMD_LINE_EMISSION || 
-            getCommand() == CMD_FREE_FREE)
+            getCommand() == CMD_FREE_FREE || getCommand() == CMD_AME_EMISSION)
         return true;
     
     return false;
@@ -310,10 +321,46 @@ ullong parameters::getNrOfDustPhotons() const
     return nr_ofDustPhotons;
 }
 
-double parameters::getDustMassFraction() const
+dlist parameters::getDustMassFraction() const
 {
     return conv_mass_fraction;
 }
+
+double parameters::getDustMassFraction(uint i) const
+{
+    return conv_mass_fraction[i];
+}
+
+uint parameters::getMapIDs() const
+{
+    return fits_map_IDs;
+}
+
+bool parameters::getMapID_I() const
+{
+    return (fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_I) == MAP_ID_I;
+}
+
+bool parameters::getMapID_QU() const
+{
+    return (fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_QU) == MAP_ID_QU;
+}
+
+bool parameters::getMapID_V() const
+{
+    return (fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_V) == MAP_ID_V;
+}
+
+bool parameters::getMapID_TAU() const
+{
+    return (fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_TAU) == MAP_ID_TAU;
+}
+
+bool parameters::getMapID_N() const
+{
+    return (fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_N) == MAP_ID_N;
+}
+
 
 uint parameters::getAlign() const
 {
@@ -405,10 +452,10 @@ bool parameters::splitDustEmission() const
     return split_dust_emision;
 }
 
-bool parameters::getIndividualDustMassFractions() const
+/*bool parameters::getIndividualDustMassFractions() const
 {
     return individual_dust_fractions;
-}
+}*/
 
 bool parameters::getIsSpeedOfSound() const
 {
@@ -770,25 +817,24 @@ void parameters::AddDustComponentChoice(uint dust_component_choice)
     // If the dust component choice of a dust component is already loaded,
     // add the "dust_component_choice" to the list of component_id_to_choice but not
     // to the dust_choices.
-    if(!component_id_to_choice.empty())
+    /*if(!component_id_to_choice.empty())
         for(uint a = 0; a < component_id_to_choice.size(); a++)
             if(component_id_to_choice[a] == dust_component_choice)
             {
                 component_id_to_choice.push_back(dust_component_choice);
                 return;
-            }
+            }*/
 
     // If the "dust_component_choice" is not yet used, add it to the amount of
     // available choices.
-    component_id_to_choice.push_back(dust_component_choice);
+    //component_id_to_choice.push_back(dust_component_choice);
     dust_choices.push_back(dust_component_choice);
 
     // Sort dust choices
-    sort(dust_choices.begin(), dust_choices.end());
+    //sort(dust_choices.begin(), dust_choices.end());
 
     // Update the highest value of the dust choice ids.
-    if(dust_component_choice > max_dust_component_choice)
-        max_dust_component_choice = dust_component_choice;
+    dust_component_choice = max(dust_component_choice,max_dust_component_choice);
 }
 
 uint parameters::getMaxDustComponentChoice()
@@ -1117,15 +1163,15 @@ void parameters::updateSIConvVField(double val)
     conv_V_in_SI *= val;
 }
 
-void parameters::setDustMassFraction(double val)
+void parameters::setDustMassFraction(dlist val)
 {
     conv_mass_fraction = val;
 }
 
-void parameters::setIndividualDustMassFractions(bool val)
+/*void parameters::setIndividualDustMassFractions(bool val)
 {
     individual_dust_fractions = val;
-}
+}*/
 
 void parameters::addAlignmentMechanism(uint val)
 {
@@ -1216,9 +1262,22 @@ void parameters::setVelMapsFits(bool val)
     vel_maps_fits = val;
 }
 
-void parameters::setCompactFits(bool val)
+void parameters::addFitsID(uint val)
 {
-    vel_maps_compact = val;
+    fits_map_IDs |= val;
+}
+
+void parameters::addHealType(uint type)
+{
+    heal_type |= type;
+}
+
+void parameters::setProjectedFitsParam(dlist val)
+{
+    param_projection.clear();
+            
+    param_projection.push_back(long(val[0]));
+    param_projection.push_back(long(val[1]));
 }
 
 void parameters::setAcceptanceAngle(double angle)
@@ -1243,7 +1302,12 @@ dlist & parameters::getSyncRayDetectors()
 
 dlist & parameters::getFreeRayDetectors()
 {
-    return free_ray_detectors;
+    return free_ray_detectors1;
+}
+
+dlist & parameters::getDustAMEDetectors()
+{
+    return dust_ame_detectors;
 }
 
 dlist & parameters::getOPIATERayDetectors()
@@ -1545,36 +1609,36 @@ void parameters::addSyncRayDetector(dlist & val)
 void parameters::addFreeRayDetector(dlist & val)
 {
     // Minimum wavelength (in SI)
-    free_ray_detectors.push_back(val[0]);
+    free_ray_detectors1.push_back(val[0]);
     // Maximum wavelength (in SI)
-    free_ray_detectors.push_back(val[1]);
+    free_ray_detectors1.push_back(val[1]);
     // Number of wavelengths (all)
-    free_ray_detectors.push_back(val[2]);
+    free_ray_detectors1.push_back(val[2]);
     // Source index (all)
-    free_ray_detectors.push_back(val[3] - 1);
+    free_ray_detectors1.push_back(val[3] - 1);
     // Rot angle #1 (cart, polar, slice) / obs. position X (healpix)
-    free_ray_detectors.push_back(val[4]);
+    free_ray_detectors1.push_back(val[4]);
     // Rot angle #2 (cart, polar, slice) / obs. position Y (healpix)
-    free_ray_detectors.push_back(val[5]);
+    free_ray_detectors1.push_back(val[5]);
     // Distance from observer to model (cart, polar, slice) / obs. position Z
     // (healpix)
-    free_ray_detectors.push_back(val[6]);
+    free_ray_detectors1.push_back(val[6]);
     // Side length of dust detector in x-dir (cart, polar, slice) / l_max (healpix)
-    free_ray_detectors.push_back(val[7]);
+    free_ray_detectors1.push_back(val[7]);
     // Side length of dust detector in y-dir (cart, polar, slice) / l_min (healpix)
-    free_ray_detectors.push_back(val[8]);
+    free_ray_detectors1.push_back(val[8]);
     // delta_x (cart, slice) / None (polar) / b_max (healpix)
-    free_ray_detectors.push_back(val[9]);
+    free_ray_detectors1.push_back(val[9]);
     // delta_y (cart, slice) / None (polar) / b_min (healpix)
-    free_ray_detectors.push_back(val[10]);
+    free_ray_detectors1.push_back(val[10]);
     // bubble size (heal)
-    free_ray_detectors.push_back(val[11]);
+    free_ray_detectors1.push_back(val[11]);
     // dust detector type/grid (all)
-    free_ray_detectors.push_back(val[12]);
+    free_ray_detectors1.push_back(val[12]);
     // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
-    free_ray_detectors.push_back(val[13]);
+    free_ray_detectors1.push_back(val[13]);
     // number of pixel in y-direction (cart, polar, slice)
-    free_ray_detectors.push_back(val[14]);
+    free_ray_detectors1.push_back(val[14]);
 
     switch(uint(val[NR_OF_RAY_DET - 3]))//
     {
@@ -1582,7 +1646,7 @@ void parameters::addFreeRayDetector(dlist & val)
             if(rt_grid_description.find("healpix") == string::npos)
             {
                 rt_grid_description += "healpix";
-                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                if(free_ray_detectors1.size() > NR_OF_RAY_DET)
                     rt_grid_description += ", ";
             }
             break;
@@ -1591,7 +1655,7 @@ void parameters::addFreeRayDetector(dlist & val)
             if(rt_grid_description.find("polar") == string::npos)
             {
                 rt_grid_description += "polar";
-                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                if(free_ray_detectors1.size() > NR_OF_RAY_DET)
                     rt_grid_description += ", ";
             }
             break;
@@ -1600,7 +1664,7 @@ void parameters::addFreeRayDetector(dlist & val)
             if(rt_grid_description.find("slice") == string::npos)
             {
                 rt_grid_description += "slice";
-                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                if(free_ray_detectors1.size() > NR_OF_RAY_DET)
                     rt_grid_description += ", ";
             }
             break;
@@ -1609,7 +1673,81 @@ void parameters::addFreeRayDetector(dlist & val)
             if(rt_grid_description.find("cartesian") == string::npos)
             {
                 rt_grid_description += "cartesian";
-                if(free_ray_detectors.size() > NR_OF_RAY_DET)
+                if(free_ray_detectors1.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+    }
+}
+
+void parameters::addDustAMEDetector(dlist & val)
+{
+    // Minimum wavelength (in SI)
+    dust_ame_detectors.push_back(val[0]);
+    // Maximum wavelength (in SI)
+    dust_ame_detectors.push_back(val[1]);
+    // Number of wavelengths (all)
+    dust_ame_detectors.push_back(val[2]);
+    // Source index (all)
+    dust_ame_detectors.push_back(val[3] - 1);
+    // Rot angle #1 (cart, polar, slice) / obs. position X (healpix)
+    dust_ame_detectors.push_back(val[4]);
+    // Rot angle #2 (cart, polar, slice) / obs. position Y (healpix)
+    dust_ame_detectors.push_back(val[5]);
+    // Distance from observer to model (cart, polar, slice) / obs. position Z
+    // (healpix)
+    dust_ame_detectors.push_back(val[6]);
+    // Side length of dust detector in x-dir (cart, polar, slice) / l_max (healpix)
+    dust_ame_detectors.push_back(val[7]);
+    // Side length of dust detector in y-dir (cart, polar, slice) / l_min (healpix)
+    dust_ame_detectors.push_back(val[8]);
+    // delta_x (cart, slice) / None (polar) / b_max (healpix)
+    dust_ame_detectors.push_back(val[9]);
+    // delta_y (cart, slice) / None (polar) / b_min (healpix)
+    dust_ame_detectors.push_back(val[10]);
+    // bubble size (heal)
+    dust_ame_detectors.push_back(val[11]);
+    // dust detector type/grid (all)
+    dust_ame_detectors.push_back(val[12]);
+    // number of pixel in x-dir. (cart, polar, slice) / N_side (healpix)
+    dust_ame_detectors.push_back(val[13]);
+    // number of pixel in y-direction (cart, polar, slice)
+    dust_ame_detectors.push_back(val[14]);
+
+    switch(uint(val[NR_OF_RAY_DET - 3]))//
+    {
+        case DET_SPHER:
+            if(rt_grid_description.find("healpix") == string::npos)
+            {
+                rt_grid_description += "healpix";
+                if(dust_ame_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        case DET_POLAR:
+            if(rt_grid_description.find("polar") == string::npos)
+            {
+                rt_grid_description += "polar";
+                if(dust_ame_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        case DET_SLICE:
+            if(rt_grid_description.find("slice") == string::npos)
+            {
+                rt_grid_description += "slice";
+                if(dust_ame_detectors.size() > NR_OF_RAY_DET)
+                    rt_grid_description += ", ";
+            }
+            break;
+
+        default:
+            if(rt_grid_description.find("cartesian") == string::npos)
+            {
+                rt_grid_description += "cartesian";
+                if(dust_ame_detectors.size() > NR_OF_RAY_DET)
                     rt_grid_description += ", ";
             }
             break;
@@ -1956,7 +2094,12 @@ uint parameters::getNrOfDustRayDetectors()
 
 uint parameters::getNrOfFreeRayDetectors()
 {
-    return uint(free_ray_detectors.size() / NR_OF_RAY_DET);
+    return uint(free_ray_detectors1.size() / NR_OF_RAY_DET);
+}
+
+uint parameters::getNrOfDustAMERayDetectors()
+{
+    return uint(dust_ame_detectors.size() / NR_OF_RAY_DET);
 }
 
 void parameters::addSubStatus(int val)
@@ -1984,6 +2127,64 @@ const maplist & parameters::getLineRayDetectors() const
     return line_ray_detector_list;
 }
 
+void parameters::addNanoGrains(dlist & pr)
+{
+    // minimal grain size
+    nano_grains.push_back(pr[0]);
+    
+    // maximal grain size
+    nano_grains.push_back(pr[1]);
+    
+    // number of grains
+    nano_grains.push_back(pr[2]);
+    
+    // distribution ref. grain size
+    nano_grains.push_back(pr[3]);
+    
+    // distribution sigma
+    nano_grains.push_back(pr[4]);
+    
+    // energy of work_function
+    nano_grains.push_back(pr[5]);
+    
+    // mass of unit cell
+    nano_grains.push_back(pr[6]);
+    
+    // beta of el. dipole moment
+    nano_grains.push_back(pr[7]);
+    
+    // tensile strength S_max
+    nano_grains.push_back(pr[8]);
+    
+    // dust choice ID
+    nano_grains.push_back(pr[9]);
+}
+
+uint parameters::getNrOfNanoGrains()
+{
+    return uint(nano_grains.size() / NR_OF_NANO_GRAIN_PRAM);
+}
+
+dlist parameters::findNanoGrainList(uint id)
+{
+    dlist result;
+    
+    for(int i=0; i<nano_grains.size(); i+=NR_OF_NANO_GRAIN_PRAM)
+    {
+        uint tmp_id = nano_grains[i+9];
+        
+        if(tmp_id==id)
+        {
+            int end = min(int(nano_grains.size()), i + 10);
+            result = dlist(nano_grains.begin() + i, nano_grains.begin() + end);
+            return result;
+        }
+            
+    }
+    
+    return result;
+}
+
 void parameters::addDustComponent(string path,
                         string size_key,
                         double fr,
@@ -2007,15 +2208,35 @@ bool parameters::getVelMapsFits() const
     return vel_maps_fits;
 }
 
-bool parameters::getCompactFits() const
+uint parameters::getHealType() const
 {
-    return vel_maps_compact;
+    return heal_type;
 }
 
-uint parameters::getDustChoiceFromComponentId(uint i) const
+bool  parameters::projectHealMaps() const
+{
+    return (param_projection.size() == 2);
+}
+
+llist parameters::getProjectedFitsParam() const
+{
+    return param_projection;
+}
+
+long parameters::getProjectedFitsX() const
+{
+    return param_projection[0];
+}
+
+long parameters::getProjectedFitsY() const
+{
+    return param_projection[1];
+}
+
+/*uint parameters::getDustChoiceFromComponentId(uint i) const
 {
     return component_id_to_choice[i];
-}
+}*/
 
 uint parameters::getDustChoiceFromMixtureId(uint i) const
 {

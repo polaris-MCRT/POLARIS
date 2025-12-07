@@ -482,7 +482,7 @@ bool CGridSpherical::saveBinaryGridFile(string filename, ushort id, ushort data_
     return true;
 }
 
-bool CGridSpherical::createArtificialGrid(string path)
+/*bool CGridSpherical::createArtificialGrid(string path)
 {
 //    resetGridValues();
 
@@ -619,7 +619,7 @@ bool CGridSpherical::createArtificialGrid(string path)
     cout << "Max cells: " << max_cells << endl;
 
     return true;
-}
+}*/
 
 void CGridSpherical::printParameters()
 {

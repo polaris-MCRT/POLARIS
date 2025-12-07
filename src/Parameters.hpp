@@ -21,7 +21,7 @@ public:
         conv_dH_in_SI = 1;
         conv_B_in_SI = 1;
         conv_V_in_SI = 1;
-        conv_mass_fraction = 0.01;
+        //conv_mass_fraction = 1;
         align = 0;
         nr_ofThreads = 1;
 
@@ -73,7 +73,12 @@ public:
         peel_off = true;
         is_speed_of_sound = false;
         vel_maps_fits = false;
-        vel_maps_compact = false;
+        
+        heal_type = 0;
+
+        
+        fits_map_IDs=0;
+        
         dust_offset = false;
         dust_gas_coupling = false;
         full_dust_temp = false;
@@ -81,7 +86,7 @@ public:
         scattering_to_raytracing = false;
         split_dust_emision = false;
         sub_status = 0;
-        individual_dust_fractions = false;
+        //individual_dust_fractions = false;
 
         nr_ofISRFPhotons = 0;
         nr_ofDustPhotons = 0;
@@ -180,6 +185,8 @@ public:
     int getCommand() const;
 
     bool isRatSimulation() const;
+    
+    bool isAMESimulation() const;
 
     bool isMonteCarloSimulation() const;
 
@@ -263,7 +270,16 @@ public:
 
     ullong getNrOfDustPhotons() const;
 
-    double getDustMassFraction() const;
+    dlist getDustMassFraction() const;
+    
+    double getDustMassFraction(uint i) const;
+    
+    bool getMapID_I() const;
+    bool getMapID_QU() const;
+    bool getMapID_V() const;
+    bool getMapID_TAU() const;
+    bool getMapID_N() const;
+    uint getMapIDs() const;
 
     uint getAlign() const;
 
@@ -301,7 +317,7 @@ public:
 
     bool splitDustEmission() const;
 
-    bool getIndividualDustMassFractions() const;
+    //bool getIndividualDustMassFractions() const;
 
     bool getIsSpeedOfSound() const;
 
@@ -535,9 +551,9 @@ public:
 
     void updateSIConvVField(double val);
 
-    void setDustMassFraction(double val);
+    void setDustMassFraction(dlist val);
 
-    void setIndividualDustMassFractions(bool val);
+    //void setIndividualDustMassFractions(bool val);
 
     void addAlignmentMechanism(uint val);
 
@@ -573,7 +589,11 @@ public:
 
     void setVelMapsFits(bool val);
     
-    void setCompactFits(bool val);
+    void addFitsID(uint val);
+    
+    void addHealType(uint type);
+    
+    void setProjectedFitsParam(dlist val);
 
     void setAcceptanceAngle(double angle);
 
@@ -584,6 +604,8 @@ public:
     dlist & getSyncRayDetectors();
     
     dlist & getFreeRayDetectors();
+    
+    dlist & getDustAMEDetectors();
 
     dlist & getOPIATERayDetectors();
 
@@ -614,6 +636,8 @@ public:
     void addSyncRayDetector(dlist & val);
     
     void addFreeRayDetector(dlist & val);
+    
+    void addDustAMEDetector(dlist & val);
 
     /*
     void addLineOpiateDetector(dlist & val);
@@ -660,6 +684,8 @@ public:
     uint getNrOfSyncRayDetectors();
     
     uint getNrOfFreeRayDetectors();
+    
+    uint getNrOfDustAMERayDetectors();
 
     void addSubStatus(int val);
 
@@ -670,6 +696,14 @@ public:
     const dlist & getLineRayDetector(uint i_species) const;
 
     const maplist & getLineRayDetectors() const;
+    
+    void addNanoGrains(dlist & pr);
+    
+    uint getNrOfNanoGrains();
+    
+    dlist findNanoGrainList(uint id);
+    
+    
 
     void addDustComponent(string path,
                           string size_key,
@@ -680,9 +714,15 @@ public:
                           dlist size_parameter);
 
     bool getVelMapsFits() const;
-    bool getCompactFits() const;
+    uint getHealType() const;
+    
+    llist getProjectedFitsParam() const;
+    long getProjectedFitsX() const;
+    long getProjectedFitsY() const;
+    bool  projectHealMaps() const;
+    
 
-    uint getDustChoiceFromComponentId(uint i) const;
+    //uint getDustChoiceFromComponentId(uint i) const;
 
     uint getDustChoiceFromMixtureId(uint i) const;
 
@@ -730,7 +770,7 @@ private:
     double conv_dH_in_SI;
     double conv_B_in_SI;
     double conv_V_in_SI;
-    double conv_mass_fraction;
+    dlist conv_mass_fraction;
     double mu;
 
     double min_rot_angle_1, max_rot_angle_1;
@@ -770,13 +810,18 @@ private:
     bool is_speed_of_sound;
     bool peel_off;
     bool vel_maps_fits;
-    bool vel_maps_compact;
+    
+    uint heal_type;
+    llist param_projection;
+    
+    uint fits_map_IDs;
+    
 
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
     bool scattering_to_raytracing;
     bool split_dust_emision;
-    bool individual_dust_fractions;
+    //bool individual_dust_fractions;
 
     strlist zeeman_catalog_path;
 
@@ -807,7 +852,8 @@ private:
     dlist dust_mc_detectors;
     dlist dust_ray_detectors;
     dlist sync_ray_detectors;
-    dlist free_ray_detectors;
+    dlist free_ray_detectors1;
+    dlist dust_ame_detectors;
 
     dlist point_sources;
     dlist diffuse_sources;
@@ -853,10 +899,12 @@ private:
     dlist a_max_global;
     maplist size_parameter_map;
     uilist dust_choices;
-    uilist component_id_to_choice;
+    //uilist component_id_to_choice;
 
     strlist dust_paths;
     strlist size_keywords;
+    
+    dlist nano_grains;
 
     bool reset_dust_files;
 

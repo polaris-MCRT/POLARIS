@@ -14,6 +14,7 @@
 #include "Parameters.hpp"
 #include "Photon.hpp"
 #include "Vector3D.hpp"
+//#include "GrainCharge.hpp"
 
 #define TRANS_SIGMA_P +1
 #define TRANS_PI 0

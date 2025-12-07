@@ -100,6 +100,9 @@ public:
 
         min_dust_akrat1 = 1e300;
         max_dust_akrat = -1e300;
+            
+        min_dust_alarm = 1e300;
+        max_dust_alarm = -1e300;
         
         min_dust_ard = 1e300;
         max_dust_ard = -1e300;
@@ -114,14 +117,17 @@ public:
         max_dust_size_param = -1e300;
         
             
-        min_ame_Zgr = 1e300;;
+        min_ame_Zgr = 1e300;
         max_ame_Zgr = -1e300;
 
-        min_ame_Zs = 1e300;;
+        min_ame_Zs = 1e300;
         max_ame_Zs = -1e300;
 
-        min_ame_Trot = 1e300;;
+        min_ame_Trot1 = 1e300;
         max_ame_Trot = -1e300;
+        
+        min_ame_acrit = 1e300;
+        max_ame_acrit = -1e300;
         
         
         min_n_th = 1e300;
@@ -162,11 +168,10 @@ public:
         conv_Bfield_in_SI = 1;
         conv_Vfield_in_SI = 1;
 
-        dust_is_mass_density = false;
-        gas_is_mass_density = false;
+        //dust_is_mass_density = false;
+        //gas_is_mass_density = false;
         velocity_field_needed = false;
         spec_length_as_vector = false;
-        dust_ame = false;
 
         cell_list = 0;
 
@@ -180,21 +185,24 @@ public:
         nrOfDensRatios = 0;
         nrOfOpiateIDs = 0;
 
-        nr_densities = 1;
-        size_gd_list = 0;
-        size_dd_list = 0;
+        //nr_densities = 1;
+        //size_gd_list = 0;
+        //size_dd_list = 0;
         multi_temperature_entries = 0;
         stochastic_temperature_entries = 0;
-        nr_mixtures = 0;
+        nr_mixtures1 = 0;
+        nr_nano = 0;
 
         nr_dust_temp_sizes = 0;
         nr_stochastic_sizes = 0;
         nr_stochastic_temps = 0;
+        nr_nano_sizes = 0;
         size_skip = 0;
 
         level_to_pos = 0;
         line_to_pos = 0;
 
+        data_pos_gd = MAX_UINT;
         data_pos_tg = MAX_UINT;
         
         data_pos_mx = MAX_UINT;
@@ -239,10 +247,10 @@ public:
 
         nr_rad_field_comp = 1;
 
-        plt_gas_dens = false;
+        plt_gas_dens1 = false;
         plt_mol_dens = false;
         plt_dust_dens = false;
-        plt_gas_temp = false;
+        plt_gas_temp1 = false;
         plt_dust_temp = false;
         plt_mag = false;
         plt_vel = false;
@@ -255,7 +263,8 @@ public:
         
         plt_ame_Zgr = false;
         plt_ame_Zs = false;
-        plt_ame_Trot = false;
+        plt_ame_Trot1 = false;
+        plt_ame_a_crit = false;
 
         plt_ion_n_i = false;
         plt_ion_Z = false; 
@@ -278,12 +287,10 @@ public:
         plt_avg_dir = false;
         plt_avg_th = false;
         
-
-
         total_volume = 0;
         cell_volume = 0;
 
-        buffer_gas_dens = 0;
+        buffer_gas_dens1 = 0;
         buffer_mol_dens = 0;
         buffer_dust_dens = 0;
         buffer_gas_temp = 0;
@@ -335,7 +342,8 @@ public:
         
         buffer_ame_Zgr = 0;
         buffer_ame_Zs = 0;
-        buffer_ame_Trot = 0;
+        buffer_ame_Trot1 = 0;
+        buffer_ame_acrit = 0;
 
         turbulent_velocity = 0;
 
@@ -372,6 +380,9 @@ public:
 
         if(nr_dust_temp_sizes != 0)
             delete[] nr_dust_temp_sizes;
+            
+        if(nr_nano_sizes != 0)
+            delete[] nr_nano_sizes;            
 
         if(nr_stochastic_sizes != 0)
             delete[] nr_stochastic_sizes;
@@ -420,8 +431,8 @@ public:
     }
 
     void printPhysicalParameters();
-
-    //void resetGridValues();
+    
+    uint getNanoOffset(uint i_mixture) const;
 
     double getCextMeanTab(uint cellID, uint wID) const;
     double getCabsMeanTab(uint cellID, uint wID) const;
@@ -499,10 +510,11 @@ public:
     
     void setDataSize(uint sz);
 
-    void setDustInformation(uint _nr_mixtures,
-                            uint * _nr_dust_temp_sizes,
-                            uint * _nr_stochastic_sizes,
-                            uint * _nr_stochastic_temps);
+    void setDustInformation(uint _nr_mixtures, uint _nr_nano,
+                        uint * _nr_dust_temp_sizes,
+                        uint * _nr_nano_sizes,
+                        uint * _nr_stochastic_sizes,
+                        uint * _nr_stochastic_temps);
 
     void setGasInformation(uint ** _level_to_pos, uint *** _line_to_pos);
 
@@ -514,7 +526,7 @@ public:
 
     void setGasDensity(photon_package * pp, double dens);
 
-    void setGasDensity(photon_package * pp, uint i_density, double dens);
+    //void setGasDensity(photon_package * pp, uint i_density, double dens);
 
     virtual bool isInside(const Vector3D & pos) const = 0;
 
@@ -634,7 +646,7 @@ public:
 
     void setGasDensity(cell_basic * cell, double dens);
 
-    void setGasDensity(cell_basic * cell, uint i_density, double dens);
+    //void setGasDensity(cell_basic * cell, uint i_density, double dens);
 
     double getQBOffset(const cell_basic & cell, uint i_density) const;
 
@@ -673,6 +685,14 @@ public:
     void setKRATRadius(cell_basic * cell, uint i_density, double a_krat);
     
     void setRDRadius(cell_basic * cell, uint i_density, double a_rd);
+    
+    void setAMETrot(cell_basic * cell, uint i_ame, double Trot);
+    
+    void setAMECritRadius(cell_basic * cell, uint i_ame, double a_crit);
+
+    void setAMEZgr(cell_basic * cell, uint i_ame, double Zgr);
+
+    void setAMEZs(cell_basic * cell, uint i_ame, double Zs);
 
     double getMinGrainRadius(const cell_basic & cell, uint i_density) const;
 
@@ -694,10 +714,15 @@ public:
 
     double getAMETrot(const cell_basic & cell, uint i_ame) const;
     double getAMETrot(const photon_package & pp, uint i_ame) const;
+    
+    double getAMECritRadius(const cell_basic & cell, uint i_ame) const;
+    double getAMECritRadius(const photon_package & pp, uint i_ame) const;
 
     uint getDustChoiceID(const photon_package & pp) const;
 
     uint getDustChoiceID(const cell_basic & cell) const;
+    
+    bool hasDustChoiceID() const;
 
     void getLineBroadening(const photon_package & pp, uint i_trans, LineBroadening * line_broadening) const;
 
@@ -870,31 +895,31 @@ public:
 
     double getVolume(const photon_package & pp) const;
 
-    double getGasDensity(const cell_basic & cell) const;
+    //double getGasDensity(const cell_basic & cell) const;
 
-    double getGasDensity(const cell_basic & cell, uint i_density) const;
+    //double getGasDensity(const cell_basic & cell, uint i_density) const;
 
-    double getGasDensity(const photon_package & pp) const;
+    //double getGasDensity(const photon_package & pp) const;
 
-    double getGasDensity(const photon_package & pp, uint i_density) const;
+    //double getGasDensity(const photon_package & pp, uint i_density) const;
 
     double getGasNumberDensity(const cell_basic & cell) const;
 
-    double getGasNumberDensity(const cell_basic & cell, uint i_density) const;
+    //double getGasNumberDensity(const cell_basic & cell, uint i_density) const;
 
     double getGasNumberDensity(const photon_package & pp) const;
 
-    double getGasNumberDensity(const photon_package & pp, uint i_density) const;
+    //double getGasNumberDensity(const photon_package & pp, uint i_density) const;
 
     double getGasMassDensity(const cell_basic & cell) const;
 
-    double getGasMassDensity(const cell_basic & cell, uint i_density) const;
+    //double getGasMassDensity(const cell_basic & cell, uint i_density) const;
 
     double getGasMassDensity(const photon_package & pp) const;
 
-    double getGasMassDensity(const photon_package & pp, uint i_density) const;
+    //double getGasMassDensity(const photon_package & pp, uint i_density) const;
 
-    bool useDustChoice();
+    //bool useDustChoice();
 
     bool useConstantGrainSizes();
 
@@ -944,7 +969,6 @@ public:
 
     virtual bool next(photon_package * pp) = 0;
     
-    
     double getThetaSync(const photon_package & pp) const;
 
     double getThetaMag(const photon_package & pp) const;
@@ -954,10 +978,6 @@ public:
     double getTheta(const cell_basic & cell, Vector3D & dir) const;
 
     double getThetaPhoton(const photon_package & pp, Vector3D & dir) const;
-
-    bool getDustIsMassDensity() const;
-
-    bool getGasIsMassDensity() const;
 
     bool isRadiationFieldAvailable() const;
 
@@ -973,11 +993,11 @@ public:
 
     bool setDataPositionsVariable();
 
-    bool createCompatibleTree();
-
     uint CheckSynchrotron(parameters & param);
     
     uint CheckFreeFree(parameters & param);
+    
+    uint CheckAME(parameters & param);
 
     uint CheckOpiate(parameters & param);
 
@@ -1050,8 +1070,11 @@ protected:
     double min_ame_Zs;
     double max_ame_Zs;
     
-    double min_ame_Trot;
+    double min_ame_Trot1;
     double max_ame_Trot;
+    
+    double min_ame_acrit;
+    double max_ame_acrit;
         
     uint dust_id_min;
     uint dust_id_max;
@@ -1114,26 +1137,31 @@ protected:
     uint nrOfDensRatios;
     uint nrOfOpiateIDs;
 
-    uint nr_mixtures;
-    uint nr_densities;
-    uint nr_ame;
-    uint size_gd_list;
-    uint size_dd_list;
+    uint nr_mixtures1;
+    uint nr_nano;
+    //uint nr_densities;
+    //uint size_gd_list;
+    //uint size_dd_list;
     uint multi_temperature_entries;
     uint stochastic_temperature_entries;
     uint * nr_dust_temp_sizes;
     uint * nr_stochastic_sizes;
     uint * nr_stochastic_temps;
+    uint * nr_nano_sizes;
     uint * size_skip;
 
     uint ** level_to_pos;
     uint *** line_to_pos;
 
-    uilist data_pos_gd_list;
-    uilist data_pos_dd_list;
-    uilist data_pos_dt_list;
-    
+    uint data_pos_gd;
     uint data_pos_tg;
+    
+    //uilist data_pos_gd_list;
+    
+    uilist data_pos_dust_dens_list;
+    uilist data_pos_dust_temp_list;
+    
+    
     
     uint data_pos_mx;
     uint data_pos_my;
@@ -1156,12 +1184,11 @@ protected:
     uilist data_pos_dust_a_larm_list;
     uilist data_pos_dust_a_rd_list;
     
-    uilist data_pos_ame_Zgr;
-    uilist data_pos_ame_Zs;
-    uilist data_pos_ame_Trot;
+    uilist data_pos_ame_Zgr_list;
+    uilist data_pos_ame_Zs_list;
+    uilist data_pos_ame_Trot_list;
+    uilist data_pos_ame_a_crit_list;
     
-    bool dust_ame;
-
     uint data_pos_id;
 
     uint data_pos_vt;
@@ -1201,10 +1228,10 @@ protected:
 
     double rot_angle1, rot_angle2;
 
-    bool plt_gas_dens;
+    bool plt_gas_dens1;
     bool plt_mol_dens;
     bool plt_dust_dens;
-    bool plt_gas_temp;
+    bool plt_gas_temp1;
     bool plt_dust_temp;
     bool plt_mag;
     bool plt_vel;
@@ -1217,7 +1244,8 @@ protected:
     
     bool plt_ame_Zgr;
     bool plt_ame_Zs;
-    bool plt_ame_Trot;
+    bool plt_ame_Trot1;
+    bool plt_ame_a_crit;
     
     bool plt_dust_id;
     bool plt_dust_a_min;
@@ -1240,7 +1268,7 @@ protected:
     bool plt_ion_n_i;
     bool plt_ion_Z;
     
-    bool dust_is_mass_density, gas_is_mass_density;
+    //bool dust_is_mass_density, gas_is_mass_density;
     bool velocity_field_needed;
     bool spec_length_as_vector;
 
@@ -1250,10 +1278,11 @@ protected:
     double total_volume;
     double cell_volume;
 
-    double ** buffer_gas_dens;
+    double * buffer_gas_dens1;
+    double * buffer_gas_temp;
+    
     double ** buffer_mol_dens;
     double ** buffer_dust_dens;
-    double * buffer_gas_temp;
     double ** buffer_dust_temp;
     
     double * buffer_mag;
@@ -1297,7 +1326,8 @@ protected:
     
     double ** buffer_ame_Zgr;
     double ** buffer_ame_Zs;
-    double ** buffer_ame_Trot;
+    double ** buffer_ame_Trot1;
+    double ** buffer_ame_acrit;
     
     double * buffer_ion_n_i;
     double * buffer_ion_Z;

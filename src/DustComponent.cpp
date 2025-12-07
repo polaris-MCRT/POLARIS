@@ -32,6 +32,8 @@ void CDustComponent::initDustProperties()
     HGg = new double *[nr_of_dust_species];
     HGg2 = new double *[nr_of_dust_species];
     HGg3 = new double *[nr_of_dust_species];
+    
+    Q_abs_min = new double[nr_of_wavelength];
 
     CextMean = new double *[nr_of_dust_species];
     CabsMean = new double *[nr_of_dust_species];
@@ -77,6 +79,8 @@ void CDustComponent::initDustProperties()
             HGg[a][w] = 0;
             HGg2[a][w] = 0;
             HGg3[a][w] = 1;
+                    
+            Q_abs_min[w] = 0;
         }
     }
 
@@ -416,15 +420,18 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 if(wavelength_list[0] < wavelength_list_dustcat[0] ||
                     wavelength_list[nr_of_wavelength - 1] > wavelength_list_dustcat[nr_of_wavelength_dustcat - 1])
                 {
-                    cout << WARNING_LINE << "The wavelength range is out of the limits of the catalog. This may cause problems!\n"
-                        << "         wavelength range          : " << wavelength_list[0] << " [m] to "
-                        << wavelength_list[nr_of_wavelength - 1] << " [m]\n"
-                        << "         wavelength range (catalog): " << wavelength_list_dustcat[0] << " [m] to "
-                        << wavelength_list_dustcat[nr_of_wavelength_dustcat - 1] << " [m]" << endl;
-                    if(!IGNORE_WAVELENGTH_RANGE)
+                    if(param.getCommand()!=CMD_AME_EMISSION)
                     {
-                        cout << "         To continue, set 'IGNORE_WAVELENGTH_RANGE' to 'true' in src/Typedefs.h and recompile!" << endl;
-                        return false;
+                        cout << WARNING_LINE << "The wavelength range is out of the limits of the catalog. This may cause problems!\n"
+                            << "         wavelength range          : " << wavelength_list[0] << " [m] to "
+                            << wavelength_list[nr_of_wavelength - 1] << " [m]\n"
+                            << "         wavelength range (catalog): " << wavelength_list_dustcat[0] << " [m] to "
+                            << wavelength_list_dustcat[nr_of_wavelength_dustcat - 1] << " [m]" << endl;
+                        if(!IGNORE_WAVELENGTH_RANGE)
+                        {
+                            cout << "         To continue, set 'IGNORE_WAVELENGTH_RANGE' to 'true' in src/Typedefs.h and recompile!" << endl;
+                            return false;
+                        }
                     }
                 }
 
@@ -689,6 +696,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     HGg = new double *[nr_of_dust_species];
     HGg2 = new double *[nr_of_dust_species];
     HGg3 = new double *[nr_of_dust_species];
+    
+    Q_abs_min = new double[nr_of_wavelength];
 
     CextMean = new double *[nr_of_dust_species];
     CabsMean = new double *[nr_of_dust_species];
@@ -728,6 +737,13 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
             HG_g_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g2_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
             HG_g3_factor[w * nr_of_dust_species + a].resize(nr_of_incident_angles);
+            
+            double tmpQabs = 1.0 / 3.0 *
+                         (2.0 * eff_wl[a * NR_OF_EFF + 2].getValue(wavelength_list[w]) +
+                          eff_wl[a * NR_OF_EFF + 3].getValue(wavelength_list[w]));
+            
+            if(a==0)
+                Q_abs_min[w]=tmpQabs;
 
             if(sizeIndexUsed(a))
             {
@@ -806,9 +822,6 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     double tmpQext = 1.0 / 3.0 *
                                      (2.0 * eff_wl[a * NR_OF_EFF + 0].getValue(wavelength_list[w]) +
                                       eff_wl[a * NR_OF_EFF + 1].getValue(wavelength_list[w]));
-                    double tmpQabs = 1.0 / 3.0 *
-                                     (2.0 * eff_wl[a * NR_OF_EFF + 2].getValue(wavelength_list[w]) +
-                                      eff_wl[a * NR_OF_EFF + 3].getValue(wavelength_list[w]));
                     double tmpQsca = 1.0 / 3.0 *
                                      (2.0 * eff_wl[a * NR_OF_EFF + 4].getValue(wavelength_list[w]) +
                                       eff_wl[a * NR_OF_EFF + 5].getValue(wavelength_list[w]));
@@ -863,7 +876,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
     delete[] HG_g_factor_wl;
     delete[] HG_g2_factor_wl;
     delete[] HG_g3_factor_wl;
-
+    
     return true;
 }
 
@@ -1985,7 +1998,7 @@ bool CDustComponent::writeComponentData(string path_data)
     sprintf(str_mix_ID_end, str_mix_ID_tmp, i_mixture + 1);
 
     strcpy(str_frac_tmp, "%.05f");
-    sprintf(str_frac_end, str_frac_tmp, fraction);
+    sprintf(str_frac_end, str_frac_tmp, dust_mass_fraction);
 #endif
 
     if(is_mixture)
@@ -2167,7 +2180,7 @@ bool CDustComponent::writeComponentPlot(string path_plot)
     sprintf(str_mix_ID_end, str_mix_ID_tmp, i_mixture + 1);
 
     strcpy(str_frac_tmp, "%.05f");
-    sprintf(str_frac_end, str_frac_tmp, fraction);
+    sprintf(str_frac_end, str_frac_tmp, dust_mass_fraction);
 #endif
 
     if(is_mixture)
@@ -3424,6 +3437,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
     if(a_max_global < a_max)
         a_max_global = a_max;
 
+    
     // The first component to add to the mixture initializes the variables
     if(comp->getComponentId() == 0)
     {
@@ -3623,13 +3637,13 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
 
     // Mix various parameters
     // Have to be mixed for each grain size in the future!
-    aspect_ratio += comp->getFraction() * comp->getAspectRatio();
-    gold_g_factor += comp->getFraction() * comp->getGoldFactor();
-    delta_rat += comp->getFraction() * comp->getDeltaRat();
+    aspect_ratio += comp->getDustMassFraction() * comp->getAspectRatio();
+    gold_g_factor += comp->getDustMassFraction() * comp->getGoldFactor();
+    delta_rat += comp->getDustMassFraction() * comp->getDeltaRat();
 
     // Add all dust-to-gas mass ratios together
     dust_mass_fraction += comp->getDustMassFraction();
-    fraction += comp->getFraction();
+    //fraction += comp->getFraction();
 
     // Check for scattering phase function (use HG if one or more components use HG)
     // if(comp->getPhaseFunctionID() < phID)
@@ -3882,7 +3896,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     {
         Vector3D v = grid->getVelocityField(pp);
         double vlength = v.length();
-        double mach = vlength / sqrt(con_kB * Tg / (mu * m_H));
+        double mach = vlength / sqrt(con_kB * Tg / (mu_mol * m_H));
 
         if(mach > MACH_LIMIT)
         {
@@ -4272,8 +4286,8 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
 {
     // For details, see Reissl et al. 2020, A&A 640:A118, doi:10.1051/0004-6361/201937177
 
-    // Calculate the aligned radii only for cells with a non-zero density
-    if(getNumberDensity(grid, *cell, i_density) == 0)
+    // Calculate the aligned radii only for cells with an almost non-zero density
+    if(getNumberDensity(grid, *cell, i_density) < 1.0e-100)
     {
         grid->setAlignedRadius(cell, i_density, a_eff[nr_of_dust_species - 1]);
         return;
@@ -4409,7 +4423,6 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 dth[w] = wavelength_list[w] * arr_en_dens * cos_theta;
             }
 
-            // Perform integration for total radiation field
             // Perform integration for total radiation field
             if(u==0)
             {
@@ -4555,6 +4568,161 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
     
     min_a_krat = min(min_a_krat, a_krat);
     max_a_krat = max(max_a_krat, a_krat);                    
+}
+
+void CDustComponent::calcAME(CGridBasic * grid, cell_basic * cell, uint i_density)
+{
+    // For details, see Reissl et al. 2026 in prep.
+    
+    if(nano_Na==0)
+        return;
+    
+    uint data_offset = grid->getNanoOffset(i_density);
+    
+    // Calculate the aligned radii only for cells with an almost non-zero density
+    if(getNumberDensity(grid, *cell, i_density) < 1.0e-100)
+    {
+        for(uint i_ame=0; i_ame < nano_Na; i_ame++)
+        {
+            grid->setAMETrot(cell, data_offset+i_ame, 0);
+            grid->setAMEZgr(cell, data_offset+i_ame, 0);
+            grid->setAMEZs(cell, data_offset+i_ame, 0);
+        }
+        
+        grid->setAMECritRadius(cell, i_density, nano_a_min);
+        return;
+    }
+    
+    double a_crit = calc_a_crit(grid, *cell);
+    grid->setAMECritRadius(cell, i_density, a_crit);
+    
+    double n_gas = grid->getGasNumberDensity(*cell);
+    double n_el = grid->getThermalElectronDensity(*cell);
+    double n_ion = grid->getIonDensity(*cell);
+    double n_neu = abs(n_gas - n_ion);
+    
+    double T_gas = grid->getGasTemperature(*cell);
+    double T_el = grid->getElectronTemperature(*cell);
+    double T_dust = grid->getDustTemperature(*cell,i_density); 
+    
+    double Z_gas = grid->getIonCharge(*cell);
+    
+    int Z_span_default = 60;
+    
+    for(uint i_ame=0; i_ame < nano_Na; i_ame++)
+    {
+        double a_eff = nano_arr_a_eff[i_ame];
+
+        int Zhard_min = compute_Zmin_auto(a_eff);
+        int Zhard_max = compute_Zmax_coulomb(a_eff);
+
+        int Zcoarse = find_Zeq(grid, *cell, Zhard_min, Zhard_max, a_eff, n_ion, n_el, T_gas, T_el);
+
+        int Zmin = Zcoarse - 6;
+        if ( Zmin < Zhard_min ) Zmin = Zhard_min;
+
+        int Zmax = Zcoarse + 6;
+        if ( Zmax > Zhard_max ) Zmax = Zhard_max;
+        
+        int kill_conuter = 0;
+        while ( kill_conuter < 200 )
+        {
+            dlist ftmp = compute_f_window(grid, *cell, Zmin, Zmax, Zhard_min, Zhard_max, a_eff, n_ion, n_el, T_gas, T_el);
+            
+            if ( tails_are_small(ftmp) )
+                break;
+
+            Zmin -= 6;
+            Zmax += 6;
+
+            if ( Zmin < Zhard_min ) Zmin = Zhard_min;
+            if ( Zmax > Zhard_max ) Zmax = Zhard_max;
+
+            if ( ( Zmax - Zmin ) > 1200 ) break;
+            if ( Zmin == Zhard_min && Zmax == Zhard_max ) break;
+
+            kill_conuter++;
+        }
+
+        if ( kill_conuter >= 200 )
+        {
+            Zmin = Zcoarse - Z_span_default;
+            Zmax = Zcoarse + Z_span_default;
+            if ( Zmin < Zhard_min ) Zmin = Zhard_min;
+            if ( Zmax > Zhard_max ) Zmax = Zhard_max;
+        }
+        
+        dlist f = compute_f_window(grid, *cell, Zmin, Zmax, Zhard_min, Zhard_max, a_eff, n_ion, n_el, T_gas, T_el);
+        int N = ( Zmax - Zmin + 1 );
+
+        ilist Zvals(N, 0);
+        
+        double Gn=0, Fn=0;
+        double Gi=0, Fi=0;
+        double Gp=0, Fp=0;
+        double Gpe=0, Fpe=0;
+        double GIR=0, FIR=0;
+        double tau_H=calc_tau_H(a_eff, n_gas, T_gas);
+        double tau_ed=0;
+
+        for ( int k = 0; k < N; ++k )
+        {
+            int Z = Zmin + k;
+            Zvals[k] = Z;
+
+            double tmp_Gn=0, tmp_Fn=0;
+            double tmp_Gi=0, tmp_Fi=0;
+            double tmp_Gp=0, tmp_Fp=0;
+            double tmp_Gpe=0, tmp_Fpe=0;
+
+            calc_FGn(tmp_Fn, tmp_Gn, a_eff, n_gas, n_neu, T_gas, T_dust, Z);
+            calc_FGi(tmp_Fi, tmp_Gi, a_eff, n_gas, n_ion, T_gas, T_dust, Z_gas, Z);
+            calc_FGp(tmp_Fp, tmp_Gp, a_eff, n_gas, n_ion, n_el, T_gas, Z_gas, Z);
+            calc_FGpe(grid, *cell, tmp_Fpe, tmp_Gpe, a_eff, n_gas, T_gas, Z);
+                    
+            Fn+=f[k]*tmp_Fn;
+            Gn+=f[k]*tmp_Gn;
+
+            Fi+=f[k]*tmp_Fi;
+            Gi+=f[k]*tmp_Gi;
+
+            Fpe+=f[k]*tmp_Fpe;
+            Gpe+=f[k]*tmp_Gpe;
+
+            tau_ed = max( tau_ed, calc_tau_ed(a_eff, T_gas, Z) );
+        }
+        
+        calc_FGIR(grid, *cell, FIR, GIR, a_eff, n_gas, T_gas, T_dust);
+            
+        double sec=20*tau_H/(3*tau_ed);
+
+        double F=Fn + Fi + Fp + Fpe + FIR;
+        double G=Gn + Gi + Gp + Gpe + GIR;
+
+        double fr= 2 * G / F / (1+sqrt(1+G/(F*F) * sec)) ;
+
+        double Trot = T_gas * fr ;
+
+        double Zgr=0;
+        double Zs=0;
+
+        fit_gaussian_pdf(Zvals,f,Zgr,Zs);
+        
+        Zs=max(double(0.01),Zs);
+        
+        if(isnan(Trot))
+            Trot = 0;
+        
+        if(isnan(Zgr))
+            Zgr = 0;
+        
+        if(isnan(Zs))
+            Zs = 0;
+        
+        grid->setAMEZgr(cell, data_offset+i_ame, Zgr);
+        grid->setAMEZs(cell, data_offset+i_ame, Zs);
+        grid->setAMETrot(cell, data_offset+i_ame, Trot);
+    }               
 }
 
 double CDustComponent::calcGoldReductionFactor(const Vector3D & v, const Vector3D & B) const
@@ -5059,6 +5227,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     double tmp_planck = 0;
     double scattering_theta = 0, phi_map = 0;
     uint temp_info = grid->getTemperatureFieldInformation();
+    double a_rd = grid->getRDRadius(pp,i_density);
 
     // Precalculate values for scattering
     if(energy > 1e-200)
@@ -5104,6 +5273,9 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
+            if(a_rd>0 && a_eff[a]>a_rd)
+                continue;            
+            
             // Get cross sections and relative weight of the current dust grain size
             calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
@@ -5229,7 +5401,9 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     // Get local min and max grain sizes
     double a_min = getSizeMin(grid, pp);
     double a_max = getSizeMax(grid, pp);
-
+    
+    double a_rd = grid->getRDRadius(pp,i_density);
+    
     // Get angle between the magnetic field and the photon direction
     double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
@@ -5248,6 +5422,8 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
+            if(a_rd>0 && a_eff[a]>a_rd)
+                continue;
             // Get cross sections and relative weight of the current dust grain size
             calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
 
@@ -5433,6 +5609,88 @@ void CDustComponent::getEscapePhotonMie(CGridBasic * grid,
 
     // Set the new Stokes vector to the photon package
     pp_escape->setStokesVector(tmp_stokes);
+}
+
+void CDustComponent::initNanoGrains(dlist pr)
+{
+     // minimal grain size
+    nano_a_min = pr[0];
+    
+    // maximal grain size
+    nano_a_max = pr[1];
+    
+    // number of grains
+    nano_Na = uint(pr[2]);
+    
+    nano_Nla = max(nano_Na, uint(30));
+    
+    // distribution ref. grain size
+    nano_a0 = pr[3];
+    
+    // distribution sigma
+    nano_as = pr[4];
+    
+    // energy of work_function
+    nano_W = pr[5]/con_e;
+    
+    // mass of unit cell
+    nano_m0=pr[6]*con_m_p;
+    
+    // beta of el. dipole moment
+    nano_beta_mu=pr[7];
+    
+    // tensile strength S_max
+    nano_Smax=pr[8];
+    
+    nano_arr_a_eff = new double[nano_Na];    
+    nano_arr_dnda = new double[nano_Na];  
+
+    nano_arr_a_eff_large = new double[nano_Nla];    
+    nano_arr_dnda_large = new double[nano_Nla];    
+
+    double log_amin = log10(nano_a_min);
+    double log_amax = log10(nano_a_max);
+    double delta_a = (log_amax - log_amin) / double(nano_Na-1);
+    double sum = 0;
+
+    for (int i = 0; i < nano_Na; i++)
+    {
+        double tmp_a_eff= pow(10.0, log_amin + i * delta_a);
+        double tmp1 = log(tmp_a_eff/nano_a0);
+        double tmp2 = 1.0 / tmp_a_eff * exp( -tmp1*tmp1 / (2*nano_as * nano_as) );
+
+        sum+=tmp2;
+
+        nano_arr_a_eff[i] = tmp_a_eff;
+        nano_arr_dnda[i] = tmp2;
+    }
+
+    nano_arr_a_eff[0]=nano_a_min;
+    nano_arr_a_eff[nano_Na-1]=nano_a_max;
+
+    for (int i = 0; i < nano_Na; i++)
+        nano_arr_dnda[i] /= sum;
+
+    delta_a = (log_amax - log_amin) / double(nano_Nla-1);
+    sum = 0;
+
+    for (int i = 0; i < nano_Nla; i++)
+    {
+        double tmp_a_eff= pow(10.0, log_amin + i * delta_a);
+        double tmp1 = log(tmp_a_eff/nano_a0);
+        double tmp2 = 1.0 / tmp_a_eff * exp( -tmp1*tmp1 / (2*nano_as * nano_as) );
+
+        sum+=tmp2;
+
+        nano_arr_a_eff_large[i] = tmp_a_eff;
+        nano_arr_dnda_large[i] = tmp2;
+    }
+
+    nano_arr_a_eff_large[0]=nano_a_min;
+    nano_arr_a_eff_large[nano_Nla-1]=nano_a_max;
+
+    for (int i = 0; i < nano_Nla; i++)
+        nano_arr_dnda_large[i] /= sum; 
 }
 
 double CDustComponent::getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const
@@ -5751,6 +6009,11 @@ inline double CDustComponent::getQabs1(uint a, uint w) const
 inline double CDustComponent::getQabs2(uint a, uint w) const
 {
     return Qabs2[a][w];
+}
+
+double CDustComponent::getQabsMean(uint a, uint w) const
+{
+    return (2.0 * Qabs1[a][w] + Qabs2[a][w]) / 3.0;
 }
 
 inline double CDustComponent::getQsca1(uint a, uint w) const
@@ -6550,6 +6813,7 @@ double CDustComponent::getWeight() const
 {
     double weight =
         CMathFunctions::integ_dust_size(a_eff, grain_size_distribution, nr_of_dust_species, a_min_global, a_max_global);
+    
     return weight;
 }
 
@@ -6615,11 +6879,22 @@ uint CDustComponent::getPhaseFunctionID()
 uint CDustComponent::getNrOfStochasticSizes()
 {
     uint nr_stochastic_sizes = 0;
+    
     if(stochastic_heating_max_size > 0)
+    {
         for(uint a = 0; a < nr_of_dust_species; a++)
+        {
             if(a_eff[a] <= stochastic_heating_max_size)
                 nr_stochastic_sizes++;
+        }
+    }
+    
     return nr_stochastic_sizes;
+}
+
+uint CDustComponent::getNrOfNanoSizes()
+{
+    return nano_Na;
 }
 
 // double getMinDustTemp()
@@ -6808,7 +7083,7 @@ void CDustComponent::setStochasticHeatingMaxSize(double val)
     stochastic_heating_max_size = val;
 }
 
-double CDustComponent::getFraction() const
+/*double CDustComponent::getFraction() const
 {
     return fraction;
 }
@@ -6816,7 +7091,7 @@ double CDustComponent::getFraction() const
 void CDustComponent::setFraction(double val)
 {
     fraction = val;
-}
+}*/
 
 double CDustComponent::getDustMassFraction() const
 {
@@ -6867,13 +7142,10 @@ double CDustComponent::convDensityToNumber(CGridBasic * grid, const cell_basic &
     double conversion_factor = 1.0;
     if(from_gas)
     {
-        if(!grid->getGasIsMassDensity())
-            conversion_factor *= grid->getMu() * m_H;
+        conversion_factor *= grid->getMu() * m_H;
         conversion_factor *= getDustMassFraction();
         conversion_factor /= avg_mass;
     }
-    else if(grid->getDustIsMassDensity())
-        conversion_factor = 1 / avg_mass;
 
     return conversion_factor;
 }
@@ -6883,12 +7155,8 @@ double CDustComponent::convDensityToMass(CGridBasic * grid, const cell_basic & c
     double conversion_factor = 1.0;
     if(from_gas)
     {
-        if(!grid->getGasIsMassDensity())
-            conversion_factor *= grid->getMu() * m_H;
         conversion_factor *= getDustMassFraction();
     }
-    else if(!grid->getDustIsMassDensity())
-        conversion_factor *= getAvgMass(grid, cell);
 
     return conversion_factor;
 }
@@ -6898,7 +7166,7 @@ double CDustComponent::getNumberDensity(CGridBasic * grid, const cell_basic & ce
     if(grid->useDustDensities())
         return convDensityToNumber(grid, cell) * grid->getDustDensity(cell);
     else
-        return convDensityToNumber(grid, cell, true) * grid->getGasDensity(cell);
+        return convDensityToNumber(grid, cell, true) * grid->getGasMassDensity(cell);
 }
 
 double CDustComponent::getNumberDensity(CGridBasic * grid, const photon_package & pp) const
@@ -6911,7 +7179,7 @@ double CDustComponent::getNumberDensity(CGridBasic * grid, const cell_basic & ce
     if(grid->useDustDensities())
         return convDensityToNumber(grid, cell) * grid->getDustDensity(cell, i_density);
     else
-        return convDensityToNumber(grid, cell, true) * grid->getGasDensity(cell, i_density);
+        return convDensityToNumber(grid, cell, true) * grid->getGasNumberDensity(cell);
 }
 
 double CDustComponent::getNumberDensity(CGridBasic * grid, const photon_package & pp, uint i_density) const
@@ -6937,12 +7205,12 @@ double CDustComponent::getMassDensity(CGridBasic * grid, const cell_basic & cell
     if(grid->useDustDensities())
         return convDensityToMass(grid, cell) * grid->getDustDensity(cell, i_density);
     else
-        return getDustMassFraction() * grid->getGasMassDensity(cell, i_density);
+        return getDustMassFraction() * grid->getGasMassDensity(cell);
 }
 
 void CDustComponent::setMu(double mu_)
 {
-    mu = mu_;
+    mu_mol = mu_;
 }
 
 void CDustComponent::setMaterialDensity(double dens)
@@ -7031,7 +7299,7 @@ double CDustComponent::getAspectRatio()
 
 double CDustComponent::getSizeParam(CGridBasic * grid, const cell_basic & cell) const
 {
-    double size_param = grid->getGrainSizeParam(cell, component_id);
+    double size_param = grid->getGrainSizeParam(cell, i_mixture);
     if(size_param != 0)
         return size_param;
     return 0;
@@ -7049,7 +7317,7 @@ double CDustComponent::getSizeParam() const
 
 double CDustComponent::getSizeMin(CGridBasic * grid, const cell_basic & cell) const
 {
-    double a_min = grid->getMinGrainRadius(cell, component_id);
+    double a_min = grid->getMinGrainRadius(cell, i_mixture);
     if(a_min > 0)
         return a_min;
     return a_min_global;
@@ -7072,7 +7340,7 @@ void CDustComponent::setSizeMin(double val)
 
 double CDustComponent::getSizeMax(CGridBasic * grid, const cell_basic & cell) const
 {
-    double a_max = grid->getMaxGrainRadius(cell, component_id);
+    double a_max = grid->getMaxGrainRadius(cell, i_mixture);
     if(a_max != 0 && a_max < nr_of_dust_species)
         return a_max;
     return a_max_global;
@@ -7153,7 +7421,7 @@ double CDustComponent::getInternalIDG(double Td, double Tg) const
 double CDustComponent::getInternalGOLD(double Td, double Tg, double vg) const
 {
     double h = 2 / (1 + aspect_ratio * aspect_ratio);
-    double alpha = 0.5 / Td * (2 / h + 1) * (0.5 * (Td + Tg) + mu * m_H * vg * vg / (6 * con_kB));
+    double alpha = 0.5 / Td * (2 / h + 1) * (0.5 * (Td + Tg) + mu_mol * m_H * vg * vg / (6 * con_kB));
     double delta = h - 1;
 
     double x = alpha * delta;
@@ -7428,6 +7696,8 @@ double CDustComponent::getAvgMass(CGridBasic * grid, const cell_basic & cell) co
     return avg_mass;
 }
 
+
+
 double CDustComponent::getAvgMass() const
 {
     // Get integration over the dust size distribution
@@ -7450,6 +7720,34 @@ double CDustComponent::getAvgMass() const
 
     return avg_mass;
 }
+
+double CDustComponent::getThermalSputteringTime(double a_eff, double ng, double Tgas)
+{
+    double Y_sp = getYieldSputtering(Tgas);
+    double v_th = sqrt(8.0*con_kB *Tgas/(PI*m_H));
+    
+    double tau_sp = 4*material_density*a_eff / (nano_m0*ng*v_th*Y_sp);
+    return tau_sp;
+}
+
+double CDustComponent::getYieldSputtering(double T_gas)
+{
+    double Y_max = 0.05;
+    double T_c=1.5e6;
+    double T_th=3e5;
+    double gamma=2.5;
+    
+    double tmp1 = 1.0/(1.0+pow(T_c/T_gas,gamma));
+    double tmp2 = (1.0-exp(-T_gas/T_th));
+    
+    double Y_sp=Y_max*tmp1*tmp2;
+    
+    Y_sp=max(Y_sp,double(1.e-20));
+    Y_sp=min(Y_sp,Y_max);
+    
+    return Y_sp;
+}
+
 
 double CDustComponent::getPahMass(uint a)
 {
@@ -7534,7 +7832,7 @@ uint CDustComponent::getWavelengthID(double wavelength)
     if(it != wavelength_list.end())
         return distance(wavelength_list.begin(), it);
 
-    cout << WARNING_LINE << "Wavelength not found!" << endl;
+    cout << WARNING_LINE << "Wavelength not found!    " << endl;
     return 0;
 }
 
@@ -7563,6 +7861,11 @@ uint CDustComponent::getNrOfScatMatElements() const
     return nr_of_scat_mat_elements;
 }
 
+uint CDustComponent::getMixtureID()
+{
+    return mixture_id;
+}
+
 string CDustComponent::getStringID() const
 {
     return stringID;
@@ -7579,19 +7882,20 @@ void CDustComponent::createStringID(CDustComponent * comp)
         str_stream << "Dust components:" << endl;
 
     // Use the fraction as dust to gas mass ratio (if user chosen it)
-    double fraction = comp->getFraction();
-    string fraction_string = "mass ratio";
+    double fraction = comp->getDustMassFraction();
+    /*string fraction_string = "mass ratio";
+    
     if(individual_dust_fractions)
     {
         fraction *= dust_mass_fraction;
         fraction_string = "dust-to-gas mass ratio";
-    }
+    }*/
 
     // Fill the string with various parameters and format it
     char tmp_str[1024];
 #ifdef WINDOWS
     sprintf_s(tmp_str,
-                "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+                "- %s\n    : %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
                 comp->getStringID().c_str(),
                 fraction_string.c_str(),
                 fraction,
@@ -7601,16 +7905,16 @@ void CDustComponent::createStringID(CDustComponent * comp)
                 comp->getSizeMax());
 #else
     sprintf(tmp_str,
-            "- %s\n    %s: %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
+            "- %s\n     : %g, size distr. : \"%s\" (%s), size: %g [m] - %g [m]\n",
             comp->getStringID().c_str(),
-            fraction_string.c_str(),
             fraction,
             comp->getDustSizeKeyword().c_str(),
             comp->getDustSizeParameterString().c_str(),
             comp->getSizeMin(),
             comp->getSizeMax());
 #endif
-
+            //fraction_string.c_str(),
+    
     // Add formatted string to stream
     str_stream << tmp_str;
 
@@ -7621,7 +7925,7 @@ void CDustComponent::createStringID(CDustComponent * comp)
         stringID += str_stream.str();
 }
 
-void CDustComponent::setIndividualDustMassFractions(bool val)
+/*void CDustComponent::setIndividualDustMassFractions(bool val)
 {
     individual_dust_fractions = val;
 }
@@ -7629,7 +7933,7 @@ void CDustComponent::setIndividualDustMassFractions(bool val)
 bool CDustComponent::getIndividualDustMassFractions()
 {
     return individual_dust_fractions;
-}
+}*/
 
 void CDustComponent::setWavelengthList(dlist _wavelength_list, uint _wavelength_offset)
 {
@@ -7802,8 +8106,9 @@ void CDustComponent::setCalorimetryLoaded(bool val)
     calorimetry_loaded = val;
 }
 
-void CDustComponent::setIDs(uint i_comp, uint nr_components, uint i_mix, uint nr_mixtures)
+void CDustComponent::setIDs(uint mix_id, uint i_comp, uint nr_components, uint i_mix, uint nr_mixtures)
 {
+    mixture_id = mix_id;
     i_component = i_comp;
     nr_of_components = nr_components;
 
@@ -7905,3 +8210,1420 @@ uint CDustComponent::getScatThetaID(double theta, uint a, uint w) const
 
     return sth;
 }
+
+
+// ======================= Currents struct =======================
+Currents CDustComponent::total_currents(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff, double n_ion, double n_el, double T_gas, double T_el)
+{
+    Currents J;
+    J.J_up   = J_ion_Hp(Z, a_eff, n_ion, T_gas) + J_photoelectric(grid, cell,Z, a_eff);
+    J.J_down = J_electron(Z, a_eff, n_el, T_el) + J_photodetachment(grid, cell, Z, a_eff);
+    return J;
+}
+
+// ======================= Hard Z-bounds =======================
+inline int CDustComponent::compute_Zmin_auto(double a_eff)
+{
+    // Smallest Z with EA(Z,a) > 0
+    int Z = -1;
+
+    while ( Z > -10000 )
+    {
+        double EA = EA_eV(a_eff, Z);
+        if ( EA <= 0.0 )
+        {
+            return Z + 1;
+        }
+        Z = Z - 1;
+    }
+
+    return -999; // conservative default value
+}
+
+int CDustComponent::compute_Zmax_coulomb( double a_eff)
+{
+    // Stress p = Q^2 / ( 32 π^2 ε0 a^4 ); set p = Smax.
+    // Z_max = Q_max / e = ( 4 √2 π a^2 / e ) √( ε0 Smax )
+    double pref   = 4.0 * sqrt(2) * PI * a_eff * a_eff / con_e;
+    double inside = con_epsilon_0 * nano_Smax;
+    
+    if ( inside < 0.0 )
+        inside = 0.0;
+    
+    double Zmax_real = pref * sqrt( inside );
+
+    int Zmax_int = int( floor( Zmax_real ) );
+    return Zmax_int;
+}
+
+double CDustComponent::calc_a_crit(const CGridBasic * grid, const cell_basic & cell)
+{
+    double E_gamma = 0;
+    double num = 0;
+    double den = 0;
+    double a_crit = nano_a_min;
+    
+    double lambda_max = 1.0e-6;
+    double fr= 1.0 / (con_h * con_c);
+    
+    for(int iw = 1; iw <  wavelength_list.size(); iw++)
+    {
+        double lp = wavelength_list[iw];
+        double Qabs_p   = Q_abs_min[iw];
+        double ulam_p   = Qabs_p*get_u_lam(grid,cell,iw);
+        
+        double den_p = ulam_p * lp * fr;
+        
+        if (lp > lambda_max)
+            break;  
+
+        double ln = wavelength_list[iw-1];
+        double Qabs_n   = Q_abs_min[iw-1];
+        double ulam_n   = Qabs_n*get_u_lam(grid,cell,iw-1);
+
+        double den_n = ulam_n * ln * fr;
+
+        num += (lp - ln) * ulam_n + 0.5 * (lp - ln) * (ulam_p - ulam_n);
+        
+        den += (lp - ln) * den_n + 0.5 * (lp - ln) * (den_p - den_n);
+    }
+    
+    if(den>0)
+    {
+        E_gamma=num/den;
+        a_crit = cbrt(E_gamma * nano_m0 / ((PIx4 * con_kB) * material_density *sub_temp));
+    }
+    
+    return a_crit;
+}
+
+// ======================= Helper functions for recurrence =======================
+dlist CDustComponent::compute_f_window(const CGridBasic * grid, const cell_basic & cell, int Zmin, int Zmax, int Zhard_min, int Zhard_max, double a_eff, double n_ion, double n_el, double T_gas, double T_el)
+{
+    int N = ( Zmax - Zmin + 1 );
+    dlist logf(N, -1e300);
+
+    logf[0] = 0.0;
+
+    for (int k = 0; k < N - 1; k++)
+    {
+        int Z      = Zmin + k;
+        Currents Jz   = total_currents(grid, cell, Z, a_eff, n_ion, n_el, T_gas, T_el);
+        Currents Jzp1 = total_currents(grid, cell, Z + 1, a_eff, n_ion, n_el, T_gas, T_el);
+
+        double num = Jz.J_up;
+        double den = Jzp1.J_down;
+
+        if (Z >= Zhard_max) num = 0.0;
+        if (Z + 1 <= Zhard_min) den = 0.0;
+
+        double r;
+
+        if (den > 0.0)
+        {
+            r = num / den;
+        }
+        else
+        {
+            r = 0.0;
+        }
+
+        if (r > 0.0)
+        {
+            logf[k + 1] = logf[k] + log(r);
+        }
+        else
+        {
+            logf[k + 1] = -1e300;
+        }
+    }
+
+    // normalize safely
+    double mval = -1e300;
+    for ( int k = 0; k < N; k++)
+    {
+        if (logf[k] > mval)
+        {
+            mval = logf[k];
+        }
+    }
+
+    dlist f(N, 0.0 );
+    double sum = 0.0;
+
+    for ( int k = 0; k < N; ++k )
+    {
+        double val = exp( logf[k] - mval );
+        f[k] = val;
+
+        sum += val;
+    }
+
+    if(sum > 0.0)
+    {
+        for (int k = 0; k < N; ++k )
+        {
+            f[k] /= sum;
+        }
+    }
+
+    return f;
+}
+
+bool CDustComponent::tails_are_small(const dlist &f)
+{
+    double tail_tol_ratio = 1e-6;
+    int N = f.size();
+
+    if (N < 3)
+        return false;
+
+    double left  = f[0] + f[1];
+    double right = f[N - 1] + f[N - 2];
+
+    if ( left  < tail_tol_ratio && right < tail_tol_ratio )
+        return true;
+
+    return false;
+}
+
+int CDustComponent::find_Zeq(const CGridBasic * grid, const cell_basic & cell, int Zmin, int Zmax, double a_eff, double n_ion, double n_el, double T_gas, double T_el)
+{
+    //double best = numeric_limits<double>::infinity();
+    double best = 1e100;
+    int Zeq = 0;
+
+    for (int Z = Zmin; Z <= Zmax; Z++)
+    {
+        Currents J = total_currents(grid, cell, Z, a_eff, n_ion, n_el, T_gas, T_el);
+
+        double diff = fabs( J.J_up - J.J_down );
+
+        if (diff < best)
+        {
+            best = diff;
+            Zeq  = Z;
+        }
+    }
+
+    return Zeq;
+}
+
+// Evaluate Gaussian at integer Z given parameters.
+double CDustComponent::gaussian_value(double mu, double sigma, int Z)
+{
+    if ( sigma <= 0.0 )
+        return 0.0;
+
+    if( sigma <= 0.05 )
+    {
+        if(abs(double( Z ) - mu)<0.75)
+            return 1.0;
+    }
+    
+    double dz   = double( Z ) - mu;
+    double arg  = -0.5 * ( dz * dz ) / ( sigma * sigma );
+    double A = 1.0 / ( sqrt(PIx2sq) * sigma );
+
+    const double val  = A * exp( arg );
+
+    return val;
+}
+
+// Compute sum of squares error between f and model for given parameters (diagnostics).
+double CDustComponent::gaussian_sse( const ilist &Z, const dlist &f,
+                            double mu, double sigma)
+{
+    const size_t N = Z.size();
+    double sse = 0.0;
+
+    size_t i = 0;
+    while ( i < N )
+    {
+        const double g  = gaussian_value(mu, sigma, Z[i]);
+        const double r  = g - f[ i ];
+        sse += r * r;
+        i = i + 1;
+    }
+
+    return sse;
+}
+
+void CDustComponent::fit_gaussian_pdf( const ilist   &Z,
+                                     const dlist &f , 
+                                     double & mu, double & sigma)
+{
+    mu    = 0.0;
+    sigma = 0.0;
+
+    int N = Z.size();
+
+    if ( N == 0 )
+        return;
+
+    if ( f.size() != N )
+        return;
+
+    dlist p(N, 0.0);
+    double sumf = 0.0;
+
+    int i = 0;
+
+    while (i < N)
+    {
+        if ( f[ i ] > 0.0 )
+        {
+            p[ i ] = f[ i ];
+            sumf  += f[ i ];
+        }
+        else
+        {
+            p[ i ] = 0.0;
+        }
+        i = i + 1;
+    }
+
+    if ( sumf <= 0.0 )
+    {
+        return;
+    }
+
+    i = 0;
+
+    while ( i < N )
+    {
+        p[ i ] = p[ i ] / sumf;
+        i = i + 1;
+    }
+
+    // Moment estimates for mu and sigma.
+    double var  = 0.0;
+
+    i = 0;
+    while ( i < N )
+    {
+        mu += (Z[i]) * p[ i ];
+        i = i + 1;
+    }
+
+    i = 0;
+    while ( i < N )
+    {
+        double dz = double(Z[i]) - mu;
+        var += dz * dz * p[i];
+        i = i + 1;
+    }
+
+    double sigma_min = 1.0e-8;
+    if ( var > 0.0 )
+    {
+        sigma = sqrt( var );
+    }
+    else
+    {
+        sigma = sigma_min;
+    }
+
+    if ( sigma < sigma_min )
+    {
+        sigma = sigma_min;
+    }
+
+    double num = 0.0;
+    double den = 0.0;
+
+    i = 0;
+    while ( i < N )
+    {
+        const double dz   = double(Z[i]) - mu;
+        const double arg  = -0.5 * (dz * dz) / (sigma * sigma);
+        double g = 0.0;
+
+        if ( arg > -700.0 )
+        {
+            g = exp(arg);
+        }
+        else
+        {
+            g = 0.0;
+        }
+
+        num += p[ i ] * g;
+        den += g * g;
+        i = i + 1;
+    }
+}
+
+inline double CDustComponent::Y_band( double E_eV, double a_m, int Z)
+{
+    double th  = Theta_eV(E_eV, a_m, Z);
+    double y0v = y0_bulk(th);
+    double y1v = y1_smallgrain(a_m);
+    double y2v = y2_escape(E_eV, a_m, Z);
+
+    double y01 = y0v * y1v;
+
+    if(y01 > 1.0)
+        y01 = 1.0;
+
+    return y2v * y01;
+}
+
+// Placeholder for EUV/X-ray
+inline double CDustComponent::Y_inner( double E_eV, double a_eff, int Z)
+{
+    return 0.0;
+}
+
+double CDustComponent::get_u_lam(const CGridBasic * grid, const cell_basic & cell, uint iw)
+{
+    double vol = grid->getVolume(cell);
+
+    double arr_en_dens = 0;
+    Vector3D en_dir;
+        
+    grid->getSpecLength(cell, iw, &arr_en_dens, &en_dir);
+    
+    // arr_en_dens = 4 * PI * vol * J -> 4 * PI / c * J
+    double u_lam   = arr_en_dens / double(vol * con_c);
+    
+    if(u_lam>0)
+        int tt=0;
+    
+    return u_lam;
+}
+
+double CDustComponent::J_photodetachment(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff )
+{
+    if ( Z >= 0 )
+        return 0.0;
+
+    double lambda_min = wavelength_list[0];
+    double lambda_max = wavelength_list[nr_of_wavelength-1];
+    
+    double Epdt_eV = E_pdt_eV(a_eff, Z);
+    double l0      = lambda_min;
+    double l1      = ( con_h * con_c ) / ( Epdt_eV * con_eV_to_J );
+
+    if ( l1 > lambda_max ) l1 = lambda_max;
+    if ( l1 <= l0 ) return 0.0;
+        
+    double sum = 0.0;
+
+    for ( int iw = 1; iw <  wavelength_list.size(); iw++)
+    {
+        double lp = wavelength_list[iw];
+        double E_eV_p   = (con_h * con_c / lp) * con_J_to_eV;
+
+        double ulam_p   = get_u_lam(grid,cell,iw);
+        double sigma_p  = sigma_pdt_m2(E_eV_p, a_eff, Z);
+
+        double yp = sigma_p * ( lp / con_h ) * ulam_p;
+
+        //if(lp>lambda_max)
+        //    break; 
+
+        if (lp > l1)
+            break;  
+
+        double ln = wavelength_list[iw-1];
+        double E_eV_n   = (con_h * con_c / ln) * con_J_to_eV;
+        
+        double ulam_n   = get_u_lam(grid,cell,iw-1);
+        double sigma_n  = sigma_pdt_m2(E_eV_n, a_eff, Z);
+
+        double yn = sigma_n * ( ln / con_h ) * ulam_n;
+
+        sum += (lp - ln) * yn + 0.5 * (lp - ln) * (yp - yn);
+    }
+
+    if ( sum < 0.0 )
+        sum = 0.0;
+
+    return sum;
+}    
+
+double CDustComponent::J_photoelectric(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff)
+{
+    double lambda_min = wavelength_list[0];
+    double lambda_max = wavelength_list[nr_of_wavelength-1];
+
+    double Epet_eV = E_pet_eV( a_eff, Z);
+    double l0      = lambda_min;
+    double l1      = ( con_h * con_c ) / ( Epet_eV * con_eV_to_J );
+
+    if ( l1 > lambda_max ) l1 = lambda_max;
+    if ( l1 <= l0 ) return 0.0;
+
+    double sum = 0.0;
+
+    for(int iw = 1; iw < wavelength_list.size(); ++iw )
+    {
+        double lp = wavelength_list[iw];
+        double E_eV_p   = ( con_h * con_c / lp ) * con_J_to_eV;
+        double Y_p      = get_Yield(E_eV_p, a_eff, Z);
+
+        double Qabs_p   = Q_abs_min[iw];
+        double ulam_p   = get_u_lam(grid,cell,iw);
+
+
+        double yp = Y_p * Qabs_p * (lp / con_h) * ulam_p;
+
+        if(lp>l1)
+            break;     
+
+        double ln = wavelength_list[iw-1];
+        double E_eV_n   = ( con_h * con_c / ln ) * con_J_to_eV;
+        double Y_n      = get_Yield(E_eV_n, a_eff, Z);
+
+        double Qabs_n   = Q_abs_min[iw-1];
+        double ulam_n   = get_u_lam(grid,cell,iw-1);
+
+        double yn = Y_n * Qabs_n * (ln / con_h) * ulam_n;
+
+        sum += (lp - ln) * yn + 0.5 * (lp - ln) * (yp - yn);
+    }
+
+    double Jpe = PI * a_eff * a_eff * sum;
+
+    if ( Jpe < 0.0 )
+        Jpe = 0.0;
+
+    return Jpe;
+}
+
+// Placeholder for inner-shell Auger
+inline double CDustComponent::Y_auger( double E_eV, double a_eff, int Z)
+{        
+    return 0.0;
+}
+
+inline double CDustComponent::vth_pref(double m, double T)
+{
+    return sqrt( ( 8.0 * con_kB * T ) / ( PI * m ) );
+}
+
+double CDustComponent::J_electron(int Z, double a_eff, double n_el, double Tel)
+{
+    double stick_e    = 0.5;  
+    double q    = -con_e;
+    double tau  = get_tau(a_eff, Tel, fabs(q));
+    double nu   = get_nu(Z, q);
+    double Jt   = Jtilde(tau, nu);
+    double rate = n_el * stick_e * PI * a_eff * a_eff * vth_pref(con_m_e, Tel) * Jt;
+
+    if ( rate < 0.0 )
+        rate = 0.0;
+
+    return rate;
+}
+
+double CDustComponent::J_ion_Hp( int Z, double a_eff, double n_ion, double T_gas)
+{
+    double stick_ion  = 1.0;           // ion sticking
+    double q    = con_e;
+    double tau  = get_tau(a_eff, T_gas, fabs(q));
+    double nu   = get_nu (Z, q);
+    double Jt   = Jtilde(tau, nu);
+    double rate = n_ion * stick_ion * PI * a_eff * a_eff * vth_pref(con_m_p, T_gas) * Jt;
+
+    if( rate < 0.0 )
+        rate = 0.0;
+
+    return rate;
+}
+
+double CDustComponent::sigma_pdt_m2( double E_eV, double a_m, int Z)
+{
+    if ( Z >= 0 ) return 0.0;
+
+    double Epdt   = E_pdt_eV( a_m, Z);
+    double DeltaE = 3.0; // eV
+    double x      = ( E_eV - Epdt ) / DeltaE;
+
+    if ( x <= 0.0 ) return 0.0;
+
+    // 1.2e-17 cm^2 * |Z| * x / ( 1 + x^2 / 3 )^2
+    double sigma_cm2 = 1.2e-17 * double(abs( Z )) * x;
+    double denom     = 1.0 + ( x * x / 3.0 );
+    denom = denom * denom;
+
+    if ( denom <= 0.0 ) return 0.0;
+
+    sigma_cm2 = sigma_cm2 / denom;
+
+    double sigma_m2 = sigma_cm2 * 1.0e-4; // cm^2 -> m^2
+    return sigma_m2;
+}
+
+// Placeholder for secondary electrons
+double CDustComponent::Y_secondary( double E_eV, double a_m, int Z)
+{
+    return 0.0;
+}
+
+//WD01 WDB06
+double CDustComponent::get_Yield(double E_eV, double a_m, int Z)
+{
+    double y  = 0.0;
+
+    y += Y_band(E_eV, a_m, Z);
+    y += Y_inner(E_eV, a_m, Z);
+    y += Y_auger(E_eV, a_m, Z);
+    y += Y_secondary(E_eV, a_m, Z);
+
+    if ( y < 0.0 ) y = 0.0;
+    if ( y > 1.0 ) y = 1.0;
+
+    return y;
+}
+
+inline double CDustComponent::Theta_eV( double E_eV, double a_m, int Z)
+{
+    double Epet = E_pet_eV( a_m, Z);
+
+    if ( Z >= 0 )
+    {
+        double Ec = get_ECoul_eV(a_m);
+        return max(0.0, E_eV - Epet + ( double( Z ) + 1.0 ) * Ec );
+    }
+
+    return max( 0.0, E_eV - Epet );
+}
+
+double CDustComponent::y0_bulk(double Theta)
+{
+    if ( Theta <= 0.0 ) 
+        return 0.0;
+
+    double W;
+    double TW;
+    double TW5;
+    double num;
+    double den;
+
+    /*if ( carbon )
+    {
+        W   = W_carbon_eV;
+        TW5 = pow( Theta / W, 5.0 );
+        num = 9.0e-3 * TW5;
+        den = 1.0 + 3.7e-2 * TW5;
+        return num / den;
+    }*/
+
+    //W   = W_sil_eV;
+
+    W   = get_work_function_eV();
+    TW  = Theta / W;
+    num = 0.5 * TW;
+    den = 1.0 + 5.0 * TW;
+
+    if ( den <= 0.0 ) 
+        return 0.0;
+
+    return num / den;
+}
+
+// Updated WD01: fixed lengths
+double CDustComponent::y1_smallgrain( double a_m )
+{
+    const double le_AA = 10.0;
+    const double la_AA = 100.0;
+
+    double m_to_AA = 1.0e10;
+    double a_AA  = a_m * m_to_AA;
+    double alpha = a_AA / la_AA + a_AA / le_AA;
+    double beta  = a_AA / la_AA;
+
+    if ( alpha <= 0.0 || beta <= 0.0 ) 
+        return 0.0;
+
+    double expa = exp( -alpha );
+    double expb = exp( -beta );
+
+    double num  = ( alpha * alpha ) - ( 2.0 * alpha ) + 2.0 - ( 2.0 * expa );
+    double den  = ( beta  * beta  ) - ( 2.0 * beta  ) + 2.0 - ( 2.0 * expb );
+
+    if ( den <= 0.0 )
+        return 0.0;
+
+    double fac  = ( beta / alpha );
+    fac = fac * fac;
+
+    double y1 = fac * ( num / den );
+
+    return y1;
+}
+
+inline double CDustComponent::Elow_eV( double a_m, int Z )
+{
+    if(Z < 0) 
+        return Emin_eV( a_m, Z );
+
+    return - ( double( Z ) + 1.0 ) * get_ECoul_eV( a_m );
+}
+
+inline double CDustComponent::Ehigh_eV( double E_eV, double a_m, int Z)
+{
+    if ( Z < 0 )
+    {
+        return Emin_eV(a_m, Z) + E_eV - E_pet_eV(a_m, Z);
+    }
+
+    return E_eV - E_pet_eV( a_m, Z);
+}
+
+double CDustComponent::y2_escape( double E_eV, double a_m, int Z)
+{
+    if ( Z < 0 )
+        return 1.0;
+
+    double Eh = Ehigh_eV( E_eV, a_m, Z);
+    double El = Elow_eV ( a_m, Z );
+
+    if ( Eh <= El )
+        return 0.0;
+
+    if ( Eh < 0.0 )
+    {
+        double En = fabs( Eh );
+        El += En;
+        Eh  = 0.0;
+    }
+
+    double diff = Eh - El;
+    if(diff <= 0.0)
+        return 0.0;
+
+    double num = ( Eh * Eh ) * ( Eh - 3.0 * El );
+    double den = diff * diff * diff;
+
+    if ( den <= 0.0 )
+        return 0.0;
+
+    double y2 = num / den;
+    y2 = clamp_value(y2, 0.0, 1.0 );
+
+    return y2;
+}
+
+void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cell, double lambda, uint i_density, double & j_ame, double & nd)
+{
+    j_ame=0;
+    nd=0;
+    
+    if(nano_Na==0)
+        return;
+    
+    uint data_offset = grid->getNanoOffset(i_mixture);
+    double a_crit=grid->getAMECritRadius(*cell,i_density);
+    
+    nd = getNumberDensity(grid, *cell, i_density);
+    
+    double n_gas=grid->getGasTemperature(*cell);
+    double T_gas=grid->getGasTemperature(*cell);
+    double sp_limit=1e5*yr_in_sec;
+    
+    // Calculate the aligned radii only for cells with an almost non-zero density
+    if(nd < 1.0e-100)
+    {
+        return;
+    }
+    
+    double total_weight=0;
+    
+    for(int ia=0; ia<nano_Nla; ia++)
+    {
+        double a_eff = nano_arr_a_eff_large[ia];
+        
+        if(a_eff<a_crit)
+            continue;
+        
+        double tau_sp = getThermalSputteringTime(a_eff, n_gas, T_gas);
+        
+        if(tau_sp<sp_limit)
+            continue;
+        
+        
+        double Zmin=0, Zmax=0;
+        double sum_charge=0;
+        double local_j=0;
+        double sum_nd=0;
+
+        int i_ame=findIndex(a_eff);
+        int data_pos=i_ame+data_offset;
+
+        double a_lower = nano_arr_a_eff[i_ame];
+        double Zsig_lower = grid->getAMEZs(*cell,data_pos);
+        double Zmean_lower = grid->getAMEZgr(*cell,data_pos);
+        double Trot_lower = grid->getAMETrot(*cell,data_pos);
+
+        double a_upper = nano_arr_a_eff[i_ame+1];
+        double Zsig_upper = grid->getAMEZs(*cell,data_pos+1);
+        double Zmean_upper = grid->getAMEZgr(*cell,data_pos+1);
+        double Trot_upper = grid->getAMETrot(*cell,data_pos+1);
+
+        double Zsig = interpolate(a_eff, a_lower, a_upper, Zsig_lower, Zsig_upper);
+        double Zmean = interpolate(a_eff, a_lower, a_upper, Zmean_lower, Zmean_upper);
+        double Trot = interpolate(a_eff, a_lower, a_upper, Trot_lower, Trot_upper);
+        
+        if(isnan(Trot))
+            continue;
+        
+        if(isnan(Zmean))
+            continue;
+        
+        if(isnan(Zsig))
+            continue;
+
+        if(Zmean+Zsig==0)
+            continue;
+        
+        double f_MW = fMW(lambda, Trot, a_eff);
+        
+        if(isnan(f_MW))
+            continue;
+
+        if(f_MW<1e-200)
+            continue;
+
+        gaussian_bounds(Zmean,Zsig,1e-6,Zmin,Zmax);
+        
+        int Zhard_min = compute_Zmin_auto    (a_eff);
+        int Zhard_max = compute_Zmax_coulomb (a_eff);
+        
+        Zmin = max(int(Zmin),int(Zhard_min));
+
+        double o_cr = 2. / a_eff * sqrt(nano_Smax / material_density);
+        double l_cr = PIx2 * con_c / o_cr;
+
+        if(lambda<l_cr)
+            continue;
+
+        double dnda = nano_arr_dnda_large[ia];
+        int NZ=int(Zmax)-int(Zmin)+1;
+        
+        //double * arr_f_charge = new double[NZ];
+        dlist arr_f_charge;
+        
+        for (int k = 0; k < NZ - 1; k++)
+        {
+            int Z      = Zmin + k;
+            double f_charge=gaussian_value(Zmean,Zsig,Z);  
+            
+            //arr_f_charge[k] = f_charge;
+            arr_f_charge.push_back(f_charge);
+            sum_charge += f_charge;
+        }
+        
+        if(sum_charge<=0)
+            continue;
+        
+        for (int k = 0; k < NZ - 1; k++)
+        {
+            int Z = Zmin + k;
+            
+            if(Z>Zhard_max)
+                break;
+            
+            if(Z<Zhard_min)
+                break;
+            
+            double f_charge = arr_f_charge[k] / sum_charge;        
+            double P = Power(lambda, a_eff, double(Z));
+
+            local_j += dnda * f_charge * f_MW * P * (con_c / (lambda * lambda)) / PIx4;
+            
+            if(isnan(local_j))
+                local_j=1e-100;
+            
+            total_weight += dnda*f_charge;            
+        }
+
+        j_ame += local_j;
+    }
+    
+    //nd*=total_weight;  
+    j_ame*=nd;
+    
+    if(isnan(nd))
+        nd=1e-100;
+    
+    if(isnan(j_ame))
+        j_ame=1e-100;
+}
+
+inline double CDustComponent::EA_eV( double a_m, int Z )
+{
+    double W  = get_work_function_eV();
+    double Ec = get_ECoul_eV( a_m );
+    return W + (double( Z ) - 0.5 ) * Ec;
+}
+
+double CDustComponent::IPv_eV( double a_m, int Z)
+{
+    double W  = get_work_function_eV();
+    double Ec = get_ECoul_eV( a_m );
+
+    if ( Z >= 0 )
+    {
+        return W + ( double(Z) + 0.5 ) * Ec;
+    }
+    else
+    {
+        // WD01: for Z < 0, IP_v(Z) = EA(Z+1)
+        return EA_eV( a_m, Z + 1);
+    }
+}
+
+double CDustComponent::Emin_eV( double a_m, int Z )
+{
+    if ( Z >= -1 ) return 0.0;
+
+    double m_to_AA = 1.0e10;
+    double zprime = static_cast<double>( abs( Z + 1 ) );
+    double nu     = zprime;
+    double theta  = nu / ( 1.0 + ( 1.0 / sqrt( nu ) ) );
+    double a_AA   = a_m * m_to_AA;
+
+    double pow1 = pow( a_AA / 10.0, -0.45 );
+    double pow2 = pow( max( 1.0, zprime ), -0.26 );
+    double corr = 1.0 - 0.3 * pow1 * pow2;
+    corr = clamp_value(corr, 0.0, 1.0);
+
+    return theta * get_ECoul_eV( a_m ) * corr;
+}
+
+inline double CDustComponent::E_pet_eV( double a_m, int Z)
+{
+    if ( Z >= -1 )
+        return IPv_eV( a_m, Z);
+
+    return IPv_eV(a_m, Z) + Emin_eV(a_m, Z);
+}
+
+// WD01 2.3.3
+inline double CDustComponent::E_pdt_eV( double a_m, int Z)
+{        
+    return EA_eV( a_m, Z + 1) + Emin_eV( a_m, Z );
+}
+
+inline double CDustComponent::get_tau( double a, double T, double qabs )
+{
+    return ( (PIx4 * con_epsilon_0) * a * con_kB * T ) / ( qabs * qabs );
+}
+
+inline double CDustComponent::get_nu( int Z, double q )
+{
+    return ( double( Z ) * con_e ) / q;
+}
+
+inline double CDustComponent::get_ECoul_eV(double a_eff)
+{
+    double val = ( con_e * con_e ) / ( (PIx4 * con_epsilon_0) * a_eff );
+    return val * con_J_to_eV;
+}
+
+inline double CDustComponent::Jtilde_0( double tau )
+{
+    return 1.0 + sqrt( PI / ( 2.0 * tau ) );
+}
+
+double CDustComponent::Jtilde_neg( double tau, double nu )
+{
+    // attractive (nu < 0)
+    double denom = tau - 2.0 * nu;
+    if ( denom <= 0.0 ) return 0.0;
+
+    double term1 = 1.0 - ( nu / tau );
+    double term2 = 1.0 + sqrt( 2.0 / denom );
+    return term1 * term2;
+}
+
+double CDustComponent::Jtilde_pos( double tau, double nu )
+{
+    // repulsive (nu > 0)
+    double inner = 1.0 / ( 4.0 * tau + 3.0 * nu );
+    double root  = 0.0;
+    if ( inner > 0.0 )
+    {
+        root = sqrt( inner );
+    }
+
+    double theta = 0.0;
+    if ( nu > 0.0 )
+    {
+        double sq = sqrt( nu );
+        double denom = 1.0 + ( 1.0 / sq );
+        theta = nu / denom;
+    }
+
+    double pref = ( 1.0 + root );
+    pref = pref * pref;
+
+    double result = pref * exp( -theta / tau );
+    return result;
+}
+
+inline double CDustComponent::Jtilde( double tau, double nu )
+{
+    if ( nu < 0.0 ) return Jtilde_neg( tau, nu );
+    if ( nu == 0.0 ) return Jtilde_0 ( tau );
+    return Jtilde_pos( tau, nu );
+}
+
+
+inline double CDustComponent::get_work_function_eV()
+{
+    return nano_W;
+}
+
+inline double CDustComponent::clamp_value( double x, double a, double b )
+{
+    if ( x < a ) return a;
+    if ( x > b ) return b;
+    return x;
+}
+
+inline int CDustComponent::findIndex(double a) const
+{
+    if(a<=nano_arr_a_eff[0])
+        return 0;
+
+    if(a>=nano_arr_a_eff[nano_Na-1])
+        return nano_Na - 2;
+
+    int low = 0;
+    int high = nano_Na - 2;
+
+    while (low <= high)
+    {
+        int mid = (low + high) / 2;
+
+        if(nano_arr_a_eff[mid] <= a && a < nano_arr_a_eff[mid + 1])
+        {
+            return mid;
+        }
+        else if(a < nano_arr_a_eff[mid])
+        {
+            high = mid - 1;
+        }
+        else
+        {
+            low = mid + 1;
+        }
+    }
+
+    return nano_Na - 2;
+}
+
+void CDustComponent::print_distribution()
+{
+    /*for(int iZ=tot_Zmin; iZ<=tot_Zmax; iZ++)
+    {
+        for(int ia=0; ia<Na; ia++)
+        {
+            double mu = arrZmean[ia];
+            double sigma = arrZsig[ia];
+            double f = gaussian_value( mu, sigma, iZ);
+
+            arr_sum[ia]+=f;
+        }
+    }
+
+    cout << "\n\n\n";
+
+    for(int iZ=tot_Zmin; iZ<=tot_Zmax; iZ++)
+    {
+        cout << iZ << "\t";
+        for(int ia=0; ia<Na; ia++)
+        {
+            double mu = arrZmean[ia];
+            double sigma = arrZsig[ia];
+            double f = gaussian_value( mu, sigma, iZ)/arr_sum[ia];
+
+            cout << f << "\t";
+        }
+
+        cout << "\n";
+    }
+
+    cout << "\n\n\n";
+
+    for(int ia=0; ia < Na; ia++)
+    {
+        cout << arr_a_eff[ia] << " " << arr_dnda[ia] << " " << arrZmean[ia] << " " << arrZsig[ia] << " " << arrTrot[ia] << "\n";        
+    }
+    cout << "\n";*/
+}
+
+inline double CDustComponent::g1(double x)
+{
+    if(x<1)
+        return 1-x;
+
+    return exp(-x);    
+}
+
+inline double CDustComponent::g2(double x)
+{
+    if(x<1)
+        return 1-x+0.5*x*x;
+
+    return exp(-x);    
+}
+
+double CDustComponent::Gamma_photoelectric(const CGridBasic * grid, const cell_basic & cell, int Zgr, double a_eff)
+{
+    const double area = PI * a_eff * a_eff;
+
+    double I = 0;
+    double EpetJ = E_pet_eV(a_eff, Zgr) * con_eV_to_J;               // WD01 threshold in J
+
+    for (int iw = 1; iw < wavelength_list.size(); iw++)
+    {
+        double lp   = wavelength_list[iw];
+        double up  = get_u_lam(grid,cell,iw); // J m^-4 (energy density per wavelength)
+
+        double E_eVp  = (con_h * con_c / lp) * con_J_to_eV;      // photon energy in eV
+        double Yp     = get_Yield(E_eVp, a_eff, Zgr); // band + (placeholders for inner/Auger/secondary)
+        double Qp     = Q_abs_min[iw];
+        double Ekinp  = (con_h * con_c / lp) - EpetJ;       // mean kinetic energy (simple approx)
+
+        double ln   = wavelength_list[iw-1];
+        double un  = get_u_lam(grid,cell,iw-1);
+
+        double E_eVn  = (con_h * con_c / ln) * con_J_to_eV;
+        double Yn     = get_Yield(E_eVn, a_eff, Zgr);
+        double Qn     = Q_abs_min[iw];
+        double Ekinn  = (con_h * con_c / ln) - EpetJ;               
+
+        if(Ekinp<0)
+            Ekinp=0;
+
+        if(Ekinn<0)
+            Ekinn=0;
+
+        double yp = Qp * up * lp * Yp * Ekinp;
+        double yn = Qn * un * ln * Yn * Ekinn;
+
+        I += (lp - ln) * yn + 0.5 * (lp - ln) * (yp - yn);
+    }
+
+    double Gamma_pe = (area / con_h) * I; // [W]
+
+    if(Gamma_pe<0)
+        Gamma_pe=0;
+
+    return Gamma_pe;
+}
+
+void CDustComponent::calc_FGpe(const CGridBasic * grid, const cell_basic & cell, double & Fpe, double & Gpe, double a_eff, double n_gas, double T_gas, double Zgr)
+{
+    Fpe = 0.0;
+    Gpe = 0.0;
+
+    // 1) photoelectron number rate and heating power
+    const double Jpe = J_photoelectric(grid, cell, Zgr, a_eff);        // s^-1
+    const double GpeW = Gamma_photoelectric(grid, cell, Zgr, a_eff);   // W
+
+    const double mH = con_m_p;
+    const double vF = sqrt( 2.0 * con_kB * T_gas / (PI * mH) );
+    const double denomF = 2.0 * PI * a_eff * a_eff * n_gas * vF;
+
+    const double coulombJ = ( (double(Zgr) + 1.0) * con_e * con_e ) / ( 4.0 * PI * con_epsilon_0 * a_eff ); // J = e Φ_g
+
+    const double vG = sqrt( 8.0 * PI * mH * con_kB * T_gas );                // sqrt(8 π m_H k T)
+    const double denomG = 4.0 * n_gas * a_eff * a_eff * con_kB * T_gas * vG;
+
+    // 3) assemble
+    if (denomF > 0.0)
+        Fpe = (con_m_e / mH) * (Jpe / denomF);
+
+    if (denomG > 0.0)
+        Gpe = con_m_e * ( GpeW + coulombJ * Jpe ) / denomG;
+
+    if (Fpe < 0.0) Fpe = 0.0;
+    if (Gpe < 0.0) Gpe = 0.0;
+}
+
+// ======================================================
+// IR emission recoil: F_IR, G_IR  (SI, wavelength form)
+// ======================================================
+void CDustComponent::calc_FGIR(const CGridBasic * grid, const cell_basic & cell, double & FIR, double & GIR, double a_eff, double n_gas, double T_gas, double T_dust)
+{
+    FIR = 0.0;
+    GIR = 0.0;
+
+    // thermal speed of neutral H (SpDust convention)
+    double vth = sqrt( 8.0 * con_kB * T_gas / (PI * con_m_p) );
+
+    double IF = 0;//trapz_arr(arr_lambda, iF.data(), N_lambda);
+    double IG = 0;//trapz_arr(arr_lambda, iG.data(), N_lambda);
+
+    for (int iw = 1; iw < wavelength_list.size(); ++iw)
+    {
+        double lp = wavelength_list[iw];        // [m]
+
+        double Qp  = Q_abs_min[iw];     // dimensionless
+        double Blp = CMathFunctions::planck(lp, T_dust);            // W m^-3 sr^-1
+        double wFp = (lp * lp) / (con_c * con_c); // λ^2 / c^2
+        double wGp = lp / con_c;                   // λ / c
+
+        double ln = wavelength_list[iw-1];
+
+        double Qn  = Q_abs_min[iw-1];
+        double Bln = CMathFunctions::planck(ln, T_dust);    
+        double wFn = (ln * ln) / (con_c * con_c); 
+        double wGn = ln / con_c;                  
+
+        double yFp = Qp * Blp * wFp;
+        double yFn = Qn * Bln * wFn;
+
+        double yGp = Qp * Blp * wGp;
+        double yGn = Qn * Bln * wGn;
+
+        IF += (lp - ln) * yFn + 0.5 * (lp - ln) * (yFp - yFn);
+        IG += (lp - ln) * yGn + 0.5 * (lp - ln) * (yGp - yGn);
+    }
+
+
+    //double tmp = 0.1 / ( n_gas * con_m_p * vth * a_eff * a_eff );
+    double tmp = 1.0 / ( n_gas * con_m_p * vth * a_eff * a_eff );
+
+    FIR = (3.0 / (2.0 * PI))            * tmp * IF;
+    GIR = (con_hq / (8.0 * PI * con_kB * T_gas)) * tmp * IG;
+}
+
+void CDustComponent::calc_FGn(double & Fn, double & Gn, double a_eff, double n_gas, double n_neu, double T_gas, double T_dust, double Zgr)
+{
+    //PhysRevA.111.012801
+    double alpha_gas = 3.75e-40; //H2
+    double epsilon_n_sq = (con_e*con_e) / (PIx4 * con_epsilon_0) * Zgr * Zgr * alpha_gas /(2*pow(a_eff,4)*con_kB*T_gas);
+    double epsilon_e_sq = (con_e*con_e) / (PIx4 * con_epsilon_0) * Zgr * Zgr * alpha_gas /(2*pow(a_eff,4)*con_kB*T_dust);
+
+    double epsilon_n = sqrt(epsilon_n_sq);
+    double epsilon_e = sqrt(epsilon_e_sq);
+
+    double T_ev=T_dust;
+
+    double tmp1 = exp(-epsilon_n_sq)+2*epsilon_n_sq;
+    double tmp2 = T_ev / T_gas *(exp(-epsilon_n_sq) + PIsq * epsilon_n*erf(epsilon_n) ) / (exp(-epsilon_e_sq) + PIsq * epsilon_e*erf(epsilon_e) );
+    double tmp3 = exp(-epsilon_e_sq)+2*epsilon_e_sq;
+
+    Fn =  n_neu / n_gas * sqrt(mu_mol) * (exp(-epsilon_n_sq) + PIsq * epsilon_n*erf(epsilon_n)  );
+
+    Gn = n_neu / (2*n_gas) * sqrt(mu_mol)* (tmp1 + tmp2*tmp3) ;
+}
+
+void CDustComponent::calc_FGi(double & Fi, double & Gi, double a_eff, double n_gas, double n_ion, double T_gas, double T_dust, double Z_gas, double Zgr)
+{
+    double Gin, Gev;
+    double alpha_gas = 3.75e-40; //H2
+    
+    if(Zgr*Z_gas!=0)
+    {
+        double psi = (con_e*con_e) / (PIx4 * con_epsilon_0) * Zgr*Z_gas / (a_eff*con_kB*T_gas);
+
+
+        double epsilon_i_sq = (con_e*con_e) / (PIx4 * con_epsilon_0) * alpha_gas /(2*pow(a_eff,4)*con_kB*T_dust);
+        double epsilon_i = sqrt(epsilon_i_sq);
+
+        double tmp1 = exp( -Zgr*Zgr*epsilon_i_sq)+2*Zgr*Zgr*epsilon_i_sq;
+        double tmp2 = exp( -Zgr*Zgr*epsilon_i_sq)+abs(Zgr)*PIsq*epsilon_i*erf(abs(Zgr)*epsilon_i);
+
+        Fi = n_ion / n_gas * sqrt(mu_mol) * g1(psi);
+
+        double T_ev=T_dust;
+
+        Gin= n_ion / (2*n_gas) *sqrt(mu_mol)  * g2(psi);
+        Gev= Fi * ( T_ev/(2*T_gas) ) * tmp1/tmp2;
+
+        Gi = Gin + Gev;
+    }
+    else
+    {
+        double phi_sq = (con_e*con_e) / (PIx4 * con_epsilon_0) * 2*Z_gas*Z_gas / (a_eff*con_kB*T_gas);
+        double phi = sqrt(phi_sq);
+
+        Fi =  n_ion / n_gas * sqrt(mu_mol) * (1+PIsq/2 * phi);
+        Gin= n_ion / (2*n_gas) * sqrt(mu_mol) * (1+ 3*PIsq/4*phi+0.5*phi_sq);
+        Gev = T_dust/(2*T_gas)*Fi;
+        Gi = Gin + Gev;
+    }
+}
+
+double CDustComponent::calc_mu_dipole(double Zgr, double a_eff)
+{
+    double epsilon = 0.1;
+    //double rho = rho_sil;
+    //double m=24*con_m_p;
+    //double beta = beta_sil;
+
+    /*if(carbon)
+    {
+        rho = rho_carb;
+        m=12*con_m_p;
+        beta = beta_carb;
+    }*/
+
+    double N=PIx4 * material_density * pow(a_eff,3) / nano_m0;
+    double mu_int = nano_beta_mu * sqrt(N);
+    double mu_charge = epsilon*Zgr*con_e*a_eff;       
+
+    double mu = sqrt(mu_int*mu_int + mu_charge*mu_charge);
+
+    return mu;
+}
+
+void CDustComponent::calc_FGp(double & Fp, double & Gp, double a_eff, double n_gas, double n_ion, double n_el, double T_gas, double Z_gas, double Zgr)
+{
+    //double xi = 1.0; //for spheres DL98 Eq. A4
+    double I = 8./15. * PI * material_density * pow(a_eff,5);//for spheres
+    double v_th = sqrt(2*con_kB*T_gas/(mu_mol * con_m_p));
+    double omega_th = sqrt(2*con_kB*T_gas/I);
+
+    double lambda_D = sqrt( (con_epsilon_0 * con_kB) * T_gas / (n_el * con_e* con_e)  );
+    double b_omega = v_th / omega_th;
+    double b_q = I * v_th / con_hq; 
+
+    double mu_dip = calc_mu_dipole(Zgr, a_eff);
+    double tmp1 = n_ion / n_gas * sqrt(mu_mol) * (con_e*con_e) / (PIx4 * con_epsilon_0) * 2 * Z_gas*Z_gas / (3*pow(a_eff,4)*pow(con_kB*T_gas,2)) *mu_dip*mu_dip;
+
+    // <cos^2> = 1/3
+    double tmp2 = log(b_omega / a_eff)+1.0/3.0*log(min(b_q,lambda_D)/b_omega);
+
+    Gp = tmp1*tmp2;
+
+    Fp = Gp;        
+}
+
+inline double CDustComponent::calc_tau_H(double a_eff, double n_gas, double T_gas)
+{
+    /*double rho=rho_sil;
+
+    if(carbon)
+        rho=rho_carb;*/
+
+    double vth=sqrt(8*con_kB*T_gas / (PI*con_m_p));
+    double tau_H = 3. / (4.*PIsq) * material_density*a_eff /(n_gas*con_m_p)/vth;
+
+    return tau_H;
+}
+
+inline double CDustComponent::calc_tau_ed(double a_eff, double T_gas, double Zgr)
+{
+    /*double rho=rho_sil;
+
+    if(carbon)
+        rho=rho_carb;*/
+
+    double I = 8./15. * PI * material_density * pow(a_eff,5);//for spheres
+    double mu_dip = calc_mu_dipole(Zgr, a_eff);
+
+    // is it I or I*I ?
+    double tau_ed = 3.*I*pow(con_c,3)*con_epsilon_0 / (4.*mu_dip*mu_dip * con_kB *T_gas);
+
+    return tau_ed;
+}
+
+inline double CDustComponent::Power(double lambda, double a_eff, double Z)
+{
+    double mu_dip=calc_mu_dipole(Z, a_eff);
+    double res=mu_dip*mu_dip / (18*PI*con_epsilon_0*con_c*con_c*con_c)*pow(PIx2*con_c/lambda,4.0);
+
+    return res;    
+}
+
+inline double CDustComponent::fMW(double lambda, double Trot, double a_eff)
+{
+    /*double rho=rho_sil;
+
+    if(carbon)
+        rho=rho_carb;*/
+
+    double I = 8./15. * PI * material_density * pow(a_eff,5);//for spheres
+    double tmp1 = I / (2 * con_kB * Trot);
+    double tmp2 = (PIx2 * con_c) / lambda;
+    double res=4.0 / PIsq;
+
+    res *= pow( tmp1 , 3./2.);
+    res *= tmp2*tmp2;
+    res *= exp(-tmp1*tmp2*tmp2);
+
+    return res;
+}
+
+inline double CDustComponent::interpolate(double x, double x1, double x2, double y1, double y2)
+{
+    double y = y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+    return y;
+}
+
+double CDustComponent::j_lambda_inter(const CGridBasic * grid, const cell_basic & cell, double lambda)
+{
+    double jl=0;
+
+    for(int ia = 0; ia < nano_Nla; ia++)
+    {
+        double Zmin=0, Zmax=0;
+        double sum=0;
+        double tmp_j=0;
+
+        double a_eff = nano_arr_a_eff_large[ia];
+        
+        double o_cr = 2. / a_eff * sqrt(nano_Smax / material_density);
+        double l_cr = PIx2 * con_c / o_cr;
+        
+        if(lambda<l_cr)
+            continue;
+
+        int i_ame = findIndex(a_eff);
+
+        double a_lower = nano_arr_a_eff[i_ame];
+        double Zsig_lower = grid->getAMEZgr(cell,i_ame);
+        double Zmean_lower = grid->getAMEZs(cell,i_ame);
+        double Trot_lower = grid->getAMETrot(cell,i_ame);
+
+        double a_upper = nano_arr_a_eff[i_ame+1];
+        double Zsig_upper = grid->getAMEZgr(cell,i_ame+1);
+        double Zmean_upper = grid->getAMEZs(cell,i_ame+1);
+        double Trot_upper = grid->getAMETrot(cell,i_ame+1);
+
+        double Zsig = interpolate(a_eff, a_lower, a_upper, Zsig_lower, Zsig_upper);
+        double Zmean = interpolate(a_eff, a_lower, a_upper, Zmean_lower, Zmean_upper);
+        double Trot = interpolate(a_eff, a_lower, a_upper, Trot_lower, Trot_upper);
+
+        double f_MW = fMW(lambda, Trot, a_eff);
+
+        if(f_MW<1e-200)
+            continue;
+
+        gaussian_bounds(Zmean,Zsig,1e-6,Zmin,Zmax);
+
+        double dnda = nano_arr_dnda_large[ia];
+
+        for(int Z=int(Zmin); Z<=int(Zmax);Z++)
+        {
+            double f_charge=gaussian_value(Zmean,Zsig,Z);        
+            double P = Power(lambda, a_eff, double(Z));
+
+            tmp_j += dnda * f_charge * f_MW * P * (con_c / (lambda * lambda)) / PIx4;
+            sum += f_charge;
+        }
+
+        if(sum>0)
+            jl += tmp_j/sum;        
+    }
+
+    return jl;
+}
+
+inline void CDustComponent::gaussian_bounds(double mu, double sigma, double rel, double & x_min, double & x_max)
+{
+    // |x - mu| = sigma * sqrt(-2 ln r)
+    double delta = sigma * sqrt(-2.0 * log(rel));
+    x_min = double(int(mu - delta-1.5));
+    x_max = double(int(mu + delta+1.5));
+}
+

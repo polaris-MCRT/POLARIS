@@ -174,6 +174,8 @@ public:
     static double sgn(double x);
 
     static double sgn(int x);
+    
+    static double sgn(int64_t x);
 
     static Matrix2D getRotationMatrix(double cos_phi,
                                              double sin_phi,

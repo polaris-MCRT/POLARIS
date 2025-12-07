@@ -95,6 +95,8 @@ public:
     bool initiateSyncRaytrace(parameters & param);
     
     bool initiateFreeFreeRaytrace(parameters & param);
+    
+    bool initiateDustAMERaytrace(parameters & param);
 
     bool initiateLineRaytrace(parameters & param); 
 
@@ -125,14 +127,14 @@ public:
     bool calcPolMapsViaMC();
 
     // Dust emission
-    bool calcPolMapsViaRaytracing(parameters & param);
+    bool calcDustPolMapsViaRaytracing(parameters & param);
 
     void getDustPixelIntensity(CSourceBasic * tmp_source,
                                double cx,
                                double cy,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int64_t pos_id);
     void getDustIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
                           double cx,
@@ -143,6 +145,26 @@ public:
 
     void calcStellarEmission(uint i_det, CRandomGenerator * rand_gen);
 
+    
+    //ame emission 
+    bool calcDustAMEMapsViaRaytracing(parameters & param);
+    
+    void getDustAMEPixelIntensity(CSourceBasic * tmp_source,
+                               double cx,
+                               double cy,
+                               uint i_det,
+                               uint subpixel_lvl,
+                               int64_t pos_id);
+    
+    void getDustAMEIntensity(photon_package * pp1,
+                          CSourceBasic * tmp_source,
+                          double cx,
+                          double cy,
+                          uint i_det,
+                          uint subpixel_lvl);
+                        
+    void rayThroughCellDustAME(photon_package * pp1, uint i_det, uint nr_used_wavelengths);
+    
     //free free emission 
     bool calcFreeFreeMapsViaRaytracing(parameters & param);
     
@@ -151,7 +173,7 @@ public:
                                double cy,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int64_t pos_id);
     
     void getFreeFreeIntensity(photon_package * pp1,
                           CSourceBasic * tmp_source,
@@ -170,7 +192,7 @@ public:
                                double cy,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int64_t pos_id);
     
     void getSyncIntensity(photon_package * pp1,
                           CSourceBasic * tmp_source,
@@ -192,7 +214,7 @@ public:
                                uint i_trans,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int64_t pos_id);
 
     void getOPIATEIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
@@ -221,7 +243,7 @@ public:
                                uint i_trans,
                                uint i_det,
                                uint subpixel_lvl,
-                               int pos_id);
+                               int64_t pos_id);
 
     void getLineIntensity(photon_package * pp,
                           CSourceBasic * tmp_source,
@@ -276,6 +298,8 @@ public:
     void calcStochasticHeating();
 
     void calcAlignedRadii();
+    
+    void calcAME();
 
     bool isInvalid(double val);
 

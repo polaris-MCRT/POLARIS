@@ -45,6 +45,12 @@ public:
                          dlist free_ray_detectors,
                          double _max_length,
                          string path);
+    
+    bool setDustAMEDetector(uint pos,
+                             const parameters & param,
+                             dlist ame_ray_detectors,
+                             double _max_length,
+                             string path);
 
     bool setLineDetector(uint pos,
                          const parameters & param,
@@ -68,7 +74,7 @@ public:
 
     bool getUseSubpixel(double cx, double cy, uint subpixel_lvl);
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false);
+    void addToDetector(photon_package * pp, int64_t i_pix, bool direct = false);
 
     long getNpix();
 };

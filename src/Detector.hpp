@@ -19,6 +19,7 @@ class CDetector
 public:
     CDetector()
     {
+        init();
         detector_id = -1;
 
         rot_angle1 = 0;
@@ -110,7 +111,7 @@ public:
     }
 
     // Detector for dust, synchrotron, and free free
-    // Plane detector
+    // plane detectors
     CDetector(uint _detector_id,
               string _path,
               uint _bins_x,
@@ -126,8 +127,10 @@ public:
               uint _nr_spectral_bins,
               uint _nr_extra,
               uint _special_param,
-              uint _alignment = ALIG_RND)
+              uint _alignment,
+              uint _fits_map_IDs)
     {
+        init();
         detector_id = _detector_id;
 
         rot_angle1 = 0;
@@ -155,6 +158,7 @@ public:
         i_trans = 0;
         cos_acceptance_angle = 0;
         alignment = _alignment;
+        fits_map_IDs = _fits_map_IDs;
 
         distance = _distance;
 
@@ -178,38 +182,78 @@ public:
         sedT = new double[nr_extra * nr_spectral_bins];
         sedS = new double[nr_extra * nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
-        matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixI = 0;
+        matrixQ = 0;
+        matrixU = 0;
+        matrixV = 0;
         
-        matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixT = 0;
         
-        matrixS1 = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixS1 = 0;
         
         matrixS2 = 0;
         matrixS3 = 0;
         matrixS4 = 0;
         
-        if(special_param==3)
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_I) == MAP_ID_I)
+            matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_QU) == MAP_ID_QU)
         {
-            matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
-            matrixS3 = new Matrix2D[nr_extra * nr_spectral_bins];
+            if(alignment!=ALIG_RND)
+            {
+                matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];        
+                matrixU = new Matrix2D[nr_extra * nr_spectral_bins];        
+            }
         }
         
-
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_V) == MAP_ID_V)
+        {   
+            if(alignment!=ALIG_RND)
+            {
+                matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+        }
         
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_TAU) == MAP_ID_TAU)
+            matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_N) == MAP_ID_N)
+        {
+            matrixS1 = new Matrix2D[nr_extra * nr_spectral_bins];
+            
+            if(special_param==2)
+            {
+                matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+            
+            if(special_param==3)
+            {
+                matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
+                matrixS3 = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+        }
+                
         N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
 
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
-                matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
-                matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                if(matrixI!=0)
+                    matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixQ!=0)
+                    matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixU!=0)
+                    matrixU[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixV!=0)
+                    matrixV[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                
+                if(matrixT!=0)
+                    matrixT[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 
                 if(matrixS1!=0)
                     matrixS1[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
@@ -235,9 +279,9 @@ public:
         }
     }
 
-    // Spherical dust detector
+    // Healpix dust detector
     CDetector(string _path,
-              uint _bins,
+              int64_t _bins,
               uint _id,
               Vector3D obs_pos,
               double _sidelength,
@@ -248,8 +292,10 @@ public:
               uint _nr_extra,
               uint _special_param,
               uint _alignment,
-              bool compact)
+              uint _fits_map_IDs,
+              uint _heal_type)
     {
+        init();
         detector_id = DET_SPHER;
 
         rot_angle1 = 0;
@@ -269,6 +315,8 @@ public:
 
         sidelength_x = _sidelength;
         sidelength_y = _sidelength;
+        
+        fits_map_IDs=_fits_map_IDs;
 
         map_shift_x = 0;
         map_shift_y = 0;
@@ -300,47 +348,51 @@ public:
         sedT = new double[nr_extra * nr_spectral_bins];
         sedS = new double[nr_extra * nr_spectral_bins];
 
-        matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
+        matrixI = 0;
+        matrixQ = 0;
+        matrixU = 0;
+        matrixV = 0;
+        matrixT = 0;
+
+        matrixS1 = 0;
+
+        N_photon = 0;
         
         matrixS2 = 0;
         matrixS3 = 0;
         matrixS4 = 0;
         
-        if(compact)
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_I) == MAP_ID_I)
+            matrixI = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_QU) == MAP_ID_QU)
         {
-            matrixQ = 0;
-            matrixU = 0;
-            matrixV = 0;
-            matrixT = 0;
-            
-            matrixS1 = 0;
-
-            N_photon = 0;
+            if(alignment!=ALIG_RND)
+            {
+                matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];        
+                matrixU = new Matrix2D[nr_extra * nr_spectral_bins];        
+            }
         }
-        else
-        {
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_V) == MAP_ID_V)
+        {   
+            if(alignment!=ALIG_RND)
+            {
+                matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
+            }
+        }
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_TAU) == MAP_ID_TAU)
             matrixT = new Matrix2D[nr_extra * nr_spectral_bins];
+        
+        if((fits_map_IDs == 0 ) || (fits_map_IDs & MAP_ID_N) == MAP_ID_N)
+        {
             matrixS1 = new Matrix2D[nr_extra * nr_spectral_bins];
             
             if(special_param==3)
             {
                 matrixS2 = new Matrix2D[nr_extra * nr_spectral_bins];
                 matrixS3 = new Matrix2D[nr_extra * nr_spectral_bins];
-            }
-            
-            N_photon = new Matrix2D[nr_extra * nr_spectral_bins];
-            
-            if(alignment!=ALIG_RND)
-            {
-                matrixQ = new Matrix2D[nr_extra * nr_spectral_bins];
-                matrixU = new Matrix2D[nr_extra * nr_spectral_bins];
-                matrixV = new Matrix2D[nr_extra * nr_spectral_bins];
-            }
-            else
-            {
-                matrixQ = 0;
-                matrixU = 0;
-                matrixV = 0;
             }
         }
         
@@ -349,7 +401,8 @@ public:
             for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
             {
                 
-                matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
+                if(matrixI!=0)
+                    matrixI[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
                 
                 if(matrixQ!=0)
                     matrixQ[i_spectral + i_extra * nr_spectral_bins].resize(bins_x, bins_y);
@@ -407,6 +460,7 @@ public:
               double _max_velocity,
               bool hasZeeman)
     {
+        init();
         detector_id = _detector_id;
 
         rot_angle1 = 0;
@@ -503,6 +557,7 @@ public:
               double _max_velocity,
               bool hasZeeman)
     {
+        init();
         detector_id = DET_SPHER;
 
         rot_angle1 = 0;
@@ -709,6 +764,8 @@ public:
     double getDistance();
 
     double getAcceptanceAngle();
+    
+    StokesVector getStokesVector(int64_t i_pix, int64_t pos);
 
     Vector3D getEX();
 
@@ -740,14 +797,19 @@ public:
     double calc_VOV(uint i_spectral, uint x, uint y, uint quantity);
 
     bool writeMap(uint nr, uint results_type);
+    
+    bool writeProjMap(uint nr, uint results_type);
 
     bool writeMapStats(uint nr, uint results_type);
 
     bool writeSed(uint nr, uint results_type);
 
-    bool writeHealMaps(uint nr, uint results_type);
-    bool writeHealMapsTiny(uint nr, uint results_type);
+    bool writeDustHealMaps(uint nr, ilist64 & heal_index, long npix, uint results_type);
+    bool writeDustHealMapsTiny(uint nr, ilist64 & heal_index, long npix, uint results_type);
     
+    bool writeDustAMEMap(uint nr);
+    bool writeDustAMEHealMap(uint nr);
+        
     bool writeFreeFreeMap(uint nr);
     bool writeFreeFreeHealMap(uint nr);
 
@@ -807,6 +869,8 @@ public:
     string getDetectorGridDescription();
 
     string getAlignmentDescription();
+    
+    void init();
 
 private:
     double cos_acceptance_angle;
@@ -821,15 +885,16 @@ private:
     Vector3D obs_pos, obs_vel;
     string path;
     uint ID, detector_id;
-    uint bins_x, bins_y;
+    int64_t bins_x, bins_y;
     uint special_param;
-    uint max_cells;
+    int64_t max_cells;
     uint nr_spectral_bins;
     uint nr_velocity_channels;
     uint i_trans;
     uint nr_extra;
     uint alignment;
     uint processing_method;
+    uint fits_map_IDs;
     
     //Stokes components
     Matrix2D *matrixI, *matrixQ, *matrixU, *matrixV;

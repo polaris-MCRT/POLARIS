@@ -1148,6 +1148,14 @@ double CMathFunctions::sgn(int x)
         return 1.0;
 }
 
+double CMathFunctions::sgn(int64_t x)
+{
+    if(x < 0)
+        return -1.0;
+    else
+        return 1.0;
+}
+
 Matrix2D CMathFunctions::getRotationMatrix(double cos_phi,
                                             double sin_phi,
                                             double cos_theta,

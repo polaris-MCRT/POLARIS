@@ -4,12 +4,14 @@
 ************************************************************************************/
 
 #include <cmath>
+#include <set>
 #include "DustMixture.hpp"
 #include "CommandParser.hpp"
 #include "GridBasic.hpp"
 #include "MathFunctions.hpp"
 #include "Typedefs.hpp"
 #include "Parameters.hpp"
+
 
 bool CDustMixture::createDustMixtures(parameters & param, string path_data, string path_plot)
 {
@@ -23,21 +25,47 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
         else
             return false;
     }
+    
+    dlist mass_fractions = param.getDustMassFraction();
 
     // dust_choices_to_index takes the different dust_choices and gives the
     // index of the dust mixture (from 0, 3, 5 -> 0, 1, 2)
-    dust_choices_to_index.resize(param.getMaxDustComponentChoice() + 1);
+    //dust_choices_to_index.resize(param.getMaxDustComponentChoice() + 1);
 
-    // dust_choices includes all set dust_i_mixture values (example: 1, 3, 8, 66)
-    dust_choices = param.getDustComponentChoices();
+    // dust_choices includes all set dust_i_mixture values (strictly set to 1, 2, 3, ...)
+    uilist dust_choices = param.getDustComponentChoices();
+    
+    unique_IDs = dust_choices;
+    unique_IDs.erase(unique(unique_IDs.begin(), unique_IDs.end()), unique_IDs.end());
 
     // Connect the dust_choices with the id of the final dust mixture
-    uint nr_of_dust_mixtures = dust_choices.size();
-    for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
+    uint nr_of_dust_mixtures = unique_IDs.size();
+    
+    if(mass_fractions.size()!=nr_of_dust_mixtures)
+    {
+        cout << ERROR_LINE << "Number of dust mass fractions ( " << mass_fractions.size()
+                << " )" << "does not math the number of dust mixtures ( " 
+                << nr_of_dust_mixtures <<" )  \n'" << flush;
+    
+        return false;
+    }
+    
+    /*for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
         for(uint dust_choice = 0; dust_choice <= param.getMaxDustComponentChoice(); dust_choice++)
             if(dust_choices[i_mixture] == dust_choice)
-                dust_choices_to_index[dust_choice] = i_mixture;
-
+                dust_choices_to_index[dust_choice] = i_mixture;*/
+    
+    for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
+    {
+        if(unique_IDs[i_mixture] != i_mixture+1)
+        {
+            cout << ERROR_LINE << "Dust mixture IDs need to start at ID 1 and be given in ascending order!\n";
+    
+            return false;
+        }
+    }
+    
+    
     // Get number of dust mixtures and read the parameters files of their components
     mixed_component = new CDustComponent[nr_of_dust_mixtures];
     for(uint i_mixture = 0; i_mixture < nr_of_dust_mixtures; i_mixture++)
@@ -47,16 +75,18 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
         uilist unique_components;
 
         // Get the "dust choice" of the current dust component
-        uint current_dust_choice = dust_choices[i_mixture];
+        uint current_dust_choice = unique_IDs[i_mixture];
 
         // Combine in this loop only dust components which have the same "dust_choice"
         nr_of_components = 0;
         for(uint i_comp = 0; i_comp < nr_of_total_components; i_comp++)
-            if(param.getDustChoiceFromComponentId(i_comp) == current_dust_choice)
+        {
+            if(dust_choices[i_comp] == current_dust_choice)
             {
                 nr_of_components++;
                 unique_components.push_back(i_comp);
             }
+        }
 
         // Init the minimum and maximum grain size limits of the dust mixture
         double a_min_mixture = 1e200, a_max_mixture = 0;
@@ -72,10 +102,8 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             double a_max = param.getSizeMax(dust_component_choice);
 
             // Use the highest a_max and lowest a_min of the components
-            if(a_min_mixture > a_min)
-                a_min_mixture = a_min;
-            if(a_max_mixture < a_max)
-                a_max_mixture = a_max;
+            a_min_mixture = min(a_min, a_min_mixture);
+            a_max_mixture = max(a_max, a_max_mixture);
         }
 
         // Set the minimum and maximum grain size limits of the dust mixture
@@ -95,6 +123,13 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             fraction_sum += fraction;
         }
 
+        if(fraction_sum!=1)
+        {
+            cout << CLR_LINE;
+            cout << ERROR_LINE << "Fractions of dust mixture ID " << unique_IDs[i_mixture] << " does not add up to unity! \n" << flush;
+            return false;
+        }
+        
         // Init single components pointer array
         single_component = new CDustComponent[nr_of_components];
         
@@ -104,24 +139,24 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             uint dust_component_choice = unique_components[i_comp];
 
             // Set the ID and number of the components
-            setIDs(single_component[i_comp], i_comp, nr_of_components, i_mixture, nr_of_dust_mixtures);
+            setIDs(single_component[i_comp], current_dust_choice, i_comp, nr_of_components, i_mixture, nr_of_dust_mixtures);
 
             // Get dust component fraction of mixture
-            double fraction = param.getDustFraction(dust_component_choice);
+            double fraction = mass_fractions[i_mixture]*param.getDustFraction(dust_component_choice);
 
             // Set mass fractions of each
-            if(param.getIndividualDustMassFractions())
-            {
-                single_component[i_comp].setIndividualDustMassFractions(true);
+            //if(param.getIndividualDustMassFractions())
+            //{
+                //single_component[i_comp].setIndividualDustMassFractions(true);
                 single_component[i_comp].setDustMassFraction(fraction);
-                single_component[i_comp].setFraction(fraction / fraction_sum);
-            }
+                //single_component[i_comp].setFraction(fraction / fraction_sum);
+            /*}
             else
             {
                 single_component[i_comp].setDustMassFraction(fraction * param.getDustMassFraction() /
                                                              fraction_sum);
                 single_component[i_comp].setFraction(fraction / fraction_sum);
-            }
+            }*/
 
             // Get size distribution parameters
             string size_keyword = param.getDustSizeKeyword(dust_component_choice);
@@ -183,8 +218,14 @@ bool CDustMixture::createDustMixtures(parameters & param, string path_data, stri
             }
         }
 
+        /*setIDs(CDustComponent & component,
+                uint comp_id, uint i_comp,
+                uint nr_of_components,
+                uint i_mixture,
+                uint nr_of_mixtures);*/
+        
         // Set the ID and number of the mixtures
-        setIDs(mixed_component[i_mixture], 0, nr_of_components, i_mixture, nr_of_dust_mixtures);
+        setIDs(mixed_component[i_mixture],current_dust_choice , 0, nr_of_components, i_mixture, nr_of_dust_mixtures);
 
         // Mix components together
         if(!mixComponents(param, i_mixture))
@@ -286,11 +327,11 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         if(param.getAligRAT())
         {
             cout << "- Alignment radii         : ";
-            if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+            if(grid->hasDustChoiceID() && grid->getNrAlignedRadii() == 1)
                 cout << "found a common radius for all dust mixtures" << endl;
-            else if(grid->useDustChoice() && grid->getNrAlignedRadii() == 1)
+            else if(grid->hasDustChoiceID() && grid->getNrAlignedRadii() == 1)
                 cout << "found a common radius for all dust mixtures and density dist." << endl;
-            else if(!grid->useDustChoice() && grid->getNrAlignedRadii() == getNrOfMixtures())
+            else if(!grid->hasDustChoiceID() && grid->getNrAlignedRadii() == getNrOfMixtures())
                 cout << "found a separate radius for each density distribution" << endl;
             else
                 cout << ERROR_LINE << "This should not happen!" << endl;
@@ -429,7 +470,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
     {
         cout << SEP_LINE;
         cout << "Dust mixture " << (i_mixture + 1) << "/" << getNrOfMixtures() << " (Choice ID "
-             << param.getDustChoiceFromMixtureId(i_mixture) << ")" << endl;
+             << unique_IDs[i_mixture] << ")" << endl;
 
         cout << "- Phase function          : " << getPhaseFunctionStr(i_mixture) << endl;
         cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
@@ -443,6 +484,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         }
 
         double total_dust_mass = 0;
+        
         for(ulong i_cell = 0; i_cell < grid->getMaxDataCells(); i_cell++)
         {
             cell_basic * cell = grid->getCellFromIndex(i_cell);
@@ -455,8 +497,8 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         if(marked_cells>0)
             cout << "- Nr. of sub. marker      : " << marked_cells << endl;
         
-        cout << "- Total mass              : " << total_dust_mass / M_sun << " [M_sun], " << total_dust_mass
-             << " [kg]" << endl;
+        cout << "- Total mass              : " << total_dust_mass / M_sun 
+             << " [M_sun], " << total_dust_mass << " [kg]" << endl;
         cout << mixed_component[i_mixture].getStringID();
     }
     cout << SEP_LINE;
@@ -473,6 +515,8 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 
 bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
 {
+    uint nr_nano_frains = param.getNrOfNanoGrains();
+        
     // If only one component is defined for this mixture -> change only pointer
     if(nr_of_components == 1)
     {
@@ -487,6 +531,18 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
 
         // Create StringID for print parameter
         mixed_component[i_mixture].createStringID(&mixed_component[i_mixture]);
+        
+        if(nr_nano_frains>0)
+        {
+            uint mix_id=mixed_component[i_mixture].getMixtureID();
+            
+            dlist pr = param.findNanoGrainList(mix_id);
+            
+            if(pr.size() == NR_OF_NANO_GRAIN_PRAM)
+            {
+                mixed_component[i_mixture].initNanoGrains(pr);
+            }        
+        }
 
         // Pre-calculate various quantities
         if(!preCalcDustProperties(param, i_mixture))
@@ -515,8 +571,8 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         // Check if the components have the same amount of grain sizes
         if(nr_of_dust_species != single_component[i_comp].getNrOfDustSpecies())
         {
-            cout << ERROR_LINE << "Component Nr. " << i_comp + 1 << " has a different amount of dust species!"
-                 << endl;
+            cout << ERROR_LINE << "Component Nr. " << i_comp + 1 
+                    << " has a different amount of dust species!"<< endl;
             return false;
         }
 
@@ -542,8 +598,8 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         if(single_component[i_comp].isAligned())
             mixed_component[i_mixture].setIsAligned(true);
 
-        if(single_component[i_comp].getIndividualDustMassFractions())
-            mixed_component[i_mixture].setIndividualDustMassFractions(true);
+        //if(single_component[i_comp].getIndividualDustMassFractions())
+        //    mixed_component[i_mixture].setIndividualDustMassFractions(true);
     }
 
     // Get all scattering thetas of the individual components and count all unique values for the mixed_component
@@ -559,6 +615,8 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
         if(!mixed_component[i_mixture].add(size_fraction[i_comp], &single_component[i_comp], nr_of_scat_theta, scat_theta))
             return false;
     }
+    
+    mixed_component[i_mixture].setWavelengthList(wavelength_list, wavelength_offset);
 
     // Pre-calculate various quantities
     if(!preCalcDustProperties(param, i_mixture))
@@ -667,14 +725,14 @@ bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
 
 uint CDustMixture::getMixtureID(CGridBasic * grid, const cell_basic & cell) const
 {
-    uint dust_choice = grid->getDustChoiceID(cell);
-    return dust_choices_to_index[dust_choice];
+    uint dust_ID = grid->getDustChoiceID(cell);
+    return dust_ID; //dust_choices_to_index[dust_choice];
 }
 
 uint CDustMixture::getMixtureID(CGridBasic * grid, const photon_package & pp) const
 {
-    uint dust_choice = grid->getDustChoiceID(pp);
-    return dust_choices_to_index[dust_choice];
+    uint dust_ID = grid->getDustChoiceID(pp);
+    return dust_ID; //dust_choices_to_index[dust_choice];
 }
 
 double CDustMixture::getAvgMass(uint i_mixture)
@@ -771,18 +829,27 @@ uint CDustMixture::getNrOfStochasticSizes(uint i_mixture)
     return mixed_component[i_mixture].getNrOfStochasticSizes();
 }
 
+uint CDustMixture::getNrOfNanoSizes(uint i_mixture)
+{
+    return mixed_component[i_mixture].getNrOfNanoSizes();
+}
+
+
+
 void CDustMixture::calcTemperature(CGridBasic * grid, cell_basic * cell, bool use_energy_density)
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *cell);
             mixed_component[i_mixture].calcTemperature(grid, cell, 0, use_energy_density);
         }
         else
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
                 mixed_component[i_mixture].calcTemperature(grid, cell, i_mixture, use_energy_density);
+            }
     }
 }
 
@@ -792,7 +859,7 @@ void CDustMixture::calcStochasticHeatingPropabilities(CGridBasic * grid,
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *cell);
             mixed_component[i_mixture].calcStochasticHeatingPropabilities(
@@ -801,8 +868,10 @@ void CDustMixture::calcStochasticHeatingPropabilities(CGridBasic * grid,
         else
         {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
                 mixed_component[i_mixture].calcStochasticHeatingPropabilities(
                     grid, cell, i_mixture, wl_list);
+            }
         }
     }
 }
@@ -946,7 +1015,7 @@ double CDustMixture::getCextMean(CGridBasic * grid, const photon_package & pp) c
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             sum = mixed_component[i_mixture].getCextMean(grid, pp);
@@ -958,12 +1027,14 @@ double CDustMixture::getCextMean(CGridBasic * grid, const photon_package & pp) c
             else
             {
                 double dens = 0;
+                
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     double i_dens = getNumberDensity(grid, pp, i_mixture);
                     dens += i_dens;
                     sum += mixed_component[i_mixture].getCextMean(grid, pp) * i_dens;
                 }
+                
                 if(dens != 0)
                     sum /= dens;
             }
@@ -977,7 +1048,7 @@ double CDustMixture::getCabsMean(CGridBasic * grid, const photon_package & pp) c
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             sum = mixed_component[i_mixture].getCabsMean(grid, pp);
@@ -989,12 +1060,14 @@ double CDustMixture::getCabsMean(CGridBasic * grid, const photon_package & pp) c
             else
             {
                 double dens = 0;
+                
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     double i_dens = getNumberDensity(grid, pp, i_mixture);
                     dens += i_dens;
                     sum += mixed_component[i_mixture].getCabsMean(grid, pp) * i_dens;
                 }
+                
                 if(dens != 0)
                     sum /= dens;
             }
@@ -1008,7 +1081,7 @@ double CDustMixture::getCscaMean(CGridBasic * grid, const photon_package & pp) c
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             sum = mixed_component[i_mixture].getCscaMean(grid, pp);
@@ -1020,12 +1093,14 @@ double CDustMixture::getCscaMean(CGridBasic * grid, const photon_package & pp) c
             else
             {
                 double dens = 0;
+                
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
                 {
                     double i_dens = getNumberDensity(grid, pp, i_mixture);
                     dens += i_dens;
                     sum += mixed_component[i_mixture].getCscaMean(grid, pp) * i_dens;
                 }
+                
                 if(dens != 0)
                     sum /= dens;
             }
@@ -1066,14 +1141,37 @@ void CDustMixture::calcAlignedRadii(CGridBasic * grid, cell_basic * cell)
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *cell);
             mixed_component[i_mixture].calcAlignedRadii(grid, cell, 0);
         }
         else
+        {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
                 mixed_component[i_mixture].calcAlignedRadii(grid, cell, i_mixture);
+            }
+        }
+    }
+}
+
+void CDustMixture::calcAME(CGridBasic * grid, cell_basic * cell)
+{
+    if(mixed_component != 0)
+    {
+        if(grid->hasDustChoiceID())
+        {
+            uint i_mixture = getMixtureID(grid, *cell);
+            mixed_component[i_mixture].calcAME(grid, cell, 0);
+        }
+        else
+        {
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
+                mixed_component[i_mixture].calcAME(grid, cell, i_mixture);
+            }
+        }
     }
 }
 
@@ -1144,7 +1242,7 @@ uint CDustMixture::getWavelengthID(double wavelength)
     if(it != wavelength_list.end())
         return distance(wavelength_list.begin(), it);
 
-    cout << WARNING_LINE << "Wavelength not found!" << endl;
+    cout << WARNING_LINE << "Wavelength not found!    " << endl;
     return 0;
 }
 
@@ -1158,7 +1256,7 @@ double CDustMixture::getSizeMin(CGridBasic * grid, const cell_basic & cell) cons
     double min_a = 1e200;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, cell);
             min_a = mixed_component[i_mixture].getSizeMin();
@@ -1247,7 +1345,7 @@ double CDustMixture::getNumberDensity(CGridBasic * grid, const cell_basic & cell
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, cell);
             sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
@@ -1274,7 +1372,7 @@ double CDustMixture::getNumberDensity(CGridBasic * grid, const cell_basic & cell
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             if(i_mixture == getMixtureID(grid, cell))
                 sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
@@ -1296,7 +1394,7 @@ double CDustMixture::getMassDensity(CGridBasic * grid, const cell_basic & cell) 
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, cell);
             sum = mixed_component[i_mixture].getMassDensity(grid, cell);
@@ -1318,7 +1416,7 @@ double CDustMixture::getMassDensity(CGridBasic * grid, const cell_basic & cell, 
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             if(i_mixture == getMixtureID(grid, cell))
                 sum = mixed_component[i_mixture].getMassDensity(grid, cell);
@@ -1472,7 +1570,7 @@ void CDustMixture::calcEmissivityHz(CGridBasic * grid, const photon_package & pp
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             mixed_component[i_mixture].calcEmissivityHz(grid, pp, 0, dust_emissivity);
@@ -1495,7 +1593,7 @@ double CDustMixture::calcEmissivity(CGridBasic * grid, const photon_package & pp
 
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             pl_abs = mixed_component[i_mixture].calcEmissivity(grid, pp, 0);
@@ -1515,7 +1613,7 @@ void CDustMixture::calcEmissivityExt(CGridBasic * grid, const photon_package & p
 
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp);
@@ -1597,16 +1695,48 @@ void CDustMixture::calcEmissivityEmi(CGridBasic * grid,
 
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
                 grid, pp, 0, emission_component, phi, energy, en_dir);
         }
         else
+        {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
                 *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
                     grid, pp, i_mixture, emission_component, phi, energy, en_dir);
+            }
+        }
+    }
+}
+
+void CDustMixture::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cell, double lambda, double & j_ame, double & nd)
+{
+    j_ame=0;
+    nd = 0;
+    
+    if(mixed_component != 0)
+    {
+        if(grid->hasDustChoiceID())
+        {
+            uint i_mixture = getMixtureID(grid, *cell);
+            mixed_component[i_mixture].calc_dust_emi_ame(grid, cell, lambda, i_mixture, j_ame, nd);
+        }
+        else
+        {
+            double tmp_j = 0;
+            double tmp_nd = 0;
+            
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+            {
+                mixed_component[i_mixture].calc_dust_emi_ame(grid, cell, lambda, i_mixture, tmp_j, tmp_nd);
+                
+                j_ame += tmp_j;
+                nd += tmp_nd;
+            }
+        }
     }
 }
 
@@ -1619,7 +1749,7 @@ StokesVector CDustMixture::getRadFieldScatteredFraction(CGridBasic * grid,
 
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             tmp_stokes =
@@ -1635,14 +1765,14 @@ StokesVector CDustMixture::getRadFieldScatteredFraction(CGridBasic * grid,
 
 uint CDustMixture::getNrOfMixtures() const
 {
-    return dust_choices.size();
+    return unique_IDs.size();
 }
 
 void CDustMixture::convertTempInQB(CGridBasic * grid, cell_basic * cell, double min_gas_density, bool use_gas_temp)
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *cell);
             mixed_component[i_mixture].convertTempInQB(grid, cell, 0, min_gas_density, use_gas_temp);
@@ -1658,7 +1788,7 @@ uint CDustMixture::getScatteringMixture(CGridBasic * grid, photon_package * pp, 
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *pp);
             return i_mixture;
@@ -1698,7 +1828,7 @@ uint CDustMixture::getEmittingMixture(CGridBasic * grid, photon_package * pp, CR
 {
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, *pp);
             return i_mixture;
@@ -1758,9 +1888,12 @@ void CDustMixture::scatter(CGridBasic * grid, photon_package * pp, CRandomGenera
 void CDustMixture::setGridRequirements(CGridBasic * grid, parameters & param)
 {
     uint nr_of_mixtures = getNrOfMixtures();
+    uint nr_nano = 0;
     uint * nr_dust_temp_sizes = new uint[nr_of_mixtures];
     uint * nr_stochastic_temps = new uint[nr_of_mixtures];
     uint * nr_stochastic_sizes = new uint[nr_of_mixtures];
+    uint * nr_nano_sizes = new uint[nr_of_mixtures];
+    
     if(mixed_component != 0)
     {
         for(uint i_mixture = 0; i_mixture < nr_of_mixtures; i_mixture++)
@@ -1772,19 +1905,23 @@ void CDustMixture::setGridRequirements(CGridBasic * grid, parameters & param)
             nr_stochastic_temps[i_mixture] = getNrOfCalorimetryTemperatures(i_mixture);
             // Maximum amount of dust grain sizes affected by stochastic heating
             nr_stochastic_sizes[i_mixture] = getNrOfStochasticSizes(i_mixture);
+            // Number of grains considdered as nano grains
+            nr_nano_sizes[i_mixture] = getNrOfNanoSizes(i_mixture);
+            nr_nano += getNrOfNanoSizes(i_mixture);
         }
     }
-    grid->setDustInformation(
-        nr_of_mixtures, nr_dust_temp_sizes, nr_stochastic_sizes, nr_stochastic_temps);
+    
+    grid->setDustInformation(nr_of_mixtures, nr_nano, nr_dust_temp_sizes,
+                             nr_nano_sizes, nr_stochastic_sizes, nr_stochastic_temps);
 }
 
 void CDustMixture::setIDs(CDustComponent & component,
-            uint i_comp,
+            uint mix_id, uint i_comp,
             uint nr_of_components,
             uint i_mixture,
             uint nr_of_mixtures)
 {
-    component.setIDs(i_comp, nr_of_components, i_mixture, nr_of_mixtures);
+    component.setIDs(mix_id, i_comp, nr_of_components, i_mixture, nr_of_mixtures);
 }
 
 double *** CDustMixture::getSizeFractions()
@@ -1802,10 +1939,10 @@ double *** CDustMixture::getSizeFractions()
     }
 
     // Put the mass weights into relation to each other
-    double ref_mass_weight = single_component[0].getMassWeight() / single_component[0].getFraction();
+    double ref_mass_weight = single_component[0].getMassWeight() / single_component[0].getDustMassFraction();
     for(uint i_comp = 0; i_comp < nr_of_components; i_comp++)
     {
-        double mass_weight_ratio = ref_mass_weight * single_component[i_comp].getFraction() /
+        double mass_weight_ratio = ref_mass_weight * single_component[i_comp].getDustMassFraction() /
                                     single_component[i_comp].getMassWeight();
 
         // First column is the updated size distribution
@@ -1862,7 +1999,7 @@ double CDustMixture::getCellEmission(CGridBasic * grid, photon_package * pp, CRa
     if(mixed_component != 0)
     {
         uint i_mixture = getEmittingMixture(grid, pp, rand_gen);
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
             return mixed_component[i_mixture].getCellEmission(grid, *pp, 0);
         else
             return mixed_component[i_mixture].getCellEmission(grid, *pp, i_mixture);
@@ -1875,7 +2012,7 @@ double CDustMixture::getTotalCellEmission(CGridBasic * grid, const photon_packag
     double sum = 0;
     if(mixed_component != 0)
     {
-        if(grid->useDustChoice())
+        if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, pp);
             sum = mixed_component[i_mixture].getCellEmission(grid, pp, 0);

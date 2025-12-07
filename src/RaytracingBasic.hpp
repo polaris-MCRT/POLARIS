@@ -59,14 +59,21 @@ public:
         off_len_y = 0;
 
         vel_maps_fits = false;
-        compact_fits = false;
+        heal_type = 0;
+        project_healpix = false;
 
         detector = 0;
         grid = 0;
     }
 
     virtual ~CRaytracingBasic(void)
-    {}
+    {
+        if(detector != 0)
+        {
+            delete detector;
+            detector = 0;
+        }
+    }
 
     virtual bool setDustDetector(uint pos,
                                  const parameters & param,
@@ -83,6 +90,12 @@ public:
     virtual bool setFreeFreeDetector(uint pos,
                                  const parameters & param,
                                  dlist free_ray_detectors,
+                                 double _max_length,
+                                 string path);
+    
+    virtual bool setDustAMEDetector(uint pos,
+                                 const parameters & param,
+                                 dlist ame_ray_detectors,
                                  double _max_length,
                                  string path);
 
@@ -112,15 +125,15 @@ public:
 
     virtual void preparePhoton(photon_package * pp, double cx, double cy);
 
-    virtual void preparePhotonWithPosition(photon_package * pp, Vector3D pos, int & i_pix);
+    virtual void preparePhotonWithPosition(photon_package * pp, Vector3D pos, int64_t & i_pix);
 
     virtual void setCoordinateSystem(photon_package * pp);
 
-    virtual bool getRelPosition(int i_pix, double & cx, double & cy);
+    virtual bool getRelPosition(int64_t i_pix, double & cx, double & cy);
 
     void calcMapParameter();
 
-    virtual bool getRelPositionMap(int i_pix, double & cx, double & cy);
+    virtual bool getRelPositionMap(int64_t i_pix, double & cx, double & cy);
 
     virtual void setDetCoordSystem(const Vector3D & n1, const Vector3D & n2);
 
@@ -136,9 +149,9 @@ public:
 
     virtual double getDistance(Vector3D pos);
 
-    virtual void addToDetector(photon_package * pp, int i_pix, bool direct = false);
+    virtual void addToDetector(photon_package * pp, int64_t i_pix, bool direct = false);
 
-    virtual void addToDetector(photon_package * pp1, photon_package * pp2, int i_pix, bool direct = false);
+    virtual void addToDetector(photon_package * pp1, photon_package * pp2, int64_t i_pix, bool direct = false);
 
     virtual void setObserverPosition(Vector3D pos);
 
@@ -153,6 +166,8 @@ public:
     virtual bool writeSyncResults();
     
     virtual bool writeFreeFreeResults();
+    
+    virtual bool writeDustAMEResults();
 
     virtual bool getUseSubpixel(double cx, double cy, uint subpixel_lvl);
 
@@ -207,7 +222,8 @@ protected:
     int off_len_x, off_len_y;
 
     bool vel_maps_fits;
-    bool compact_fits;
+    uint heal_type;
+    bool project_healpix;
     bool split_emission;
     CDetector * detector;
     CGridBasic * grid;

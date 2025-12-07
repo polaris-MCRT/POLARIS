@@ -37,10 +37,19 @@ public:
         ang2 = 0;
         
         source_id = SRC_SFIELD;
+        
+        Npos=0;
+        dist_pos=0;
     }
 
     ~CSourceStarField(void)
-    {}
+    {
+        if(dist_pos!=0)
+        {
+            delete [] dist_pos;
+            dist_pos=0;
+        }
+    }
 
     bool initSource(uint id, uint max, bool use_energy_density);
 
@@ -48,6 +57,9 @@ public:
     void createDirectRay(photon_package * pp, CRandomGenerator * rand_gen, Vector3D dir_obs);
 
     bool setParameterFromFile(parameters & param, uint p);
+    
+    bool read_fits_file(string & filename);
+    
     void setParameter(parameters & param, uint p);
 
 private:
@@ -61,6 +73,9 @@ private:
     Vector3D rot2;
     
     double ang1, ang2;
+    
+    long Npos;
+    Vector3D * dist_pos;
 };
 
 #endif /* CSOURCE_STARFIELD_H */

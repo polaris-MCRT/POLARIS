@@ -69,6 +69,8 @@ public:
     uint getNrOfDustSpecies(uint i_mixture);
 
     uint getNrOfStochasticSizes(uint i_mixture);
+    
+    uint getNrOfNanoSizes(uint i_mixture);
 
     void calcTemperature(CGridBasic * grid, cell_basic * cell, bool use_energy_density);
 
@@ -89,6 +91,8 @@ public:
     bool adjustTempAndWavelengthBW(CGridBasic * grid, photon_package * pp, bool use_energy_density, CRandomGenerator * rand_gen);
 
     void calcAlignedRadii(CGridBasic * grid, cell_basic * cell);
+    
+    void calcAME(CGridBasic * grid, cell_basic * cell);
 
     void addToWavelengthGrid(double wavelength);
 
@@ -105,6 +109,8 @@ public:
     double getWavelength(uint wID);
 
     double getWavelength(photon_package * pp);
+    
+    void calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cell, double lambda, double & j_ame, double & nd);
 
     uint getNrOfWavelength();
 
@@ -187,7 +193,7 @@ public:
     void setGridRequirements(CGridBasic * grid, parameters & param);
 
     void setIDs(CDustComponent & component,
-                uint i_comp,
+                uint mix_id, uint i_comp,
                 uint nr_of_components,
                 uint i_mixture,
                 uint nr_of_mixtures);
@@ -234,8 +240,8 @@ private:
     uint wavelength_offset;
     uint nr_of_dust_species;
 
-    uilist dust_choices;
-    uilist dust_choices_to_index;
+    uilist unique_IDs;
+    //uilist dust_choices_to_index;
 
     dlist wavelength_list;
     

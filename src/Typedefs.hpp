@@ -79,6 +79,9 @@ using namespace std;
 #define con_m_p 1.672621898e-27                       // Proton mass [kg]
 #define con_epsilon_0 8.854187817620389e-12           // Vacuum permittivity [F / m]
 #define con_eps (con_h * con_c / PIx4)                // h * c / (4 * PI)
+#define con_eV_to_J con_e
+#define con_J_to_eV (1.0 / con_eV_to_J)
+#define yr_in_sec           3.15360e7
 
 #if BENCHMARK == CAMPS
     // Part to perform Camps et. al (2015) benchmark (adjust definition below, if
@@ -111,7 +114,7 @@ using namespace std;
 #define MIN_LEN_STEP 1e2
 #define ACC_SELECT_LEVEL 1e-6
 #define DIFF_GAMMA 7.0
-#define PERCENTAGE_STEP 1
+#define PERCENTAGE_STEP 0.1
 
 // status of sublimation scheme
 #define SUB_CENTER 1  // only center cell
@@ -134,6 +137,12 @@ using namespace std;
 #define MC_LVL_POP_MAX_LOCAL_ITER 1000
 #define MC_LVL_POP_MAX_GLOBAL_ITER 100
 
+#define HEAL_NONE   1
+#define HEAL_INDEX  2    
+#define HEAL_FULL   4
+//#define HEAL_BOTH   8
+
+
 // Define the fits file extension
 // ".fits" normal fits file
 // ".fits.gz" compressed fits file
@@ -146,17 +155,27 @@ using namespace std;
 // Number of dust grain size distribution parameters
 #define NR_OF_SIZE_DIST_PARAM 14
 
+// Number of dust grain size distribution parameters
+#define NR_OF_NANO_GRAIN_PRAM 10
+
+// ID of different maps
+#define MAP_ID_I   2
+#define MAP_ID_QU  4
+#define MAP_ID_V   8
+#define MAP_ID_TAU 16
+#define MAP_ID_N   32
+
 // Number of entries for different detectors
-#define NR_OF_MC_DET 12
-#define NR_OF_RAY_DET 15
-#define NR_OF_LINE_DET 18
+#define NR_OF_MC_DET     12
+#define NR_OF_RAY_DET    15
+#define NR_OF_LINE_DET   18
 #define NR_OF_OPIATE_DET 17
 
 // Number of entries for different sources
 #define NR_OF_POINT_SOURCES 9
-#define NR_OF_DIFF_SOURCES 22
+#define NR_OF_DIFF_SOURCES  22
 #define NR_OF_LASER_SOURCES 12
-#define NR_OF_BG_SOURCES 8
+#define NR_OF_BG_SOURCES    8
 
 #define TEMP_MIN 2.728
 #define TEMP_MAX 3000
@@ -202,17 +221,18 @@ using namespace std;
 #define MRW_LIMIT 7
 #define PDA_LIMIT 30
 
-#define CMD_TEMP 0
-#define CMD_DUST_EMISSION 1
+#define CMD_TEMP            0
+#define CMD_DUST_EMISSION   1
 #define CMD_DUST_SCATTERING 2
-#define CMD_PROBING 3
-#define CMD_RAT 4
-#define CMD_TEMP_RAT 5
-#define CMD_LINE_EMISSION 6
-#define CMD_FORCE 7
-#define CMD_OPIATE 8
-#define CMD_SYNCHROTRON 9
-#define CMD_FREE_FREE 10
+#define CMD_PROBING         3
+#define CMD_RAT             4
+#define CMD_TEMP_RAT        5
+#define CMD_LINE_EMISSION   6
+#define CMD_FORCE           7
+#define CMD_OPIATE          8
+#define CMD_SYNCHROTRON     9
+#define CMD_FREE_FREE      10
+#define CMD_AME_EMISSION   11
 
 // PDA IDs
 #define PDA_TEMP 0
@@ -250,8 +270,9 @@ using namespace std;
 #define GRIDg_max 26 // gamma max for power law distribution
 #define GRIDp 27     // power law exponent
 
-#define GRIDgas_mdens 28
-#define GRIDdust_mdens 29
+//#define GRIDgas_mdens 28
+//#define GRIDdust_mdens 29
+
 #define GRIDradx 30
 #define GRIDrady 31
 #define GRIDradz 32
@@ -271,20 +292,20 @@ using namespace std;
 #define GRID_aeff 42
 #define GRID_dnda 43
 
-#define GRID_Zgr  44
-#define GRID_Zs   45
-#define GRID_Trot 46
+#define GRID_Zgr   44
+#define GRID_Zs    45
+#define GRID_Trot  46
+#define GRID_acrit 47
 
-#define GRID_vdx 47
-#define GRID_vdy 48
-#define GRID_vdz 49
+#define GRID_vdx 48
+#define GRID_vdy 49
+#define GRID_vdz 50
 
-#define GRID_ni 50
-#define GRID_Z  51
-
+#define GRID_ni 51
+#define GRID_Z  52
 
 #define minGRID GRIDgas_dens
-#define maxGRID GRID_Trot
+#define maxGRID GRID_Z
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))
@@ -419,6 +440,7 @@ using namespace std;
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cstdint> 
 #define SEP "/"
 #define LINE_DELAY 5
 #endif
@@ -463,6 +485,7 @@ using namespace std;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned long long ullong;
+typedef signed long long llong;
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef long long llong;
@@ -472,6 +495,7 @@ typedef vector<uchar> clist;
 typedef vector<uint> uilist;
 typedef vector<ushort> uslist;
 typedef vector<int> ilist;
+typedef vector<int64_t> ilist64;
 typedef vector<long> llist;
 typedef vector<string> strlist;
 typedef complex<float> fcomplex;

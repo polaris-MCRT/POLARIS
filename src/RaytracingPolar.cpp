@@ -264,10 +264,10 @@ void CRaytracingPolar::initTmpStokes()
     }
 }
 
-bool CRaytracingPolar::getRelPosition(int i_pix, double & cx, double & cy)
+bool CRaytracingPolar::getRelPosition(int64_t i_pix, double & cx, double & cy)
 {
     // Return (0,0) coordinate, if central pixel
-    if(i_pix == int(npix_total - 1))
+    if(i_pix == int64_t(npix_total - 1))
     {
         cx = 0;
         cy = 0;
@@ -290,7 +290,7 @@ bool CRaytracingPolar::getRelPosition(int i_pix, double & cx, double & cy)
     return true;
 }
 
-void CRaytracingPolar::addToDetector(photon_package * pp, int i_pix, bool direct)
+void CRaytracingPolar::addToDetector(photon_package * pp, int64_t i_pix, bool direct)
 {
     if(direct)
     {
@@ -351,7 +351,7 @@ bool CRaytracingPolar::postProcessingUsingNearest()
     float last_percentage = 0;
 
     #pragma omp parallel for schedule(dynamic)
-    for(int i_pix = 0; i_pix < npix_total; i_pix++)
+    for(int64_t i_pix = 0; i_pix < int64_t(npix_total); i_pix++)
     {
         photon_package pp = photon_package(nr_spectral_bins * nr_extra);
 
@@ -420,7 +420,7 @@ bool CRaytracingPolar::postProcessingUsingInterpolation()
         r_center_pos.push_back(0.5 * (listR[i_r] + listR[i_r + 1]));
 
     #pragma omp parallel for schedule(dynamic)
-    for(int i_pix = 0; i_pix < int(map_pixel_x * map_pixel_y); i_pix++)
+    for(int64_t i_pix = 0; i_pix < int64_t(map_pixel_x * map_pixel_y); i_pix++)
     {
         photon_package pp = photon_package(nr_spectral_bins * nr_extra);
 
@@ -582,7 +582,7 @@ long CRaytracingPolar::getNpix()
     return npix_total;
 }
 
-void CRaytracingPolar::getCoordinateIDs(uint i_pix, uint & rID, uint & phID)
+void CRaytracingPolar::getCoordinateIDs(int64_t i_pix, uint & rID, uint & phID)
 {
     rID = 0;
     phID = 0;

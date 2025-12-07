@@ -34,7 +34,7 @@ public:
                          double _max_length,
                          string path);
 
-    bool getRelPositionMap(int i_pix, double & cx, double & cy);
+    bool getRelPositionMap(int64_t i_pix, double & cx, double & cy);
 
     bool setSyncDetector(uint pos,
                          const parameters & param,
@@ -50,9 +50,9 @@ public:
 
     void preparePhoton(photon_package * pp, double cx, double cy);
 
-    void resetPhotonPosition(photon_package * pp, int i_pix);
+    void resetPhotonPosition(photon_package * pp, int64_t i_pix);
 
-    void addToDetector(photon_package * pp, int i_pix, bool direct = false);
+    void addToDetector(photon_package * pp, int64_t i_pix, bool direct = false);
 
     long getNpix();
 };

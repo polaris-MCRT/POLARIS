@@ -16,6 +16,23 @@
 #include "Photon.hpp"
 #include "Stokes.hpp"
 #include "Vector3D.hpp"
+//#include "GrainCharge.hpp"
+
+struct Currents
+{
+    double J_up;
+    double J_down;
+};
+
+struct Distribution
+{
+    int                 Zmin;
+    int                 Zmax;
+    ilist               Z;
+    dlist               f;
+    double              mean;
+    double              stddev;
+};
 
 class CDustComponent
 {
@@ -57,8 +74,9 @@ public:
         a_eff_squared = 0;
         mass = 0;
         relWeightTab = 0;
-        fraction = 0;
+        //fraction = 0;
         calorimetry_temperatures = 0;
+        Q_abs_min = 0;
 
         CextMean = 0;
         CabsMean = 0;
@@ -109,7 +127,7 @@ public:
         f_highJ = 0.25;
         f_cor = 0.6;
         delta_rat = 2;
-        mu = 0;
+        mu_mol = 0;
         avg_mass = 0;
 
         dust_offset = false;
@@ -118,7 +136,7 @@ public:
         sub_status = 0;
         is_align = false;
         is_mixture = false;
-        individual_dust_fractions = false;
+        //individual_dust_fractions = false;
 
         // Connection between mat_elem_counter and position in scattering matrix
         elements[0] = int(1);   // S11
@@ -158,9 +176,30 @@ public:
         a_min_global = 1e200;
         a_max_global = 0;
         
-        component_id = 0;
+        mixture_id = 0;
         
         marker=0;
+        
+        // nano grains
+        nano_W = 0;
+        nano_m0 = 0;
+        nano_beta_mu = 0;
+        nano_Smax = 0;    
+        
+        nano_a_min = 0;
+        nano_a_max = 0;
+
+        nano_a0 = 0;
+        nano_as = 0;
+
+        nano_Na = 0;
+        nano_Nla = 0;
+
+        nano_arr_a_eff = 0;
+        nano_arr_dnda = 0;
+
+        nano_arr_a_eff_large = 0;
+        nano_arr_dnda_large = 0;
     }
 
     ~CDustComponent()
@@ -177,6 +216,7 @@ public:
                 delete[] Qext2[a];
             delete[] Qext2;
         }
+        
         if(Qabs1 != 0)
         {
             for(uint a = 0; a < nr_of_dust_species; a++)
@@ -331,6 +371,10 @@ public:
 
         if(a_eff != 0)
             delete[] a_eff;
+            
+        if(Q_abs_min != 0)
+            delete[] Q_abs_min;    
+            
         if(grain_distribution_x_aeff_sq != 0)
             delete[] grain_distribution_x_aeff_sq;
         if(grain_size_distribution != 0)
@@ -344,6 +388,16 @@ public:
             
         if(marker != 0)
             delete[] marker;
+            
+        if(nano_arr_a_eff != 0)
+            delete[] nano_arr_a_eff;            
+        if(nano_arr_dnda != 0)
+            delete[] nano_arr_dnda;
+
+        if(nano_arr_a_eff_large != 0)
+            delete[] nano_arr_a_eff_large;
+        if(nano_arr_dnda_large != 0)
+            delete[] nano_arr_dnda_large;            
     }
 
     // ----------------------------------------------------------------------
@@ -356,6 +410,8 @@ public:
     inline double getQabs1(uint a, uint w) const;
 
     inline double getQabs2(uint a, uint w) const;
+    
+    double getQabsMean(uint a, uint w) const;
 
     inline double getQsca1(uint a, uint w) const;
 
@@ -554,6 +610,8 @@ public:
     uint getPhaseFunctionID();
 
     uint getNrOfStochasticSizes();
+    
+    uint getNrOfNanoSizes();
 
     // double getMinDustTemp();
 
@@ -605,9 +663,9 @@ public:
 
     void setStochasticHeatingMaxSize(double val);
 
-    double getFraction() const;
+    //double getFraction() const;
 
-    void setFraction(double val);
+    //void setFraction(double val);
 
     double getDustMassFraction() const;
 
@@ -721,6 +779,10 @@ public:
     double getAvgMass(CGridBasic * grid, const cell_basic & cell) const;
 
     double getAvgMass() const;
+    
+    double getThermalSputteringTime(double a_eff, double ng, double Tgas);
+    
+    double getYieldSputtering(double T_gas);
 
     double getPahMass(uint a);
 
@@ -757,12 +819,14 @@ public:
     uint getNrOfScatMatElements() const;
 
     string getStringID() const;
+    
+    uint getMixtureID();
 
     void createStringID(CDustComponent * comp);
 
-    void setIndividualDustMassFractions(bool val);
+    /*void setIndividualDustMassFractions(bool val);
 
-    bool getIndividualDustMassFractions();
+    bool getIndividualDustMassFractions();*/
 
     void setWavelengthList(dlist _wavelength_list, uint _wavelength_offset);
 
@@ -816,7 +880,7 @@ public:
 
     void setCalorimetryLoaded(bool val);
 
-    void setIDs(uint i_comp, uint nr_components, uint i_mix, uint nr_mixtures);
+    void setIDs(uint mix_id, uint i_comp, uint nr_components, uint i_mix, uint nr_mixtures);
 
     void printIDs();
 
@@ -953,6 +1017,8 @@ public:
                                             dlist & wl_list);
 
     void calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density);
+    
+    void calcAME(CGridBasic * grid, cell_basic * cell, uint i_density);
 
     void initDustProperties();
     void initScatteringMatrixArray();
@@ -1030,7 +1096,157 @@ public:
                             photon_package * pp_escape) const;
     double getCellEmission(CGridBasic * grid, const photon_package & pp, uint i_density) const;
 
+    void initNanoGrains(dlist pr);
+    
+    void calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cell, double lambda, uint i_density, double & j_ame, double & nd);
+    
+    // ======================= WD01 thresholds (eV) =======================
+    double EA_eV( double a_m, int Z );
+
+    double IPv_eV( double a_m, int Z);
+
+    double Emin_eV( double a_m, int Z );
+
+    double E_pet_eV( double a_m, int Z);
+
+    // WD01 2.3.3
+    double E_pdt_eV( double a_m, int Z);
+    
+    
+    
+    // ======================= Currents struct =======================
+    Currents total_currents(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff, double n_ion, double n_el, double T_gas, double T_el);
+
+    // ======================= Hard Z-bounds =======================
+    int compute_Zmin_auto(double a_m);
+    
+    int compute_Zmax_coulomb( double a_eff);
+    
+    // ======================= Build distribution =======================
+       
+    void build_distribution(const CGridBasic * grid, const cell_basic & cell, int ia, double & Zgr, double & Zs, double & Trot);
+    
+    void print_distribution();
+    
+    // emission functions
+    double j_lambda_inter(const CGridBasic * grid, const cell_basic & cell, double lambda);
+    
+    //helper functions
+    double clamp_value( double x, double a, double b);
+    void clear();
+    int findIndex(double a) const;
+    void gaussian_bounds(double mu, double sigma, double rel, double & x_min, double & x_max);
+    double g1(double x);
+    double g2(double x);
+    double interpolate(double x, double x1, double x2, double y1, double y2);
+    
+    double calc_a_crit(const CGridBasic * grid, const cell_basic & cell);
+    
+    // ======================= Helper functions for recurrence =======================
+    dlist compute_f_window(const CGridBasic * grid, const cell_basic & cell, int Zmin, int Zmax, int Zhard_min, int Zhard_max, double a_eff, double n_ion, double n_el, double T_gas, double T_el);
+
+    bool tails_are_small(const dlist &f);
+
+    int find_Zeq(const CGridBasic * grid, const cell_basic & cell, int Zmin, int Zmax, double a_eff, double n_ion, double n_el, double T_gas, double T_el);
+    
+    // Evaluate Gaussian at integer Z given parameters.
+    double gaussian_value(double mu, double sigma, int Z);
+
+    // Compute sum of squares error between f and model for given parameters (diagnostics).
+    double gaussian_sse( const ilist &Z, const dlist &f,
+                                double mu, double sigma);
+
+    void fit_gaussian_pdf( const ilist &Z, 
+                                         const dlist &f , double & mu, double & sigma);
+    
+    // excitation and damping coeff.
+    void calc_FGIR(const CGridBasic * grid, const cell_basic & cell, double & FIR, double & GIR, double a_eff, double n_gas, double T_gas, double T_dust);
+    void calc_FGn(double & Fn, double & Gn, double a_eff, double n_gas, double n_neu, double T_gas, double T_dust, double Zgr);
+    void calc_FGpe(const CGridBasic * grid, const cell_basic & cell, double & Fpe, double & Gpe, double a_eff, double n_gas, double T_gas, double Zgr);
+    void calc_FGi(double & Fi, double & Gi, double a_eff, double n_gas, double n_ion, double T_gas, double T_dust, double Z_gas, double Zgr);
+    void calc_FGp(double & Fp, double & Gp, double a_eff, double n_gas, double n_ion, double n_el, double T_gas, double Z_gas, double Zgr);
+    
+    // grain charge
+    double Gamma_photoelectric(const CGridBasic * grid, const cell_basic & cell, int Zgr, double a_eff);
+    
+    // ======================= DS87 reduced rates (SI) =======================
+    double get_tau( double a, double T, double qabs );
+
+    double get_nu( int Z, double q );
+
+    double Jtilde_0( double tau );
+
+    double Jtilde_neg( double tau, double nu );
+
+    double Jtilde_pos( double tau, double nu );
+
+    double Jtilde( double tau, double nu );
+    
+    double get_ECoul_eV(double a_eff);
+    double get_work_function_eV();
+    
+    //auxillary parameters
+        
+    double calc_tau_H(double a_eff, double n_gas, double T_gas);
+    
+    double calc_tau_ed(double a_eff, double T_gas, double Zgr);
+    
+    // ======================= WD01 band-yield factors (updated) =======================
+    double Theta_eV( double E_eV, double a_m, int Z);
+
+    double y0_bulk(double Theta);
+
+    // Updated WD01: fixed lengths
+    double y1_smallgrain( double a_m );
+
+    double Elow_eV( double a_m, int Z );
+
+    double Ehigh_eV( double E_eV, double a_m, int Z);
+
+    double y2_escape( double E_eV, double a_m, int Z);
+    
+    // ======================= WDB06 yield: four-term structure =======================
+    double Y_band( double E_eV, double a_m, int Z);
+
+    // Placeholder for EUV/X-ray
+    double Y_inner( double E_eV, double a_eff, int Z);
+
+    // Placeholder for inner-shell Auger
+    double Y_auger( double E_eV, double a_eff, int Z);
+
+    // Placeholder for secondary electrons
+    double Y_secondary( double /*E_eV*/, double /*a_m*/, int /*Z*/);
+
+    //WD01 WDB06
+    double get_Yield(double E_eV, double a_m, int Z);
+
+    // ======================= Photodetachment cross section (WD01-like) =======================
+    double sigma_pdt_m2( double E_eV, double a_m, int Z);
+
+    // ======================= Collisional currents (DS87 in SI) =======================
+    double vth_pref(double m, double T);
+
+    double J_electron(int Z, double a_eff, double Tel, double n_el);
+	
+    double J_ion_Hp(int Z, double a_eff, double Tgas, double n_ion);
+	
+    // ======================= Photoelectric emission & Photodetachment (lambda-integrals, SI) =======================
+    double J_photoelectric(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff);
+
+    double J_photodetachment(const CGridBasic * grid, const cell_basic & cell, int Z, double a_eff );
+    
+    // emission helper
+    
+    double Power(double lambda, double a_eff, double Z);
+    
+    double fMW(double lambda, double Trot, double a_eff);
+    
+    double calc_mu_dipole(double Zgr, double a_eff);
+    
+    double get_u_lam(const CGridBasic * grid, const cell_basic & cell, uint iw);
+    
 private:
+    //CGrainCharge nano;
     interp ** avg_scattering_frac;
     interp ** phase_pdf;
 
@@ -1046,7 +1262,7 @@ private:
     Matrix2D ***** sca_mat;
     double **Qext1, **Qext2, **Qabs1, **Qabs2, **Qsca1, **Qsca2, **Qcirc, **HGg, **HGg2, **HGg3;
     double ** enthalpy;
-    double *a_eff, *grain_distribution_x_aeff_sq, *grain_size_distribution, *a_eff_squared;
+    double *a_eff, *Q_abs_min, *grain_distribution_x_aeff_sq, *grain_size_distribution, *a_eff_squared;
     double * calorimetry_temperatures;
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg, *tHGg2, *tHGg3;
@@ -1081,8 +1297,8 @@ private:
     double R_rayleigh;
 
     double delta_rat;
-    double mu;
-    double fraction;
+    double mu_mol;
+    //double fraction;
     double avg_mass;
     double a_min_global;
     double a_max_global;
@@ -1091,7 +1307,7 @@ private:
     bool scat_loaded, calorimetry_loaded;
     int sub_status;
     bool is_mixture;
-    bool individual_dust_fractions;
+    //bool individual_dust_fractions;
 
     int elements[16];
 
@@ -1117,9 +1333,31 @@ private:
     uilist dust_mixtures;
     uilist dust_choices_to_index;
     
-    uint component_id;
+    uint mixture_id;
     
     char * marker;
+    
+    
+    //material param. of nano grains
+    double nano_W;
+    double nano_m0;
+    double nano_beta_mu;
+    double nano_Smax;
+    
+    double nano_a_min;
+    double nano_a_max;
+    
+    double nano_a0;
+    double nano_as;
+	
+    uint nano_Na;
+    uint nano_Nla;
+	
+    double * nano_arr_a_eff;
+    double * nano_arr_dnda;
+
+    double * nano_arr_a_eff_large;
+    double * nano_arr_dnda_large;
 };
 
 #endif /* CDUST_COMPONENT_H */

@@ -40,9 +40,11 @@ public:
 
     bool calcMonteCarloRadiationField(parameters & param);
 
-    bool calcPolarizationMapsViaRayTracing(parameters & param);
+    bool calcDustMapsViaRayTracing(parameters & param);
     
     bool calcFreeFreeMapsViaRayTracing(parameters & param);
+    
+    bool calcAMEMapsViaRayTracing(parameters & param);
 
     bool calcPolarizationMapsViaSynchrotron(parameters & param);
 

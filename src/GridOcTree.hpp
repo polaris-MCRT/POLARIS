@@ -54,9 +54,6 @@ public:
 
     // void deleteSubCells(slist & source);
 
-    bool reduceBinaryFile(string in_filename, string out_filename, uint tr_level);
-    bool reduceLevelOfBinaryFile(cell_oc * cell, uint tr_level);
-
     Vector3D getCenter(const cell_basic & cell) const;
 
     Vector3D getMidplaneCenter(cell_basic * cell);
@@ -81,9 +78,9 @@ public:
 
     void printParameters();
 
-    bool createArtificialGrid(string path);
+    //bool createArtificialGrid(string path);
 
-    void createNextLevel(cell_oc * cell);
+    //void createNextLevel(cell_oc * cell);
 
     bool saveBinaryGridFile(string filename);
 
@@ -98,23 +95,6 @@ public:
     void clear();
 
     void goNextLevelDown(photon_package * pp);
-
-    bool createTree(cell_oc * parent,
-                    double _x_min,
-                    double _y_min,
-                    double _z_min,
-                    double _length,
-                    uint _level);
-
-    bool initiateTreeFromFile(uint _nx,
-                              uint _max_level,
-                              double _fa,
-                              double _length,
-                              string str_dens,
-                              string str_temp,
-                              string str_magx,
-                              string str_magy,
-                              string str_magz);
 
 private:
     void clear(cell_oc * cell);

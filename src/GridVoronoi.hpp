@@ -78,7 +78,7 @@ public:
 
     // for debugging only
     bool positionPhotonInGridTest(photon_package * pp);
-    bool createArtificialGrid(string path);
+    //bool createArtificialGrid(string path);
 
     bool saveBinaryGridFile(string filename);
 

@@ -159,6 +159,41 @@ double CDetector::getAcceptanceAngle()
     return cos_acceptance_angle;
 }
 
+StokesVector CDetector::getStokesVector(int64_t i_pix, int64_t pos)
+{
+    StokesVector st;
+    
+    double I = 0;
+    double Q = 0;
+    double U = 0;
+    double V = 0;
+    double T = 0;
+    double S1 = 0;
+    
+    if(matrixI!=0)
+        I = matrixI[pos](i_pix, 0);
+    
+    if(matrixQ!=0)
+        Q = matrixQ[pos](i_pix, 0);
+    
+    if(matrixU!=0)
+        U = matrixU[pos](i_pix, 0);
+    
+    if(matrixV!=0)
+        V = matrixV[pos](i_pix, 0);
+    
+    if(matrixT!=0)
+        T = matrixT[pos](i_pix, 0);
+
+    if(matrixS1!=0)
+        S1 = matrixS1[pos](i_pix, 0);
+    
+    st.set(I,Q,U,V,T);
+    st.setSp1(S1);
+    
+    return st;
+}
+
 Vector3D CDetector::getEX()
 {
     return ex;
@@ -279,7 +314,58 @@ void CDetector::addToRaytracingDetector(const photon_package & pp, uint pos_id)
         if(y >= bins_y)
             return;
 
-        matrixI[i_spectral].addValue(x, y, st.I());
+        if(matrixI!=0)
+            matrixI[i_spectral].addValue(x, y, st.I());
+        
+        if(matrixQ!=0)
+            matrixQ[i_spectral].addValue(x, y, st.Q());
+        
+        if(matrixU!=0)
+            matrixU[i_spectral].addValue(x, y, st.U());
+        
+        if(matrixV!=0)
+            matrixV[i_spectral].addValue(x, y, st.V());
+        
+        if(matrixT!=0)
+            matrixT[i_spectral].addValue(x, y, st.T());
+
+        if(N_photon!=0)
+            N_photon[i_spectral].addValue(x, y, 1);
+        
+        if(matrixS1!=0)
+            matrixS1[i_spectral].addValue(x, y, st.Sp1());
+        
+        if(matrixS2!=0)
+            matrixS2[i_spectral].addValue(x, y, st.Sp2());
+        
+        if(matrixS3!=0)
+            matrixS3[i_spectral].addValue(x, y, st.Sp3());
+        
+        if(matrixS4!=0)
+            matrixS4[i_spectral].addValue(x, y, st.Sp4());
+        
+    }
+    else if(pos_id == MAX_UINT-1)
+    {
+        Vector3D pos = pp.getPosition();
+        
+        int x = pos.X();
+        int y = pos.Y();
+
+        if(x < 0)
+            return; 
+        
+        if(x >= bins_x) 
+            return;
+
+        if (y < 0)
+            return;
+
+        if(y >= bins_y)
+            return;
+
+        if(matrixI!=0)
+            matrixI[i_spectral].addValue(x, y, st.I());
         
         if(matrixQ!=0)
             matrixQ[i_spectral].addValue(x, y, st.Q());
@@ -311,7 +397,8 @@ void CDetector::addToRaytracingDetector(const photon_package & pp, uint pos_id)
     }
     else
     {
-        matrixI[i_spectral].addValue(pos_id, st.I());
+        if(matrixI!=0)
+            matrixI[i_spectral].addValue(pos_id, st.I());
         
         if(matrixQ!=0)
             matrixQ[i_spectral].addValue(pos_id, st.Q());
@@ -539,12 +626,39 @@ double CDetector::calc_VOV(uint i_spectral, uint x, uint y, uint quantity)
     return VOV;
 }
 
-bool CDetector::writeMap(uint nr, uint results_type)
+bool CDetector::writeProjMap(uint nr, uint results_type)
 {
     cout << CLR_LINE << flush;
     cout << " -> Writing map ...  \r" << flush;
     // auto_ptr<CCfits::FITS> pFits(0);
     unique_ptr<CCfits::FITS> pFits;
+    
+    uint nr_quantities=0;
+    
+    if (matrixI != 0)
+        nr_quantities++;
+
+    if (matrixQ != 0)
+        nr_quantities++;
+
+    if (matrixU != 0)
+        nr_quantities++;
+
+    if (matrixV != 0)
+        nr_quantities++;
+
+    if (matrixT != 0)
+        nr_quantities++;
+
+
+    if (matrixS1 != 0)
+        nr_quantities++;
+
+    if (matrixS2 != 0)
+        nr_quantities++;
+
+    if (matrixS3 != 0)
+        nr_quantities++;
 
     try
     {
@@ -556,7 +670,7 @@ bool CDetector::writeMap(uint nr, uint results_type)
         strcpy_s(str_tmp, "polaris_detector_nr%04d");
         sprintf_s(str_end, str_tmp, nr);
 #else
-        strcpy(str_tmp, "polaris_detector_nr%04d");
+        strcpy(str_tmp, "proj_polaris_detector_nr%04d");
         sprintf(str_end, str_tmp, nr);
 #endif
 
@@ -564,7 +678,7 @@ bool CDetector::writeMap(uint nr, uint results_type)
         remove(path_out.c_str());
 
         long naxis = 4;
-        long naxes[4] = { bins_x, bins_y, nr_spectral_bins, 6 * nr_extra };
+        long naxes[4] = { bins_x, bins_y, nr_spectral_bins, nr_quantities * nr_extra };
 
         pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
     }
@@ -589,26 +703,72 @@ bool CDetector::writeMap(uint nr, uint results_type)
         fpixel[2] = i_spectral + 1;
         for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
         {
-            valarray<double> array_I(nelements);
+            /*valarray<double> array_I(nelements);
             valarray<double> array_Q(nelements);
             valarray<double> array_U(nelements);
             valarray<double> array_V(nelements);
             valarray<double> array_T(nelements);
             valarray<double> array_S1(nelements);
             valarray<double> array_S2(nelements);
-            valarray<double> array_S3(nelements);
+            valarray<double> array_S3(nelements);*/
+            
+            valarray<double> array_I = {};
+            valarray<double> array_Q = {};
+            valarray<double> array_U = {};
+            valarray<double> array_V = {};
+            valarray<double> array_T = {};
+            
+            valarray<double> array_S1 = {};
+            valarray<double> array_S2 = {};
+            valarray<double> array_S3 = {};
 
+            if (matrixI != 0)
+                array_I = valarray<double>(double(0), long(nelements));
+
+            if (matrixQ != 0)
+                array_Q = valarray<double>(double(0), long(nelements));
+
+            if (matrixU != 0)
+                array_U = valarray<double>(double(0), long(nelements));
+
+            if (matrixV != 0)
+                array_V = valarray<double>(double(0), long(nelements));
+
+            if (matrixT != 0)
+                array_T = valarray<double>(double(0), long(nelements));
+            
+            
+            if (matrixS1 != 0)
+                array_S1 = valarray<double>(double(0), long(nelements));
+
+            if (matrixS2 != 0)
+                array_S2 = valarray<double>(double(0), long(nelements));
+
+            if (matrixS3 != 0)
+                array_S3 = valarray<double>(double(0), long(nelements));            
+            
             uint i = 0;
             for(uint i_y = 0; i_y < bins_y; i_y++)
+            {
                 for(uint i_x = 0; i_x < bins_x; i_x++)
                 {
-                    array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
-                    array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
-                    array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
-                    array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
-                    array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    if(matrixI != 0)
+                        array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                     
-                    array_S1[i] = matrixS1[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    if(matrixQ != 0)
+                        array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixU != 0)
+                        array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixV != 0)
+                        array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixT != 0)
+                        array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixS1 != 0)
+                        array_S1[i] = matrixS1[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                     
                     if(special_param==3)
                     {
@@ -616,42 +776,466 @@ bool CDetector::writeMap(uint nr, uint results_type)
                         array_S3[i] = matrixS3[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
                     }
                     
-                    double N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    double N_ph = 1;
+                    
+                    if(N_photon != 0)
+                        N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
 
                     if((results_type == RESULTS_RAY || results_type == RESULTS_FULL) &&
                         detector_id == DET_POLAR && processing_method == NEAREST && N_ph > 0)
                     {
-                        array_T[i] /= N_ph;
-                        array_S1[i] /= N_ph;
+                        if(matrixT != 0)
+                            array_T[i] /= N_ph;
+                        
+                        if(matrixS1!=0)
+                            array_S1[i] /= N_ph;
                     }
+                    
                     i++;
                 }
-
-            fpixel[3] = 0 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_I);
+            }
             
-            fpixel[3] = 1 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_Q);
+            uint off_counter = 0;
             
-            fpixel[3] = 2 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_U);
+            if(matrixI != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_I);
+                off_counter++;
+            }
             
-            fpixel[3] = 3 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_V);
+            if(matrixQ != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_Q);
+                off_counter++;
+            }
             
-            fpixel[3] = 4 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_T);
+            if(matrixU != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_U);
+                off_counter++;
+            }
             
-            fpixel[3] = 5 * nr_extra + i_extra + 1;
-            pFits->pHDU().write(fpixel, nelements, array_S1);
+            if(matrixV != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_V);
+                off_counter++;
+            }
+            
+            if(matrixT != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_T);
+                off_counter++;
+            }
+            
+            if(matrixS1 != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_S1);
+                off_counter++;
+            }
             
             if(special_param==3)
             {
-                fpixel[3] = 6 * nr_extra + i_extra + 1;
-                pFits->pHDU().write(fpixel, nelements, array_S2);
-                
-                fpixel[3] = 7 * nr_extra + i_extra + 1;
-                pFits->pHDU().write(fpixel, nelements, array_S3);
+                if(matrixS2 != 0)
+                {
+                    fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_S2);
+                    off_counter++;
+                }
+
+                if(matrixS3 != 0)
+                {
+                    fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_S3);
+                    off_counter++;
+                }
+            }
+        }
+    }
+
+    double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+    
+    calcCoordinateParameters(sidelength_x,
+                                bins_x,
+                                map_shift_x,
+                                distance,
+                                bin_width_x,
+                                first_pix_val_x,
+                                deg_per_pix_x,
+                                first_pix_val_deg_x);
+    
+    double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+    
+    calcCoordinateParameters(sidelength_y,
+                                bins_y,
+                                map_shift_y,
+                                distance,
+                                bin_width_y,
+                                first_pix_val_y,
+                                deg_per_pix_y,
+                                first_pix_val_deg_y);
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+    pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+    pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+    // Wavelength IDs
+    pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+    pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+    pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+    pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+    pFits->pHDU().addKey("CUNIT3", "Wavelength index", "unit of axis 3");
+
+    // Simulated quantities
+    pFits->pHDU().addKey("CTYPE4", "PARAM", "type of unit 4");
+    pFits->pHDU().addKey("CRVAL4", 1, "value of axis 4");
+    pFits->pHDU().addKey("CRPIX4", 1, "pixel where CRVAL4 is defined ");
+    pFits->pHDU().addKey("CDELT4", 1, "delta of axis 4");
+    if(results_type == RESULTS_RAY)
+    {
+        pFits->pHDU().addKey(
+            "CUNIT4", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 4");
+        pFits->pHDU().addKey("ETYPE", "thermal emission", "type of emission");
+    }
+    else if(results_type == RESULTS_FULL)
+    {
+        pFits->pHDU().addKey(
+            "CUNIT4", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 4");
+        pFits->pHDU().addKey("ETYPE", "thermal emission (+scattering)", "type of emission");
+    }
+    else if(results_type == RESULTS_MC)
+    {
+        pFits->pHDU().addKey("CUNIT4", "I, Q, U, V, I_direct, I_scat [Jy/px]", "unit of axis 4");
+        pFits->pHDU().addKey("ETYPE", "scattered emission / direct stellar emission", "type of emission");
+    }
+    else if(nr_extra > 1)
+    {
+        pFits->pHDU().addKey(
+            "CUNIT4", "I, Q, U, V [Jy/px], optical depth, column density [m^-2]", "unit of axis 4");
+        pFits->pHDU().addKey(
+            "ETYPE", "Each Stokes entry for FULL / SCAT / THERMAL / STOCHASTIC", "type of emission");
+    }
+    pFits->pHDU().addKey("ID", nr, "detector ID");
+
+    for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+    {
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            char str_1[1024];
+            char str_2[1024];
+#ifdef WINDOWS
+            sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+#else
+            sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+#endif
+            pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+        }
+    }
+    pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+    pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+    pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+    pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+    pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+    pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+    pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+    pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+    pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+    pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+    string alignment_descr = getAlignmentDescription();
+    if(alignment_descr != "")
+        pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
+
+    cout << CLR_LINE << flush;
+    return true;
+}
+
+bool CDetector::writeMap(uint nr, uint results_type)
+{
+    cout << CLR_LINE << flush;
+    cout << " -> Writing map ...  \r" << flush;
+    // auto_ptr<CCfits::FITS> pFits(0);
+    unique_ptr<CCfits::FITS> pFits;
+    
+    uint nr_quantities=0;
+    
+    if (matrixI != 0)
+        nr_quantities++;
+
+    if (matrixQ != 0)
+        nr_quantities++;
+
+    if (matrixU != 0)
+        nr_quantities++;
+
+    if (matrixV != 0)
+        nr_quantities++;
+
+    if (matrixT != 0)
+        nr_quantities++;
+
+
+    if (matrixS1 != 0)
+        nr_quantities++;
+
+    if (matrixS2 != 0)
+        nr_quantities++;
+
+    if (matrixS3 != 0)
+        nr_quantities++;
+
+    try
+    {
+        char str_tmp[1024];
+        char str_end[1024];
+        nr++;
+
+#ifdef WINDOWS
+        strcpy_s(str_tmp, "polaris_detector_nr%04d");
+        sprintf_s(str_end, str_tmp, nr);
+#else
+        strcpy(str_tmp, "polaris_detector_nr%04d");
+        sprintf(str_end, str_tmp, nr);
+#endif
+
+        string path_out = path + str_end + FITS_COMPRESS_EXT;
+        remove(path_out.c_str());
+
+        long naxis = 4;
+        long naxes[4] = { bins_x, bins_y, nr_spectral_bins, nr_quantities * nr_extra };
+
+        pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+    }
+    catch(CCfits::FITS::CantCreate)
+    {
+        return false;
+    }
+
+    long nelements = bins_x * bins_y;
+    if(max_cells != nelements)
+    {
+        cout << WARNING_LINE << "Max cells are not equal to bins x bins!" << endl;
+        return false;
+    }
+
+    vector<long> fpixel(4);
+    fpixel[0] = 1;
+    fpixel[1] = 1;
+
+    for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+    {
+        fpixel[2] = i_spectral + 1;
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+        {
+            /*valarray<double> array_I(nelements);
+            valarray<double> array_Q(nelements);
+            valarray<double> array_U(nelements);
+            valarray<double> array_V(nelements);
+            valarray<double> array_T(nelements);
+            valarray<double> array_S1(nelements);
+            valarray<double> array_S2(nelements);
+            valarray<double> array_S3(nelements);*/
+            
+            valarray<double> array_I = {};
+            valarray<double> array_Q = {};
+            valarray<double> array_U = {};
+            valarray<double> array_V = {};
+            valarray<double> array_T = {};
+            
+            valarray<double> array_S1 = {};
+            valarray<double> array_S2 = {};
+            valarray<double> array_S3 = {};
+
+            if (matrixI != 0)
+                array_I = valarray<double>(double(0), long(nelements));
+
+            if (matrixQ != 0)
+                array_Q = valarray<double>(double(0), long(nelements));
+
+            if (matrixU != 0)
+                array_U = valarray<double>(double(0), long(nelements));
+
+            if (matrixV != 0)
+                array_V = valarray<double>(double(0), long(nelements));
+
+            if (matrixT != 0)
+                array_T = valarray<double>(double(0), long(nelements));
+            
+            
+            if (matrixS1 != 0)
+                array_S1 = valarray<double>(double(0), long(nelements));
+
+            if (matrixS2 != 0)
+                array_S2 = valarray<double>(double(0), long(nelements));
+
+            if (matrixS3 != 0)
+                array_S3 = valarray<double>(double(0), long(nelements));            
+            
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+            {
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    if(matrixI != 0)
+                        array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixQ != 0)
+                        array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixU != 0)
+                        array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixV != 0)
+                        array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixT != 0)
+                        array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(matrixS1 != 0)
+                        array_S1[i] = matrixS1[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    if(special_param==3)
+                    {
+                        array_S2[i] = matrixS2[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                        array_S3[i] = matrixS3[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    }
+                    
+                    double N_ph = 1;
+                    
+                    if(N_photon != 0)
+                        N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+
+                    if((results_type == RESULTS_RAY || results_type == RESULTS_FULL) &&
+                        detector_id == DET_POLAR && processing_method == NEAREST && N_ph > 0)
+                    {
+                        if(matrixT != 0)
+                            array_T[i] /= N_ph;
+                        
+                        if(matrixS1!=0)
+                            array_S1[i] /= N_ph;
+                    }
+                    
+                    i++;
+                }
+            }
+            
+            uint off_counter = 0;
+            
+            if(matrixI != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_I);
+                off_counter++;
+            }
+            
+            if(matrixQ != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_Q);
+                off_counter++;
+            }
+            
+            if(matrixU != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_U);
+                off_counter++;
+            }
+            
+            if(matrixV != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_V);
+                off_counter++;
+            }
+            
+            if(matrixT != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_T);
+                off_counter++;
+            }
+            
+            if(matrixS1 != 0)
+            {
+                fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                pFits->pHDU().write(fpixel, nelements, array_S1);
+                off_counter++;
+            }
+            
+            if(special_param==3)
+            {
+                if(matrixS2 != 0)
+                {
+                    fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_S2);
+                    off_counter++;
+                }
+
+                if(matrixS3 != 0)
+                {
+                    fpixel[3] = off_counter * nr_extra + i_extra + 1;
+                    pFits->pHDU().write(fpixel, nelements, array_S3);
+                    off_counter++;
+                }
             }
         }
     }
@@ -1194,7 +1778,7 @@ bool CDetector::writeSed(uint nr, uint results_type)
     return true;
 }
 
-bool CDetector::writeHealMaps(uint nr, uint results_type)
+bool CDetector::writeDustHealMaps(uint nr, ilist64 & heal_index, long npix, uint results_type)
 {
     cout << CLR_LINE;
     cout << " -> Writing healpix map ...  \r" << flush;
@@ -1230,23 +1814,56 @@ bool CDetector::writeHealMaps(uint nr, uint results_type)
     long nelements = bins_x * bins_y;
     if(max_cells != nelements)
     {
-        cout << WARNING_LINE << "Max cells are not equal to bins x bins!" << endl;
+        cout << ERROR_LINE << "Max. cells are not equal to bins x bins!" << endl;
         return false;
+    }
+    
+    if(npix < nelements)
+    {
+        cout << ERROR_LINE << "Nr. of pixel is smaller than number of ray-traced elements!" << endl;
+        return false;
+    }
+    
+    for (uint i_x = 0; i_x < bins_x; ++i_x)
+    {
+        int64_t idx = heal_index[i_x];
+        if (idx < 0 || idx >= npix)
+        {
+            cout << ERROR_LINE << "heal_index[" << i_x << "] = "
+                      << idx << " out of range 0.." << (npix - 1) << endl << flush;
+            
+            return false;
+        }
     }
 
     // Init columns
     string newName("HEALPIX_EXTENSION");
-    uint nr_of_quantities = 1;
+    uint nr_of_quantities = 0;
     uint off=0;
     
-    if(matrixQ!=0 && matrixU!=0 && matrixV!=0)
-        nr_of_quantities+=3;
+    if(matrixI!=0)
+        nr_of_quantities++;
+    
+    if(matrixQ!=0)
+        nr_of_quantities++;
+    
+    if(matrixU!=0)
+        nr_of_quantities++;
+    
+    if(matrixV!=0)
+        nr_of_quantities++;
         
     if(matrixT!=0)
         nr_of_quantities++;
     
     if(matrixS1!=0)
         off=1;
+    
+    if(nr_of_quantities==0)
+    {
+        cout << ERROR_LINE << "No quantities selected to write!" << endl;
+        return false;
+    }
     
     vector<string> colName(nr_of_quantities * nr_spectral_bins + off, "");
     vector<string> colForm(nr_of_quantities * nr_spectral_bins + off, "");
@@ -1255,67 +1872,61 @@ bool CDetector::writeHealMaps(uint nr, uint results_type)
     for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
     {
         char str_1[1024];
-        #ifdef WINDOWS
-                sprintf_s(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-        #else
-                sprintf(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-        #endif
-                colName[nr_of_quantities * i_spectral + 0] = str_1;
-                
-        if(nr_of_quantities==2)
+        uint off_counter=0;
+        
+        if(matrixI!=0)
         {
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 1] = str_1;
-
-                    colForm[nr_of_quantities * i_spectral + 0] = "D";
-                    colForm[nr_of_quantities * i_spectral + 1] = "D";
-
-                    colUnit[nr_of_quantities * i_spectral + 0] = "Jy/px";
-                    colUnit[nr_of_quantities * i_spectral + 1] = "";
+            sprintf(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
         }
         
-        if(nr_of_quantities==5)
+        if(matrixQ!=0)
         {
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 1] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 2] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 3] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 4] = str_1;
-
-                    colForm[nr_of_quantities * i_spectral + 0] = "D";
-                    colForm[nr_of_quantities * i_spectral + 1] = "D";
-                    colForm[nr_of_quantities * i_spectral + 2] = "D";
-                    colForm[nr_of_quantities * i_spectral + 3] = "D";
-                    colForm[nr_of_quantities * i_spectral + 4] = "D";
-
-                    colUnit[nr_of_quantities * i_spectral + 0] = "Jy/px";
-                    colUnit[nr_of_quantities * i_spectral + 1] = "Jy/px";
-                    colUnit[nr_of_quantities * i_spectral + 2] = "Jy/px";
-                    colUnit[nr_of_quantities * i_spectral + 3] = "Jy/px";
-                    colUnit[nr_of_quantities * i_spectral + 4] = "";
+            sprintf(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
+        }
+        
+        if(matrixU!=0)
+        {
+            sprintf(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
+        }
+        
+        if(matrixV!=0)
+        {
+            sprintf(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
+        }
+        
+        if(matrixT!=0)
+        {
+            sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "";
+            
+            off_counter++;
         }
     }
     
@@ -1326,76 +1937,102 @@ bool CDetector::writeHealMaps(uint nr, uint results_type)
         colUnit[nr_of_quantities * nr_spectral_bins] = "m^-2";
     }
 
-    CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
+    CCfits::Table * newTable = pFits->addTable(newName, npix, colName, colForm, colUnit);
     
-    if(nr_of_quantities==2)
+    for (uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
     {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        valarray<double> array_I = {};
+        valarray<double> array_Q = {};
+        valarray<double> array_U = {};
+        valarray<double> array_V = {};
+        valarray<double> array_T = {};
+
+        if (matrixI != 0)
+            array_I = valarray<double>(double(0), long(npix));
+
+        if (matrixQ != 0)
+            array_Q = valarray<double>(double(0), long(npix));
+
+        if (matrixU != 0)
+            array_U = valarray<double>(double(0), long(npix));
+
+        if (matrixV != 0)
+            array_V = valarray<double>(double(0), long(npix));
+
+        if (matrixT != 0)
+            array_T = valarray<double>(double(0), long(npix));
+
+        uint i_y = 0;
+        uint off_counter = 0;
+
+        for (uint i_x = 0; i_x < bins_x; i_x++)
         {
-            valarray<double> array_I(nelements);
-            valarray<double> array_T(nelements);
+            long index = (long)heal_index[i_x];
 
-            uint i = 0;
-            for(uint i_y = 0; i_y < bins_y; i_y++)
-            {
-                for(uint i_x = 0; i_x < bins_x; i_x++)
-                {
-                    array_I[i] = matrixI[i_spectral](i_x, i_y);
-                    array_T[i] = matrixT[i_spectral](i_x, i_y);
-                    i++;
-                }
-            }
+            if (index >= npix)
+                continue;
 
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 1]).write(array_T, 1);
+            if (matrixI != 0)
+                array_I[index] = matrixI[i_spectral](i_x, i_y);
+
+            if (matrixQ != 0)
+                array_Q[index] = matrixQ[i_spectral](i_x, i_y);
+
+            if (matrixU != 0)
+                array_U[index] = matrixU[i_spectral](i_x, i_y);
+
+            if (matrixV != 0)
+                array_V[index] = matrixV[i_spectral](i_x, i_y);
+
+            if (matrixT != 0)
+                array_T[index] = matrixT[i_spectral](i_x, i_y);
         }
-    }
 
-    if(nr_of_quantities==5)
-    {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+
+        if (matrixI != 0)
         {
-            valarray<double> array_I(nelements);
-            valarray<double> array_Q(nelements);
-            valarray<double> array_U(nelements);
-            valarray<double> array_V(nelements);
-            valarray<double> array_T(nelements);
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_I, 1);
+            off_counter++;
+        }
 
-            uint i = 0;
-            for(uint i_y = 0; i_y < bins_y; i_y++)
-            {
-                for(uint i_x = 0; i_x < bins_x; i_x++)
-                {
-                    array_I[i] = matrixI[i_spectral](i_x, i_y);
-                    array_Q[i] = matrixQ[i_spectral](i_x, i_y);
-                    array_U[i] = matrixU[i_spectral](i_x, i_y);
-                    array_V[i] = matrixV[i_spectral](i_x, i_y);
-                    array_T[i] = matrixT[i_spectral](i_x, i_y);
-                    i++;
-                }
-            }
+        if (matrixQ != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_Q, 1);
+            off_counter++;
+        }
 
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 1]).write(array_Q, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 2]).write(array_U, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 3]).write(array_V, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 4]).write(array_T, 1);
+        if (matrixU != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_U, 1);
+            off_counter++;
+        }
+
+        if (matrixV != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_V, 1);
+            off_counter++;
+        }
+
+        if (matrixT != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_T, 1);
+            off_counter++;
         }
     }
 
     // Column density
     if(off==1)
     {
-        valarray<double> array_C(nelements);
-        uint i = 0;
+        valarray<double> array_C(double(0), long(npix));
 
-        for(uint i_y = 0; i_y < bins_y; i_y++)
-        {    
-            for(uint i_x = 0; i_x < bins_x; i_x++)
-            {
-                array_C[i] = matrixS1[0](i_x, i_y);
-                i++;
-            }
+        uint i_y = 0;
+        for (uint i_x = 0; i_x < bins_x; i_x++)
+        {
+            long index = (long)heal_index[i_x];
+            if (index >= npix)
+                continue;
+
+            array_C[index] = matrixS1[0](i_x, i_y);
         }
 
         newTable->column(colName[nr_of_quantities * nr_spectral_bins]).write(array_C, 1);
@@ -1406,9 +2043,9 @@ bool CDetector::writeHealMaps(uint nr, uint results_type)
     newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
     newTable->addKey("ORDERING", "RING", "Ordering scheme");
     newTable->addKey("INDXSCHM", "IMPLICIT", "Indexing scheme");
-    newTable->addKey("NSIDE", uint(sqrt(bins_x / 12.0)), "Resolution Parameter");
+    newTable->addKey("NSIDE", uint(sqrt(npix / 12.0)), "Resolution Parameter");
     newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
-    newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
+    newTable->addKey("LASTPIX", npix - 1, "Last pixel (0 based)");
     newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
 
     if(results_type == RESULTS_RAY)
@@ -1439,7 +2076,7 @@ bool CDetector::writeHealMaps(uint nr, uint results_type)
     return true;
 }
 
-bool CDetector::writeHealMapsTiny(uint nr, uint results_type)
+bool CDetector::writeDustHealMapsTiny(uint nr, ilist64 & heal_index, long npix, uint results_type)
 {
     cout << CLR_LINE << flush;
     cout << " -> Writing healpix min. map ...  \r" << flush;
@@ -1478,21 +2115,47 @@ bool CDetector::writeHealMapsTiny(uint nr, uint results_type)
         cout << WARNING_LINE << "Max cells are not equal to bins x bins!" << endl;
         return false;
     }
+    
+    for (uint i_x = 0; i_x < bins_x; ++i_x)
+    {
+        int64_t index = heal_index[i_x];
+        if (index < 0 || index >= npix)
+        {
+            cout << ERROR_LINE << "heal_index[" << i_x << "] = "
+                      << index << " out of range 0.." << (npix - 1) << endl << flush;
+            
+            return false;
+        }
+    }
 
     // Init columns
     string newName("DATA_EXTENSION");
-    uint nr_of_quantities = 1;
-    
+    uint nr_of_quantities = 0;
     uint off=1;
     
-    if(matrixQ!=0 && matrixU!=0 && matrixV!=0)
-        nr_of_quantities+=3;
+    if(matrixI!=0)
+        nr_of_quantities++;
+    
+    if(matrixQ!=0)
+        nr_of_quantities++;
+    
+    if(matrixU!=0)
+        nr_of_quantities++;
+    
+    if(matrixV!=0)
+        nr_of_quantities++;
         
     if(matrixT!=0)
         nr_of_quantities++;
     
     if(matrixS1!=0)
         off=2;
+    
+    if(nr_of_quantities==0)
+    {
+        cout << ERROR_LINE << "No quantities selected to write!" << endl;
+        return false;
+    }
     
     vector<string> colName(nr_of_quantities * nr_spectral_bins + off, "");
     vector<string> colForm(nr_of_quantities * nr_spectral_bins + off, "");
@@ -1501,96 +2164,61 @@ bool CDetector::writeHealMapsTiny(uint nr, uint results_type)
     for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
     {
         char str_1[1024];
+        uint off_counter=0;
         
-        #ifdef WINDOWS
-                sprintf_s(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-        #else
-                sprintf(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-        #endif
-                colName[nr_of_quantities * i_spectral + 0] = str_1;
-
-        colForm[nr_of_quantities * i_spectral + 0] = "D";        
-        colUnit[nr_of_quantities * i_spectral + 0] = "Jy/px";
-                
-        if(nr_of_quantities==2)
+        if(matrixI!=0)
         {
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 1] = str_1;
-
-            colForm[nr_of_quantities * i_spectral + 1] = "D";
-            colUnit[nr_of_quantities * i_spectral + 1] = "";
+            sprintf(str_1, "I_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
         }
         
-        if(nr_of_quantities==4)
+        if(matrixQ!=0)
         {
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 1] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 2] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 3] = str_1;
-
-            colForm[nr_of_quantities * i_spectral + 1] = "D";
-            colForm[nr_of_quantities * i_spectral + 2] = "D";
-            colForm[nr_of_quantities * i_spectral + 3] = "D";
-
-            colUnit[nr_of_quantities * i_spectral + 1] = "Jy/px";
-            colUnit[nr_of_quantities * i_spectral + 2] = "Jy/px";
-            colUnit[nr_of_quantities * i_spectral + 3] = "Jy/px";
+            sprintf(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
         }
         
-        if(nr_of_quantities==5)
+        if(matrixU!=0)
         {
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "Q_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 1] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 2] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 3] = str_1;
-            #ifdef WINDOWS
-                    sprintf_s(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #else
-                    sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
-            #endif
-                    colName[nr_of_quantities * i_spectral + 4] = str_1;
-                    
-            colForm[nr_of_quantities * i_spectral + 1] = "D";
-            colForm[nr_of_quantities * i_spectral + 2] = "D";
-            colForm[nr_of_quantities * i_spectral + 3] = "D";
-            colForm[nr_of_quantities * i_spectral + 4] = "D";
-
-            colUnit[nr_of_quantities * i_spectral + 1] = "Jy/px";
-            colUnit[nr_of_quantities * i_spectral + 2] = "Jy/px";
-            colUnit[nr_of_quantities * i_spectral + 3] = "Jy/px";
-            colUnit[nr_of_quantities * i_spectral + 4] = "";
+            sprintf(str_1, "U_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
+        }
+        
+        if(matrixV!=0)
+        {
+            sprintf(str_1, "V_STOKES (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "Jy/px";
+            
+            off_counter++;
+        }
+        
+        if(matrixT!=0)
+        {
+            sprintf(str_1, "OPTICAL_DEPTH (WAVELENGTH = %e [m])", wavelength_list_det[i_spectral]);
+            
+            colName[nr_of_quantities * i_spectral + off_counter] = str_1;
+            colForm[nr_of_quantities * i_spectral + off_counter] = "D";
+            colUnit[nr_of_quantities * i_spectral + off_counter] = "";
+            
+            off_counter++;
         }
     }
     
@@ -1604,173 +2232,110 @@ bool CDetector::writeHealMapsTiny(uint nr, uint results_type)
         colForm[nr_of_quantities * nr_spectral_bins+1] = "D";
         colUnit[nr_of_quantities * nr_spectral_bins+1] = "m^-2";
     }
-    
-    long index = 0;
         
-    llist indices;
-    llist bx, by;
-    nelements = 0;
-
-    for(uint i_y = 0; i_y < bins_y; i_y++)
-    {
-        for(uint i_x = 0; i_x < bins_x; i_x++)
-        {
-            if(matrixI[0](i_x, i_y)>1.0e-100)
-            {
-                indices.push_back(index);  
-                bx.push_back(i_x);
-                by.push_back(i_y);
-            }
-
-            index++;
-        }
-    }
-
-    nelements=indices.size();        
-
-    if(nelements==0)
-    {
-        cout << CLR_LINE;
-        cout << ERROR_LINE << "Healpix map contains no data at all!" << endl;
-        return false;
-    }       
-    
     CCfits::Table * newTable = pFits->addTable(newName, nelements, colName, colForm, colUnit);
     
-    if(nr_of_quantities==1)
+    for (uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
     {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        valarray<double> array_I = {};
+        valarray<double> array_Q = {};
+        valarray<double> array_U = {};
+        valarray<double> array_V = {};
+        valarray<double> array_T = {};
+
+        if (matrixI != 0)
+            array_I = valarray<double>(double(0), long(nelements));
+
+        if (matrixQ != 0)
+            array_Q = valarray<double>(double(0), long(nelements));
+
+        if (matrixU != 0)
+            array_U = valarray<double>(double(0), long(nelements));
+
+        if (matrixV != 0)
+            array_V = valarray<double>(double(0), long(nelements));
+
+        if (matrixT != 0)
+            array_T = valarray<double>(double(0), long(nelements));
+
+        uint i_y = 0;
+        uint off_counter = 0;
+
+        for (uint i_x = 0; i_x < bins_x; i_x++)
         {
-            valarray<double> array_I(nelements);
+            if (matrixI != 0)
+                array_I[i_x] = matrixI[i_spectral](i_x, i_y);
 
-            for(uint i = 0; i < nelements; i++)
-            {
-                long i_x = bx[i];
-                long i_y = by[i];
+            if (matrixQ != 0)
+                array_Q[i_x] = matrixQ[i_spectral](i_x, i_y);
 
-                array_I[i] = matrixI[i_spectral](i_x, i_y);
-            }
+            if (matrixU != 0)
+                array_U[i_x] = matrixU[i_spectral](i_x, i_y);
 
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-        }    
-    }
-    
-    if(nr_of_quantities==2)
-    {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
-        {
-            valarray<double> array_I(nelements);
-            valarray<double> array_T(nelements);
+            if (matrixV != 0)
+                array_V[i_x] = matrixV[i_spectral](i_x, i_y);
 
-            for(uint i = 0; i < nelements; i++)
-            {
-                long i_x = bx[i];
-                long i_y = by[i];
-
-                array_I[i] = matrixI[i_spectral](i_x, i_y);
-                array_T[i] = matrixT[i_spectral](i_x, i_y);
-            }
-
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 1]).write(array_T, 1);
-        }    
-    }
-    
-    if(nr_of_quantities==4)
-    {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
-        {            
-            valarray<double> array_I(nelements);
-            valarray<double> array_Q(nelements);
-            valarray<double> array_U(nelements);
-            valarray<double> array_V(nelements);
-
-            for(uint i = 0; i < nelements; i++)
-            {
-                long i_x = bx[i];
-                long i_y = by[i];
-
-                array_I[i] = matrixI[i_spectral](i_x, i_y);
-                array_Q[i] = matrixQ[i_spectral](i_x, i_y);
-                array_U[i] = matrixU[i_spectral](i_x, i_y);
-                array_V[i] = matrixV[i_spectral](i_x, i_y);
-            }
-
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 1]).write(array_Q, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 2]).write(array_U, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 3]).write(array_V, 1);
-        }    
-    }
-    
-    if(nr_of_quantities==5)
-    {
-        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
-        {
-            valarray<long> array_index(nelements);
-            valarray<double> array_I(nelements);
-            valarray<double> array_Q(nelements);
-            valarray<double> array_U(nelements);
-            valarray<double> array_V(nelements);
-            valarray<double> array_T(nelements);
-
-            for(uint i = 0; i < nelements; i++)
-            {
-                long i_x = bx[i];
-                long i_y = by[i];
-
-                array_index[i]=indices[i];
-                array_I[i] = matrixI[i_spectral](i_x, i_y);
-                array_Q[i] = matrixQ[i_spectral](i_x, i_y);
-                array_U[i] = matrixU[i_spectral](i_x, i_y);
-                array_V[i] = matrixV[i_spectral](i_x, i_y);
-                array_T[i] = matrixT[i_spectral](i_x, i_y);
-            }
-
-            newTable->column(colName[nr_of_quantities * i_spectral + 0]).write(array_I, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 1]).write(array_Q, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 2]).write(array_U, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 3]).write(array_V, 1);
-            newTable->column(colName[nr_of_quantities * i_spectral + 4]).write(array_T, 1);
-        }    
-    }
-
-    if(off==1)
-    {
-        valarray<long> array_index(nelements);
-    
-        for(uint i = 0; i < nelements; i++)
-        {
-            array_index[i]=indices[i];
+            if (matrixT != 0)
+                array_T[i_x] = matrixT[i_spectral](i_x, i_y);
         }
-        
-        newTable->column(colName[nr_of_quantities * nr_spectral_bins]).write(array_index, 1);
+
+        if (matrixI != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_I, 1);
+            off_counter++;
+        }
+
+        if (matrixQ != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_Q, 1);
+            off_counter++;
+        }
+
+        if (matrixU != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_U, 1);
+            off_counter++;
+        }
+
+        if (matrixV != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_V, 1);
+            off_counter++;
+        }
+
+        if (matrixT != 0)
+        {
+            newTable->column(colName[nr_of_quantities * i_spectral + off_counter]).write(array_T, 1);
+            off_counter++;
+        }
     }
-    
+
     // Column density
-    if(off==2)
+    valarray<long> array_index(nelements);
+    valarray<double> array_C = {};
+
+    if (matrixS1 != 0)
+        array_C = valarray<double>(double(0), long(npix));
+    
+    long i_y=0;
+    for(long i_x = 0; i_x < bins_x; i_x++)
     {
-        valarray<double> array_C(nelements);
-        valarray<long> array_index(nelements);
+        array_index[i_x]=(long)heal_index[i_x];
         
-        for(uint i = 0; i < nelements; i++)
-        {
-            long i_x = bx[i];
-            long i_y = by[i];
-            
-            array_index[i]=indices[i];
-            array_C[i] = matrixS1[0](i_x, i_y);
-        }
-        
-        newTable->column(colName[nr_of_quantities * nr_spectral_bins + 0]).write(array_index, 1);
-        newTable->column(colName[nr_of_quantities * nr_spectral_bins + 1]).write(array_C, 1);
+        if(matrixS1!=0)
+            array_C[i_x] = matrixS1[0](i_x, i_y);
     }
+        
+    newTable->column(colName[nr_of_quantities * nr_spectral_bins + 0]).write(array_index, 1);
+    
+    if(matrixS1!=0)
+        newTable->column(colName[nr_of_quantities * nr_spectral_bins + 1]).write(array_C, 1);
 
     // Healpix parameter
     newTable->addKey("PIXTYPE", "HEALPIX", "Pixel algorigthm");
     newTable->addKey("ORDERING", "RING", "Ordering scheme");
     newTable->addKey("INDXSCHM", "EXPLICIT", "Indexing scheme");
-    newTable->addKey("NSIDE", uint(sqrt(bins_x / 12.0)), "Resolution Parameter");
+    newTable->addKey("NSIDE", uint(sqrt(npix / 12.0)), "Resolution Parameter");
     newTable->addKey("FIRSTPIX", 0, "First pixel (0 based)");
     newTable->addKey("LASTPIX", max_cells - 1, "Last pixel (0 based)");
     newTable->addKey("CROTA2", 0, "Rotation Angle (Degrees)");
@@ -1803,6 +2368,478 @@ bool CDetector::writeHealMapsTiny(uint nr, uint results_type)
     return true;
 }
 
+// ame maps
+
+bool CDetector::writeDustAMEMap(uint nr)
+{
+    cout << CLR_LINE << flush;
+    cout << " -> Writing ame map ...  \r" << flush;
+    // auto_ptr<CCfits::FITS> pFits(0);
+    unique_ptr<CCfits::FITS> pFits;
+
+    try
+    {
+        char str_tmp[1024];
+        char str_end[1024];
+        nr++;
+
+#ifdef WINDOWS
+        strcpy_s(str_tmp, "polaris_detector_nr%04d");
+        sprintf_s(str_end, str_tmp, nr);
+#else
+        strcpy(str_tmp, "polaris_detector_nr%04d");
+        sprintf(str_end, str_tmp, nr);
+#endif
+
+        string path_out = path + str_end + FITS_COMPRESS_EXT;
+        remove(path_out.c_str());
+
+        long naxis = 4;
+        long naxes[4] = { bins_x, bins_y, nr_spectral_bins, 3 * nr_extra };
+
+        pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+    }
+    catch(CCfits::FITS::CantCreate)
+    {
+        return false;
+    }
+
+    long nelements = bins_x * bins_y;
+    if(max_cells != nelements)
+    {
+        cout << WARNING_LINE << "Max cells are not equal to bins x bins!" << endl;
+        return false;
+    }
+
+    vector<long> fpixel(4);
+    fpixel[0] = 1;
+    fpixel[1] = 1;
+
+    for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+    {
+        fpixel[2] = i_spectral + 1;
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+        {
+            valarray<double> array_I(nelements);
+            /*valarray<double> array_Q(nelements);
+            valarray<double> array_U(nelements);
+            valarray<double> array_V(nelements);
+            valarray<double> array_T(nelements);*/
+            valarray<double> array_S1(nelements);
+            valarray<double> array_S2(nelements);
+            //valarray<double> array_S3(nelements);
+
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+            {
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    /*array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);*/
+                    
+                    array_S1[i] = matrixS1[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_S2[i] = matrixS2[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    double N_ph = N_photon[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+
+                    if(N_ph > 0)
+                    {
+                        //array_T[i] /= N_ph;
+                        array_S1[i] /= N_ph;
+                        array_S2[i] /= N_ph;
+                    }
+                    i++;
+                }
+            }    
+               
+            fpixel[3] = 0 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_I);
+            
+            /*fpixel[3] = 1 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_Q);
+            
+            fpixel[3] = 2 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_U);
+            
+            fpixel[3] = 3 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_V);
+            
+            fpixel[3] = 4 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_T);*/
+            
+            fpixel[3] = 1 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_S1);
+            
+            fpixel[3] = 2 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_S2);
+        }
+    }
+
+    double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+    
+    calcCoordinateParameters(sidelength_x,
+                                bins_x,
+                                map_shift_x,
+                                distance,
+                                bin_width_x,
+                                first_pix_val_x,
+                                deg_per_pix_x,
+                                first_pix_val_deg_x);
+    
+    double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+    
+    calcCoordinateParameters(sidelength_y,
+                                bins_y,
+                                map_shift_y,
+                                distance,
+                                bin_width_y,
+                                first_pix_val_y,
+                                deg_per_pix_y,
+                                first_pix_val_deg_y);
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+    pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+    pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+    // Wavelength IDs
+    pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+    pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+    pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+    pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+    pFits->pHDU().addKey("CUNIT3", "Wavelength index", "unit of axis 3");
+
+    // Simulated quantities
+    pFits->pHDU().addKey("CTYPE4", "PARAM", "type of unit 4");
+    pFits->pHDU().addKey("CRVAL4", 1, "value of axis 4");
+    pFits->pHDU().addKey("CRPIX4", 1, "pixel where CRVAL4 is defined ");
+    pFits->pHDU().addKey("CDELT4", 1, "delta of axis 4");
+    
+    pFits->pHDU().addKey(
+        "CUNIT4", "I [Jy/px], ND, NH [m^-2]", "unit of axis 4");
+    pFits->pHDU().addKey("ETYPE", "thermal emission", "type of emission");
+    
+    pFits->pHDU().addKey("ID", nr, "detector ID");
+
+    for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+    {
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            char str_1[1024];
+            char str_2[1024];
+#ifdef WINDOWS
+            sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+#else
+            sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+#endif
+            pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+        }
+    }
+    pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+    pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+    pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+    pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+    pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+    pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+    pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+    pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+    pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+    pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+    
+    /*string alignment_descr = getAlignmentDescription();
+    if(alignment_descr != "")
+        pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");*/
+
+    cout << CLR_LINE << flush;
+    return true;
+}
+
+bool CDetector::writeDustAMEHealMap(uint nr)
+{
+    cout << CLR_LINE << flush;
+    cout << " -> Writing ame map ...  \r" << flush;
+    // auto_ptr<CCfits::FITS> pFits(0);
+    unique_ptr<CCfits::FITS> pFits;
+
+    try
+    {
+        char str_tmp[1024];
+        char str_end[1024];
+        nr++;
+
+#ifdef WINDOWS
+        strcpy_s(str_tmp, "polaris_detector_nr%04d");
+        sprintf_s(str_end, str_tmp, nr);
+#else
+        strcpy(str_tmp, "polaris_detector_nr%04d");
+        sprintf(str_end, str_tmp, nr);
+#endif
+
+        string path_out = path + str_end + FITS_COMPRESS_EXT;
+        remove(path_out.c_str());
+
+        long naxis = 4;
+        long naxes[4] = { bins_x, bins_y, nr_spectral_bins, 6 * nr_extra };
+
+        pFits.reset(new CCfits::FITS(path_out, DOUBLE_IMG, naxis, naxes));
+    }
+    catch(CCfits::FITS::CantCreate)
+    {
+        return false;
+    }
+
+    long nelements = bins_x * bins_y;
+    if(max_cells != nelements)
+    {
+        cout << WARNING_LINE << "Max cells are not equal to bins x bins!" << endl;
+        return false;
+    }
+
+    vector<long> fpixel(4);
+    fpixel[0] = 1;
+    fpixel[1] = 1;
+
+    for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+    {
+        fpixel[2] = i_spectral + 1;
+        for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+        {
+            valarray<double> array_I(nelements);
+            /*valarray<double> array_Q(nelements);
+            valarray<double> array_U(nelements);
+            valarray<double> array_V(nelements);
+            valarray<double> array_T(nelements);*/
+            valarray<double> array_S1(nelements);
+            valarray<double> array_S2(nelements);
+            //valarray<double> array_S3(nelements);
+
+            uint i = 0;
+            for(uint i_y = 0; i_y < bins_y; i_y++)
+                for(uint i_x = 0; i_x < bins_x; i_x++)
+                {
+                    array_I[i] = matrixI[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                   /* array_Q[i] = matrixQ[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_U[i] = matrixU[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_V[i] = matrixV[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_T[i] = matrixT[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);*/
+                    
+                    array_S1[i] = matrixS1[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    array_S2[i] = matrixS2[i_spectral + i_extra * nr_spectral_bins](i_x, i_y);
+                    
+                    i++;
+                }
+
+            fpixel[3] = 0 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_I);
+            
+            /*fpixel[3] = 1 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_Q);
+            
+            fpixel[3] = 2 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_U);
+            
+            fpixel[3] = 3 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_V);
+            
+            fpixel[3] = 4 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_T);*/
+            
+            fpixel[3] = 1 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_S1);
+            
+            fpixel[3] = 2 * nr_extra + i_extra + 1;
+            pFits->pHDU().write(fpixel, nelements, array_S2);
+            
+        }
+    }
+
+    double bin_width_x, first_pix_val_x, deg_per_pix_x, first_pix_val_deg_x;
+    
+    calcCoordinateParameters(sidelength_x,
+                                bins_x,
+                                map_shift_x,
+                                distance,
+                                bin_width_x,
+                                first_pix_val_x,
+                                deg_per_pix_x,
+                                first_pix_val_deg_x);
+    
+    double bin_width_y, first_pix_val_y, deg_per_pix_y, first_pix_val_deg_y;
+    
+    calcCoordinateParameters(sidelength_y,
+                                bins_y,
+                                map_shift_y,
+                                distance,
+                                bin_width_y,
+                                first_pix_val_y,
+                                deg_per_pix_y,
+                                first_pix_val_deg_y);
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE1", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1", first_pix_val_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1", bin_width_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1", "m", "unit of axis 1");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE1A", "RA---TAN", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1A", first_pix_val_deg_x, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1A", bins_x, "pixel where CRVAL1A is defined ");
+    pFits->pHDU().addKey("CDELT1A", -deg_per_pix_x, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1A", "degree", "unit of axis 1");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE1B", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1B", first_pix_val_x / con_AU, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1B", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1B", bin_width_x / con_AU, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1B", "AU", "unit of axis 1");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE1C", "PARAM", "type of unit 1");
+    pFits->pHDU().addKey("CRVAL1C", first_pix_val_x / con_pc, "value of axis 1");
+    pFits->pHDU().addKey("CRPIX1C", 1, "pixel where CRVAL1 is defined ");
+    pFits->pHDU().addKey("CDELT1C", bin_width_x / con_pc, "delta of axis 1");
+    pFits->pHDU().addKey("CUNIT1C", "pc", "unit of axis 1");
+
+    // Grid
+    pFits->pHDU().addKey("CTYPE2", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2", first_pix_val_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2", bin_width_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2", "m", "unit of axis 2");
+
+    // Alternatively as arc seconds grid
+    pFits->pHDU().addKey("CTYPE2A", "DEC--TAN", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2A", first_pix_val_deg_y, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2A", 1, "pixel where CRVAL2A is defined ");
+    pFits->pHDU().addKey("CDELT2A", deg_per_pix_y, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2A", "degree", "unit of axis 2");
+
+    // Alternatively as AU grid
+    pFits->pHDU().addKey("CTYPE2B", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2B", first_pix_val_y / con_AU, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2B", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2B", bin_width_y / con_AU, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2B", "AU", "unit of axis 2");
+
+    // Alternatively as pc grid
+    pFits->pHDU().addKey("CTYPE2C", "PARAM", "type of unit 2");
+    pFits->pHDU().addKey("CRVAL2C", first_pix_val_y / con_pc, "value of axis 2");
+    pFits->pHDU().addKey("CRPIX2C", 1, "pixel where CRVAL2 is defined ");
+    pFits->pHDU().addKey("CDELT2C", bin_width_y / con_pc, "delta of axis 2");
+    pFits->pHDU().addKey("CUNIT2C", "pc", "unit of axis 2");
+
+    // Wavelength IDs
+    pFits->pHDU().addKey("CTYPE3", "PARAM", "type of unit 3");
+    pFits->pHDU().addKey("CRVAL3", 1, "value of axis 3");
+    pFits->pHDU().addKey("CRPIX3", 1, "pixel where CRVAL3 is defined ");
+    pFits->pHDU().addKey("CDELT3", 1, "delta of axis 3");
+    pFits->pHDU().addKey("CUNIT3", "Wavelength index", "unit of axis 3");
+
+    // Simulated quantities
+    pFits->pHDU().addKey("CTYPE4", "PARAM", "type of unit 4");
+    pFits->pHDU().addKey("CRVAL4", 1, "value of axis 4");
+    pFits->pHDU().addKey("CRPIX4", 1, "pixel where CRVAL4 is defined ");
+    pFits->pHDU().addKey("CDELT4", 1, "delta of axis 4");
+    
+    pFits->pHDU().addKey(
+            "CUNIT4", "I [Jy/px], ND, NH [m^-2]", "unit of axis 4");
+        pFits->pHDU().addKey("ETYPE", "thermal emission", "type of emission");
+    
+    pFits->pHDU().addKey("ID", nr, "detector ID");
+
+    for(uint i_extra = 0; i_extra < nr_extra; i_extra++)
+    {
+        for(uint i_spectral = 0; i_spectral < nr_spectral_bins; i_spectral++)
+        {
+            char str_1[1024];
+            char str_2[1024];
+#ifdef WINDOWS
+            sprintf_s(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf_s(str_2, "value of %i. wavelength", i_spectral + 1);
+#else
+            sprintf(str_1, "WAVELENGTH%i", i_spectral + 1);
+            sprintf(str_2, "value of %i. wavelength", i_spectral + 1);
+#endif
+            pFits->pHDU().addKey(str_1, wavelength_list_det[i_spectral], str_2);
+        }
+    }
+    pFits->pHDU().addKey("DISTANCE", distance, "distance to object");
+    pFits->pHDU().addKey("RAXIS1X", axis1.X(), "rotation axes 1 (x component)");
+    pFits->pHDU().addKey("RAXIS1Y", axis1.Y(), "rotation axes 1 (y component)");
+    pFits->pHDU().addKey("RAXIS1Z", axis1.Z(), "rotation axes 1 (z component)");
+    pFits->pHDU().addKey("RANGLE1", float(180.0 * rot_angle1 / PI), "rotation angle 1 [deg]");
+    pFits->pHDU().addKey("RAXIS2X", axis2.X(), "rotation axes 2 (x component)");
+    pFits->pHDU().addKey("RAXIS2Y", axis2.Y(), "rotation axes 2 (y component)");
+    pFits->pHDU().addKey("RAXIS2Z", axis2.Z(), "rotation axes 2 (z component)");
+    pFits->pHDU().addKey("RANGLE2", float(180.0 * rot_angle2 / PI), "rotation angle 2 [deg]");
+    pFits->pHDU().addKey("DETGRID", getDetectorGridDescription(), "description of the detector grid");
+    string alignment_descr = getAlignmentDescription();
+    
+    //if(alignment_descr != "")
+    //    pFits->pHDU().addKey("ALIGNMENT", alignment_descr, "alignment method of dust grains");
+
+    cout << CLR_LINE << flush;
+    return true;
+}
 
 // free-free maps
 
@@ -5429,14 +6466,17 @@ void CDetector::calcCoordinateParameters(double sidelength,
     first_pix_val = -sidelength / 2.0 + map_shift;
     first_pix_val += (bin_width / 2.0);
 
-    deg_per_pix = bin_width / con_AU;
-    deg_per_pix /= (distance / con_pc);
-    deg_per_pix /= 3600.0;
+    if(distance>0)
+    {
+        deg_per_pix = bin_width / con_AU;
+        deg_per_pix /= (distance / con_pc);
+        deg_per_pix /= 3600.0;
 
-    first_pix_val_deg = -sidelength / (2.0 * con_AU) + map_shift / con_AU;
-    first_pix_val_deg /= (distance / con_pc);
-    first_pix_val_deg /= 3600.0;
-    first_pix_val_deg += (deg_per_pix / 2.0);
+        first_pix_val_deg = -sidelength / (2.0 * con_AU) + map_shift / con_AU;
+        first_pix_val_deg /= (distance / con_pc);
+        first_pix_val_deg /= 3600.0;
+        first_pix_val_deg += (deg_per_pix / 2.0);
+    }
 }
 
 void CDetector::calcVelocityChannels(uint _nr_spectral_bins, double _min_velocity, double _max_velocity)
@@ -5556,6 +6596,50 @@ string CDetector::getDetectorGridDescription()
             return "Photon packages launched from emission sources (Monte-Carlo)";
             break;
     }
+}
+
+void CDetector::init()
+{
+    //Stokes components
+    matrixI = 0;
+    matrixQ = 0;
+    matrixU = 0;
+    matrixV = 0;
+
+    //special parameters
+    matrixT = 0;
+    matrixS1 = 0;
+    matrixS2 = 0;
+    matrixS3 = 0;
+    matrixS4 = 0;
+
+    w1_I = 0;
+    w2_I = 0;
+    w3_I = 0;
+    w4_I = 0;
+    w1_Q = 0;
+    w2_Q = 0;
+    w3_Q = 0;
+    w4_Q = 0;
+    w1_U = 0;
+    w2_U = 0;
+    w3_U = 0;
+    w4_U = 0;
+    w1_V = 0;
+    w2_V = 0;
+    w3_V = 0;
+    w4_V = 0;
+    w1_PI = 0;
+    w2_PI = 0;
+    w3_PI = 0;
+    w4_PI = 0;
+    N_photon = 0;
+    sedI = 0;
+    sedQ = 0;
+    sedU = 0;
+    sedV = 0;
+    sedT = 0;
+    sedS = 0;
 }
 
 string CDetector::getAlignmentDescription()

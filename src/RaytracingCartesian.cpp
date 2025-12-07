@@ -56,6 +56,29 @@ bool CRaytracingCartesian::setDustDetector(uint pos,
     Vector3D n2 = param.getAxis2();
 
     setDetCoordSystem(n1, n2);
+    
+    /*(uint _detector_id,
+              string _path,
+              uint _bins_x,
+              uint _bins_y,
+              uint _id,
+              double _sidelength_x,
+              double _sidelength_y,
+              double _map_shift_x,
+              double _map_shift_y,
+              double _distance,
+              double _l_min,
+              double _l_max,
+              uint _nr_spectral_bins,
+              uint _nr_extra,
+              uint _special_param,
+              uint _alignment,
+              uint _fits_map_IDs)*/
+    
+    uint special_param=0;
+    uint alignment= param.getAlignmentMechanism();
+    uint fits_map_IDs=param.getMapIDs();
+
 
     detector = new CDetector(rt_detector_shape,
                                 path,
@@ -71,7 +94,10 @@ bool CRaytracingCartesian::setDustDetector(uint pos,
                                 lam_max,
                                 nr_spectral_bins,
                                 nr_extra,
-                                param.getAlignmentMechanism());
+                                special_param,
+                                alignment,
+                                fits_map_IDs);
+    
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
     return true;
@@ -211,6 +237,93 @@ bool CRaytracingCartesian::setFreeFreeDetector(uint pos,
                                 lam_max,
                                 nr_spectral_bins,             
                                 nr_extra, 3);
+    
+    detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
+
+    return true;
+}
+
+bool CRaytracingCartesian::setDustAMEDetector(uint pos,
+                             const parameters & param,
+                             dlist ame_ray_detectors,
+                             double _max_length,
+                             string path)
+{
+    rt_detector_shape = DET_PLANE;
+
+    if(detector != 0)
+    {
+        delete detector;
+        detector = 0;
+    }
+
+    dID = pos / NR_OF_RAY_DET;
+
+    double lam_min = ame_ray_detectors[pos + 0];
+    double lam_max = ame_ray_detectors[pos + 1];
+    nr_spectral_bins = uint(ame_ray_detectors[pos + 2]);
+    nr_extra = 1;
+
+    sID = uint(ame_ray_detectors[pos + 3]);
+
+    rot_angle1 = PI / 180.0 * ame_ray_detectors[pos + 4];
+    rot_angle2 = PI / 180.0 * ame_ray_detectors[pos + 5];
+
+    distance = ame_ray_detectors[pos + 6];
+
+    sidelength_x = ame_ray_detectors[pos + 7];
+    sidelength_y = ame_ray_detectors[pos + 8];
+
+    max_length = _max_length;
+
+    if(ame_ray_detectors[pos + 9] != -1)
+        map_shift_x = ame_ray_detectors[pos + 9];
+    if(ame_ray_detectors[pos + 10] != -1)
+        map_shift_y = ame_ray_detectors[pos + 10];
+
+    map_pixel_x = uint(ame_ray_detectors[pos + NR_OF_RAY_DET - 2]);
+    map_pixel_y = uint(ame_ray_detectors[pos + NR_OF_RAY_DET - 1]);
+
+    max_subpixel_lvl = param.getMaxSubpixelLvl();
+
+    calcMapParameter();
+
+    Vector3D n1 = param.getAxis1();
+    Vector3D n2 = param.getAxis2();
+
+    setDetCoordSystem(n1, n2);
+    
+    /*uint _detector_id,
+              string _path,
+              uint _bins_x,
+              uint _bins_y,
+              uint _id,
+              double _sidelength_x,
+              double _sidelength_y,
+              double _map_shift_x,
+              double _map_shift_y,
+              double _distance,
+              double _l_min,
+              double _l_max,
+              uint _nr_spectral_bins,
+              uint _nr_extra,
+              uint _special_param,
+              uint _alignment = ALIG_RND*/
+
+    detector = new CDetector(rt_detector_shape,
+                                path,
+                                map_pixel_x,
+                                map_pixel_y,
+                                dID,
+                                sidelength_x,
+                                sidelength_y,
+                                map_shift_x,
+                                map_shift_y,
+                                distance,
+                                lam_min,
+                                lam_max,
+                                nr_spectral_bins,             
+                                nr_extra, 2);
     
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
@@ -440,7 +553,7 @@ bool CRaytracingCartesian::getUseSubpixel(double cx, double cy, uint subpixel_lv
     return subpixel;
 }
 
-void CRaytracingCartesian::addToDetector(photon_package * pp, int i_pix, bool direct)
+void CRaytracingCartesian::addToDetector(photon_package * pp, int64_t i_pix, bool direct)
 {
     pp->setDetectorProjection();
 

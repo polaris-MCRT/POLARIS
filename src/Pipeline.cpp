@@ -59,7 +59,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     cout << SEP_LINE;
 
-    if(argc != 2)
+    /*if(argc != 2)
     {
         cout << ERROR_LINE << "Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -67,13 +67,15 @@ bool CPipeline::Init(int argc, char ** argv)
         return false;
     }
 
-    CCommandParser parser(argv[1]);
+    CCommandParser parser(argv[1]);/**/
     
     //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
-    //string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
+    string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
     //string filename = "/mnt/f/work/velocity_test/cmd_line";
     //string filename = "/mnt/f/work/free/cmd_file";
-    //CCommandParser parser(filename);
+    //string filename = "/mnt/f/work/velocity_test/cmd_free";
+    //string filename = "/mnt/f/work/ecogal/cmd_dust_galaxy";
+    CCommandParser parser(filename);
     
     if(!parser.parse())
     {
@@ -152,7 +154,7 @@ void CPipeline::Run()
                 break;
 
             case CMD_DUST_EMISSION:
-                result = calcPolarizationMapsViaRayTracing(param);
+                result = calcDustMapsViaRayTracing(param);
                 break;
 
             case CMD_DUST_SCATTERING:
@@ -178,6 +180,10 @@ void CPipeline::Run()
                 
             case CMD_FREE_FREE:
                 result = calcFreeFreeMapsViaRayTracing(param);
+                break;    
+                
+            case CMD_AME_EMISSION:
+                result = calcAMEMapsViaRayTracing(param);
                 break;    
 
             default:
@@ -279,11 +285,27 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
                                      use_energy_density,
                                      false); //(param.getCommand() == CMD_RAT));
 
+    string name_grid = "grid";
+    
     if(param.isTemperatureSimulation())
+    {
         rad.calcFinalTemperature(use_energy_density);
-
+        name_grid+="_temp";
+    }
+    
+    if(param.isAMESimulation())
+    {
+        rad.calcAME();
+        name_grid+="_ame";
+    }
+    
     if(param.isRatSimulation())
+    {
         rad.calcAlignedRadii();
+        name_grid+="_rat";
+    }
+    
+    name_grid+=".dat";
 
     cout << SEP_LINE;
 
@@ -292,12 +314,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 
     if(param.getSaveRadiationField())
         grid->saveRadiationField();
-    
-    if(param.isTemperatureSimulation())
-        grid->saveBinaryGridFile(param.getPathOutput() + "grid_temp.dat");
-    else if(param.getCommand() == CMD_RAT)
-        grid->saveBinaryGridFile(param.getPathOutput() + "grid_rat.dat");
 
+    grid->saveBinaryGridFile(param.getPathOutput() + name_grid);
+    
     delete grid;
     delete dust;
     deleteSourceLists();
@@ -367,7 +386,7 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
     return true;
 }
 
-bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
+bool CPipeline::calcDustMapsViaRayTracing(parameters & param)
 {
     CGridBasic * grid = 0;
     CDustMixture * dust = new CDustMixture();
@@ -421,7 +440,7 @@ bool CPipeline::calcPolarizationMapsViaRayTracing(parameters & param)
     if(!grid->isRadiationFieldAvailable() && dust->getScatteringToRay() && !sources_mc.empty())
         rad.calcMonteCarloRadiationField(param.getCommand(), true, true);
 
-    if(!rad.calcPolMapsViaRaytracing(param))
+    if(!rad.calcDustPolMapsViaRaytracing(param))
         return false;
 
     cout << CLR_LINE;
@@ -502,6 +521,69 @@ bool CPipeline::calcFreeFreeMapsViaRayTracing(parameters & param)
     delete grid;
     delete dust;
     delete freefree;
+    
+    deleteSourceLists();
+
+    param.setPathInput(path_data);
+    param.setPathGrid("");
+    param.resetNrOfDustComponents();
+
+    return true;
+}
+
+bool CPipeline::calcAMEMapsViaRayTracing(parameters & param)
+{
+    CGridBasic * grid = 0;
+    CDustMixture * dust = new CDustMixture();
+    
+    if(!createOutputPaths(param.getPathOutput()))
+        return false;
+
+    if(!assignGridType(grid, param))
+        return false;
+
+    if(!createWavelengthList(param, dust, 0, 0))
+        return false;
+
+    if(!assignDustMixture(param, dust, grid))
+        return false;
+
+    grid->setSIConversionFactors(param);
+
+    if(!grid->loadGridFromBinaryFile(param, 0))
+        return false;
+
+    // Print helpfull information
+    grid->createCellList();
+    
+    // Print helpfull information
+    dust->printParameters(param, grid);
+    grid->printParameters();
+    
+    if(!grid->writeMidplaneFits(path_data + "input_", param, param.getInpMidDataPoints(), true))
+        return false;
+
+    createSourceLists(param, dust, grid);
+    if(sources_ray.size() == 0)
+    {
+        cout << ERROR_LINE << "No sources for raytracing simulations defined!" << endl;
+        return false;
+    }
+
+    CRadiativeTransfer rad(param);
+
+    rad.setGrid(grid);
+    rad.setDust(dust);
+    rad.setSourcesLists(sources_mc, sources_ray);
+
+    if(!rad.initiateDustAMERaytrace(param))
+        return false;
+
+    if(!rad.calcDustAMEMapsViaRaytracing(param))
+        return false;
+
+    delete grid;
+    delete dust;
     
     deleteSourceLists();
 
@@ -1368,6 +1450,17 @@ void CPipeline::printParameters(parameters & param, uint max_id)
             printDetectorParameters(param);
             printPlotParameters(param);
             break;
+            
+        case CMD_AME_EMISSION:
+            cout << "- Command          : DUST AME EMISSION" << endl;
+            printPathParameters(param);
+            printSourceParameters(param, true);
+            printConversionParameters(param);
+            printAdditionalParameters(param);
+            printAlignmentParameters(param);
+            printDetectorParameters(param);
+            printPlotParameters(param);
+            break;    
 
         case CMD_SYNCHROTRON:
             cout << "- Command          : SYNCHROTRON EMISSION" << endl;
@@ -1597,9 +1690,25 @@ bool CPipeline::createWavelengthList(parameters & param, CDustMixture * dust, CG
             for(uint i = 0; i < values.size(); i += NR_OF_RAY_DET)
                 dust->addToWavelengthGrid(values[i], values[i + 1], values[i + 2]);
             break;
+            
+        case CMD_AME_EMISSION:
+            // Get detector parameters list
+            values = param.getDustAMEDetectors();
+
+            // Check if a detector is defined
+            if(values.empty())
+            {
+                cout << ERROR_LINE << "No dust AME detector defined (see <detector_ame>)!" << endl;
+                return false;
+            }
+
+            // Add wavelength to global list of wavelength
+            for(uint i = 0; i < values.size(); i += NR_OF_RAY_DET)
+                dust->addToWavelengthGrid(values[i], values[i + 1], values[i + 2]);
+            break;
 
         default:
-            break;
+            break;    
     }
 
     // Discard wavelengths that are duplicates
@@ -1707,10 +1816,18 @@ void CPipeline::printConversionParameters(parameters & param)
     cout << "- Conv. length in SI           : " << param.getSIConvLength() << endl;
     cout << "- Conv. vel. field in SI.      : " << param.getSIConvVField() << endl;
     cout << "- Conv. mag. field in SI.      : " << param.getSIConvBField() << endl;
-    if(param.getIndividualDustMassFractions())
-        cout << "- Mass fraction (Mdust/Mgas)   : set by the dust components" << endl;
-    else
-        cout << "- Mass fraction (Mdust/Mgas)   : " << param.getDustMassFraction() << endl;
+    //if(param.getIndividualDustMassFractions())
+    //    cout << "- Mass fraction (Mdust/Mgas)   : set by the dust components" << endl;
+    //else
+    
+    dlist fractions = param.getDustMassFraction();
+    
+    cout << "- Mass fraction (Mdust/Mgas)   : ";
+    
+    for(int i=0; i<fractions.size(); i++)
+        cout << fractions[i] <<", ";
+    cout << "\n";
+    //cout << "- Mass fraction (Mdust/Mgas)   : " << param.getDustMassFraction() << endl;
     cout << "- Relative molecular mass (mu) : " << param.getMu() << endl;
 }
 

@@ -127,8 +127,6 @@ bool CRadiativeTransfer::initiateDustRaytrace(parameters & param)
         if(!tracer[i_det]->setDustDetector(pos, param, dust_ray_detectors, max_length, pathOutput))
             return false;
     }
-    
-
 
     // Initiate RKF coefficients for numerical solving the radiative transfer equation
     initiateRungeKuttaFehlberg();
@@ -322,6 +320,99 @@ bool CRadiativeTransfer::initiateFreeFreeRaytrace(parameters & param)
         }
 
         if(!tracer[i_det]->setFreeFreeDetector(pos, param, free_ray_detectors, max_length, pathOutput))
+            return false;
+    }
+
+    initiateRungeKuttaFehlberg();
+
+    return true;
+}
+
+bool CRadiativeTransfer::initiateDustAMERaytrace(parameters & param)
+{
+    if(grid == 0)
+    {
+        cout << ERROR_LINE << "No Grid loaded!" << endl;
+        return false;
+    }
+
+    if(dust == 0)
+    {
+        cout << ERROR_LINE << "No dust model!" << endl;
+        return false;
+    }
+    
+    dlist ame_ray_detectors = param.getDustAMEDetectors();
+
+    if(ame_ray_detectors.size() == 0)
+    {
+        cout << ERROR_LINE << "No sequence defined!" << endl;
+        return false;
+    }
+
+    nr_ray_detectors = uint(ame_ray_detectors.size()) / NR_OF_RAY_DET;
+
+    // Get start and stop id of detectors
+    start = param.getStart();
+    stop = param.getStop();
+
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    // Init array of tracer base class pointer
+    tracer = new CRaytracingBasic *[nr_ray_detectors];
+
+    for(uint i_det = 0; i_det < nr_ray_detectors; i_det++)
+    {
+        // Calculate the starting position of each sequence
+        uint pos = i_det * NR_OF_RAY_DET;
+
+        uint nr_source = uint(ame_ray_detectors[pos + 3]);
+
+        // Get the ID of the chosen source
+        uint detector_id = uint(ame_ray_detectors[pos + NR_OF_RAY_DET - 3]);
+
+        if(nr_source > sources_ray.size())
+        {
+            cout << ERROR_LINE << "ID of source (" << nr_source << ") larger than max. amount ("
+                 << sources_ray.size() << ") of defined sources!" << endl;
+            return false;
+        }
+
+        if(detector_id == DET_POLAR && grid->getDataID() != GRID_ID_SPH && grid->getDataID() != GRID_ID_CYL)
+        {
+            cout << ERROR_LINE << "Polar RT grid can only be used with spherical and "
+                    "cylindrical grids!"
+                 << endl;
+            return false;
+        }
+
+        // Create detector for current simulation
+        switch(detector_id)
+        {
+            case DET_PLANE:
+                tracer[i_det] = new CRaytracingCartesian(grid);
+                break;
+
+            case DET_SPHER:
+                tracer[i_det] = new CRaytracingHealPix(grid);
+                break;
+
+            case DET_POLAR:
+                tracer[i_det] = new CRaytracingPolar(grid);
+                break;
+
+            case DET_SLICE:
+                tracer[i_det] = new CRaytracingSlice(grid);
+                break;
+
+            default:
+                cout << ERROR_LINE << "Wrong detector ID" << endl;
+                return false;
+                break;
+        }
+
+        if(!tracer[i_det]->setDustAMEDetector(pos, param, ame_ray_detectors, max_length, pathOutput))
             return false;
     }
 
@@ -2013,7 +2104,7 @@ void CRadiativeTransfer::calcAlignedRadii()
     cout << CLR_LINE;
     cout << " -> Calc. RAT dust alig. radius: 0.0 [%]  (min: 0 [m]; max: 0 [m])        \r" << flush;
 
-    //#pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for(long c_i = 0; c_i < long(max_cells); c_i++)
     {
         cell_basic * cell = grid->getCellFromIndex(c_i);
@@ -2041,6 +2132,47 @@ void CRadiativeTransfer::calcAlignedRadii()
     cout << "- Calculation of aligned radii      : done" << endl;
     cout << "    aligned radii [" << float(dust->getMinAlignedRadius()) << ", "
          << float(dust->getMaxAlignedRadius()) << "] [m]" << endl;
+}
+
+void CRadiativeTransfer::calcAME()
+{
+    ulong max_cells = grid->getMaxDataCells();
+
+    ullong per_counter = 0;
+    float last_percentage = 0;
+
+    cout << CLR_LINE;
+    cout << " -> Calc. AME param: 0.0 [%] \r" << flush;
+
+    #pragma omp parallel for schedule(dynamic)
+    for(long c_i = 0; c_i < long(max_cells); c_i++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(c_i);
+        dust->calcAME(grid, cell);
+
+        #pragma omp atomic update
+        per_counter++;
+        float percentage = 100.0 * float(per_counter) / float(max_cells);
+
+        // Show only new percentage number if it changed
+        if((percentage - last_percentage) > PERCENTAGE_STEP)
+        {
+            #pragma omp critical
+            {
+                cout << " -> Calc. AME param: " << 100.0 * float(per_counter) / float(max_cells)
+                     //<< " [%] (min: " << dust->getMinAlignedRadius()
+                     //<< " [m]; max: " << dust->getMaxAlignedRadius() << " [m])"
+                     << " [%]                \r" << flush;
+                last_percentage = percentage;
+            }
+        }
+    }
+
+    cout << CLR_LINE;
+    //cout << "- Calculation of aligned radii      : done" << endl;
+    cout << "- Calculation of AME                : done" << endl;
+    //cout << "    aligned radii [" << float(dust->getMinAlignedRadius()) << ", "
+    //     << float(dust->getMaxAlignedRadius()) << "] [m]" << endl;
 }
 
 void CRadiativeTransfer::calcFinalTemperature(bool use_energy_density)
@@ -2210,6 +2342,216 @@ void CRadiativeTransfer::scaleAddToDetector(photon_package * pp, CDetector * det
 }
 
 // -------------------------------------------------
+// ------ Calculation of ame transfer -------
+// -------------------------------------------------
+
+bool CRadiativeTransfer::calcDustAMEMapsViaRaytracing(parameters & param)
+{
+    // Get list of detectors/sequences that will be simulated with the raytracer
+    dlist ame_ray_detectors = param.getDustAMEDetectors();
+
+    // Get maximum length of the simulation model
+    double max_length = grid->getMaxLength();
+
+    if(!ame_ray_detectors.empty())
+    {
+        for(uint i_det = start; i_det <= stop; i_det++)
+        {
+            // Init source object
+            CSourceBasic * tmp_source;
+            uint sID = tracer[i_det]->getSourceIndex();
+            tmp_source = sources_ray[sID];
+            tmp_source->setSideLength(max_length);
+
+            // Calculate total number of pixel
+            uint per_max = tracer[i_det]->getNpix();
+
+            // Init counter and percentage to show progress
+            ullong per_counter = 0;
+            float last_percentage = 0;
+
+            // Show information about the current detector
+            cout << CLR_LINE;
+            cout << "-> Ray tracing free-free map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
+                 << ") 0.0 [%]   \r" << flush;
+
+            // Calculate pixel intensity for each pixel
+            #pragma omp parallel for schedule(dynamic)
+            for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
+            {
+                double cx = 0, cy = 0;
+                if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
+                    continue;
+
+                getDustAMEPixelIntensity(tmp_source, cx, cy, i_det, 0, i_pix);
+
+                // Increase counter used to show progress
+                #pragma omp atomic update
+                per_counter++;
+
+                // Calculate percentage of total progress per source
+                float percentage = 100.0 * float(per_counter) / float(per_max);
+
+                // Show only new percentage number if it changed
+                if((percentage - last_percentage) > PERCENTAGE_STEP)
+                {
+                    #pragma omp critical
+                    {
+                        cout << "-> Ray tracing free-free map(s) (Seq. " << i_det + 1
+                             << ", source: " << sID + 1 << ")  "
+                             << float(100.0 * float(per_counter) / float(per_max)) << " [%]         \r"
+                             << flush;
+                        last_percentage = percentage;
+                    }
+                }
+            }
+
+            // Show final progress
+            cout << "-> Ray tracing free-free map(s) (Seq. " << i_det + 1 << ", source: " << sID + 1
+                 << ") 100 [%]       \r" << flush;
+
+            // post-process raytracing simulation
+            if(!tracer[i_det]->postProcessing())
+                return false;
+
+            // Write results either as text or fits file
+            if(!tracer[i_det]->writeDustAMEResults())
+                return false;
+
+            if(tracer[i_det]->getSubpixelWarning())
+            {
+                cout << WARNING_LINE << "level of subpixeling (" << param.getMaxSubpixelLvl() << ") might be too low" << endl;
+                cout << "  if required, increase the maximum level of subpixeling with <max_subpixel_lvl> in the command file" << endl;
+            }
+            // if(tracer[i_det]->getDetectorShape() == DET_PLANE && (grid->getDataID() == GRID_ID_SPH || grid->getDataID() == GRID_ID_CYL))
+            //     cout << INFO_LINE << "a 'polar' detector should be used for a spherical or cylindrical grid" << endl;
+        }
+    }
+
+    // Show that raytracing is finished
+    cout << CLR_LINE;
+    cout << "- Ray tracing synchrotron map    : done" << endl;
+
+    return true;
+}
+
+void CRadiativeTransfer::getDustAMEPixelIntensity(CSourceBasic * tmp_source,
+                                               double cx,
+                                               double cy,
+                                               uint i_det,
+                                               uint subpixel_lvl,
+                                               int64_t i_pix)
+{
+    bool subpixel = false;
+
+    subpixel = tracer[i_det]->getUseSubpixel(cx, cy, subpixel_lvl);
+
+    // If any subpixel traveled through other cells, perform subpixelling
+    if(subpixel == false)
+    {
+        // Init variables
+        uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
+
+        // Create new photon package
+        photon_package pp(tracer[i_det]->getNrExtra() * nr_used_wavelengths);
+
+        tracer[i_det]->preparePhoton(&pp, cx, cy);
+
+        // Calculate continuum emission along one path
+        //getSyncIntensity(&pp, tmp_source, cx, cy, i_det, subpixel_lvl);
+        getDustAMEIntensity(&pp, tmp_source, cx, cy, i_det, subpixel_lvl);
+
+        tracer[i_det]->addToDetector(&pp, i_pix);
+    }
+    else
+    {
+        // Repeat this function for each subpixel
+        for(int i_sub_x = -1; i_sub_x <= 1; i_sub_x += 2)
+        {
+            for(int i_sub_y = -1; i_sub_y <= 1; i_sub_y += 2)
+            {
+                // Calculate positions of each subpixel
+                double tmp_cx, tmp_cy;
+                tracer[i_det]->getSubPixelCoordinates(subpixel_lvl, cx, cy, i_sub_x, i_sub_y, tmp_cx, tmp_cy);
+                // Calculate radiative transfer of the current pixel
+                // and add it to the detector at the corresponding position
+                //getSyncPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix);
+                getDustAMEPixelIntensity(tmp_source, tmp_cx, tmp_cy, i_det, (subpixel_lvl + 1), i_pix);
+            }
+        }
+    }
+}
+
+void CRadiativeTransfer::getDustAMEIntensity(photon_package * pp,
+                                          CSourceBasic * tmp_source,
+                                          double cx,
+                                          double cy,
+                                          uint i_det,
+                                          uint subpixel_lvl)
+{
+    // Set amount of radiation coming from this pixel
+    double subpixel_fraction = pow(4.0, -double(subpixel_lvl));
+
+    // Get chosen wavelength parameter
+    uint nr_used_wavelengths = tracer[i_det]->getNrSpectralBins();
+
+    // Update Stokes vectors with emission from background source
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
+    {
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
+
+            // Set wavelength index in photon package
+            double wavelength = tracer[i_det]->getWavelength(i_wave);
+            uint wID = dust->getWavelengthID(wavelength);
+            pp->setWavelength(wavelength, wID);
+
+            // Set related index of the multi wavelength map to the wavelength ID
+            pp->getStokesVector()->set(tmp_source->getStokesVector(pp));
+        }
+    }
+
+    // Find starting point inside the model and travel through it
+    if(grid->findStartingPoint(pp))
+    {
+        while(grid->next(pp) && tracer[i_det]->isNotAtCenter(pp, cx, cy))
+        {
+            rayThroughCellDustAME(pp, i_det, nr_used_wavelengths);
+        }
+    }
+
+    for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
+    {
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set current index in photon package
+            pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
+
+            //1e+26 * con_c / (pp->getFrequency() * pp->getFrequency());
+            
+            // Convert W/m2/m to Jy/px i.e. Jy per surface area
+            double mult = 1e+26 * subpixel_fraction * (pp->getWavelength()*pp->getWavelength()) / con_c * tracer[i_det]->getDistanceFactor();
+
+            // Include foreground extinction if necessary
+            mult *= dust->getForegroundExtinction(tracer[i_det]->getWavelength(pp->getWavelength()));
+
+            // Update the photon package with the Stokes vectors
+            if(pp->getStokesVector()->I() < 0)
+                pp->getStokesVector()->setI(0);
+
+            pp->getStokesVector()->multStokesParam(mult);
+            pp->getStokesVector()->multT(subpixel_fraction);
+            pp->getStokesVector()->multSp1(subpixel_fraction);
+            pp->getStokesVector()->multSp2(subpixel_fraction);
+            pp->getStokesVector()->multSp3(subpixel_fraction);
+        }
+    }
+}
+
+
+// -------------------------------------------------
 // ------ Calculation of free - free transfer -------
 // -------------------------------------------------
 
@@ -2245,7 +2587,7 @@ bool CRadiativeTransfer::calcFreeFreeMapsViaRaytracing(parameters & param)
 
             // Calculate pixel intensity for each pixel
             #pragma omp parallel for schedule(dynamic)
-            for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+            for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
                 if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
@@ -2308,7 +2650,7 @@ void CRadiativeTransfer::getFreeFreePixelIntensity(CSourceBasic * tmp_source,
                                                double cy,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int64_t i_pix)
 {
     bool subpixel = false;
 
@@ -2612,7 +2954,7 @@ bool CRadiativeTransfer::calcSyncMapsViaRaytracing(parameters & param)
 
             // Calculate pixel intensity for each pixel
             #pragma omp parallel for schedule(dynamic)
-            for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+            for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
             {
                 double cx = 0, cy = 0;
                 if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
@@ -2675,7 +3017,7 @@ void CRadiativeTransfer::getSyncPixelIntensity(CSourceBasic * tmp_source,
                                                double cy,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int64_t i_pix)
 {
     bool subpixel = false;
 
@@ -3027,7 +3369,7 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uin
 // ------ Calculation of Dust transfer -------
 // -------------------------------------------
 
-bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
+bool CRadiativeTransfer::calcDustPolMapsViaRaytracing(parameters & param)
 {
     // Get list of detectors/sequences that will be simulated with the raytracer
     dlist dust_ray_detectors = param.getDustRayDetectors();
@@ -3083,7 +3425,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
             #endif
 
             // Calculate total number of pixel
-            uint per_max = tracer[i_det]->getNpix();
+            long per_max = tracer[i_det]->getNpix();
 
             // Init counter and percentage to show progress
             ullong per_counter = 0;
@@ -3096,7 +3438,7 @@ bool CRadiativeTransfer::calcPolMapsViaRaytracing(parameters & param)
 
             // Calculate pixel intensity for each pixel
             #pragma omp parallel for schedule(dynamic)
-            for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+            for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
             {
                 #pragma omp atomic update
                 per_counter++;
@@ -3168,7 +3510,7 @@ void CRadiativeTransfer::getDustPixelIntensity(CSourceBasic * tmp_source,
                                                double cy,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int64_t i_pix)
 {
     bool subpixel = false;
 
@@ -3452,10 +3794,204 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
     }
 }
 
+void CRadiativeTransfer::rayThroughCellDustAME(photon_package * pp, uint i_det, uint nr_used_wavelengths)
+{
+    // Get necessary quantities from current cell
+    double dens_gas = grid->getGasNumberDensity(*pp);
+    double dens_dust = dust->getNumberDensity(grid, *pp);
+
+    // If the dust density is far too low, skip the current cell
+    if(dens_dust >= 1e-200)
+    {
+        // Get path length through current cell
+        double len = pp->getTmpPathLength();
+
+        // Init dust extinction matrix
+        Matrix2D dust_extinction_matrix(4, 4);
+
+#if BENCHMARK == CAMPS
+        // Part to perform Camps et. al (2015) benchmark.
+        ofstream myfile;
+        string filename = pathOutput + "/stochastic_heating_test.dat";
+        myfile.open(filename.c_str());
+
+        double corr_factor = 0;
+        if(pathOutput.find("_sil") != std::string::npos)
+            corr_factor = 1.471288e-7;
+        else if(pathOutput.find("_gra") != std::string::npos)
+            corr_factor = 1.905816e-7;
+        else if(pathOutput.find("_pah") != std::string::npos)
+            corr_factor = 2.227433e-7;
+
+        myfile << "# nr_of wavelength = " << nr_used_wavelengths << ", corr_factor = " << corr_factor << endl;
+        for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+        {
+            // Set wavelength index in photon package
+            double wavelength = tracer[i_det]->getWavelength(i_wave);
+            pp->setWavelength(wavelength, dust->getWavelengthID(wavelength), i_wave);
+
+            StokesVector dust_emissivity;
+            dust->calcEmissivityEmi(grid, pp, false, dust_emissivity);
+            myfile << wavelength << TAB << corr_factor * wavelength * dust_emissivity.I() << TAB
+                   << corr_factor * wavelength * dust_emissivity.Q() << TAB
+                   << corr_factor * wavelength * (dust_emissivity.I() + dust_emissivity.Q()) << endl;
+        }
+        myfile.close();
+        break;
+#endif
+
+        for(uint i_extra = 0; i_extra < tracer[i_det]->getNrExtra(); i_extra++)
+        {
+            for(uint i_wave = 0; i_wave < nr_used_wavelengths; i_wave++)
+            {
+                // Set current index in photon package
+                pp->setSpectralID(i_wave + i_extra * nr_used_wavelengths);
+
+                // Init dust emission matrix
+                StokesVector dust_emissivity;
+                const cell_basic * cell = pp->getPositionCell();
+                
+                double lambda=dust->getWavelength(i_wave);
+                // Set stokes vector with thermal emission of the dust grains and
+                // radiation scattered at dust grains
+                double j_ame = 0;
+                double nd = 0;
+                
+                dust->calc_dust_emi_ame(grid, cell, lambda, j_ame, nd);
+
+                // Get the extinction matrix of the dust grains in the current cell
+                // dust->calcEmissivityExt(grid, *pp, &dust_extinction_matrix);
+                
+                double Cext=1.0e-32;
+                
+                dust_extinction_matrix.setValue(0, 0, Cext);
+                dust_extinction_matrix.setValue(1, 1, Cext);
+                dust_extinction_matrix.setValue(2, 2, Cext);
+                dust_extinction_matrix.setValue(3, 3, Cext);
+                
+                dust_emissivity.set(j_ame,0,0,0,0);
+
+                // Init a variable to sum up path lengths until cell is crossed
+                double cell_sum = 0.0;
+
+                // First path length is path through cell
+                double cell_d_l = len;
+
+                // Save the cell entry position of the photon package
+                // (Hint: next(pp) puts the photon onto the border to the next cell)
+                Vector3D pos_xyz_cell = pp->getPosition() - (len * pp->getDirection());
+
+                // Init number of steps
+                ullong kill_counter = 0;
+
+                // Make sub steps until cell is completely crossed
+                // If the error of a sub step is too high, make the step smaller
+                while(cell_sum < len)
+                {
+                    // Increase the kill counter
+                    kill_counter++;
+
+                    // If too many sub steps are needed, kill the photon
+                    if(kill_counter >= MAX_SOLVER_STEPS)
+                    {
+                        cout << WARNING_LINE << "Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!"
+                             << endl;
+                        break;
+                    }
+
+                    // Init Runge-Kutta parameters and set it to zero
+                    // (see
+                    // https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method)
+                    StokesVector * RK_k = new StokesVector[6];
+
+                    // Calculate result of the radiative transfer equation at each
+                    // Runge-Kutta sub position
+                    for(uint k = 0; k < 6; k++)
+                    {
+                        // Init scalar product
+                        StokesVector scalar_product;
+
+                        // Calculate multiplication between Runge-Kutta parmeter
+                        for(uint i = 0; i < 6; i++)
+                            scalar_product += (RK_k[i] * RK_a(i, k));
+
+                        // Calculate new Runge-Kutta parameters as the result of the
+                        // radiative transfer equation at the Runge-Kutta sub
+                        // positions
+                        RK_k[k] =
+                            dust_extinction_matrix * (scalar_product * cell_d_l + *pp->getStokesVector()) +
+                            dust_emissivity;
+                    }
+
+                    // Init two temporary Stokes vectors
+                    StokesVector stokes_new = *pp->getStokesVector();
+                    StokesVector stokes_new2 = *pp->getStokesVector();
+
+                    // Add the result at each Runge-Kutta sub position
+                    // to the total Stokes vector (Using Runge-Kutta Fehlberg)
+                    for(uint i = 0; i < 6; i++)
+                    {
+                        stokes_new += RK_k[i] * cell_d_l * RK_b1[i];
+                        stokes_new2 += RK_k[i] * cell_d_l * RK_b2[i];
+                    }
+
+                    // Delete the Runge-Kutta pointer
+                    delete[] RK_k;
+
+                    // Ignore very small (and negative) values
+                    if(stokes_new.I() < 1e-200)
+                        stokes_new.resetIntensity();
+                    if(stokes_new2.I() < 1e-200)
+                        stokes_new2.resetIntensity();
+
+                    // Calculate the difference between the results with two
+                    // different precisions to see if smaller steps are needed
+                    double epsi, dz_new;
+                    calcStepWidth(stokes_new, stokes_new2, cell_d_l, &epsi, &dz_new);
+
+                    // If epsi > 1, a smaller step width is needed
+                    if(epsi <= 1.0)
+                    {
+                        // Add the temporary Stokes vector to the total one
+                        pp->setStokesVector(stokes_new);
+
+                        // Add optical depth
+                        //pp->getStokesVector()->addT(-dust_extinction_matrix(0, 0) * cell_d_l);
+
+                        // Add to column density
+                        pp->getStokesVector()->addSp1(nd * cell_d_l);
+                        
+                        // Add to column density
+                        pp->getStokesVector()->addSp2(dens_gas * cell_d_l);
+
+                        // Update the position of the photon package
+                        pos_xyz_cell += cell_d_l * pp->getDirection();
+
+                        // Increase the sum of the cell path lengths
+                        cell_sum += cell_d_l;
+
+                        // Find a new path length
+                        cell_d_l = min(dz_new, 4 * cell_d_l);
+
+                        // If the new step would exceed the cell, make it smaller
+                        if(cell_sum + cell_d_l > len)
+                            cell_d_l = len - cell_sum;
+                    }
+                    else
+                    {
+                        // Find a smaller path length
+                        cell_d_l = max(dz_new, 0.25 * cell_d_l);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void CRadiativeTransfer::calcStellarEmission(uint i_det, CRandomGenerator * rand_gen)
 {
     // Init variables for photon positioning on detector
-    int i_pix;
+    int64_t i_pix;
 
     cout << CLR_LINE;
     cout << "Adding stellar contributions ...              \r";
@@ -3565,7 +4101,7 @@ bool CRadiativeTransfer::calcOPIATEMapsViaRaytracing(parameters& param)
 
         // Calculate pixel intensity for each pixel
         #pragma omp parallel for schedule(dynamic)
-        for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+        for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
         {
             double cx = 0, cy = 0;
             if(!tracer[i_det]->getRelPosition(i_pix, cx, cy))
@@ -3697,7 +4233,7 @@ bool CRadiativeTransfer::calcChMapsViaRaytracing(parameters & param)
 
             // Calculate pixel intensity for each pixel
             #pragma omp parallel for schedule(dynamic)
-            for(int i_pix = 0; i_pix < int(per_max); i_pix++)
+            for(int64_t i_pix = 0; i_pix < int64_t(per_max); i_pix++)
             {
                 // Increase counter used to show progress
                 #pragma omp atomic update
@@ -3760,7 +4296,7 @@ void CRadiativeTransfer::getOPIATEPixelIntensity(CSourceBasic * tmp_source,
                                                uint i_trans,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int64_t i_pix)
 {
     bool subpixel = false;
 
@@ -3881,7 +4417,7 @@ void CRadiativeTransfer::getLinePixelIntensity(CSourceBasic * tmp_source,
                                                uint i_trans,
                                                uint i_det,
                                                uint subpixel_lvl,
-                                               int i_pix)
+                                               int64_t i_pix)
 {
     bool subpixel = false;
 
@@ -4004,7 +4540,7 @@ void CRadiativeTransfer::rayThroughCellOPIATE(photon_package * pp,
                                             const VelFieldInterp & vel_field_interp)
 {
     // Get gas species density from grid
-    double dens_gas = grid->getGasDensity(*pp);
+    double dens_gas = grid->getGasNumberDensity(*pp);
 
     // Perform radiative transfer only if the density of the current species are not negligible
     if(dens_gas > 1e-200)
