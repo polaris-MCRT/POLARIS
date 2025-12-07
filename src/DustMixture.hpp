@@ -53,6 +53,7 @@ public:
     uint getMixtureID(CGridBasic * grid, const photon_package & pp) const;
 
     double getAvgMass(uint i_mixture);
+    double getSusceptibility(uint i_mixture);
 
     bool writeComponentData(string path_data);
 

@@ -361,11 +361,8 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 // The delta value fot the RAT alignment theory
                 delta_rat = values[6];
 
-                // The boolean value if the dust catalog is aligned or not
-                if(values[7] == 1)
-                    is_align = true;
-                else
-                    is_align = false;
+                // mag. susceptibility
+                susceptibility = values[7];
 
                 // Calculate the GOLD alignment g factor
                 gold_g_factor = 0.5 * (aspect_ratio * aspect_ratio - 1);
@@ -807,7 +804,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                 }
 
                 // Set the splines of the dust grain optical properties
-                if(isAligned())
+                //if(isAligned())
                 {
                     Qext1[a][w] = eff_wl[a * NR_OF_EFF + 0].getValue(wavelength_list[w]);
                     Qext2[a][w] = eff_wl[a * NR_OF_EFF + 1].getValue(wavelength_list[w]);
@@ -817,7 +814,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     Qsca2[a][w] = eff_wl[a * NR_OF_EFF + 5].getValue(wavelength_list[w]);
                     Qcirc[a][w] = eff_wl[a * NR_OF_EFF + 6].getValue(wavelength_list[w]);
                 }
-                else
+                /*else
                 {
                     double tmpQext = 1.0 / 3.0 *
                                      (2.0 * eff_wl[a * NR_OF_EFF + 0].getValue(wavelength_list[w]) +
@@ -833,7 +830,7 @@ bool CDustComponent::readDustParameterFile(parameters & param, uint dust_compone
                     Qsca1[a][w] = tmpQsca;
                     Qsca2[a][w] = tmpQsca;
                     Qcirc[a][w] = 0;
-                }
+                }*/
                 HGg[a][w] = avg_HG_g_factor;
                 HGg2[a][w] = avg_HG_g2_factor;
                 HGg3[a][w] = avg_HG_g3_factor;
@@ -997,11 +994,8 @@ bool CDustComponent::readDustRefractiveIndexFile(parameters & param,
                 delta_rat = 1; // a sphere has delta = 1; for non-spherical: values[5];
                 // see e.g. Draine & Weingartner, 1996 ApJ 470:551, 1997 ApJ 480:663
 
-                // The boolean value if the dust catalog is aligned or not
-                if(values[6] == 1)
-                    is_align = true;
-                else
-                    is_align = false;
+                // mag. susceptibility
+                susceptibility = values[6];
 
                 // Calculate the GOLD alignment g factor
                 gold_g_factor = 0.5 * (aspect_ratio * aspect_ratio - 1);
@@ -2103,8 +2097,8 @@ bool CDustComponent::writeComponentData(string path_data)
         for(uint i = 0; i < NR_OF_SIZE_DIST_PARAM; i++)
             data_writer << size_parameter[i] << endl;
     }
-    data_writer << "#can align" << endl;
-    data_writer << is_align << endl;
+    data_writer << "#mag. susceptibility" << endl;
+    data_writer << susceptibility << endl;
     data_writer << "#density [kg/m^3]" << endl;
     data_writer << getMaterialDensity() << endl;
     data_writer << "#gold g factor" << endl;
@@ -3594,7 +3588,7 @@ bool CDustComponent::add(double ** size_fraction, CDustComponent * comp, uint **
                 CscaMean[a][w] = PI * a_eff_squared[a] * (2.0 * getQsca1(a, w) + getQsca2(a, w)) / 3.0;
             }
 
-    if(comp->isAligned())
+    //if(comp->isAligned())
     {
         // Show progress
         printIDs();
@@ -3824,7 +3818,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     uint w = pp.getDustWavelengthID();
 
     // For random alignment use average cross-sections
-    if(!is_align || alignment == ALIG_RND)
+    if(alignment == ALIG_RND)
     {
         cs.Cext = getCextMean(a, w);
         cs.Cabs = getCabsMean(a, w);
@@ -4467,8 +4461,8 @@ void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint
                 double Gamma_e3 = CMathFunctions::integ(wavelength_list, arr_gamma_e3, 0, nr_of_wavelength - 1);                
                 double tmp_a_krat = get_akrat(T_gas, B, T_dust, Gamma_e3);
                 
-                double mag_chi = 4.2e-4*PIx4*15;
-                double testt=pow( 7.31e-4 * mag_chi*B*J_RAT/(T_dust*material_density*Gamma_e3),0.25);
+                //double mag_chi = 4.2e-4*PIx4*15;
+                //double testt=pow( 7.31e-4 * mag_chi*B*J_RAT/(T_dust*material_density*Gamma_e3),0.25);
             
                 if(a_eff[a]>tmp_a_krat)
                 {
@@ -5136,7 +5130,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     uint w = pp.getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Get theta of scattering
     double cos_scattering_theta = en_dir * pp.getDirection();
@@ -5250,7 +5244,7 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     uint w = pp.getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Calculate orientation of the Stokes vector in relation to the magnetic field
     double sin_2ph = sin(2.0 * phi);
@@ -5405,7 +5399,7 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     double a_rd = grid->getRDRadius(pp,i_density);
     
     // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = !is_align || alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Get local size parameter for size distribution
     double size_param = getSizeParam(grid, pp);
@@ -8052,14 +8046,14 @@ double CDustComponent::getFcorr() const
     return f_cor;
 }
 
-bool CDustComponent::isAligned() const
+double CDustComponent::getSusceptibility() const
 {
-    return is_align;
+    return susceptibility;
 }
 
-void CDustComponent::setIsAligned(bool val)
+void CDustComponent::setSusceptibility(double s)
 {
-    is_align = val;
+    susceptibility = s;
 }
 
 void CDustComponent::setIsMixture(bool val)

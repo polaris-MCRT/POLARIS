@@ -134,7 +134,7 @@ public:
         scat_loaded = false;
         calorimetry_loaded = false;
         sub_status = 0;
-        is_align = false;
+        susceptibility=0;
         is_mixture = false;
         //individual_dust_fractions = false;
 
@@ -860,9 +860,9 @@ public:
 
     double getFcorr() const;
 
-    bool isAligned() const;
+    double getSusceptibility() const;
 
-    void setIsAligned(bool val);
+    void setSusceptibility(double s);
 
     void setIsMixture(bool val);
 
@@ -913,11 +913,11 @@ public:
         if(B==0)
             return 1.0;
 
-        double mag_chi = 4.2e-4*PIx4;
+        //double mag_chi = 4.2e-4*PIx4;
         //2.16e+15
         //2.71e8
         //7.96e14
-        double a_larm = 1.33e21 * mag_chi * B * aspect_ratio * aspect_ratio / den;
+        double a_larm = 1.33e21 * susceptibility * B * aspect_ratio * aspect_ratio / den;
         
         if(a_larm>1.0)
             a_larm=1.0;
@@ -935,10 +935,10 @@ public:
         if(B==0)
             return 1.0;
         
-        double mag_chi = 4.2e-4*PIx4*15;
+        //double mag_chi = 4.2e-4*PIx4*15;
         //double res = 6.38e-10;     
         double res = 4.90645e-16;     
-        res *= pow( aspect_ratio*B*mag_chi/den * sqrt(Tg / material_density),2.0/3.0);
+        res *= pow( aspect_ratio*B*susceptibility /den * sqrt(Tg / material_density),2.0/3.0);
         
         if(res>1.0)
             res=1.0;
@@ -1287,7 +1287,7 @@ private:
     double min_a_rd, max_a_rd;
 
     // alignment paramaters
-    bool is_align;
+    double susceptibility;
     double f_highJ;
     double f_cor;
     double larm_f;

@@ -474,14 +474,8 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
 
         cout << "- Phase function          : " << getPhaseFunctionStr(i_mixture) << endl;
         cout << "- Avg. grain mass         : " << getAvgMass(i_mixture) << " [kg]" << endl;
+        cout << "- mag. susceptibility     : " << getSusceptibility(i_mixture) <<  endl;
 
-        if(param.getCommand() == CMD_DUST_EMISSION && !param.getAligRANDOM())
-        {
-            if(mixed_component[i_mixture].isAligned())
-                cout << "- Affected by alignment   : Yes" << endl;
-            else
-                cout << "- Affected by alignment   : No" << endl;
-        }
 
         double total_dust_mass = 0;
         
@@ -595,8 +589,8 @@ bool CDustMixture::mixComponents(parameters & param, uint i_mixture)
             mixed_component[i_mixture].setCalorimetryLoaded(false);
 
         // Only if no component can be aligned, do not use alignment of mixture
-        if(single_component[i_comp].isAligned())
-            mixed_component[i_mixture].setIsAligned(true);
+        //if(single_component[i_comp].isAligned())
+        //    mixed_component[i_mixture].setIsAligned(true);
 
         //if(single_component[i_comp].getIndividualDustMassFractions())
         //    mixed_component[i_mixture].setIndividualDustMassFractions(true);
@@ -738,6 +732,11 @@ uint CDustMixture::getMixtureID(CGridBasic * grid, const photon_package & pp) co
 double CDustMixture::getAvgMass(uint i_mixture)
 {
     return mixed_component[i_mixture].getAvgMass();
+}
+
+double CDustMixture::getSusceptibility(uint i_mixture)
+{
+    return mixed_component[i_mixture].getSusceptibility();
 }
 
 bool CDustMixture::writeComponentData(string path_data)
