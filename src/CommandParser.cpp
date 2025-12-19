@@ -808,6 +808,7 @@ string CCommandParser::seperateString(string & str)
 
 bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint id)
 {
+    
     if(cmd.compare("<cmd>") == 0)
     {
         if(data.compare("CMD_DUST_EMISSION") == 0)
@@ -3166,7 +3167,7 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
         }
         else
         {
-            cout << values.size() << endl;
+            
             if(values.size() == NR_OF_POINT_SOURCES - 4)
             {
                 //sublimation radius

@@ -222,6 +222,28 @@ bool CRaytracingCartesian::setFreeFreeDetector(uint pos,
     Vector3D n2 = param.getAxis2();
 
     setDetCoordSystem(n1, n2);
+    
+    /*(uint _detector_id,
+              string _path,
+              uint _bins_x,
+              uint _bins_y,
+              uint _id,
+              double _sidelength_x,
+              double _sidelength_y,
+              double _map_shift_x,
+              double _map_shift_y,
+              double _distance,
+              double _l_min,
+              double _l_max,
+              uint _nr_spectral_bins,
+              uint _nr_extra,
+              uint _special_param,
+              uint _alignment,
+              uint _fits_map_IDs)*/
+    
+    uint special_param=3;
+    uint fits_map_IDs=param.getMapIDs();
+    uint alignment = 0;
 
     detector = new CDetector(rt_detector_shape,
                                 path,
@@ -236,7 +258,8 @@ bool CRaytracingCartesian::setFreeFreeDetector(uint pos,
                                 lam_min,
                                 lam_max,
                                 nr_spectral_bins,             
-                                nr_extra, 3);
+                                nr_extra, special_param,
+                                alignment, fits_map_IDs);
     
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 
@@ -293,7 +316,7 @@ bool CRaytracingCartesian::setDustAMEDetector(uint pos,
 
     setDetCoordSystem(n1, n2);
     
-    /*uint _detector_id,
+    /*    CDetector(uint _detector_id,
               string _path,
               uint _bins_x,
               uint _bins_y,
@@ -308,7 +331,12 @@ bool CRaytracingCartesian::setDustAMEDetector(uint pos,
               uint _nr_spectral_bins,
               uint _nr_extra,
               uint _special_param,
-              uint _alignment = ALIG_RND*/
+              uint _alignment,
+              uint _fits_map_IDs)*/
+    
+    uint special_param = 2;
+    uint alignment = 0;
+    uint fits_map_IDs = 0;
 
     detector = new CDetector(rt_detector_shape,
                                 path,
@@ -323,7 +351,10 @@ bool CRaytracingCartesian::setDustAMEDetector(uint pos,
                                 lam_min,
                                 lam_max,
                                 nr_spectral_bins,             
-                                nr_extra, 2);
+                                nr_extra,
+                                special_param,
+                                alignment,
+                                fits_map_IDs);
     
     detector->setOrientation(n1, n2, rot_angle1, rot_angle2);
 

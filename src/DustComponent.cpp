@@ -3750,7 +3750,7 @@ void CDustComponent::calcPACrossSections(uint a, uint w, cross_sections & cs, do
     dCsca = (getQsca1(a, w) - getQsca2(a, w)) / 2.0;
     sCabs = (getQabs1(a, w) + getQabs2(a, w)) / 2.0;
     dCabs = (getQabs1(a, w) - getQabs2(a, w)) / 2.0;
-    sCcirc = getQcirc(a, w) / 2.0;
+    sCcirc = getQcirc(a, w);
 
     // Calculate sin(theta)^2
     sinsq_th = sin(theta);
@@ -3811,7 +3811,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
                                        const photon_package & pp,
                                        uint i_density,
                                        uint a,
-                                       double mag_field_theta,
+                                       double theta,
                                        cross_sections & cs) const
 {
     // Get wavelength index
@@ -3829,7 +3829,7 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     // Perfect alignment can be calculated efficiently
     if((alignment & ALIG_PA) == ALIG_PA)
     {
-        calcPACrossSections(a, w, cs, mag_field_theta);
+        calcPACrossSections(a, w, cs, theta);
         return;
     }
 
@@ -3844,11 +3844,11 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
                 R_tmp = 1.0;
             if(R_tmp < 0.0)
                 R_tmp = 0.0;
-            calcNONPACrossSections(a, w, cs, mag_field_theta, R_tmp);
+            calcNONPACrossSections(a, w, cs, theta, R_tmp);
         }
         else
         {
-            calcNONPACrossSections(a, w, cs, mag_field_theta, R_rayleigh);
+            calcNONPACrossSections(a, w, cs, theta, R_rayleigh);
         }
         return;
     }
@@ -3870,18 +3870,32 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
     double Blen = B.length();
     double Tg = grid->getGasTemperature(pp);
     double ng = grid->getGasNumberDensity(pp);
-    double a_limit = CMathFunctions::calc_larm_limit(Blen, Td, Tg, ng, aspect_ratio, larm_f);
+    //double a_limit = CMathFunctions::calc_larm_limit(Blen, Td, Tg, ng, aspect_ratio, larm_f);
 
     // Calculate the parameters for radiative torque alignment
     if((alignment & ALIG_RAT) == ALIG_RAT)
     {
-        a_alig = grid->getAlignedRadius(pp, i_density);
-        if(a_eff[a] > a_alig)
+        double a_alig = grid->getAlignedRadius(pp, i_density);
+        double a_larm = grid->getLarmRadius(pp, i_density);
+        
+        //just to keep it compatible to older grids
+        if(a_larm==0)
+            a_larm = get_alarm(Blen, Td, Tg, ng);
+        
+        if(a_alig < a_eff[a] && a_eff[a] < a_larm)
         {
             if((alignment & ALIG_INTERNAL) == ALIG_INTERNAL)
                 Rrat = f_highJ + (1 - f_highJ) * getInternalRAT();
             else
-                Rrat = R_rayleigh;
+                Rrat = 1;
+        }
+        
+        if((alignment & ALIG_KRAT) == ALIG_KRAT)
+        {
+            double a_krat = grid->getkRATRadius(pp, i_density);
+            
+            if(a_krat < a_eff[a])
+                Rrat=1.0;
         }
     }
 
@@ -3926,13 +3940,10 @@ void CDustComponent::calcCrossSections(CGridBasic * grid,
         }
     }
 
-    if(a_eff[a] < a_limit)
-        Rent = combinedRFactor(Ridg, Rrat, Rgold);
-    else
-        Rent = Ridg;
+    Rent = combinedRFactor(Ridg, Rrat, Rgold);
 
     // Calculate sin(theta)^2
-    double sinsq_theta = sin(mag_field_theta);
+    double sinsq_theta = sin(theta);
     sinsq_theta *= sinsq_theta;
 
     double c_s_ext = getCext1(a, w);
@@ -4120,9 +4131,12 @@ double CDustComponent::updateDustTemperature(CGridBasic * grid,
     // Get temperature depending on the absorption rate (Minimum temperature is TEMP_MIN)
     temp = findTemperature(a, abs_rate);
 
-    if(isErode())
-        if(temp >= sub_temp)
-            temp = 0;
+    // todo :sub
+    if(temp >= sub_temp)
+    {
+        //temp = TEMP_MIN;
+        grid->updateMarker(pp, i_density);
+    }
 
     // Update min and max temperatures for visualization
     max_temp = max(max_temp,temp);
@@ -4211,9 +4225,15 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
             temp = max(double(TEMP_MIN), findTemperature(a, abs_rate[a]));
 
             // Consider sublimation temperature todo: deal with marker system
-            if(isErode() && grid->getTemperatureFieldInformation() == TEMP_FULL)
+            // todo :sub
+            if(grid->getTemperatureFieldInformation() == TEMP_FULL)
+            {
                 if(temp >= sub_temp)
-                    temp = TEMP_MIN;
+                {
+                    //temp = TEMP_MIN;
+                    grid->updateMarker(cell, i_density);
+                }
+            }
 
             if(grid->getTemperatureFieldInformation() == TEMP_EFF ||
                grid->getTemperatureFieldInformation() == TEMP_SINGLE)
@@ -4253,18 +4273,15 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
     delete[] rel_weight;
     delete[] abs_rate;
 
-    if(isErode())
+    if(avg_temp >= sub_temp)
     {
-        if(avg_temp >= sub_temp)
-        {
             // Set temperature to zero
-            avg_temp = TEMP_MIN;
+            // avg_temp = TEMP_MIN;
 
             // Remove sublimated dust from grid
             // Not if rad field can be used for stochastic heating later
             if(grid->specLengthIsVector())
-                grid->adjustDustDensity(cell, i_density, 0); // todo: update marker here and not density
-        }
+                grid->updateMarker(cell, i_density);
     }
 
     // Set average dust temperature in grid
@@ -4272,8 +4289,6 @@ void CDustComponent::calcTemperature(CGridBasic * grid,
 
     // Update min and max temperatures for visualization
     max_temp = max(max_temp,avg_temp);
-    // if(avg_temp < min_temp)
-    //     min_temp = avg_temp;
 }
 
 void CDustComponent::calcAlignedRadii(CGridBasic * grid, cell_basic * cell, uint i_density)
@@ -4836,62 +4851,6 @@ void CDustComponent::calcStochasticHeatingPropabilities(CGridBasic * grid,
     }
 }
 
-void CDustComponent::initMarker(uint Nc)
-{
-    marker = new char[Nc];
-    
-    for(int i=0; i<Nc; i++)
-        marker[i]=0;
-}
-
-uint CDustComponent::getNrMarked(uint Nc)
-{
-    if(marker==0)
-        return 0;
-    
-    uint marked=0;
-    
-    for(int i=0; i<Nc; i++)
-    {
-        marked+=int(marker[i]);
-    }
-    
-    return marked;
-}
-
-
-double CDustComponent::markerFactor(uint id) const
-{
-    if(marker==0)
-        return 1.;
-    
-    if(marker[id]==1)
-        return 0.;
-    
-    return 1.;
-}
-
-bool CDustComponent::isMarkedCell(uint id) const
-{
-    if(marker==0)
-        return false;
-    
-    if(marker[id]==1)
-        return true;
-    
-    return false;
-}
-
-void CDustComponent::setMarker(uint id, char val)
-{
-    if(marker==0)
-        return;
-    
-    //cout << endl << int(marker[id]) << endl;
-    marker[id]=val;
-    
-    //cout << int(marker[id]) << endl;
-}
 
 double CDustComponent::getCalorimetryA(uint a, uint f, uint i, const spline & abs_rate_per_wl) const
 {
@@ -5130,7 +5089,7 @@ StokesVector CDustComponent::getRadFieldScatteredFraction(CGridBasic * grid,
     uint w = pp.getDustWavelengthID();
 
     // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
+    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMagField(pp);
 
     // Get theta of scattering
     double cos_scattering_theta = en_dir * pp.getDirection();
@@ -5212,7 +5171,6 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
                                                const photon_package & pp,
                                                uint i_density,
                                                uint emission_component,
-                                               double phi,
                                                double energy,
                                                Vector3D en_dir) const
 {
@@ -5243,12 +5201,25 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     // Get wavelength index of photon package
     uint w = pp.getDustWavelengthID();
 
-    // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
-
-    // Calculate orientation of the Stokes vector in relation to the magnetic field
-    double sin_2ph = sin(2.0 * phi);
-    double cos_2ph = cos(2.0 * phi);
+    // Get angles between the magnetic field and the photon direction
+    double mag_phi = 0;
+    double mag_theta = 0.0;
+ 
+    // Get angles between the radiation field and the photon direction
+    double rad_phi = 0;
+    double rad_theta = 0.0;
+    
+    if((alignment != ALIG_RND))
+    {
+        mag_theta = grid->getThetaMagField(pp);
+        mag_phi = grid->getPhiMagField(pp);
+        
+        if((alignment & ALIG_KRAT) == ALIG_KRAT)
+        {
+            rad_theta = grid->getThetaRadField(pp);
+            rad_phi = grid->getPhiRadField(pp);
+        }
+    }
 
     // Get integration over the dust size distribution
     double * rel_weight = getRelWeight(a_min, a_max, size_param);
@@ -5267,11 +5238,45 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            if(a_rd>0 && a_eff[a]>a_rd)
-                continue;            
+            if((alignment & ALIG_RD) == ALIG_RD)
+            {
+                if(a_rd>0 && a_eff[a]>a_rd)
+                    continue;
+            }
+            
+            double theta=0.0;
+            double phi=0.0;
+            
+            // determine the direction of grain alignment
+            if((alignment != ALIG_RND))
+            {
+                if((alignment & ALIG_KRAT) == ALIG_KRAT)
+                {
+                    double a_krat = grid->getkRATRadius(pp, i_density);
+
+                    if(a_krat < a_eff[a])
+                    {
+                        theta=rad_theta;
+                        phi=rad_phi;
+                    }
+                    else
+                    {
+                        theta=mag_theta;
+                        phi=mag_phi;
+                    }
+                }           
+                else
+                {
+                    theta=mag_theta;
+                    phi=mag_phi;
+                }
+            }
+            
+            double sin_2ph=sin(2*phi);
+            double cos_2ph=cos(2*phi);
             
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
+            calcCrossSections(grid, pp, i_density, a, theta, cs);
 
             // Calculate emission/extinction according to the information inside of the
             // grid
@@ -5386,8 +5391,10 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
                                           const photon_package & pp,
                                           uint i_density,
                                           double * avg_Cext,
-                                          double * avg_Cpol,
-                                          double * avg_Ccirc) const
+                                            double * avg_Cpol_cos,
+                                            double * avg_Cpol_sin,
+                                            double * avg_Ccirc_cos,
+                                            double * avg_Ccirc_sin) const
 {
     // Init  and calculate the cross-sections
     cross_sections cs;
@@ -5397,9 +5404,6 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
     double a_max = getSizeMax(grid, pp);
     
     double a_rd = grid->getRDRadius(pp,i_density);
-    
-    // Get angle between the magnetic field and the photon direction
-    double mag_field_theta = alignment == ALIG_RND ? 0 : grid->getThetaMag(pp);
 
     // Get local size parameter for size distribution
     double size_param = getSizeParam(grid, pp);
@@ -5409,42 +5413,113 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
 
     // Init temporary cross-section array for integration
     double * Cext = new double[nr_of_dust_species];
-    double * Cpol = new double[nr_of_dust_species];
-    double * Ccirc = new double[nr_of_dust_species];
+    double * Cpol_cos = new double[nr_of_dust_species];
+    double * Cpol_sin = new double[nr_of_dust_species];
+    double * Ccirc_cos = new double[nr_of_dust_species];
+    double * Ccirc_sin = new double[nr_of_dust_species];
+    
+    // Get angles between the magnetic field and the photon direction
+    double mag_theta = 0.0;
+    double mag_phi = 0;
+   
+    // Get angles between the radiation field and the photon direction
+    double rad_theta = 0.0;
+    double rad_phi = 0;
+    
+    if((alignment != ALIG_RND))
+    {
+        mag_theta = grid->getThetaMagField(pp);
+        mag_phi = grid->getPhiMagField(pp);
+        
+        if((alignment & ALIG_KRAT) == ALIG_KRAT)
+        {
+            rad_theta = grid->getThetaRadField(pp);
+            rad_phi = grid->getThetaRadField(pp);
+        }
+    }
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            if(a_rd>0 && a_eff[a]>a_rd)
-                continue;
+            if((alignment & ALIG_RD) == ALIG_RD)
+            {
+                if(a_rd>0 && a_eff[a]>a_rd)
+                    continue;
+            }
+            
+            double theta=0.0;
+            double phi=0.0;
+            
+            // determine the direction of grain alignment
+            if((alignment != ALIG_RND))
+            {
+                if((alignment & ALIG_KRAT) == ALIG_KRAT)
+                {
+                    double a_krat = grid->getkRATRadius(pp, i_density);
+
+                    if(a_krat < a_eff[a])
+                    {
+                        theta=rad_theta;
+                        phi=rad_phi;
+                    }
+                    else
+                    {
+                        theta=mag_theta;
+                        phi=mag_phi;
+                    }
+                }           
+                else
+                {
+                    theta=mag_theta;
+                    phi=mag_phi;
+                }
+            }
+            
+            double sin_2ph=sin(2*phi);
+            double cos_2ph=cos(2*phi);
+                        
             // Get cross sections and relative weight of the current dust grain size
-            calcCrossSections(grid, pp, i_density, a, mag_field_theta, cs);
+            calcCrossSections(grid, pp, i_density, a, theta, cs);
 
             // Add relative cross-sections for integration
             Cext[a] = cs.Cext * rel_weight[a];
-            Cpol[a] = cs.Cpol * rel_weight[a];
-            Ccirc[a] = cs.Ccirc * rel_weight[a];
+            
+            Cpol_cos[a] = cos_2ph*cs.Cpol * rel_weight[a];
+            Cpol_sin[a] = sin_2ph*cs.Cpol * rel_weight[a];
+            
+            Ccirc_cos[a] = cos_2ph*cs.Ccirc * rel_weight[a];
+            Ccirc_sin[a] = sin_2ph*cs.Ccirc * rel_weight[a];
         }
         else
         {
             // Set cross-sections to zero for the unused grain size
             Cext[a] = 0;
-            Cpol[a] = 0;
-            Ccirc[a] = 0;
+            
+            Cpol_cos[a] = 0;
+            Cpol_sin[a] = 0;
+            
+            Ccirc_cos[a] = 0;
+            Ccirc_sin[a] = 0;
         }
     }
 
     // Perform integration for the cross-sections
     *avg_Cext = CMathFunctions::integ_dust_size(a_eff, Cext, nr_of_dust_species, a_min, a_max);
-    *avg_Cpol = CMathFunctions::integ_dust_size(a_eff, Cpol, nr_of_dust_species, a_min, a_max);
-    *avg_Ccirc = CMathFunctions::integ_dust_size(a_eff, Ccirc, nr_of_dust_species, a_min, a_max);
+    *avg_Cpol_cos = CMathFunctions::integ_dust_size(a_eff, Cpol_cos,   nr_of_dust_species, a_min, a_max);
+    *avg_Cpol_sin = CMathFunctions::integ_dust_size(a_eff, Cpol_sin,   nr_of_dust_species, a_min, a_max);
+    *avg_Ccirc_cos = CMathFunctions::integ_dust_size(a_eff, Ccirc_cos, nr_of_dust_species, a_min, a_max);
+    *avg_Ccirc_sin = CMathFunctions::integ_dust_size(a_eff, Ccirc_sin, nr_of_dust_species, a_min, a_max);
 
     // Delete pointer arrays
     delete[] rel_weight;
     delete[] Cext;
-    delete[] Cpol;
-    delete[] Ccirc;
+    
+    delete[] Cpol_cos;
+    delete[] Cpol_sin;
+    
+    delete[] Ccirc_cos;
+    delete[] Ccirc_sin;
 }
 
 void CDustComponent::getEscapePhoton(CGridBasic * grid,
@@ -8127,15 +8202,6 @@ void CDustComponent::setScatLoaded(bool val)
     scat_loaded = val;
 }
 
-void CDustComponent::setSubStatus(int val)
-{
-    sub_status = val;
-}
-
-bool CDustComponent::isErode()
-{
-    return ((sub_status & SUB_ERODE) == SUB_ERODE);
-}
 
 uint CDustComponent::getComponentId()
 {
@@ -8938,7 +9004,6 @@ void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cel
         if(tau_sp<sp_limit)
             continue;
         
-        
         double Zmin=0, Zmax=0;
         double sum_charge=0;
         double local_j=0;
@@ -8976,23 +9041,20 @@ void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cel
         double f_MW = fMW(lambda, Trot, a_eff);
         
         if(isnan(f_MW))
-            continue;
+            f_MW=1e-200;
 
         if(f_MW<1e-200)
-            continue;
+            f_MW=1e-200;
 
         gaussian_bounds(Zmean,Zsig,1e-6,Zmin,Zmax);
         
         int Zhard_min = compute_Zmin_auto    (a_eff);
         int Zhard_max = compute_Zmax_coulomb (a_eff);
         
-        Zmin = max(int(Zmin),int(Zhard_min));
+        //Zmin = max(int(Zmin),int(Zhard_min));
 
         double o_cr = 2. / a_eff * sqrt(nano_Smax / material_density);
         double l_cr = PIx2 * con_c / o_cr;
-
-        if(lambda<l_cr)
-            continue;
 
         double dnda = nano_arr_dnda_large[ia];
         int NZ=int(Zmax)-int(Zmin)+1;
@@ -9002,10 +9064,9 @@ void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cel
         
         for (int k = 0; k < NZ - 1; k++)
         {
-            int Z      = Zmin + k;
+            int Z      = int(Zmin + k);
             double f_charge=gaussian_value(Zmean,Zsig,Z);  
             
-            //arr_f_charge[k] = f_charge;
             arr_f_charge.push_back(f_charge);
             sum_charge += f_charge;
         }
@@ -9015,13 +9076,13 @@ void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cel
         
         for (int k = 0; k < NZ - 1; k++)
         {
-            int Z = Zmin + k;
+            int Z = int(Zmin + k);
             
             if(Z>Zhard_max)
-                break;
+                continue;
             
             if(Z<Zhard_min)
-                break;
+                continue;
             
             double f_charge = arr_f_charge[k] / sum_charge;        
             double P = Power(lambda, a_eff, double(Z));
@@ -9029,22 +9090,26 @@ void CDustComponent::calc_dust_emi_ame(CGridBasic * grid, const cell_basic * cel
             local_j += dnda * f_charge * f_MW * P * (con_c / (lambda * lambda)) / PIx4;
             
             if(isnan(local_j))
-                local_j=1e-100;
+                local_j=1e-200;
             
-            total_weight += dnda*f_charge;            
+            if(lambda>l_cr)
+                total_weight += dnda*f_charge;                        
         }
 
         j_ame += local_j;
     }
     
-    //nd*=total_weight;  
+    if(total_weight<1e-200)
+        total_weight=1e-200;
+    
     j_ame*=nd;
+    nd*=total_weight;  
     
     if(isnan(nd))
-        nd=1e-100;
+        nd=1e-200;
     
     if(isnan(j_ame))
-        j_ame=1e-100;
+        j_ame=1e-200;
 }
 
 inline double CDustComponent::EA_eV( double a_m, int Z )

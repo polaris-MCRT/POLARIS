@@ -53,7 +53,10 @@ public:
     uint getMixtureID(CGridBasic * grid, const photon_package & pp) const;
 
     double getAvgMass(uint i_mixture);
+    
     double getSusceptibility(uint i_mixture);
+    
+    double getSublimationTemperature(uint i_mixture);
 
     bool writeComponentData(string path_data);
 
@@ -179,7 +182,7 @@ public:
                   
                                               double energy) const;
     
-    void markCells(CGridBasic * grid, parameters & param);
+    
     
     uint getNrOfMixtures() const;
 

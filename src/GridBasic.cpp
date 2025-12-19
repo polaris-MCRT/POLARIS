@@ -12,6 +12,7 @@
 #include "CCfits/PHDUT.h"
 #include "fitsio.h"
 #include "GridBasic.hpp"
+#include "DustMixture.hpp"
 
 double CGridBasic::getCextMeanTab(uint cellID, uint wID) const
 {
@@ -158,18 +159,28 @@ void CGridBasic::updateDataRange(cell_basic * cell)
         max_dust_dens=max(max_dust_dens,dust_dens);
     }
 
-    if(!data_pos_dust_temp_list.empty())
+    if(!data_pos_dust_temp_list1.empty())
     {
-        for(uint i = 0; i < data_pos_dust_temp_list.size(); i++)
+        for(uint i = 0; i < data_pos_dust_temp_list1.size(); i++)
         {
-            double dust_temp = cell->getData(data_pos_dust_temp_list[i]);
+            double dust_temp = cell->getData(data_pos_dust_temp_list1[i]);
             
             min_dust_temp=min(min_dust_temp,dust_temp);
-            max_dust_temp=max(max_dust_temp,dust_temp);
+            max_dust_temp1=max(max_dust_temp1,dust_temp);
         }
     }
-
-
+    
+    if(!data_pos_dust_sub_list.empty())
+    {
+        for(uint i = 0; i < data_pos_dust_sub_list.size(); i++)
+        {
+            double dust_sub = cell->getData(data_pos_dust_sub_list[i]);
+            max_dust_sub1=max(max_dust_sub1,dust_sub);
+            
+            if(dust_sub>0)
+                dust_sub_counter++;            
+        }
+    }
 
     if(data_pos_mx != MAX_UINT && data_pos_my != MAX_UINT && data_pos_mz != MAX_UINT)
     {
@@ -607,11 +618,15 @@ void CGridBasic::printPhysicalParameters()
     else
         cout << "- Gas temperature     (min,max) : none" << endl;
 
-    if(!data_pos_dust_temp_list.empty())
-        cout << "- Dust temperature    (min,max) : [" << min_dust_temp << ", " << max_dust_temp << "] [K]"
-             << endl;
+    if(!data_pos_dust_temp_list1.empty())
+        cout << "- Dust temperature    (min,max) : [" << min_dust_temp << ", " << max_dust_temp1 << "] [K]\n";
     else
         cout << "- Dust temperature    (min,max) : none" << endl;
+    
+    countMarkedCells();
+    
+    if(!data_pos_dust_sub_list.empty() && max_dust_sub1>0)
+        cout << "- Dust sublimation marker       : yes ( " << dust_sub_counter << " ) \n";
 
     if(data_pos_mx != MAX_UINT)
     {
@@ -778,6 +793,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_mol_dens = (nrOfDensRatios>0 && param.isInPlotList(GRIDratio) );
         plt_dust_dens = (!data_pos_dust_dens_list.empty()) && param.isInPlotList(GRIDdust_dens);
         plt_gas_temp1 = (data_pos_tg != MAX_UINT) && param.isInPlotList(GRIDgas_temp);
+        
+        plt_dust_sub = (!data_pos_dust_sub_list.empty()) && param.isInPlotList(GRID_dust_sub);
 
         plt_mag = (data_pos_mx != MAX_UINT) && (data_pos_my != MAX_UINT) && (data_pos_mz != MAX_UINT) &&
                   param.isInPlotList(GRIDmx) && param.isInPlotList(GRIDmy) && param.isInPlotList(GRIDmz);
@@ -790,6 +807,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_dust_a_min = (!data_pos_dust_a_min_list.empty()) && param.isInPlotList(GRIDa_min);
         plt_dust_a_max = (!data_pos_dust_a_max_list.empty()) && param.isInPlotList(GRIDa_max);
         plt_dust_size_param = (!data_pos_dust_size_param_list.empty()) && param.isInPlotList(GRIDq);
+        
+        plt_dust_size_param = (!data_pos_dust_a_min_list.empty()) && param.isInPlotList(GRIDa_min);
 
         plt_n_th = (data_pos_n_th != MAX_UINT) && param.isInPlotList(GRIDn_th);
         plt_T_e = (data_pos_T_e != MAX_UINT) && param.isInPlotList(GRIDT_e);
@@ -807,6 +826,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             plt_a_larm = (!data_pos_dust_a_larm_list.empty()) && param.isInPlotList(GRID_alarm);
             plt_a_krat1 = (!data_pos_dust_a_krat_list1.empty()) && param.isInPlotList(GRID_akRAT);
             plt_a_rd = (!data_pos_dust_a_rd_list.empty()) && param.isInPlotList(GRID_ard);
+            plt_dust_sub = (!data_pos_dust_sub_list.empty()) && param.isInPlotList(GRID_dust_sub);
             
             plt_avg_th = (data_pos_avg_th != MAX_UINT) && param.isInPlotList(GRIDavg_th);
             plt_avg_dir = (data_pos_avg_dir != MAX_UINT) && param.isInPlotList(GRIDavg_dir);
@@ -822,7 +842,10 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
 
         if(cmd != CMD_TEMP && cmd != CMD_TEMP_RAT)
-            plt_dust_temp = (!data_pos_dust_temp_list.empty()) && param.isInPlotList(GRIDdust_temp);
+        {
+            plt_dust_temp1 = (!data_pos_dust_temp_list1.empty()) && param.isInPlotList(GRIDdust_temp);
+            plt_dust_sub = (!data_pos_dust_sub_list.empty()) && param.isInPlotList(GRID_dust_sub);
+        }
 
         // if(getRadiationFieldAvailable())
         {
@@ -860,7 +883,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp1 = false;
-        plt_dust_temp = false;
+        plt_dust_temp1 = false;
+        plt_dust_sub = false;
         plt_mag = false;
         plt_vel = false;
         
@@ -902,7 +926,8 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             if(param.getAdjTgas() > 0)
                 plt_gas_temp1 = param.isInPlotList(GRIDgas_temp);
 
-            plt_dust_temp = param.isInPlotList(GRIDdust_temp);
+            plt_dust_temp1 = param.isInPlotList(GRIDdust_temp);
+            plt_dust_sub = (!data_pos_dust_sub_list.empty()) && param.isInPlotList(GRID_dust_sub);
         }
 
         if(cmd == CMD_RAT || cmd == CMD_TEMP_RAT)
@@ -923,6 +948,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
             plt_ame_Zs = (!data_pos_ame_Zs_list.empty()) && param.isInPlotList(GRID_Zs);
             plt_ame_Trot1 = (!data_pos_ame_Trot_list.empty()) && param.isInPlotList(GRID_Trot);
             plt_ame_a_crit = (!data_pos_ame_a_crit_list.empty()) && param.isInPlotList(GRID_acrit);
+            plt_dust_sub = (!data_pos_dust_sub_list.empty()) && param.isInPlotList(GRID_dust_sub);
         }
 
         switch(param.getWriteRadiationField())
@@ -970,8 +996,11 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_dust_dens)
         nr_parameters += data_pos_dust_dens_list.size();
     
-    if(plt_dust_temp)
-        nr_parameters += data_pos_dust_temp_list.size();
+    if(plt_dust_temp1)
+        nr_parameters += data_pos_dust_temp_list1.size();
+    
+    if(plt_dust_sub)
+        nr_parameters += data_pos_dust_sub_list.size();
     
     if(plt_dust_a_min)
         nr_parameters += data_pos_dust_a_min_list.size();
@@ -1086,7 +1115,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     valarray<double> array_mol_dens(nelements);
     valarray<double> array_dust_dens(nelements);
     valarray<double> array_gas_temp(nelements);
-    valarray<double> array_dust_temp(nelements);
+    valarray<double> array_dust_temp1(nelements);
+    
+    valarray<double> array_dust_sub(nelements);
 
     valarray<double> array_mag(nelements);
     valarray<double> array_mag_x(nelements);
@@ -1175,15 +1206,25 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
     }
 
-    if(plt_dust_temp)
+    if(plt_dust_temp1)
     {
-        buffer_dust_temp = new double *[nelements];
+        buffer_dust_temp1 = new double *[nelements];
         
         for(long i_cell = 0; i_cell < nelements; i_cell++)
         {
-            buffer_dust_temp[i_cell] = new double[data_pos_dust_temp_list.size()];
+            buffer_dust_temp1[i_cell] = new double[data_pos_dust_temp_list1.size()];
         }
     }
+        
+    if(plt_dust_sub)
+    {
+        buffer_dust_sub = new double *[nelements];
+        
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+        {
+            buffer_dust_sub[i_cell] = new double[data_pos_dust_sub_list.size()];
+        }
+    }    
         
     if(plt_a_alig1)
     {
@@ -1201,9 +1242,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         
     if(plt_a_krat1)
     {
-        buffer_dust_a_krat1 = new double *[nelements];
+        buffer_dust_a_krat = new double *[nelements];
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            buffer_dust_a_krat1[i_cell] = new double[data_pos_dust_a_krat_list1.size()];
+            buffer_dust_a_krat[i_cell] = new double[data_pos_dust_a_krat_list1.size()];
     }
         
     if(plt_a_rd)
@@ -1229,9 +1270,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         
     if(plt_ame_Trot1)
     {
-        buffer_ame_Trot1 = new double *[nelements];
+        buffer_ame_Trot = new double *[nelements];
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            buffer_ame_Trot1[i_cell] = new double[data_pos_ame_Trot_list.size()];
+            buffer_ame_Trot[i_cell] = new double[data_pos_ame_Trot_list.size()];
     }
         
     if(plt_ame_a_crit)
@@ -1427,15 +1468,28 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 fpixel[3]++;
                 pFits->pHDU().write(fpixel, nelements, array_gas_temp);
             }
-            if(plt_dust_temp)
+            
+            if(plt_dust_temp1)
             {
-                for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
+                for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_temp[i_cell] = buffer_dust_temp[i_cell][i_density + 1];
+                        array_dust_temp1[i_cell] = buffer_dust_temp1[i_cell][i_density];
                     
                     fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_dust_temp);
+                    pFits->pHDU().write(fpixel, nelements, array_dust_temp1);
+                }
+            }
+            
+            if(plt_dust_sub)
+            {
+                for(uint i_density = 0; i_density < data_pos_dust_sub_list.size(); i_density++)
+                {
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
+                        array_dust_sub[i_cell] = buffer_dust_sub[i_cell][i_density];
+                    
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_dust_sub);
                 }
             }
 
@@ -1456,7 +1510,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 for(uint i_density = 0; i_density < nr_mixtures1; i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat1[i_cell][i_density];
+                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat[i_cell][i_density];
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_dust_a_krat1);
@@ -1516,7 +1570,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 for(uint i_ame = 0; i_ame < data_pos_ame_Trot_list.size(); i_ame++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_ame_Trot1[i_cell] = buffer_ame_Trot1[i_cell][i_ame];
+                        array_ame_Trot1[i_cell] = buffer_ame_Trot[i_cell][i_ame];
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_ame_Trot1);
@@ -1826,7 +1880,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                     for(uint i_density = 0; i_density < data_pos_dust_dens_list.size(); i_density++)
                     {
                         for(long i_cell = 0; i_cell < nelements; i_cell++)
-                            array_dust_dens[i_cell] = buffer_dust_dens[i_cell][i_density + 1];
+                            array_dust_dens[i_cell] = buffer_dust_dens[i_cell][i_density];
                         
                         fpixel[3]++;
                         pFits->pHDU().write(fpixel, nelements, array_dust_dens);
@@ -1841,15 +1895,27 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 pFits->pHDU().write(fpixel, nelements, array_gas_temp);
             }
             
-            if(plt_dust_temp)
+            if(plt_dust_temp1)
             {
-                for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
+                for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_temp[i_cell] = buffer_dust_temp[i_cell][i_density + 1];
+                        array_dust_temp1[i_cell] = buffer_dust_temp1[i_cell][i_density];
                     
                     fpixel[3]++;
-                    pFits->pHDU().write(fpixel, nelements, array_dust_temp);
+                    pFits->pHDU().write(fpixel, nelements, array_dust_temp1);
+                }
+            }
+            
+            if(plt_dust_sub)
+            {
+                for(uint i_density = 0; i_density < data_pos_dust_sub_list.size(); i_density++)
+                {
+                    for(long i_cell = 0; i_cell < nelements; i_cell++)
+                        array_dust_sub[i_cell] = buffer_dust_sub[i_cell][i_density];
+                    
+                    fpixel[3]++;
+                    pFits->pHDU().write(fpixel, nelements, array_dust_sub);
                 }
             }
 
@@ -1870,7 +1936,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 for(uint i_density = 0; i_density < nr_mixtures1; i_density++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat1[i_cell][i_density];
+                        array_dust_a_krat1[i_cell] = buffer_dust_a_krat[i_cell][i_density];
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_dust_a_krat1);
@@ -1930,7 +1996,7 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
                 for(uint i_ame = 0; i_ame < data_pos_ame_Trot_list.size(); i_ame++)
                 {
                     for(long i_cell = 0; i_cell < nelements; i_cell++)
-                        array_ame_Trot1[i_cell] = buffer_ame_Trot1[i_cell][i_ame];
+                        array_ame_Trot1[i_cell] = buffer_ame_Trot[i_cell][i_ame];
 
                     fpixel[3]++;
                     pFits->pHDU().write(fpixel, nelements, array_ame_Trot1);
@@ -2322,13 +2388,13 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         updateMidplaneString(str_1, str_2, counter);
         pFits->pHDU().addKey(str_1, "gas_temperature [K]", str_2);
     }
-    if(plt_dust_temp)
+    if(plt_dust_temp1)
     {
         //counter++;
         updateMidplaneString(str_1, str_2, counter);
-        if(data_pos_dust_temp_list.size() > 1)
+        if(data_pos_dust_temp_list1.size() > 1)
         {
-            for(uint i_density = 1; i_density <= data_pos_dust_temp_list.size(); i_density++)
+            for(uint i_density = 1; i_density <= data_pos_dust_temp_list1.size(); i_density++)
             {
                 counter++;
                 updateMidplaneString(str_1, str_2, counter);
@@ -2338,6 +2404,24 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         }
         else
             pFits->pHDU().addKey(str_1, "dust_temperature [K]", str_2);
+    }
+    
+    if(plt_dust_sub)
+    {
+        //counter++;
+        updateMidplaneString(str_1, str_2, counter);
+        if(data_pos_dust_sub_list.size() > 1)
+        {
+            for(uint i_density = 1; i_density <= data_pos_dust_sub_list.size(); i_density++)
+            {
+                counter++;
+                updateMidplaneString(str_1, str_2, counter);
+                string str_3 = getDensityString("dust_sub_marker_%i", i_density);
+                pFits->pHDU().addKey(str_1, str_3, str_2);
+            }
+        }
+        else
+            pFits->pHDU().addKey(str_1, "dust_sub_marker", str_2);
     }
     
     if(plt_a_alig1)
@@ -2771,11 +2855,18 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         delete[] buffer_dust_dens;
     }
     
-    if(plt_dust_temp)
+    if(plt_dust_temp1)
     {
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            delete[] buffer_dust_temp[i_cell];
-        delete[] buffer_dust_temp;
+            delete[] buffer_dust_temp1[i_cell];
+        delete[] buffer_dust_temp1;
+    }
+        
+    if(plt_dust_sub)
+    {
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_dust_sub[i_cell];
+        delete[] buffer_dust_sub;
     }
 
     if(plt_a_alig1)
@@ -2797,9 +2888,9 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
     if(plt_a_krat1)
     {
         for(long i_cell = 0; i_cell < nelements; i_cell++)
-            delete[] buffer_dust_a_krat1[i_cell];
+            delete[] buffer_dust_a_krat[i_cell];
 
-        delete[] buffer_dust_a_krat1;
+        delete[] buffer_dust_a_krat;
     }  
         
     if(plt_a_rd)
@@ -2812,26 +2903,26 @@ bool CGridBasic::writeMidplaneFits(string data_path, parameters & param, uint bi
         
     if(plt_ame_Zgr)
     {
-        for(long i_ame = 0; i_ame < data_pos_ame_Zgr_list.size(); i_ame++)
-            delete[] buffer_ame_Zgr[i_ame];
-
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_ame_Zgr[i_cell];
+            
         delete[] buffer_ame_Zgr;
     }    
         
     if(plt_ame_Zs)
     {
-        for(long i_ame = 0; i_ame < data_pos_ame_Zs_list.size(); i_ame++)
-            delete[] buffer_ame_Zs[i_ame];
-
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_ame_Zs[i_cell];
+            
         delete[] buffer_ame_Zs;
     }  
         
     if(plt_ame_Trot1)
     {
-        for(long i_ame = 0; i_ame < data_pos_ame_Trot_list.size(); i_ame++)
-            delete[] buffer_ame_Trot1[i_ame];
-
-        delete[] buffer_ame_Trot1;
+        for(long i_cell = 0; i_cell < nelements; i_cell++)
+            delete[] buffer_ame_Trot[i_cell];
+            
+        delete[] buffer_ame_Trot;
     }      
         
     if(plt_ame_a_crit)
@@ -3127,8 +3218,8 @@ void CGridBasic::getMagFieldInfo(const photon_package & pp, MagFieldInfo * mfo) 
     mfo->mag_field = getMagField(pp);
 
     // Get the theta and phi angle from the magnetic field direction
-    double theta = getThetaMag(pp);
-    double phi = getPhiMag(pp);
+    double theta = getThetaMagField(pp);
+    double phi = getPhiMagField(pp);
 
     // Calculate the sine and cosine including double angles
     mfo->cos_theta = cos(theta);
@@ -3160,6 +3251,195 @@ bool CGridBasic::getPolarRTGridParameter(double max_len,
 cell_basic * CGridBasic::getCellFromIndex(ulong i)
 {
     return cell_list[i];
+}
+
+void CGridBasic::markCells(CDustMixture * dust, parameters & param)
+{
+    ulong max_cells = getMaxDataCells();
+    sub_status = param.getSubStatus();
+    uint nr_stars = param.getNrOfPointSources();
+    
+    double step = 1.0;
+    
+    if(max_cells==0)
+        return;
+
+    if(sub_status==0)
+        return;
+        
+    if(nr_mixtures1==0)
+    {
+        cout << CLR_LINE;
+        cout << WARNING_LINE << "No dust model is defined.\n\tSublimation radii cannot be considered!\n" << flush;
+        return;
+    }
+    
+    if(nr_stars==0)
+    {
+        cout << CLR_LINE;
+        cout << WARNING_LINE << "No stars are defined.\n\tSublimation radii cannot be considered!\n" << flush;
+        return;
+    }
+    
+    cout << CLR_LINE;
+    cout << " -> Initiating sublimation markers ... \r" << flush;
+    
+    dlist sources_list = param.getPointSources();
+    
+    for(uint i_star = 0; i_star < sources_list.size(); i_star += NR_OF_POINT_SOURCES)
+    {
+        cout << CLR_LINE;
+        
+        uint index = i_star / NR_OF_POINT_SOURCES;
+        cout << " -> Marking sublimation cells for star " << index +1 <<" of " << nr_stars << " : 0 [%]  \r" << flush;
+        
+        
+        cell_basic * cell_star = 0;
+        uint per_counter=0;
+        uint last_percentage=0;
+
+        double r_sub = sources_list[i_star + 5];
+        Vector3D pos_star = Vector3D(sources_list[i_star + 0], sources_list[i_star + 1] ,sources_list[i_star + 2]);
+        
+        if((sub_status & SUB_RADIUS) == SUB_RADIUS)
+        {
+            if(r_sub<=0)
+            {
+                double T_sub = dust->getMaxSubTemperature();
+                double R = sources_list[i_star + 3];
+                double T = sources_list[i_star + 4];
+                
+                double L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T;
+                
+                r_sub = R_SUB * sqrt(L / L_sun) * pow(T_sub / 1500, -2.8); 
+            }
+        }
+        
+        photon_package pp;
+        pp.setPosition(pos_star);
+            
+        if(findStartingPoint(&pp))
+        {
+            cell_star = pp.getPositionCell();
+        }
+        else
+            continue;
+        
+        #pragma omp parallel for schedule(dynamic)
+        for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
+        {
+            bool mark = false;
+            cell_basic * current_cell = getCellFromIndex(i_cell);
+            
+            per_counter++;
+
+            // Calculate percentage of total progress per source
+            float percentage = 100 * float(per_counter) / float(max_cells);
+
+            // Show only new percentage number if it changed
+            if((percentage - last_percentage) > step)
+            {   
+                #pragma omp critical
+                {
+
+                    cout << " -> Marking sublimation cells for star " << index +1 
+                            << " of " << nr_stars << " : " << 100.0*float(per_counter)/float(max_cells) << " [%]      \r" << flush;
+                }
+                
+                last_percentage = percentage;
+            }
+
+            if(cell_star==current_cell)
+            {
+                mark=true;
+            }
+
+            if(sub_status>SUB_CENTER && !mark)
+            {
+                if(r_sub>0)
+                {
+                    Vector3D cell_center = getCenter(*current_cell);
+                    Vector3D diff=cell_center-pos_star;
+                    double distance = diff.length();
+
+                    double vol=getVolume(*current_cell);
+                    double rel_dist = cbrt((3.0 * vol) / (PIx4));
+
+                    if(distance< (r_sub+rel_dist))
+                        mark=true;
+                }
+            }
+
+            for(uint i_mixture = 0; i_mixture < nr_mixtures1; i_mixture++)
+            {
+                double sub_temp = dust->getSublimationTemperature(i_mixture);
+                const double T_dust = getDustTemperature(*current_cell, i_mixture);   
+
+                if(T_dust>=sub_temp || mark)
+                {
+                    setDustSubMarker(current_cell, i_mixture, 1);
+                }
+            }
+        }
+    }
+    
+    cout << CLR_LINE;
+    cout << "- Marking sublimation cells: done \n" << flush;
+}
+
+
+void CGridBasic::countMarkedCells()
+{
+    ulong max_cells = getMaxDataCells();
+   
+    if(max_cells==0)
+        return;
+    
+    dust_sub_counter=0;
+
+    cout << CLR_LINE;
+    cout << " -> Counting markers ... \r" << flush;
+            
+    #pragma omp parallel for schedule(dynamic)
+    for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
+    {
+        cell_basic * current_cell = getCellFromIndex(i_cell);
+
+        for(uint i_mixture = 0; i_mixture < nr_mixtures1; i_mixture++)
+        {
+            double marker = getDustSubMarker(*current_cell, i_mixture);
+            
+            if(marker>0)
+            {   
+                #pragma omp atomic update
+                dust_sub_counter++;
+                max_dust_sub1=1;
+                break;
+            }
+        }
+    }
+    
+    cout << CLR_LINE;
+}
+
+
+void CGridBasic::updateMarker(cell_basic * cell, uint i_mixture)
+{
+    if((sub_status & SUB_ERODE) == SUB_ERODE)
+    {
+        setDustSubMarker(cell, i_mixture, 1);
+    }
+}
+
+void CGridBasic::updateMarker(photon_package * pp, uint i_mixture)
+{
+    updateMarker(pp->getPositionCell(), i_mixture);
+}
+
+void CGridBasic::updateMarker(const photon_package & pp, uint i_mixture)
+{
+    cell_basic * cell = const_cast<cell_basic *>(pp.getPositionCell());
+    updateMarker(cell, i_mixture);
 }
 
 void CGridBasic::setSIConversionFactors(parameters & param)
@@ -3632,24 +3912,24 @@ Vector3D CGridBasic::rotateToCenter(const photon_package & pp,
 
 void CGridBasic::setDustTemperature(cell_basic * cell, uint i_density, uint a, double temp)
 {
-    if(!data_pos_dust_temp_list.empty())
+    if(!data_pos_dust_temp_list1.empty())
     {
-        uint id = a + data_pos_dust_temp_list.size();
+        uint id = a + data_pos_dust_temp_list1.size();
         for(uint i = 0; i < i_density; i++)
             id += size_skip[i];
-        cell->setData(data_pos_dust_temp_list[id], temp);
+        cell->setData(data_pos_dust_temp_list1[id], temp);
     }
 }
 
 void CGridBasic::setDustTemperature(cell_basic * cell, uint i_density, double temp)
 {
-    cell->setData(data_pos_dust_temp_list[i_density], temp);
+    cell->setData(data_pos_dust_temp_list1[i_density], temp);
 }
 
 void CGridBasic::setDustTemperature(cell_basic * cell, double temp)
 {
-    for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
-        cell->setData(data_pos_dust_temp_list[i_density], temp);
+    for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
+        cell->setData(data_pos_dust_temp_list1[i_density], temp);
 }
 
 void CGridBasic::setDustTemperature(photon_package * pp, uint i_density, uint a, double temp)
@@ -3786,10 +4066,10 @@ void CGridBasic::setGasDensity(cell_basic * cell, double dens)
 
 double CGridBasic::getQBOffset(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_dust_temp_list.size() == 1)
-        return cell.getData(data_pos_dust_temp_list[0]);
-    else if(data_pos_dust_temp_list.size() > i_density)
-        return cell.getData(data_pos_dust_temp_list[i_density]);
+    if(data_pos_dust_temp_list1.size() == 1)
+        return cell.getData(data_pos_dust_temp_list1[0]);
+    else if(data_pos_dust_temp_list1.size() > i_density)
+        return cell.getData(data_pos_dust_temp_list1[i_density]);
     else
         return 0;
 }
@@ -3801,12 +4081,12 @@ double CGridBasic::getQBOffset(const photon_package & pp, uint i_density) const
 
 double CGridBasic::getQBOffset(const cell_basic & cell, uint i_density, uint a) const
 {
-    if(!data_pos_dust_temp_list.empty())
+    if(!data_pos_dust_temp_list1.empty())
     {
-        uint id = a + data_pos_dust_dens_list.size();
+        uint id = a + data_pos_dust_temp_list1.size();
         for(uint i = 0; i < i_density; i++)
             id += size_skip[i];
-        return cell.getData(data_pos_dust_temp_list[id]);
+        return cell.getData(data_pos_dust_temp_list1[id]);
     }
     else
         return 0;
@@ -3819,26 +4099,61 @@ double CGridBasic::getQBOffset(const photon_package & pp, uint i_density, uint a
 
 void CGridBasic::setQBOffset(cell_basic * cell, uint i_density, uint a, double temp)
 {
-    if(!data_pos_dust_temp_list.empty())
+    if(!data_pos_dust_temp_list1.empty())
     {
-        uint id = a + data_pos_dust_temp_list.size();
+        uint id = a + data_pos_dust_temp_list1.size();
         for(uint i = 0; i < i_density; i++)
             id += size_skip[i];
-        cell->setData(data_pos_dust_temp_list[id], temp);
+        cell->setData(data_pos_dust_temp_list1[id], temp);
     }
 }
 
 void CGridBasic::setQBOffset(cell_basic * cell, uint i_density, double temp)
 {
-    if(data_pos_dust_temp_list.size() == 1)
-        cell->setData(data_pos_dust_temp_list[0], temp);
-    else if(data_pos_dust_temp_list.size() > 1)
-        cell->setData(data_pos_dust_temp_list[i_density], temp);
+    if(data_pos_dust_temp_list1.size() == 1)
+        cell->setData(data_pos_dust_temp_list1[0], temp);
+    else if(data_pos_dust_temp_list1.size() > 1)
+        cell->setData(data_pos_dust_temp_list1[i_density], temp);
 }
 
 uint CGridBasic::getNrAlignedRadii()
 {
     return data_pos_dust_a_alig_list1.size();
+}
+
+bool CGridBasic::isDustSubMarker(const cell_basic & cell, uint i_density) const
+{
+    if(data_pos_dust_sub_list.size()==0)
+        return false;
+    
+    uint marker = 0;
+    
+    if(data_pos_dust_sub_list.size() == 1)
+        marker = (uint)cell.getData(data_pos_dust_sub_list[0]);
+    else if(data_pos_dust_sub_list.size() > i_density)
+        marker = (uint)cell.getData(data_pos_dust_sub_list[i_density]);
+    
+    return (marker==1);    
+}
+
+bool CGridBasic::isDustSubMarker(const photon_package & pp, uint i_density) const
+{
+    return getDustSubMarker(*pp.getPositionCell(), i_density);
+}
+
+uint CGridBasic::getDustSubMarker(const cell_basic & cell, uint i_density) const
+{
+    if(data_pos_dust_sub_list.size() == 1)
+        return (uint)cell.getData(data_pos_dust_sub_list[0]);
+    else if(data_pos_dust_sub_list.size() > i_density)
+        return (uint)cell.getData(data_pos_dust_sub_list[i_density]);
+    else
+        return 0;
+}
+
+uint CGridBasic::getDustSubMarker(const photon_package & pp, uint i_density) const
+{
+    return getDustSubMarker(*pp.getPositionCell(), i_density);
 }
 
 double CGridBasic::getAlignedRadius(const cell_basic & cell, uint i_density) const
@@ -3899,6 +4214,11 @@ double CGridBasic::getLarmRadius(const cell_basic & cell, uint i_density) const
 double CGridBasic::getLarmRadius(const photon_package & pp, uint i_density) const
 {
     return CGridBasic::getLarmRadius(*pp.getPositionCell(), i_density);
+}
+
+void CGridBasic::setDustSubMarker(cell_basic * cell, uint i_density, double m)
+{
+    cell->setData(data_pos_dust_sub_list[i_density], m);
 }
 
 void CGridBasic::setAlignedRadius(cell_basic * cell, uint i_density, double a_alg)
@@ -4433,12 +4753,12 @@ double CGridBasic::getAvgDir(const cell_basic & cell) const
 
 double CGridBasic::getDustTemperature(const cell_basic & cell, uint i_density, uint a) const
 {
-    if(!data_pos_dust_temp_list.empty())
+    if(!data_pos_dust_temp_list1.empty())
     {
-        uint id = a + data_pos_dust_temp_list.size();
+        uint id = a + data_pos_dust_temp_list1.size();
         for(uint i = 0; i < i_density; i++)
             id += size_skip[i];
-        return cell.getData(data_pos_dust_temp_list[id]);
+        return cell.getData(data_pos_dust_temp_list1[id]);
     }
     else
         return 0;
@@ -4451,10 +4771,10 @@ double CGridBasic::getDustTemperature(const photon_package & pp, uint i_density,
 
 double CGridBasic::getDustTemperature(const cell_basic & cell, uint i_density) const
 {
-    if(data_pos_dust_temp_list.size() == 1)
-        return cell.getData(data_pos_dust_temp_list[0]);
-    else if(data_pos_dust_temp_list.size() > i_density)
-        return cell.getData(data_pos_dust_temp_list[i_density]);
+    if(data_pos_dust_temp_list1.size() == 1)
+        return cell.getData(data_pos_dust_temp_list1[0]);
+    else if(data_pos_dust_temp_list1.size() > i_density)
+        return cell.getData(data_pos_dust_temp_list1[i_density]);
     else
         return 0;
 }
@@ -4467,7 +4787,7 @@ double CGridBasic::getDustTemperature(const photon_package & pp, uint i_density)
 double CGridBasic::getDustTemperature(const cell_basic & cell) const
 {
     double sum = 0;
-    for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
+    for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
         sum += getDustTemperature(cell, i_density) * getRelativeDustDensity(cell, i_density);
     return sum;
 }
@@ -4632,12 +4952,20 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_gas_temp1)
             buffer_gas_temp[i_cell] = getGasTemperature(pp);
         
-        if(plt_dust_temp)
+        if(plt_dust_temp1)
         {
-            buffer_dust_temp[i_cell][0] = getDustTemperature(pp);
+            //buffer_dust_temp[i_cell][0] = getDustTemperature(pp);
             // Do it only once if only one dust temperatures is defined
-            for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
-                buffer_dust_temp[i_cell][i_density + 1] = getDustTemperature(pp, i_density);
+            for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
+                buffer_dust_temp1[i_cell][i_density] = getDustTemperature(pp, i_density);
+        }
+        
+        if(plt_dust_sub)
+        {
+            //buffer_dust_temp[i_cell][0] = getDustTemperature(pp);
+            // Do it only once if only one dust temperatures is defined
+            for(uint i_density = 0; i_density < data_pos_dust_sub_list.size(); i_density++)
+                buffer_dust_sub[i_cell][i_density] = getDustSubMarker(pp, i_density);
         }
 
         if(plt_a_alig1)
@@ -4655,7 +4983,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_a_krat1)
         {
             for(uint i_density = 0; i_density < data_pos_dust_a_krat_list1.size(); i_density++)
-                buffer_dust_a_krat1[i_cell][i_density] = getkRATRadius(pp, i_density);
+                buffer_dust_a_krat[i_cell][i_density] = getkRATRadius(pp, i_density);
         }
         
         if(plt_a_rd)
@@ -4680,7 +5008,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_ame_Trot1)
         {
             for(uint i_ame = 0; i_ame < data_pos_ame_Trot_list.size(); i_ame++)
-                buffer_ame_Trot1[i_cell][i_ame] = getAMETrot(pp, i_ame);
+                buffer_ame_Trot[i_cell][i_ame] = getAMETrot(pp, i_ame);
         }
         
         if(plt_ame_a_crit)
@@ -4822,10 +5150,16 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_gas_temp1)
             buffer_gas_temp[i_cell] = 0;
         
-        if(plt_dust_temp)
+        if(plt_dust_temp1)
         {
-            for(uint i_density = 0; i_density < data_pos_dust_temp_list.size(); i_density++)
-                buffer_dust_temp[i_cell][i_density] = 0;
+            for(uint i_density = 0; i_density < data_pos_dust_temp_list1.size(); i_density++)
+                buffer_dust_temp1[i_cell][i_density] = 0;
+        }
+        
+        if(plt_dust_sub)
+        {
+            for(uint i_density = 0; i_density < data_pos_dust_sub_list.size(); i_density++)
+                buffer_dust_sub[i_cell][i_density] = 0;
         }
 
         if(plt_avg_u)
@@ -4851,7 +5185,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_a_krat1)
         {
             for(uint i_density = 0; i_density < data_pos_dust_a_krat_list1.size(); i_density++)
-                buffer_dust_a_krat1[i_cell][i_density] = 0;
+                buffer_dust_a_krat[i_cell][i_density] = 0;
         }
         
         if(plt_a_rd)
@@ -4875,7 +5209,7 @@ void CGridBasic::fillMidplaneBuffer(double tx, double ty, double tz, uint i_cell
         if(plt_ame_Trot1)
         {
             for(uint i_ame = 0; i_ame < data_pos_ame_Trot_list.size(); i_ame++)
-                buffer_ame_Trot1[i_cell][i_ame] = 0;
+                buffer_ame_Trot[i_cell][i_ame] = 0;
         }
         
         if(plt_ame_a_crit)
@@ -4961,7 +5295,7 @@ void CGridBasic::updateMidplaneString(char * str_1, char * str_2, uint counter)
     sprintf_s(str_1, "MIDPLANE%i", counter);
     sprintf_s(str_2, "quantity of %i. image", counter);
 #else
-    sprintf(str_1, "MIDPLANE%i", counter);
+    sprintf(str_1, "MIDPLANE_%i", counter);
     sprintf(str_2, "quantity of %i. image", counter);
 #endif
 }
@@ -5266,12 +5600,12 @@ double CGridBasic::getThetaSync(const photon_package & pp) const
     return Vector3D::getAngleTheta(pp.getDirection(), getMagField(pp))+EPS_DOUBLE;
 }
 
-double CGridBasic::getThetaMag(const photon_package & pp) const
+double CGridBasic::getThetaMagField(const photon_package & pp) const
 {
     return Vector3D::getAngleThetaOff(pp.getDirection(), getMagField(pp));
 }
 
-double CGridBasic::getPhiMag(const photon_package & pp) const
+double CGridBasic::getPhiMagField(const photon_package & pp) const
 {
     // 0 deg are in the e_y direction
     return Vector3D::getAnglePhi(pp.getEX(), pp.getEY(), getMagField(pp)) - PI2;
@@ -5280,6 +5614,17 @@ double CGridBasic::getPhiMag(const photon_package & pp) const
 double CGridBasic::getTheta(const cell_basic & cell, Vector3D & dir) const
 {
     return Vector3D::getAngleTheta(dir, getMagField(cell));
+}
+
+double CGridBasic::getThetaRadField(const photon_package & pp) const
+{
+    return Vector3D::getAngleThetaOff(pp.getDirection(), getAvg_u(pp));
+}
+
+double CGridBasic::getPhiRadField(const photon_package & pp) const
+{
+    // 0 deg are in the e_y direction
+    return Vector3D::getAnglePhi(pp.getEX(), pp.getEY(), getAvg_u(pp)) - PI2;
 }
 
 double CGridBasic::getThetaPhoton(const photon_package & pp, Vector3D & dir) const
@@ -5302,7 +5647,7 @@ double CGridBasic::getTotalGasMass() const
 
 void CGridBasic::setDustTemperatureRange(double _min_dust_temp, double _max_dust_temp)
 {
-    max_dust_temp = _max_dust_temp;
+    max_dust_temp1 = _max_dust_temp;
     min_dust_temp = _min_dust_temp;
 }
 
@@ -5315,15 +5660,15 @@ void CGridBasic::setAlignedRadiusRange(double a_min, double a_max)
 uint CGridBasic::getTemperatureFieldInformation() const
 {
     // Check which kind of temperature calculation the grid supports
-    if(multi_temperature_entries > data_pos_dust_temp_list.size() && data_pos_dust_temp_list.size() == multi_temperature_entries)
+    if(multi_temperature_entries > data_pos_dust_temp_list1.size() && data_pos_dust_temp_list1.size() == multi_temperature_entries)
         return TEMP_FULL;
-    else if(data_pos_dust_temp_list.size() == nr_mixtures1)
+    else if(data_pos_dust_temp_list1.size() == nr_mixtures1)
         return TEMP_EFF;
-    else if(data_pos_dust_temp_list.size() == 1)
+    else if(data_pos_dust_temp_list1.size() == 1)
         return TEMP_SINGLE;
-    else if(data_pos_dust_temp_list.size() == 0)
+    else if(data_pos_dust_temp_list1.size() == 0)
         return TEMP_EMPTY;
-    else if(data_pos_dust_temp_list.size() == stochastic_temperature_entries)
+    else if(data_pos_dust_temp_list1.size() == stochastic_temperature_entries)
         return TEMP_STOCH;
     else
         return MAX_UINT;
@@ -5436,7 +5781,7 @@ bool CGridBasic::setDataPositionsVariable()
                 break;*/
 
             case GRIDdust_temp:
-                data_pos_dust_temp_list.push_back(i);
+                data_pos_dust_temp_list1.push_back(i);
                 break;
 
             case GRIDgas_temp:
@@ -5745,6 +6090,10 @@ bool CGridBasic::setDataPositionsVariable()
 
                 data_pos_ion_Z = i;
                 break; 
+                
+            case GRID_dust_sub:
+                data_pos_dust_sub_list.push_back(i);
+                break;    
                 
             case GRIDratio:
                 nrOfDensRatios++;
@@ -6089,9 +6438,24 @@ uint CGridBasic::CheckTemp(parameters & param, uint & tmp_data_offset)
     // Add entries to grid //todo check if there is already a temp. in the grid
     for(uint i_entries = 0; i_entries < extra_temp_entries; i_entries++)
     {
-        data_pos_dust_temp_list.push_back(data_offset + tmp_data_offset);
+        data_pos_dust_temp_list1.push_back(data_offset + tmp_data_offset);
         data_ids.push_back(GRIDdust_temp);
         tmp_data_offset++;
+    }
+    
+    if(param.getSubStatus()>0)
+    {
+        if(data_pos_dust_sub_list.size() < nr_mixtures1)
+        {
+            uint nr_densities = nr_mixtures1 - data_pos_dust_sub_list.size();
+
+            for(uint i_density = 0; i_density < nr_densities; i_density++)
+            {
+                data_pos_dust_sub_list.push_back(data_offset + tmp_data_offset);
+                data_ids.push_back(GRID_dust_sub);
+                tmp_data_offset++;
+            }
+        }
     }
 
     if(param.getSaveRadiationField())
@@ -6317,8 +6681,8 @@ uint CGridBasic::CheckRat(parameters & param, uint & tmp_data_offset)
 uint CGridBasic::CheckDustEmission(parameters & param)
 {
     // Check if stochastic heating temperatures are saved in grid
-    if(data_pos_dust_temp_list.size() > nr_mixtures1 && data_pos_dust_temp_list.size() < multi_temperature_entries)
-        stochastic_temperature_entries = data_pos_dust_temp_list.size();
+    if(data_pos_dust_temp_list1.size() > nr_mixtures1 && data_pos_dust_temp_list1.size() < multi_temperature_entries)
+        stochastic_temperature_entries = data_pos_dust_temp_list1.size();
 
     if(getTemperatureFieldInformation() == TEMP_EMPTY)
     {
@@ -6426,6 +6790,39 @@ uint CGridBasic::CheckDustEmission(parameters & param)
             return MAX_UINT;
         }
     }
+    
+    if(param.getAligKRAT())
+    {
+        if(data_pos_dust_a_krat_list1.empty())
+        {
+            cout << ERROR_LINE << "Grid contains no dust radius for KRATs!" << endl;
+            cout << "        No dust emission with KRAT alignment possible." << endl;
+            return MAX_UINT;
+        }
+        else if(data_pos_dust_a_krat_list1.size() != 1 && data_pos_dust_a_krat_list1.size() != nr_mixtures1)
+        {
+            cout << ERROR_LINE << "Grid contains not the correct amount of dust radii for KRATs!\n";
+            cout << "        No dust emission with RAT alignment possible.\n";
+            return MAX_UINT;
+        }
+    }
+    
+    if(param.getAligRD())
+    {
+        if(data_pos_dust_a_rd_list.empty())
+        {
+            cout << ERROR_LINE << "Grid contains no dust radius for RD!" << endl;
+            cout << "        No dust emission considering RD is possible." << endl;
+            return MAX_UINT;
+        }
+        else if(data_pos_dust_a_rd_list.size() != 1 && data_pos_dust_a_rd_list.size() != nr_mixtures1)
+        {
+            cout << ERROR_LINE << "Grid contains not the correct amount of dust radii for RD!\n";
+            cout << "        No dust emission considering RD is possible.\n";
+            return MAX_UINT;
+        }
+    }
+        
     return 0;
 }
 

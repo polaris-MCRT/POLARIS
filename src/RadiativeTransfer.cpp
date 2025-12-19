@@ -3140,7 +3140,7 @@ void CRadiativeTransfer::rayThroughCellSync(photon_package * pp, uint i_det, uin
         double len = pp->getTmpPathLength();
 
         // Calculate orientation of the Stokes vector in relation to the detector
-        double phi = grid->getPhiMag(*pp);
+        double phi = grid->getPhiMagField(*pp);
         double theta = grid->getThetaSync(*pp);
 
         double sin_2ph = sin(2.0 * phi);

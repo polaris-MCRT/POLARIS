@@ -304,8 +304,10 @@ using namespace std;
 #define GRID_ni 51
 #define GRID_Z  52
 
+#define GRID_dust_sub  53
+
 #define minGRID GRIDgas_dens
-#define maxGRID GRID_Z
+#define maxGRID GRID_dust_sub
 
 #define MAX_UINT uint(-1)
 #define MAX_DOUBLE double(uint(-1))

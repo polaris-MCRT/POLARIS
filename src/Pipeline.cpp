@@ -59,7 +59,7 @@ bool CPipeline::Init(int argc, char ** argv)
 
     cout << SEP_LINE;
 
-    /*if(argc != 2)
+    if(argc != 2)
     {
         cout << ERROR_LINE << "Wrong amount of arguments!                     \n";
         cout << "       POLARIS requires only the path of a command file!            \n";
@@ -70,12 +70,13 @@ bool CPipeline::Init(int argc, char ** argv)
     CCommandParser parser(argv[1]);/**/
     
     //string filename = "/mnt/c/Users/Stefan/Documents/NetBeansProjects/test_efrem/src/cmd_test";
-    string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
+    //string filename = "/mnt/f/work/krat/cmd_dust";
     //string filename = "/mnt/f/work/velocity_test/cmd_line";
+    //string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
     //string filename = "/mnt/f/work/free/cmd_file";
     //string filename = "/mnt/f/work/velocity_test/cmd_free";
     //string filename = "/mnt/f/work/ecogal/cmd_dust_galaxy";
-    CCommandParser parser(filename);
+    //CCommandParser parser(filename);
     
     if(!parser.parse())
     {
@@ -250,7 +251,7 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
         return false;
     
     grid->createCellList();
-    dust->markCells(grid, param);
+    grid->markCells(dust, param);
     
     // Print helpfull information
     dust->printParameters(param, grid);
@@ -1922,54 +1923,261 @@ void CPipeline::printSourceParameters(parameters & param, bool show_dust)
             (param.isMonteCarloSimulation() || param.getCommand() == CMD_DUST_EMISSION || param.getScatteringToRay()))
         {
             dlist sources_list = param.getPointSources();
-            for(uint s = 0; s < sources_list.size(); s += NR_OF_POINT_SOURCES)
+            
+            uint N_stars=uint(sources_list.size() / NR_OF_POINT_SOURCES);
+            
+            if(N_stars>20)
             {
-                // Index of current source
-                uint pos = s / NR_OF_POINT_SOURCES;
-                cout << "- Star " << pos + 1 << " :\n"
-                        << "    Position    : "
-                        << sources_list[s + 0] << ", "
-                        << sources_list[s + 1] << ", "
-                        << sources_list[s + 2] << " (x,y,z) [m]\n"
-                        << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
-                        << "    Temperature : " << sources_list[s + 4] << " [K]\n"
-                        << "    Sub. radius : " << sources_list[s + 5] << " [m]\n"
-                        << "    Stokes      : "
-                        << sources_list[s + 6] << ", "
-                        << sources_list[s + 7] << " (q,u)" << endl;
-            }
+                double x_min=1e300;
+                double y_min=1e300;
+                double z_min=1e300;
+                
+                double R_min=1e300;
+                double T_min=1e300;
+                double L_min=1e300;
+                
+                double Rs_min=1e300;
+                double q_min = 1e300;
+                double u_min = 1e300;
+                
+                double x_max=-1e300;
+                double y_max=-1e300;
+                double z_max=-1e300;
+                
+                double R_max=-1e300;
+                double T_max=-1e300;
+                double L_max=-1e300;
+                
+                double Rs_max=-1e300;
+                double q_max =-1e300;
+                double u_max =-1e300;                
+                
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_POINT_SOURCES)
+                {                    
+                    double x = sources_list[s + 0];
+                    double y = sources_list[s + 1];
+                    double z = sources_list[s + 2];
+                    
+                    double R = sources_list[s + 3];
+                    double T = sources_list[s + 4];
+                    double Rs = sources_list[s + 5];
+                    
+                    double q = sources_list[s + 6];
+                    double u = sources_list[s + 7];
+                    
+                    double L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T / L_sun;
+                    
+                    x_min = min(x_min,x);
+                    x_max = max(x_max,x);
+                    
+                    y_min = min(y_min,y);
+                    y_max = max(y_max,y);
+                    
+                    z_min = min(z_min,z);
+                    z_max = max(z_max,z);
+                    
+                    R_min=min(R_min,R);
+                    R_max=max(R_max,R);
+                    
+                    T_min=min(T_min,T);
+                    T_max=max(T_max,T);
+                    
+                    L_min=min(L_min,L);
+                    L_max=max(L_max,L);
+                    
+                    Rs_min=min(Rs_min,Rs);
+                    Rs_max=max(Rs_max,Rs);
+                    
+                    
+                    q_min=min(q_min,q);
+                    q_max=max(q_max,q);
+                    
+                    u_min=min(u_min,u);
+                    u_max=max(u_max,u);
+                }
+                
+                cout << "- Stars: " << N_stars << "\n";
+                cout << "   - pos. x     : [" << x_min << ", " << x_max << "] [m]\n";
+                cout << "   - pos. y     : [" << y_min << ", " << y_max << "] [m]\n";
+                cout << "   - pos. z     : [" << z_min << ", " << z_max << "] [m]\n";
+
+                cout << "   - Radius     : [" << R_min << ", " << R_max << "] [R_sun]\n";
+                cout << "   - Temperature: [" << T_min << ", " << T_max << "] [K]\n";
+                cout << "   - Luminosity : [" << L_min << ", " << L_max << "] [L_sun]\n";
+
+                if(Rs_min+Rs_max > 0)
+                    cout << "   - Sub. radius: [" << Rs_min << ", " << Rs_max << "] [m]\n";
+
+                if(abs(q_min)+abs(q_max) + abs(u_min)+abs(u_max) > 0)
+                {
+                    cout << "   - Stokes q   : [" << q_min << ", " << q_max << "] \n";
+                    cout << "   - Stokes u   : [" << u_min << ", " << u_max << "] \n";
+                }
+                cout << flush;
+            }    
+            else
+            {            
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_POINT_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_POINT_SOURCES;
+                    cout << "- Star " << pos + 1 << " :\n"
+                            << "    Position    : "
+                            << sources_list[s + 0] << ", "
+                            << sources_list[s + 1] << ", "
+                            << sources_list[s + 2] << " (x,y,z) [m]\n"
+                            << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
+                            << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                            << "    Sub. radius : " << sources_list[s + 5] << " [m]\n";
+
+                    if(abs(sources_list[s + 6])+abs(sources_list[s + 4])>0)
+                    {
+                        cout << "    Stokes      : "
+                            << sources_list[s + 6] << ", "
+                            << sources_list[s + 7] << " (q,u)\n";
+                    }
+                    
+                    cout << flush;
+                }
+            } 
         }
             // cout << "- Star(s)        : " << param.getNrOfPointSources() << endl;
 
         if(param.getNrOfDiffuseSources() > 0 && (!param.isRaytracingSimulation() || param.getScatteringToRay()))
         {
             dlist sources_list = param.getDiffuseSources();
-            for(uint s = 0; s < sources_list.size(); s += NR_OF_DIFF_SOURCES)
+            
+            uint N_field=uint(sources_list.size() / NR_OF_DIFF_SOURCES);
+            
+            if(N_field>20)
             {
-                // Index of current source
-                uint pos = s / NR_OF_DIFF_SOURCES;
-                cout << "- Starfield " << pos + 1 << " :\n"
-                        << "    Position    : "
-                        << sources_list[s + 0] << ", "
-                        << sources_list[s + 1] << ", "
-                        << sources_list[s + 2] << " (x,y,z) [m]\n"
-                        << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
-                        << "    Temperature : " << sources_list[s + 4] << " [K]\n"
-                        << "    Variance    : " << sources_list[s + 5] 
-                        << ", " << sources_list[s + 6] 
-                        << ", " << sources_list[s + 7] << " [m]\n"
-                        << "    Ellipse     : " << sources_list[s + 8] 
-                        << ", " << sources_list[s + 9] 
-                        << ", " << sources_list[s + 10] << " [m]";
+                double x_min=1e300;
+                double y_min=1e300;
+                double z_min=1e300;
                 
-                if(sources_list[s + 19]+sources_list[s + 20]!=0)
-                {
-                    cout << "\n    Stokes      : "
-                        << sources_list[s + 6] << ", "
-                        << sources_list[s + 7] << " (q,u)";
+                double R_min=1e300;
+                double T_min=1e300;
+                double L_min=1e300;
+                
+                double var_min=1e300;
+                double el_min =1e300;
+                
+                double q_min = 1e300;
+                double u_min = 1e300;
+                
+                double x_max=-1e300;
+                double y_max=-1e300;
+                double z_max=-1e300;
+                
+                double R_max=-1e300;
+                double T_max=-1e300;
+                double L_max=-1e300;
+                
+                double var_max=-1e300;
+                double el_max =-1e300;
+                
+                double q_max =-1e300;
+                double u_max =-1e300;                
+                
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_POINT_SOURCES)
+                {                    
+                    double x = sources_list[s + 0];
+                    double y = sources_list[s + 1];
+                    double z = sources_list[s + 2];
+                    
+                    double R = sources_list[s + 3];
+                    double T = sources_list[s + 4];
+                    
+                    double v1 = sources_list[s + 5];
+                    double v2 = sources_list[s + 6];
+                    double v3 = sources_list[s + 7];
+                    
+                    double e1 = sources_list[s + 8];
+                    double e2 = sources_list[s + 9];
+                    double e3 = sources_list[s + 10];
+                    
+                    double q = sources_list[s + 19];
+                    double u = sources_list[s + 20];
+                    
+                    double L = PIx4 * con_sigma * (R * R_sun) * (R * R_sun) * T * T * T * T / L_sun;
+                    
+                    x_min = min(x_min,x);
+                    x_max = max(x_max,x);
+                    
+                    y_min = min(y_min,y);
+                    y_max = max(y_max,y);
+                    
+                    z_min = min(z_min,z);
+                    z_max = max(z_max,z);
+                    
+                    R_min=min(R_min,R);
+                    R_max=max(R_max,R);
+                    
+                    T_min=min(T_min,T);
+                    T_max=max(T_max,T);
+                    
+                    L_min=min(L_min,L);
+                    L_max=max(L_max,L);
+                    
+                    el_min=min({el_min,e1,e2,e3});
+                    el_max=max({el_max,e1,e2,e3});
+                    
+                    var_min=min({var_min,v1,v2,v3});
+                    var_max=max({var_max,v1,v2,v3});
+                    
+                    q_min=min(q_min,q);
+                    q_max=max(q_max,q);
+                    
+                    u_min=min(u_min,u);
+                    u_max=max(u_max,u);                   
                 }
                 
-                cout << endl;
+                cout << "- Starfields: " << N_field << "\n";
+                cout << "   - pos. x      : [" << x_min << ", " << x_max << "] [m]\n";
+                cout << "   - pos. y      : [" << y_min << ", " << y_max << "] [m]\n";
+                cout << "   - pos. z      : [" << z_min << ", " << z_max << "] [m]\n";
+
+                cout << "   - Temperature : [" << T_min << ", " << T_max << "] [K]\n";
+                cout << "   - Luminosity  : [" << L_min << ", " << L_max << "] [L_sun]\n";
+                cout << "   - Variance    : [" << var_min << ", " << var_max << "] [m]\n";
+                cout << "   - Ellipse     : [" << el_min << ", " << el_max << "] [m]\n";
+
+                if(abs(q_min)+abs(q_max) + abs(u_min)+abs(u_max) > 0)
+                {
+                    cout << "   - Stokes q    : [" << q_min << ", " << q_max << "] \n";
+                    cout << "   - Stokes u    : [" << u_min << ", " << u_max << "] \n";
+                } 
+                cout << flush;
+            }    
+            else
+            {
+                for(uint s = 0; s < sources_list.size(); s += NR_OF_DIFF_SOURCES)
+                {
+                    // Index of current source
+                    uint pos = s / NR_OF_DIFF_SOURCES;
+                    cout << "- Starfield " << pos + 1 << " :\n"
+                            << "    Position    : "
+                            << sources_list[s + 0] << ", "
+                            << sources_list[s + 1] << ", "
+                            << sources_list[s + 2] << " (x,y,z) [m]\n"
+                            << "    Radius      : " << sources_list[s + 3] << " [R_sun]\n"
+                            << "    Temperature : " << sources_list[s + 4] << " [K]\n"
+                            << "    Variance    : " << sources_list[s + 5] 
+                            << ", " << sources_list[s + 6] 
+                            << ", " << sources_list[s + 7] << " [m]\n"
+                            << "    Ellipse     : " << sources_list[s + 8] 
+                            << ", " << sources_list[s + 9] 
+                            << ", " << sources_list[s + 10] << " [m]";
+
+                    if(sources_list[s + 19]+sources_list[s + 20]!=0)
+                    {
+                        cout << "\n    Stokes (q,u): "
+                            << sources_list[s + 19] << ", "
+                            << sources_list[s + 20];
+                    }
+
+                    cout << endl << flush;
+                }
             }
         }
             // cout << "- Star field(s)  : " << param.getNrOfDiffuseSources() << endl;

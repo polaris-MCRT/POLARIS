@@ -133,7 +133,7 @@ public:
         dust_offset = false;
         scat_loaded = false;
         calorimetry_loaded = false;
-        sub_status = 0;
+
         susceptibility=0;
         is_mixture = false;
         //individual_dust_fractions = false;
@@ -178,8 +178,7 @@ public:
         
         mixture_id = 0;
         
-        marker=0;
-        
+     
         // nano grains
         nano_W = 0;
         nano_m0 = 0;
@@ -385,9 +384,7 @@ public:
             delete[] mass;
         if(relWeightTab != 0)
             delete[] relWeightTab;
-            
-        if(marker != 0)
-            delete[] marker;
+
             
         if(nano_arr_a_eff != 0)
             delete[] nano_arr_a_eff;            
@@ -888,10 +885,6 @@ public:
 
     void setScatLoaded(bool val);
 
-    void setSubStatus(int val);
-    
-    bool isErode();
-
     uint getComponentId();
 
     uint getNrOfComponents();
@@ -905,7 +898,7 @@ public:
     double get_alarm(double B, double Td, double Tg, double ng) const
     {        
         //return 1;
-        double den = ng * Td * sqrt(Tg);
+        double den = material_density * ng * Td * sqrt(Tg);
 
         if(den <= 0)
             return 1.0;
@@ -917,7 +910,8 @@ public:
         //2.16e+15
         //2.71e8
         //7.96e14
-        double a_larm = 1.33e21 * susceptibility * B * aspect_ratio * aspect_ratio / den;
+        double a_larm = 1.33e21*293;
+        a_larm *= susceptibility * B * aspect_ratio * aspect_ratio / den;
         
         if(a_larm>1.0)
             a_larm=1.0;
@@ -936,9 +930,9 @@ public:
             return 1.0;
         
         //double mag_chi = 4.2e-4*PIx4*15;
-        //double res = 6.38e-10;     
-        double res = 4.90645e-16;     
-        res *= pow( aspect_ratio*B*susceptibility /den * sqrt(Tg / material_density),2.0/3.0);
+        ///double res = 6.38e-10;     
+        double res = 4.90645e-16*293*10;     
+        res *= (pow( aspect_ratio*B*susceptibility /den * sqrt(Tg / material_density),2.0/3.0));
         
         if(res>1.0)
             res=1.0;
@@ -1048,13 +1042,15 @@ public:
                               const photon_package & pp,
                               uint i_density,
                               double * avg_Cext,
-                              double * avg_Cpol,
-                              double * avg_Ccirc) const;
+                              double * avg_Cpol_cos,
+                              double * avg_Cpol_sin,
+                              double * avg_Ccirc_cos,
+                              double * avg_Ccirc_sin) const;
     void calcCrossSections(CGridBasic * grid,
                            const photon_package & pp,
                            uint i_density,
                            uint a,
-                           double mag_field_theta,
+                           double theta,
                            cross_sections & cs) const;
     double calcGoldReductionFactor(const Vector3D & v, const Vector3D & B) const;
 
@@ -1067,17 +1063,12 @@ public:
                                    const photon_package & pp,
                                    uint i_density,
                                    uint emission_component,
-                                   double phi,
                                    double energy,
                                    Vector3D en_dir) const;
 
     double getCalorimetryA(uint a, uint f, uint i, const spline & abs_rate_per_wl) const;
     
-    bool isMarkedCell(uint id) const;
-    double markerFactor(uint id) const;
-    void setMarker(uint id, char val);
-    void initMarker(uint Nc);
-    uint getNrMarked(uint Nc);
+
     
     
     long double * getStochasticProbability(uint a, const spline & abs_rate_per_wl) const;
@@ -1305,7 +1296,7 @@ private:
 
     bool dust_offset;
     bool scat_loaded, calorimetry_loaded;
-    int sub_status;
+    
     bool is_mixture;
     //bool individual_dust_fractions;
 
@@ -1335,8 +1326,7 @@ private:
     
     uint mixture_id;
     
-    char * marker;
-    
+
     
     //material param. of nano grains
     double nano_W;

@@ -486,7 +486,7 @@ void CDustMixture::printParameters(parameters & param, CGridBasic * grid)
         }
         
         ulong max_cells = grid->getMaxDataCells();
-        uint marked_cells=mixed_component[i_mixture].getNrMarked(max_cells);
+        uint marked_cells = 0;//mixed_component[i_mixture].getNrMarked(max_cells);
         
         if(marked_cells>0)
             cout << "- Nr. of sub. marker      : " << marked_cells << endl;
@@ -660,9 +660,6 @@ void CDustMixture::getNrOfUniqueScatTheta(uint ** & nr_of_scat_theta, double ***
 
 bool CDustMixture::preCalcDustProperties(parameters & param, uint i_mixture)
 {
-    // Set various parameters for the mixture
-    mixed_component[i_mixture].setSubStatus(param.getSubStatus());
-
     // Calculate wavelength differences for temperature (reemission)
     if(param.isTemperatureSimulation() || param.isRatSimulation())
         if(!mixed_component[i_mixture].calcWavelengthDiff())
@@ -737,6 +734,11 @@ double CDustMixture::getAvgMass(uint i_mixture)
 double CDustMixture::getSusceptibility(uint i_mixture)
 {
     return mixed_component[i_mixture].getSusceptibility();
+}
+
+double CDustMixture::getSublimationTemperature(uint i_mixture)
+{
+    return mixed_component[i_mixture].getSublimationTemperature();
 }
 
 bool CDustMixture::writeComponentData(string path_data)
@@ -1342,22 +1344,34 @@ double CDustMixture::getMaxAlignedRadius()
 double CDustMixture::getNumberDensity(CGridBasic * grid, const cell_basic & cell) const
 {
     double sum = 0;
+    
     if(mixed_component != 0)
     {
         if(grid->hasDustChoiceID())
         {
             uint i_mixture = getMixtureID(grid, cell);
-            sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
+            if(!grid->isDustSubMarker(cell,i_mixture))
+            {
+                sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
+            }
         }
         else
         {
             if(grid->getNumberDensityTab(cell.getUniqueID()) != MAX_DOUBLE)
                 sum = grid->getNumberDensityTab(cell.getUniqueID());
             else
+            {
                 for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-                    sum += mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+                {
+                    if(!grid->isDustSubMarker(cell,i_mixture))
+                    {
+                        sum += mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+                    }
+                }
+            }
         }
     }
+    
     return sum;
 }
 
@@ -1374,10 +1388,16 @@ double CDustMixture::getNumberDensity(CGridBasic * grid, const cell_basic & cell
         if(grid->hasDustChoiceID())
         {
             if(i_mixture == getMixtureID(grid, cell))
-                sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
+            {
+                if(!grid->isDustSubMarker(cell,i_mixture))
+                    sum = mixed_component[i_mixture].getNumberDensity(grid, cell);
+            }
         }
         else
-            sum = mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+        {   
+            if(!grid->isDustSubMarker(cell,i_mixture))
+                sum = mixed_component[i_mixture].getNumberDensity(grid, cell, i_mixture);
+        }
     }
     return sum;
 }
@@ -1459,112 +1479,6 @@ double CDustMixture::getRelativeDustMassDensity(CGridBasic * grid, const photon_
     return getRelativeDustMassDensity(grid, *pp.getPositionCell(), i_density);
 }
 
-void CDustMixture::markCells(CGridBasic * grid, parameters & param)
-{
-    ulong max_cells = grid->getMaxDataCells();
-    int sub_status = param.getSubStatus();
-
-    if(sub_status==0)
-        return;
-        
-    if(mixed_component==0)
-        return;
-    
-    cout << CLR_LINE;
-    cout << " -> Initiating sublimation markers ... \r" << flush;
-    for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-    {
-        mixed_component[i_mixture].initMarker(max_cells);
-    }
-    
-    dlist sources_list = param.getPointSources();
-    uint nr_stars = param.getNrOfPointSources();
-
-    for(uint i_star = 0; i_star < sources_list.size(); i_star += NR_OF_POINT_SOURCES)
-    {
-        cout << CLR_LINE;
-        cout << " -> Marking sublimation cells for star " << i_star +1 <<" of " << nr_stars << " : 0%  \r" << flush;
-        
-        uint index = i_star / NR_OF_POINT_SOURCES;
-        cell_basic * cell_star = 0;
-        uint per_counter=0;
-        uint last_percentage=0;
-
-        double r_sub = sources_list[index + 5];
-        Vector3D pos_star = Vector3D(sources_list[index + 0], sources_list[index + 1] ,sources_list[index + 2]);
-
-        photon_package pp;
-        pp.setPosition(pos_star);
-            
-        if(grid->findStartingPoint(&pp))
-        {
-            cell_star = pp.getPositionCell();
-        }
-        
-        #pragma omp parallel for schedule(dynamic)
-        for(long i_cell = 0; i_cell < long(max_cells); i_cell++)
-        {
-            bool mark = false;
-            const cell_basic * current_cell = grid->getCellFromIndex(i_cell);
-            
-            
-            
-            per_counter++;
-
-            // Calculate percentage of total progress per source
-            float percentage = 100 * float(per_counter) / float(max_cells);
-
-            // Show only new percentage number if it changed
-            if((percentage - last_percentage) > PERCENTAGE_STEP)
-            {   
-                #pragma omp critical
-                {
-
-                    cout << " -> Marking sublimation cells for star " << i_star +1 
-                            << " of " << nr_stars << " : " << 100.0*float(per_counter)/float(max_cells) << "       \r" << flush;
-                }
-                
-                last_percentage = percentage;
-            }
-
-            if(cell_star==current_cell)
-            {
-                mark=true;
-            }
-
-            if(sub_status>SUB_CENTER && !mark)
-            {
-                if(r_sub>0)
-                {
-                    Vector3D cell_center = grid->getCenter(*current_cell);
-                    Vector3D diff=cell_center-pos_star;
-                    double distance = diff.length();
-
-                    double vol=grid->getVolume(*current_cell);
-                    double rel_dist = cbrt((3.0 * vol) / (PIx4));
-
-                    if(distance< (r_sub+rel_dist))
-                        mark=true;
-                }
-            }
-
-            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
-            {
-                double sub_temp = mixed_component[i_mixture].getSublimationTemperature();
-                const double T_dust = grid->getDustTemperature(*current_cell, i_mixture);   
-
-                if(T_dust>=sub_temp || mark)
-                {
-                    mixed_component[i_mixture].setMarker(i_cell,1);
-                }
-            }
-        }
-    }
-    
-    cout << CLR_LINE;
-    cout << "- Marking sublimation cells: done \n" << flush;
-}
-
 void CDustMixture::calcEmissivityHz(CGridBasic * grid, const photon_package & pp, StokesVector * dust_emissivity)
 {
     if(mixed_component != 0)
@@ -1608,7 +1522,7 @@ double CDustMixture::calcEmissivity(CGridBasic * grid, const photon_package & pp
 void CDustMixture::calcEmissivityExt(CGridBasic * grid, const photon_package & pp, Matrix2D * dust_ext_matrix) const
 {
     // Init variables
-    double Cext = 0, Cpol = 0, Ccirc = 0;
+    double Cext = 0, Cpol_cos = 0, Cpol_sin = 0, Ccirc_cos = 0, Ccirc_sin=0;
 
     if(mixed_component != 0)
     {
@@ -1616,31 +1530,35 @@ void CDustMixture::calcEmissivityExt(CGridBasic * grid, const photon_package & p
         {
             uint i_mixture = getMixtureID(grid, pp);
             double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp);
-            mixed_component[i_mixture].calcExtCrossSections(grid, pp, 0, &Cext, &Cpol, &Ccirc);
+            
+            mixed_component[i_mixture].calcExtCrossSections(grid, pp, 0, &Cext, &Cpol_cos, &Cpol_sin, &Ccirc_cos, &Ccirc_sin);
+
             Cext *= -dens_dust;
-            Cpol *= -dens_dust;
-            Ccirc *= -dens_dust;
+            Cpol_cos *= -dens_dust;
+            Cpol_sin *= -dens_dust;
+            Ccirc_cos *= -dens_dust;
+            Ccirc_sin *= -dens_dust;
         }
         else
         {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
             {
-                double tmpCext, tmpCpol, tmpCcirc;
-                double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp, i_mixture);
-                mixed_component[i_mixture].calcExtCrossSections(
-                    grid, pp, i_mixture, &tmpCext, &tmpCpol, &tmpCcirc);
-                Cext -= tmpCext * dens_dust;
-                Cpol -= tmpCpol * dens_dust;
-                Ccirc -= tmpCcirc * dens_dust;
+                    double tmpCext, tmpCpol_cos, tmpCpol_sin, tmpCcirc_cos, tmpCcirc_sin;
+                    double dens_dust = mixed_component[i_mixture].getNumberDensity(grid, pp, i_mixture);
+                    
+                    mixed_component[i_mixture].calcExtCrossSections(
+                        grid, pp, i_mixture, &tmpCext, &tmpCpol_cos, &tmpCpol_sin, &tmpCcirc_cos, &tmpCcirc_sin);
+                    
+                    Cext -= tmpCext * dens_dust;
+                    Cpol_cos -= tmpCpol_cos * dens_dust;
+                    Cpol_sin -= tmpCpol_sin * dens_dust;
+                    Ccirc_cos -= tmpCcirc_cos * dens_dust;
+                    Ccirc_sin -= tmpCcirc_sin * dens_dust;
             }
         }
     }
 
     // Create extinction matrix for the dust grains
-    double phi = grid->getPhiMag(pp);
-    double sin_2ph = sin(2.0 * phi);
-    double cos_2ph = cos(2.0 * phi);
-
     // Reset matrix
     dust_ext_matrix->resize(4, 4);
 
@@ -1649,17 +1567,17 @@ void CDustMixture::calcEmissivityExt(CGridBasic * grid, const photon_package & p
     dust_ext_matrix->setValue(2, 2, Cext);
     dust_ext_matrix->setValue(3, 3, Cext);
 
-    dust_ext_matrix->setValue(0, 1, Cpol * cos_2ph);
-    dust_ext_matrix->setValue(0, 2, Cpol * sin_2ph);
+    dust_ext_matrix->setValue(0, 1, Cpol_cos);
+    dust_ext_matrix->setValue(0, 2, Cpol_sin);
 
-    dust_ext_matrix->setValue(1, 0, Cpol * cos_2ph);
-    dust_ext_matrix->setValue(2, 0, Cpol * sin_2ph);
+    dust_ext_matrix->setValue(1, 0, Cpol_cos);
+    dust_ext_matrix->setValue(2, 0, Cpol_sin);
 
-    dust_ext_matrix->setValue(1, 3, Ccirc * sin_2ph);
-    dust_ext_matrix->setValue(2, 3, -Ccirc * cos_2ph);
+    dust_ext_matrix->setValue(1, 3, Ccirc_sin);
+    dust_ext_matrix->setValue(2, 3, -Ccirc_cos);
 
-    dust_ext_matrix->setValue(3, 1, -Ccirc * sin_2ph);
-    dust_ext_matrix->setValue(3, 2, Ccirc * cos_2ph);
+    dust_ext_matrix->setValue(3, 1, -Ccirc_sin);
+    dust_ext_matrix->setValue(3, 2, Ccirc_cos);
 }
 
 void CDustMixture::calcEmissivityEmi(CGridBasic * grid,
@@ -1670,7 +1588,6 @@ void CDustMixture::calcEmissivityEmi(CGridBasic * grid,
 {
     // Init variables
     double energy = 0;
-    double phi = grid->getPhiMag(pp);
     Vector3D en_dir;
 
     // Check if radiation field is available and scattering should be included
@@ -1698,14 +1615,14 @@ void CDustMixture::calcEmissivityEmi(CGridBasic * grid,
         {
             uint i_mixture = getMixtureID(grid, pp);
             *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
-                grid, pp, 0, emission_component, phi, energy, en_dir);
+                grid, pp, 0, emission_component, energy, en_dir);
         }
         else
         {
             for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
             {
                 *dust_emissivity += mixed_component[i_mixture].calcEmissivityEmi(
-                    grid, pp, i_mixture, emission_component, phi, energy, en_dir);
+                    grid, pp, i_mixture, emission_component, energy, en_dir);
             }
         }
     }

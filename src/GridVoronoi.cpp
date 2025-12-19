@@ -867,6 +867,9 @@ bool CGridVoronoi::isHullPoint(uint id)
 {
     uint N = hull_size;
     uint min = 0, max = N - 1;
+    
+    if(N==0)
+        return false;
 
     if(id < hull_list[min].id)
         return false;

@@ -15,6 +15,9 @@
 #include "Stokes.hpp"
 #include "Typedefs.hpp"
 
+
+class CDustMixture;
+
 // Additional Structure
 struct VelFieldInterp
 {
@@ -87,7 +90,10 @@ public:
         max_gas_temp = -1e300;
 
         min_dust_temp = 1e300;
-        max_dust_temp = -1e300;
+        max_dust_temp1 = -1e300;
+
+        max_dust_sub1 = 0;
+        dust_sub_counter = 0;
 
         min_gas_dens = 1e300;
         max_gas_dens = -1e300;
@@ -251,7 +257,9 @@ public:
         plt_mol_dens = false;
         plt_dust_dens = false;
         plt_gas_temp1 = false;
-        plt_dust_temp = false;
+        plt_dust_temp1 = false;
+        plt_dust_sub = false;
+                
         plt_mag = false;
         plt_vel = false;
 
@@ -294,8 +302,9 @@ public:
         buffer_mol_dens = 0;
         buffer_dust_dens = 0;
         buffer_gas_temp = 0;
-        buffer_dust_temp = 0;
-
+        buffer_dust_temp1 = 0;
+        
+        buffer_dust_sub = 0;
 
         buffer_mag = 0;
         buffer_mag_x = 0;
@@ -334,7 +343,7 @@ public:
 
         buffer_dust_a_alig1 = 0;
         buffer_dust_a_larm = 0;
-        buffer_dust_a_krat1 = 0;
+        buffer_dust_a_krat = 0;
         buffer_dust_a_rd = 0;
 
         buffer_ion_n_i = 0;
@@ -342,7 +351,7 @@ public:
         
         buffer_ame_Zgr = 0;
         buffer_ame_Zs = 0;
-        buffer_ame_Trot1 = 0;
+        buffer_ame_Trot = 0;
         buffer_ame_acrit = 0;
 
         turbulent_velocity = 0;
@@ -356,6 +365,8 @@ public:
         numberDensityTab = 0;
         totalCellEmissionTab = 0;
         max_wavelengths = 0;
+        
+        sub_status = 0;
     }
 
     virtual ~CGridBasic(void)
@@ -504,6 +515,16 @@ public:
     virtual bool createCellList() = 0;
 
     cell_basic * getCellFromIndex(ulong i);
+    
+    void markCells(CDustMixture * dust,parameters & param);
+    void countMarkedCells();
+    
+    void updateMarker(cell_basic * cell, uint i_mixture);
+    
+    void updateMarker(photon_package * pp, uint i_mixture);
+    
+    void updateMarker(const photon_package & pp, uint i_mixture);
+    
 
     void setSIConversionFactors(parameters & param);
 
@@ -663,6 +684,15 @@ public:
     uint getNrAlignedRadii();
 
     double getAlignedRadius(const cell_basic & cell, uint i_density) const;
+    
+    uint getDustSubMarker(const cell_basic & cell, uint i_density) const;
+    
+    uint getDustSubMarker(const photon_package & pp, uint i_density) const;
+    
+    bool isDustSubMarker(const cell_basic & cell, uint i_density) const;
+    
+    bool isDustSubMarker(const photon_package & pp, uint i_density) const;
+
 
     double getAlignedRadius(const photon_package & pp, uint i_density) const;
     
@@ -679,6 +709,8 @@ public:
     double getLarmRadius(const photon_package & pp, uint i_density) const;    
 
     void setAlignedRadius(cell_basic * cell, uint i_density, double a_alg);
+    
+    void setDustSubMarker(cell_basic * cell, uint i_density, double m);
     
     void setLarmRadius(cell_basic * cell, uint i_density, double a_larm);
     
@@ -971,9 +1003,13 @@ public:
     
     double getThetaSync(const photon_package & pp) const;
 
-    double getThetaMag(const photon_package & pp) const;
+    double getThetaMagField(const photon_package & pp) const;
 
-    double getPhiMag(const photon_package & pp) const;
+    double getPhiMagField(const photon_package & pp) const;
+    
+    double getThetaRadField(const photon_package & pp) const;
+
+    double getPhiRadField(const photon_package & pp) const;
 
     double getTheta(const cell_basic & cell, Vector3D & dir) const;
 
@@ -1037,8 +1073,11 @@ protected:
     double max_gas_temp;
     double min_gas_temp;
 
-    double max_dust_temp;
+    double max_dust_temp1;
     double min_dust_temp;
+    
+    double max_dust_sub1;
+    long dust_sub_counter;
 
     double max_mach;
     double min_mach;
@@ -1159,7 +1198,8 @@ protected:
     //uilist data_pos_gd_list;
     
     uilist data_pos_dust_dens_list;
-    uilist data_pos_dust_temp_list;
+    uilist data_pos_dust_temp_list1;
+    uilist data_pos_dust_sub_list;
     
     
     
@@ -1232,7 +1272,8 @@ protected:
     bool plt_mol_dens;
     bool plt_dust_dens;
     bool plt_gas_temp1;
-    bool plt_dust_temp;
+    bool plt_dust_temp1;
+    bool plt_dust_sub;
     bool plt_mag;
     bool plt_vel;
     
@@ -1277,13 +1318,16 @@ protected:
 
     double total_volume;
     double cell_volume;
+    
+    uint sub_status;
 
     double * buffer_gas_dens1;
     double * buffer_gas_temp;
     
     double ** buffer_mol_dens;
     double ** buffer_dust_dens;
-    double ** buffer_dust_temp;
+    double ** buffer_dust_temp1;
+    double ** buffer_dust_sub;
     
     double * buffer_mag;
     double * buffer_mag_x;
@@ -1321,12 +1365,12 @@ protected:
     
     double ** buffer_dust_a_alig1;
     double ** buffer_dust_a_larm;
-    double ** buffer_dust_a_krat1;
+    double ** buffer_dust_a_krat;
     double ** buffer_dust_a_rd;
     
     double ** buffer_ame_Zgr;
     double ** buffer_ame_Zs;
-    double ** buffer_ame_Trot1;
+    double ** buffer_ame_Trot;
     double ** buffer_ame_acrit;
     
     double * buffer_ion_n_i;

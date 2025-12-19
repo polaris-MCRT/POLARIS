@@ -125,6 +125,7 @@ private:
     unsigned char ru[4];
 
     Vector3D ** det_coord_systems;
+
 };
 
 #endif /* CPIPELINE_H */
