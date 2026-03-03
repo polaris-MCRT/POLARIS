@@ -1597,6 +1597,176 @@ void CRadiativeTransfer::rayThroughCellForLvlPop(photon_package * pp,
     return true;
 }*/
 
+bool CRadiativeTransfer::sampleSEDs(string path_data, double _r_sub, double _dr, bool _use_energy_density)
+{
+    if(_r_sub<=0)
+        return true;
+    
+    if(!_use_energy_density)
+        return true;
+    
+    double max_r = 0.5*grid->getMaxLength();
+    uint nr_samples = uint(max_r/ _r_sub + 0.5);
+    
+    if(nr_samples > 1e5)
+    {
+        cout << WARNING_LINE << "SED sampling with a number of radii (" << nr_samples << ") larger than 10^5!\n\t";
+        cout << "Change parameters of the command \"<sample_sed>\"!\n";
+    }
+    
+    double d_r = _dr;
+    double d_z = _dr;
+    
+    if(_dr==0)
+    {
+        d_r = 0.5 * _r_sub;
+        d_z = max_r;
+    }
+    
+    string sed_filename = path_data + "SEDs_radial.txt";
+    
+    ofstream writer(sed_filename.c_str());
+
+    // Error message if the write does not work
+    if(writer.fail())
+    {
+        cout << ERROR_LINE << "Cannot write to:\n\t" << sed_filename << endl;
+        return false;
+    }
+
+    ulong nr_cells = grid->getMaxDataCells();
+    ulong nr_wavelength = dust->getNrOfWavelength();
+    ulong prog_counter = 0;
+    
+    Matrix2D results_cyl(nr_samples, nr_wavelength);
+    Matrix2D results_sph(nr_samples, nr_wavelength);
+    
+    cout << CLR_LINE;
+    cout << " -> Sampling SEDs from grid: 0 [%]         \r";
+    
+    dlist lst_r, lst_r_min, lst_r_max;
+    
+    for(uint is = 0; is < nr_samples; is++)
+    {   
+        double r = is*_r_sub;
+        double r_min =  r - d_r;
+        double r_max =  r + d_r;
+        
+        lst_r.push_back(r);
+        lst_r_min.push_back(r_min);
+        lst_r_max.push_back(r_max);
+        
+        uint cyl_counter = 0;
+        uint sph_counter = 0;
+        
+        cout << " -> Sampling SEDs from grid: " << 100.0*float(is)/float(nr_samples) << " [%]         \r";
+        
+        #pragma omp parallel for schedule(dynamic)
+        for(long c_i = 0; c_i < long(nr_cells); c_i++)
+        {
+            cell_basic * cell = grid->getCellFromIndex(c_i);
+
+            Vector3D c = grid->getCenter(*cell);
+            
+            double V = grid->getVolume(*cell);
+            double A = pow(36*PI,1./3.)*pow(V,2./3.);
+            
+            double r_cyl = sqrt(c.X()*c.X() + c.Y()*c.Y());
+            double r_sph = c.length();
+            double Z = c.Z();
+            
+            if( r_min < r_cyl && r_cyl < r_max   && 
+                -d_z < Z && Z < d_z )
+            {
+                #pragma omp critical
+                {
+                    cyl_counter++;
+                    
+                    for(int il=0; il<nr_wavelength; il++)
+                    {
+                        double J = grid->getSpecLength(*cell, il)/V;
+                        results_cyl.addValue(is, il, J);
+                    }
+                }
+            }
+            
+            if(r_min < r_sph && r_cyl < r_max)
+            {
+                #pragma omp critical
+                {
+                    sph_counter++;
+                    
+                    for(int il=0; il<nr_wavelength; il++)
+                    {
+                        double J = grid->getSpecLength(*cell, il)/V;
+                        results_sph.addValue(is, il, J);
+                    }
+                }
+            }
+        }
+        
+        if(cyl_counter>0)
+        {
+            for(int il=0; il<nr_wavelength; il++)
+            {
+                double J = results_cyl(is, il);
+                results_cyl.setValue(is, il, J/double(cyl_counter));
+            }
+        }
+        
+        if(sph_counter>0)
+        {
+            for(int il=0; il<nr_wavelength; il++)
+            {
+                double J = results_sph(is, il);
+                results_sph.setValue(is, il, J/double(sph_counter));
+            }
+        }
+    }
+    
+    writer << "#Ns \t r [m]\tdr [m]\tdz [m]\n";
+    
+    writer << nr_samples << "\t" << _r_sub << "\t" << d_r << "\t" << d_z << "\n";
+    
+    writer << "#r_center [m]\n";
+    
+    for(int i =0; i<lst_r.size(); i++)
+    {
+        if(i<lst_r.size()-1)
+            writer << lst_r[i] << "\t";
+        else
+            writer << lst_r[i] << "\n";
+    }
+    
+    writer << "l [m]";
+        
+    for(int is=0; is < nr_samples; is++)
+        writer << "\tr_cyl_" << is+1;
+    
+    for(int is=0; is < nr_samples; is++)
+        writer << "\tr_spy_" << is+1;
+    
+    writer << "\n";
+    
+    for(int il=0; il<nr_wavelength; il++)
+    {
+        writer << dust->getWavelength(il);
+        
+        for(uint is = 0; is < nr_samples; is++)
+            writer << "\t" << results_cyl(is, il);
+                    
+        for(uint is = 0; is < nr_samples; is++)
+            writer << "\t" << results_sph(is, il);                   
+        
+        writer << "\n";        
+    }
+    
+    writer.close();
+        
+    return true;
+}
+
+
 bool CRadiativeTransfer::calcPolMapsViaMC()
 {
     // Init variables
@@ -3703,6 +3873,9 @@ void CRadiativeTransfer::rayThroughCellDust(photon_package * pp, uint i_det, uin
                     // If too many sub steps are needed, kill the photon
                     if(kill_counter >= MAX_SOLVER_STEPS)
                     {
+                        
+                        dust_extinction_matrix.printMatrix();
+                        
                         cout << WARNING_LINE << "Solver steps > " << MAX_SOLVER_STEPS << ". Too many steps!"
                              << endl;
                         break;

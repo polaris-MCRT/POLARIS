@@ -931,7 +931,7 @@ public:
         
         //double mag_chi = 4.2e-4*PIx4*15;
         ///double res = 6.38e-10;     
-        double res = 4.90645e-16*293*10;     
+        double res = 4.90645e-16 * 1e6;     
         res *= (pow( aspect_ratio*B*susceptibility /den * sqrt(Tg / material_density),2.0/3.0));
         
         if(res>1.0)

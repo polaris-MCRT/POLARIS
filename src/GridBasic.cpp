@@ -3259,7 +3259,7 @@ void CGridBasic::markCells(CDustMixture * dust, parameters & param)
     sub_status = param.getSubStatus();
     uint nr_stars = param.getNrOfPointSources();
     
-    double step = 1.0;
+    double step = 2.0;
     
     if(max_cells==0)
         return;
@@ -3331,6 +3331,7 @@ void CGridBasic::markCells(CDustMixture * dust, parameters & param)
             bool mark = false;
             cell_basic * current_cell = getCellFromIndex(i_cell);
             
+            #pragma omp atomic update
             per_counter++;
 
             // Calculate percentage of total progress per source

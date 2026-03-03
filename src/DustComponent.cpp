@@ -5236,14 +5236,15 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
-        if(sizeIndexUsed(a, a_min, a_max))
+        if((alignment & ALIG_RD) == ALIG_RD)
         {
-            if((alignment & ALIG_RD) == ALIG_RD)
-            {
-                if(a_rd>0 && a_eff[a]>a_rd)
-                    continue;
-            }
-            
+            if(a_rd>0 && a_eff[a]>a_rd)
+                continue;
+        }
+        
+        
+        if(sizeIndexUsed(a, a_min, a_max))
+        {           
             double theta=0.0;
             double phi=0.0;
             
@@ -5380,9 +5381,17 @@ StokesVector CDustComponent::calcEmissivityEmi(CGridBasic * grid,
     // Delete pointer arrays
     delete[] rel_weight;
     delete[] tmp_stokes;
+    
+    if(final_stokes.I()<=0)
+        int tt=0;
+        
+    if(final_stokes.I()>1e100)
+        int tt=0;    
 
     // Multiply with number density
     final_stokes *= getNumberDensity(grid, pp, i_density);
+    
+
 
     return final_stokes;
 }
@@ -5440,13 +5449,23 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
 
     for(uint a = 0; a < nr_of_dust_species; a++)
     {
+        // Set cross-sections to zero for the unused grain size
+        Cext[a] = 0;
+
+        Cpol_cos[a] = 0;
+        Cpol_sin[a] = 0;
+
+        Ccirc_cos[a] = 0;
+        Ccirc_sin[a] = 0;
+        
+        if((alignment & ALIG_RD) == ALIG_RD)
+        {
+            if(a_rd>0 && a_eff[a]>a_rd)
+                continue;
+        }
+        
         if(sizeIndexUsed(a, a_min, a_max))
         {
-            if((alignment & ALIG_RD) == ALIG_RD)
-            {
-                if(a_rd>0 && a_eff[a]>a_rd)
-                    continue;
-            }
             
             double theta=0.0;
             double phi=0.0;
@@ -5490,17 +5509,6 @@ void CDustComponent::calcExtCrossSections(CGridBasic * grid,
             
             Ccirc_cos[a] = cos_2ph*cs.Ccirc * rel_weight[a];
             Ccirc_sin[a] = sin_2ph*cs.Ccirc * rel_weight[a];
-        }
-        else
-        {
-            // Set cross-sections to zero for the unused grain size
-            Cext[a] = 0;
-            
-            Cpol_cos[a] = 0;
-            Cpol_sin[a] = 0;
-            
-            Ccirc_cos[a] = 0;
-            Ccirc_sin[a] = 0;
         }
     }
 

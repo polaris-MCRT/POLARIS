@@ -544,7 +544,7 @@ void CRaytracingHealPix::preparePhoton(photon_package * pp, double cx, double cy
     tmp_ex.setY(cos(phi));
     tmp_ex.setZ(0);
 
-    start_pos += max_length * tmp_ez + det_pos;
+    start_pos += 1e3*max_length * tmp_ez + det_pos;
 
     pp->setPosition(start_pos);
     pp->setEX(tmp_ex);

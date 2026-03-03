@@ -38,6 +38,9 @@ public:
     ~CPipeline(void)
     {}
 
+    
+    
+        
     bool calcMonteCarloRadiationField(parameters & param);
 
     bool calcDustMapsViaRayTracing(parameters & param);

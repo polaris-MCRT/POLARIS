@@ -108,8 +108,8 @@ using namespace std;
 
 // Parameter for numerical limitations
 #define MAX_LVG_ITERATIONS 200
-#define MAX_INTERACTION_RADFIELD 1e7
-#define MAX_INTERACTION_DUST_MC 1e7
+#define MAX_INTERACTION_RADFIELD 1e5 //1e7
+#define MAX_INTERACTION_DUST_MC 1e5 //1e7
 #define MAX_RT_RAYS 1e7
 #define MIN_LEN_STEP 1e2
 #define ACC_SELECT_LEVEL 1e-6
@@ -129,7 +129,7 @@ using namespace std;
 // Limits of the Runge-Kutta-Fehlberg raytracing method
 #define REL_ERROR 1e-6
 #define ABS_ERROR 1e-30
-#define MAX_SOLVER_STEPS 15000000
+#define MAX_SOLVER_STEPS 150000
 
 // Limits for the Monte-Carlo level population calculation
 #define MC_LVL_POP_DIFF_LIMIT 1e-6

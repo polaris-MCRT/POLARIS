@@ -75,7 +75,10 @@ bool CPipeline::Init(int argc, char ** argv)
     //string filename = "/mnt/f/work/velocity_test/cmd_dust_new";
     //string filename = "/mnt/f/work/free/cmd_file";
     //string filename = "/mnt/f/work/velocity_test/cmd_free";
-    //string filename = "/mnt/f/work/ecogal/cmd_dust_galaxy";
+    //string filename = "/mnt/f/work/ecogal_MW/cmd_dust_galaxy";
+    
+    //string filename = "/mnt/c/Users/stefa/Documents/work/krat/cmd_pol_ad_01";
+    //string filename = "/mnt/c/Users/stefa/Documents/work/pol_test/cmd_pol";
     //CCommandParser parser(filename);
     
     if(!parser.parse())
@@ -220,6 +223,8 @@ void CPipeline::Error()
     cout << SEP_LINE << endl;
 }
 
+
+
 bool CPipeline::calcMonteCarloRadiationField(parameters & param)
 {
     // Check if the energy density is used instead of launching photons with fixed energy
@@ -311,6 +316,9 @@ bool CPipeline::calcMonteCarloRadiationField(parameters & param)
     cout << SEP_LINE;
 
     if(!grid->writeMidplaneFits(path_data + "output_", param, param.getOutMidDataPoints()))
+        return false;
+    
+    if(!rad.sampleSEDs(path_data, param.getSEDRadius(), param.getSEDRange(), use_energy_density))
         return false;
 
     if(param.getSaveRadiationField())

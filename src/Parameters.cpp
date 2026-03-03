@@ -25,6 +25,16 @@ uint parameters::getNrOfOPIATESpecies()
     return uint(opiate_spec_ids.size());
 }
 
+double parameters::getSEDRadius()
+{
+    return r_sed;
+}
+
+double parameters::getSEDRange()
+{
+    return dr_sed;
+}
+
 const Vector3D & parameters::getAxis1() const
 {
     return axis1;
@@ -716,6 +726,11 @@ uint parameters::getStop() const
     return stop;
 }
 
+void parameters::setSEDRadius(double r, double dr)
+{
+    r_sed=r;
+    dr_sed=dr;
+}
 
 void parameters::setOpiatePathEmission(string str)
 {

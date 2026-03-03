@@ -112,7 +112,7 @@ public:
 
     // Temperature calculation and RATs
     bool calcMonteCarloRadiationField(uint command, bool use_energy_density, bool disable_reemission = false);
-
+    
     bool calcMonteCarloLvlPopulation(uint i_species, uint global_seed);
 
     void rayThroughCellForLvlPop(photon_package * pp,
@@ -122,6 +122,8 @@ public:
 
     // Set temperature (old!)
     // bool setTemperatureDistribution();
+    
+    bool sampleSEDs(string path_data, double r_sub, double dr, bool use_energy_density);
 
     // Dust scattered light
     bool calcPolMapsViaMC();

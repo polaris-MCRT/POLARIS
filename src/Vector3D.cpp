@@ -440,7 +440,8 @@ double Vector3D::getAngleThetaOff(Vector3D lhs, Vector3D rhs)
     if(arg > 1.0)
         arg = 1.0;
 
-    return abs(0.5*PI-acos(arg));
+    return abs(acos(arg));
+    //return abs(0.5*PI-acos(arg));
     // return abs(0.5*PI-acos((lhs.X()*rhs.X()+lhs.Y()*rhs.Y()+lhs.Z()*rhs.Z())
     //	/(lhs.length()*rhs.length()) ));
 }

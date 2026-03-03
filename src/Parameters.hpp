@@ -74,8 +74,10 @@ public:
         is_speed_of_sound = false;
         vel_maps_fits = false;
         
+        r_sed = 0;
+        dr_sed = 0;
+                      
         heal_type = 0;
-
         
         fits_map_IDs=0;
         
@@ -147,8 +149,7 @@ public:
         opiata_path_abs="";
     }
 
-    ~parameters()
-    {}
+    ~parameters(){}
 
     string getOpiatePathEmission();
 
@@ -157,6 +158,10 @@ public:
     string getOpiateSpec(uint pos);
 
     uint getNrOfOPIATESpecies();
+    
+    double getSEDRadius();
+    
+    double getSEDRange();
 
     const Vector3D & getAxis1() const;
 
@@ -412,6 +417,8 @@ public:
     uint getStart() const;
 
     uint getStop() const;
+    
+    void setSEDRadius(double r, double dr);
 
     void setOpiatePathEmission(string str);
 
@@ -816,7 +823,9 @@ private:
     
     uint fits_map_IDs;
     
-
+    double r_sed;
+    double dr_sed;
+    
     bool dust_offset, dust_gas_coupling;
     bool full_dust_temp, save_radiation_field;
     bool scattering_to_raytracing;

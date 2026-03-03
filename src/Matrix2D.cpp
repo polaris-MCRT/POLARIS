@@ -242,8 +242,10 @@ void Matrix2D::unityMatrix(uint m, uint n)
 double Matrix2D::sum()
 {
     double sum = 0;
+    
     for(uint i = 0; i < m_size; i++)
         sum += m_data[i];
+    
     return sum;
 }
 

@@ -1127,6 +1127,39 @@ bool CCommandParser::parseLine(parameters * param, string cmd, string data, uint
 
         return true;
     }
+    
+    if(cmd.compare("<sample_sed>") == 0)
+    {
+        dlist values = parseValues(data);
+        
+        if(values.size() == 0 || values.size() > 2)
+        {
+            cout << ERROR_LINE << "Wrong number of parameters in command \"<sample_sed>\"!   \n";
+            return false;
+        }
+            
+        double r_sed = values[0];
+        double dr_sed = 0;
+        
+        if(values.size() == 2)
+            dr_sed = values[1];
+        
+        if(r_sed<=0)
+        {
+            cout << ERROR_LINE << "SED sample radius has to be larger than zero!\n";
+            return false;
+        }
+        
+        if(dr_sed<0)
+        {
+            cout << ERROR_LINE << "SED sample range  has to be larger than or equal to zero!\n";
+            return false;
+        }
+        
+        param->setSEDRadius(r_sed, dr_sed);
+        
+        return true;
+    }
 
     if(cmd.compare("<detector_opiate_healpix nr_sides = vel_channels = >") == 0)
     {
